@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Champions of the Supernal Interregnum — Codex Build</title>
+<link rel="stylesheet" href="./styles/codex.css">
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup">
+  <div class="setup-card">
+    <h1>Champions of the Supernal Interregnum</h1>
+    <div class="setup-sub">An illuminated manuscript hex-crawl. Seven broken gods. One Paley paradox. — Codex v2 modular build</div>
+    <div class="setup-grid">
+      <div class="panel">
+        <h4>World seed</h4>
+        <input id="seedInput" value="glut-17" style="width:100%;padding:10px 12px;border:1px solid #c49b5a;border-radius:10px;background:#fff7df;font-family:Georgia,serif;font-size:16px">
+        <div style="margin-top:14px">
+          <h4>Map size</h4>
+          <span class="size-pill" data-r="5">Small — Codex Leaf</span>
+          <span class="size-pill active" data-r="7">Medium — Sundered Expanse</span>
+          <span class="size-pill" data-r="9">Large — Godgrave</span>
+        </div>
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label>Relic target<br><input id="relicTarget" type="number" min="3" max="12" value="7" style="width:100%;padding:9px;border:1px solid #c49b5a;border-radius:9px;background:#fff7df"></label>
+          <label style="display:flex;align-items:center;gap:8px;margin-top:20px"><input type="checkbox" id="optLast" checked> Last Standing</label>
+        </div>
+        <p class="mini" style="margin-top:10px">Seeded manuscript terrain: plains • forest • desert • marsh • mountains • broken water. Fog of War = visible / explored. Dig on empty parchment at night.</p>
+      </div>
+      <div class="panel">
+        <h4>Choose your champions (2–7)</h4>
+        <div id="factionList"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px;flex-wrap:wrap">
+          <div class="mini">Click a faction to toggle. Click Human/Bot to switch. Paley: i beats i+1,i+2,i+4.</div>
+          <button class="btn-gold" id="beginBtn">Begin Interregnum ▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game">
+  <div class="game-header">
+    <div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:#7a5634" id="dayLabel">Day 1 • Rainbow Aftermath</div>
+      <div style="font-family:Georgia,serif;font-size:20px;font-weight:700">Supernal Interregnum — Codex Manuscript</div>
+    </div>
+    <div class="mini">Paley paradox • seed-based • v2 modular</div>
+  </div>
+
+  <aside class="leftbar" id="leftMount">
+    <!-- JS inject -->
+  </aside>
+
+  <section class="mapwrap">
+    <div class="map-hud">
+      Moves <span class="moves-pill" id="hudMoves">5</span>
+      • Sight <b id="hudSight">4</b>
+      • <span id="hudPos">0,0</span>
+    </div>
+    <div id="mapMount"></div>
+  </section>
+
+  <aside class="rightbar" id="rightMount">
+    <!-- JS inject -->
+  </aside>
+
+  <div style="grid-column:1/-1;background:#ead6a8cc;border-top:1px solid #c5a36a66;padding:10px 16px">
+    <div id="logMount"></div>
+  </div>
+</div>
+
+<!-- COMBAT MODAL -->
+<div class="modal" id="combatModal">
+  <div class="modal-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h2 style="margin:0">Supernal Duel — Paley Weave</h2>
+      <div id="combatRoundLabel" style="font-size:13px;color:#7a5634">Round 1</div>
+    </div>
+    <div class="combat-arena">
+      <div class="combatant" id="leftCombat"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="font-family:Georgia,serif;font-size:22px;color:#b88728;font-weight:800">VS</div>
+        <div class="mini" id="combatOrder">Order …</div>
+      </div>
+      <div class="combatant" id="rightCombat"></div>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <div class="play-slots">
+        <div class="play-slot" id="sA1">Pick 1</div>
+        <div class="play-slot" id="sA2">Pick 2</div>
+        <div style="display:flex;align-items:center;color:#a77">→</div>
+        <div class="play-slot" id="sB1">???</div>
+        <div class="play-slot" id="sB2">???</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;max-width:520px;margin:4px auto 0;font-size:13px;color:#6a4a2a">
+        <span>Score <span class="cs-big" id="csLeft">—</span></span>
+        <span><span class="cs-big" id="csRight">—</span> Score</span>
+      </div>
+      <div id="combatLog" class="mini" style="min-height:22px;margin-top:4px"></div>
+      <div style="margin-top:10px;display:flex;gap:10px;justify-content:center">
+        <button class="btn-gold" id="commitCombat" onclick="commitCombat()" disabled>Commit weave</button>
+        <button class="btn" onclick="document.getElementById('combatModal').style.display='none'">Flee</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REWARD MODAL -->
+<div class="modal" id="rewardModal">
+  <div class="reward-card">
+    <h2 id="rewardTitle" style="margin:0 0 6px;color:#9a5a12;font-family:Georgia,serif">Victory</h2>
+    <p id="rewardBody" class="mini">—</p>
+    <button class="btn-gold" style="margin-top:14px" onclick="closeReward()">Accept</button>
+  </div>
+</div>
+
+<!-- VICTORY -->
+<div class="modal" id="victoryModal">
+  <div class="victory-card">
+    <div style="text-transform:uppercase;letter-spacing:.24em;font-size:11px;color:#7a5634">Victory</div>
+    <div id="victoryText" style="font-family:Georgia,serif;font-size:32px;margin:10px 0">—</div>
+    <button class="btn-gold" onclick="restartToSetup()">Return to Setup</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="tooltip"></div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
