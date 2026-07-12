@@ -3,12 +3,12 @@
 
 export const FACTIONS = [
   { id:0, name:'Crucible', short:'CRU', color:'#b22f24', glow:'#f07a6a', pale:'#f0b2a2', glyph:'⚔', trait:'Scarshield', desc:'–week enemy final score' },
-  { id:1, name:'Reverie', color:'#6d4bb6', glow:'#b79aff', pale:'#c6b3f2', glyph:'☾', trait:"Another's Dream", desc:'Dawn random boon' },
-  { id:2, name:'Verdant', color:'#2f7e44', glow:'#6de98a', pale:'#b5deb3', glyph:'❦', trait:"Gaia's Wail", desc:'+1 move, mobs pacified, fruit++' },
-  { id:3, name:'Archive', color:'#2f5f9f', glow:'#7cb8ff', pale:'#a9c4ed', glyph:'⟐', trait:'Everknown', desc:'Relic → +random token' },
-  { id:4, name:'Hearth',  color:'#b88728', glow:'#ffd86b', pale:'#efd38b', glyph:'♥', trait:'Compersion', desc:'Trade -20%' },
-  { id:5, name:'Masque',  color:'#9b3f79', glow:'#ff8edb', pale:'#e4aacd', glyph:'🎭', trait:'Silent Ovation', desc:'Combat turn +week random' },
-  { id:6, name:'Hollow',  color:'#3f4658', glow:'#8a9cff', pale:'#c3c5bd', glyph:'∅', trait:'Vaunted Nothing', desc:'+⌈week/3⌉ per missing HP' },
+  { id:1, name:'Reverie', short:'REV', color:'#6d4bb6', glow:'#b79aff', pale:'#c6b3f2', glyph:'☾', trait:"Another's Dream", desc:'Dawn random boon' },
+  { id:2, name:'Verdant', short:'VER', color:'#2f7e44', glow:'#6de98a', pale:'#b5deb3', glyph:'❦', trait:"Gaia's Wail", desc:'+1 move, mobs pacified, fruit++' },
+  { id:3, name:'Archive', short:'ARC', color:'#2f5f9f', glow:'#7cb8ff', pale:'#a9c4ed', glyph:'⟐', trait:'Everknown', desc:'Relic → +random token' },
+  { id:4, name:'Hearth',  short:'HRT', color:'#b88728', glow:'#ffd86b', pale:'#efd38b', glyph:'♥', trait:'Compersion', desc:'Trade -20%' },
+  { id:5, name:'Masque',  short:'MSK', color:'#9b3f79', glow:'#ff8edb', pale:'#e4aacd', glyph:'🎭', trait:'Silent Ovation', desc:'Combat turn +week random' },
+  { id:6, name:'Hollow',  short:'HOL', color:'#3f4658', glow:'#8a9cff', pale:'#c3c5bd', glyph:'∅', trait:'Vaunted Nothing', desc:'+⌈week/3⌉ per missing HP' },
 ];
 
 export const beats = (a,b)=> ((b - a + 7) % 7 === 1) || ((b - a + 7) % 7 === 2) || ((b - a + 7) % 7 === 4);

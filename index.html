@@ -20,11 +20,14 @@
         <div style="margin-top:14px">
           <h4>Map size</h4>
           <span class="size-pill" data-r="5">Small — Codex Leaf</span>
-          <span class="size-pill active" data-r="7">Medium — Sundered Expanse</span>
-          <span class="size-pill" data-r="9">Large — Godgrave</span>
+          <span class="size-pill" data-r="7">Medium — Sundered Expanse</span>
+          <span class="size-pill active" data-r="9">Large — Godgrave</span>
+          <span class="size-pill" data-r="13">Vast — Astral Reach</span>
+          <span class="size-pill" data-r="17">Immense — Titan's Folly</span>
+          <span class="size-pill" data-r="21">Mythic — Worldspine</span>
         </div>
         <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <label>Relic target<br><input id="relicTarget" type="number" min="3" max="12" value="7" style="width:100%;padding:9px;border:1px solid #c49b5a;border-radius:9px;background:#fff7df"></label>
+          <label>Relic target<br><input id="relicTarget" type="number" min="5" max="50" value="25" style="width:100%;padding:9px;border:1px solid #c49b5a;border-radius:9px;background:#fff7df"></label>
           <label style="display:flex;align-items:center;gap:8px;margin-top:20px"><input type="checkbox" id="optLast" checked> Last Standing</label>
         </div>
         <p class="mini" style="margin-top:10px">Seeded manuscript terrain: plains • forest • desert • marsh • mountains • broken water. Fog of War = visible / explored. Dig on empty parchment at night.</p>
@@ -60,6 +63,13 @@
       Moves <span class="moves-pill" id="hudMoves">5</span>
       • Sight <b id="hudSight">4</b>
       • <span id="hudPos">0,0</span>
+      • Zoom <b id="hudZoom">100%</b>
+    </div>
+    <div class="map-controls" style="position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;gap:4px;z-index:10">
+      <button class="btn" id="zoomIn" title="Zoom In (Mouse Wheel)" style="width:32px;height:32px;border-radius:6px;font-size:16px;line-height:1">+</button>
+      <button class="btn" id="zoomOut" title="Zoom Out (Mouse Wheel)" style="width:32px;height:32px;border-radius:6px;font-size:16px;line-height:1">−</button>
+      <button class="btn" id="zoomReset" title="Reset View" style="width:32px;height:32px;border-radius:6px;font-size:11px;line-height:1">⌂</button>
+      <button class="btn" id="centerChampion" title="Center on Champion (C)" style="width:32px;height:32px;border-radius:6px;font-size:11px;line-height:1">⌖</button>
     </div>
     <div id="mapMount"></div>
   </section>
