@@ -1,5 +1,6 @@
 import { coordKey, parseKey, neighbors, distance, TERRAIN } from '../world/map.js';
-import { movementRange, occupiedByChampion, occupiedByMob, getChampion } from './state.js';
+import { movementRange } from './movement.js';
+import { occupiedByChampion, occupiedByMob, getChampion } from './entityQueries.js';
 
 function findPath(state, sx, sy, tx, ty, champId){
   const start = `${sx},${sy}`, target=`${tx},${ty}`;

@@ -15,7 +15,8 @@ import {
   finalizeCombat,
   applyFinalBonuses,
 } from '../game/combat.js';
-import { getChampion, addLog } from '../game/state.js';
+import { getChampion } from '../game/entityQueries.js';
+import { addLog } from '../game/log.js';
 import { openArtifactChoiceModal as _openArtifactChoiceModal } from './modal.js';
 
 // --- Internal state ---

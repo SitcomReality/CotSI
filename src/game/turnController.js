@@ -4,7 +4,9 @@
  * gameOrchestrator (circular import, used at runtime only).
  */
 import { G, currentChamp, refreshAll } from './gameOrchestrator.js';
-import { finishTurn, isDigEligible, moveChampion, movementRange } from './state.js';
+import { finishTurn } from './worldTurn.js';
+import { isDigEligible } from './turnLogic.js';
+import { moveChampion, movementRange } from './movement.js';
 import { coordKey } from '../world/map.js';
 import { startCombat } from '../ui/combatModal.js';
 import { toast } from '../ui/hud.js';

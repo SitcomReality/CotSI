@@ -1,7 +1,10 @@
 import { FACTIONS, potencyWithPrimary } from '../core/factions.js';
 import { scorePower } from '../core/paley.js';
 import { coordKey, parseKey } from '../world/map.js';
-import { addLog, getChampion, refreshVision, checkVictory } from './state.js';
+import { addLog } from './log.js';
+import { getChampion } from './entityQueries.js';
+import { refreshVision } from './vision.js';
+import { checkVictory } from './victory.js';
 
 function finalScoreBonus(state, champ){
   let bonus = state.weather.score[champ.faction] || 0;

@@ -1,5 +1,7 @@
 import { TERRAIN } from '../../world/map.js';
-import { movementRange, getHumanView, occupiedByChampion, occupiedByMob, occupiedByTrader } from '../../game/state.js';
+import { movementRange } from '../../game/movement.js';
+import { getHumanView } from '../../game/vision.js';
+import { occupiedByChampion, occupiedByMob, occupiedByTrader } from '../../game/entityQueries.js';
 import { camera } from './camera.js';
 import { HEX_SIZE } from './constants.js';
 import { hexPoints } from './geometry.js';

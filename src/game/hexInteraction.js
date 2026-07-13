@@ -4,14 +4,9 @@
  * gameOrchestrator (circular import, used at runtime only).
  */
 import { G, currentChamp, refreshAll } from './gameOrchestrator.js';
-import {
-  movementRange,
-  moveChampion,
-  addLog,
-  occupiedByMob,
-  occupiedByChampion,
-  occupiedByTrader,
-} from './state.js';
+import { movementRange, moveChampion } from './movement.js';
+import { addLog } from './log.js';
+import { occupiedByMob, occupiedByChampion, occupiedByTrader } from './entityQueries.js';
 import { parseKey, distance } from '../world/map.js';
 import { startCombat, openTrader } from '../ui/combatModal.js';
 import { toast, pulseEnd } from '../ui/hud.js';

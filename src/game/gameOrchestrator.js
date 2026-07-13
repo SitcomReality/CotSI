@@ -5,7 +5,8 @@
  *
  * This is the coordination nexus: state → UI → render.
  */
-import { createGame, checkVictory } from './state.js';
+import { createGame } from './gameFactory.js';
+import { checkVictory } from './victory.js';
 import { renderHexMapSVG, setupMapInteraction, camera, resetCamera } from '../render/hexmap.js';
 import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panelComponents.js';
 import { initPaleyWidget } from '../ui/paleyWidget.js';

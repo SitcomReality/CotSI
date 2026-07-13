@@ -2,7 +2,9 @@ import { camera, resetCamera, applyCameraTransform } from '../render/hexmap.js';
 import { HEX_WIDTH, HEX_HEIGHT } from '../render/hexmap.js';
 import { TERRAIN, coordKey, parseKey, distance } from '../world/map.js';
 import { FACTIONS } from '../core/factions.js';
-import { occupiedByMob, occupiedByChampion, occupiedByTrader, getHumanView, movementRange } from '../game/state.js';
+import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/entityQueries.js';
+import { getHumanView } from '../game/vision.js';
+import { movementRange } from '../game/movement.js';
 
 /**
  * Zoom the map by a factor, keeping the center point stable.
