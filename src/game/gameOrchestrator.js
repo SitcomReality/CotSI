@@ -7,7 +7,7 @@
  */
 import { createGame, checkVictory } from './state.js';
 import { renderHexMapSVG, setupMapInteraction, camera, resetCamera } from '../render/hexmap.js';
-import { renderLeftPanel, renderRightPanel, renderLog } from '../render/ui.js';
+import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panelComponents.js';
 import { initPaleyWidget } from '../ui/paleyWidget.js';
 import { setGameState, openArtifactChoiceModal } from '../ui/combatModal.js';
 import { showVictory } from '../ui/hud.js';
