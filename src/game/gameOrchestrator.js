@@ -10,7 +10,7 @@ import { checkVictory } from './victory.js';
 import { renderHexMapSVG, setupMapInteraction, camera, resetCamera } from '../render/hexmap.js';
 import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panelComponents.js';
 import { initPaleyWidget } from '../ui/paleyWidget.js';
-import { setGameState, openArtifactChoiceModal } from '../ui/combatModal.js';
+import { setGameState, openArtifactChoiceModal } from '../ui/combat/index.js';
 import { showVictory } from '../ui/hud.js';
 import { refreshZoomDisplay, getTooltipContent as _getTooltipContent } from '../ui/mapView.js';
 import { bindGameUI } from '../ui/gameUIBindings.js';

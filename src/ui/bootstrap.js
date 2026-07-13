@@ -2,7 +2,7 @@
  * Bootstrap — DOM-ready startup wiring.
  * Owns only the "when the page is ready, kick things off" concern.
  */
-import { initCombatModal } from './combatModal.js';
+import { initCombatModal } from './combat/index.js';
 import { toast } from './hud.js';
 import { refreshAll } from '../game/gameOrchestrator.js';
 

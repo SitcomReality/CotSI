@@ -8,7 +8,7 @@ import { movementRange, moveChampion } from './movement.js';
 import { addLog } from './log.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from './entityQueries.js';
 import { parseKey, distance } from '../world/map.js';
-import { startCombat, openTrader } from '../ui/combatModal.js';
+import { startCombat, openTrader } from '../ui/combat/index.js';
 import { toast, pulseEnd } from '../ui/hud.js';
 import { FACTIONS } from '../core/factions.js';
 

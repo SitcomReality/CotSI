@@ -1,0 +1,118 @@
+import { createCombatState, getActiveCombatant, isPickingPhase, isRevealPhase, processReveal, advanceCombatPhase, resolveRoundDamage, nextCombatRound, finalizeCombat, applyFinalBonuses } from '../../game/combat.js';
+import { getCombatUI, setCombatUI, getGameState, getRefreshAll, getToast } from './state.js';
+import { renderCombat } from './renderer.js';
+import { makeBotPick } from './interactions.js';
+import { openRewardModal } from './reward.js';
+
+export function startCombat(attacker, defender) {
+  const ui = createCombatState(attacker, defender);
+  setCombatUI(ui);
+  openCombatModal();
+}
+
+export function openCombatModal() {
+  document.getElementById('combatModal').style.display = 'flex';
+  renderCombat();
+  const _combatUI = getCombatUI();
+  if (_combatUI && isPickingPhase(_combatUI)) {
+    const active = getActiveCombatant(_combatUI);
+    if (active && active.controller === 'bot') {
+      setTimeout(() => makeBotPick(), 500);
+    }
+  }
+}
+
+export function closeCombat() {
+  document.getElementById('combatModal').style.display = 'none';
+  setCombatUI(null);
+}
+
+export function processRevealPhase() {
+  const _combatUI = getCombatUI();
+  if (!_combatUI || !isRevealPhase(_combatUI)) return;
+  const _G = getGameState();
+  const reveal = processReveal(_G, _combatUI);
+  if (reveal) {
+    document.getElementById('csLeft').textContent = _combatUI.roundScores.attacker;
+    document.getElementById('csRight').textContent = _combatUI.roundScores.defender;
+    document.getElementById('combatLog').textContent = reveal.logA + '  vs  ' + reveal.logB;
+    animateReveal(reveal);
+  }
+  setTimeout(() => {
+    advanceCombatPhase(_combatUI);
+    renderCombat();
+    // After advance, if it's a picking phase and active is bot, trigger bot pick
+    if (isPickingPhase(_combatUI)) {
+      const active = getActiveCombatant(_combatUI);
+      if (active && active.controller === 'bot') {
+        setTimeout(() => makeBotPick(), 500);
+      }
+    }
+  }, 1200);
+}
+
+function animateReveal(reveal) {
+  const leftSlots = document.querySelectorAll('#leftCombat .ctok');
+  const rightSlots = document.querySelectorAll('#rightCombat .ctok');
+  leftSlots.forEach((el) => {
+    if (+el.dataset.f === reveal.pickA) el.style.transform = 'scale(1.15)';
+  });
+  rightSlots.forEach((el) => {
+    if (+el.dataset.f === reveal.pickB) el.style.transform = 'scale(1.15)';
+  });
+  setTimeout(() => {
+    leftSlots.forEach((el) => (el.style.transform = ''));
+    rightSlots.forEach((el) => (el.style.transform = ''));
+  }, 1000);
+}
+
+export function handleRoundEnd() {
+  const _combatUI = getCombatUI();
+  if (!_combatUI || _combatUI.phase !== 'round_end') return;
+
+  const _G = getGameState();
+  const { attacker, defender, roundScores } = _combatUI;
+  const { scoreA, scoreB } = applyFinalBonuses(
+    _G, attacker, defender, roundScores.attacker, roundScores.defender
+  );
+  _combatUI.roundScores.attacker = scoreA;
+  _combatUI.roundScores.defender = scoreB;
+
+  document.getElementById('csLeft').textContent = scoreA;
+  document.getElementById('csRight').textContent = scoreB;
+
+  const dmgResult = resolveRoundDamage(_G, _combatUI);
+  document.getElementById('combatLog').textContent =
+    `Round ${_combatUI.round} damage: ${
+      dmgResult.to === 'attacker' ? attacker.name : defender.name
+    } takes ${dmgResult.damage}`;
+
+  if (dmgResult.defenderDead) {
+    const rew = finalizeCombat(_G, attacker, defender, true);
+    closeCombat();
+    openRewardModal(attacker, rew);
+    const refresh = getRefreshAll();
+    if (refresh) refresh();
+    return;
+  }
+  if (dmgResult.attackerDead) {
+    closeCombat();
+    const refresh = getRefreshAll();
+    if (refresh) refresh();
+    const toast = getToast();
+    if (toast) toast('You were defeated.', true);
+    return;
+  }
+
+  setTimeout(() => {
+    nextCombatRound(_combatUI);
+    renderCombat();
+    // Check for bot pick in the next phase
+    if (isPickingPhase(_combatUI)) {
+      const active = getActiveCombatant(_combatUI);
+      if (active && active.controller === 'bot') {
+        setTimeout(() => makeBotPick(), 500);
+      }
+    }
+  }, 1500);
+}
