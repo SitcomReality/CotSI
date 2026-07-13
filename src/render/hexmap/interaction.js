@@ -171,6 +171,10 @@ export function setupMapInteraction(svgElement, onTileClick, getTooltipContent){
     const hex = findHexAt(mapPos.x - camera.offsetX, mapPos.y - camera.offsetY);
     const key = coordKey(hex);
     if(onTileClick) onTileClick(key);
+
+    console.log("non panning click caught");
+    console.log("key:")
+    console.log(key);
   });
   
   camera.offsetX = 0;

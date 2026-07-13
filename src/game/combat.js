@@ -32,7 +32,7 @@ function scorePickPair(state, A, B, pickA, pickB){
 }
 
 /** Apply final score bonuses (Crucible, weather, artifacts, Hollow) */
-function applyFinalBonuses(state, A, B, scoreA, scoreB){
+export function applyFinalBonuses(state, A, B, scoreA, scoreB){
   // Crucible Scarshield
   const week = Math.floor((state.day-1)/7)+1;
   if(A.faction===0){ scoreB = Math.max(0, scoreB - week); }

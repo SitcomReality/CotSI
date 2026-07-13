@@ -2,8 +2,10 @@ import { FACTIONS, ARTIFACTS, beats } from './core/factions.js';
 import { createGame, getChampion, movementRange, moveChampion, finishTurn, advanceTurn, addLog, isDigEligible, getHumanView, refreshVision, checkVictory } from './game/state.js';
 import { renderHexMapSVG, setupMapInteraction, camera, resetCamera, HEX_WIDTH, HEX_HEIGHT } from './render/hexmap.js';
 import { renderLeftPanel, renderRightPanel, renderLog } from './render/ui.js';
-import { paleySVG } from './render/paley.js';
 import { runBotTurn as aiDecide } from './game/ai.js';
+import { zoomMap as _zoomMap, resetCameraView as _resetCameraView, centerOnChampion as _centerOnChampion, getTooltipContent as _getTooltipContent, refreshZoomDisplay } from './ui/mapView.js';
+import { initPaleyWidget, setPaleyHighlight } from './ui/paleyWidget.js';
+import { openArtifactChoiceModal as _openArtifactChoiceModal, setRewardModal, hideModal, showModal } from './ui/modal.js';
 import { 
   createCombatState, getActiveCombatant, isPickingPhase, isRevealPhase,
   recordCombatPick, advanceCombatPhase, processReveal, resolveRoundDamage,
@@ -86,47 +88,26 @@ function bindGameUI(){
   });
 }
 
+
+
+
+
 function zoomMap(factor){
   const svgEl = document.getElementById('hexMapSvg');
-  if(!svgEl) return;
-  const rect = svgEl.getBoundingClientRect();
-  const centerX = rect.width / 2;
-  const centerY = rect.height / 2;
-  const newScale = Math.max(0.35, Math.min(3.5, camera.scale * factor));
-  camera.tx = centerX - (centerX - camera.tx) * (newScale / camera.scale);
-  camera.ty = centerY - (centerY - camera.ty) * (newScale / camera.scale);
-  camera.scale = newScale;
-  applyCameraTransform(svgEl);
+  if(svgEl) _zoomMap(factor, svgEl);
   refreshZoomDisplay();
 }
 
 function resetCameraView(){
-  resetCamera();
   const svgEl = document.getElementById('hexMapSvg');
-  if(svgEl) applyCameraTransform(svgEl);
+  _resetCameraView(svgEl);
   refreshZoomDisplay();
 }
 
 function centerOnChampion(){
   const ch = currentChamp();
-  if(!ch) return;
   const svgEl = document.getElementById('hexMapSvg');
-  if(!svgEl) return;
-  const mapResult = renderHexMapSVG(G, onHexClick); // recalc to get offsets
-  const cx = mapResult.offsetX + (HEX_WIDTH * (ch.pos.q + ch.pos.r/2));
-  const cy = mapResult.offsetY + (HEX_HEIGHT * ch.pos.r);
-  const rect = svgEl.getBoundingClientRect();
-  const centerX = rect.width / 2;
-  const centerY = rect.height / 2;
-  // Center the champion
-  camera.tx = centerX - cx * camera.scale;
-  camera.ty = centerY - cy * camera.scale;
-  applyCameraTransform(svgEl);
-}
-
-function refreshZoomDisplay(){
-  const zoomEl = document.getElementById('hudZoom');
-  if(zoomEl) zoomEl.textContent = `${Math.round(camera.scale * 100)}%`;
+  if(ch && svgEl) _centerOnChampion(ch, svgEl);
 }
 
 function currentChamp(){ return G ? G.champions.find(c=> c.id===G.activeChampionId) : null; }
@@ -169,24 +150,7 @@ function refreshAll(){
 }
 
 function getTooltipContent(key){
-  if(!G) return null;
-  const t = G.tiles[key]; if(!t) return null;
-  const humanView = getHumanView(G);
-  const visible = humanView.visible.has(key);
-  const explored = humanView.explored.has(key);
-  if(!explored) return null;
-  let html = `<b>${key}</b> — ${TERRAIN[t.terrain].label}`;
-  if(t.feature) html += `<br>◈ ${t.feature.kind}${t.feature.kind==='knot' && !t.feature.mined ? ` (${t.feature.amount})` : ''}${t.feature.kind==='tree' && t.feature.ripe!==false ? ' 🍃' : ''}`;
-  const mob = occupiedByMob(G,key); if(mob) html += `<br>⚠ ${mob.name} ${mob.hp}/${mob.maxHp}hp`;
-  const ch = occupiedByChampion(G,key); if(ch) html += `<br>${FACTIONS[ch.faction].glyph} ${ch.name} ${ch.hp}/${ch.maxHp}hp`;
-  const trader = occupiedByTrader(G,key); if(trader) html += `<br>₳ Wandering Trader`;
-  const active = currentChamp();
-  if(active && active.controller==='human'){
-    const range = movementRange(G, active);
-    if(range[key]!==undefined && range[key]>0) html += `<br><span style="color:#b88728">● Reachable (${range[key]} move)</span>`;
-  }
-  if(!visible) html = `<i style="color:#7a5634">[Explored]</i> ` + html;
-  return html;
+  return _getTooltipContent(G, key, currentChamp());
 }
 
 function onHexClick(key){
@@ -519,12 +483,7 @@ function onCombatTokenHover(factionIdx){
       el.style.opacity = '0.4';
     }
   });
-  const paleyMount = document.getElementById('paleyMount');
-  if(paleyMount){
-    window._paleyHi = factionIdx;
-    paleyMount.innerHTML = paleySVG(factionIdx);
-    wirePaleyHover();
-  }
+  setPaleyHighlight(factionIdx);
 }
 
 function openRewardModal(champ, rew){
@@ -537,35 +496,15 @@ function openRewardModal(champ, rew){
 window.closeReward = function(){ document.getElementById('rewardModal').style.display='none'; };
 
 function openArtifactChoiceModal(reward){
-  const modal = document.getElementById('rewardModal');
-  document.getElementById('rewardTitle').textContent = reward.title;
-  const choicesHtml = reward.choices.map((c, i) => `
-    <div class="artifact-choice" data-idx="${i}" style="
-      background:#fff7dfaa;border:2px solid #d0a86a;border-radius:10px;padding:12px;margin:8px 0;
-      cursor:pointer;transition:border-color .15s,background .15s;
-    ">
-      <div style="font-weight:800;color:#9a5a12;font-size:15px">${c.label}</div>
-      <div class="mini" style="color:#5a3a22;margin-top:4px">${c.detail}</div>
-    </div>
-  `).join('');
-  document.getElementById('rewardBody').innerHTML = `${reward.body}<div style="margin-top:10px">${choicesHtml}</div>`;
-  modal.style.display='flex';
-  document.querySelectorAll('.artifact-choice').forEach(el => {
-    el.onmouseenter = () => { el.style.borderColor = '#b88728'; el.style.background = '#fff4cf'; };
-    el.onmouseleave = () => { el.style.borderColor = '#d0a86a'; el.style.background = '#fff7dfaa'; };
-    el.onclick = () => {
-      const idx = +el.dataset.idx;
-      const choice = reward.choices[idx];
-      const ch = getChampion(G, reward.championId);
-      if(ch){
-        ch.artifact = choice.artifactId;
-        ch.offeredArtifact = true;
-        addLog(G, `${ch.name} claims the ${choice.label}.`);
-        G.reward = null;
-        modal.style.display = 'none';
-        refreshAll();
-      }
-    };
+  _openArtifactChoiceModal(reward, (choice) => {
+    const ch = getChampion(G, reward.championId);
+    if(ch){
+      ch.artifact = choice.artifactId;
+      ch.offeredArtifact = true;
+      addLog(G, `${ch.name} claims the ${choice.label}.`);
+      G.reward = null;
+      refreshAll();
+    }
   });
 }
 
@@ -573,25 +512,8 @@ function openTrader(tr){
   toast('Trader: Moonberry 14g • Token 22g • Weapon 34g');
 }
 
-function wirePaleyHover(){
-  const mount=document.getElementById('paleyMount');
-  if(!mount) return;
-  mount.innerHTML = paleySVG(window._paleyHi ?? -1);
-  const svg=mount.querySelector('svg');
-  if(!svg) return;
-  svg.addEventListener('mousemove', e=>{
-    const r=svg.getBoundingClientRect();
-    const x=(e.clientX-r.left)/r.width*300;
-    const y=(e.clientY-r.top)/r.height*250;
-    const nodes = FACTIONS.map((_,i)=>{
-      const ang=-Math.PI/2 + i*2*Math.PI/7;
-      return {i, nx:150+Math.cos(ang)*94, ny:129+Math.sin(ang)*94};
-    });
-    let best=-1, bd=22;
-    nodes.forEach(n=>{ const d=Math.hypot(n.nx-x, n.ny-y); if(d<bd){bd=d; best=n.i;} });
-    if(best!==window._paleyHi){ window._paleyHi=best; mount.innerHTML = paleySVG(best); wirePaleyHover(); }
-  });
-  svg.addEventListener('mouseleave', ()=>{ window._paleyHi=-1; mount.innerHTML = paleySVG(-1); wirePaleyHover(); });
+function wirePaleyHover() {
+  initPaleyWidget('paleyMount');
 }
 
 function pulseEnd(){ const b=document.getElementById('btnEndTurn'); if(!b) return; b.style.transform='scale(1.05)'; setTimeout(()=>b.style.transform='',160); }
