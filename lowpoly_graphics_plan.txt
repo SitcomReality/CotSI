@@ -1,0 +1,323 @@
+# Plan: Low-Poly 3D Diorama — SVG → Three.js Migration
+
+## 0. The Big Picture
+
+Your current architecture is exceptionally well-suited to this migration. The game logic lives in `src/game/` and `src/world/`, while all rendering is isolated in `src/render/hexmap/`. The orchestrator (`refreshAll` in `gameOrchestrator.js`) simply calls `renderHexMapSVG()` and injects the result into `#mapMount`. We'll replace that one call with a Three.js renderer. **Virtually zero game-logic changes needed.**
+
+---
+
+## 1. Technology Stack & No-Build Setup
+
+**Three.js ESM via import map** — no bundler, no npm, same zero-build philosophy:
+
+```html
+<!-- index.html, in <head> -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+```
+
+**WebGL on Firefox/Linux is fully supported.** This is a non-issue — Firefox has excellent WebGL support including on Linux. We'll target WebGL 2.0 (the default in Three.js r160+).
+
+---
+
+## 2. New Module Structure
+
+```
+src/render/hexmap3d/
+├── scene.js          # Three.js scene setup, renderer, lighting, post-processing
+├── terrain.js        # Merged hex-tile mesh generation (the core optimization)
+├── features3d.js     # Low-poly trees, mountains, bases, knots
+├── units3d.js        # Champion/mob/trader miniature figurines
+├── fogOfWar.js       # Dark mist / flipped-tile fog system
+├── camera3d.js       # Isometric camera with pan/zoom, no tilt/rotate
+├── picking.js        # Raycaster-based hex picking (replaces hexKeyAtPosition)
+├── interaction3d.js  # Pan/zoom/tooltip wiring (replaces current SVG interaction)
+├── materials.js      # Shared materials (toon-style, simple diffuse, no PBR)
+├── lighting.js       # Warm directional + ambient + optional shadow config
+└── index.js          # Re-exports, main renderHexMap3D() function
+```
+
+The existing `src/render/hexmap/` stays intact during development — you can even A/B test both renderers.
+
+---
+
+## 3. Scene Setup & Lighting Strategy
+
+### Camera
+- **Fixed isometric angle**: Camera positioned at ~45° pitch, ~30° yaw (south-west looking north-east so the "behind" direction matches your existing shadow direction).
+- **Orthographic** camera for the diorama look. Perspective is tempting but orthographic sells the "tabletop board game" aesthetic better and eliminates depth-distortion problems for hex picking.
+- The camera only **pans** (by moving the camera target/lookAt) and **zooms** (by adjusting ortho frustum size). **No tilt, no rotation.**
+- Zooms map to adjusting `camera.left/right/top/bottom` proportionally, which gives a clean "magnifying glass" effect.
+
+### Lighting
+- **One dominant warm directional light** (`#fff4e0`, intensity ~3.0) from the northeast (matching your existing SHADOW_DX negative, SHADOW_DY positive convention — shadows fall southwest).
+- **Soft ambient light** (`#c8b898`, intensity ~0.6) for fill, simulating bounced light off the table.
+- **Hemisphere light** (`sky: #ffe8c8`, `ground: #8a6a3a`, intensity ~0.4) for subtle sky/ground color bleeding — very cheap, makes low-poly look rich.
+- **No PBR, no environment maps** — purely diffuse Lambert and simple specular.
+
+### Shadows (Performance-Tiered)
+You mentioned wanting optional real-time shadows. Here's the tiered plan:
+
+```
+Tier 1 (Performance / "Potato Mode"):
+  - No real-time shadows
+  - Baked vertex-color AO on terrain (computed once at mesh build time based on neighbor elevation)
+  - Simple dark ellipse decals under units and features (like your current SVG shadows)
+  - Looks like a board game — clean, charming, fast
+
+Tier 2 (Balanced / Default):
+  - Single shadow map from the directional light
+  - Only champions and NPCs cast shadows onto terrain
+  - Low-resolution shadow map (512px or 1024px)
+  - PCF soft shadows (built into Three.js)
+  - Feature shadows still use decals to save on draw calls
+
+Tier 3 (Quality / "Show Off"):
+  - Shadow map at 2048px
+  - All features cast shadows too (trees, mountains, bases)
+  - Slightly higher shadow bias tuning
+```
+
+Toggle via a setting, defaulting to Tier 2 if the hardware supports it (detect via `renderer.capabilities`).
+
+---
+
+## 4. Terrain Mesh Generation — The Core Optimization
+
+This is where the magic happens. Instead of one mesh per hex tile (which would be hundreds of draw calls), we:
+
+### 4a. Single Merged Terrain Mesh
+Build **one `BufferGeometry`** containing all visible hex tiles, merged into a single draw call. The approach:
+
+1. **Iterate visible tiles** from the existing projected/sorted tile list.
+2. For each tile, generate its hex shape as a **low-poly extruded hex prism** — 6 vertices top, 6 vertices bottom, with the top face triangulated. ~20 triangles per hex including the edge bevel.
+3. **Add subtle elevation** via vertex displacement:
+   - `plains`: height 0 (baseline)
+   - `forest`: height +0.08 (gentle rise)
+   - `desert`: height +0.03
+   - `marsh`: height -0.05 (slight depression)
+   - `mountain`: height +0.6 (steep rise)
+   - `water`: height -0.15 (depressed basin)
+4. **Vertex colors** encode terrain type — plains get warm beige, forest gets muted green, etc. This replaces the SVG fill colors and lets us use a single shared material.
+5. **Edge bevels**: Each hex prism gets a subtle 45° bevel on the top edge (adds 6 more vertices per hex), creating the "board game piece thickness" look. The side faces of the extrusion are the visible "thickness."
+6. The entire mesh uses **one shared `MeshLambertMaterial` with `vertexColors: true`**.
+
+**Result**: All terrain hexes = **1 draw call** instead of hundreds.
+
+### 4b. Water Plane
+Water tiles get a **separate merged transparent mesh** placed at the water depression level. A single flat plane per water hex, slightly reflective using a cheap approach: a second pass with a flipped copy of the scene... actually, for "potato-friendly" reflection, we can just use a subtle blue-tinted transparent plane with a simple animated noise normal map (or even just static with a slight fresnel sheen). Keep it simple.
+
+### 4c. Fog of War — Flipped Tiles & Dark Mist
+
+Two visual states for fog:
+
+**Explored but not visible** → "Dark mist" overlay. A semi-transparent dark hexagonal prism sitting just above the tile surface (like a dark glass bead). These are also merged into a single mesh. Color: `#1a140a` at opacity ~0.5. They partially obscure but you can still see the terrain underneath — like looking through dark smoke.
+
+**Unexplored** → **Flipped face-down tiles.** These hexes render with a different "back" texture/color (dark brown with a subtle cross-hatch or parchment pattern), sitting at the same height as normal tiles but with the top face showing the "unflipped" board-game back. No terrain information visible at all. This is the brilliant tabletop diorama detail you mentioned.
+
+Both fog types are merged into their own respective meshes for minimal draw calls.
+
+---
+
+## 5. Features — Low-Poly 3D Objects
+
+### Trees (Forest hexes)
+- **Cluster of 3-5 simple trees** per forest hex, randomly offset within the hex bounds
+- Each tree: a cylinder trunk (6 sides) + 2-3 stacked low-poly cones for canopy
+- ~30 triangles per tree
+- **InstancedMesh** — one draw call for ALL trees on the entire map. We create one geometry for the trunk and one for the canopy, instance them with different transforms, vertex colors for slight variation.
+- Fruit trees get a small glowing sphere at the top (also instanced).
+
+### Mountains (Mountain hexes)
+- Sharp triangular prism or 4-sided pyramid, ~12 triangles
+- Vertex-painted with darker base, lighter highlights on one face (the lit side), tiny white cap
+- Mountain hexes already have the elevated terrain base, so the mountain feature sits on top
+- Instanced across all mountain tiles
+
+### God's Knots
+- A small octahedron crystal with emissive material (soft purple glow)
+- Slowly rotates via `InstancedMesh` matrix updates or a simple `useFrame` animation
+- ~8 triangles each, trivial cost
+
+### Faction Bases
+- Low-poly tower: a cylinder + small box battlements + a tiny flag plane
+- ~50 triangles each
+- Per-instance color from faction data
+- Since there are at most ~7 bases, these can be individual meshes
+
+---
+
+## 6. Units — Miniature Figurines
+
+This is the centerpiece of the diorama feel. Each unit becomes a tiny figurine.
+
+### Champion Figurine
+- **Low-poly humanoid silhouette**: A simple pawn-shaped body (cylinder + sphere head + subtle shoulder bumps). ~40-60 triangles.
+- **Faction-colored** via vertex colors or a simple colored material.
+- **Active champion**: Sits on a small glowing disc (a thin torus or ring underneath) that slowly pulses — replaces the SVG rotating halo.
+- **HP display**: A tiny floating bar above the figurine (a thin colored box plane, billboarded to face the camera).
+- **Animation**: Idle bobbing (gentle sine-wave Y oscillation, ~±0.03 units).
+
+### Mob Figurine
+- Slightly bulkier pawn shape, darker faction color, small "horns" on the head
+- ~30 triangles
+
+### Trader Figurine
+- Hooded figure shape, neutral color with gold accent
+- ~30 triangles
+
+### Optimization
+All champions use **one InstancedMesh** for the body and one for the bases/rings. All mobs use one InstancedMesh. All traders use one. **3 draw calls for all units on the map.**
+
+---
+
+## 7. Performance Architecture Summary
+
+| Element | Technique | Draw Calls |
+|---------|-----------|-----------|
+| Terrain (all visible hexes) | Merged BufferGeometry | 1 |
+| Terrain edge thickness | Part of merged geometry | 0 (included above) |
+| Water surfaces | Merged transparent plane | 1 |
+| Unexplored fog (face-down tiles) | Merged geometry | 1 |
+| Explored fog (dark mist) | Merged transparent prisms | 1 |
+| All trees (forest features) | InstancedMesh (trunks + canopies) | 2 |
+| All mountains | InstancedMesh | 1 |
+| God's Knots | InstancedMesh | 1 |
+| All champions | InstancedMesh (body) + InstancedMesh (base ring) | 2 |
+| All mobs | InstancedMesh | 1 |
+| All traders | InstancedMesh | 1 |
+| Faction bases | Individual meshes (≤7) | ≤7 |
+| Shadow-casting units (Tier 2/3) | Shadow map | 0 (built-in) |
+| **Total (worst case)** | | **~19 draw calls** |
+
+This is **extremely performant** — even integrated GPUs from 10+ years ago can handle 20 draw calls at 60fps. The polygon count will be well under 10K triangles for even the largest maps.
+
+**Additional optimizations:**
+- Three.js **built-in frustum culling** handles occlusion automatically based on the camera view
+- Since camera doesn't rotate, we can pre-compute which hexes are in view and only build meshes for the visible set (rebuilt when the camera pans significantly or zoom changes the visible area dramatically)
+- Actually, for a hex map of up to radius 21 (~1400 hexes), even rendering ALL hexes is trivial. The merged terrain mesh for 1400 hexes at ~20 triangles each = ~28K triangles. A modern browser handles this effortlessly. So we can probably just build once and let Three.js frustum-cull.
+
+---
+
+## 8. Interaction Migration
+
+Replace the SVG-based interaction system:
+
+| SVG System | Three.js Replacement |
+|------------|---------------------|
+| `hexKeyAtPosition()` (coordinate math) | `THREE.Raycaster` against the terrain mesh |
+| `hex-picking.js` | New `picking.js` — raycast into the terrain plane, convert hit point to hex coordinates |
+| SVG click/hover events | DOM events on the `<canvas>`, same event wiring |
+| Pan/zoom via SVG transform | Pan by moving camera target, zoom by adjusting ortho frustum |
+| Tooltip positioning | Same `createTooltip` system, just feed it screen coordinates from the event |
+| Map buttons (zoom in/out/reset/center) | Call camera adjustment functions |
+
+The tooltip system (`map-tooltip.js`) and the UI chrome (buttons, HUD) **remain identical** — they're DOM elements outside the render area.
+
+---
+
+## 9. Migration Path & File Changes
+
+### New files to create:
+```
+src/render/hexmap3d/
+  index.js
+  scene.js
+  terrain.js
+  features3d.js
+  units3d.js
+  fogOfWar.js
+  camera3d.js
+  picking.js
+  interaction3d.js
+  materials.js
+  lighting.js
+```
+
+### Files to modify:
+- **`index.html`**: Add Three.js import map, remove nothing else
+- **`src/render/hexmap.js`**: Add re-exports for the 3D renderer (or create a parallel entry)
+- **`src/game/gameOrchestrator.js`**: In `refreshAll()`, change the render call from `renderHexMapSVG()` to `renderHexMap3D()` and swap DOM injection to canvas mounting
+- **`src/render/hexmap/constants.js`**: `HEX_SIZE` doubles as the world-space hex radius — keep this, it's the bridge between SVG pixels and 3D world units
+- **`src/world/map.js`**: No changes needed — terrain data is renderer-agnostic
+
+### Files that stay untouched:
+- All of `src/game/` (game logic, combat, movement, vision, AI)
+- All of `src/world/` (map generation, terrain definitions)
+- All of `src/ui/` (panels, modals, HUD)
+- All of `src/core/` (factions, RNG, weather)
+- `src/render/panelComponents.js`
+- `src/render/paley.js`
+
+---
+
+## 10. Step-by-Step Implementation Order
+
+This ordering ensures you have something visible at every stage:
+
+### Phase 1: Scaffold (get a blank 3D scene)
+1. Add Three.js import map to `index.html`
+2. Create `scene.js` — initialize renderer, scene, camera (orthographic, isometric angle)
+3. Create `camera3d.js` — pan/zoom logic
+4. Create `lighting.js` — warm directional + ambient + hemisphere
+5. Create `interaction3d.js` — wire pan/zoom to existing mouse/touch events
+6. **Milestone: "I see a lit empty table with working pan/zoom"**
+
+### Phase 2: Terrain (the big one)
+7. Create `materials.js` — Lambert material with vertex colors
+8. Create `terrain.js` — generate merged hex prism geometry, apply elevation, apply vertex colors
+9. Wire it into `refreshAll()`
+10. **Milestone: "I see my hex map as 3D board game tiles with elevation"**
+
+### Phase 3: Fog of War
+11. Create `fogOfWar.js` — face-down tiles for unexplored, dark mist overlays for explored-not-visible
+12. **Milestone: "Fog of war works, unexplored tiles look like flipped game pieces"**
+
+### Phase 4: Features
+13. Create `features3d.js` — InstancedMesh trees, mountains, knots, bases
+14. **Milestone: "Trees, mountains, and faction towers pop in 3D"**
+
+### Phase 5: Units
+15. Create `units3d.js` — pawn-shaped champion/mob/trader figurines with InstancedMesh
+16. Add idle bob animation
+17. **Milestone: "My champion is a tiny figurine on the board"**
+
+### Phase 6: Polish
+18. Add hex picking via raycaster (replaces `hexKeyAtPosition`)
+19. Wire tooltips back in
+20. Shadow tier system (toggle between decal-only and real-time shadows)
+21. Fog-of-war transition animations (tiles flipping or mist fading)
+22. Accessibility: maintain the existing DOM-based UI for all text/panels
+
+---
+
+## 11. Key Design Decisions to Lock In
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Camera type | **Orthographic** | Clean board-game look, easier hex picking, no depth distortion |
+| Camera angle | **~50° pitch, fixed** | Shows enough of the board plane, features read well |
+| Material style | **Lambert + vertex colors** | No PBR, no texture maps needed, tiny file size, fast |
+| Hex thickness | **0.15 world units** | Subtle but visible board-game piece edge |
+| Elevation range | **-0.15 to +0.6 units** | Water sits slightly below, mountains rise clearly |
+| Tree density | **3-5 per forest hex** | Feels like a cluster without overwhelming |
+| Unit figurine height | **~0.8 units (champion)** | Reads as a miniature on a ~1.5-unit-wide hex |
+| Shadow approach (default) | **Tier 2: champion/NPC real-time shadows only** | Best balance of beauty and performance |
+
+---
+
+## 12. Risks & Mitigations
+
+| Risk | Mitigation |
+|------|-----------|
+| Three.js import map load failure | Provide a fallback CDN URL. unpkg and jsdelivr both work. |
+| Firefox WebGL quirks | Use WebGL 2.0 (default in modern Three.js). Avoid WebGL 1 extensions. Test early. |
+| Merged geometry rebuild performance | Only rebuild terrain mesh when visibility changes (map reveal, day change). Not every frame. For zoom/pan, just move the camera — no rebuild needed. |
+| InstancedMesh matrix updates for animations | Use `instancedMesh.setMatrixAt()` only for the few animated instances (active champion ring pulse, knot rotation). Update only those indices, not the entire buffer. |
+| Raycaster performance on merged mesh | The terrain mesh has simple geometry. Raycasting against it is sub-millisecond. Three.js uses bounding volume hierarchies internally. |
