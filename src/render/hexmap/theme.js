@@ -16,6 +16,37 @@ export const PARCHMENT_BASE     = '#ead6a8';
 export const PARCHMENT_SPECKLE1 = '#d4b87a44';
 export const PARCHMENT_SPECKLE2 = '#bfa06633';
 
+// ── Filter parameters ──
+export const FILTER_WOBBLE_INK = {
+  baseFrequency: '0.018',
+  numOctaves: '2',
+  seed: '11',
+  scale: '1.15',
+};
+export const FILTER_PARCHMENT_NOISE = {
+  baseFrequency: '0.9',
+  numOctaves: '1',
+  scale: '0.4',
+};
+export const FILTER_DROP_SHADOW = {
+  stdDeviation: '2.5',
+  dx: '1.5',
+  dy: '3',
+  opacity: '0.35',
+};
+export const FILTER_TALL_SHADOW = {
+  stdDeviation: '4',
+  dx: '2',
+  dy: '6',
+  opacity: '0.28',
+};
+export const FILTER_MOUNTAIN_SHADOW = {
+  stdDeviation: '6',
+  dx: '3',
+  dy: '10',
+  opacity: '0.22',
+};
+
 // ── Hex tiles ──
 export const HEX_FILL_VISIBLE   = 0.98;
 export const HEX_FILL_DIMMED    = 0.52;
