@@ -37,9 +37,69 @@ h1,h2,h3{font-family:Georgia,serif; margin:0}
 .btn-gold{background:linear-gradient(180deg,#ffe18a,#d4a138);border:1px solid #b88728;color:#2a1700;font-weight:800;padding:13px 20px;border-radius:13px;box-shadow:0 8px 24px #b8872840}
 .btn-gold:hover{filter:brightness(1.04)}
 
+/* Form inputs */
+.field-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #c49b5a;
+  border-radius: 10px;
+  background: #fff7df;
+  font-family: Georgia, serif;
+  font-size: 16px;
+}
+.field-input.small {
+  padding: 9px;
+  border-radius: 9px;
+}
+
+/* Setup grid row */
+.setup-grid-row {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rel-fields {
+  margin-top: 14px;
+}
+
+/* Relic label row */
+.relic-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* Setup mini text */
+.setup-mini {
+  margin-top: 10px;
+}
+
+/* Faction actions */
+.faction-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 /* GAME LAYOUT */
 #game{display:none;min-height:100vh;grid-template-columns:320px 1fr 340px;grid-template-rows:auto 1fr;gap:0}
 .game-header{grid-column:1/-1;background:#ead6a8cc;border-bottom:1px solid #c5a36a66;backdrop-filter:blur(4px);padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+.game-header .day-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: #7a5634;
+}
+.game-header .game-title {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+}
 .leftbar, .rightbar{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#f5e5bd66,#ead6a800)}
 .mapwrap{position:relative;background:#ead6a8;overflow:hidden;border-left:1px solid #c5a36a55;border-right:1px solid #c5a36a55}
 #mapMount svg{width:100%;height:100%;display:block;min-height:680px}
@@ -77,11 +137,77 @@ h1,h2,h3{font-family:Georgia,serif; margin:0}
 .map-hud b{color:#9a5a12}
 .moves-pill{background:#f7e3ad;border:1px solid #c49b5a;padding:2px 9px;border-radius:999px;font-weight:800}
 
+/* Map control buttons */
+.map-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+.map-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.map-btn.small {
+  font-size: 11px;
+}
+
+/* Bottom log bar */
+.log-bar {
+  grid-column: 1 / -1;
+  background: #ead6a8cc;
+  border-top: 1px solid #c5a36a66;
+  padding: 10px 16px;
+}
+
 /* combat modal */
 .modal{position:fixed;inset:0;background:#160f09aa;backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50}
 .modal-card{width:min(1020px,96vw);background:linear-gradient(180deg,#fff7df,#f5e5bd);border:2px solid #b9965a;border-radius:20px;padding:18px 20px;box-shadow:0 30px 90px #0005}
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.modal-header-row h2 {
+  margin: 0;
+}
+.modal-round-label {
+  font-size: 13px;
+  color: #7a5634;
+}
 .combat-arena{display:grid;grid-template-columns:1fr 86px 1fr;gap:14px}
 .combatant{background:#fff7dfaa;border:1px solid #d0a86a;border-radius:14px;padding:12px}
+.combatant .vs-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.vs-text {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  color: #b88728;
+  font-weight: 800;
+}
+.combat-order {
+  font-size: 11px;
+  color: #7a5634;
+}
+.combat-actions {
+  text-align: center;
+  margin-top: 8px;
+}
 .hpbar{height:9px;background:#e5cc96;border-radius:99px;overflow:hidden;border:1px solid #c49b5a;margin:6px 0}
 .hpfill{height:100%;background:linear-gradient(90deg,#5fc98a,#2f9f5a)}
 .combat-tokens{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
@@ -89,10 +215,52 @@ h1,h2,h3{font-family:Georgia,serif; margin:0}
 .ctok.sel{outline:2px solid #d4a138; background:#fff4cf}
 .play-slots{display:flex;gap:8px;justify-content:center;margin:10px 0}
 .play-slot{width:92px;height:60px;border-radius:10px;border:2px dashed #c49b5a;display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff7dfaa}
+.play-arrow {
+  display: flex;
+  align-items: center;
+  color: #a77;
+}
+.score-bar {
+  display: flex;
+  justify-content: space-between;
+  max-width: 520px;
+  margin: 4px auto 0;
+  font-size: 13px;
+  color: #6a4a2a;
+}
 .cs-big{font-weight:800;font-size:20px}
+.combat-log-area {
+  min-height: 22px;
+  margin-top: 4px;
+}
+.combat-buttons {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
 
 /* reward / victory */
 .reward-card, .victory-card{background:linear-gradient(180deg,#fff7df,#f3e0b3);border:2px solid #b9965a;border-radius:18px;padding:22px;text-align:center;box-shadow:0 24px 80px #0004;max-width:560px}
+.reward-title {
+  margin: 0 0 6px;
+  color: #9a5a12;
+  font-family: Georgia, serif;
+}
+.reward-btn {
+  margin-top: 14px;
+}
+.victory-label {
+  text-transform: uppercase;
+  letter-spacing: .24em;
+  font-size: 11px;
+  color: #7a5634;
+}
+.victory-text {
+  font-family: Georgia, serif;
+  font-size: 32px;
+  margin: 10px 0;
+}
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#fff7dfe6;border:1px solid #b99b6a;padding:9px 14px;border-radius:11px;font-size:13px;box-shadow:0 10px 30px #0002;display:none;z-index:90}
 #toast.show{display:block}
 #tooltip{position:fixed;z-index:80;background:#fff7dfe8;border:1px solid #b99b6a;padding:7px 9px;border-radius:9px;font-size:12px;color:#3a2310;display:none;pointer-events:none;max-width:260px;box-shadow:0 10px 30px #0002}
