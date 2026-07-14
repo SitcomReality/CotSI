@@ -1,6 +1,7 @@
 import { initScene } from './scene.js';
 import { buildTerrainMesh } from './terrain.js';
 import { getHumanView } from '../../game/vision.js';
+import { setupMapInteraction3D as setupInteraction } from './interaction3d.js';
 
 let ctx = null; // singleton scene context
 let terrainMesh = null; // track for disposal/replacement
@@ -48,6 +49,11 @@ function disposeAll() {
     terrainMesh.geometry.dispose();
     terrainMesh = null;
   }
+  // Clean up interaction listeners
+  if (ctx && ctx._interactionCleanup) {
+    ctx._interactionCleanup();
+    delete ctx._interactionCleanup;
+  }
   if (ctx) {
     ctx.dispose();
     ctx = null;
@@ -55,12 +61,27 @@ function disposeAll() {
 }
 
 /**
- * Placeholder — Phase 3 will implement real interaction.
+ * Wire canvas events for pan, zoom, hex picking, tooltips, and clicks.
  */
 export function setupMapInteraction3D(onTileClick, getTooltipContent) {
   if (!ctx) return () => {};
-  // Phase 3: wire canvas events + raycaster
-  return () => {};
+
+  // Clean up previous interaction if any
+  if (ctx._interactionCleanup) {
+    ctx._interactionCleanup();
+  }
+
+  const canvas = ctx.renderer.domElement;
+  const cleanup = setupInteraction(
+    canvas,
+    ctx.applyCamera,
+    ctx.getCameraState,
+    () => terrainMesh,  // getter always returns current mesh
+    onTileClick,
+    getTooltipContent
+  );
+  ctx._interactionCleanup = cleanup;
+  return cleanup;
 }
 
 export function getSceneContext() {

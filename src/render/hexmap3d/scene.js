@@ -1,4 +1,5 @@
 import * as THREE from '../../lib/three.module.js';
+import { createCameraState, applyCameraState } from './camera3d.js';
 
 /**
  * Initialize the Three.js scene, renderer, camera, and lights.
@@ -19,22 +20,17 @@ export function initScene(mountElement) {
   // --- Scene ---
   const scene = new THREE.Scene();
 
-  // --- Orthographic Camera ---
-  // Fixed isometric angle: ~50° pitch, looking from south-west toward north-east
-  // We'll set frustum in camera3d.js (Phase 3) — placeholder for now
+  // --- Orthographic Camera (managed by camera3d) ---
   const aspect = rect.width / Math.max(rect.height, 1);
-  const frustumSize = 40; // world units visible vertically
+  const camState = createCameraState(aspect);
+
   const camera = new THREE.OrthographicCamera(
-    -frustumSize * aspect / 2,
-     frustumSize * aspect / 2,
-     frustumSize / 2,
-    -frustumSize / 2,
-    0.1,
-    200
+    -10, 10, 10, -10, 0.1, 200
   );
-  // Position: above and south-west, looking at origin
-  camera.position.set(-20, 25, -20);
-  camera.lookAt(0, 0, 0);
+  applyCameraState(camera, camState);
+
+  // Store camera on canvas for picking access
+  renderer.domElement.__camera = camera;
 
   // --- Lights ---
   const ambient = new THREE.AmbientLight(0xc8b898, 0.6);
@@ -69,7 +65,10 @@ export function initScene(mountElement) {
     renderer,
     scene,
     camera,
+    camState,
     lights: { ambient, hemisphere, directional: dirLight },
+    applyCamera() { applyCameraState(camera, camState); },
+    getCameraState() { return camState; },
     dispose() {
       running = false;
       renderer.dispose();

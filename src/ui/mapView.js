@@ -5,6 +5,7 @@ import { FACTIONS } from '../core/factions.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/entityQueries.js';
 import { getHumanView } from '../game/vision.js';
 import { movementRange } from '../game/movement.js';
+import { getSceneContext } from '../render/hexmap3d/index.js';
 
 /**
  * Zoom the map by a factor, keeping the center point stable.
@@ -89,7 +90,16 @@ export function getTooltipContent(gameState, key, activeChampion) {
  */
 export function refreshZoomDisplay() {
   const zoomEl = document.getElementById('hudZoom');
-  if (zoomEl) zoomEl.textContent = `${Math.round(camera.scale * 100)}%`;
+  if (!zoomEl) return;
+
+  const ctx3d = getSceneContext();
+  if (ctx3d) {
+    const pct = Math.round(100 * 40 / ctx3d.getCameraState().frustumSize);
+    zoomEl.textContent = pct + '%';
+  } else {
+    // Legacy SVG fallback
+    zoomEl.textContent = `${Math.round(camera.scale * 100)}%`;
+  }
 }
 
 // Attach to window for script-based main.js
