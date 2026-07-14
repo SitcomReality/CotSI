@@ -1,6 +1,6 @@
 import { initScene } from './scene.js';
 import { buildTerrainMesh } from './terrain.js';
-import { buildUnexploredMesh, buildExploredMistMesh } from './fogOfWar.js';
+import { buildUnexploredMesh } from './fogOfWar.js';
 import { buildFeatureMeshes } from './features3d.js';
 import { buildUnitMeshes, setupUnitAnimations } from './units3d.js';
 import { getHumanView } from '../../game/vision.js';
@@ -9,7 +9,6 @@ import { setupMapInteraction3D as setupInteraction } from './interaction3d.js';
 let ctx = null; // singleton scene context
 let terrainMesh = null;
 let unexploredMesh = null;
-let mistMesh = null;
 let featureMeshes = [];
 let unitMeshes = [];
 
@@ -39,7 +38,6 @@ export function renderHexMap3D(state) {
   // Dispose old meshes
   disposeMesh(terrainMesh);
   disposeMesh(unexploredMesh);
-  disposeMesh(mistMesh);
   for (const fm of featureMeshes) disposeMesh(fm);
   featureMeshes = [];
   for (const um of unitMeshes) disposeMesh(um);
@@ -59,9 +57,6 @@ export function renderHexMap3D(state) {
   // Build fog
   unexploredMesh = buildUnexploredMesh(state.tiles, humanView.explored);
   if (unexploredMesh) ctx.scene.add(unexploredMesh);
-
-  mistMesh = buildExploredMistMesh(state.tiles, humanView.explored, humanView.visible);
-  if (mistMesh) ctx.scene.add(mistMesh);
 
   // Build 3D features (trees, mountains, knots, bases)
   featureMeshes = buildFeatureMeshes(state, humanView.visible);
@@ -97,7 +92,6 @@ function disposeMesh(mesh) {
 function disposeAll() {
   disposeMesh(terrainMesh);
   disposeMesh(unexploredMesh);
-  disposeMesh(mistMesh);
   for (const fm of featureMeshes) disposeMesh(fm);
   featureMeshes = [];
   for (const um of unitMeshes) disposeMesh(um);

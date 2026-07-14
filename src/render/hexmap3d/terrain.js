@@ -1,9 +1,7 @@
 import * as THREE from '../../lib/three.module.js';
 import { TERRAIN } from '../../world/map.js';
 import { terrainMaterial } from './materials.js';
-
-// World-space hex radius (maps from SVG's HEX_SIZE=30px to 3D units)
-const HEX_RADIUS = 1.0;
+import { HEX_RADIUS, hexCenter, hexCornersXZ } from './hexUtils.js';
 
 // Elevation per terrain type (world units)
 export const ELEVATION = {
@@ -39,32 +37,6 @@ const TERRAIN_COLOR = {
 
 // Darken factor for side faces
 const SIDE_DARKEN = 0.5;
-
-/**
- * Compute the center position of a hex in world space (XZ plane, Y is up).
- * Flat-top hex layout: x = sqrt(3) * (q + r/2), z = 1.5 * r
- */
-function hexCenter(q, r) {
-  const x = Math.sqrt(3) * HEX_RADIUS * (q + r / 2);
-  const z = 1.5 * HEX_RADIUS * r;
-  return { x, z };
-}
-
-/**
- * Generate the 6 corner vertices of a flat-top hex in the XZ plane.
- * Flat-top: first corner at angle 0° (pointing right / +x).
- */
-function hexCornersXZ(cx, cz, radius = HEX_RADIUS) {
-  const verts = [];
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i - Math.PI / 6; // -30°, 30°, 90°, ... (pointy-top)
-    verts.push({
-      x: cx + radius * Math.cos(angle),
-      z: cz + radius * Math.sin(angle),
-    });
-  }
-  return verts;
-}
 
 /**
  * Build a single merged BufferGeometry for all visible + explored hex tiles.
