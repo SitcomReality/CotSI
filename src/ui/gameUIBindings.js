@@ -1,12 +1,4 @@
-/**
- * gameUIBindings — Wires buttons, keyboard shortcuts, and global click handlers.
- */
-import {
-  zoomMap as _zoomMap,
-  resetCameraView as _resetCameraView,
-  centerOnChampion as _centerOnChampion,
-  refreshZoomDisplay,
-} from './mapView.js';
+import { refreshZoomDisplay } from './mapView.js';
 import { toast } from './hud.js';
 import { currentChamp } from '../game/gameOrchestrator.js';
 import { onEndTurn } from '../game/turnController.js';
@@ -18,54 +10,32 @@ export function bindGameUI() {
 
   document.getElementById('zoomIn')?.addEventListener('click', () => {
     const ctx = getSceneContext();
-    if (ctx) {
       zoomCamera(ctx.getCameraState(), 0.8);
       ctx.applyCamera();
       refreshZoomDisplay();
-      return;
-    }
-    // Legacy SVG fallback
-    const svgEl = document.getElementById('hexMapSvg');
-    if (svgEl) _zoomMap(1.3, svgEl);
-    refreshZoomDisplay();
   });
   document.getElementById('zoomOut')?.addEventListener('click', () => {
-    const ctx = getSceneContext();
-    if (ctx) {
-      zoomCamera(ctx.getCameraState(), 1.25);
-      ctx.applyCamera();
-      refreshZoomDisplay();
-      return;
-    }
-    const svgEl = document.getElementById('hexMapSvg');
-    if (svgEl) _zoomMap(0.77, svgEl);
-    refreshZoomDisplay();
+      const ctx = getSceneContext();
+    zoomCamera(ctx.getCameraState(), 1.25);
+        ctx.applyCamera();
+        refreshZoomDisplay();
   });
   document.getElementById('zoomReset')?.addEventListener('click', () => {
-    const ctx = getSceneContext();
-    if (ctx) {
-      resetCamera(ctx.getCameraState());
-      ctx.applyCamera();
-      refreshZoomDisplay();
-      return;
-    }
-    const svgEl = document.getElementById('hexMapSvg');
-    _resetCameraView(svgEl);
+      const ctx = getSceneContext();
+    resetCamera(ctx.getCameraState());
+    ctx.applyCamera();
     refreshZoomDisplay();
   });
   document.getElementById('centerChampion')?.addEventListener('click', () => {
     const ch = currentChamp();
-    const ctx = getSceneContext();
-    if (ctx && ch) {
+      const ctx = getSceneContext();
+    if (ch) {
       const state = ctx.getCameraState();
       state.targetX = Math.sqrt(3) * 1.0 * (ch.pos.q + ch.pos.r / 2);
       state.targetZ = 1.5 * 1.0 * ch.pos.r;
       ctx.applyCamera();
       refreshZoomDisplay();
-      return;
-    }
-    const svgEl = document.getElementById('hexMapSvg');
-    if (ch && svgEl) _centerOnChampion(ch, svgEl);
+      }
   });
 
   document.addEventListener('click', (e) => {
@@ -84,54 +54,33 @@ export function bindGameUI() {
     if (e.key === 'c' || e.key === 'C') {
       const ch = currentChamp();
       const ctx = getSceneContext();
-      if (ctx && ch) {
+      if (ch) {
         const state = ctx.getCameraState();
         state.targetX = Math.sqrt(3) * 1.0 * (ch.pos.q + ch.pos.r / 2);
         state.targetZ = 1.5 * 1.0 * ch.pos.r;
         ctx.applyCamera();
         refreshZoomDisplay();
-        return;
       }
-      const svgEl = document.getElementById('hexMapSvg');
-      if (ch && svgEl) _centerOnChampion(ch, svgEl);
     }
     // Reset view (r)
     if (e.key === 'r' || e.key === 'R') {
       const ctx = getSceneContext();
-      if (ctx) {
-        resetCamera(ctx.getCameraState());
-        ctx.applyCamera();
-        refreshZoomDisplay();
-        return;
-      }
-      const svgEl = document.getElementById('hexMapSvg');
-      _resetCameraView(svgEl);
+      resetCamera(ctx.getCameraState());
+      ctx.applyCamera();
       refreshZoomDisplay();
     }
     // Zoom in (+/=)
     if (e.key === '+' || e.key === '=') {
       const ctx = getSceneContext();
-      if (ctx) {
-        zoomCamera(ctx.getCameraState(), 0.8);
-        ctx.applyCamera();
-        refreshZoomDisplay();
-        return;
-      }
-      const svgEl = document.getElementById('hexMapSvg');
-      if (svgEl) _zoomMap(1.3, svgEl);
+      zoomCamera(ctx.getCameraState(), 0.8);
+      ctx.applyCamera();
       refreshZoomDisplay();
     }
     // Zoom out (-/_)
     if (e.key === '-' || e.key === '_') {
       const ctx = getSceneContext();
-      if (ctx) {
-        zoomCamera(ctx.getCameraState(), 1.25);
-        ctx.applyCamera();
-        refreshZoomDisplay();
-        return;
-      }
-      const svgEl = document.getElementById('hexMapSvg');
-      if (svgEl) _zoomMap(0.77, svgEl);
+      zoomCamera(ctx.getCameraState(), 1.25);
+      ctx.applyCamera();
       refreshZoomDisplay();
     }
     if (e.key === ' ') {
