@@ -2,6 +2,7 @@ import { initScene } from './scene.js';
 import { buildTerrainMesh } from './terrain.js';
 import { buildUnexploredMesh, buildExploredMistMesh } from './fogOfWar.js';
 import { buildFeatureMeshes } from './features3d.js';
+import { buildUnitMeshes } from './units3d.js';
 import { getHumanView } from '../../game/vision.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction3d.js';
 
@@ -10,6 +11,7 @@ let terrainMesh = null;
 let unexploredMesh = null;
 let mistMesh = null;
 let featureMeshes = [];
+let unitMeshes = [];
 
 /**
  * One-time initialization. Called from gameOrchestrator on first refreshAll.
@@ -36,6 +38,8 @@ export function renderHexMap3D(state) {
   disposeMesh(mistMesh);
   for (const fm of featureMeshes) disposeMesh(fm);
   featureMeshes = [];
+  for (const um of unitMeshes) disposeMesh(um);
+  unitMeshes = [];
 
   // Remove temporary ground plane if it exists
   const oldGround = ctx.scene.getObjectByName('ground');
@@ -58,6 +62,10 @@ export function renderHexMap3D(state) {
   // Build 3D features (trees, mountains, knots, bases)
   featureMeshes = buildFeatureMeshes(state, humanView.visible);
   for (const fm of featureMeshes) ctx.scene.add(fm);
+
+  // Build unit figurines
+  unitMeshes = buildUnitMeshes(state, humanView.visible);
+  for (const um of unitMeshes) ctx.scene.add(um);
 }
 
 function disposeMesh(mesh) {
@@ -88,6 +96,8 @@ function disposeAll() {
   disposeMesh(mistMesh);
   for (const fm of featureMeshes) disposeMesh(fm);
   featureMeshes = [];
+  for (const um of unitMeshes) disposeMesh(um);
+  unitMeshes = [];
   // Clean up interaction listeners
   if (ctx && ctx._interactionCleanup) {
     ctx._interactionCleanup();

@@ -6,7 +6,7 @@ import { terrainMaterial } from './materials.js';
 const HEX_RADIUS = 1.0;
 
 // Elevation per terrain type (world units)
-const ELEVATION = {
+export const ELEVATION = {
   plains:   0.0,
   forest:   0.08,
   desert:   0.03,
@@ -16,7 +16,15 @@ const ELEVATION = {
 };
 
 // Hex thickness (the "board game piece" edge height)
-const HEX_THICKNESS = 2;
+export const HEX_THICKNESS = 2;
+
+/**
+ * Top surface Y of a tile of given terrain type.
+ * This is the single source of truth for ground level.
+ */
+export function tileTopY(terrain) {
+  return (ELEVATION[terrain] || 0) + HEX_THICKNESS;
+}
 
 // Terrain fill colors (mapped to vertex colors)
 // These are RGB tuples for vertex color attributes

@@ -1,5 +1,6 @@
 import * as THREE from '../../lib/three.module.js';
 import { FACTIONS } from '../../core/factions.js';
+import { tileTopY } from './terrain.js';
 
 const HEX_RADIUS = 1.0;
 
@@ -67,10 +68,10 @@ export function buildFeatureMeshes(state, visible) {
     if (!tile || !tile.feature) continue;
 
     const f = tile.feature;
-    const baseY = getElevationY(tile.terrain) + 2; // on top of tile
+    const surfaceY = tileTopY(tile.terrain); // on top of tile
 
     if (f.kind === 'tree') {
-      const { x, z } = hexCenter3D(tile.q, tile.r, baseY);
+      const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
       // 3-5 trees per forest hex, pseudo-random offsets
       const seed = tile.q * 1000 + tile.r;
       const count = 3 + (Math.abs(seed) % 3); // 3-5
@@ -79,14 +80,14 @@ export function buildFeatureMeshes(state, visible) {
         const oz = pseudoRandom(seed + i * 13, -0.35, 0.35);
         const scale = 0.7 + pseudoRandom(seed + i * 17, 0, 0.6);
         treeTrunkInstances.push({
-          x: x + ox, y: baseY, z: z + oz,
+          x: x + ox, y: surfaceY + 0.15, z: z + oz,
           scale,
           color: tile.feature?.ripe !== false
             ? [0.353, 0.227, 0.133] // ripe trunk
             : [0.478, 0.353, 0.227], // bare trunk
         });
         treeCanopyInstances.push({
-          x: x + ox, y: baseY + 0.3, z: z + oz,
+          x: x + ox, y: surfaceY + 0.45, z: z + oz,
           scale,
           color: tile.feature?.ripe !== false
             ? [0.184, 0.494, 0.267] // ripe green
@@ -94,22 +95,22 @@ export function buildFeatureMeshes(state, visible) {
         });
       }
     } else if (f.kind === 'mountain' || tile.terrain === 'mountain') {
-      const { x, z } = hexCenter3D(tile.q, tile.r, baseY);
+      const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
       mountainInstances.push({
-        x, y: baseY + 0.2, z,
+        x, y: surfaceY + 0.35, z,
         scale: 1.0,
         color: [0.718, 0.667, 0.573],
       });
     } else if (f.kind === 'knot' && !f.mined) {
-      const { x, z } = hexCenter3D(tile.q, tile.r, baseY);
+      const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
       knotInstances.push({
-        x, y: baseY + 0.15, z,
+        x, y: surfaceY + 0.30, z,
         scale: 1.0,
         color: [0.486, 0.247, 0.694], // purple
       });
     } else if (f.kind === 'base') {
       baseInstances.push({
-        q: tile.q, r: tile.r, baseY,
+        q: tile.q, r: tile.r, surfaceY,
         faction: f.faction,
       });
     }
@@ -188,7 +189,7 @@ export function buildFeatureMeshes(state, visible) {
   for (const base of baseInstances) {
     const fac = FACTIONS[base.faction];
     if (!fac) continue;
-    const { x, z } = hexCenter3D(base.q, base.r, base.baseY);
+    const { x, z } = hexCenter3D(base.q, base.r, base.surfaceY);
     const group = new THREE.Group();
     group.name = `base_${base.faction}`;
 
@@ -196,24 +197,19 @@ export function buildFeatureMeshes(state, visible) {
     const towerGeo = new THREE.CylinderGeometry(0.22, 0.25, 0.7, 8);
     const towerMat = new THREE.MeshLambertMaterial({ color: fac.color, flatShading: true });
     const tower = new THREE.Mesh(towerGeo, towerMat);
-    tower.position.set(x, base.baseY + 0.35, z);
+    tower.position.set(x, base.surfaceY + 0.50, z);
     group.add(tower);
 
     // Top cap
     const capGeo = new THREE.CylinderGeometry(0.24, 0.2, 0.15, 8);
     const cap = new THREE.Mesh(capGeo, towerMat);
-    cap.position.set(x, base.baseY + 0.75, z);
+    cap.position.set(x, base.surfaceY + 0.90, z);
     group.add(cap);
 
     results.push(group);
   }
 
   return results;
-}
-
-function getElevationY(terrain) {
-  const map = { plains: 0, forest: 0.08, desert: 0.03, marsh: -0.05, mountain: 0.6, water: -0.15 };
-  return map[terrain] || 0;
 }
 
 function pseudoRandom(seed, min, max) {
