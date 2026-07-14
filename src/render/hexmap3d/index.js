@@ -5,6 +5,9 @@ import { buildFeatureMeshes } from './features3d.js';
 import { buildUnitMeshes, setupUnitAnimations } from './units3d.js';
 import { getHumanView } from '../../game/vision.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction3d.js';
+import { initEffectsOverlay, setEffectsState, registerLayer } from '../effects/effectsOverlay.js';
+import { renderFogMist } from '../effects/fogMistLayer.js';
+import { renderSelectionRing } from '../effects/selectionRingLayer.js';
 
 let ctx = null; // singleton scene context
 let terrainMesh = null;
@@ -20,6 +23,11 @@ export function initHexMap3D(mountElement) {
     disposeAll();
   }
   ctx = initScene(mountElement);
+
+  // Init 2D effects overlay and register layers
+  initEffectsOverlay(ctx);
+  registerLayer('fogMist', 0, renderFogMist);
+  registerLayer('selectionRing', 10, renderSelectionRing);
 
   // Setup animations (needs game state access)
   setupUnitAnimations(ctx, () => window.__gameState);
@@ -65,6 +73,9 @@ export function renderHexMap3D(state) {
   // Build unit figurines
   unitMeshes = buildUnitMeshes(state, humanView.visible);
   for (const um of unitMeshes) ctx.scene.add(um);
+
+  // Push current state & camera to the overlay for the next frame
+  setEffectsState(state, ctx.camera);
 }
 
 function disposeMesh(mesh) {

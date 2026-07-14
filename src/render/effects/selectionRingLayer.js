@@ -9,7 +9,7 @@ const RING_COLOR = '#ffd86b';
 const RING_RADIUS = 22; // base pixel radius
 const RING_WIDTH = 3;
 
-export function renderSelectionRing(ctx2d, state, camera, overlayCanvas, time) {
+export function renderSelectionRing(ctx2d, state, camera, time) {
   const champ = state.champions.find(c => c.id === state.activeChampionId && c.alive);
   if (!champ) return;
   
@@ -18,7 +18,7 @@ export function renderSelectionRing(ctx2d, state, camera, overlayCanvas, time) {
   
   const surfaceY = tileTopY(tile.terrain);
   const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
-  const screen = worldToScreen(x, surfaceY + 0.18, z, camera, overlayCanvas);
+  const screen = worldToScreen(x, surfaceY + 0.18, z, camera, ctx2d.canvas);
   if (!screen) return;
   
   const pulse = 1 + Math.sin(time * 3) * 0.15;

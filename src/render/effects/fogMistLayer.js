@@ -27,8 +27,9 @@ function getMistCornersWorld(q, r, terrain) {
   return corners;
 }
 
-export function renderFogMist(ctx2d, state, camera, overlayCanvas) {
+export function renderFogMist(ctx2d, state, camera, _time) {
   const { visible, explored } = getHumanView(state);
+  const canvas = ctx2d.canvas;
   
   for (const [, tile] of Object.entries(state.tiles)) {
     const key = `${tile.q},${tile.r}`;
@@ -36,7 +37,7 @@ export function renderFogMist(ctx2d, state, camera, overlayCanvas) {
     
     const corners = getMistCornersWorld(tile.q, tile.r, tile.terrain);
     const screenPts = corners
-      .map(c => worldToScreen(c.x, c.y, c.z, camera, overlayCanvas))
+      .map(c => worldToScreen(c.x, c.y, c.z, camera, canvas))
       .filter(Boolean);
     
     if (screenPts.length < 3) continue;
