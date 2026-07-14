@@ -2,7 +2,7 @@ import { initScene } from './scene.js';
 import { buildTerrainMesh } from './terrain.js';
 import { buildUnexploredMesh, buildExploredMistMesh } from './fogOfWar.js';
 import { buildFeatureMeshes } from './features3d.js';
-import { buildUnitMeshes } from './units3d.js';
+import { buildUnitMeshes, setupUnitAnimations } from './units3d.js';
 import { getHumanView } from '../../game/vision.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction3d.js';
 
@@ -21,6 +21,10 @@ export function initHexMap3D(mountElement) {
     disposeAll();
   }
   ctx = initScene(mountElement);
+
+  // Setup animations (needs game state access)
+  setupUnitAnimations(ctx, () => window.__gameState);
+
   return ctx;
 }
 

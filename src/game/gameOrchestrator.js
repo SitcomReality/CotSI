@@ -7,8 +7,8 @@
  */
 import { createGame } from './gameFactory.js';
 import { checkVictory } from './victory.js';
-import { renderHexMapSVG, setupMapInteraction, camera, resetCamera } from '../render/hexmap.js';
-import { initHexMap3D, renderHexMap3D, setupMapInteraction3D } from '../render/hexmap3d/index.js';
+import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext } from '../render/hexmap3d/index.js';
+import { resetCamera as resetCamera3D } from '../render/hexmap3d/camera3d.js';
 import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panelComponents.js';
 import { initPaleyWidget } from '../ui/paleyWidget.js';
 import { setGameState, openArtifactChoiceModal } from '../ui/combat/index.js';
@@ -34,12 +34,19 @@ let map3dInitialized = false;
 
 export function __beginGame(config) {
   G = createGame(config);
+  window.__gameState = G;
   setGameState(G); // keep combatModal in sync
 
   document.getElementById('setup').style.display = 'none';
   document.getElementById('game').style.display = 'grid';
 
-  resetCamera();
+  // Reset 3D camera to default
+  const ctx3d = getSceneContext();
+  if (ctx3d) {
+    resetCamera3D(ctx3d.getCameraState());
+    ctx3d.applyCamera();
+  }
+
   bindGameUI();
   refreshAll();
 }
@@ -49,6 +56,8 @@ window.__beginGame = __beginGame;
 
 export function refreshAll() {
   if (!G) return;
+
+  window.__gameState = G;
 
   const ch = currentChamp();
 
@@ -69,14 +78,6 @@ export function refreshAll() {
     map3dInitialized = true;
   }
   renderHexMap3D(G);
-
-  // ── Remove old SVG code (commented out for reference) ──
-  // const mapResult = renderHexMapSVG(G, onHexClick);
-  // document.getElementById('mapMount').innerHTML = mapResult.svg;
-  // camera.offsetX = mapResult.offsetX;
-  // camera.offsetY = mapResult.offsetY;
-  // const svgEl = document.getElementById('hexMapSvg');
-  // if (svgEl) { setupMapInteraction(svgEl, onHexClick, ...); }
 
   // Paley widget
   initPaleyWidget('paleyMount');

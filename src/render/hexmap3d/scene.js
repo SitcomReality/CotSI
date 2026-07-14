@@ -5,12 +5,18 @@ import { createCameraState, applyCameraState } from './camera3d.js';
  * Initialize the Three.js scene, renderer, camera, and lights.
  * Returns all objects needed by other modules.
  */
-export function initScene(mountElement) {
+export function initScene(mountElement, { shadows = false } = {}) {
   // --- Renderer ---
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setClearColor(0x5c5242); // dark parchment (contrast with terrain colors)
-  renderer.shadowMap.enabled = false; // Phase 7 will enable this
+
+  if (shadows) {
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  } else {
+    renderer.shadowMap.enabled = false;
+  }
 
   // Match the mount element's size
   const rect = mountElement.getBoundingClientRect();
@@ -43,6 +49,19 @@ export function initScene(mountElement) {
   dirLight.position.set(15, 25, 10); // north-east, matching existing shadow convention
   scene.add(dirLight);
 
+  if (shadows) {
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 100;
+    dirLight.shadow.camera.left = -30;
+    dirLight.shadow.camera.right = 30;
+    dirLight.shadow.camera.top = 30;
+    dirLight.shadow.camera.bottom = -30;
+    dirLight.shadow.bias = -0.001;
+  }
+
   // --- Ground plane (temporary, removed in Phase 2) ---
   const groundGeo = new THREE.PlaneGeometry(60, 60);
   const groundMat = new THREE.MeshLambertMaterial({ color: 0xd4b87a });
@@ -54,9 +73,17 @@ export function initScene(mountElement) {
 
   // --- Animation loop ---
   let running = true;
+  const tickCallbacks = [];
+
   function animate() {
     if (!running) return;
     requestAnimationFrame(animate);
+
+    const time = performance.now() * 0.001; // seconds
+    for (const fn of tickCallbacks) {
+      fn(time);
+    }
+
     renderer.render(scene, camera);
   }
   animate();
@@ -69,6 +96,7 @@ export function initScene(mountElement) {
     lights: { ambient, hemisphere, directional: dirLight },
     applyCamera() { applyCameraState(camera, camState); },
     getCameraState() { return camState; },
+    onTick(fn) { tickCallbacks.push(fn); },
     dispose() {
       running = false;
       renderer.dispose();

@@ -1,5 +1,25 @@
 import { pickHex } from './picking.js';
 import { panCamera, zoomCamera } from './camera3d.js';
+import * as THREE from '../../lib/three.module.js';
+
+/**
+ * Convert screen‑space pointer deltas (dx pixels right, dy pixels down)
+ * into a world‑space XZ pan vector using the camera's orientation.
+ */
+function screenToWorldPan(dx, dy, camera) {
+  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+  const up    = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+  right.y = 0;
+  up.y    = 0;
+  if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+  if (up.lengthSq()    < 0.001) up.set(0, 0, 1);
+  right.normalize();
+  up.normalize();
+  // Flip horizontal sign for “push” style (right drag → left pan)
+  // Keep vertical sign positive so that a downward drag pans the camera upward
+  return right.multiplyScalar(-dx).add(up.multiplyScalar(dy));
+
+}
 
 // Tooltip DOM element (reused, shared singleton)
 let tooltipEl = null;
@@ -89,7 +109,9 @@ export function setupMapInteraction3D(
 
       // Scale delta by frustum size to get world units
       const worldPerPixel = state.frustumSize / canvas.clientHeight;
-      panCamera(state, -dx * worldPerPixel, dy * worldPerPixel);
+      const camera = canvas.__camera;                // provided by the scene setup
+      const worldDelta = screenToWorldPan(dx, dy, camera);
+      panCamera(state, worldDelta.x * worldPerPixel, worldDelta.z * worldPerPixel);
       applyCamera();
       hideTooltip();
       hoveredKey = null;
@@ -173,7 +195,9 @@ export function setupMapInteraction3D(
       lastPointerX = e.touches[0].clientX;
       lastPointerY = e.touches[0].clientY;
       const worldPerPixel = state.frustumSize / canvas.clientHeight;
-      panCamera(state, -dx * worldPerPixel, dy * worldPerPixel);
+      const camera = canvas.__camera;
+      const worldDelta = screenToWorldPan(dx, dy, camera);
+      panCamera(state, worldDelta.x * worldPerPixel, worldDelta.z * worldPerPixel);
       applyCamera();
     } else if (e.touches.length === 2) {
       const t0 = e.touches[0];
@@ -197,7 +221,9 @@ export function setupMapInteraction3D(
         touchStartCenter.x = cx;
         touchStartCenter.y = cy;
         const worldPerPixel = state.frustumSize / canvas.clientHeight;
-        panCamera(state, -dx * worldPerPixel, dy * worldPerPixel);
+        const camera = canvas.__camera;
+        const worldDelta = screenToWorldPan(dx, dy, camera);
+        panCamera(state, worldDelta.x * worldPerPixel, worldDelta.z * worldPerPixel);
         applyCamera();
       }
     }

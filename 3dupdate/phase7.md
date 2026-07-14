@@ -2,10 +2,6 @@
 
 **Goal**: Add idle animations, optional real-time shadows, and remove old SVG renderer references.
 
-### Files to create
-
-(None — this phase mainly edits existing files.)
-
 ### Files to edit
 
 **`src/render/hexmap3d/scene.js`** — Add animation tick support:
@@ -157,21 +153,3 @@ if (ctx3d) { resetCamera3D(ctx3d.getCameraState()); ctx3d.applyCamera(); }
 - The game is a complete 3D low-poly diorama
 
 ---
-
-## Summary: File Change Matrix
-
-| Phase | Files Created | Files Edited |
-|-------|--------------|-------------|
-| **0** | — | `index.html` |
-| **1** | `hexmap3d/scene.js`, `hexmap3d/index.js` | `gameOrchestrator.js` |
-| **2** | `hexmap3d/materials.js`, `hexmap3d/terrain.js` | `hexmap3d/index.js`, `hexmap3d/scene.js` (name ground) |
-| **3** | `hexmap3d/camera3d.js`, `hexmap3d/picking.js`, `hexmap3d/interaction3d.js` | `hexmap3d/scene.js`, `hexmap3d/index.js`, `gameOrchestrator.js`, `gameUIBindings.js` |
-| **4** | `hexmap3d/fogOfWar.js` | `hexmap3d/index.js` |
-| **5** | `hexmap3d/features3d.js` | `hexmap3d/index.js` |
-| **6** | `hexmap3d/units3d.js` | `hexmap3d/index.js` |
-| **7** | — | `hexmap3d/scene.js`, `hexmap3d/units3d.js`, `hexmap3d/index.js`, `gameOrchestrator.js`, `gameUIBindings.js` |
-
-**Total new files**: 11  
-**Total files edited across all phases**: 6
-
-Each file in `hexmap3d/` is self-contained and handles exactly one concern. The old `hexmap/` directory remains untouched throughout — you can delete it after Phase 7 once everything is verified working.
