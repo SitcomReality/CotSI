@@ -67,7 +67,7 @@ export function buildFeatureMeshes(state, visible) {
     if (!tile || !tile.feature) continue;
 
     const f = tile.feature;
-    const baseY = getElevationY(tile.terrain) + 0.15; // on top of tile
+    const baseY = getElevationY(tile.terrain) + 2; // on top of tile
 
     if (f.kind === 'tree') {
       const { x, z } = hexCenter3D(tile.q, tile.r, baseY);

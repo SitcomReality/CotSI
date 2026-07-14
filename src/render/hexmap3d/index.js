@@ -61,11 +61,25 @@ export function renderHexMap3D(state) {
 }
 
 function disposeMesh(mesh) {
-  if (mesh) {
-    mesh.geometry.dispose();
-    if (mesh.material) mesh.material.dispose();
-    ctx.scene.remove(mesh);
+  if (!mesh) return;
+  // Recurse into children (handles THREE.Group, which has no .geometry)
+  if (mesh.children && mesh.children.length > 0) {
+    // Clone array since disposeMesh mutates the parent's children
+    for (const child of [...mesh.children]) {
+      disposeMesh(child);
+    }
   }
+  // Dispose geometry (Groups won't have one, that's fine)
+  if (mesh.geometry) mesh.geometry.dispose();
+  // Dispose material(s)
+  if (mesh.material) {
+    if (Array.isArray(mesh.material)) {
+      mesh.material.forEach(m => m.dispose());
+    } else {
+      mesh.material.dispose();
+    }
+  }
+  ctx.scene.remove(mesh);
 }
 
 function disposeAll() {
