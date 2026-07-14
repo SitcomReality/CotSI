@@ -1,4 +1,4 @@
-import * as THREE from '../../lib/three.module.js';
+import * as THREE from '../../../lib/three.module.js';
 
 // World-space hex radius — must match terrain.js
 const HEX_RADIUS = 1.0;

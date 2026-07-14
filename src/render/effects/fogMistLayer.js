@@ -3,7 +3,7 @@
 // Priority: 0 (draws first, underneath everything else)
 
 import { worldToScreen } from './projection.js';
-import { tileTopY } from '../hexmap3d/terrain.js';
+import { tileTopY } from '../hexmap3d/hexmap3d-index.js';
 import { hexCenter, hexCornersXZ } from '../hexmap3d/hexUtils.js';
 import { getHumanView } from '../../game/vision.js';
 

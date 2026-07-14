@@ -1,7 +1,7 @@
 // src/render/hexmap3d/mountains.js
-import * as THREE from '../../lib/three.module.js';
-import { hexCenter3D } from './hexUtils.js';
-import { tileTopY } from './terrain.js';
+import * as THREE from '../../../lib/three.module.js';
+import { hexCenter3D } from '../hexUtils.js';
+import { tileTopY } from '../terrain/terrain.js';
 import { getMountainGeo } from './featureGeometries.js';
 
 /**

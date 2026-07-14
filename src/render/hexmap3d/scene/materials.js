@@ -1,4 +1,4 @@
-import * as THREE from '../../lib/three.module.js';
+import * as THREE from '../../../lib/three.module.js';
 
 /** Single shared material for all terrain — vertex colors drive the look */
 export const terrainMaterial = new THREE.MeshLambertMaterial({

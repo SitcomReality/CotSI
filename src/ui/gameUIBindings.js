@@ -2,8 +2,8 @@ import { refreshZoomDisplay } from './mapView.js';
 import { toast } from './hud.js';
 import { currentChamp } from '../game/gameOrchestrator.js';
 import { onEndTurn } from '../game/turnController.js';
-import { getSceneContext } from '../render/hexmap3d/index.js';
-import { zoomCamera, resetCamera } from '../render/hexmap3d/camera3d.js';
+import { getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
+import { zoomCamera, resetCamera } from '../render/hexmap3d/hexmap3d-index.js';
 
 export function bindGameUI() {
   document.getElementById('btnEndTurn')?.addEventListener('click', onEndTurn);

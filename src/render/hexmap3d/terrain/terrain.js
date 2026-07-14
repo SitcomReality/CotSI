@@ -1,7 +1,7 @@
-import * as THREE from '../../lib/three.module.js';
-import { TERRAIN } from '../../world/map.js';
-import { terrainMaterial } from './materials.js';
-import { HEX_RADIUS, hexCenter, hexCornersXZ } from './hexUtils.js';
+import * as THREE from '../../../lib/three.module.js';
+import { TERRAIN } from '../../../world/map.js';
+import { terrainMaterial } from '../scene/materials.js';
+import { HEX_RADIUS, hexCenter, hexCornersXZ } from '../hexUtils.js';
 
 // Elevation per terrain type (world units)
 export const ELEVATION = {

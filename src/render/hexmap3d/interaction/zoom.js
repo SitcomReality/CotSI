@@ -1,4 +1,4 @@
-import { zoomCamera } from './camera3d.js';
+import { zoomCamera } from '../scene/camera.js';
 
 /**
  * Create a wheel handler for zoom.

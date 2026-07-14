@@ -1,5 +1,5 @@
-import * as THREE from '../../lib/three.module.js';
-import { FACTIONS } from '../../core/factions.js';
+import * as THREE from '../../../lib/three.module.js';
+import { FACTIONS } from '../../../core/factions.js';
 
 import { getChampionBodyGeo, getChampionHeadGeo, getMobBodyGeo, getTraderBodyGeo } from './unitGeometries.js';
 import { hexCenter3D, hexToRgb, coordKey, tileTopY } from './unitUtils.js';

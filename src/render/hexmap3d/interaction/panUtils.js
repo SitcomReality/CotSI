@@ -1,4 +1,4 @@
-import * as THREE from '../../lib/three.module.js';
+import * as THREE from '../../../lib/three.module.js';
 
 /**
  * Convert screen‑space pointer deltas (dx pixels right, dy pixels down)

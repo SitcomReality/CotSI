@@ -1,4 +1,4 @@
-import { panCamera, zoomCamera } from './camera3d.js';
+import { panCamera, zoomCamera } from '../scene/camera.js';
 import { screenToWorldPan } from './panUtils.js';
 
 /**

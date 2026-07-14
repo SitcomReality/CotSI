@@ -1,13 +1,18 @@
-import { initScene } from './scene.js';
-import { buildTerrainMesh } from './terrain.js';
-import { buildUnexploredMesh } from './fogOfWar.js';
-import { buildFeatureMeshes } from './features3d.js';
-import { buildUnitMeshes, setupUnitAnimations } from './units3d.js';
+import { initScene } from './scene/scene.js';
+import { buildTerrainMesh } from './terrain/terrain.js';
+import { buildUnexploredMesh } from './terrain/fogOfWar.js';
+import { buildFeatureMeshes } from './features/features-index.js';
+import { buildUnitMeshes, setupUnitAnimations } from './units/units-index.js';
 import { getHumanView } from '../../game/vision.js';
-import { setupMapInteraction3D as setupInteraction } from './interaction3d.js';
+import { setupMapInteraction3D as setupInteraction } from './interaction/interaction-index.js';
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../effects/effectsOverlay.js';
 import { renderFogMist } from '../effects/fogMistLayer.js';
 import { renderSelectionRing } from '../effects/selectionRingLayer.js';
+
+// Re‑export symbols needed by external consumers
+export { tileTopY } from './units/unitUtils.js';
+export { hexCenter, hexCornersXZ, hexCenter3D } from './hexUtils.js';
+export { resetCamera, zoomCamera } from './scene/camera.js';
 
 let ctx = null; // singleton scene context
 let terrainMesh = null;

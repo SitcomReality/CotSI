@@ -1,5 +1,5 @@
 // src/render/hexmap3d/featureGeometries.js
-import * as THREE from '../../lib/three.module.js';
+import * as THREE from '../../../lib/three.module.js';
 
 let treeTrunkGeo = null;
 let treeCanopyGeo = null;

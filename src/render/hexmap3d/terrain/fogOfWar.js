@@ -1,5 +1,5 @@
-import * as THREE from '../../lib/three.module.js';
-import { HEX_RADIUS, hexCenter, hexCornersXZ } from './hexUtils.js';
+import * as THREE from '../../../lib/three.module.js';
+import { HEX_RADIUS, hexCenter, hexCornersXZ } from '../hexUtils.js';
 
 // Face-down tile appearance
 const FACEDOWN_COLOR = [0.15, 0.12, 0.08];

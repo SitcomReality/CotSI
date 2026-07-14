@@ -1,7 +1,6 @@
-import { panCamera } from './camera3d.js';
+import { panCamera } from '../scene/camera.js';
 import { screenToWorldPan } from './panUtils.js';
 import { hideTooltip } from './tooltip.js';
-
 /**
  * Create pan handlers for shift+drag and middle-button drag.
  *

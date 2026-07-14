@@ -3,7 +3,7 @@
 // Priority: 10 (above fog, below future particles)
 
 import { worldToScreen } from './projection.js';
-import { hexCenter3D, tileTopY } from '../hexmap3d/unitUtils.js';
+import { hexCenter3D, tileTopY } from '../hexmap3d/hexmap3d-index.js';
 
 const RING_COLOR = '#ffd86b';
 const RING_RADIUS = 22; // base pixel radius

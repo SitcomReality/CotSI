@@ -1,8 +1,8 @@
-import { createPanHandlers } from './panHandlers.js';
-import { createHoverHandler } from './hoverHandler.js';
-import { createClickHandler } from './clickHandler.js';
-import { createZoomHandler } from './zoomHandler.js';
-import { createTouchHandlers } from './touchHandlers.js';
+import { createPanHandlers } from './pan.js';
+import { createHoverHandler } from './hover.js';
+import { createClickHandler } from './click.js';
+import { createZoomHandler } from './zoom.js';
+import { createTouchHandlers } from './touch.js';
 import { hideTooltip } from './tooltip.js';
 
 /**

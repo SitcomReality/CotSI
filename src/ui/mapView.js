@@ -3,7 +3,7 @@ import { FACTIONS } from '../core/factions.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/entityQueries.js';
 import { getHumanView } from '../game/vision.js';
 import { movementRange } from '../game/movement.js';
-import { getSceneContext } from '../render/hexmap3d/index.js';
+import { getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
 
 /**
  * Get tooltip HTML for a given hex key.

@@ -1,7 +1,7 @@
-import * as THREE from '../../lib/three.module.js';
-import { coordKey } from '../../world/map.js';
-import { tileTopY } from './terrain.js';
-import { hexCenter3D } from './hexUtils.js';
+import * as THREE from '../../../lib/three.module.js';
+import { coordKey } from '../../../world/map.js';
+import { tileTopY } from '../terrain/terrain.js';
+import { hexCenter3D } from '../hexUtils.js';
 
 /**
  * Convert a hex color string (#rrggbb) to an RGB array (0..1).

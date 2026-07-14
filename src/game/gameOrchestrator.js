@@ -7,9 +7,9 @@
  */
 import { createGame } from './gameFactory.js';
 import { checkVictory } from './victory.js';
-import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext } from '../render/hexmap3d/index.js';
+import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
 import { syncSize } from '../render/effects/effectsOverlay.js';
-import { resetCamera as resetCamera3D } from '../render/hexmap3d/camera3d.js';
+import { resetCamera as resetCamera3D } from '../render/hexmap3d/hexmap3d-index.js';
 import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panelComponents.js';
 import { initPaleyWidget } from '../ui/paleyWidget.js';
 import { setGameState, openArtifactChoiceModal } from '../ui/combat/index.js';

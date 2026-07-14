@@ -1,8 +1,8 @@
 // src/render/hexmap3d/bases.js
-import * as THREE from '../../lib/three.module.js';
-import { FACTIONS } from '../../core/factions.js';
-import { hexCenter3D } from './hexUtils.js';
-import { tileTopY } from './terrain.js';
+import * as THREE from '../../../lib/three.module.js';
+import { FACTIONS } from '../../../core/factions.js';
+import { hexCenter3D } from '../hexUtils.js';
+import { tileTopY } from '../terrain/terrain.js';
 
 /**
  * Build base meshes (groups) for visible tiles with 'base' feature.
