@@ -3,8 +3,8 @@
 // Priority: 0 (draws first, underneath everything else)
 
 import { worldToScreen } from './projection.js';
-import { ELEVATION, HEX_THICKNESS } from '../hexmap3d/terrain.js';
-import { HEX_RADIUS, hexCenter } from '../hexmap3d/hexUtils.js';
+import { tileTopY } from '../hexmap3d/terrain.js';
+import { hexCenter, hexCornersXZ } from '../hexmap3d/hexUtils.js';
 import { getHumanView } from '../../game/vision.js';
 
 const MIST_COLOR = 'rgba(10, 8, 4, 0.82)';
@@ -12,19 +12,9 @@ const MIST_OFFSET = 0.3;
 
 // Generate 6 world-space corners for a hex, lifted to mist height
 function getMistCornersWorld(q, r, terrain) {
-  const elev = ELEVATION[terrain] || 0;
-  const topY = elev + HEX_THICKNESS + MIST_OFFSET;
+  const topY = tileTopY(terrain) + MIST_OFFSET;
   const { x: cx, z: cz } = hexCenter(q, r);
-  const corners = [];
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i - Math.PI / 6;
-    corners.push({
-      x: cx + HEX_RADIUS * Math.cos(angle),
-      y: topY,
-      z: cz + HEX_RADIUS * Math.sin(angle),
-    });
-  }
-  return corners;
+  return hexCornersXZ(cx, cz).map(c => ({ x: c.x, y: topY, z: c.z }));
 }
 
 export function renderFogMist(ctx2d, state, camera, _time) {

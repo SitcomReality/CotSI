@@ -15,8 +15,16 @@ export function hexCenter(q, r) {
 }
 
 /**
- * Generate the 6 corner vertices of a pointy-top hex in the XZ plane.
- * Pointy-top: first corner at -30° offset from +x axis.
+ * Same as hexCenter but passes y through for 3D callers.
+ */
+export function hexCenter3D(q, r, y) {
+  const { x, z } = hexCenter(q, r);
+  return { x, y, z };
+}
+
+/**
+ * Generate the 6 corner vertices of a flat-top hex in the XZ plane.
+ * Flat-top: first corner at -30° offset from +x axis.
  * @param {number} cx - center x
  * @param {number} cz - center z
  * @param {number} [radius=HEX_RADIUS]
