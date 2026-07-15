@@ -1,12 +1,12 @@
 import { initScene } from './scene/scene.js';
 import { buildTerrainMesh } from './terrain/terrain.js';
-import { buildUnexploredMesh } from './terrain/fogOfWar.js';
+
 import { buildFeatureMeshes } from './features/features-index.js';
 import { buildUnitMeshes, setupUnitAnimations } from './units/units-index.js';
 import { getHumanView } from '../../game/vision.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/interaction-index.js';
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../effects/effectsOverlay.js';
-import { renderFogMist } from '../effects/fogMistLayer.js';
+import { renderFogOverlay } from '../effects/fogOverlayLayer.js';
 import { renderSelectionRing } from '../effects/selectionRingLayer.js';
 
 // Re‑export symbols needed by external consumers
@@ -16,7 +16,6 @@ export { resetCamera, zoomCamera } from './scene/camera.js';
 
 let ctx = null; // singleton scene context
 let terrainMesh = null;
-let unexploredMesh = null;
 let featureMeshes = [];
 let unitMeshes = [];
 
@@ -31,7 +30,7 @@ export function initHexMap3D(mountElement) {
 
   // Init 2D effects overlay and register layers
   initEffectsOverlay(ctx);
-  registerLayer('fogMist', 0, renderFogMist);
+  registerLayer('fogOverlay', 0, renderFogOverlay);
   registerLayer('selectionRing', 10, renderSelectionRing);
 
   // Setup animations (needs game state access)
@@ -41,7 +40,7 @@ export function initHexMap3D(mountElement) {
 }
 
 /**
- * Full render pass — builds terrain and fog meshes from game state.
+ * Full render pass — builds terrain, features, and unit meshes from game state.
  */
 export function renderHexMap3D(state) {
   if (!ctx) return;
@@ -50,7 +49,6 @@ export function renderHexMap3D(state) {
 
   // Dispose old meshes
   disposeMesh(terrainMesh);
-  disposeMesh(unexploredMesh);
   for (const fm of featureMeshes) disposeMesh(fm);
   featureMeshes = [];
   for (const um of unitMeshes) disposeMesh(um);
@@ -66,10 +64,6 @@ export function renderHexMap3D(state) {
   // Build new terrain
   terrainMesh = buildTerrainMesh(state, humanView.visible, humanView.explored);
   ctx.scene.add(terrainMesh);
-
-  // Build fog
-  unexploredMesh = buildUnexploredMesh(state.tiles, humanView.explored);
-  if (unexploredMesh) ctx.scene.add(unexploredMesh);
 
   // Build 3D features (trees, mountains, knots, bases)
   featureMeshes = buildFeatureMeshes(state, humanView.visible);
@@ -107,7 +101,6 @@ function disposeMesh(mesh) {
 
 function disposeAll() {
   disposeMesh(terrainMesh);
-  disposeMesh(unexploredMesh);
   for (const fm of featureMeshes) disposeMesh(fm);
   featureMeshes = [];
   for (const um of unitMeshes) disposeMesh(um);
