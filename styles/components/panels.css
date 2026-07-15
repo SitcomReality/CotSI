@@ -1,0 +1,5 @@
+.manuscript-panel, .panel{background:var(--panel);border:1px solid var(--panel-border);border-radius:16px;box-shadow:0 6px 24px var(--paper-shadow), inset 0 1px 0 #fff8;padding:16px}
+.panel h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--muted)}
+.setup-card{width:min(1040px,96vw);background:linear-gradient(180deg,#fff7dfd9,#f7e8c3e8);border:2px solid #b9965a;border-radius:22px;box-shadow:0 24px 80px #7a4a1a33, inset 0 1px 0 #fff; padding:28px 30px;}
+.modal-card{width:min(1020px,96vw);background:linear-gradient(180deg,#fff7df,#f5e5bd);border:2px solid #b9965a;border-radius:20px;padding:18px 20px;box-shadow:0 30px 90px #0005}
+.reward-card, .victory-card{background:linear-gradient(180deg,#fff7df,#f3e0b3);border:2px solid #b9965a;border-radius:18px;padding:22px;text-align:center;box-shadow:0 24px 80px #0004;max-width:560px}

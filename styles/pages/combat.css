@@ -1,0 +1,72 @@
+.modal{position:fixed;inset:0;background:#160f09aa;backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50}
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.modal-header-row h2 {
+  margin: 0;
+}
+.modal-round-label {
+  font-size: 13px;
+  color: #7a5634;
+}
+.combat-arena{display:grid;grid-template-columns:1fr 86px 1fr;gap:14px}
+.combatant{background:#fff7dfaa;border:1px solid #d0a86a;border-radius:14px;padding:12px}
+.combatant .vs-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.vs-text {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  color: #b88728;
+  font-weight: 800;
+}
+.combat-order {
+  font-size: 11px;
+  color: #7a5634;
+}
+.combat-actions {
+  text-align: center;
+  margin-top: 8px;
+}
+.combat-tokens{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+.ctok{text-align:center;padding:6px 2px;border-radius:8px;background:#f7e8c3;border:1px solid #d0a86a;font-size:11px;cursor:pointer}
+.ctok.sel{outline:2px solid #d4a138; background:#fff4cf}
+.play-slots{display:flex;gap:8px;justify-content:center;margin:10px 0}
+.play-slot{width:92px;height:60px;border-radius:10px;border:2px dashed #c49b5a;display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff7dfaa}
+.play-arrow {
+  display: flex;
+  align-items: center;
+  color: #a77;
+}
+.combat-log-area {
+  min-height: 22px;
+  margin-top: 4px;
+}
+.combat-buttons {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.reward-title {
+  margin: 0 0 6px;
+  color: #9a5a12;
+  font-family: Georgia, serif;
+}
+.victory-label {
+  text-transform: uppercase;
+  letter-spacing: .24em;
+  font-size: 11px;
+  color: #7a5634;
+}
+.victory-text {
+  font-family: Georgia, serif;
+  font-size: 32px;
+  margin: 10px 0;
+}

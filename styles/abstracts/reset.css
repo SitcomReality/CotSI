@@ -1,0 +1,4 @@
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--parchment);color:var(--ink);font-family:Georgia,'Times New Roman',serif}
+button{font-family:inherit;cursor:pointer}
+h1,h2,h3{font-family:Georgia,serif; margin:0}

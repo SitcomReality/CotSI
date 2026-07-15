@@ -1,0 +1,12 @@
+.map-hud{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#fff7dfed;border:1px solid #c49b5a;border-radius:12px;padding:7px 12px;font-size:12px;color:#4a2f18;box-shadow:0 8px 24px #0001;z-index:5;display:flex;gap:14px;align-items:center}
+.map-hud b{color:#9a5a12}
+.moves-pill{background:#f7e3ad;border:1px solid #c49b5a;padding:2px 9px;border-radius:999px;font-weight:800}
+.map-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}

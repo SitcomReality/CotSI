@@ -1,0 +1,5 @@
+@media(max-width:1100px){
+ #game{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}
+ .leftbar,.rightbar{order:2}
+ .mapwrap{order:1;min-height:520px}
+}

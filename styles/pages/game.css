@@ -1,0 +1,32 @@
+#game{display:none;min-height:100vh;grid-template-columns:320px 1fr 340px;grid-template-rows:auto 1fr;gap:0}
+.game-header{grid-column:1/-1;background:#ead6a8cc;border-bottom:1px solid #c5a36a66;backdrop-filter:blur(4px);padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+.game-header .day-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: #7a5634;
+}
+.game-header .game-title {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+.leftbar, .rightbar{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#f5e5bd66,#ead6a800)}
+.mapwrap{position:relative;background:#ead6a8;overflow:hidden;border-left:1px solid #c5a36a55;border-right:1px solid #c5a36a55}
+#mapMount {width:100%;height:100%;display:block;min-height:680px}
+.turn-who{display:flex;align-items:center;gap:10px}
+.turn-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;box-shadow:0 4px 16px #0002}
+.turn-name{font-weight:800;font-size:17px}
+.turn-meta{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:8px}
+.wtag{display:inline-block;padding:3px 8px;border:1px solid #b99b6a;border-radius:999px;background:#fff7dfaa;font-size:11px}
+.score-entry{background:#fff7df99;border:1px solid #d0a86a66;border-radius:10px;padding:8px 10px;margin-bottom:7px}
+.score-entry.me{box-shadow:0 0 0 1px #b8741a66, 0 0 16px #b8741a22}
+.log{height:170px;overflow:auto;background:#fff7df66;border:1px solid #d0a86a55;border-radius:12px;padding:8px;font-size:12px;color:#5a3a22}
+.logline{border-bottom:1px dashed #d0a86a55;padding:3px 0}
+.log-bar {
+  grid-column: 1 / -1;
+  background: #ead6a8cc;
+  border-top: 1px solid #c5a36a66;
+  padding: 10px 16px;
+}
