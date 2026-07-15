@@ -27,6 +27,21 @@ export function movementRange(state, champ) {
   return costs;
 }
 
+/**
+ * Returns array of hex keys for passable, unblocked tiles adjacent to champ.
+ * Used for step-by-step human movement (only 6 neighbor checks, no BFS).
+ */
+export function adjacentPassable(state, champ) {
+  const results = [];
+  for (const n of neighbors(champ.pos)) {
+    const key = coordKey(n);
+    if (!isBlockedForMovement(state, key, champ.id)) {
+      results.push(key);
+    }
+  }
+  return results;
+}
+
 export function dailyMoves(state, champ) {
   const artifactMove = champ.artifact === 'spur' ? 1 : 0;
   const verdantMove = champ.faction === 2 ? 1 : 0;

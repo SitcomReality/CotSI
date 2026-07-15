@@ -4,7 +4,7 @@
  * gameOrchestrator (circular import, used at runtime only).
  */
 import { G, currentChamp, refreshAll } from './gameOrchestrator.js';
-import { movementRange, moveChampion } from './movement.js';
+import { movementRange, moveChampion, adjacentPassable } from './movement.js';
 import { addLog } from './log.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from './entityQueries.js';
 import { parseKey, distance } from '../world/map.js';
@@ -19,9 +19,8 @@ import { FACTIONS } from '../core/factions.js';
 export function onHexClick(key) {
   if (!G || G.reward || G.notice || G.winnerId) return;
   const ch = currentChamp();
-  if (!ch || ch.controller !== 'human') return;
+  if (!ch || ch.controller !== 'human' || ch.moves <= 0) return;
 
-  const range = movementRange(G, ch);
   const tile = G.tiles[key];
   if (!tile) return;
 
@@ -30,7 +29,7 @@ export function onHexClick(key) {
   const trader = occupiedByTrader(G, key);
   const dist = distance(ch.pos, parseKey(key));
 
-  // Adjacent enemy → combat
+  // Adjacent enemy → combat (allowed even if hex is blocked for movement)
   if ((mob || other) && dist === 1) {
     startCombat(ch, mob || other);
     return;
@@ -49,9 +48,10 @@ export function onHexClick(key) {
     return;
   }
 
-  // Move to highlighted hex
-  if (range[key] !== undefined && range[key] > 0) {
-    moveChampion(G, ch, key, range[key]);
+  // Movement: only adjacent and passable hexes (cost always 1)
+  const allowed = adjacentPassable(G, ch);
+  if (allowed.includes(key)) {
+    moveChampion(G, ch, key, 1);
     refreshAll();
     if (ch.moves <= 0) pulseEnd();
   }

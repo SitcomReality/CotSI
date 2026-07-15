@@ -8,6 +8,7 @@ import { setupMapInteraction3D as setupInteraction } from './interaction/interac
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../effects/effectsOverlay.js';
 import { renderFogOverlay } from '../effects/fogOverlayLayer.js';
 import { renderSelectionRing } from '../effects/selectionRingLayer.js';
+import { renderMovementHighlights } from '../effects/movementHighlightsLayer.js';
 
 // Re‑export symbols needed by external consumers
 export { tileTopY } from './units/unitUtils.js';
@@ -31,6 +32,9 @@ export function initHexMap3D(mountElement) {
   // Init 2D effects overlay and register layers
   initEffectsOverlay(ctx);
   registerLayer('fogOverlay', 0, renderFogOverlay);
+  registerLayer('selectionRing', 10, renderSelectionRing);
+  registerLayer('fogOverlay', 0, renderFogOverlay);
+  registerLayer('movementHighlights', 5, renderMovementHighlights);  // <-- NEW
   registerLayer('selectionRing', 10, renderSelectionRing);
 
   // Setup animations (needs game state access)
