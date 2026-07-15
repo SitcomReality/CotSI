@@ -12,7 +12,7 @@ import { renderSelectionRing } from '../effects/selectionRingLayer.js';
 // Re‑export symbols needed by external consumers
 export { tileTopY } from './units/unitUtils.js';
 export { hexCenter, hexCornersXZ, hexCenter3D } from './hexUtils.js';
-export { resetCamera, zoomCamera } from './scene/camera.js';
+export { resetCamera, zoomCamera, centerCameraOnHex } from './scene/camera.js';
 
 let ctx = null; // singleton scene context
 let terrainMesh = null;

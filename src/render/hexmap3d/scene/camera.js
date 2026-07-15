@@ -6,7 +6,9 @@
  * and zoom (adjust frustum size) are allowed. No tilt or rotation.
  */
 
-const DEFAULT_FRUSTUM = 40; // vertical world units visible at zoom=1
+import { hexCenter } from '../hexUtils.js';
+
+const DEFAULT_FRUSTUM = 8; // vertical world units visible at zoom=1
 const MIN_FRUSTUM = 5;
 const MAX_FRUSTUM = 120;
 
@@ -69,4 +71,16 @@ export function resetCamera(state) {
   state.frustumSize = DEFAULT_FRUSTUM;
   state.targetX = 0;
   state.targetZ = 0;
+}
+
+/**
+ * Center the camera on a hex tile's world position.
+ * @param {object} state - camera state
+ * @param {number} q - hex column coordinate
+ * @param {number} r - hex row coordinate
+ */
+export function centerCameraOnHex(state, q, r) {
+  const { x, z } = hexCenter(q, r);
+  state.targetX = x;
+  state.targetZ = z;
 }

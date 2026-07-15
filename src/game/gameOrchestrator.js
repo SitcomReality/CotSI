@@ -1,15 +1,8 @@
-/**
- * gameOrchestrator — Holds the game instance `G`, exports the central
- * conductor functions (`__beginGame`, `currentChamp`, `refreshAll`),
- * and sets window-level APIs.
- *
- * This is the coordination nexus: state → UI → render.
- */
 import { createGame } from './gameFactory.js';
 import { checkVictory } from './victory.js';
 import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
 import { syncSize } from '../render/effects/effectsOverlay.js';
-import { resetCamera as resetCamera3D } from '../render/hexmap3d/hexmap3d-index.js';
+import { resetCamera as resetCamera3D, centerCameraOnHex } from '../render/hexmap3d/hexmap3d-index.js';
 import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panelComponents.js';
 import { initPaleyWidget } from '../ui/paleyWidget.js';
 import { setGameState, openArtifactChoiceModal } from '../ui/combat/index.js';
@@ -30,6 +23,10 @@ export function currentChamp() {
 
 // Add a flag to track whether 3D scene is initialized:
 let map3dInitialized = false;
+
+// Track which champion we last centered the camera on (by id,
+// so we only center once when a human champion's turn starts)
+let lastCenteredChampionId = null;
 
 // ---- Begin game (called by setup.js) ----
 
@@ -82,6 +79,16 @@ export function refreshAll() {
     map3dInitialized = true;
   }
   renderHexMap3D(G);
+
+  // ── Center camera on human champion at turn start ──
+  if (ch && ch.controller === 'human' && ch.id !== lastCenteredChampionId) {
+    const ctx3d = getSceneContext();
+    if (ctx3d) {
+      centerCameraOnHex(ctx3d.getCameraState(), ch.pos.q, ch.pos.r);
+      ctx3d.applyCamera();
+    }
+    lastCenteredChampionId = ch.id;
+  }
 
   // Paley widget
   initPaleyWidget('paleyMount');
