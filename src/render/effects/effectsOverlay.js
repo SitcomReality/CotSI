@@ -1,4 +1,3 @@
-// src/render/effects/effectsOverlay.js
 // Creates a transparent canvas overlaid on the Three.js canvas.
 // Handles size syncing, pixel ratio, and provides a registry
 // for layered 2D effect renderers.
@@ -26,9 +25,8 @@ export function initEffectsOverlay(sceneContext) {
   
   // Hook into existing tick loop
   sceneContext.onTick((time) => {
-    // state and camera are fetched lazily via globals or passed from renderHexMap3D
-    // (see Step 4 for wiring)
     if (!overlay._state || !overlay._camera) return;
+    syncSize();  // <-- add this line
     renderFrame(overlay._state, overlay._camera, time);
   });
   
@@ -37,12 +35,21 @@ export function initEffectsOverlay(sceneContext) {
 
 function syncSize() {
   if (!threeCanvas || !overlay) return;
-  const rect = threeCanvas.getBoundingClientRect();
+
+  const canvasRect = threeCanvas.getBoundingClientRect();
+  const parentRect = overlay.parentNode.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  overlay.width = rect.width * dpr;
-  overlay.height = rect.height * dpr;
-  overlay.style.width = rect.width + 'px';
-  overlay.style.height = rect.height + 'px';
+
+  // Position overlay to exactly cover the Three.js canvas
+  overlay.style.left = (canvasRect.left - parentRect.left) + 'px';
+  overlay.style.top  = (canvasRect.top  - parentRect.top)  + 'px';
+  overlay.style.width  = canvasRect.width  + 'px';
+  overlay.style.height = canvasRect.height + 'px';
+
+  // Set drawing buffer size
+  overlay.width  = canvasRect.width  * dpr;
+  overlay.height = canvasRect.height * dpr;
+
   if (ctx2d) ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
