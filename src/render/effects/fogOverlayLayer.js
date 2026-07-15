@@ -1,15 +1,15 @@
 // src/render/effects/fogOverlayLayer.js
 // Unified screen-space fog overlay using destination-out compositing.
 //
-// Instead of drawing separate fog polygons per hex, this renders a single
-// full-canvas dark rectangle and "punches holes" for visible/explored areas
-// using precomputed blurred masks. The result: no elevation gaps, soft
-// organic fog edges, and no visible distinction between unexplored and
-// off-map terrain.
+// Full-canvas dark rectangle and "punched holes" for visible/explored areas
+// using precomputed blurred masks.
 
 import { generateFogMasks } from './fogMaskGen.js';
 import { getHumanView } from '../../game/vision.js';
-
+    //imports for diagnostics
+    import { worldToScreen } from './projection.js'
+    import { hexCenter } from '../hexmap3d/hexUtils.js';
+    import { tileTopY } from '../hexmap3d/terrain/terrain.js';
 // ---------------------------------------------------------------------------
 // Tunable constants
 // ---------------------------------------------------------------------------
@@ -70,12 +70,12 @@ export function renderFogOverlay(ctx2d, state, camera, _time) {
   //    alpha, so a lower globalAlpha leaves a thinner residual fog.
   ctx2d.globalCompositeOperation = 'destination-out';
   ctx2d.globalAlpha = EXPLORED_PUNCH_ALPHA;
-  ctx2d.drawImage(exploredMask, 0, 0);
+  ctx2d.drawImage(exploredMask, 0, 0, cssW, cssH);
 
   // 4. Punch fully-transparent holes for currently visible hexes.
   //    globalAlpha = 1.0 → complete removal, revealing the terrain fully.
   ctx2d.globalAlpha = 1.0;
-  ctx2d.drawImage(visibleMask, 0, 0);
+  ctx2d.drawImage(visibleMask, 0, 0, cssW, cssH);
 
   // 5. Restore canvas state to defaults for subsequent layers
   ctx2d.globalCompositeOperation = 'source-over';

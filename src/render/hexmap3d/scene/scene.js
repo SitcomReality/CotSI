@@ -20,7 +20,7 @@ export function initScene(mountElement, { shadows = false } = {}) {
 
   // Match the mount element's size
   const rect = mountElement.getBoundingClientRect();
-  renderer.setSize(rect.width, rect.height, false);
+  renderer.setSize(rect.width, rect.height, true);
   mountElement.appendChild(renderer.domElement);
 
   // --- Scene ---
@@ -37,6 +37,15 @@ export function initScene(mountElement, { shadows = false } = {}) {
 
   // Store camera on canvas for picking access
   renderer.domElement.__camera = camera;
+
+  function resize(width, height) {
+    if (!width || !height) return;
+    renderer.setSize(width, height, true);
+
+    // Update the stored aspect ratio and re-apply the camera state
+    camState.aspect = width / Math.max(height, 1);
+    applyCameraState(camera, camState);
+  }
 
   // --- Lights ---
   const ambient = new THREE.AmbientLight(0xc8b898, 0.6);
@@ -93,6 +102,7 @@ export function initScene(mountElement, { shadows = false } = {}) {
     scene,
     camera,
     camState,
+    resize,
     lights: { ambient, hemisphere, directional: dirLight },
     applyCamera() { applyCameraState(camera, camState); },
     getCameraState() { return camState; },
