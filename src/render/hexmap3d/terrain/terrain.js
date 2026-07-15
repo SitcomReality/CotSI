@@ -14,7 +14,7 @@ export const ELEVATION = {
 };
 
 // Hex thickness (the "board game piece" edge height)
-export const HEX_THICKNESS = 2;
+export const HEX_THICKNESS = 1.25;
 
 /**
  * Top surface Y of a tile of given terrain type.

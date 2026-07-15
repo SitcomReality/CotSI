@@ -15,5 +15,6 @@ export function createZoomHandler(getCameraState, applyCamera) {
     const factor = e.deltaY > 0 ? 1.1 : 0.9;
     zoomCamera(state, factor);
     applyCamera();
+    refreshZoomDisplay();
   };
 }

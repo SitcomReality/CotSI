@@ -13,10 +13,6 @@ import { hexCenter, hexCornersXZ } from '../hexmap3d/hexUtils.js';
 // Soft-edge blur radius in CSS pixels. Tunable aesthetic constant.
 const MASK_BLUR = 12;
 
-// Height offset above the tile top for the mask polygon (world units).
-// Matches fogMistLayer's MIST_OFFSET so the mask aligns with the existing mist.
-const MASK_OFFSET = 0.3;
-
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
@@ -26,7 +22,7 @@ const MASK_OFFSET = 0.3;
  * Mirrors the logic in fogMistLayer.js.
  */
 function getMaskCornersWorld(q, r, terrain) {
-  const topY = tileTopY(terrain) + MASK_OFFSET;
+  const topY = tileTopY(terrain);
   const { x: cx, z: cz } = hexCenter(q, r);
   return hexCornersXZ(cx, cz).map(c => ({ x: c.x, y: topY, z: c.z }));
 }
