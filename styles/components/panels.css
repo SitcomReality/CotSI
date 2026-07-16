@@ -266,3 +266,24 @@
   box-shadow: var(--shadow-stack);
   padding: var(--space-sm);
 }
+
+/* Heptagram lines: ink-faint default, gold on hover (CSS only) */
+.rt-heptagram-svg .rt-heptagram-line {
+  stroke: var(--ink-faint);
+  stroke-opacity: 0.48;
+  stroke-width: 1.4;
+  transition: stroke var(--dur-fast) var(--ease-out),
+              stroke-opacity var(--dur-fast) var(--ease-out),
+              stroke-width var(--dur-fast) var(--ease-out);
+}
+.rt-heptagram-svg .rt-heptagram-line:hover {
+  stroke: var(--gold);
+  stroke-opacity: 0.95;
+  stroke-width: 2.4;
+}
+.rt-heptagram-svg .rt-heptagram-line.selected,
+.rt-heptagram-svg .rt-heptagram-line.rt-highlight {
+  stroke: var(--gold);
+  stroke-opacity: 0.95;
+  stroke-width: 2.4;
+}

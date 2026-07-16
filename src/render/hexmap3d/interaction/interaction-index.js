@@ -3,7 +3,7 @@ import { createHoverHandler } from './hover.js';
 import { createClickHandler } from './click.js';
 import { createZoomHandler } from './zoom.js';
 import { createTouchHandlers } from './touch.js';
-import { hideTooltip } from './tooltip.js';
+import { hideTooltip, bindTooltipToContainer } from './tooltip.js';
 
 /**
  * Wire up 3D canvas events for pan, zoom, hex hover (tooltip), hex click, and touch.
@@ -50,6 +50,9 @@ export function setupMapInteraction3D(
   canvas.addEventListener('touchend', touch.onTouchEnd);
   // Click
   canvas.addEventListener('click', click);
+
+  // Bind tooltip to canvas mouseleave
+  bindTooltipToContainer(canvas);
 
   // Cleanup
   return () => {

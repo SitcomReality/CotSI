@@ -48,7 +48,7 @@
 <div id="game" class="layout-root">
 
   <!-- New semantic header: three slots + detail dropdown -->
-  <header id="gameHeader">
+  <header id="gameHeader" class="game-header">
     <div class="header__world">
       <!-- Day/Week/Weather (JS-injected) -->
     </div>
@@ -56,10 +56,9 @@
       <!-- turn-order champion bar (JS-injected) -->
     </div>
     <div class="header__actions">
-      <button class="btn-gold header__end-turn-btn" id="endTurnBtn">End Turn</button>
       <button class="btn-icon header__inspect-btn" id="inspectBtn" title="Inspect champion">🔍</button>
     </div>
-    <div id="championDetail">
+    <div id="championDetail" class="champion-detail">
       <!-- expandable detail dropdown (repositioned by JS) -->
     </div>
   </header>

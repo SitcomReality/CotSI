@@ -1,5 +1,3 @@
-import { FACTIONS } from '../core/factions.js';
-
 /** Show a brief toast notification. Pass bad=true for error styling. */
 export function toast(msg, bad) {
   const t = document.getElementById('toast');
@@ -12,7 +10,7 @@ export function toast(msg, bad) {
 
 /** Brief visual pulse on the End Turn button. */
 export function pulseEnd() {
-  const b = document.getElementById('btnEndTurn');
+  const b = document.getElementById('endTurnBtn');
   if (!b) return;
   b.style.transform = 'scale(1.05)';
   setTimeout(() => (b.style.transform = ''), 160);

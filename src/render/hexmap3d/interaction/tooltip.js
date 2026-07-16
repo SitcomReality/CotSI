@@ -35,3 +35,11 @@ export function hideTooltip() {
   const el = getTooltipEl();
   el.style.display = 'none';
 }
+
+/**
+ * Automatically hide the tooltip when the mouse leaves the given container element.
+ * Call this once with your 3D canvas or the container that wraps the canvas.
+ */
+export function bindTooltipToContainer(container) {
+  container.addEventListener('mouseleave', hideTooltip);
+}
