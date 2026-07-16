@@ -25,11 +25,15 @@
 @import "./components/forms.css";
 @import "./components/stats.css";
 @import "./components/hud.css";
+@import "./components/map-controls.css";
+@import "./components/log-bar.css";
+
+/* Layout layer */
+@import "./layout/game-grid.css";
 
 /* Page-specific layer */
 @import "./pages/token-sheet.css";
 @import "./pages/setup.css";
-@import "./pages/game.css";
 @import "./pages/combat.css";
 
 /* UI overrides */

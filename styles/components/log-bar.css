@@ -1,0 +1,112 @@
+/* =========================================================================
+   Log Bar  —  Event log with expand/collapse (extracted from game.css)
+   ========================================================================= */
+
+.log-bar {
+  grid-column: 1 / -1;
+  background: var(--vellum);
+  border-top: var(--hair) solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: height 0.2s ease;
+  height: 40px; /* collapsed */
+  position: relative;
+}
+
+.log-bar.log-bar--open {
+  height: 160px; /* expanded */
+}
+
+/* Cloud-band decorative pattern for empty/collapsed state */
+.log-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/icons/patterns/fog-clouds.svg') repeat-x bottom / auto 24px;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.log-bar__toggle {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--s1) var(--s3);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.log-bar__chevron {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink);
+  padding: var(--s1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  width: 28px;
+  height: 28px;
+}
+
+.log-bar__chevron:hover {
+  opacity: 1;
+}
+
+.log-bar__chevron svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.log-bar__entries {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--s3) var(--s2);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  z-index: 1;
+}
+
+.log-bar__entries--empty {
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.log-bar__hint {
+  opacity: 0.6;
+}
+
+/* ── Log line types ── */
+.log-bar__line {
+  padding: 2px 0;
+  border-bottom: 1px dashed var(--rule);
+  color: var(--ink-soft);
+}
+
+.log-bar__line--combat {
+  color: var(--vermilion);
+}
+
+.log-bar__line--heal {
+  color: var(--malachite);
+}
+
+.log-bar__line--system {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.log-bar__line--standard {
+  color: var(--ink-soft);
+}

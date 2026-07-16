@@ -1,0 +1,46 @@
+/* =========================================================================
+   Map Controls  —  Zoom/pan button cluster (extracted from game.css & hud.css)
+   ========================================================================= */
+
+.map-controls {
+  position: absolute;
+  bottom: var(--s4);
+  right: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  z-index: 10;
+}
+
+.map-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--parchment);
+  border: var(--hair) solid var(--rule);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  color: var(--ink);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.map-btn:hover {
+  background: var(--ivory);
+  box-shadow: var(--shadow-panel);
+}
+
+.map-btn:active {
+  box-shadow: none;
+}
+
+.map-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
