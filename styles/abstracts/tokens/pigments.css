@@ -1,0 +1,13 @@
+/* =========================================================================
+   MINIATURE PIGMENTS — Jewel colours that "sing" against the chrome
+   Use sparingly — each has a clear semantic or elemental role.
+   ========================================================================= */
+:root {
+  --ultramarine:   #1f3fae;  /* deep blue — water, sky, lapis accents    */
+  --vermilion:     #e23b22;  /* hot red  — hostile, rubric, fire         */
+  --malachite:     #1f9d57;  /* bright green — ally, reachable, forest   */
+  --emerald:       #0f7a45;  /* deep green — Verdant terrain shadow      */
+  --tyrian:        #7a1f63;  /* royal purple — Masque / reverie sky      */
+  --gold:          #c8962a;  /* GOLD LEAF — RARE accent only             */
+  --gold-hi:       #f4d27a;  /* burnished highlight (animation peak)     */
+}

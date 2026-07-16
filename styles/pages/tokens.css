@@ -1,0 +1,60 @@
+/* =========================================================================
+   TOKEN SHEET (styleguide page) — Layout for the design token preview.
+   Used in visguide/tokenpage.html only; not for game UI.
+   ========================================================================= */
+body.token-sheet {
+  margin: 0;
+  background:
+    radial-gradient(120% 80% at 50% -10%, var(--vellum) 0%, var(--vellum-2) 100%);
+  color: var(--ink);
+  font: 400 var(--fs-md)/var(--lh) var(--font-body);
+  padding: var(--s6);
+}
+
+.token-sheet h1 {
+  font: 700 var(--fs-2xl)/1.05 var(--font-display);
+  letter-spacing: .01em;
+  margin: 0 0 var(--s2);
+}
+
+.token-sheet h1 .accent {
+  font-family: var(--font-accent);
+  color: var(--vermilion);
+  font-weight: 700;
+}
+
+.token-sheet .sub {
+  color: var(--ink-soft);
+  font-style: italic;
+  margin: 0 0 var(--s6);
+}
+
+.token-sheet h2 {
+  font: 600 var(--fs-lg) var(--font-display);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--vermilion);
+  margin: var(--s7) 0 var(--s3);
+  border-bottom: var(--hair) solid var(--rule-strong);
+  padding-bottom: var(--s2);
+}
+
+.token-sheet .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  align-items: flex-start;
+}
+
+.token-sheet .col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.token-sheet .label {
+  font: 600 var(--fs-xs) var(--font-display);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}

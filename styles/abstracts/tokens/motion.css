@@ -1,0 +1,20 @@
+/* =========================================================================
+   MOTION  — Restrained, "page" pacing. Easing inspired by paper settling.
+   ========================================================================= */
+:root {
+  --ease:       cubic-bezier(.22,.61,.36,1);
+  --ease-in:    cubic-bezier(.55,.06,.68,.19);
+  --ease-out:   cubic-bezier(.22,.61,.36,1);
+  --dur-fast:   150ms;
+  --dur:        250ms;
+  --dur-slow:   420ms;
+  --dur-xslow:  600ms;
+
+  /* Stacking context */
+  --z-map:   1;
+  --z-fog:   2;
+  --z-fx:    3;
+  --z-hud:   4;
+  --z-modal: 5;
+  --z-toast: 9;
+}

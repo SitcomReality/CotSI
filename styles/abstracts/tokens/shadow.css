@@ -1,0 +1,17 @@
+/* =========================================================================
+   SHADOWS  — Paper depth, stacked-card feel. No diffuse drop-shadow globs;
+   these use hard lines and insets to evoke vellum and card stock.
+   ========================================================================= */
+:root {
+  --shadow-card:   0 1px 0 var(--ivory) inset,
+                   0 1px 2px rgba(34,28,20,.10),
+                   0 6px 14px -8px rgba(34,28,20,.35);
+  --shadow-stack:  0 1px 0 var(--ivory) inset,
+                   2px 3px 0 -1px var(--vellum-2),
+                   4px 6px 0 -2px var(--rule),
+                   0 10px 22px -12px rgba(34,28,20,.45);
+  --shadow-seal:   0 2px 5px rgba(34,28,20,.45),
+                   0 0 0 1px rgba(34,28,20,.25) inset;
+  --shadow-panel:  0 1px 0 var(--ivory) inset,
+                   0 2px 4px rgba(34,28,20,.12);
+}

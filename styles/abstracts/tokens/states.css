@@ -1,0 +1,12 @@
+/* =========================================================================
+   STATE  — Universal semantic colours for UI states and interactions.
+   ========================================================================= */
+:root {
+  --st-hostile:  var(--vermilion);
+  --st-ally:     var(--malachite);
+  --st-neutral:  var(--ink-soft);
+  --st-selected: var(--gold);
+  --st-move:     color-mix(in srgb, var(--malachite) 20%, transparent);
+  --st-danger:   color-mix(in srgb, var(--vermilion) 18%, transparent);
+  --st-fog-seen: color-mix(in srgb, var(--vellum-2) 55%, transparent);
+}

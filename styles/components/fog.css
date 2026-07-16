@@ -1,0 +1,16 @@
+/* =========================================================================
+   FOG OF WAR  — Cloud-band pattern (not flat gray).
+   Requires SVG pattern #fog-clouds defined in the sprite sheet.
+   ========================================================================= */
+.fog {
+  border-radius: var(--r);
+  border: var(--hair) solid var(--rule);
+  background: var(--ivory);
+}
+
+.fog svg {
+  width: 100%;
+  height: 100%;
+  color: var(--ink-faint);
+  border-radius: var(--r);
+}

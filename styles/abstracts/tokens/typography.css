@@ -1,0 +1,55 @@
+/* =========================================================================
+   TYPOGRAPHY  — Type families, sizes, and spacing.
+   Font files expected in /assets/ directory.
+   ========================================================================= */
+@font-face {
+  font-family: 'Cinzel';
+  src: url('/assets/Cinzel-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 400 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('/assets/EBGaramond-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 400 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('/assets/EBGaramond-Italic-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 400 800;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'UnifrakturCook';
+  src: url('/assets/UnifrakturCook-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  /* Typefaces */
+  --font-display: 'Cinzel', Georgia, serif;     /* headings, drop caps */
+  --font-body:    'EB Garamond', Georgia, serif; /* everything else */
+  --font-accent:  'UnifrakturCook', 'Cinzel', serif; /* wordmark ONLY */
+  --font-mono:    ui-monospace, Menlo, monospace;    /* code, labels */
+
+  /* Tabular numbers for stat alignment */
+  --tnum: 'tnum' 1;
+
+  /* Sizes */
+  --fs-xs:  12px;
+  --fs-sm:  14px;
+  --fs-md:  16px;
+  --fs-lg:  20px;
+  --fs-xl:  28px;
+  --fs-2xl: 40px;
+  --fs-3xl: 56px;
+
+  /* Line height & letter spacing */
+  --lh:         1.45;
+  --lh-tight:   1.15;
+  --ls-cap:     .06em;  /* small-caps / uppercase labels */
+  --ls-display: .01em;  /* display headings */
+}

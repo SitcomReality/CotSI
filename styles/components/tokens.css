@@ -1,0 +1,46 @@
+/* =========================================================================
+   TOKENS  — Potency / resource roundels for factions.
+   Use with a faction colour variable (--c) set on the element, e.g.
+   style="--c:var(--f3)" for Archive.
+   ========================================================================= */
+
+/* Token bar / row */
+.tokens {
+  display: flex;
+  gap: var(--s2);
+  align-items: flex-end;
+  background: var(--ivory);
+  padding: var(--s3);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+}
+
+/* Individual token roundel */
+.tok {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-pill);
+  color: #fff;
+  font: 600 13px var(--font-body);
+  box-shadow: var(--shadow-seal);
+  background: var(--c);
+  position: relative;
+}
+
+/* Count label beneath */
+.tok b {
+  position: absolute;
+  bottom: -16px;
+  font: 600 11px var(--font-body);
+  color: var(--ink);
+}
+
+/* Primary (larger, gilded) token */
+.tok.primary {
+  width: 46px;
+  height: 46px;
+  font-size: 16px;
+  box-shadow: 0 0 0 2px var(--gold), var(--shadow-seal);
+}

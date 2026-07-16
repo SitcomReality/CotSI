@@ -1,13 +1,30 @@
+/* The Codex — master stylesheet for Champions of the Supernal Interregnum */
+/* Token system (modular layers) */
 @import "./abstracts/variables.css";
 @import "./abstracts/reset.css";
+
+/* Utility layer */
 @import "./ui/utilities.css";
-@import "./components/panels.css";
+
+/* Component layer */
+@import "./components/card.css";
+@import "./components/tokens.css";
+@import "./components/note.css";
+@import "./components/fog.css";
+@import "./components/tile.css";
 @import "./components/buttons.css";
+@import "./components/swatch.css";
+@import "./components/panels.css";
 @import "./components/forms.css";
 @import "./components/stats.css";
 @import "./components/hud.css";
+
+/* Page-specific layer */
+@import "./pages/tokens.css";
 @import "./pages/setup.css";
 @import "./pages/game.css";
 @import "./pages/combat.css";
+
+/* UI overrides */
 @import "./ui/overlays.css";
 @import "./ui/responsive.css";

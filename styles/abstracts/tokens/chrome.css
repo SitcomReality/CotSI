@@ -1,0 +1,15 @@
+/* =========================================================================
+   CHROME — The tabletop / the page  (restrained, natural tones)
+   vellum, parchment, ink, rules — the physical layer
+   ========================================================================= */
+:root {
+  --vellum:        #efe4c8;  /* table felt / page ground                 */
+  --vellum-2:      #e6d6b0;  /* recessed panels, hover                   */
+  --parchment:     #f6eed8;  /* card / sheet fill                        */
+  --ivory:         #fbf6e9;  /* raised card, modal, gesso                */
+  --ink:           #221c14;  /* lamp black — body text, line icons, edges*/
+  --ink-soft:      #5a4f3e;  /* secondary text, captions                 */
+  --ink-faint:     #8a7d66;  /* tertiary, placeholders                   */
+  --rule:          #c9b48a;  /* neutral hairline / ruled baselines       */
+  --rule-strong:   #b39a6a;  /* slightly heavier divider                 */
+}

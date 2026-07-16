@@ -1,0 +1,13 @@
+/* =========================================================================
+   FACTIONS  — base / glow / pale   (f0–f6)
+   Each faction gets three tonal grades for token, halo, and background.
+   ========================================================================= */
+:root {
+  --f0: #b22f24; --f0-glow:#f07a6a; --f0-pale:#f0b2a2; /* Crucible */
+  --f1: #6d4bb6; --f1-glow:#b79aff; --f1-pale:#c6b3f2; /* Reverie  */
+  --f2: #2f7e44; --f2-glow:#6de98a; --f2-pale:#b5deb3; /* Verdant  */
+  --f3: #2f5f9f; --f3-glow:#7cb8ff; --f3-pale:#a9c4ed; /* Archive  */
+  --f4: #b88728; --f4-glow:#ffd86b; --f4-pale:#efd38b; /* Hearth   */
+  --f5: #9b3f79; --f5-glow:#ff8edb; --f5-pale:#e4aacd; /* Masque   */
+  --f6: #3f4658; --f6-glow:#8a9cff; --f6-pale:#c3c5bd; /* Hollow   */
+}

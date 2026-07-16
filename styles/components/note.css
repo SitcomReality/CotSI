@@ -1,0 +1,40 @@
+/* =========================================================================
+   NOTE  — Stacked-paper note with wax seal decoration.
+   ========================================================================= */
+.note {
+  position: relative;
+  background: var(--parchment);
+  border-radius: var(--r-sm);
+  padding: var(--s4);
+  box-shadow: var(--shadow-stack);
+  transform: rotate(-1.2deg);
+}
+
+/* Wax seal corner overlay */
+.note .seal {
+  position: absolute;
+  right: -12px;
+  top: -12px;
+  width: 42px;
+  height: 42px;
+}
+
+.note .seal svg {
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(var(--shadow-seal));
+}
+
+.note .seal .g {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+.note .seal .g svg {
+  width: 20px;
+  height: 20px;
+  filter: none;
+}
