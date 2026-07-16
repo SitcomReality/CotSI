@@ -38,23 +38,26 @@ function _bindHover(mount) {
   const svg = mount.querySelector('svg');
   if (!svg) return;
 
-  // Remove any old listeners by replacing SVG (since we can't easily remove anonymous listeners)
-  // Simple: we'll just not clone; we'll rely on event delegation on mount.
   // Clear previous highlight state
   highlighted = -1;
 
-  // Use event delegation on the SVG
   const onOver = (e) => {
     const circle = e.target.closest('circle[data-index]');
     if (!circle) return;
     const idx = parseInt(circle.getAttribute('data-index'));
     if (idx === highlighted) return;
-    // Clear previous highlight
+    // Clear previous beat classes from all lines
     if (highlighted >= 0) {
-      svg.querySelectorAll('.rt-heptagram-line.rt-highlight').forEach(el => el.classList.remove('rt-highlight'));
+      svg.querySelectorAll('.rt-heptagram-line.rt-beats-win, .rt-heptagram-line.rt-beats-lose')
+        .forEach(el => el.classList.remove('rt-beats-win', 'rt-beats-lose'));
     }
-    // Add new highlight
-    svg.querySelectorAll(`line[data-from="${idx}"], line[data-to="${idx}"]`).forEach(el => el.classList.add('rt-highlight'));
+    // Add beat-based classes to connected lines
+    svg.querySelectorAll(`line[data-from="${idx}"], line[data-to="${idx}"]`).forEach(el => {
+      const from = parseInt(el.getAttribute('data-from'));
+      const to = parseInt(el.getAttribute('data-to'));
+      const other = (from === idx) ? to : from;
+      el.classList.add(beats(idx, other) ? 'rt-beats-win' : 'rt-beats-lose');
+    });
     highlighted = idx;
     if (typeof window._onPaleyHover === 'function') {
       window._onPaleyHover(idx);
@@ -63,7 +66,8 @@ function _bindHover(mount) {
 
   const onLeave = () => {
     if (highlighted >= 0) {
-      svg.querySelectorAll('.rt-heptagram-line.rt-highlight').forEach(el => el.classList.remove('rt-highlight'));
+      svg.querySelectorAll('.rt-heptagram-line.rt-beats-win, .rt-heptagram-line.rt-beats-lose')
+        .forEach(el => el.classList.remove('rt-beats-win', 'rt-beats-lose'));
       highlighted = -1;
       if (typeof window._onPaleyHover === 'function') {
         window._onPaleyHover(-1);
@@ -95,45 +99,3 @@ window.setPaleyHighlight = setPaleyHighlight;
 window.getPaleyHighlight = getPaleyHighlight;
 window.initPaleyWidget = initPaleyWidget;
 
-function _wire() {
-  const mount = document.getElementById(mountId);
-  if (!mount) return;
-  const svg = mount.querySelector('svg');
-  if (!svg) return;
-
-  // Remove existing listeners by cloning
-  const newSvg = svg.cloneNode(true);
-  svg.parentNode.replaceChild(newSvg, svg);
-
-  newSvg.addEventListener('mousemove', e => {
-    const r = newSvg.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width * 300;
-    const y = (e.clientY - r.top) / r.height * 250;
-    const nodes = FACTIONS.map((_, i) => {
-      const ang = -Math.PI / 2 + i * 2 * Math.PI / 7;
-      return { i, nx: 150 + Math.cos(ang) * 94, ny: 129 + Math.sin(ang) * 94 };
-    });
-    let best = -1, bd = 22;
-    nodes.forEach(n => { const d = Math.hypot(n.nx - x, n.ny - y); if (d < bd) { bd = d; best = n.i; } });
-    if (best !== highlighted) {
-      highlighted = best;
-      mount.innerHTML = paleySVG(best);
-      _wire();
-      // Also update combat token hover if applicable
-      if (typeof window._onPaleyHover === 'function') {
-        window._onPaleyHover(best);
-      }
-    }
-  });
-
-  newSvg.addEventListener('mouseleave', () => {
-    if (highlighted !== -1) {
-      highlighted = -1;
-      mount.innerHTML = paleySVG(-1);
-      _wire();
-      if (typeof window._onPaleyHover === 'function') {
-        window._onPaleyHover(-1);
-      }
-    }
-  });
-}

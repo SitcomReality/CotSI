@@ -18,7 +18,10 @@
 @import "./components/tile.css";
 @import "./components/buttons.css";
 @import "./components/swatch.css";
-@import "./components/panels.css";
+@import "./components/panel.css";
+@import "./components/left-champion-card.css";
+@import "./components/card-variants.css";
+@import "./components/heptagram.css";
 @import "./components/forms.css";
 @import "./components/stats.css";
 @import "./components/hud.css";

@@ -1,0 +1,21 @@
+/* =========================================================================
+   PANEL — Generic utility panel styles
+   Vellum-panel look with border, shadow, and inset highlight.
+   ========================================================================= */
+
+.manuscript-panel,
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px var(--paper-shadow), inset 0 1px 0 #fff8;
+  padding: 16px;
+}
+
+.panel h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: var(--muted);
+}

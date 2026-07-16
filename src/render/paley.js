@@ -7,13 +7,18 @@ export function paleySVG(highlight=-1, w=300, h=250){
     return {x: cx + Math.cos(ang)*R, y: cy + Math.sin(ang)*R, f, i};
   });
   let s = `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:Georgia,serif">`;
-  // edges — CSS handles stroke color/opacity/width; JS adds 'selected' class
+  // edges — CSS handles stroke color/opacity/width; JS adds beat-based classes
   pts.forEach((p,i)=>{
     [1,2,4].forEach(off=>{
       const j=(i+off)%7;
       const q=pts[j];
-      const sel = highlight===i ? ' selected' : '';
-      s += `<line class="rt-heptagram-line${sel}" data-from="${i}" data-to="${j}" x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}"/>`;
+      let cls = 'rt-heptagram-line';
+      if (highlight === i) {
+        cls += beats(p.f, q.f) ? ' rt-beats-win' : ' rt-beats-lose';
+      } else if (highlight === j) {
+        cls += beats(q.f, p.f) ? ' rt-beats-win' : ' rt-beats-lose';
+      }
+      s += `<line class="${cls}" data-from="${i}" data-to="${j}" x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}"/>`;
     });
   });
   // nodes

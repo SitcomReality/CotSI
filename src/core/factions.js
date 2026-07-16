@@ -1,5 +1,12 @@
 // Champions of the Supernal Interregnum — Factions
 // Paley tournament: i beats i+1, i+2, i+4 mod 7
+//0 beats 1, 2, 4
+//1 beats 2, 3, 5
+//2 beats 3, 4, 6
+//3 beats 4, 5, 0
+//4 beats 5, 6, 1
+//5 beats 6, 0, 2
+//6 beats 0, 1, 3
 
 export const FACTIONS = [
   { id:0, name:'Crucible', short:'CRU', color:'#b22f24', glow:'#f07a6a', pale:'#f0b2a2', glyph:'⚔', trait:'Scarshield', desc:'–week enemy final score' },

@@ -1,0 +1,33 @@
+/* =========================================================================
+   HEPTAGRAM SVG — Lines for the realm tree heptagram diagram.
+   Ink-faint default, gold on hover / selection (CSS only).
+   ========================================================================= */
+
+.rt-heptagram-svg .rt-heptagram-line {
+  stroke: var(--ink-faint);
+  stroke-opacity: 0.48;
+  stroke-width: 1.4;
+  transition: stroke var(--dur-fast) var(--ease-out),
+              stroke-opacity var(--dur-fast) var(--ease-out),
+              stroke-width var(--dur-fast) var(--ease-out);
+}
+
+/* All hover styling comes from JS class toggling — no CSS :hover on lines */
+.rt-heptagram-svg .rt-heptagram-line.selected,
+.rt-heptagram-svg .rt-heptagram-line.rt-highlight {
+  stroke: var(--gold);
+  stroke-opacity: 0.95;
+  stroke-width: 2.4;
+}
+
+.rt-heptagram-svg .rt-heptagram-line.rt-beats-win {
+  stroke: var(--malachite);
+  stroke-opacity: 0.85;
+  stroke-width: 2.4;
+}
+
+.rt-heptagram-svg .rt-heptagram-line.rt-beats-lose {
+  stroke: var(--vermilion);
+  stroke-opacity: 0.85;
+  stroke-width: 2.4;
+}

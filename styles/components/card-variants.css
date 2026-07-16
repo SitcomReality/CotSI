@@ -1,0 +1,53 @@
+/* =========================================================================
+   CARD VARIANTS — Setup, modal, reward, victory, champion, quest cards.
+   These extend or diverge from the base .card component in card.css.
+   ========================================================================= */
+
+.setup-card {
+  width: min(1040px, 96vw);
+  background: linear-gradient(180deg, #fff7dfd9, #f7e8c3e8);
+  border: 2px solid #b9965a;
+  border-radius: 22px;
+  box-shadow: 0 24px 80px #7a4a1a33, inset 0 1px 0 #fff;
+  padding: 28px 30px;
+}
+
+.modal-card {
+  width: min(1020px, 96vw);
+  background: linear-gradient(180deg, #fff7df, #f5e5bd);
+  border: 2px solid #b9965a;
+  border-radius: 20px;
+  padding: 18px 20px;
+  box-shadow: 0 30px 90px #0005;
+}
+
+.reward-card,
+.victory-card {
+  background: linear-gradient(180deg, #fff7df, #f3e0b3);
+  border: 2px solid #b9965a;
+  border-radius: 18px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 24px 80px #0004;
+  max-width: 560px;
+}
+
+/* New card styles — step layout / modal / section panels */
+.champion-card-variant {
+  background: var(--parchment);
+  border: var(--edge) solid var(--rule);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-stack);
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quest-card {
+  background: var(--parchment);
+  border: var(--edge) solid var(--rule);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-stack);
+  padding: var(--space-sm);
+}
