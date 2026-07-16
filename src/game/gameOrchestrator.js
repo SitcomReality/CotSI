@@ -3,7 +3,8 @@ import { checkVictory } from './victory.js';
 import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
 import { syncSize } from '../render/effects/effectsOverlay.js';
 import { resetCamera as resetCamera3D, centerCameraOnHex } from '../render/hexmap3d/hexmap3d-index.js';
-import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panels/panels-index.js';
+
+import { renderLeftPanel, renderRightPanel } from '../render/panels/panels-index.js';
 import { renderHeader, bindHeaderEvents } from '../ui/headerRenderer.js';
 import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 import { setGameState, openArtifactChoiceModal } from '../ui/combat/combatui-index.js';
@@ -72,7 +73,7 @@ export function refreshAll() {
   if (headerChampsEl) headerChampsEl.innerHTML = champions;
 
   // Panels
-  document.getElementById('leftPanel').innerHTML = renderLeftPanel(G, ch);
+  document.getElementById('championHud').innerHTML = renderLeftPanel(G, ch);
   document.getElementById('rightPanel').innerHTML = renderRightPanel(G);
 
   // ── Map (3D replacement) ──
@@ -102,8 +103,6 @@ export function refreshAll() {
   // Paley widget
   initHeptagramWidget('paleyMount');
 
-  // Log
-  document.getElementById('logMount').innerHTML = renderLog(G);
 
   // HUD
   if (ch) {

@@ -134,15 +134,23 @@ export function bindHeaderEvents() {
   if (!champsEl || !detailEl || !headerEl) return;
 
   let openId = null;
+  let closeTimer = null;
+
+  function clearCloseTimer() {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+  }
 
   function positionDetail(slot) {
     const sr = slot.getBoundingClientRect();
     const hr = headerEl.getBoundingClientRect();
     let left = sr.left - hr.left;
-    // Clamp within header bounds so detail never overflows
     if (left + 180 > hr.width) left = hr.width - 180;
     if (left < 0) left = 0;
     detailEl.style.left = left + 'px';
+    detailEl.style.top = hr.height + 'px';   // 👈 new line
   }
 
   function closeDetail() {
@@ -162,28 +170,46 @@ export function bindHeaderEvents() {
     openId = champId;
   }
 
-  // ── Hover → show ──
-  champsEl.addEventListener('mouseenter', (e) => {
+  // ── Hover → show (using `mouseover` for delegation) ──
+  champsEl.addEventListener('mouseover', (e) => {
     const slot = e.target.closest('.header__champion');
     if (!slot) return;
-    const id = slot.dataset.champId;
-    if (!id || openId === id) return;
-    openFor(id, slot);
-  }, { passive: true });
 
-  // ── Delayed close (allows mouse to enter the detail card) ──
-  function delayedClose() {
-    setTimeout(() => {
+    const id = slot.dataset.champId;
+    if (!id) return;
+
+    // Don't re-open if already open for this champ
+    if (openId === id && detailEl.classList.contains('is-open')) {
+      clearCloseTimer();
+      return;
+    }
+
+    // Close any previous, then open this one
+    if (openId && openId !== id) {
+      closeDetail();
+    }
+    openFor(id, slot);
+  });
+
+  // ── Delayed close on leaving the champion area ──
+  function scheduleClose() {
+    clearCloseTimer();
+    closeTimer = setTimeout(() => {
       if (
-        !champsEl.querySelector('.header__champion:hover') &&
+        !champsEl.matches(':hover') &&
         !detailEl.matches(':hover')
-      )
+      ) {
         closeDetail();
-    }, 100);
+      }
+    }, 150);
   }
 
-  champsEl.addEventListener('mouseleave', delayedClose, { passive: true });
-  detailEl.addEventListener('mouseleave', delayedClose, { passive: true });
+  champsEl.addEventListener('mouseleave', scheduleClose);
+  detailEl.addEventListener('mouseleave', scheduleClose);
+
+  // Cancel close when hovering back onto champs from detail
+  champsEl.addEventListener('mouseenter', clearCloseTimer);
+  detailEl.addEventListener('mouseenter', clearCloseTimer);
 
   // ── Click → toggle (touch-friendly) ──
   champsEl.addEventListener('click', (e) => {

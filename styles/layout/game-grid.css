@@ -1,15 +1,10 @@
-/* =========================================================================
-   Game Grid Layout  —  Three-zone chrome grid (extracted from game.css)
-   Header | Left sidebar | Map | Right sidebar | Log bar
-   ========================================================================= */
-
 #game {
   display: grid;
   grid-template-areas:
-    "header  header  header"
-    "left    map     right"
-    "log     log     log";
-  grid-template-columns: 280px 1fr 300px;
+    "header  header"
+    "map     right"
+    "log     log";
+  grid-template-columns: 1fr 300px;   /* map expands to fill left space */
   grid-template-rows: 48px 1fr auto;
   min-height: 100vh;
   background: var(--vellum);  /* table felt behind everything */
@@ -20,13 +15,7 @@
   /* header interior styles live in styles/components/header.css */
 }
 
-.leftbar {
-  grid-area: left;
-  background: var(--vellum);
-  border-right: var(--hair) solid var(--rule);
-  padding: var(--s3);
-  overflow-y: auto;
-}
+/* Leftbar and its styles are removed entirely */
 
 .mapwrap {
   grid-area: map;
@@ -58,9 +47,8 @@ body.is-mobile #game {
   grid-template-areas:
     "header"
     "map"
-    "left"
     "right"
     "log";
   grid-template-columns: 1fr;
-  grid-template-rows: 48px 1fr auto auto auto;
+  grid-template-rows: 48px 1fr auto auto;
 }

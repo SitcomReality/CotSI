@@ -3,11 +3,21 @@
    Styleguide: vellum panel, --shadow-stack, faction only as left-edge + dot
    ========================================================================= */
 
+.champion-hud {
+  position: absolute;
+  bottom: var(--s4);
+  left: var(--s4);
+  z-index: 10;
+  pointer-events: none;  /* allow clicks to pass through the wrapper */
+}
+
 .left-champion-card {
+  pointer-events: auto;  /* the card itself is interactive */
+  width: 280px;          /* same width as the old sidebar panel */
   background: var(--parchment);
   border: var(--edge) solid var(--rule);
   border-radius: var(--r);
-  box-shadow: var(--shadow-stack);
+  box-shadow: var(--shadow-panel);   /* slightly larger shadow to float above map */
   padding: var(--space-sm);
   border-left: 2px solid var(--faction-color, var(--ink));
   display: flex;
@@ -16,6 +26,7 @@
   font-size: var(--fs-sm);
   color: var(--ink);
   font-variant-numeric: var(--tnum);
+  /* Remove any flex‑context width that assumed sidebar */
 }
 
 .left-champ-header {
@@ -233,10 +244,4 @@
   font-size: var(--fs-xs);
   padding: 8px 12px;
   text-align: center;
-}
-.left-inspect-btn {
-  /* ink button — default .btn styles handle this */
-}
-.left-endturn-btn {
-  /* gold button — .btn-gold handles styling */
 }

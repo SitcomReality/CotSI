@@ -18,3 +18,13 @@
     min-height: 520px;
   }
 }
+
+body.is-mobile #game {
+  grid-template-areas:
+    "header"
+    "map"
+    "right"
+    "log";
+  grid-template-columns: 1fr;
+  grid-template-rows: 48px 1fr auto auto auto;
+}
