@@ -1,0 +1,21 @@
+/* =========================================================================
+   LEFT CHAMPION CARD — Container (card itself)
+   Styleguide: vellum panel, --shadow-stack, faction left-edge + dot
+   ========================================================================= */
+
+.left-champion-card {
+  pointer-events: auto;
+  width: 280px;
+  background: var(--parchment);
+  border: var(--edge) solid var(--rule);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-panel);
+  padding: var(--space-sm);
+  border-left: 2px solid var(--faction-color, var(--ink));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  font-variant-numeric: var(--tnum);
+}

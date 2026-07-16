@@ -1,0 +1,36 @@
+/* =========================================================================
+   LEFT CHAMPION CARD — Header row (faction dot, name, moves)
+   ========================================================================= */
+
+.left-champ-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.left-faction-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.left-champ-name {
+  font: 700 var(--fs-md) var(--font-display);
+  letter-spacing: .02em;
+  color: var(--ink);
+  flex: 1;
+}
+
+.left-champ-moves {
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.left-champ-moves svg {
+  color: var(--ink-soft);
+}

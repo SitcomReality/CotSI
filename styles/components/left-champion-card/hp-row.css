@@ -1,0 +1,45 @@
+/* =========================================================================
+   LEFT CHAMPION CARD — HP bar row
+   ========================================================================= */
+
+.left-hp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.left-hp-label {
+  font: 600 var(--fs-xs) var(--font-display);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.left-hp-track {
+  flex: 1;
+  height: 8px;
+  background: var(--vellum-2);
+  border-radius: 999px;
+  border: var(--hair) solid var(--rule);
+  overflow: hidden;
+}
+
+.left-hp-fill {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  border-radius: 999px;
+  transition: width .2s ease;
+}
+
+.left-hp-value {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink);
+  width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: var(--tnum);
+}

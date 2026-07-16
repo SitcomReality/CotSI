@@ -73,7 +73,7 @@ export function refreshAll() {
   if (headerChampsEl) headerChampsEl.innerHTML = champions;
 
   // Panels
-  document.getElementById('championHud').innerHTML = renderLeftPanel(G, ch);
+  document.getElementById('championCard').innerHTML = renderLeftPanel(G, ch);
   document.getElementById('rightPanel').innerHTML = renderRightPanel(G);
 
   // ── Map (3D replacement) ──

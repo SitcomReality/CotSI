@@ -1,0 +1,37 @@
+/* =========================================================================
+   LEFT CHAMPION CARD — Equipment row
+   ========================================================================= */
+
+.left-equip-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.left-equip-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--ivory);
+  border: var(--hair) dashed var(--rule-strong);
+  border-radius: var(--r-sm);
+  font-size: 11px;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.left-equip-item svg {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.left-equip-artifact {
+  font-size: 10px;
+  color: var(--ink-soft);
+  font-style: italic;
+  width: 100%;
+  padding: 2px 4px;
+  margin-top: 2px;
+}

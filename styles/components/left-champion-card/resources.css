@@ -1,0 +1,29 @@
+/* =========================================================================
+   LEFT CHAMPION CARD — Resources row (compact icon wells)
+   ========================================================================= */
+
+.left-resources-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.left-res-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--ivory);
+  border: var(--hair) solid var(--rule);
+  border-radius: var(--r-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: var(--tnum);
+  line-height: 1;
+}
+
+.left-res-item svg {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}

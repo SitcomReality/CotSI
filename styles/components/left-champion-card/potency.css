@@ -1,0 +1,93 @@
+/* =========================================================================
+   LEFT CHAMPION CARD — Potency section (collapsible <details>)
+   ========================================================================= */
+
+.left-potency-details {
+  margin-top: 2px;
+}
+
+.left-potency-summary {
+  list-style: none;
+  cursor: pointer;
+  font: 600 var(--fs-xs) var(--font-display);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  user-select: none;
+}
+
+.left-potency-summary::-webkit-details-marker {
+  display: none;
+}
+
+.left-potency-summary:hover {
+  color: var(--ink);
+}
+
+.left-potency-arrow {
+  font-size: 9px;
+  transition: transform .2s ease;
+  display: inline-block;
+}
+
+.left-potency-details[open] .left-potency-arrow {
+  transform: rotate(90deg);
+}
+
+.left-potency-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 6px;
+  background: var(--ivory);
+  border-radius: var(--r-sm);
+  border: var(--hair) solid var(--rule);
+}
+
+.left-potency-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.left-potency-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.left-potency-track {
+  flex: 1;
+  height: 7px;
+  background: var(--vellum-2);
+  border-radius: 999px;
+  border: var(--hair) solid var(--rule);
+  overflow: hidden;
+}
+
+.left-potency-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width .2s ease;
+}
+
+.left-potency-num {
+  width: 20px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-variant-numeric: var(--tnum);
+}
+
+.left-potency-num.is-primary {
+  color: var(--ink);
+  font-weight: 800;
+}

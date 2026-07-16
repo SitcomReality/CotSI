@@ -1,0 +1,16 @@
+/* =========================================================================
+   LEFT CHAMPION CARD — Action buttons row
+   ========================================================================= */
+
+.left-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.left-actions-row .btn {
+  flex: 1;
+  font-size: var(--fs-xs);
+  padding: 8px 12px;
+  text-align: center;
+}
