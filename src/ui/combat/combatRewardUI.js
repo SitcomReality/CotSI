@@ -1,4 +1,4 @@
-import { getGameState, getRefreshAll, getToast } from './state.js';
+import { getGameState, getRefreshAll, getToast } from './combatStateManager.js';
 import { getChampion } from '../../game/entityQueries.js';
 import { addLog } from '../../game/log.js';
 import { openArtifactChoiceModal as _openArtifactChoiceModal } from '../modal.js';

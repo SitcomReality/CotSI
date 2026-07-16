@@ -1,11 +1,11 @@
 /* =========================================================================
-   TOKENS  — Potency / resource roundels for factions.
+   Potencies: resource roundels for factions.
    Use with a faction colour variable (--c) set on the element, e.g.
    style="--c:var(--f3)" for Archive.
    ========================================================================= */
 
-/* Token bar / row */
-.tokens {
+/* Potency bar / row */
+.potencies {
   display: flex;
   gap: var(--s2);
   align-items: flex-end;
@@ -15,7 +15,7 @@
   box-shadow: var(--shadow-card);
 }
 
-/* Individual token roundel */
+/* Individual potency roundel */
 .tok {
   display: grid;
   place-items: center;
@@ -37,7 +37,7 @@
   color: var(--ink);
 }
 
-/* Primary (larger, gilded) token */
+/* Primary (larger, gilded) potency */
 .tok.primary {
   width: 46px;
   height: 46px;

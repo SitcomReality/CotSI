@@ -6,7 +6,7 @@ import { coordKey, parseKey, neighbors, distance, TERRAIN } from '../world/map.j
 import { weatherForDay } from '../core/weather.js';
 import { getChampion, occupiedByChampion, occupiedByMob } from './entityQueries.js';
 import { beginTurn, isDigEligible } from './turnLogic.js';
-import { interactOnArrival } from './movement.js';
+import { interactOnArrival } from './championMovement.js';
 import { addLog } from './log.js';
 import { checkVictory } from './victory.js';
 

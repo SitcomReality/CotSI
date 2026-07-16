@@ -3,7 +3,7 @@
 
 import { worldToScreen } from './projection.js';
 import { hexCenter3D, hexCornersXZ, tileTopY } from '../hexmap3d/hexmap3d-index.js';
-import { adjacentPassable } from '../../game/movement.js';
+import { adjacentPassable } from '../../game/championMovement.js';
 import { coordKey } from '../../world/map.js';
 
 // ---------------------------------------------------------------------------

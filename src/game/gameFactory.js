@@ -12,7 +12,7 @@ import { beginTurn } from './turnLogic.js';
 export function traderStock(rand) {
   return [
     { type: 'heal', name: 'Moonberry', cost: 14, heal: 10 },
-    { type: 'token', faction: Math.floor(rand() * 7), cost: 22 },
+    { type: 'potency', faction: Math.floor(rand() * 7), cost: 22 },
     {
       type: 'equip',
       slot: 'weapon',
@@ -70,8 +70,8 @@ export function createGame({ seed = 'glut-17', radius = 7, champions = [], objec
     const startKey = nearestOpenKey(tiles, parseKey(baseKey), used, false);
     used.add(startKey);
     const start = parseKey(startKey);
-    const tokens = Array(7).fill(1);
-    tokens[entry.faction] = 3;
+    const potencies = Array(7).fill(1);
+    potencies[entry.faction] = 3;
     state.champions.push({
       id: `champ-${entry.faction}-${index}`,
       name: `${FACTIONS[entry.faction].name} Champion`,
@@ -86,7 +86,7 @@ export function createGame({ seed = 'glut-17', radius = 7, champions = [], objec
       gold: 24,
       knot: 0,
       relics: 0,
-      tokens,
+      potencies,
       artifact: null,
       armor: 'worn linen',
       weapon: 'ash staff',

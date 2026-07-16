@@ -1,5 +1,5 @@
 // Divine weather cycles — 7-day script, loops
-// potency: per-faction token buff, score: flat combat score buff, dayLength: movement multiplier
+// potency: per-faction potency buff, score: flat combat score buff, dayLength: movement multiplier
 export const WEATHER_SCRIPT = [
   { name:'Rainbow Aftermath', text:'Gold-leaf rainbows bless Verdant and Hearth powers.', dayLength:1.0, potency:[-1,0,2,0,2,0,-1], score:[0,0,1,0,1,0,0], tint:'#f5d76a' },
   { name:'Memory Storm', text:'Archive and Reverie inscriptions crawl the margins.', dayLength:1.0, potency:[0,2,0,2,0,-1,-1], score:[0,1,0,1,0,0,0], tint:'#a9c4ed' },

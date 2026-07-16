@@ -13,7 +13,7 @@ export const FACTIONS = [
   { id:0, name:'Crucible', short:'CRU', color:'#b22f24', glow:'#f07a6a', pale:'#f0b2a2', glyph:'⚔', trait:'Scarshield', desc:'–week enemy final score' },
   { id:1, name:'Reverie', short:'REV', color:'#6d4bb6', glow:'#b79aff', pale:'#c6b3f2', glyph:'☾', trait:"Another's Dream", desc:'Dawn random boon' },
   { id:2, name:'Verdant', short:'VER', color:'#2f7e44', glow:'#6de98a', pale:'#b5deb3', glyph:'❦', trait:"Gaia's Wail", desc:'+1 move, mobs pacified, fruit++' },
-  { id:3, name:'Archive', short:'ARC', color:'#2f5f9f', glow:'#7cb8ff', pale:'#a9c4ed', glyph:'⟐', trait:'Everknown', desc:'Relic → +random token' },
+  { id:3, name:'Archive', short:'ARC', color:'#2f5f9f', glow:'#7cb8ff', pale:'#a9c4ed', glyph:'⟐', trait:'Everknown', desc:'Relic → +random potency' },
   { id:4, name:'Hearth',  short:'HRT', color:'#b88728', glow:'#ffd86b', pale:'#efd38b', glyph:'♥', trait:'Compersion', desc:'Trade -20%' },
   { id:5, name:'Masque',  short:'MSK', color:'#9b3f79', glow:'#ff8edb', pale:'#e4aacd', glyph:'🎭', trait:'Silent Ovation', desc:'Combat turn +week random' },
   { id:6, name:'Hollow',  short:'HOL', color:'#3f4658', glow:'#8a9cff', pale:'#c3c5bd', glyph:'∅', trait:'Vaunted Nothing', desc:'+⌈week/3⌉ per missing HP' },
@@ -24,8 +24,7 @@ export const beats = (a,b)=> ((b - a + 7) % 7 === 1) || ((b - a + 7) % 7 === 2) 
 export const BEATS_MATRIX = FACTIONS.map((_,a)=> FACTIONS.map((__,b)=> beats(a,b)));
 
 export function potencyWithPrimary(champ){
-  // Backward-compatible: support both 'potencies' (new) and 'tokens' (old)
-  const raw = champ.potencies ?? champ.tokens;
+  const raw = champ.potencies;
   if (!raw) return Array(7).fill(0).map((_, i) => i === champ.faction ? 5 : 0);
   const t = raw.slice();
   const primary = champ.faction;
@@ -43,5 +42,5 @@ export const ARTIFACTS = [
   { id:'bandage', name:'Patient Bandage', detail:'Heal 2 HP at start of turn.' },
   { id:'margin', name:'Dueling Margin', detail:'+2 final combat score.' },
   { id:'tongs', name:'Blessed Tongs', detail:'Replace equipment → 2× God\'s Knot refund.' },
-  { id:'echo', name:'Echo Coin', detail:'25% chance primary token on any token gain.' },
+  { id:'echo', name:'Echo Coin', detail:'25% chance primary potency on any potency gain.' },
 ];

@@ -2,7 +2,7 @@ import { TERRAIN } from '../world/map.js';
 import { FACTIONS } from '../core/factions.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/entityQueries.js';
 import { getHumanView } from '../game/vision.js';
-import { movementRange } from '../game/movement.js';
+import { movementRange } from '../game/championMovement.js';
 import { getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
 
 /**

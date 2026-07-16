@@ -19,12 +19,12 @@ export function resolveRoundDamage(state, combat){
     dmg = roundScores.attacker - roundScores.defender;
     defender.hp -= dmg;
     to = 'defender';
-    if(defender.tokens) moveDamagedBeforeDamager(state, defender.id, attacker.id);
+    if(defender.potencies) moveDamagedBeforeDamager(state, defender.id, attacker.id);
   } else if(roundScores.defender > roundScores.attacker){
     dmg = roundScores.defender - roundScores.attacker;
     attacker.hp -= dmg;
     to = 'attacker';
-    if(attacker.tokens && defender.tokens) moveDamagedBeforeDamager(state, attacker.id, defender.id);
+    if(attacker.potencies && defender.potencies) moveDamagedBeforeDamager(state, attacker.id, defender.id);
   }
   combat.combatLog.push(`Round ${combat.round} damage: ${to === 'attacker' ? attacker.name : defender.name} takes ${dmg}`);
   if(attacker.hp <= 0) attacker.alive = false;
@@ -51,7 +51,7 @@ export function finalizeCombat(state, attacker, defender, attackerWon){
     attacker.gold += gold;
     attacker.relics += 1;
     if(attacker.faction===3){
-      const rf = Math.floor(Math.random()*7); attacker.tokens[rf] += 1;
+      const rf = Math.floor(Math.random()*7); attacker.potencies[rf] += 1;
     }
     addLog(state, `${attacker.name} defeats ${defender.name} and claims a relic (+${gold}g).`);
     return { gold, relic:1 };

@@ -12,7 +12,7 @@
 
 /* Component layer */
 @import "./components/card.css";
-@import "./components/tokens.css";
+@import "./components/potencies.css";
 @import "./components/note.css";
 @import "./components/fog.css";
 @import "./components/tile.css";

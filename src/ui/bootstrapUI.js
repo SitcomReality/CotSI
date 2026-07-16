@@ -14,5 +14,5 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Delay setup init so gameOrchestrator.js is fully evaluated
   // and window.__beginGame exists.
-  import('./setup.js').then((m) => m.initSetup());
+  import('./setupUI.js').then((m) => m.initSetup());
 });

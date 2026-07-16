@@ -1,6 +1,6 @@
-import { getCombatUI, setCombatUI, getGameState } from './state.js';
-import { getActiveCombatant, getAvailablePicks, botCombatPick, recordCombatPick, advanceCombatPhase, isPickingPhase } from '../../game/combat/index.js';
-import { renderCombat } from './renderer.js';
+import { getCombatUI, setCombatUI, getGameState } from './combatStateManager.js';
+import { getActiveCombatant, getAvailablePicks, botCombatPick, recordCombatPick, advanceCombatPhase, isPickingPhase } from '../../game/combat/combat-index.js';
+import { renderCombat } from './combatRenderer.js';
 
 export function makeBotPick() {
   const _combatUI = getCombatUI();

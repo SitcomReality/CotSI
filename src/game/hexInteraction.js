@@ -4,7 +4,7 @@
  * gameOrchestrator (circular import, used at runtime only).
  */
 import { G, currentChamp, refreshAll } from './gameOrchestrator.js';
-import { movementRange, moveChampion, adjacentPassable } from './movement.js';
+import { movementRange, moveChampion, adjacentPassable } from './championMovement.js';
 import { addLog } from './log.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from './entityQueries.js';
 import { parseKey, distance } from '../world/map.js';
@@ -58,7 +58,7 @@ export function onHexClick(key) {
 }
 
 /**
- * Handle interacting with a base (sanctuary or token purchase).
+ * Handle interacting with a base (sanctuary or potency purchase).
  * @param {object} ch
  * @param {object} tile
  */
@@ -70,13 +70,13 @@ function interactBase(ch, tile) {
     ch.moves = 0;
     addLog(G, `${ch.name} receives sanctuary (+${healed} HP).`);
   } else {
-    // Buy faction token
+    // Buy faction potency
     const cost = ch.faction === 4 ? 14 : 18;
     if (ch.gold >= cost) {
       ch.gold -= cost;
-      ch.tokens[tile.feature.faction]++;
+      ch.potencies[tile.feature.faction]++;
       ch.moves = 0;
-      addLog(G, `${ch.name} buys ${FACTIONS[tile.feature.faction].name} token.`);
+      addLog(G, `${ch.name} buys ${FACTIONS[tile.feature.faction].name} potency.`);
     } else {
       toast('Not enough gold.');
     }

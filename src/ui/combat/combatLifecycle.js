@@ -1,8 +1,8 @@
-import { createCombatState, getActiveCombatant, isPickingPhase, isRevealPhase, processReveal, advanceCombatPhase, resolveRoundDamage, nextCombatRound, finalizeCombat, applyFinalBonuses } from '../../game/combat/index.js';
-import { getCombatUI, setCombatUI, getGameState, getRefreshAll, getToast } from './state.js';
-import { renderCombat } from './renderer.js';
-import { makeBotPick } from './interactions.js';
-import { openRewardModal } from './reward.js';
+import { createCombatState, getActiveCombatant, isPickingPhase, isRevealPhase, processReveal, advanceCombatPhase, resolveRoundDamage, nextCombatRound, finalizeCombat, applyFinalBonuses } from '../../game/combat/combat-index.js';
+import { getCombatUI, setCombatUI, getGameState, getRefreshAll, getToast } from './combatStateManager.js';
+import { renderCombat } from './combatRenderer.js';
+import { makeBotPick } from './combatInteractions.js';
+import { openRewardModal } from './combatRewardUI.js';
 
 export function startCombat(attacker, defender) {
   const ui = createCombatState(attacker, defender);

@@ -1,5 +1,5 @@
 import { coordKey, parseKey, neighbors, distance, TERRAIN } from '../world/map.js';
-import { movementRange } from './movement.js';
+import { movementRange } from './championMovement.js';
 import { occupiedByChampion, occupiedByMob, getChampion } from './entityQueries.js';
 
 function findPath(state, sx, sy, tx, ty, champId){

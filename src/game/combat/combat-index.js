@@ -14,15 +14,15 @@ export {
   advanceCombatPhase,
   botCombatPick,
   getAvailablePicks,
-} from './picks.js';
+} from './combatPicks.js';
 
 export {
   applyFinalBonuses,
   processReveal,
-} from './scoring.js';
+} from './combatScoring.js';
 
 export {
   resolveRoundDamage,
   nextCombatRound,
   finalizeCombat,
-} from './damage.js';
+} from './combatDamage.js';

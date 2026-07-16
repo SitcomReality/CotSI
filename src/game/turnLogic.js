@@ -5,7 +5,7 @@
 import { FACTIONS, ARTIFACTS } from '../core/factions.js';
 import { coordKey, TERRAIN } from '../world/map.js';
 import { getChampion, occupiedByMob } from './entityQueries.js';
-import { dailyMoves } from './movement.js';
+import { dailyMoves } from './championMovement.js';
 import { refreshVision } from './vision.js';
 import { addLog } from './log.js';
 
@@ -65,7 +65,7 @@ export function beginTurn(state, champId) {
       const f = Math.floor(state._rng() * 7);
 
       ch.potencies[f]++;
-      addLog(state, `${ch.name} digs up a ${FACTIONS[f].name} token.`);
+      addLog(state, `${ch.name} digs up a ${FACTIONS[f].name} potency.`);
     } else {
       const gold = 7 + Math.floor(state._rng() * 12) + Math.floor(state.day / 7);
       ch.gold += gold;

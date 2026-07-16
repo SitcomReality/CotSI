@@ -1,10 +1,10 @@
 import { G, currentChamp, refreshAll } from '../../game/gameOrchestrator.js';
-import { movementRange, moveChampion, adjacentPassable } from '../../game/movement.js';
+import { movementRange, moveChampion, adjacentPassable } from '../../game/championMovement.js';
 import { addLog } from '../../game/log.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../../game/entityQueries.js';
 import { parseKey, distance } from '../../world/map.js';
-import { startCombat, openTrader } from '../combat/combatui-index.js';
-import { toast, pulseEnd } from '../../ui/hud.js';
+import { startCombat, openTrader } from './combatui-index.js';
+import { toast, pulseEnd } from '../hud.js';
 import { FACTIONS } from '../../core/factions.js';
 
 export function onCombatPotencyHover(factionIdx) {

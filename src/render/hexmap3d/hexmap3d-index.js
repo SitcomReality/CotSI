@@ -1,4 +1,4 @@
-import { initScene } from './scene/scene.js';
+import { initScene } from './scene/sceneSetup.js';
 import { buildTerrainMesh } from './terrain/terrain.js';
 
 import { buildFeatureMeshes } from './features/features-index.js';

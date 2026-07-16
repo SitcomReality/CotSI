@@ -3,7 +3,7 @@
  *
  * Styleguide compliance:
  * - All panels: var(--parchment) + var(--shadow-stack)
- * - Potency tokens: scaled circles using --token-color CSS var
+ * - Potencies: scaled circles using --potency-color CSS var
  * - Active champion gets .is-active class for gold-trim highlight
  * - Dead champions: reduced opacity (0.5) but still readable
  */
@@ -23,12 +23,12 @@ export function renderRightPanel(state) {
       const fac = FACTIONS[champ.faction];
       const isActive = champ.id === activeId;
       const isDead = !champ.alive;
-      const maxTokens = Math.max(...champ.tokens, 1);
+      const maxPotency = Math.max(...champ.potencies, 1);
 
-      const tokenSpans = champ.tokens.map((t, fi) => {
+      const potencySpans = champ.potencies.map((t, fi) => {
         if (t <= 0) return '';
-        const size = Math.min(100, Math.round(60 + (t / maxTokens) * 40));
-        return `<span class="rt-potency-token" style="--token-color:${FACTIONS[fi].color};--token-size:${size}%">${t}</span>`;
+        const size = Math.min(100, Math.round(60 + (t / maxPotency) * 40));
+        return `<span class="rt-potency-potency" style="--potency-color:${FACTIONS[fi].color};--potency-size:${size}%">${t}</span>`;
       }).join('');
 
       return `
@@ -43,7 +43,7 @@ export function renderRightPanel(state) {
             <span class="rt-ledger-stat">Relics ${champ.relics}</span>
             <span class="rt-ledger-stat">Gold ${champ.gold}</span>
           </div>
-          <div class="rt-potency-row">${tokenSpans}</div>
+          <div class="rt-potency-row">${potencySpans}</div>
         </div>`;
     }).join('');
 
