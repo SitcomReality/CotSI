@@ -1,12 +1,12 @@
 import { FACTIONS, beats } from '../core/factions.js';
-import { paleySVG } from '../render/paley.js';
+import { paleySVG } from '../render/heptagramSVG.js';
 
 let highlighted = -1;
 let selected = -1;
 let mountId = 'paleyMount';
 
 /** Highlight a faction node on the Paley wheel, -1 to clear */
-export function setPaleyHighlight(factionIdx) {
+export function setHeptagramHighlight(factionIdx) {
   selected = factionIdx;
   const mount = document.getElementById(mountId);
   if (!mount) return;
@@ -30,7 +30,7 @@ export function setPaleyHighlight(factionIdx) {
 }
 
 /** Get current highlighted faction index */
-export function getPaleyHighlight() {
+export function getHeptagramHighlight() {
   return Math.max(highlighted, selected);
 }
 
@@ -84,7 +84,7 @@ function _bindHover(mount) {
 }
 
 /** Initialize the Paley widget inside a given element */
-export function initPaleyWidget(elId = 'paleyMount') {
+export function initHeptagramWidget(elId = 'paleyMount') {
   mountId = elId;
   highlighted = -1;
   selected = -1;
@@ -95,7 +95,6 @@ export function initPaleyWidget(elId = 'paleyMount') {
 }
 
 // Attach to window for script-based main.js
-window.setPaleyHighlight = setPaleyHighlight;
-window.getPaleyHighlight = getPaleyHighlight;
-window.initPaleyWidget = initPaleyWidget;
-
+window.setHeptagramHighlight = setHeptagramHighlight;
+window.getHeptagramHighlight = getHeptagramHighlight;
+window.initHeptagramWidget = initHeptagramWidget;

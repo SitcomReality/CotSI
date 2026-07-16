@@ -1,3 +1,4 @@
+
 // Champions of the Supernal Interregnum — Factions
 // Paley tournament: i beats i+1, i+2, i+4 mod 7
 //0 beats 1, 2, 4
@@ -23,9 +24,11 @@ export const beats = (a,b)=> ((b - a + 7) % 7 === 1) || ((b - a + 7) % 7 === 2) 
 export const BEATS_MATRIX = FACTIONS.map((_,a)=> FACTIONS.map((__,b)=> beats(a,b)));
 
 export function potencyWithPrimary(champ){
-  const t = champ.tokens.slice();
+  // Backward-compatible: support both 'potencies' (new) and 'tokens' (old)
+  const raw = champ.potencies ?? champ.tokens;
+  if (!raw) return Array(7).fill(0).map((_, i) => i === champ.faction ? 5 : 0);
+  const t = raw.slice();
   const primary = champ.faction;
-  t[primary] += (champ.relics || 0);
   let weakest = Infinity;
   for(let i=0;i<7;i++) if(i!==primary) weakest = Math.min(weakest, t[i] ?? 0);
   if(!isFinite(weakest)) weakest = 0;

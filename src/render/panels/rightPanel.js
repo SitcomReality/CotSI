@@ -8,7 +8,7 @@
  * - Dead champions: reduced opacity (0.5) but still readable
  */
 import { FACTIONS } from '../../core/factions.js';
-import { paleySVG } from '../paley.js';
+import { paleySVG } from '../heptagramSVG.js';
 
 export function renderRightPanel(state) {
   const w = state.weather;

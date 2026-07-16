@@ -1,40 +1,44 @@
+import { G, currentChamp, refreshAll } from '../../game/gameOrchestrator.js';
+import { movementRange, moveChampion, adjacentPassable } from '../../game/movement.js';
+import { addLog } from '../../game/log.js';
+import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../../game/entityQueries.js';
+import { parseKey, distance } from '../../world/map.js';
+import { startCombat, openTrader } from '../combat/combatui-index.js';
+import { toast, pulseEnd } from '../../ui/hud.js';
 import { FACTIONS } from '../../core/factions.js';
-import { getCombatUI } from './state.js';
-import { isRevealPhase, getActiveCombatant, isPickingPhase } from '../../game/combat.js';
-import { setPaleyHighlight } from '../paleyWidget.js';
 
-export function onCombatTokenHover(factionIdx) {
+export function onCombatPotencyHover(factionIdx) {
   // Clear all hover first
   document.querySelectorAll('.ctok').forEach(el => {
-    el.classList.remove('token-hover');
+    el.classList.remove('potency-hover');
     el.style.transform = '';
   });
-  // Highlight matching tokens on both sides
+  // Highlight matching Potencys on both sides
   if (factionIdx >= 0) {
     const els = document.querySelectorAll('#leftCombat .ctok[data-f="' + factionIdx + '"], #rightCombat .ctok[data-f="' + factionIdx + '"]');
     els.forEach(el => {
-      el.classList.add('token-hover');
+      el.classList.add('potency-hover');
       el.style.transform = 'scale(1.15)';
     });
   }
   setPaleyHighlight(factionIdx);
 }
 
-const _onTokenEnter = function (e) {
+const _onPotencyEnter = function (e) {
   const factionIdx = parseInt(e.currentTarget.dataset.f);
-  onCombatTokenHover(factionIdx);
+  onCombatPotencyHover(factionIdx);
 };
 
-const _onTokenLeave = function () {
-  onCombatTokenHover(-1);
+const _onPotencyLeave = function () {
+  onCombatPotencyHover(-1);
 };
 
-export function wireCombatTokenHover() {
+export function wireCombatPotencyHover() {
   document.querySelectorAll('.ctok').forEach(el => {
-    el.removeEventListener('mouseenter', _onTokenEnter);
-    el.removeEventListener('mouseleave', _onTokenLeave);
-    el.addEventListener('mouseenter', _onTokenEnter);
-    el.addEventListener('mouseleave', _onTokenLeave);
+    el.removeEventListener('mouseenter', _onPotencyEnter);
+    el.removeEventListener('mouseleave', _onPotencyLeave);
+    el.addEventListener('mouseenter', _onPotencyEnter);
+    el.addEventListener('mouseleave', _onPotencyLeave);
   });
 }
 
@@ -70,11 +74,11 @@ export function renderCombat() {
   updatePickSlots(roundPicks, lastReveal);
 
   if (isRevealPhase(_combatUI)) {
-    document.querySelectorAll('.combat-tokens .ctok').forEach(el => el.style.pointerEvents = 'none');
+    document.querySelectorAll('.combat-potencys .ctok').forEach(el => el.style.pointerEvents = 'none');
   } else if (phase === 'round_end') {
-    document.querySelectorAll('.combat-tokens .ctok').forEach(el => el.style.pointerEvents = 'none');
+    document.querySelectorAll('.combat-potencys .ctok').forEach(el => el.style.pointerEvents = 'none');
   } else {
-    document.querySelectorAll('.combat-tokens .ctok').forEach(el => el.style.pointerEvents = '');
+    document.querySelectorAll('.combat-potencys .ctok').forEach(el => el.style.pointerEvents = '');
   }
 
   // Commit button
@@ -90,9 +94,9 @@ export function renderCombat() {
     commitBtn.style.opacity = isHuman ? '1' : '0.6';
   }
 
-  // Wire token hover only when picking
+  // Wire Potency hover only when picking
   if (isPicking) {
-    wireCombatTokenHover();
+    wireCombatPotencyHover();
   }
 }
 
@@ -134,10 +138,10 @@ function updatePickSlots(roundPicks, lastReveal) {
 }
 
 function combatantCard(ent, isLeft, roundPicks, phase, isActivePicker) {
-  const isChamp = !!ent.tokens;
+  const isChamp = !!ent.Potencys;
   const pots = isChamp
     ? (() => {
-        const t = ent.tokens.slice();
+        const t = ent.Potencys.slice();
         t[ent.faction] += ent.relics || 0;
         let weakest = Math.min(...t.filter((_, i) => i !== ent.faction));
         if (!isFinite(weakest)) weakest = 0;
@@ -157,7 +161,7 @@ function combatantCard(ent, isLeft, roundPicks, phase, isActivePicker) {
     (ent.hp / ent.maxHp) * 100
   )}%"></div></div>
   <div class="mini">${ent.hp} / ${ent.maxHp} HP</div>
-  <div class="combat-tokens">${pots
+  <div class="combat-Potencys">${pots
     .map(
       (v, i) =>
         `<div class="ctok ${lockedPicks.has(i) ? 'used' : ''} ${lockedPicks.has(i) ? '' : pickableClass}" data-f="${i}" style="border-color:${FACTIONS[i].color}66; opacity:${lockedPicks.has(i) ? '0.5' : '1'}"><div style="font-weight:800">${v}</div><div style="font-size:9px;color:${FACTIONS[i].color}">${FACTIONS[i].glyph}</div></div>`

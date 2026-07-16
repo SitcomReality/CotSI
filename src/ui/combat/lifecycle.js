@@ -1,4 +1,4 @@
-import { createCombatState, getActiveCombatant, isPickingPhase, isRevealPhase, processReveal, advanceCombatPhase, resolveRoundDamage, nextCombatRound, finalizeCombat, applyFinalBonuses } from '../../game/combat.js';
+import { createCombatState, getActiveCombatant, isPickingPhase, isRevealPhase, processReveal, advanceCombatPhase, resolveRoundDamage, nextCombatRound, finalizeCombat, applyFinalBonuses } from '../../game/combat/index.js';
 import { getCombatUI, setCombatUI, getGameState, getRefreshAll, getToast } from './state.js';
 import { renderCombat } from './renderer.js';
 import { makeBotPick } from './interactions.js';

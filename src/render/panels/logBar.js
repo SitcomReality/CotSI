@@ -33,7 +33,7 @@ export function renderLog(state) {
           </button>
         </div>
         <div class="log-bar__entries log-bar__entries--empty">
-          <span class="log-bar__hint">Scroll unrolled — no events yet</span>
+          <span class="log-bar__hint">There is no history.</span>
         </div>
       </div>`;
   }

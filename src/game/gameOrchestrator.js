@@ -5,7 +5,7 @@ import { syncSize } from '../render/effects/effectsOverlay.js';
 import { resetCamera as resetCamera3D, centerCameraOnHex } from '../render/hexmap3d/hexmap3d-index.js';
 import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panels/panels-index.js';
 import { renderHeader, bindHeaderEvents } from '../ui/headerRenderer.js';
-import { initPaleyWidget } from '../ui/paleyWidget.js';
+import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 import { setGameState, openArtifactChoiceModal } from '../ui/combat/combatui-index.js';
 import { showVictory } from '../ui/hud.js';
 import { refreshZoomDisplay, getTooltipContent as _getTooltipContent } from '../ui/mapView.js';
@@ -100,7 +100,7 @@ export function refreshAll() {
   }
 
   // Paley widget
-  initPaleyWidget('paleyMount');
+  initHeptagramWidget('paleyMount');
 
   // Log
   document.getElementById('logMount').innerHTML = renderLog(G);

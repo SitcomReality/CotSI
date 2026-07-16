@@ -35,7 +35,8 @@ export function beginTurn(state, champId) {
     if (roll === 0) ch.gold += 4;
     else if (roll === 1) ch.moves += 1;
     else if (roll === 2) ch.hp = Math.min(ch.maxHp, ch.hp + 4);
-    else if (roll === 4) ch.tokens[Math.floor(state._rng() * 7)] += 1;
+
+    else if (roll === 4) ch.potencies[Math.floor(state._rng() * 7)] += 1;
     addLog(state, `${ch.name} receives a Reverie dream.`);
   }
   // pending dig
@@ -57,11 +58,13 @@ export function beginTurn(state, champId) {
       // Archive racial
       if (ch.faction === 3) {
         const rf = Math.floor(state._rng() * 7);
-        ch.tokens[rf]++;
+
+        ch.potencies[rf]++;
       }
     } else if (roll < 0.33) {
       const f = Math.floor(state._rng() * 7);
-      ch.tokens[f]++;
+
+      ch.potencies[f]++;
       addLog(state, `${ch.name} digs up a ${FACTIONS[f].name} token.`);
     } else {
       const gold = 7 + Math.floor(state._rng() * 12) + Math.floor(state.day / 7);

@@ -1,6 +1,7 @@
 /* =========================================================================
-   HEPTAGRAM SVG — Lines for the realm tree heptagram diagram.
+   HEPTAGRAM SVG — Lines & nodes for the realm tree heptagram diagram.
    Ink-faint default, gold on hover / selection (CSS only).
+   Uses semantic state tokens for beats-win/beats-lose.
    ========================================================================= */
 
 .rt-heptagram-svg .rt-heptagram-line {
@@ -20,14 +21,28 @@
   stroke-width: 2.4;
 }
 
+/* Win / lose mapped to semantic ally / hostile state tokens */
 .rt-heptagram-svg .rt-heptagram-line.rt-beats-win {
-  stroke: var(--malachite);
+  stroke: var(--st-ally);
   stroke-opacity: 0.85;
   stroke-width: 2.4;
 }
 
 .rt-heptagram-svg .rt-heptagram-line.rt-beats-lose {
-  stroke: var(--vermilion);
+  stroke: var(--st-hostile);
   stroke-opacity: 0.85;
   stroke-width: 2.4;
+}
+
+/* ----- Nodes (circles) ----- */
+.rt-heptagram-svg .rt-heptagram-node {
+  stroke: var(--ivory);
+  transition: r var(--dur-fast) var(--ease-out),
+              stroke-width var(--dur-fast) var(--ease-out);
+}
+
+/* ----- Faction short labels beneath nodes ----- */
+.rt-heptagram-svg .rt-heptagram-label {
+  fill: var(--ink-soft);
+  font-family: var(--font-body);
 }

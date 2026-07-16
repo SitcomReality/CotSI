@@ -1,5 +1,5 @@
 import { getCombatUI, setCombatUI, getGameState } from './state.js';
-import { getActiveCombatant, getAvailablePicks, botCombatPick, recordCombatPick, advanceCombatPhase, isPickingPhase } from '../../game/combat.js';
+import { getActiveCombatant, getAvailablePicks, botCombatPick, recordCombatPick, advanceCombatPhase, isPickingPhase } from '../../game/combat/index.js';
 import { renderCombat } from './renderer.js';
 
 export function makeBotPick() {
