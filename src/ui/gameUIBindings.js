@@ -6,7 +6,12 @@ import { getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
 import { zoomCamera, resetCamera } from '../render/hexmap3d/hexmap3d-index.js';
 
 export function bindGameUI() {
-  document.getElementById('btnEndTurn')?.addEventListener('click', onEndTurn);
+  document.getElementById('endTurnBtn')?.addEventListener('click', onEndTurn);
+  document.getElementById('inspectBtn')?.addEventListener('click', () => {
+    toast(
+      'Click a highlighted hex to move. Adjacent foes to duel. End turn on empty parchment to dig.'
+    );
+  });
 
   document.getElementById('zoomIn')?.addEventListener('click', () => {
     const ctx = getSceneContext();
@@ -38,9 +43,27 @@ export function bindGameUI() {
       }
   });
 
+  // Log bar toggle (delegated — the .log-bar__chevron lives inside #logMount)
   document.addEventListener('click', (e) => {
-    if (e.target && e.target.id === 'btnEndTurn') onEndTurn();
-    if (e.target && e.target.id === 'btnInspect')
+    const chevron = e.target.closest('.log-bar__chevron');
+    if (chevron) {
+      e.preventDefault();
+      const mount = document.getElementById('logMount');
+      const bar = mount?.querySelector('.log-bar');
+      if (bar) {
+        bar.classList.toggle('log-bar--open');
+        const isOpen = bar.classList.contains('log-bar--open');
+        const icon = chevron.querySelector('use');
+        if (icon) {
+          icon.setAttribute('href', `assets/icons/sprite.svg#${isOpen ? 'i-chevron-down' : 'i-chevron-up'}`);
+        }
+      }
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'endTurnBtn') onEndTurn();
+    if (e.target && e.target.id === 'inspectBtn')
       toast(
         'Click a highlighted hex to move. Adjacent foes to duel. End turn on empty parchment to dig.'
       );

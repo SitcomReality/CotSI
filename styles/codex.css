@@ -3,6 +3,10 @@
 @import "./abstracts/variables.css";
 @import "./abstracts/reset.css";
 
+/* these are all so well arranged but I don't know where to put this one */
+@import "./components/header.css";
+@import "./components/champion-detail.css";
+
 /* Utility layer */
 @import "./ui/utilities.css";
 
@@ -20,7 +24,7 @@
 @import "./components/hud.css";
 
 /* Page-specific layer */
-@import "./pages/tokens.css";
+@import "./pages/token-sheet.css";
 @import "./pages/setup.css";
 @import "./pages/game.css";
 @import "./pages/combat.css";

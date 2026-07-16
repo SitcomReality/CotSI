@@ -3,9 +3,10 @@ import { checkVictory } from './victory.js';
 import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
 import { syncSize } from '../render/effects/effectsOverlay.js';
 import { resetCamera as resetCamera3D, centerCameraOnHex } from '../render/hexmap3d/hexmap3d-index.js';
-import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panelComponents.js';
+import { renderLeftPanel, renderRightPanel, renderLog } from '../render/panels/panels-index.js';
+import { renderHeader, bindHeaderEvents } from '../ui/headerRenderer.js';
 import { initPaleyWidget } from '../ui/paleyWidget.js';
-import { setGameState, openArtifactChoiceModal } from '../ui/combat/index.js';
+import { setGameState, openArtifactChoiceModal } from '../ui/combat/combatui-index.js';
 import { showVictory } from '../ui/hud.js';
 import { refreshZoomDisplay, getTooltipContent as _getTooltipContent } from '../ui/mapView.js';
 import { bindGameUI } from '../ui/gameUIBindings.js';
@@ -49,6 +50,7 @@ export function __beginGame(config) {
   }
 
   bindGameUI();
+  bindHeaderEvents();
   refreshAll();
 }
 window.__beginGame = __beginGame;
@@ -62,9 +64,16 @@ export function refreshAll() {
 
   const ch = currentChamp();
 
+  // ── Header ──
+  const { world, champions } = renderHeader(G);
+  const headerWorldEl = document.querySelector('#gameHeader .header__world');
+  const headerChampsEl = document.querySelector('#gameHeader .header__champions');
+  if (headerWorldEl) headerWorldEl.innerHTML = world;
+  if (headerChampsEl) headerChampsEl.innerHTML = champions;
+
   // Panels
-  document.getElementById('leftMount').innerHTML = renderLeftPanel(G, ch);
-  document.getElementById('rightMount').innerHTML = renderRightPanel(G);
+  document.getElementById('leftPanel').innerHTML = renderLeftPanel(G, ch);
+  document.getElementById('rightPanel').innerHTML = renderRightPanel(G);
 
   // ── Map (3D replacement) ──
   const mountEl = document.getElementById('mapMount');
@@ -98,11 +107,6 @@ export function refreshAll() {
 
   // HUD
   if (ch) {
-    document.getElementById('hudMoves').textContent = ch.moves;
-    document.getElementById('hudPos').textContent = `${ch.pos.q},${ch.pos.r}`;
-    document.getElementById('hudSight').textContent =
-      ch.sight + (ch.artifact === 'lens' ? 1 : 0);
-    document.getElementById('dayLabel').textContent = `Day ${G.day} • ${G.weather.name}`;
     refreshZoomDisplay();
   }
 

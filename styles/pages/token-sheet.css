@@ -58,3 +58,9 @@ body.token-sheet {
   text-transform: uppercase;
   color: var(--ink-soft);
 }
+```
+
+```tool
+TOOL_NAME: run_terminal_command
+BEGIN_ARG: command
+rm styles/pages/tokens.css

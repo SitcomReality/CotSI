@@ -1,5 +1,268 @@
 .manuscript-panel, .panel{background:var(--panel);border:1px solid var(--panel-border);border-radius:16px;box-shadow:0 6px 24px var(--paper-shadow), inset 0 1px 0 #fff8;padding:16px}
 .panel h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--muted)}
+
+/* =========================================================================
+   Left panel — Champion Card (Step 5 rewrite)
+   Styleguide: vellum panel, --shadow-stack, faction only as left-edge + dot
+   ========================================================================= */
+.left-champion-card {
+  background: var(--parchment);
+  border: var(--edge) solid var(--rule);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-stack);
+  padding: var(--space-sm);
+  border-left: 2px solid var(--faction-color, var(--ink));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  font-variant-numeric: var(--tnum);
+}
+
+.left-champ-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.left-faction-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.left-champ-name {
+  font: 700 var(--fs-md) var(--font-display);
+  letter-spacing: .02em;
+  color: var(--ink);
+  flex: 1;
+}
+.left-champ-moves {
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.left-champ-moves svg {
+  color: var(--ink-soft);
+}
+
+/* HP row */
+.left-hp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.left-hp-label {
+  font: 600 var(--fs-xs) var(--font-display);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  width: 20px;
+  flex-shrink: 0;
+}
+.left-hp-track {
+  flex: 1;
+  height: 8px;
+  background: var(--vellum-2);
+  border-radius: 999px;
+  border: var(--hair) solid var(--rule);
+  overflow: hidden;
+}
+.left-hp-fill {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  border-radius: 999px;
+  transition: width .2s ease;
+}
+.left-hp-value {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink);
+  width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: var(--tnum);
+}
+
+/* Resources row — compact icon wells */
+.left-resources-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.left-res-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--ivory);
+  border: var(--hair) solid var(--rule);
+  border-radius: var(--r-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: var(--tnum);
+  line-height: 1;
+}
+.left-res-item svg {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+/* Equipment row */
+.left-equip-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.left-equip-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--ivory);
+  border: var(--hair) dashed var(--rule-strong);
+  border-radius: var(--r-sm);
+  font-size: 11px;
+  color: var(--ink);
+  line-height: 1;
+}
+.left-equip-item svg {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+.left-equip-artifact {
+  font-size: 10px;
+  color: var(--ink-soft);
+  font-style: italic;
+  width: 100%;
+  padding: 2px 4px;
+  margin-top: 2px;
+}
+
+/* Potency — collapsed by default (native <details>) */
+.left-potency-details {
+  margin-top: 2px;
+}
+.left-potency-summary {
+  list-style: none;
+  cursor: pointer;
+  font: 600 var(--fs-xs) var(--font-display);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  user-select: none;
+}
+.left-potency-summary::-webkit-details-marker {
+  display: none;
+}
+.left-potency-summary:hover {
+  color: var(--ink);
+}
+.left-potency-arrow {
+  font-size: 9px;
+  transition: transform .2s ease;
+  display: inline-block;
+}
+.left-potency-details[open] .left-potency-arrow {
+  transform: rotate(90deg);
+}
+.left-potency-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 6px;
+  background: var(--ivory);
+  border-radius: var(--r-sm);
+  border: var(--hair) solid var(--rule);
+}
+.left-potency-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.left-potency-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.left-potency-track {
+  flex: 1;
+  height: 7px;
+  background: var(--vellum-2);
+  border-radius: 999px;
+  border: var(--hair) solid var(--rule);
+  overflow: hidden;
+}
+.left-potency-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width .2s ease;
+}
+.left-potency-num {
+  width: 20px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-variant-numeric: var(--tnum);
+}
+.left-potency-num.is-primary {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+/* Action buttons row */
+.left-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+.left-actions-row .btn {
+  flex: 1;
+  font-size: var(--fs-xs);
+  padding: 8px 12px;
+  text-align: center;
+}
+.left-inspect-btn {
+  /* ink button — default .btn styles handle this */
+}
+.left-endturn-btn {
+  /* gold button — .btn-gold handles styling */
+}
+
 .setup-card{width:min(1040px,96vw);background:linear-gradient(180deg,#fff7dfd9,#f7e8c3e8);border:2px solid #b9965a;border-radius:22px;box-shadow:0 24px 80px #7a4a1a33, inset 0 1px 0 #fff; padding:28px 30px;}
 .modal-card{width:min(1020px,96vw);background:linear-gradient(180deg,#fff7df,#f5e5bd);border:2px solid #b9965a;border-radius:20px;padding:18px 20px;box-shadow:0 30px 90px #0005}
 .reward-card, .victory-card{background:linear-gradient(180deg,#fff7df,#f3e0b3);border:2px solid #b9965a;border-radius:18px;padding:22px;text-align:center;box-shadow:0 24px 80px #0004;max-width:560px}
+
+/* New card styles — step layout / modal / section panels */
+.champion-card-variant {
+  background: var(--parchment);
+  border: var(--edge) solid var(--rule);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-stack);
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quest-card {
+  background: var(--parchment);
+  border: var(--edge) solid var(--rule);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-stack);
+  padding: var(--space-sm);
+}

@@ -1,5 +1,20 @@
 @media(max-width:1100px){
- #game{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}
- .leftbar,.rightbar{order:2}
- .mapwrap{order:1;min-height:520px}
+  .layout-root #game {
+    grid-template-areas:
+      "header"
+      "map"
+      "left"
+      "right"
+      "log";
+    grid-template-columns: 1fr;
+    grid-template-rows: 48px 1fr auto auto auto;
+  }
+  .leftbar,
+  .rightbar {
+    order: unset;  /* flexbox not used; grid-area handles order */
+  }
+  .mapwrap {
+    order: unset;
+    min-height: 520px;
+  }
 }

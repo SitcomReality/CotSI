@@ -8,7 +8,7 @@ import { finishTurn } from './worldTurn.js';
 import { isDigEligible } from './turnLogic.js';
 import { moveChampion, movementRange } from './movement.js';
 import { coordKey } from '../world/map.js';
-import { startCombat } from '../ui/combat/index.js';
+import { startCombat } from '../ui/combat/combatui-index.js';
 import { toast } from '../ui/hud.js';
 import { runBotTurn as aiDecide } from './ai.js';
 
