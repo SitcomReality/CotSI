@@ -5,7 +5,7 @@
  * window‑level globals that are independent of game state.
  */
 import './ui/bootstrapUI.js';
-import './game/gameOrchestrator.js'; // side-effect: window.__beginGame
+import './game/session/beginGame.js'; // side-effect: window.__beginGame
 
 /** Reload the page to return to the setup screen. */
 window.restartToSetup = () => {

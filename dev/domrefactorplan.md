@@ -1,4 +1,4 @@
-## Step‑0 — Preparation (create utility modules, do not alter existing files yet)
+## Phase‑0 — Preparation (create utility modules, do not alter existing files yet)
 
 Three tiny utility files to underpin the entire refactor.
 
@@ -12,7 +12,7 @@ Three tiny utility files to underpin the entire refactor.
 
 ---
 
-## Step 1 – `setupUI.js`: the faction‑roster screen
+## Phase 1 – `setupUI.js`: the faction‑roster screen
 
 **Goal**: Replace `innerHTML` regeneration with a list built via `h()`, move hover/active styles to CSS, and make the “Begin” button use `data-action`.
 
@@ -56,7 +56,7 @@ The setup screen should look and behave identically, but now managed by the acti
 
 ---
 
-## Step 2 – `modal.js`: artifact choice and generic rewards
+## Phase 2 – `modal.js`: artifact choice and generic rewards
 
 **Goal**: Drop inline `onmouseenter` / `onmouseleave` styling, use CSS `:hover` and transitions.  
 Replace `innerHTML` rendering of artifact choices with cloned `<template>` fragments.
@@ -90,7 +90,7 @@ Replace `innerHTML` rendering of artifact choices with cloned `<template>` fragm
 
 ---
 
-## Step 3 – `hud.js`: toasts and log bar
+## Phase 3 – `hud.js`: toasts and log bar
 
 **Goal**: Eliminate inline styles from toast creation. Use `h()` to build the toast element and attach it.  
 The log‑bar toggle is already delegated; that can stay, but we’ll move any leftover inline styles to CSS.
@@ -106,7 +106,7 @@ removes the class after 1800 ms). Styles live in `styles/ui/overlays.css`
 rapid successive toasts, so the "CSS to add" block below is superseded — do not
 add it.
 
-Remaining cleanup for this step: `pulseEnd()` still targets a nonexistent
+Remaining cleanup for this phase: `pulseEnd()` still targets a nonexistent
 `#endTurnBtn` (dead code — the End Turn button lives in the left panel and now
 uses `data-action="endTurn"`), and `showVictory()` still builds its content
 with `innerHTML` and inline styles.
@@ -137,7 +137,7 @@ with `innerHTML` and inline styles.
 
 ---
 
-## Step 4 – `headerRenderer.js`: the champion bar and detail card
+## Phase 4 – `headerRenderer.js`: the champion bar and detail card
 
 **Goal**: Full separation of view model and binding. The champion pills are now built using `h()`, and the detail dropdown is populated from `championVM()`.  
 All layout and colors are driven by CSS and CSS variables.
@@ -167,7 +167,7 @@ All layout and colors are driven by CSS and CSS variables.
 
 ---
 
-## Step 5 – `gameOrchestrator.js`: glue it all together
+## Phase 5 – `gameOrchestrator.js`: glue it all together
 
 Now that all the individual renderers are refactored, `refreshAll()` can stop using `innerHTML`.
 
@@ -182,7 +182,7 @@ Now that all the individual renderers are refactored, `refreshAll()` can stop us
 
 The binder for the left panel follows the exact skeleton we described earlier, using `data-ui` hooks.
 
-### New file `src/ui/bindLeftPanel.js` (created in this step)
+### New file `src/ui/bindLeftPanel.js` (created in this phase)
 
 > **Prerequisite:** this binder only updates an *existing* skeleton. Before
 > wiring it up, add the static champion-card markup with `data-ui` hooks
@@ -251,18 +251,18 @@ export function bindLeftPanel(G) {
 
 ---
 
-## Step 6 – hex map tooltips
+## Phase 6 – hex map tooltips
 
 ### What to do
 
-There is no `tooltip.js` in `src/ui/` — the original step title pointed at the wrong file. Two files are actually involved:
+There is no `tooltip.js` in `src/ui/` — the original phase title pointed at the wrong file. Two files are actually involved:
 
 - **Content:** `getTooltipContent(gameState, key, activeChampion)` in `src/ui/mapView.js` builds the HTML string and contains the inline styles (`<span style="color:#b88728">● Reachable…`, `<i style="color:#7a5634">[Explored]</i>`). Replace those with classes (e.g. `.hex-tooltip__reachable`, `.hex-tooltip__explored`) and build the fragment with `h()`. Keep the function signature — `src/render/hexmap3d/interaction/hover.js` expects a string or `null`, so return `container.outerHTML` if you build with `h()`.
 - **Shell:** `src/render/hexmap3d/interaction/tooltip.js` creates `#hexTooltip3d` with a long inline `style.cssText` block. Move those static styles into a stylesheet (e.g. a `#hexTooltip3d` rule in `styles/ui/overlays.css`); only `left`/`top`/visibility stay inline in JS because they are genuinely dynamic. Positioning logic (`showTooltip`/`hideTooltip`/`bindTooltipToContainer`) is otherwise fine as-is.
 
 ---
 
-## Step 7 – `combatRenderer.js`: combat modal
+## Phase 7 – `combatRenderer.js`: combat modal
 
 **Goal**: Remove the giant `combatantCard()` template string and the inline pickup slots. Use view models and `h()`.
 
@@ -295,23 +295,23 @@ There is no `tooltip.js` in `src/ui/` — the original step title pointed at the
 }
 ```
 
-This step will touch **both** `combatRenderer.js` and likely `combatui-index.js` (which wires the click), but we can limit the new listener registration to `actionBus` by adding a `pickCombatPower` action. The combat UI code is already encapsulated, so that’s a single concern. We’ll note that in the step.
+This phase will touch **both** `combatRenderer.js` and likely `combatui-index.js` (which wires the click), but we can limit the new listener registration to `actionBus` by adding a `pickCombatPower` action. The combat UI code is already encapsulated, so that’s a single concern. We’ll note that in the phase.
 
 ---
 
-## Step 8 – `combatRewardUI.js` (if separate) or integrate with modal
+## Phase 8 – `combatRewardUI.js` (if separate) or integrate with modal
 
-If `combatRewardUI.js` uses `innerHTML` for reward popups, convert to the same template‑cloning pattern as in Step 2. Otherwise it will already be covered.
+If `combatRewardUI.js` uses `innerHTML` for reward popups, convert to the same template‑cloning pattern as in phase 2. Otherwise it will already be covered.
 
 ---
 
-## Step 9 – `heptagramWidget.js`
+## Phase 9 – `heptagramWidget.js`
 
 This likely renders an SVG/canvas and may have some `innerHTML` for a container. If it’s purely canvas, no change needed. If it inserts any HTML strings, replace with `h()`. The plan mentions it just in case.
 
 ---
 
-## Final step – cleanup and verify
+## Final phase – cleanup and verify
 
 After all files are refactored:
 
@@ -320,9 +320,9 @@ After all files are refactored:
 - Remove the remaining legacy globals in the same pass: the inline `onclick="commitCombat()"` / `onclick="restartToSetup()"` / combat-modal "Flee" handler in `index.html`, `window.commitCombat`, `window.closeReward`, `window._onPaleyHover`, `window.__SUPERNAL__`, and the dead `#logMount` log-bar chevron handler (nothing renders into `#logMount` anymore).
 - In `bootstrapUI.js`, import and call `registerAction` for the remaining actions (end turn, zoom, center champion, etc.).
 
-### Smoke checklist — run after EVERY step, not just this one
+### Smoke checklist — run after EVERY phase, not just this one
 
-No test runner exists, so verify manually in the browser after each refactor step:
+No test runner exists, so verify manually in the browser after each refactor phase:
 
 1. Setup screen: toggle a faction, switch Human/Bot, change map size, Begin.
 2. First-turn artifact draft opens; clicking a choice grants the artifact and closes the modal (check the champion card's Artifact line).

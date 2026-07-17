@@ -1,61 +1,15 @@
-import { createGame } from './gameFactory.js';
 import { checkVictory } from './victory.js';
-import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
-import { syncSize } from '../render/effects/effectsOverlay.js';
-import { resetCamera as resetCamera3D, centerCameraOnHex } from '../render/hexmap3d/hexmap3d-index.js';
+
+import { refreshMap } from './session/mapRefresh.js';
 
 import { renderLeftPanel, renderRightPanel } from '../ui/panels/panels-index.js';
-import { refreshHeader, bindHeaderEvents } from '../ui/bindHeader.js';
+import { refreshHeader } from '../ui/bindHeader.js';
 import { initHeptagramWidget } from '../ui/heptagramWidget.js';
-import { setGameState, openArtifactChoiceModal } from '../ui/combat/combatui-index.js';
-import { setRewardModal } from '../ui/modal.js';
+import { showPendingReward } from './session/rewardPrompt.js';
 import { showVictory } from '../ui/hud.js';
-import { refreshZoomDisplay, getTooltipContent as _getTooltipContent } from '../ui/mapView.js';
-import { bindGameUI } from '../ui/gameUIBindings.js';
-import { onHexClick } from './hexInteraction.js';
+import { refreshZoomDisplay } from '../ui/mapView.js';
 import { runBot } from './turnController.js';
-
-// ---- Game instance (exported live binding) ----
-export let G = null;
-
-// ---- Helpers ----
-
-export function currentChamp() {
-  return G ? G.champions.find((c) => c.id === G.activeChampionId) : null;
-}
-
-// Add a flag to track whether 3D scene is initialized:
-let map3dInitialized = false;
-
-// Track which champion we last centered the camera on (by id,
-// so we only center once when a human champion's turn starts)
-let lastCenteredChampionId = null;
-
-// ---- Begin game (called by setup.js) ----
-
-export function __beginGame(config) {
-  G = createGame(config);
-  window.__gameState = G;
-  setGameState(G); // keep combatModal in sync
-
-  // Sync the effects overlay canvas on window resize
-  window.addEventListener('resize', syncSize);
-
-  document.getElementById('setup').style.display = 'none';
-  document.getElementById('game').style.display = 'grid';
-
-  // Reset 3D camera to default
-  const ctx3d = getSceneContext();
-  if (ctx3d) {
-    resetCamera3D(ctx3d.getCameraState());
-    ctx3d.applyCamera();
-  }
-
-  bindGameUI();
-  bindHeaderEvents();
-  refreshAll();
-}
-window.__beginGame = __beginGame;
+import { G, currentChamp } from './session/liveGame.js';
 
 // ---- Central render orchestrator ----
 
@@ -74,46 +28,18 @@ export function refreshAll() {
   document.getElementById('rightPanel').innerHTML = renderRightPanel(G);
 
   // ── Map (3D replacement) ──
-  const mountEl = document.getElementById('mapMount');
-  if (!map3dInitialized) {
-    // First call: clear mount, init 3D scene
-    mountEl.innerHTML = ''; // remove any placeholder
-    initHexMap3D(mountEl);
-    setupMapInteraction3D(
-      onHexClick,
-      (key) => _getTooltipContent(G, key, currentChamp())
-    );
-    map3dInitialized = true;
-  }
-  renderHexMap3D(G);
-
-  // ── Center camera on human champion at turn start ──
-  if (ch && ch.controller === 'human' && ch.id !== lastCenteredChampionId) {
-    const ctx3d = getSceneContext();
-    if (ctx3d) {
-      centerCameraOnHex(ctx3d.getCameraState(), ch.pos.q, ch.pos.r);
-      ctx3d.applyCamera();
-    }
-    lastCenteredChampionId = ch.id;
-  }
+  refreshMap();
 
   // Paley widget
   initHeptagramWidget('paleyMount');
-
 
   // HUD
   if (ch) {
     refreshZoomDisplay();
   }
 
-  // Pending reward: an artifact draft opens the choice modal; anything else
-  // (e.g. a guaranteed dig reward) opens the generic reward modal.
-  if (G.reward && G.reward.choices && !G.reward.guaranteed?.length) {
-    openArtifactChoiceModal(G.reward);
-  } else if (G.reward && !G.reward.choices) {
-    const lines = [G.reward.body, ...(G.reward.guaranteed || [])].filter(Boolean);
-    setRewardModal(G.reward.title || 'Reward', lines.join('<br>'));
-  }
+  // Show pending reward modal (artifact draft, dig loot, combat spoils, etc.)
+  showPendingReward(G);
 
   // Bot auto-turn (skip if any modal open)
   if (
@@ -130,3 +56,5 @@ export function refreshAll() {
   checkVictory(G);
   if (G.winnerId) showVictory(G);
 }
+
+

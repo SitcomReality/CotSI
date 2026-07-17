@@ -8,6 +8,8 @@ This file is a guide for AI coding agents working on **Champions of the Supernal
 
 CotSI is a browser-based, single-player hex-crawl strategy game inspired by tabletop wargames and turn-based strategy games like Heroes of Might and Magic. The player (and AI bots) control one of the seven faction champions on a procedurally generated hex map, moving, fighting, trading, and digging for relics. The win conditions are a relic race and/or last-champion-standing.
 
+Combat is based on a 7 node, two paradoxical Paley tournament, meaning that each power wins against 3 powers and loses against 3 others. Faction i beats i+1, i+2, and i+4 mod 7.
+
 The game is intentionally built with **vanilla JavaScript and CSS** — no framework, no bundler, no build step. It runs directly in the browser from `index.html`.
 
 The game is still early in development.

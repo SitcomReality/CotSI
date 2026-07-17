@@ -1,7 +1,7 @@
 import { refreshZoomDisplay } from './mapView.js';
 import { toast } from './hud.js';
 import { registerAction } from './actionBus.js';
-import { currentChamp } from '../game/gameOrchestrator.js';
+import { currentChamp } from '../game/session/liveGame.js';
 import { onEndTurn } from '../game/turnController.js';
 import { getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
 import { zoomCamera, resetCamera } from '../render/hexmap3d/hexmap3d-index.js';

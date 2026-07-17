@@ -3,7 +3,8 @@
  * Lives in the `game/` domain. References `G` via live binding from
  * gameOrchestrator (circular import, used at runtime only).
  */
-import { G, currentChamp, refreshAll } from './gameOrchestrator.js';
+import { G, currentChamp } from './session/liveGame.js';
+import { refreshAll } from './gameOrchestrator.js';
 import { movementRange, moveChampion, adjacentPassable } from './championMovement.js';
 import { addLog } from './log.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from './entityQueries.js';
