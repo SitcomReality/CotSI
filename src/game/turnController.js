@@ -4,7 +4,7 @@
  * gameOrchestrator (circular import, used at runtime only).
  */
 import { G, currentChamp } from './session/liveGame.js';
-import { refreshAll } from './gameOrchestrator.js';
+import { refreshAll } from './session/refreshAll.js';
 import { finishTurn } from './worldTurn.js';
 import { isDigEligible } from './turnLogic.js';
 import { moveChampion, movementRange } from './championMovement.js';

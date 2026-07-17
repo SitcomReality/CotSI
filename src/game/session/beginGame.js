@@ -8,7 +8,7 @@ import {
 } from '../../render/hexmap3d/hexmap3d-index.js';
 import { bindGameUI } from '../../ui/gameUIBindings.js';
 import { bindHeaderEvents } from '../../ui/bindHeader.js';
-import { refreshAll } from '../gameOrchestrator.js'; // will move to ./refreshAll.js in Step 6
+import { refreshAll } from './refreshAll.js';
 import { initHeptagramWidget } from '../../ui/heptagramWidget.js';
 
 export function __beginGame(config) {

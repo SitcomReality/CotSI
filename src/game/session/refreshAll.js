@@ -1,16 +1,16 @@
-import { checkVictory } from './victory.js';
+import { checkVictory } from '../victory.js';
 
-import { refreshMap } from './session/mapRefresh.js';
+import { refreshMap } from './mapRefresh.js';
 
-import { bindLeftPanel } from '../ui/panels/bindLeftPanel.js';
-import { bindRightPanel } from '../ui/panels/bindRightPanel.js';
+import { bindLeftPanel } from '../../ui/panels/bindLeftPanel.js';
+import { bindRightPanel } from '../../ui/panels/bindRightPanel.js';
 
-import { refreshHeader } from '../ui/bindHeader.js';
-import { showPendingReward } from './session/rewardPrompt.js';
-import { showVictory } from '../ui/hud.js';
-import { refreshZoomDisplay } from '../ui/mapView.js';
-import { runBot } from './turnController.js';
-import { G, currentChamp } from './session/liveGame.js';
+import { refreshHeader } from '../../ui/bindHeader.js';
+import { showPendingReward } from './rewardPrompt.js';
+import { showVictory } from '../../ui/hud.js';
+import { refreshZoomDisplay } from '../../ui/mapView.js';
+import { runBot } from '../turnController.js';
+import { G, currentChamp } from './liveGame.js';
 
 // ---- Central render orchestrator ----
 
@@ -30,9 +30,6 @@ export function refreshAll() {
 
   // ── Map (3D replacement) ──
   refreshMap();
-
-  // Paley widget
-  //initHeptagramWidget('paleyMount');
 
   // HUD
   if (ch) {
@@ -57,5 +54,3 @@ export function refreshAll() {
   checkVictory(G);
   if (G.winnerId) showVictory(G);
 }
-
-

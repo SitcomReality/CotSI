@@ -5,7 +5,7 @@
 import { initCombatModal } from './combat/combatui-index.js';
 import { initModalActions } from './actionBus.js';
 import { toast } from './hud.js';
-import { refreshAll } from '../game/gameOrchestrator.js';
+import { refreshAll } from '../game/session/refreshAll.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   initModalActions(() => window.__gameState);
