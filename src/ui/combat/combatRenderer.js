@@ -1,162 +1,146 @@
 import { getCombatUI } from './combatStateManager.js';
-import { getActiveCombatant, isRevealPhase } from '../../game/combat/combat-index.js';
+import { getCombatVM } from '../viewModels/combatVM.js';
 import { FACTIONS } from '../../core/factions.js';
 import { setHeptagramHighlight } from '../heptagramWidget.js';
-
-export function onCombatPotencyHover(factionIdx) {
-  // Clear all hover first
-  document.querySelectorAll('.ctok').forEach(el => {
-    el.classList.remove('potency-hover');
-    el.style.transform = '';
-  });
-  // Highlight matching Potencys on both sides
-  if (factionIdx >= 0) {
-    const els = document.querySelectorAll('#leftCombat .ctok[data-f="' + factionIdx + '"], #rightCombat .ctok[data-f="' + factionIdx + '"]');
-    els.forEach(el => {
-      el.classList.add('potency-hover');
-      el.style.transform = 'scale(1.15)';
-    });
-  }
-  setHeptagramHighlight(factionIdx);
-}
-
-const _onPotencyEnter = function (e) {
-  const factionIdx = parseInt(e.currentTarget.dataset.f);
-  onCombatPotencyHover(factionIdx);
-};
-
-const _onPotencyLeave = function () {
-  onCombatPotencyHover(-1);
-};
-
-export function wireCombatPotencyHover() {
-  document.querySelectorAll('.ctok').forEach(el => {
-    el.removeEventListener('mouseenter', _onPotencyEnter);
-    el.removeEventListener('mouseleave', _onPotencyLeave);
-    el.addEventListener('mouseenter', _onPotencyEnter);
-    el.addEventListener('mouseleave', _onPotencyLeave);
-  });
-}
+import { h } from '../utils/dom.js';
 
 export function renderCombat() {
   const _combatUI = getCombatUI();
   if (!_combatUI) return;
-  const {
-    attacker, defender, round, phase, roundPicks, roundScores, lastReveal, awaitingPick,
-  } = _combatUI;
+  const vm = getCombatVM(_combatUI);
+  if (!vm) return;
 
-  const phaseLabels = {
-    pick1_attacker: 'Round ' + round + ' — Attacker chooses 1st power',
-    pick1_defender: 'Round ' + round + ' — Defender chooses 1st power',
-    reveal1: 'Round ' + round + ' — Revealing 1st clash',
-    pick2_defender: 'Round ' + round + ' — Defender chooses 2nd power',
-    pick2_attacker: 'Round ' + round + ' — Attacker chooses 2nd power',
-    reveal2: 'Round ' + round + ' — Revealing final clash',
-    round_end: 'Round ' + round + ' complete',
-  };
-  document.getElementById('combatRoundLabel').textContent =
-    phaseLabels[phase] || 'Combat';
+  // Round label
+  document.getElementById('combatRoundLabel').textContent = vm.roundLabel;
 
-  const isPicking = phase.startsWith('pick');
-  document.getElementById('leftCombat').innerHTML = combatantCard(
-    attacker, true, roundPicks.attacker, phase,
-    awaitingPick === 'attacker' && isPicking
+  // Combatant cards – rebuild from VM
+  document.getElementById('leftCombat').replaceChildren(
+    combatantCard(vm.attacker, vm.activeSide === 'attacker', vm.phase)
   );
-  document.getElementById('rightCombat').innerHTML = combatantCard(
-    defender, false, roundPicks.defender, phase,
-    awaitingPick === 'defender' && isPicking
+  document.getElementById('rightCombat').replaceChildren(
+    combatantCard(vm.defender, vm.activeSide === 'defender', vm.phase)
   );
 
-  updatePickSlots(roundPicks, lastReveal);
+  // Pick slots
+  updatePickSlots(vm.slots);
 
-  if (isRevealPhase(_combatUI)) {
-    document.querySelectorAll('.combat-potencys .ctok').forEach(el => el.style.pointerEvents = 'none');
-  } else if (phase === 'round_end') {
-    document.querySelectorAll('.combat-potencys .ctok').forEach(el => el.style.pointerEvents = 'none');
-  } else {
-    document.querySelectorAll('.combat-potencys .ctok').forEach(el => el.style.pointerEvents = '');
+  // Scores
+  document.getElementById('csLeft').textContent = vm.scores.left;
+  document.getElementById('csRight').textContent = vm.scores.right;
+
+  // Log (last entry)
+  const logEl = document.getElementById('combatLog');
+  if (logEl) {
+    logEl.textContent = vm.log.length > 0 ? vm.log[vm.log.length - 1] : '';
   }
 
-  // Commit button — only enabled during reveal phases
+  // Commit button
   const commitBtn = document.getElementById('commitCombat');
   if (commitBtn) {
-    const isReveal = isRevealPhase(_combatUI);
-    commitBtn.disabled = !isReveal;
-    commitBtn.textContent = isReveal ? 'Reveal Clash' : 'Waiting…';
-    commitBtn.style.opacity = isReveal ? '1' : '0.6';
-  }
-
-  // Wire Potency hover only when picking
-  if (isPicking) {
-    wireCombatPotencyHover();
+    commitBtn.disabled = !vm.commit.enabled;
+    commitBtn.textContent = vm.commit.label;
   }
 }
 
-function updatePickSlots(roundPicks, lastReveal) {
-  ['sA1', 'sA2'].forEach((id, i) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const pick = roundPicks.attacker[i];
-    if (pick != null) {
-      const fac = FACTIONS[pick];
-      el.textContent = fac.glyph + ' ' + fac.name;
-      el.style.borderColor = fac.color;
-      el.style.background = fac.color + '22';
-    } else {
-      el.textContent = i === 0 ? 'Pick 1' : 'Pick 2';
-      el.style.borderColor = '';
-      el.style.background = '';
-    }
-    if (lastReveal && lastReveal.pickA === pick) el.style.boxShadow = '0 0 8px #5fbf7a';
-    else el.style.boxShadow = '';
-  });
-  ['sB1', 'sB2'].forEach((id, i) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const pick = roundPicks.defender[i];
-    if (pick != null) {
-      const fac = FACTIONS[pick];
-      el.textContent = fac.glyph + ' ' + fac.name;
-      el.style.borderColor = fac.color;
-      el.style.background = fac.color + '22';
-    } else {
-      el.textContent = '???';
-      el.style.borderColor = '';
-      el.style.background = '';
-    }
-    if (lastReveal && lastReveal.pickB === pick) el.style.boxShadow = '0 0 8px #5fbf7a';
-    else el.style.boxShadow = '';
-  });
+// ─── Combatant card builder ──────────────────────────────────────────────
+
+function combatantCard(vm, isActivePicker, phase) {
+  return h('div', { class: 'combatant-card' },
+    // Name with faction color via custom property
+    h('h3', {
+      style: {
+        '--faction-color': vm.factionColor,
+        color: 'var(--faction-color)',
+      },
+    }, vm.name),
+
+    // HP bar
+    h('div', { class: 'hpbar' },
+      h('div', { class: 'hpfill', style: { width: vm.hpPct + '%' } }),
+    ),
+
+    // HP text
+    h('div', { class: 'mini' }, `${vm.hp} / ${vm.maxHp} HP`),
+
+    // Potency grid
+    h('div', { class: 'combat-potencys' },
+      ...vm.pots.map(pot => buildToken(pot, isActivePicker, phase)),
+    ),
+  );
 }
 
-function combatantCard(ent, isLeft, roundPicks, phase, isActivePicker) {
-  const isChamp = !!ent.Potencys;
-  const pots = isChamp
-    ? (() => {
-        const t = ent.Potencys.slice();
-        t[ent.faction] += ent.relics || 0;
-        let weakest = Math.min(...t.filter((_, i) => i !== ent.faction));
-        if (!isFinite(weakest)) weakest = 0;
-        t[ent.faction] += weakest;
-        return t;
-      })()
-    : ent.potencies;
+// ─── Potency token builder ──────────────────────────────────────────────
 
-  const lockedPicks = new Set(roundPicks);
-  // Bug fix A: isActivePicker is already correct for defender
-  const pickableClass = isActivePicker ? 'pickable' : '';
+function buildToken(pot, isActivePicker, phase) {
+  const classes = ['ctok'];
+  if (pot.used) classes.push('used');
+  if (pot.unavailable) classes.push('unavailable');
+  if (pot.pickable) classes.push('pickable');
 
-  return `<h3 style="color:${FACTIONS[ent.faction || 0].color}">${
-    ent.name || FACTIONS[ent.faction].name + ' Champion'
-  }</h3>
-  <div class="hpbar"><div class="hpfill" style="width:${Math.round(
-    (ent.hp / ent.maxHp) * 100
-  )}%"></div></div>
-  <div class="mini">${ent.hp} / ${ent.maxHp} HP</div>
-  <div class="combat-potencys">${pots
-    .map(
-      (v, i) =>
-        `<div data-action="pickCombatPower" class="ctok ${lockedPicks.has(i) ? 'used' : ''} ${lockedPicks.has(i) ? '' : pickableClass}" data-f="${i}" style="border-color:${FACTIONS[i].color}66; opacity:${lockedPicks.has(i) ? '0.5' : '1'}"><div style="font-weight:800">${v}</div><div style="font-size:9px;color:${FACTIONS[i].color}">${FACTIONS[i].glyph}</div></div>`
-    )
-    .join('')}</div>`;
+  const isClickable = pot.pickable && phase.startsWith('pick');
+
+  return h('div', {
+    class: classes.join(' '),
+    dataAction: isClickable ? 'pickCombatPower' : undefined,
+    dataF: pot.idx,
+    // Cross-highlight on hover
+    mouseenter: () => highlightTokens(pot.idx),
+    mouseleave: () => highlightTokens(-1),
+  },
+    h('div', { class: 'ctok__val' }, String(pot.val)),
+    h('div', { class: 'ctok__glyph' }, pot.glyph),
+  );
+}
+
+// ─── Pick-slot updater ──────────────────────────────────────────────────
+
+function updatePickSlots(slots) {
+  const slotEntries = [
+    ['sA1', slots.a1],
+    ['sA2', slots.a2],
+    ['sB1', slots.b1],
+    ['sB2', slots.b2],
+  ];
+
+  for (const [id, slot] of slotEntries) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+
+    // Clear any dynamic classes/styles that might linger from previous renders
+    el.classList.remove('revealed');
+
+    if (slot.text) {
+      el.textContent = slot.text;
+      if (slot.factionIdx != null) {
+        const color = FACTIONS[slot.factionIdx].color;
+        el.style.setProperty('--slot-color', color);
+        el.style.borderColor = 'var(--slot-color)';
+        el.style.background = `${color}22`;
+      }
+      if (slot.revealed) {
+        el.classList.add('revealed');
+      }
+    } else {
+      // Empty slot: show placeholder
+      el.textContent = id.startsWith('sB')
+        ? '???'
+        : (id.endsWith('1') ? 'Pick 1' : 'Pick 2');
+      el.style.borderColor = '';
+      el.style.background = '';
+    }
+  }
+}
+
+// ─── Cross-token highlight helper ───────────────────────────────────────
+
+function highlightTokens(factionIdx) {
+  document.querySelectorAll('.ctok').forEach(el => {
+    el.classList.remove('potency-hover');
+  });
+  if (factionIdx >= 0) {
+    document.querySelectorAll(`.ctok[data-f="${factionIdx}"]`).forEach(el => {
+      el.classList.add('potency-hover');
+    });
+  }
+  setHeptagramHighlight(factionIdx);
 }

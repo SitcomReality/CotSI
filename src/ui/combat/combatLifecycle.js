@@ -54,10 +54,9 @@ export function processRevealPhase() {
   const _G = getGameState();
   const reveal = processReveal(_G, _combatUI);
   if (reveal) {
-    document.getElementById('csLeft').textContent = _combatUI.roundScores.attacker;
-    document.getElementById('csRight').textContent = _combatUI.roundScores.defender;
-    document.getElementById('combatLog').textContent = reveal.logA + '  vs  ' + reveal.logB;
     animateReveal(reveal);
+    // Scores and log are updated via the combatUI object;
+    // renderCombat() will pick them up after phase advance.
   }
   setTimeout(() => {
     advanceCombatPhase(_combatUI);
@@ -70,14 +69,15 @@ function animateReveal(reveal) {
   const leftSlots = document.querySelectorAll('#leftCombat .ctok');
   const rightSlots = document.querySelectorAll('#rightCombat .ctok');
   leftSlots.forEach((el) => {
-    if (+el.dataset.f === reveal.pickA) el.style.transform = 'scale(1.15)';
+    if (+el.dataset.f === reveal.pickA) el.classList.add('reveal-pulse');
   });
   rightSlots.forEach((el) => {
-    if (+el.dataset.f === reveal.pickB) el.style.transform = 'scale(1.15)';
+    if (+el.dataset.f === reveal.pickB) el.classList.add('reveal-pulse');
   });
   setTimeout(() => {
-    leftSlots.forEach((el) => (el.style.transform = ''));
-    rightSlots.forEach((el) => (el.style.transform = ''));
+    document.querySelectorAll('.ctok.reveal-pulse').forEach((el) => {
+      el.classList.remove('reveal-pulse');
+    });
   }, 1000);
 }
 
@@ -93,14 +93,8 @@ export function handleRoundEnd() {
   _combatUI.roundScores.attacker = scoreA;
   _combatUI.roundScores.defender = scoreB;
 
-  document.getElementById('csLeft').textContent = scoreA;
-  document.getElementById('csRight').textContent = scoreB;
-
   const dmgResult = resolveRoundDamage(_G, _combatUI);
-  document.getElementById('combatLog').textContent =
-    `Round ${_combatUI.round} damage: ${
-      dmgResult.to === 'attacker' ? attacker.name : defender.name
-    } takes ${dmgResult.damage}`;
+  // Combat log is updated by resolveRoundDamage; renderCombat will show it.
 
   if (dmgResult.defenderDead) {
     const rew = finalizeCombat(_G, attacker, defender, true);

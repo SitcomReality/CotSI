@@ -13,8 +13,8 @@
   color: #7a5634;
 }
 .combat-arena{display:grid;grid-template-columns:1fr 86px 1fr;gap:14px}
-.combatant{background:#fff7dfaa;border:1px solid #d0a86a;border-radius:14px;padding:12px}
-.combatant .vs-cell {
+.combatant-card{background:#fff7dfaa;border:1px solid #d0a86a;border-radius:14px;padding:12px}
+.vs-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -34,11 +34,21 @@
   text-align: center;
   margin-top: 8px;
 }
-.combat-tokens{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
-.ctok{text-align:center;padding:6px 2px;border-radius:8px;background:#f7e8c3;border:1px solid #d0a86a;font-size:11px;cursor:pointer}
-.ctok.sel{outline:2px solid #d4a138; background:#fff4cf}
+/* Potency grid */
+.combat-potencys{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+.ctok{text-align:center;padding:6px 2px;border-radius:8px;background:#f7e8c3;border:1px solid #d0a86a;font-size:11px;cursor:pointer;transition:transform 0.2s,opacity 0.2s}
+.ctok__val{font-weight:800}
+.ctok__glyph{font-size:9px}
+.ctok.pickable:hover{transform:scale(1.15);border-color:#c49b5a;background:#fff4cf}
+.ctok.used{opacity:0.5;pointer-events:none}
+.ctok.unavailable{opacity:0.3;pointer-events:none}
+.ctok.potency-hover{transform:scale(1.15)}
+.ctok.reveal-pulse{transform:scale(1.15);transition:transform 0.3s}
+
+/* Pick slots */
 .play-slots{display:flex;gap:8px;justify-content:center;margin:10px 0}
-.play-slot{width:92px;height:60px;border-radius:10px;border:2px dashed #c49b5a;display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff7dfaa}
+.play-slot{width:92px;height:60px;border-radius:10px;border:2px dashed #c49b5a;display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff7dfaa;transition:box-shadow 0.3s}
+.play-slot.revealed{box-shadow:0 0 8px #5fbf7a}
 .play-arrow {
   display: flex;
   align-items: center;
@@ -53,6 +63,10 @@
   display: flex;
   gap: 10px;
   justify-content: center;
+}
+button.btn-gold:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .reward-title {
   margin: 0 0 6px;
