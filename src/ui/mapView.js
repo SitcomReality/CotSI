@@ -49,16 +49,19 @@ export function getTooltipContent(gameState, key, activeChampion) {
     ...maybe(featureDesc,
       h('span', { class: 'hex-tooltip__feature' }, featureDesc)
     ),
-    ...maybe(mob,
-      h('span', { class: 'hex-tooltip__mob' }, `⚠ ${mob.name} ${mob.hp}/${mob.maxHp}hp`)
+    ...(mob
+      ? [h('span', { class: 'hex-tooltip__mob' }, `⚠ ${mob.name} ${mob.hp}/${mob.maxHp}hp`)]
+      : []
     ),
-    ...maybe(ch,
-      h('span', { class: 'hex-tooltip__champion' },
-        `${FACTIONS[ch.faction].glyph} ${ch.name} ${ch.hp}/${ch.maxHp}hp`
-      )
+    ...(ch
+      ? [h('span', { class: 'hex-tooltip__champion' },
+          `${FACTIONS[ch.faction].glyph} ${ch.name} ${ch.hp}/${ch.maxHp}hp`
+        )]
+      : []
     ),
-    ...maybe(trader,
-      h('span', { class: 'hex-tooltip__trader' }, '₳ Wandering Trader')
+    ...(trader
+      ? [h('span', { class: 'hex-tooltip__trader' }, '₳ Wandering Trader')]
+      : []
     ),
     ...maybe(reachableText,
       h('span', { class: 'hex-tooltip__reachable' }, reachableText)
