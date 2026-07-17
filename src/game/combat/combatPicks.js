@@ -1,3 +1,5 @@
+import { potencyWithPrimary } from '../../core/factions.js';
+
 /** Record a pick for the active combatant */
 export function recordCombatPick(combat, pick){
   const active = combat.awaitingPick;
@@ -42,5 +44,5 @@ export function botCombatPick(entity, opponentPicks, availablePicks){
 
  export function getAvailablePicks(entity){
    const pots = potencyWithPrimary(entity);
-   return pots.map((v,i)=> v > 0 ? -1 : i).filter(i=> i>=0);
+   return pots.map((v,i)=> v > 0 ? i : -1).filter(i=> i>=0);
  }

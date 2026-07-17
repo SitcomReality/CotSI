@@ -3,6 +3,10 @@ import { getCombatUI, setCombatUI, getGameState, getRefreshAll, getToast } from 
 import { renderCombat } from './combatRenderer.js';
 import { makeBotPick } from './combatInteractions.js';
 import { openRewardModal } from './combatRewardUI.js';
+import { registerAction } from '../actionBus.js';
+
+// ── Flee: close combat with no game-logic penalty ──
+registerAction('fleeCombat', () => closeCombat());
 
 /**
  * Central flow dispatcher: after any state mutation (pick, phase advance,
