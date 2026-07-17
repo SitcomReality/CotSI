@@ -27,10 +27,7 @@ export function openRewardModal(champ, rew) {
   // Rewards list
   if (rew.rewards && rew.rewards.length) {
     const rewardsBox = document.createElement('div');
-    rewardsBox.style.margin = '12px 0';
-    rewardsBox.style.padding = '10px';
-    rewardsBox.style.background = '#fff7dfaa';
-    rewardsBox.style.borderRadius = '8px';
+    rewardsBox.className = 'reward-list';
     rew.rewards.forEach(r => {
       const row = document.createElement('div');
       row.textContent = r;

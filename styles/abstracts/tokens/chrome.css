@@ -12,4 +12,5 @@
   --ink-faint:     #8a7d66;  /* tertiary, placeholders                   */
   --rule:          #c9b48a;  /* neutral hairline / ruled baselines       */
   --rule-strong:   #b39a6a;  /* slightly heavier divider                 */
+  --parchment-glass: #fff7dfaa;  /* semi-transparent card overlay (combat cards, play slots, reward box) */
 }

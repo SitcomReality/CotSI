@@ -6,6 +6,7 @@
   --st-ally:     var(--malachite);
   --st-neutral:  var(--ink-soft);
   --st-selected: var(--gold);
+  --st-reveal:   #5fbf7a;  /* combat reveal glow — matched play-slot.revealed box-shadow */
   --st-move:     color-mix(in srgb, var(--malachite) 20%, transparent);
   --st-danger:   color-mix(in srgb, var(--vermilion) 18%, transparent);
   --st-fog-seen: color-mix(in srgb, var(--vellum-2) 55%, transparent);

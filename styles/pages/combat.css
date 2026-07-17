@@ -13,7 +13,7 @@
   color: #7a5634;
 }
 .combat-arena{display:grid;grid-template-columns:1fr 86px 1fr;gap:14px}
-.combatant-card{background:#fff7dfaa;border:1px solid #d0a86a;border-radius:14px;padding:12px}
+.combatant-card{background:var(--parchment-glass);border:1px solid #d0a86a;border-radius:14px;padding:12px}
 .vs-cell {
   display: flex;
   flex-direction: column;
@@ -47,13 +47,22 @@
 
 /* Pick slots */
 .play-slots{display:flex;gap:8px;justify-content:center;margin:10px 0}
-.play-slot{width:92px;height:60px;border-radius:10px;border:2px dashed var(--slot-color, #c49b5a);display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff7dfaa;transition:box-shadow 0.3s}
-.play-slot.revealed{box-shadow:0 0 8px #5fbf7a}
+.play-slot{width:92px;height:60px;border-radius:10px;border:2px dashed var(--slot-color, #c49b5a);display:flex;align-items:center;justify-content:center;font-size:12px;background:var(--parchment-glass);transition:box-shadow 0.3s}
+.play-slot.revealed{box-shadow:0 0 8px var(--st-reveal)}
 .play-arrow {
   display: flex;
   align-items: center;
   color: #a77;
 }
+
+/* Reward list panel */
+.reward-list {
+  margin: 12px 0;
+  padding: 10px;
+  background: var(--parchment-glass);
+  border-radius: 8px;
+}
+
 .combat-log-area {
   min-height: 22px;
   margin-top: 4px;
