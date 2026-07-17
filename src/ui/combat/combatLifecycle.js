@@ -4,6 +4,7 @@ import { renderCombat } from './combatRenderer.js';
 import { makeBotPick } from './combatInteractions.js';
 import { openRewardModal } from './combatRewardUI.js';
 import { registerAction } from '../actionBus.js';
+import { showModal, hideModal } from '../modal.js';
 
 // ── Flee: close combat with no game-logic penalty ──
 registerAction('fleeCombat', () => closeCombat());
@@ -38,13 +39,13 @@ export function startCombat(attacker, defender) {
 }
 
 export function openCombatModal() {
-  document.getElementById('combatModal').style.display = 'flex';
+  showModal('combatModal');
   renderCombat();
   continueCombatFlow();
 }
 
 export function closeCombat() {
-  document.getElementById('combatModal').style.display = 'none';
+  hideModal('combatModal');
   setCombatUI(null);
 }
 
