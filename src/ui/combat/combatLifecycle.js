@@ -101,7 +101,11 @@ export function handleRoundEnd() {
   if (dmgResult.defenderDead) {
     const rew = finalizeCombat(_G, attacker, defender, true);
     closeCombat();
-    openRewardModal(attacker, rew);
+    openRewardModal(attacker, {
+      title: 'Victory!',
+      body: `${attacker.name} has won the battle!`,
+      rewards: [`+${rew.gold} gold`, '+1 relic']
+    });
     const refresh = getRefreshAll();
     if (refresh) refresh();
     return;
