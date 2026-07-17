@@ -1,7 +1,39 @@
 import { getCombatUI, setCombatUI, getGameState } from './combatStateManager.js';
-import { getActiveCombatant, getAvailablePicks, botCombatPick, recordCombatPick, advanceCombatPhase, isPickingPhase } from '../../game/combat/combat-index.js';
+import { getActiveCombatant, getAvailablePicks, botCombatPick, recordCombatPick, advanceCombatPhase, isPickingPhase, isRevealPhase } from '../../game/combat/combat-index.js';
 import { renderCombat } from './combatRenderer.js';
-import { continueCombatFlow } from './combatLifecycle.js';
+import { continueCombatFlow, processRevealPhase } from './combatLifecycle.js';
+import { registerAction } from '../actionBus.js';
+
+// ── Human click-to-pick via action bus ──
+registerAction('pickCombatPower', (el) => {
+  const _combatUI = getCombatUI();
+  if (!_combatUI || !isPickingPhase(_combatUI)) return;
+  const entity = getActiveCombatant(_combatUI);
+  if (!entity || entity.controller !== 'human') return;
+
+  const pick = parseInt(el.dataset.f, 10);
+  if (isNaN(pick) || pick < 0 || pick > 6) return;
+
+  // Guard: not already picked this round
+  const currentPicks = _combatUI.roundPicks[_combatUI.awaitingPick];
+  if (currentPicks.includes(pick)) return;
+
+  // Guard: available per bot rules (potencyWithPrimary > 0)
+  const available = getAvailablePicks(entity);
+  if (!available.includes(pick)) return;
+
+  recordCombatPick(_combatUI, pick);
+  advanceCombatPhase(_combatUI);
+  renderCombat();
+  continueCombatFlow();
+});
+
+// ── Commit reveals via action bus ──
+registerAction('commitCombat', () => {
+  const _combatUI = getCombatUI();
+  if (!_combatUI || !isRevealPhase(_combatUI)) return;
+  processRevealPhase();
+});
 
 export function makeBotPick() {
   const _combatUI = getCombatUI();
@@ -22,24 +54,3 @@ export function makeBotPick() {
   renderCombat();
   continueCombatFlow();
 }
-
-// Global handler for the "Commit Power" button
-window.commitCombat = function () {
-  const _combatUI = getCombatUI();
-  if (!_combatUI) return;
-
-  const entity = getActiveCombatant(_combatUI);
-  if (!entity || entity.controller !== 'human') return;
-
-  advanceCombatPhase(_combatUI);
-  renderCombat();
-  continueCombatFlow();
-};
-
-// Global handler for closing the reward modal
-window.closeReward = function () {
-  document.getElementById('rewardModal').style.display = 'none';
-  // Safety: also clear G.reward if it exists
-  const state = getGameState();
-  if (state) state.reward = null;
-};

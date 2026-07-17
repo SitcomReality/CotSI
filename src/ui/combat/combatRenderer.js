@@ -1,6 +1,7 @@
 import { getCombatUI } from './combatStateManager.js';
 import { getActiveCombatant, isRevealPhase } from '../../game/combat/combat-index.js';
 import { FACTIONS } from '../../core/factions.js';
+import { setHeptagramHighlight } from '../heptagramWidget.js';
 
 export function onCombatPotencyHover(factionIdx) {
   // Clear all hover first
@@ -16,7 +17,7 @@ export function onCombatPotencyHover(factionIdx) {
       el.style.transform = 'scale(1.15)';
     });
   }
-  setPaleyHighlight(factionIdx);
+  setHeptagramHighlight(factionIdx);
 }
 
 const _onPotencyEnter = function (e) {
@@ -76,17 +77,13 @@ export function renderCombat() {
     document.querySelectorAll('.combat-potencys .ctok').forEach(el => el.style.pointerEvents = '');
   }
 
-  // Commit button
+  // Commit button — only enabled during reveal phases
   const commitBtn = document.getElementById('commitCombat');
   if (commitBtn) {
-    const active = getActiveCombatant(_combatUI);
-    const isHuman = active && active.controller === 'human';
-    const currentPicks = roundPicks[awaitingPick];
-    const isSecondPick = phase === 'pick2_attacker' || phase === 'pick2_defender';
-    const threshold = isSecondPick ? 2 : 1;
-    commitBtn.disabled = !isHuman || (currentPicks && currentPicks.length >= threshold);
-    commitBtn.textContent = isHuman ? 'Commit Power' : 'Waiting...';
-    commitBtn.style.opacity = isHuman ? '1' : '0.6';
+    const isReveal = isRevealPhase(_combatUI);
+    commitBtn.disabled = !isReveal;
+    commitBtn.textContent = isReveal ? 'Reveal Clash' : 'Waiting…';
+    commitBtn.style.opacity = isReveal ? '1' : '0.6';
   }
 
   // Wire Potency hover only when picking
@@ -159,7 +156,7 @@ function combatantCard(ent, isLeft, roundPicks, phase, isActivePicker) {
   <div class="combat-potencys">${pots
     .map(
       (v, i) =>
-        `<div class="ctok ${lockedPicks.has(i) ? 'used' : ''} ${lockedPicks.has(i) ? '' : pickableClass}" data-f="${i}" style="border-color:${FACTIONS[i].color}66; opacity:${lockedPicks.has(i) ? '0.5' : '1'}"><div style="font-weight:800">${v}</div><div style="font-size:9px;color:${FACTIONS[i].color}">${FACTIONS[i].glyph}</div></div>`
+        `<div data-action="pickCombatPower" class="ctok ${lockedPicks.has(i) ? 'used' : ''} ${lockedPicks.has(i) ? '' : pickableClass}" data-f="${i}" style="border-color:${FACTIONS[i].color}66; opacity:${lockedPicks.has(i) ? '0.5' : '1'}"><div style="font-weight:800">${v}</div><div style="font-size:9px;color:${FACTIONS[i].color}">${FACTIONS[i].glyph}</div></div>`
     )
     .join('')}</div>`;
 }
