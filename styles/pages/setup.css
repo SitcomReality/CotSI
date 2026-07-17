@@ -23,8 +23,36 @@
   border-color: var(--faction-color);
   background: rgba(255,255,255,0.2);
 }
+/* Faction dot — uses --faction-color set on .fopt */
+.fdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--faction-color);
+  flex-shrink: 0;
+}
+/* Faction info container (replaces inline flex:1) */
+.faction-info {
+  flex: 1;
+  min-width: 0;
+}
+/* Faction name row */
+.faction-name {
+  font-weight: 700;
+  color: var(--faction-color);
+}
+/* Faction trait row */
+.faction-trait {
+  font-size: 11px;
+  color: #6a4a2a;
+}
 .fctrl {
   margin-left: auto;
   font-size: 12px;
   padding: 2px 6px;
+}
+/* Size pill active state */
+.size-pill.active {
+  border-color: var(--ink);
+  background: var(--vellum2);
 }

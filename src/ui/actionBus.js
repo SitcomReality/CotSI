@@ -36,16 +36,21 @@ window.addEventListener('keydown', (e) => {
    ===================================================================== */
 
 /**
- * closeReward — hides the reward modal and clears any pending reward.
- * Registered here so it works without combat being imported.
+ * Store the getGameState reference so the closeReward handler (registered
+ * in modal.js to avoid circular imports) can clear G.reward on close.
  */
+let _getGameState = null;
+
 export function initModalActions(getGameState) {
-  registerAction('closeReward', () => {
-    const modal = document.getElementById('rewardModal');
-    if (modal) modal.style.display = 'none';
-    if (getGameState) {
-      const state = getGameState();
-      if (state) state.reward = null;
-    }
-  });
+  _getGameState = getGameState;
+}
+
+/**
+ * Called by the closeReward handler in modal.js to clear the game-state reward.
+ */
+export function clearGameReward() {
+  if (_getGameState) {
+    const state = _getGameState();
+    if (state) state.reward = null;
+  }
 }

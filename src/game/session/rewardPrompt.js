@@ -15,6 +15,8 @@ import { setRewardModal } from '../../ui/modal.js';
 /**
  * Show whichever reward modal is pending on `G.reward`, if any.
  * Safe to call even when no reward exists (no-op).
+ *
+ * Passes a lines array (not innerHTML string) to setRewardModal.
  */
 export function showPendingReward(G) {
   // Artifact draft: reward has choices and no guaranteed items.
@@ -26,6 +28,6 @@ export function showPendingReward(G) {
   // Generic reward (dig loot, combat spoils, etc.)
   if (G.reward && !G.reward.choices) {
     const lines = [G.reward.body, ...(G.reward.guaranteed || [])].filter(Boolean);
-    setRewardModal(G.reward.title || 'Reward', lines.join('<br>'));
+    setRewardModal(G.reward.title || 'Reward', lines);
   }
 }

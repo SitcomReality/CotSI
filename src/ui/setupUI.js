@@ -1,20 +1,21 @@
 import { FACTIONS } from '../core/factions.js';
 import { h } from './utils/dom.js';
 import { registerAction } from './actionBus.js';
+import { toast } from './hud.js';
 
 /**
  * Initialize the setup screen: faction roster, size pills, begin button.
- * Uses data-action delegation via actionBus.js for all faction interactions.
+ * Uses data-action delegation via actionBus.js for all interactions.
  */
 export function initSetup() {
   const fl = document.getElementById('factionList');
   if (!fl) return; // not on setup page
 
+  // Build roster — no duplicate `controller` field; derived at begin time.
   const roster = FACTIONS.map((f, i) => ({
     ...f,
     enabled: i < 4,
     human: i === 0,
-    controller: i === 0 ? 'human' : 'bot',
   }));
 
   function draw() {
@@ -23,11 +24,16 @@ export function initSetup() {
       const btnLabel = r.human ? 'Human' : 'Bot';
       const el = h(
         'div',
-        { class: 'fopt' + (r.enabled ? ' on' : ''), dataAction: 'toggleFaction', dataIdx: idx },
-        h('div', { class: 'fdot', style: { background: r.color } }),
-        h('div', { style: { flex: '1' } },
-          h('div', { style: { fontWeight: '700', color: r.color } }, `${r.glyph} ${r.name}`),
-          h('div', { style: { fontSize: '11px', color: '#6a4a2a' } }, r.trait)
+        {
+          class: 'fopt' + (r.enabled ? ' on' : ''),
+          dataAction: 'toggleFaction',
+          dataIdx: idx,
+          style: { '--faction-color': r.color },
+        },
+        h('div', { class: 'fdot' }),
+        h('div', { class: 'faction-info' },
+          h('div', { class: 'faction-name' }, `${r.glyph} ${r.name}`),
+          h('div', { class: 'faction-trait' }, r.trait)
         ),
         h('button', { class: 'fctrl', dataAction: 'toggleController', dataIdx: idx }, btnLabel)
       );
@@ -37,7 +43,8 @@ export function initSetup() {
 
   draw();
 
-  // Register delegated actions
+  // ---- Delegated actions ----
+
   registerAction('toggleFaction', (el) => {
     const idx = parseInt(el.dataset.idx, 10);
     roster[idx].enabled = !roster[idx].enabled;
@@ -47,21 +54,20 @@ export function initSetup() {
   registerAction('toggleController', (el) => {
     const idx = parseInt(el.dataset.idx, 10);
     roster[idx].human = !roster[idx].human;
-    // update controller field to match
-    roster[idx].controller = roster[idx].human ? 'human' : 'bot';
     draw();
   });
 
-  // Set data-action on begin button (can also be set directly in HTML)
-  const beginBtn = document.getElementById('beginBtn');
-  if (beginBtn) {
-    beginBtn.setAttribute('data-action', 'beginGame');
-  }
+  registerAction('selectSize', (el) => {
+    document.querySelectorAll('.size-pill').forEach((x) =>
+      x.classList.remove('active')
+    );
+    el.classList.add('active');
+  });
 
   registerAction('beginGame', () => {
     const chosen = roster.filter((r) => r.enabled);
     if (chosen.length < 2) {
-      alert('Choose at least 2 champions');
+      toast('Choose at least 2 champions', true);
       return;
     }
     const sizeEl = document.querySelector('.size-pill.active');
@@ -78,6 +84,7 @@ export function initSetup() {
           document.getElementById('seedInput')?.value ||
           'glut-' + Math.floor(Math.random() * 999),
         radius,
+        // Derive controller from `human` — no duplicate field on roster.
         champions: chosen.map((c) => ({
           faction: c.id,
           controller: c.human ? 'human' : 'bot',
@@ -85,15 +92,5 @@ export function initSetup() {
         objectives: { relicRace: true, relicTarget, lastStanding },
       });
     }
-  });
-
-  // Size pills – kept as-is for now (not part of step 1 refactor)
-  document.querySelectorAll('.size-pill').forEach((p) => {
-    p.addEventListener('click', () => {
-      document.querySelectorAll('.size-pill').forEach((x) =>
-        x.classList.remove('active')
-      );
-      p.classList.add('active');
-    });
   });
 }

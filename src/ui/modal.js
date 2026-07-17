@@ -1,5 +1,6 @@
 // Generic modal helpers
-import { registerAction } from './actionBus.js';
+import { registerAction, clearGameReward } from './actionBus.js';
+import { h } from './utils/dom.js';
 
 export function showModal(id) {
   const el = document.getElementById(id);
@@ -11,11 +12,18 @@ export function hideModal(id) {
   if (el) el.style.display = 'none';
 }
 
-export function setRewardModal(title, body) {
+/**
+ * Set the reward modal body using a lines array — no innerHTML.
+ * Each line becomes a <div class="reward-line"> text node via h().
+ */
+export function setRewardModal(title, lines = []) {
   const titleEl = document.getElementById('rewardTitle');
   const bodyEl = document.getElementById('rewardBody');
   if (titleEl) titleEl.textContent = title;
-  if (bodyEl) bodyEl.innerHTML = body;
+  if (bodyEl) {
+    const nodes = lines.map(line => h('div', { class: 'reward-line' }, line));
+    bodyEl.replaceChildren(...nodes);
+  }
   showModal('rewardModal');
 }
 
@@ -25,6 +33,10 @@ export function setRewardModal(title, body) {
  * Shape: { choices: Array, onChoice: (choice) => void } | null
  */
 let pendingChoice = null;
+
+export function clearPendingChoice() {
+  pendingChoice = null;
+}
 
 export function openArtifactChoiceModal(reward, onChoice) {
   const titleEl = document.getElementById('rewardTitle');
@@ -36,8 +48,7 @@ export function openArtifactChoiceModal(reward, onChoice) {
   // Clear body text, remove previous choices
   bodyEl.textContent = reward.body || '';
 
-  const container = document.createElement('div');
-  container.style.marginTop = '10px';
+  const container = h('div', { class: 'reward-choices' });
 
   const template = document.getElementById('modalChoiceOption');
   if (!template) return;
@@ -61,6 +72,16 @@ export function openArtifactChoiceModal(reward, onChoice) {
 
   showModal('rewardModal');
 }
+
+/**
+ * Action-bus handler for [data-action="closeReward"].
+ * Hides modal, clears pending choice, and clears game-state reward.
+ */
+registerAction('closeReward', () => {
+  hideModal('rewardModal');
+  clearPendingChoice();
+  clearGameReward();
+});
 
 /**
  * Action-bus handler for [data-action="chooseArtifact"].
