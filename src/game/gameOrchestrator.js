@@ -4,7 +4,7 @@ import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext } 
 import { syncSize } from '../render/effects/effectsOverlay.js';
 import { resetCamera as resetCamera3D, centerCameraOnHex } from '../render/hexmap3d/hexmap3d-index.js';
 
-import { renderLeftPanel, renderRightPanel } from '../render/panels/panels-index.js';
+import { renderLeftPanel, renderRightPanel } from '../ui/panels/panels-index.js';
 import { renderHeader, bindHeaderEvents } from '../ui/headerRenderer.js';
 import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 import { setGameState, openArtifactChoiceModal } from '../ui/combat/combatui-index.js';

@@ -1,19 +1,11 @@
 /**
- * leftPanel.js — Step 5 rewrite (ux5.md / layoutplan_full.md)
+ * leftPanel.js
  *
  * Champion Card with stacked-paper vellum panel, faction left-edge rule,
  * HP bar (ink fill / vellum-2 track), compact resource icon-wells,
  * equipment with monoline SVGs, collapsed potency accordion (native <details>),
  * and gold CTA button.
  *
- * Styleguide compliance:
- * - Panel: var(--parchment) + var(--shadow-stack)
- * - Faction color: 2px left-edge rule + faction dot only
- * - HP bar: var(--ink) fill, var(--vellum-2) track — no gray
- * - Resources: icon wells from sprite.svg
- * - Equipment: monoline icons (i-attack, i-flee) as ink-colored SVGs
- * - End Turn: btn-gold class (gold budget: 1 element per screen)
- * - Fonts: --font-body with --tnum on numerals
  */
 import { FACTIONS, potencyWithPrimary, ARTIFACTS } from '../../core/factions.js';
 

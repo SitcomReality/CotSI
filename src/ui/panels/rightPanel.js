@@ -8,7 +8,7 @@
  * - Log entries use semantic color classes from logView.js
  */
 
-import { paleySVG } from '../heptagramSVG.js';
+import { paleySVG } from '../../render/heptagramSVG.js';
 import { renderLogEntries } from './logView.js';
 
 export function renderRightPanel(state) {
