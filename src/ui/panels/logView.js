@@ -1,31 +1,18 @@
-/**
- * logView.js — Pure view layer for log entries.
- *
- * Responsible only for generating the inner HTML of log entry lines.
- * Knows nothing about collapsible bars, outer wrappers, or panel layout.
- * Can be reused by any container that wants to display logs.
- *
- * Styleguide compliance:
- * - Semantic color classes: --combat, --heal, --system, --standard
- * - Empty state uses vellum-dark wash (no flat gray)
- */
+import { h } from '../utils/dom.js';
 
 /**
- * Return HTML string of log entry <div>s for use in any container.
- * @param {string[]} logs - array of log lines (newest first)
- * @returns {string} HTML for the log entries (or empty-state message)
+ * Return an array of DOM nodes (or a single empty-state node) for the log.
+ * Caller is responsible for appending them to the log container.
  */
-export function renderLogEntries(logs) {
+export function buildLogEntries(logs) {
   if (!logs || logs.length === 0) {
-    return `<div class="log-view__empty">There is no history.</div>`;
+    return [h('div', { class: 'log-view__empty' }, 'There is no history.')];
   }
 
-  return logs
-    .map((line) => {
-      const cls = classifyLogLine(line);
-      return `<div class="log-view__line log-view__line--${cls}">${escapeHtml(line)}</div>`;
-    })
-    .join('');
+  return logs.map((line) => {
+    const cls = classifyLogLine(line);
+    return h('div', { class: `log-view__line log-view__line--${cls}` }, line);
+  });
 }
 
 /* ── Helpers ── */

@@ -9,6 +9,7 @@ import {
 import { bindGameUI } from '../../ui/gameUIBindings.js';
 import { bindHeaderEvents } from '../../ui/bindHeader.js';
 import { refreshAll } from '../gameOrchestrator.js'; // will move to ./refreshAll.js in Step 6
+import { initHeptagramWidget } from '../../ui/heptagramWidget.js';
 
 export function __beginGame(config) {
   const game = createGame(config);
@@ -28,6 +29,7 @@ export function __beginGame(config) {
 
   bindGameUI();
   bindHeaderEvents();
+  initHeptagramWidget('paleyMount');  // one-time: SVG fills the now-static #paleyMount
   refreshAll();
 }
 

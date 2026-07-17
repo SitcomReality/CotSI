@@ -4,5 +4,5 @@ html,body{margin:0;height:100%;background:var(--vellum);color:var(--ink);}
 code{font-family:var(--font-mono, ui-monospace, Menlo, monospace)}
 :root {
   --faction-color: #888;
-  --champ-hp-pct: 100%;
+  --champ-hp-pct: 100;
 }

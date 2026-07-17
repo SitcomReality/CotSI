@@ -2,9 +2,10 @@ import { checkVictory } from './victory.js';
 
 import { refreshMap } from './session/mapRefresh.js';
 
-import { renderLeftPanel, renderRightPanel } from '../ui/panels/panels-index.js';
+import { bindLeftPanel } from '../ui/panels/bindLeftPanel.js';
+import { bindRightPanel } from '../ui/panels/bindRightPanel.js';
+
 import { refreshHeader } from '../ui/bindHeader.js';
-import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 import { showPendingReward } from './session/rewardPrompt.js';
 import { showVictory } from '../ui/hud.js';
 import { refreshZoomDisplay } from '../ui/mapView.js';
@@ -24,14 +25,14 @@ export function refreshAll() {
   refreshHeader(G);
 
   // Panels
-  document.getElementById('championCard').innerHTML = renderLeftPanel(G, ch);
-  document.getElementById('rightPanel').innerHTML = renderRightPanel(G);
+  bindLeftPanel(G);
+  bindRightPanel(G);
 
   // ── Map (3D replacement) ──
   refreshMap();
 
   // Paley widget
-  initHeptagramWidget('paleyMount');
+  //initHeptagramWidget('paleyMount');
 
   // HUD
   if (ch) {
