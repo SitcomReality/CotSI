@@ -1,6 +1,49 @@
+/* Tooltip line classes — each line displays as a block for proper stacking. */
+
+.hex-tooltip__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hex-tooltip__coords {
+  display: block;
+  white-space: nowrap;
+}
+
+.hex-tooltip__feature {
+  display: block;
+  white-space: nowrap;
+  color: #c8a060;
+}
+
+.hex-tooltip__mob {
+  display: block;
+  white-space: nowrap;
+  color: #d46a4a;
+}
+
+.hex-tooltip__champion {
+  display: block;
+  white-space: nowrap;
+  color: var(--faction-color, #f0e0c0);
+}
+
+.hex-tooltip__trader {
+  display: block;
+  white-space: nowrap;
+  color: #c8b060;
+}
+
 .hex-tooltip__reachable {
+  display: block;
+  white-space: nowrap;
   color: #b88728;
 }
+
 .hex-tooltip__explored {
+  display: block;
+  white-space: nowrap;
   color: #7a5634;
+  font-style: italic;
 }

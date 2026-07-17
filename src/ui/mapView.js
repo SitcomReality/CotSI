@@ -73,8 +73,9 @@ export function getTooltipContent(gameState, key, activeChampion) {
     container.prepend(exploredTag, ' ');
   }
 
-  return container.outerHTML;
+  return container;
 }
+
 /**
  * Update the zoom percentage display in the HUD.
  */
@@ -88,7 +89,3 @@ export function refreshZoomDisplay() {
     : 100;
   zoomEl.textContent = pct + '%';
 }
-
-// Attach to window for script-based main.js
-window.getTooltipContent = getTooltipContent;
-window.refreshZoomDisplay = refreshZoomDisplay;

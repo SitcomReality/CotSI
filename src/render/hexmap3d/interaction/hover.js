@@ -5,19 +5,25 @@ import { setHoveredHexKey } from '../../effects/movementHighlightsLayer.js';
 /**
  * Create a pointer-move handler that shows/hides a hex tooltip.
  *
+ * Tooltip content is rebuilt only when the hex key changes (avoids
+ * recomputing movementRange BFS every frame). Position is updated on
+ * every pointermove for smooth cursor-following.
+ *
  * @param {HTMLCanvasElement} canvas
  * @param {() => THREE.Mesh | null} getTerrainMesh
- * @param {(key: string) => string | null} getTooltipContent
+ * @param {(key: string) => Node | null} getTooltipContent
  * @param {{ isPanning: boolean }} shared
  * @returns {(e: PointerEvent) => void}
  */
 export function createHoverHandler(canvas, getTerrainMesh, getTooltipContent, shared) {
   let hoveredKey = null;
+  let cachedNode = null;
 
   return function onPointerMove(e) {
     if (shared.isPanning) {
       hideTooltip();
       hoveredKey = null;
+      cachedNode = null;
       return;
     }
 
@@ -28,21 +34,20 @@ export function createHoverHandler(canvas, getTerrainMesh, getTooltipContent, sh
     const key = terrain && camera ? pickHex(e.clientX, e.clientY, camera, terrain, canvas) : null;
 
     if (key !== hoveredKey) {
+      // Hex changed: rebuild tooltip content
       hoveredKey = key;
       setHoveredHexKey(key);   // notify movement highlights layer
+      cachedNode = null;
       if (key !== null) {
-        const html = getTooltipContent(key);
-        if (html) {
-          showTooltip(e.clientX, e.clientY, html);
-        } else {
-          hideTooltip();
-        }
-      } else {
-        hideTooltip();
+        cachedNode = getTooltipContent(key);
       }
-    } else if (key !== null && hoveredKey === key) {
-      const html = getTooltipContent(key);
-      if (html) showTooltip(e.clientX, e.clientY, html);
+    }
+
+    // Show/hide and position based on current state
+    if (hoveredKey !== null && cachedNode) {
+      showTooltip(e.clientX, e.clientY, cachedNode);
+    } else {
+      hideTooltip();
     }
   };
 }

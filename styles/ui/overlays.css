@@ -1,10 +1,7 @@
-/* note to the model currently updating hud.js: there was an issue editing this file so I removed the extraneous content (I think - please confirm this is the intended correct version!) */
-/* you can ignore these comments for now if you don't need to edit this file again, they will be removed after you complete your current process */
-
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#fff7dfe6;border:1px solid #b99b6a;padding:9px 14px;border-radius:11px;font-size:13px;box-shadow:0 10px 30px #0002;display:none;z-index:var(--z-toast, 90)}
 #toast.show{display:block}
 #toast.toast--bad{border-color:#c44}
-#tooltip{position:fixed;z-index:80;background:#fff7dfe8;border:1px solid #b99b6a;padding:7px 9px;border-radius:9px;font-size:12px;color:#3a2310;display:none;pointer-events:none;max-width:260px;box-shadow:0 10px 30px #0002}
+
 #hexTooltip3d {
   position: fixed;
   pointer-events: none;
@@ -16,7 +13,8 @@
   font-size: 12px;
   line-height: 1.4;
   display: none;
-  white-space: nowrap;
+
+  max-width: 260px;
 }
 .victory-name {
   color: var(--faction-color);
@@ -27,4 +25,5 @@
   font-size: 16px;
   color: #5a3a22;
   margin-top: 6px;
+
 }

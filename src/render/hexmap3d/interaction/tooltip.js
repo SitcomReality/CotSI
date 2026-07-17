@@ -10,9 +10,13 @@ function getTooltipEl() {
   return tooltipEl;
 }
 
-export function showTooltip(x, y, html) {
+/**
+ * Show the tooltip with the given DOM node as content.
+ * Uses replaceChildren to avoid innerHTML round-trip.
+ */
+export function showTooltip(x, y, node) {
   const el = getTooltipEl();
-  el.innerHTML = html;
+  el.replaceChildren(node);
   el.style.display = 'block';
   // Offset so cursor isn't covering text
   el.style.left = (x + 12) + 'px';
