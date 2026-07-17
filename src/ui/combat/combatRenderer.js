@@ -105,30 +105,28 @@ function updatePickSlots(slots) {
   for (const [id, slot] of slotEntries) {
     const el = document.getElementById(id);
     if (!el) continue;
-
-    // Clear any dynamic classes/styles that might linger from previous renders
-    el.classList.remove('revealed');
-
-    if (slot.text) {
-      el.textContent = slot.text;
-      if (slot.factionIdx != null) {
-        const color = FACTIONS[slot.factionIdx].color;
-        el.style.setProperty('--slot-color', color);
-        el.style.borderColor = 'var(--slot-color)';
-        el.style.background = `${color}22`;
-      }
-      if (slot.revealed) {
-        el.classList.add('revealed');
-      }
-    } else {
-      // Empty slot: show placeholder
-      el.textContent = id.startsWith('sB')
-        ? '???'
-        : (id.endsWith('1') ? 'Pick 1' : 'Pick 2');
-      el.style.borderColor = '';
-      el.style.background = '';
-    }
+    el.replaceWith(buildSlotEl(id, slot));
   }
+}
+
+function buildSlotEl(id, slot) {
+  if (slot.text) {
+    const classes = ['play-slot'];
+    if (slot.revealed) classes.push('revealed');
+
+    const props = { id, class: classes.join(' ') };
+    if (slot.factionIdx != null) {
+      props.style = { '--slot-color': FACTIONS[slot.factionIdx].color };
+    }
+
+    return h('div', props, slot.text);
+  }
+
+  // Empty slot — show placeholder text
+  const placeholder = id.startsWith('sB')
+    ? '???'
+    : (id.endsWith('1') ? 'Pick 1' : 'Pick 2');
+  return h('div', { id, class: 'play-slot' }, placeholder);
 }
 
 // ─── Cross-token highlight helper ───────────────────────────────────────

@@ -47,7 +47,7 @@
 
 /* Pick slots */
 .play-slots{display:flex;gap:8px;justify-content:center;margin:10px 0}
-.play-slot{width:92px;height:60px;border-radius:10px;border:2px dashed #c49b5a;display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff7dfaa;transition:box-shadow 0.3s}
+.play-slot{width:92px;height:60px;border-radius:10px;border:2px dashed var(--slot-color, #c49b5a);display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff7dfaa;transition:box-shadow 0.3s}
 .play-slot.revealed{box-shadow:0 0 8px #5fbf7a}
 .play-arrow {
   display: flex;
