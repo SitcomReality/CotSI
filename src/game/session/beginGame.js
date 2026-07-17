@@ -6,17 +6,22 @@ import {
   getSceneContext,
   resetCamera as resetCamera3D,
 } from '../../render/hexmap3d/hexmap3d-index.js';
-import { bindGameUI } from '../../ui/gameUIBindings.js';
 import { bindHeaderEvents } from '../../ui/bindHeader.js';
 import { refreshAll } from './refreshAll.js';
 import { initHeptagramWidget } from '../../ui/heptagramWidget.js';
+
+/** Guard: prevent duplicate window resize listener registration. */
+let resizeWired = false;
 
 export function __beginGame(config) {
   const game = createGame(config);
   setGameInstance(game);      // sets live G + window.__gameState
   setGameState(game);         // keep combatModal in sync
 
-  window.addEventListener('resize', syncSize);
+  if (!resizeWired) {
+    window.addEventListener('resize', syncSize);
+    resizeWired = true;
+  }
 
   document.getElementById('setup').style.display = 'none';
   document.getElementById('game').style.display = 'grid';
@@ -27,7 +32,6 @@ export function __beginGame(config) {
     ctx3d.applyCamera();
   }
 
-  bindGameUI();
   bindHeaderEvents();
   initHeptagramWidget('paleyMount');  // one-time: SVG fills the now-static #paleyMount
   refreshAll();

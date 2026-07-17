@@ -12,7 +12,7 @@ Combat is based on a 7 node, two paradoxical Paley tournament, meaning that each
 
 The game is intentionally built with **vanilla JavaScript and CSS** — no framework, no bundler, no build step. It runs directly in the browser from `index.html`.
 
-The game is still early in development.
+The game is still early in development so the design and mechanics may still change, and some features aren't yet working or completely implemented.
 
 Key documents:
 
@@ -46,19 +46,7 @@ The project does **not** have a `package.json`, `pyproject.toml`, `Cargo.toml`, 
 
 Because the code uses ES modules, you must serve the project from an HTTP origin; opening `index.html` directly from the filesystem will fail due to CORS.
 
-Recommended commands (run from the project root):
-
-```bash
-# Python 3
-python3 -m http.server 8080
-
-# Node.js (if installed)
-npx serve . -p 8080
-
-# Or any other static file server on port 8080
-```
-
-Then open `http://localhost:8080` in a browser. The VS Code launch configuration (`.vscode/launch.json`) also expects `http://localhost:8080`.
+During development we're running a local preview server for testing.
 
 ---
 
@@ -80,7 +68,7 @@ CotSI/
 │   ├── game/                  # Game logic and state mutation
 │   │   ├── gameFactory.js     # createGame(...) — world + champion setup
 │   │   ├── state.js           # Barrel re-exports (legacy, partially stale)
-│   │   ├── session/
+│   │   ├── session/           # Game lifecycle and central orchestration
 │   │   │   ├── liveGame.js          # Live G instance + currentChamp()
 │   │   │   ├── beginGame.js         # __beginGame(config), window.__beginGame
 │   │   │   ├── refreshAll.js        # Central render orchestrator
@@ -97,6 +85,7 @@ CotSI/
 │   │   ├── victory.js         # Win-condition checks
 │   │   ├── log.js             # addLog helper
 │   │   └── combat/            # Combat rule engine (stateless)
+│   │       ├── combat-index.js
 │   │       ├── combatState.js
 │   │       ├── combatPicks.js
 │   │       ├── combatScoring.js
@@ -104,26 +93,58 @@ CotSI/
 │   ├── render/                # 3D map rendering and effects
 │   │   ├── hexmap3d/          # Three.js hex-map renderer
 │   │   │   ├── hexmap3d-index.js
-│   │   │   ├── scene/         # Renderer, camera, lights
+│   │   │   ├── hexUtils.js
+│   │   │   ├── scene/         # Renderer, camera, materials
+│   │   │   │   ├── sceneSetup.js
+│   │   │   │   ├── camera.js
+│   │   │   │   └── materials.js
 │   │   │   ├── terrain/       # Hex tile geometry
+│   │   │   │   └── terrain.js
 │   │   │   ├── features/      # Trees, mountains, bases, knots
+│   │   │   │   ├── features-index.js
+│   │   │   │   ├── featureGeometries.js
+│   │   │   │   ├── bases.js
+│   │   │   │   ├── knots.js
+│   │   │   │   ├── mountains.js
+│   │   │   │   └── trees.js
 │   │   │   ├── units/         # Champion/mob figurine meshes
+│   │   │   │   ├── units-index.js
+│   │   │   │   ├── unitGeometries.js
+│   │   │   │   ├── unitMeshes.js
+│   │   │   │   ├── unitAnimations.js
+│   │   │   │   └── unitUtils.js
 │   │   │   └── interaction/   # Pan, zoom, hover, click, tooltip
+│   │   │       ├── interaction-index.js
+│   │   │       ├── click.js
+│   │   │       ├── hover.js
+│   │   │       ├── pan.js
+│   │   │       ├── panUtils.js
+│   │   │       ├── picking.js
+│   │   │       ├── tooltip.js
+│   │   │       ├── touch.js
+│   │   │       └── zoom.js
 │   │   ├── effects/           # 2D canvas overlay layers (fog, highlights, selection)
+│   │   │   ├── effectsOverlay.js
+│   │   │   ├── fogMaskGen.js
+│   │   │   ├── fogOverlayLayer.js
+│   │   │   ├── graphicsSettings.js
+│   │   │   ├── movementHighlightsLayer.js
+│   │   │   ├── projection.js
+│   │   │   └── selectionRingLayer.js
 │   │   └── heptagramSVG.js    # SVG generator for the Paley wheel
 │   ├── ui/                    # DOM UI layer
 │   │   ├── actionBus.js       # Delegated [data-action] event dispatcher
 │   │   ├── bootstrapUI.js     # DOMContentLoaded startup wiring
-│   │   ├── gameUIBindings.js  # Direct event bindings for map controls
 │   │   ├── setupUI.js         # Setup screen faction roster
-│   │   ├── bindHeader.js      # Top-bar champion pills
+│   │   ├── bindHeader.js      # Top-bar champion pills + detail card
 │   │   ├── hud.js             # Toasts, victory modal
 │   │   ├── mapView.js         # Tooltip content, zoom display
 │   │   ├── modal.js           # Generic modal + artifact choice
 │   │   ├── heptagramWidget.js # Interactive Paley widget
 │   │   ├── utils/dom.js       # `h()` DOM builder
 │   │   ├── viewModels/        # Pure view-model transformers
-│   │   │   └── championVM.js
+│   │   │   ├── championVM.js
+│   │   │   └── combatVM.js
 │   │   ├── panels/            # Panel data binders (static HTML skeletons)
 │   │   │   ├── bindLeftPanel.js
 │   │   │   ├── bindRightPanel.js
@@ -151,7 +172,7 @@ CotSI/
 
 - **`core/`** — Pure functions, no DOM, no game state. Safe to import anywhere.
 - **`world/`** — Map geometry and procedural generation. Depends only on `core/rng.js`.
-- **`game/`** — State mutation and rules. May import `core/`, `world/`, and `ui/` only at runtime via live bindings (there is an intentional circular dependency between `gameOrchestrator.js` and some UI/game modules).
+- **`game/`** — State mutation and rules. May import `core/`, `world/`, and `ui/` only at runtime via live bindings (there is an intentional circular dependency between `game/session/` modules and some UI/game modules).
 - **`render/`** — WebGL/canvas rendering. Reads `window.__gameState` or receives state via arguments; must not mutate game state.
 - **`ui/`** — DOM rendering and event handling. Reads and writes the DOM, dispatches actions, calls into `game/` via the live `G` export or `window.__gameState`.
 
@@ -160,16 +181,17 @@ CotSI/
 ## Application Flow
 
 1. `index.html` loads `styles/codex.css` and `src/entrypoint.js` as a module.
-2. `entrypoint.js` imports `src/ui/bootstrapUI.js` and `src/game/gameOrchestrator.js` for side effects.
+2. `entrypoint.js` imports `src/ui/bootstrapUI.js` and `src/game/session/beginGame.js` for side effects.
 3. On `DOMContentLoaded`, `bootstrapUI.js` initializes the combat modal and then loads `setupUI.js` to render the setup screen.
 4. The player clicks **Begin Interregnum**; `setupUI.js` calls `window.__beginGame(config)`.
-5. `gameOrchestrator.__beginGame(config)` creates a game via `createGame()` and then calls `refreshAll()`.
+5. `beginGame.__beginGame(config)` creates a game via `createGame()`, sets the live game instance, initialises the 3D camera, wires the heptagram widget, and then calls `refreshAll()`.
 6. `refreshAll()` re-renders the header, left/right panels, 3D map, and heptagram widget, and triggers bot turns if needed.
 
 The live game instance is available as:
 
 ```js
-import { G, currentChamp, refreshAll } from './src/game/gameOrchestrator.js';
+import { G, currentChamp } from './src/game/session/liveGame.js';
+import { refreshAll } from './src/game/session/refreshAll.js';
 window.__gameState; // same object as G
 ```
 
@@ -282,8 +304,6 @@ Edit `src/game/victory.js` and the `objectives` object passed from `setupUI.js`/
 ## Known Rough Edges
 
 - `src/game/state.js` is a barrel file with some stale re-exports (e.g., it references `movement.js` but the actual file is `championMovement.js`).
-- Some combat UI code still relies on global functions (`window.commitCombat`, `window.closeReward`) and inline styles.
-- The `combatRenderer.js` currently mixes DOM rendering with game logic imports; it is a target for the ongoing refactor.
-- Several renderers still reset large chunks of `innerHTML`. The refactor plan in `dev/domrefactorplan.md` describes the desired end state.
+- The intentional circular dependency between `game/session/` modules and some UI/game modules is now managed through the `liveGame.js` singleton.
 
 When in doubt, prefer consistency with the files in `src/ui/actionBus.js`, `src/ui/setupUI.js`, `src/ui/viewModels/championVM.js`, and `src/ui/utils/dom.js` — these represent the current direction.

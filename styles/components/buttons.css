@@ -3,10 +3,3 @@
    ========================================================================= */
 @import url("buttons-core.css");
 @import url("buttons-legacy.css");
-
-/* =========================================================================
-   BUTTONS — Barrel import. Edit the sub-files instead of this one.
-   ========================================================================= */
-@import url("buttons-core.css");
-@import url("buttons-legacy.css");
-

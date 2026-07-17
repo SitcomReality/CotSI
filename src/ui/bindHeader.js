@@ -14,6 +14,9 @@ import { championVM } from './viewModels/championVM.js';
 import { h } from './utils/dom.js';
 import { FACTIONS } from '../core/factions.js';
 
+/** Guard: prevent duplicate event listener registration on repeated __beginGame calls. */
+let wired = false;
+
 // ── Helpers ──────────────────────────────────────────────
 
 /**
@@ -142,6 +145,10 @@ export function refreshHeader(G) {
  * Call once after DOM is ready (from bootstrapUI or __beginGame).
  */
 export function bindHeaderEvents() {
+  // Prevent duplicate listener registration on repeated __beginGame calls
+  if (wired) return;
+  wired = true;
+
   const champsEl = document.querySelector('#gameHeader .header__champions');
   const detailEl = document.getElementById('championDetail');
   const headerEl = document.getElementById('gameHeader');
@@ -169,7 +176,7 @@ export function bindHeaderEvents() {
 
   function closeDetail() {
     detailEl.classList.remove('is-open');
-    detailEl.innerHTML = '';
+    detailEl.replaceChildren();
     openId = null;
   }
 
@@ -180,7 +187,6 @@ export function bindHeaderEvents() {
     if (!champ) return;
 
     const vm = championVM(G, champ);
-    detailEl.innerHTML = '';
     detailEl.append(buildDetailCard(vm, champ));
     positionDetail(slot);
     detailEl.classList.add('is-open');

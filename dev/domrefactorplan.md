@@ -103,7 +103,7 @@ Three tiny utility files to underpin the entire refactor.
 7. CSS (`styles/pages/combat.css`): rename `.combat-tokens` â `.combat-potencys`; add `.ctok` transition, `.ctok.pickable:hover` (scale 1.15, gold border â as the original plan specified), `.ctok.used` (opacity .4), `.ctok.unavailable`, `.potency-hover`, `.play-slot.revealed` glow (move `#5fbf7a` to a token/class), `.ctok__val`/`__glyph`; delete dead `.ctok.sel` and `.combatant .vs-cell`; replace the three `#fff7dfaa` hardcodes with a token.
 8. Show/hide through `showModal`/`hideModal` (`modal.js`) in `openCombatModal`/`closeCombat`.
 
-**7c. Reward-modal unification** (absorbs old Phase 8; `combatRewardUI.js` *does* use innerHTML):
+**7c. Reward-modal unification** (absorbs old Phase 8; `combatRewardUI.js` *does* use innerHTML): [COMPLETE]
 
 1. `modal.js`: add `fillRewardModal({ title, bodyLines, rewards })` building nodes with `h()`; reimplement `setRewardModal` over it (pairs with 6.5.3).
 2. `combatRewardUI.openRewardModal` becomes a thin wrapper: `fillRewardModal(...)` + `showModal('rewardModal')`. Delete: the innerHTML body paragraph and inline styles (new `.reward-body`/`.reward-list` classes), the duplicate appended Close button (static Accept stays), `DECORATED_REWARD`, the dead exported `openArtifactChoiceModal` duplicate, and the unreachable `artifactChoice` branch â `modal.js`'s `openArtifactChoiceModal` is documented as the single artifact-draft entry if combat rewards ever offer one.
@@ -113,7 +113,7 @@ Three tiny utility files to underpin the entire refactor.
 
 Closed by 6.5.6 (dead-hook/dead-alias removal; SVG-string `innerHTML` documented as the deliberate exception). Phase 8 becomes: verify in browser that hover still toggles `rt-beats-win/lose` and that combat-token hover now highlights the widget (7a.6 / 7b.5).
 
-### Phase 9 â Final cleanup & bus migration
+### Phase 9 â Final cleanup & bus migration [COMPLETE]
 
 1. *Map controls, atomically:* register `zoomIn`/`zoomOut`/`resetCamera`/`centerChampion` on the bus (handler uses `getSceneContext()` with null guards + `zoomCamera`/`resetCamera` + `centerCameraOnHex` â deleting the hardcoded `1.0` math â + `refreshZoomDisplay`); add matching `data-action` attributes to the four buttons in `index.html`; **in the same change** delete `gameUIBindings.js` entirely (button bindings, the `c/r/+/-` keydown listener, the dead `#logMount` chevron) and its call site/import (`beginGame.js:30`; verify no other importer).
 2. Move the `endTurn`/`inspect` registrations (currently module-level side effects of `gameUIBindings.js`) into `bootstrapUI.js`.

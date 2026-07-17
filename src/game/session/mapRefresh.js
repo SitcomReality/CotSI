@@ -27,7 +27,7 @@ export function refreshMap() {
 
   if (!map3dInitialized) {
     // First call: clear mount, init 3D scene
-    mountEl.innerHTML = '';
+    mountEl.replaceChildren();
     initHexMap3D(mountEl);
     setupMapInteraction3D(
       onHexClick,
