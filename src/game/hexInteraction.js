@@ -18,6 +18,7 @@ import { FACTIONS } from '../core/factions.js';
  * @param {string} key  Cubical co‑ordinate key (e.g. "0,0,0")
  */
 export function onHexClick(key) {
+
   if (!G || G.reward || G.notice || G.winnerId) return;
   const ch = currentChamp();
   if (!ch || ch.controller !== 'human' || ch.moves <= 0) return;

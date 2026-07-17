@@ -63,6 +63,20 @@
   border-radius: 8px;
 }
 
+.reward-list--modal {
+  margin-top: 14px;
+}
+
+.reward-item {
+  font-size: 14px;
+  color: var(--ink-soft);
+  padding: 4px 0;
+}
+
+.reward-item:not(:last-child) {
+  border-bottom: 1px solid var(--edge-bold);
+}
+
 .combat-log-area {
   min-height: 22px;
   margin-top: 4px;

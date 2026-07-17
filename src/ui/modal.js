@@ -13,17 +13,44 @@ export function hideModal(id) {
 }
 
 /**
- * Set the reward modal body using a lines array — no innerHTML.
- * Each line becomes a <div class="reward-line"> text node via h().
+ * Fill the reward modal body with content built via h() — no innerHTML.
+ *
+ * @param {Object} opts
+ * @param {string}  opts.title      — Modal headline (set on #rewardTitle)
+ * @param {string[]} [opts.bodyLines] — Text lines rendered as .reward-line divs
+ * @param {string[]} [opts.rewards]   — Reward strings rendered as .reward-item in a .reward-list
  */
-export function setRewardModal(title, lines = []) {
+export function fillRewardModal({ title, bodyLines, rewards }) {
   const titleEl = document.getElementById('rewardTitle');
   const bodyEl = document.getElementById('rewardBody');
-  if (titleEl) titleEl.textContent = title;
-  if (bodyEl) {
-    const nodes = lines.map(line => h('div', { class: 'reward-line' }, line));
-    bodyEl.replaceChildren(...nodes);
+  if (titleEl) titleEl.textContent = title || '';
+  if (!bodyEl) return;
+
+  const children = [];
+
+  // Body lines (simple text paragraphs, e.g. "ChampionName has won the battle!")
+  if (bodyLines?.length) {
+    children.push(...bodyLines.map(line => h('div', { class: 'reward-line' }, line)));
   }
+
+  // Rewards list (e.g. "+5 gold", "+1 relic")
+  if (rewards?.length) {
+    const rewardsBox = h('div', { class: 'reward-list reward-list--modal' });
+    rewards.forEach(r => {
+      rewardsBox.appendChild(h('div', { class: 'reward-item' }, r));
+    });
+    children.push(rewardsBox);
+  }
+
+  bodyEl.replaceChildren(...children);
+}
+
+/**
+ * Set the reward modal body using a lines array — simpler signature.
+ * Delegates to fillRewardModal.
+ */
+export function setRewardModal(title, lines = []) {
+  fillRewardModal({ title, bodyLines: lines });
   showModal('rewardModal');
 }
 

@@ -5,9 +5,10 @@ import { zoomCamera } from '../scene/camera.js';
  *
  * @param {() => CameraState} getCameraState
  * @param {() => void} applyCamera
+ * @param {() => void} refreshZoomDisplay
  * @returns {(e: WheelEvent) => void}
  */
-export function createZoomHandler(getCameraState, applyCamera) {
+export function createZoomHandler(getCameraState, applyCamera, refreshZoomDisplay) {
   return function onWheel(e) {
     e.preventDefault();
     const state = getCameraState();

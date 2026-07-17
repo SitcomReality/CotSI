@@ -79,9 +79,7 @@ Three tiny utility files to underpin the entire refactor.
 - **6.5.6 `heptagramWidget.js`** â delete the `window._onPaleyHover` reads, the three dead window aliases, and the stale comment; **keep** the SVG-string `innerHTML` as a documented exception (`h()` builds HTML elements, not SVGNS nodes) â this closes old "Phase 9". (B8)
 - **6.5.7 Misc sweep** â delete `escapeHtml`; `innerHTML=''` â `replaceChildren()`; de-duplicate `buttons.css`; clamp `championVM.hpPct` to 0â100. (B9)
 
-[PHASE 6.5 IS COMPLETE]
-
-### Phase 7 â Combat (repair first, then refactor, then unify rewards)
+### Phase 7 â Combat (repair first, then refactor, then unify rewards) [COMPLETE]
 
 **7a. Make combat playable end-to-end** (minimal edits; the old innerHTML renderer stays for now):
 
@@ -94,7 +92,7 @@ Three tiny utility files to underpin the entire refactor.
 7. *Reward contract* â in `handleRoundEnd`'s `defenderDead` branch, shape the object `openRewardModal` expects: `{ title: 'Victory!', body: \`${attacker.name} has won the battle!\`, rewards: [\`+${rew.gold} gold\`, '+1 relic'] }` built from `finalizeCombat`'s return.
 8. **Smoke-test combat hard** (setup â attack mob â pick â bot picks â Commit â reveal â round resolves â reward modal) *before* touching the renderer.
 
-**7b. Renderer refactor** (the original Phase 7 intent):
+**7b. Renderer refactor** (the original Phase 7 intent): [COMPLETE]
 
 1. New `src/ui/viewModels/combatVM.js`: `getCombatVM(ui)` â `{ roundLabel, phase, picking, activeSide, attacker: vm, defender: vm, slots: { a1, a2, b1, b2: { text, factionIdx|null, revealed } }, scores: { left, right }, log, commit: { enabled, label } }`; combatant vm = `{ name, factionColor, hp, maxHp, hpPct, pots: [{ idx, val, glyph, color, used, unavailable, pickable }] }` using `potencyWithPrimary`. Pure, no DOM.
 2. `renderCombat()` builds everything from the VM: `replaceChildren()` + `h()` for both combatant cards (delete `combatantCard()`), tokens with `data-action="pickCombatPower"`, `--faction-color` via fixed `h()` (6.5.1), HP width as the one genuinely-dynamic inline style, and `ctok__val`/`ctok__glyph` classes instead of inline typography.
