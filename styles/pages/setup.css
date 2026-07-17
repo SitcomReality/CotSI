@@ -9,6 +9,22 @@
 .setup-mini {
   margin-top: 10px;
 }
-.fopt{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #c5a36a55;border-radius:12px;margin-bottom:8px;background:#fff7df55;cursor:pointer}
-.fopt.on{box-shadow:inset 0 0 0 1px #b8741a;background:#fff7dfcc}
-.fdot{width:14px;height:14px;border-radius:50%}
+/* Faction option */
+.fopt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.fopt.on {
+  border-color: var(--faction-color);
+  background: rgba(255,255,255,0.2);
+}
+.fctrl {
+  margin-left: auto;
+  font-size: 12px;
+  padding: 2px 6px;
+}

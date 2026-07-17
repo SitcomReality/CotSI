@@ -1,8 +1,10 @@
 import { FACTIONS } from '../core/factions.js';
+import { h } from './utils/dom.js';
+import { registerAction } from './actionBus.js';
 
 /**
  * Initialize the setup screen: faction roster, size pills, begin button.
- * Calls window.__beginGame(config) when the user clicks Begin (registered by app.js).
+ * Uses data-action delegation via actionBus.js for all faction interactions.
  */
 export function initSetup() {
   const fl = document.getElementById('factionList');
@@ -18,45 +20,58 @@ export function initSetup() {
   function draw() {
     fl.innerHTML = '';
     roster.forEach((r, idx) => {
-      const div = document.createElement('div');
-      div.className = 'fopt' + (r.enabled ? ' on' : '');
-      div.innerHTML = `<div class="fdot" style="background:${r.color}"></div>
-        <div style="flex:1"><div style="font-weight:700;color:${r.color}">${r.glyph} ${r.name}</div><div style="font-size:11px;color:#6a4a2a">${r.trait}</div></div>
-        <button class="fctrl" data-i="${idx}">${r.human ? 'Human' : 'Bot'}</button>`;
-      div.onclick = (e) => {
-        if (e.target.classList.contains('fctrl')) return;
-        r.enabled = !r.enabled;
-        draw();
-      };
-      fl.appendChild(div);
-    });
-    fl.querySelectorAll('.fctrl').forEach((btn) => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        const ro = roster[+btn.dataset.i];
-        ro.human = !ro.human;
-        btn.textContent = ro.human ? 'Human' : 'Bot';
-      };
+      const btnLabel = r.human ? 'Human' : 'Bot';
+      const el = h(
+        'div',
+        { class: 'fopt' + (r.enabled ? ' on' : ''), dataAction: 'toggleFaction', dataIdx: idx },
+        h('div', { class: 'fdot', style: { background: r.color } }),
+        h('div', { style: { flex: '1' } },
+          h('div', { style: { fontWeight: '700', color: r.color } }, `${r.glyph} ${r.name}`),
+          h('div', { style: { fontSize: '11px', color: '#6a4a2a' } }, r.trait)
+        ),
+        h('button', { class: 'fctrl', dataAction: 'toggleController', dataIdx: idx }, btnLabel)
+      );
+      fl.appendChild(el);
     });
   }
 
   draw();
 
-  document.getElementById('beginBtn')?.addEventListener('click', () => {
+  // Register delegated actions
+  registerAction('toggleFaction', (el) => {
+    const idx = parseInt(el.dataset.idx, 10);
+    roster[idx].enabled = !roster[idx].enabled;
+    draw();
+  });
+
+  registerAction('toggleController', (el) => {
+    const idx = parseInt(el.dataset.idx, 10);
+    roster[idx].human = !roster[idx].human;
+    // update controller field to match
+    roster[idx].controller = roster[idx].human ? 'human' : 'bot';
+    draw();
+  });
+
+  // Set data-action on begin button (can also be set directly in HTML)
+  const beginBtn = document.getElementById('beginBtn');
+  if (beginBtn) {
+    beginBtn.setAttribute('data-action', 'beginGame');
+  }
+
+  registerAction('beginGame', () => {
     const chosen = roster.filter((r) => r.enabled);
     if (chosen.length < 2) {
       alert('Choose at least 2 champions');
       return;
     }
     const sizeEl = document.querySelector('.size-pill.active');
-    const radius = sizeEl ? parseInt(sizeEl.dataset.r) : 7;
+    const radius = sizeEl ? parseInt(sizeEl.dataset.r, 10) : 7;
     const relicTarget = parseInt(
       document.getElementById('relicTarget')?.value || '7',
       10
     );
     const lastStanding = document.getElementById('optLast')?.checked ?? true;
 
-    // Fire the global callback registered by app.js
     if (window.__beginGame) {
       window.__beginGame({
         seed:
@@ -72,6 +87,7 @@ export function initSetup() {
     }
   });
 
+  // Size pills – kept as-is for now (not part of step 1 refactor)
   document.querySelectorAll('.size-pill').forEach((p) => {
     p.addEventListener('click', () => {
       document.querySelectorAll('.size-pill').forEach((x) =>

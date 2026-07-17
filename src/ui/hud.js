@@ -1,3 +1,5 @@
+import { FACTIONS } from '../core/factions.js';
+
 /** Show a brief toast notification. Pass bad=true for error styling. */
 export function toast(msg, bad) {
   const t = document.getElementById('toast');
@@ -8,9 +10,9 @@ export function toast(msg, bad) {
   setTimeout(() => t.classList.remove('show'), 1800);
 }
 
-/** Brief visual pulse on the End Turn button. */
+/** Brief visual pulse on the End Turn button (in the left champion card). */
 export function pulseEnd() {
-  const b = document.getElementById('endTurnBtn');
+  const b = document.querySelector('.left-endturn-btn');
   if (!b) return;
   b.style.transform = 'scale(1.05)';
   setTimeout(() => (b.style.transform = ''), 160);

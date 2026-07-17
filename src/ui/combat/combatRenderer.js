@@ -1,10 +1,5 @@
-import { G, currentChamp, refreshAll } from '../../game/gameOrchestrator.js';
-import { movementRange, moveChampion, adjacentPassable } from '../../game/championMovement.js';
-import { addLog } from '../../game/log.js';
-import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../../game/entityQueries.js';
-import { parseKey, distance } from '../../world/map.js';
-import { startCombat, openTrader } from './combatui-index.js';
-import { toast, pulseEnd } from '../hud.js';
+import { getCombatUI } from './combatStateManager.js';
+import { getActiveCombatant, isRevealPhase } from '../../game/combat/combat-index.js';
 import { FACTIONS } from '../../core/factions.js';
 
 export function onCombatPotencyHover(factionIdx) {
@@ -161,7 +156,7 @@ function combatantCard(ent, isLeft, roundPicks, phase, isActivePicker) {
     (ent.hp / ent.maxHp) * 100
   )}%"></div></div>
   <div class="mini">${ent.hp} / ${ent.maxHp} HP</div>
-  <div class="combat-Potencys">${pots
+  <div class="combat-potencys">${pots
     .map(
       (v, i) =>
         `<div class="ctok ${lockedPicks.has(i) ? 'used' : ''} ${lockedPicks.has(i) ? '' : pickableClass}" data-f="${i}" style="border-color:${FACTIONS[i].color}66; opacity:${lockedPicks.has(i) ? '0.5' : '1'}"><div style="font-weight:800">${v}</div><div style="font-size:9px;color:${FACTIONS[i].color}">${FACTIONS[i].glyph}</div></div>`

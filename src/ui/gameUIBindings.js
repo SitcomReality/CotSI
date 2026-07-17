@@ -1,18 +1,21 @@
 import { refreshZoomDisplay } from './mapView.js';
 import { toast } from './hud.js';
+import { registerAction } from './actionBus.js';
 import { currentChamp } from '../game/gameOrchestrator.js';
 import { onEndTurn } from '../game/turnController.js';
 import { getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
 import { zoomCamera, resetCamera } from '../render/hexmap3d/hexmap3d-index.js';
 
-export function bindGameUI() {
-  document.getElementById('endTurnBtn')?.addEventListener('click', onEndTurn);
-  document.getElementById('inspectBtn')?.addEventListener('click', () => {
-    toast(
-      'Click a highlighted hex to move. Adjacent foes to duel. End turn on empty parchment to dig.'
-    );
-  });
+const INSPECT_HINT =
+  'Click a highlighted hex to move. Adjacent foes to duel. End turn on empty parchment to dig.';
 
+// Action-bus registrations for panel/header buttons.
+// Note: Space→endTurn is owned by the actionBus keyboard map; do NOT
+// bind Space anywhere else or end turn will fire twice per keypress.
+registerAction('endTurn', () => onEndTurn());
+registerAction('inspect', () => toast(INSPECT_HINT));
+
+export function bindGameUI() {
   document.getElementById('zoomIn')?.addEventListener('click', () => {
     const ctx = getSceneContext();
       zoomCamera(ctx.getCameraState(), 0.8);
@@ -61,15 +64,8 @@ export function bindGameUI() {
     }
   });
 
-  document.addEventListener('click', (e) => {
-    if (e.target && e.target.id === 'endTurnBtn') onEndTurn();
-    if (e.target && e.target.id === 'inspectBtn')
-      toast(
-        'Click a highlighted hex to move. Adjacent foes to duel. End turn on empty parchment to dig.'
-      );
-  });
-
-  // Keyboard shortcuts
+  // Keyboard shortcuts.
+  // Owns c/r/+/- only. Space is handled by actionBus.js ('endTurn').
   window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT') return;
 
@@ -105,10 +101,6 @@ export function bindGameUI() {
       zoomCamera(ctx.getCameraState(), 1.25);
       ctx.applyCamera();
       refreshZoomDisplay();
-    }
-    if (e.key === ' ') {
-      e.preventDefault();
-      onEndTurn();
     }
   });
 }

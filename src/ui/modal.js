@@ -1,4 +1,5 @@
 // Generic modal helpers
+import { registerAction } from './actionBus.js';
 
 export function showModal(id) {
   const el = document.getElementById(id);
@@ -18,6 +19,13 @@ export function setRewardModal(title, body) {
   showModal('rewardModal');
 }
 
+/**
+ * Pending artifact choice, kept module-local so the callback travels via
+ * closure rather than as a property on the DOM node.
+ * Shape: { choices: Array, onChoice: (choice) => void } | null
+ */
+let pendingChoice = null;
+
 export function openArtifactChoiceModal(reward, onChoice) {
   const titleEl = document.getElementById('rewardTitle');
   const bodyEl = document.getElementById('rewardBody');
@@ -25,27 +33,48 @@ export function openArtifactChoiceModal(reward, onChoice) {
 
   titleEl.textContent = reward.title;
 
-  const choicesHtml = reward.choices.map((c, i) => `
-    <div class="artifact-choice" data-idx="${i}" style="
-      background:#fff7dfaa;border:2px solid #d0a86a;border-radius:10px;padding:12px;margin:8px 0;
-      cursor:pointer;transition:border-color .15s,background .15s;
-    ">
-      <div style="font-weight:800;color:#9a5a12;font-size:15px">${c.label}</div>
-      <div class="mini" style="color:#5a3a22;margin-top:4px">${c.detail}</div>
-    </div>
-  `).join('');
+  // Clear body text, remove previous choices
+  bodyEl.textContent = reward.body || '';
 
-  bodyEl.innerHTML = `${reward.body}<div style="margin-top:10px">${choicesHtml}</div>`;
-  showModal('rewardModal');
+  const container = document.createElement('div');
+  container.style.marginTop = '10px';
 
-  document.querySelectorAll('.artifact-choice').forEach(el => {
-    el.onmouseenter = () => { el.style.borderColor = '#b88728'; el.style.background = '#fff4cf'; };
-    el.onmouseleave = () => { el.style.borderColor = '#d0a86a'; el.style.background = '#fff7dfaa'; };
-    el.onclick = () => {
-      const idx = +el.dataset.idx;
-      const choice = reward.choices[idx];
-      hideModal('rewardModal');
-      if (onChoice) onChoice(choice);
-    };
+  const template = document.getElementById('modalChoiceOption');
+  if (!template) return;
+
+  reward.choices.forEach((c, i) => {
+    const frag = template.content.cloneNode(true);
+    const choiceEl = frag.querySelector('.artifact-choice');
+    choiceEl.dataset.idx = i;
+
+    const labelEl = frag.querySelector('.artifact-choice__label');
+    const detailEl = frag.querySelector('.artifact-choice__detail');
+    if (labelEl) labelEl.textContent = c.label;
+    if (detailEl) detailEl.textContent = c.detail;
+
+    container.appendChild(frag);
   });
+
+  bodyEl.appendChild(container);
+
+  pendingChoice = { choices: reward.choices, onChoice };
+
+  showModal('rewardModal');
 }
+
+/**
+ * Action-bus handler for [data-action="chooseArtifact"].
+ * Resolves the clicked index to its choice object and invokes the stored callback.
+ */
+registerAction('chooseArtifact', (actionEl) => {
+  if (!pendingChoice) {
+    hideModal('rewardModal');
+    return;
+  }
+  const idx = parseInt(actionEl.dataset.idx, 10);
+  const choice = pendingChoice.choices[idx];
+  const cb = pendingChoice.onChoice;
+  pendingChoice = null;
+  hideModal('rewardModal');
+  if (cb && choice) cb(choice);
+});

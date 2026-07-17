@@ -8,6 +8,7 @@
  *
  */
 import { FACTIONS, potencyWithPrimary, ARTIFACTS } from '../../core/factions.js';
+import { dailyMoves } from '../../game/championMovement.js';
 
 export function renderLeftPanel(state, champ) {
   if (!champ) {
@@ -16,9 +17,7 @@ export function renderLeftPanel(state, champ) {
 
   const fac = FACTIONS[champ.faction];
   const pots = potencyWithPrimary(champ);
-  // Compute max moves: base + artifact spur + Verdant trait + weather dayLength
-  const baseMax = champ.baseMove + (champ.artifact === 'spur' ? 1 : 0) + (champ.faction === 2 ? 1 : 0);
-  const maxMoves = Math.max(1, Math.floor(baseMax * (state.weather?.dayLength || 1)));
+  const maxMoves = dailyMoves(state, champ);
   const hpPct = Math.min(100, Math.max(0, Math.round((champ.hp / champ.maxHp) * 100)));
   const artifactLabel = champ.artifact
     ? (ARTIFACTS.find(a => a.id === champ.artifact)?.name || champ.artifact)
@@ -92,8 +91,8 @@ export function renderLeftPanel(state, champ) {
 
     <!-- Action buttons: Inspect (ink) + End Turn (gold) -->
     <div class="left-actions-row">
-      <button class="btn left-inspect-btn">Inspect</button>
-      <button class="btn btn-gold left-endturn-btn">End Turn</button>
+      <button class="btn left-inspect-btn" data-action="inspect">Inspect</button>
+      <button class="btn btn-gold left-endturn-btn" data-action="endTurn">End Turn</button>
     </div>
   </div>
   `;

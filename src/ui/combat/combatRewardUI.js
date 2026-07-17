@@ -3,6 +3,8 @@ import { getChampion } from '../../game/entityQueries.js';
 import { addLog } from '../../game/log.js';
 import { openArtifactChoiceModal as _openArtifactChoiceModal } from '../modal.js';
 
+const DECORATED_REWARD = true;
+
 export function openRewardModal(champ, rew) {
   const titleEl = document.getElementById('rewardTitle');
   const bodyEl = document.getElementById('rewardBody');
@@ -10,19 +12,40 @@ export function openRewardModal(champ, rew) {
 
   titleEl.textContent = rew.title || 'Victory!';
 
-  const bodyHtml = `
-    <div style="font-size:14px;color:#5a3a22;margin-bottom:10px">
-      ${rew.body || `<strong>${champ.name}</strong> has won the battle!`}
-    </div>
-    <div style="margin:12px 0;padding:10px;background:#fff7dfaa;border-radius:8px">
-      ${rew.rewards ? rew.rewards.map(r => `<div>${r}</div>`).join('') : ''}
-    </div>
-    <button onclick="closeReward()" style="
-      padding:8px 24px;border:none;border-radius:6px;background:#9a5a12;color:#fff;font-weight:700;
-      cursor:pointer;margin-top:10px;
-    ">Close</button>
-  `;
-  bodyEl.innerHTML = bodyHtml;
+  // Build body from template-like DOM (no innerHTML)
+  bodyEl.textContent = '';
+
+  // Body text
+  const bodyText = rew.body || `<strong>${champ.name}</strong> has won the battle!`;
+  const bodyPara = document.createElement('div');
+  bodyPara.style.fontSize = '14px';
+  bodyPara.style.color = '#5a3a22';
+  bodyPara.style.marginBottom = '10px';
+  bodyPara.innerHTML = bodyText;
+  bodyEl.appendChild(bodyPara);
+
+  // Rewards list
+  if (rew.rewards && rew.rewards.length) {
+    const rewardsBox = document.createElement('div');
+    rewardsBox.style.margin = '12px 0';
+    rewardsBox.style.padding = '10px';
+    rewardsBox.style.background = '#fff7dfaa';
+    rewardsBox.style.borderRadius = '8px';
+    rew.rewards.forEach(r => {
+      const row = document.createElement('div');
+      row.textContent = r;
+      rewardsBox.appendChild(row);
+    });
+    bodyEl.appendChild(rewardsBox);
+  }
+
+  // Close button with data-action
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'reward-btn-close';
+  closeBtn.dataset.action = 'closeReward';
+  closeBtn.textContent = 'Close';
+  bodyEl.appendChild(closeBtn);
+
   document.getElementById('rewardModal').style.display = 'flex';
 
   if (rew.artifactChoice) {

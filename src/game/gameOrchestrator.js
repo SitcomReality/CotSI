@@ -8,6 +8,7 @@ import { renderLeftPanel, renderRightPanel } from '../ui/panels/panels-index.js'
 import { renderHeader, bindHeaderEvents } from '../ui/headerRenderer.js';
 import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 import { setGameState, openArtifactChoiceModal } from '../ui/combat/combatui-index.js';
+import { setRewardModal } from '../ui/modal.js';
 import { showVictory } from '../ui/hud.js';
 import { refreshZoomDisplay, getTooltipContent as _getTooltipContent } from '../ui/mapView.js';
 import { bindGameUI } from '../ui/gameUIBindings.js';
@@ -109,9 +110,13 @@ export function refreshAll() {
     refreshZoomDisplay();
   }
 
-  // Artifact choice (start of game)
+  // Pending reward: an artifact draft opens the choice modal; anything else
+  // (e.g. a guaranteed dig reward) opens the generic reward modal.
   if (G.reward && G.reward.choices && !G.reward.guaranteed?.length) {
     openArtifactChoiceModal(G.reward);
+  } else if (G.reward && !G.reward.choices) {
+    const lines = [G.reward.body, ...(G.reward.guaranteed || [])].filter(Boolean);
+    setRewardModal(G.reward.title || 'Reward', lines.join('<br>'));
   }
 
   // Bot auto-turn (skip if any modal open)
