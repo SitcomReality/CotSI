@@ -1,0 +1,64 @@
+/* ========================================================================
+   BUTTONS: Legacy — Backward-compat styles (keep until refactored).
+   These do NOT use design tokens and will be migrated piecemeal.
+   ======================================================================== */
+
+.btn-gold {
+  background: linear-gradient(180deg, #ffe18a, #d4a138);
+  border: 1px solid #b88728;
+  color: #2a1700;
+  font-weight: 800;
+  padding: 13px 20px;
+  border-radius: 13px;
+  box-shadow: 0 8px 24px #b8872840;
+}
+
+.btn-gold:hover {
+  filter: brightness(1.04);
+}
+
+.size-pill {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid #a57a44;
+  border-radius: 999px;
+  margin: 4px 6px 4px 0;
+  background: #fff7df66;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.size-pill.active {
+  background: #24180f;
+  color: #fff7df;
+  border-color: #24180f;
+}
+
+.fctrl {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid #a57a44;
+  background: #f6e4b8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.map-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-btn.small {
+  font-size: 11px;
+}
+
+.reward-btn {
+  margin-top: 14px;
+}

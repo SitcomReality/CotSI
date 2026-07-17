@@ -98,7 +98,7 @@ export function refreshHeader(G) {
   const week = Math.floor((G.day - 1) / 7) + 1;
   const headerWorldEl = document.querySelector('#gameHeader .header__world');
   if (headerWorldEl) {
-    headerWorldEl.innerHTML = '';
+    headerWorldEl.replaceChildren();
     headerWorldEl.append(
       h('span', { class: 'header__day' }, `Day ${G.day}`),
       h('span', { class: 'header__week' }, `Week ${week}`),
@@ -110,7 +110,7 @@ export function refreshHeader(G) {
   const headerChampsEl = document.querySelector('#gameHeader .header__champions');
   if (!headerChampsEl) return;
 
-  headerChampsEl.innerHTML = '';
+  headerChampsEl.replaceChildren();
   const states = championStates(G);
 
   for (const id of G.currentOrder) {

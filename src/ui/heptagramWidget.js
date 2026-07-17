@@ -24,9 +24,7 @@ export function setHeptagramHighlight(factionIdx) {
     c.setAttribute('r', isSel ? 17 : 14);
     c.setAttribute('stroke-width', isSel ? 2.5 : 1.6);
   });
-  if (typeof window._onPaleyHover === 'function') {
-    window._onPaleyHover(factionIdx);
-  }
+  
 }
 
 /** Get current highlighted faction index */
@@ -59,9 +57,6 @@ function _bindHover(mount) {
       el.classList.add(beats(idx, other) ? 'rt-beats-win' : 'rt-beats-lose');
     });
     highlighted = idx;
-    if (typeof window._onPaleyHover === 'function') {
-      window._onPaleyHover(idx);
-    }
   };
 
   const onLeave = () => {
@@ -69,9 +64,6 @@ function _bindHover(mount) {
       svg.querySelectorAll('.rt-heptagram-line.rt-beats-win, .rt-heptagram-line.rt-beats-lose')
         .forEach(el => el.classList.remove('rt-beats-win', 'rt-beats-lose'));
       highlighted = -1;
-      if (typeof window._onPaleyHover === 'function') {
-        window._onPaleyHover(-1);
-      }
     }
   };
 
@@ -93,8 +85,3 @@ export function initHeptagramWidget(elId = 'paleyMount') {
   mount.innerHTML = paleySVG(-1);
   _bindHover(mount);
 }
-
-// Attach to window for script-based main.js
-window.setHeptagramHighlight = setHeptagramHighlight;
-window.getHeptagramHighlight = getHeptagramHighlight;
-window.initHeptagramWidget = initHeptagramWidget;

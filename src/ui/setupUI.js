@@ -19,7 +19,7 @@ export function initSetup() {
   }));
 
   function draw() {
-    fl.innerHTML = '';
+    fl.replaceChildren();
     roster.forEach((r, idx) => {
       const btnLabel = r.human ? 'Human' : 'Bot';
       const el = h(
