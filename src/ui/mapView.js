@@ -4,43 +4,76 @@ import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/ent
 import { getHumanView } from '../game/vision.js';
 import { movementRange } from '../game/championMovement.js';
 import { getSceneContext } from '../render/hexmap3d/hexmap3d-index.js';
+import { h } from './utils/dom.js';
 
-/**
- * Get tooltip HTML for a given hex key.
- */
+const maybe = (test, ...args) => test ? args : [];
+
 export function getTooltipContent(gameState, key, activeChampion) {
   const t = gameState.tiles[key];
   if (!t) return null;
+
   const humanView = getHumanView(gameState);
-  const visible = humanView.visible.has(key);
   const explored = humanView.explored.has(key);
   if (!explored) return null;
 
-  let html = `<b>${key}</b> — ${TERRAIN[t.terrain].label}`;
-  if (t.feature) {
-    html += `<br>◈ ${t.feature.kind}`;
-    if (t.feature.kind === 'knot' && !t.feature.mined) html += ` (${t.feature.amount})`;
-    if (t.feature.kind === 'tree' && t.feature.ripe !== false) html += ' 🍃';
-  }
+  const visible = humanView.visible.has(key);
 
+  /* ---- entities ---- */
   const mob = occupiedByMob(gameState, key);
-  if (mob) html += `<br>⚠ ${mob.name} ${mob.hp}/${mob.maxHp}hp`;
-
   const ch = occupiedByChampion(gameState, key);
-  if (ch) html += `<br>${FACTIONS[ch.faction].glyph} ${ch.name} ${ch.hp}/${ch.maxHp}hp`;
-
   const trader = occupiedByTrader(gameState, key);
-  if (trader) html += '<br>₳ Wandering Trader';
 
+  /* ---- movement ---- */
+  let reachableText = null;
   if (activeChampion && activeChampion.controller === 'human') {
     const range = movementRange(gameState, activeChampion);
     if (range[key] !== undefined && range[key] > 0) {
-      html += `<br><span style="color:#b88728">● Reachable (${range[key]} move)</span>`;
+      reachableText = `● Reachable (${range[key]} move)`;
     }
   }
 
-  if (!visible) html = `<i style="color:#7a5634">[Explored]</i> ` + html;
-  return html;
+  /* ---- feature ---- */
+  let featureDesc = '';
+  if (t.feature) {
+    featureDesc = `◈ ${t.feature.kind}`;
+    if (t.feature.kind === 'knot' && !t.feature.mined) featureDesc += ` (${t.feature.amount})`;
+    if (t.feature.kind === 'tree' && t.feature.ripe !== false) featureDesc += ' 🍃';
+  }
+
+  /* ---- build fragment ---- */
+  const lines = [
+    h('span', { class: 'hex-tooltip__coords' },
+      h('b', {}, key),
+      ` — ${TERRAIN[t.terrain].label}`
+    ),
+    ...maybe(featureDesc,
+      h('span', { class: 'hex-tooltip__feature' }, featureDesc)
+    ),
+    ...maybe(mob,
+      h('span', { class: 'hex-tooltip__mob' }, `⚠ ${mob.name} ${mob.hp}/${mob.maxHp}hp`)
+    ),
+    ...maybe(ch,
+      h('span', { class: 'hex-tooltip__champion' },
+        `${FACTIONS[ch.faction].glyph} ${ch.name} ${ch.hp}/${ch.maxHp}hp`
+      )
+    ),
+    ...maybe(trader,
+      h('span', { class: 'hex-tooltip__trader' }, '₳ Wandering Trader')
+    ),
+    ...maybe(reachableText,
+      h('span', { class: 'hex-tooltip__reachable' }, reachableText)
+    ),
+  ];
+
+  const container = h('div', { class: 'hex-tooltip__inner' }, ...lines);
+
+  // prepend explored indicator if fogged
+  if (!visible) {
+    const exploredTag = h('i', { class: 'hex-tooltip__explored' }, '[Explored]');
+    container.prepend(exploredTag, ' ');
+  }
+
+  return container.outerHTML;
 }
 /**
  * Update the zoom percentage display in the HUD.

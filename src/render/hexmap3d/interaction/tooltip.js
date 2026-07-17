@@ -4,19 +4,7 @@ function getTooltipEl() {
   if (!tooltipEl) {
     tooltipEl = document.createElement('div');
     tooltipEl.id = 'hexTooltip3d';
-    tooltipEl.style.cssText = `
-      position: fixed;
-      pointer-events: none;
-      z-index: 1000;
-      background: rgba(0,0,0,0.75);
-      color: #f0e0c0;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      line-height: 1.4;
-      display: none;
-      white-space: nowrap;
-    `;
+    // All static styles now live in overlays.css
     document.body.appendChild(tooltipEl);
   }
   return tooltipEl;

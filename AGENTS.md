@@ -79,8 +79,13 @@ CotSI/
 │   │   └── weather.js         # 7-day weather script
 │   ├── game/                  # Game logic and state mutation
 │   │   ├── gameFactory.js     # createGame(...) — world + champion setup
-│   │   ├── gameOrchestrator.js# Central render/turn orchestrator, exports live G
 │   │   ├── state.js           # Barrel re-exports (legacy, partially stale)
+│   │   ├── session/
+│   │   │   ├── liveGame.js          # Live G instance + currentChamp()
+│   │   │   ├── beginGame.js         # __beginGame(config), window.__beginGame
+│   │   │   ├── refreshAll.js        # Central render orchestrator
+│   │   │   ├── mapRefresh.js        # 3D map init-once + per-refresh render
+│   │   │   └── rewardPrompt.js      # Pending reward modal dispatch
 │   │   ├── turnController.js  # Human end turn + bot turn runner
 │   │   ├── turnLogic.js       # beginTurn, artifact choices, digging
 │   │   ├── worldTurn.js       # Advance turn, world simulation
@@ -119,9 +124,9 @@ CotSI/
 │   │   ├── utils/dom.js       # `h()` DOM builder
 │   │   ├── viewModels/        # Pure view-model transformers
 │   │   │   └── championVM.js
-│   │   ├── panels/            # Left/right panel HTML renderers
-│   │   │   ├── leftPanel.js
-│   │   │   ├── rightPanel.js
+│   │   ├── panels/            # Panel data binders (static HTML skeletons)
+│   │   │   ├── bindLeftPanel.js
+│   │   │   ├── bindRightPanel.js
 │   │   │   └── logView.js
 │   │   └── combat/            # Combat UI
 │   │       ├── combatui-index.js
