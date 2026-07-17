@@ -1,6 +1,7 @@
 import { getCombatUI, setCombatUI, getGameState } from './combatStateManager.js';
 import { getActiveCombatant, getAvailablePicks, botCombatPick, recordCombatPick, advanceCombatPhase, isPickingPhase } from '../../game/combat/combat-index.js';
 import { renderCombat } from './combatRenderer.js';
+import { continueCombatFlow } from './combatLifecycle.js';
 
 export function makeBotPick() {
   const _combatUI = getCombatUI();
@@ -19,14 +20,7 @@ export function makeBotPick() {
   recordCombatPick(_combatUI, pick);
   advanceCombatPhase(_combatUI);
   renderCombat();
-
-  // Chain if the next phase is also a bot pick
-  if (isPickingPhase(_combatUI)) {
-    const nextActive = getActiveCombatant(_combatUI);
-    if (nextActive && nextActive.controller === 'bot') {
-      setTimeout(() => makeBotPick(), 500);
-    }
-  }
+  continueCombatFlow();
 }
 
 // Global handler for the "Commit Power" button
@@ -39,14 +33,7 @@ window.commitCombat = function () {
 
   advanceCombatPhase(_combatUI);
   renderCombat();
-
-  // If the next phase is a bot pick, trigger it
-  if (isPickingPhase(_combatUI)) {
-    const nextActive = getActiveCombatant(_combatUI);
-    if (nextActive && nextActive.controller === 'bot') {
-      setTimeout(() => makeBotPick(), 500);
-    }
-  }
+  continueCombatFlow();
 };
 
 // Global handler for closing the reward modal

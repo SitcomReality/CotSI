@@ -4,6 +4,29 @@ import { renderCombat } from './combatRenderer.js';
 import { makeBotPick } from './combatInteractions.js';
 import { openRewardModal } from './combatRewardUI.js';
 
+/**
+ * Central flow dispatcher: after any state mutation (pick, phase advance,
+ * round transition), call this to drive the next step automatically.
+ *
+ * - picking + active is bot  ->  setTimeout(makeBotPick, 500)
+ * - reveal                   ->  no-op (waits for human Commit)
+ * - round_end                ->  handleRoundEnd()
+ */
+export function continueCombatFlow() {
+  const _combatUI = getCombatUI();
+  if (!_combatUI) return;
+
+  if (_combatUI.phase === 'picking') {
+    const active = getActiveCombatant(_combatUI);
+    if (active && active.controller === 'bot') {
+      setTimeout(() => makeBotPick(), 500);
+    }
+  } else if (_combatUI.phase === 'round_end') {
+    handleRoundEnd();
+  }
+  // reveal phase: no automated action; waits for human Commit via processRevealPhase
+}
+
 export function startCombat(attacker, defender) {
   const ui = createCombatState(attacker, defender);
   setCombatUI(ui);
@@ -13,13 +36,7 @@ export function startCombat(attacker, defender) {
 export function openCombatModal() {
   document.getElementById('combatModal').style.display = 'flex';
   renderCombat();
-  const _combatUI = getCombatUI();
-  if (_combatUI && isPickingPhase(_combatUI)) {
-    const active = getActiveCombatant(_combatUI);
-    if (active && active.controller === 'bot') {
-      setTimeout(() => makeBotPick(), 500);
-    }
-  }
+  continueCombatFlow();
 }
 
 export function closeCombat() {
@@ -41,13 +58,7 @@ export function processRevealPhase() {
   setTimeout(() => {
     advanceCombatPhase(_combatUI);
     renderCombat();
-    // After advance, if it's a picking phase and active is bot, trigger bot pick
-    if (isPickingPhase(_combatUI)) {
-      const active = getActiveCombatant(_combatUI);
-      if (active && active.controller === 'bot') {
-        setTimeout(() => makeBotPick(), 500);
-      }
-    }
+    continueCombatFlow();
   }, 1200);
 }
 
@@ -107,12 +118,6 @@ export function handleRoundEnd() {
   setTimeout(() => {
     nextCombatRound(_combatUI);
     renderCombat();
-    // Check for bot pick in the next phase
-    if (isPickingPhase(_combatUI)) {
-      const active = getActiveCombatant(_combatUI);
-      if (active && active.controller === 'bot') {
-        setTimeout(() => makeBotPick(), 500);
-      }
-    }
+    continueCombatFlow();
   }, 1500);
 }
