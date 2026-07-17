@@ -6,9 +6,11 @@ This file is a guide for AI coding agents working on **Champions of the Supernal
 
 ## Project Overview
 
-CotSI is a browser-based, single-player hex-crawl strategy game inspired by illuminated manuscripts and tabletop wargames. The player (and AI bots) control faction champions on a procedurally generated hex map, moving, fighting, trading, and digging for relics. The win conditions are a relic race and/or last-champion-standing.
+CotSI is a browser-based, single-player hex-crawl strategy game inspired by tabletop wargames and turn-based strategy games like Heroes of Might and Magic. The player (and AI bots) control one of the seven faction champions on a procedurally generated hex map, moving, fighting, trading, and digging for relics. The win conditions are a relic race and/or last-champion-standing.
 
 The game is intentionally built with **vanilla JavaScript and CSS** — no framework, no bundler, no build step. It runs directly in the browser from `index.html`.
+
+The game is still early in development.
 
 Key documents:
 
@@ -107,7 +109,7 @@ CotSI/
 │   │   ├── bootstrapUI.js     # DOMContentLoaded startup wiring
 │   │   ├── gameUIBindings.js  # Direct event bindings for map controls
 │   │   ├── setupUI.js         # Setup screen faction roster
-│   │   ├── headerRenderer.js  # Top-bar champion pills
+│   │   ├── bindHeader.js      # Top-bar champion pills
 │   │   ├── hud.js             # Toasts, victory modal
 │   │   ├── mapView.js         # Tooltip content, zoom display
 │   │   ├── modal.js           # Generic modal + artifact choice

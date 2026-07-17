@@ -1,135 +1,14 @@
 ## Step‑0 — Preparation (create utility modules, do not alter existing files yet)
 
-We need three tiny utility files to underpin the entire refactor.  
-They can be created right now and imported later; they won’t affect the game until they are actually used.
+Three tiny utility files to underpin the entire refactor.
 
 ### **File 1:** `src/ui/utils/dom.js` – the `h()` DOM builder
 
-```js
-// src/ui/utils/dom.js
-/**
- * Create a real DOM element.
- * usage: h('div', { class: 'foo', dataAction: 'clickMe' },
- *          h('span', {}, 'Hello'), ' World')
- */
-export function h(tag, props = {}, ...children) {
-  const el = document.createElement(tag);
-  for (const [key, val] of Object.entries(props)) {
-    if (key === 'class') el.className = val;
-    else if (key === 'style' && typeof val === 'object') Object.assign(el.style, val);
-    else if (key.startsWith('data')) el.setAttribute(key.replace(/[A-Z]/g, m => '-' + m.toLowerCase()), val);
-    else if (key.startsWith('on') && typeof val === 'function') el.addEventListener(key.slice(2), val);
-    else el.setAttribute(key, val);
-  }
-  // Skip null/undefined/boolean children so `cond && h(...)` composition is safe
-  // (0 and '' remain valid text children).
-  el.append(...children.flat().filter((c) => c != null && typeof c !== 'boolean'));
-  return el;
-}
-```
-
 ### **File 2:** `src/ui/actionBus.js` – the single delegated event listener
-
-```js
-// src/ui/actionBus.js
-/** Central dispatch for all [data-action] clicks. */
-let handlers = {};
-
-export function registerAction(action, fn) {
-  if (handlers[action]) {
-    console.warn(`[actionBus] Action '${action}' re-registered; overwriting previous handler.`);
-  }
-  handlers[action] = fn;
-}
-
-document.addEventListener('click', (e) => {
-  const el = e.target.closest('[data-action]');
-  if (!el) return;
-  const action = el.dataset.action;
-  if (handlers[action]) {
-    handlers[action](el, e);
-  } else {
-    console.warn(`[actionBus] No handler registered for action '${action}'.`);
-  }
-});
-
-// Keyboard shortcuts. IMPORTANT: once an action is registered on the bus,
-// remove any direct keydown binding for the same key in gameUIBindings.js,
-// or the action fires twice per keypress. Currently only ' '→endTurn is active.
-window.addEventListener('keydown', (e) => {
-  if (e.target.tagName === 'INPUT') return;
-  const map = { ' ': 'endTurn', 'c': 'centerChampion', 'r': 'resetCamera',
-                '+': 'zoomIn', '=': 'zoomIn', '-': 'zoomOut', '_': 'zoomOut' };
-  const action = map[e.key];
-  if (action && handlers[action]) {
-    e.preventDefault();
-    handlers[action](null, e);
-  }
-});
-```
 
 ### **File 3:** `src/ui/viewModels/championVM.js` – pure data shaping
 
-Extract the calculations that were buried in `leftPanel.js` and later in `headerRenderer.js`.
-
-```js
-// src/ui/viewModels/championVM.js
-import { FACTIONS, potencyWithPrimary, ARTIFACTS } from '../../core/factions.js';
-import { dailyMoves } from '../../game/championMovement.js';
-
-export function championVM(state, champ) {
-  if (!champ) return null;
-  const fac = FACTIONS[champ.faction];
-  const pots = potencyWithPrimary(champ);
-  // Single source of truth for max moves — do NOT recompute the
-  // base/spur/Verdant/weather formula here, import it from game/.
-  const maxMoves = dailyMoves(state, champ);
-  return {
-    id: champ.id,
-    factionColor: fac.color,
-    factionGlyph: fac.glyph,
-    name: fac.name,
-    hp: champ.hp,
-    maxHp: champ.maxHp,
-    hpPct: Math.round((champ.hp / champ.maxHp) * 100),
-    moves: champ.moves,
-    maxMoves,
-    gold: champ.gold,
-    relics: champ.relics,
-    knot: champ.knot,
-    weapon: champ.weapon,
-    armor: champ.armor,
-    artifactLabel: champ.artifact
-      ? (ARTIFACTS.find(a => a.id === champ.artifact)?.name || champ.artifact)
-      : '— none —',
-    pots,               // array of 7 numbers
-    totalPot: pots.reduce((a, b) => a + b, 0),
-  };
-}
-```
-
-**CSS preparation** – create (or add to) a section in your main stylesheet for the common variables and classes we’ll rely on throughout:
-
-```css
-/* /styles/abstracts/reset.css */
-:root {
-  --faction-color: #888;
-  --champ-hp-pct: 100%;
-}
-
-/* /styles/components/left-champion-card/header.css */
-.left-faction-dot { background: var(--faction-color); }
-
-/* /styles/components/left-champion-card/hp-row.css */
-.left-hp-fill { width: calc(var(--champ-hp-pct) * 1%); }
-
-/* /styles/ui/utilities.css */
-.u-hidden { display: none !important; }
-```
-
----
-
-Now we begin the real refactor, one file at a time.
+    Extracted the calculations that were buried in `leftPanel.js` and later in `headerRenderer.js`.
 
 ---
 

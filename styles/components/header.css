@@ -75,6 +75,9 @@
 .header__champion[data-state="waiting"] {
   opacity: 0.75;
 }
+.header__champion[data-state=\"dead\"] {
+    display: none;
+}
 
 /* Actions zone (right) */
 .header__actions {
@@ -84,3 +87,38 @@
 }
 
 
+/* Champion pill inner elements */
+.header__champion-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--faction-color);
+    flex-shrink: 0;
+    border: var(--hair) solid rgba(34, 28, 20, 0.15);
+}
+
+.header__champion-hp,
+.header__champion-pot {
+    font-variant-numeric: var(--tnum);
+    line-height: 1;
+}
+
+.header__champion-hp {
+    color: var(--ink);
+    font-weight: 600;
+    min-width: 1.5em;
+    text-align: right;
+}
+
+.header__champion-pot {
+    color: var(--ink-soft);
+    font-size: 10px;
+}
+
+.header__champion-hp::after {
+    content: '♥';
+    font-size: 8px;
+    color: var(--red, #c0392b);
+    margin-left: 2px;
+    vertical-align: middle;
+}

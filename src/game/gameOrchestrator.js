@@ -5,7 +5,7 @@ import { syncSize } from '../render/effects/effectsOverlay.js';
 import { resetCamera as resetCamera3D, centerCameraOnHex } from '../render/hexmap3d/hexmap3d-index.js';
 
 import { renderLeftPanel, renderRightPanel } from '../ui/panels/panels-index.js';
-import { renderHeader, bindHeaderEvents } from '../ui/headerRenderer.js';
+import { refreshHeader, bindHeaderEvents } from '../ui/bindHeader.js';
 import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 import { setGameState, openArtifactChoiceModal } from '../ui/combat/combatui-index.js';
 import { setRewardModal } from '../ui/modal.js';
@@ -66,12 +66,8 @@ export function refreshAll() {
 
   const ch = currentChamp();
 
-  // ── Header ──
-  const { world, champions } = renderHeader(G);
-  const headerWorldEl = document.querySelector('#gameHeader .header__world');
-  const headerChampsEl = document.querySelector('#gameHeader .header__champions');
-  if (headerWorldEl) headerWorldEl.innerHTML = world;
-  if (headerChampsEl) headerChampsEl.innerHTML = champions;
+  // ── Header (pure DOM update via bindHeader) ──
+  refreshHeader(G);
 
   // Panels
   document.getElementById('championCard').innerHTML = renderLeftPanel(G, ch);
