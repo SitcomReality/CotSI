@@ -13,4 +13,9 @@
   font-size: var(--fs-xs);
   padding: 8px 12px;
   text-align: center;
+  transition: transform var(--dur-fast, 150ms) var(--ease, cubic-bezier(.22,.61,.36,1));
+}
+
+.left-actions-row .btn.is-pulsing {
+  transform: scale(1.05);
 }
