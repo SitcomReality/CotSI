@@ -35,9 +35,9 @@ export function applyFinalBonuses(state, A, B, scoreA, scoreB){
   const week = Math.floor((state.day-1)/7)+1;
   if(A.faction===0){ scoreB = Math.max(0, scoreB - week); }
   if(B.faction===0){ scoreA = Math.max(0, scoreA - week); }
-  // Final bonuses
-  scoreA += A.tokens ? finalScoreBonus(state, A) : (state.weather.score[B.faction]||0); // need to remove vestigial reference to tokens. only potencies now.
-  scoreB += B.tokens ? finalScoreBonus(state, B) : (state.weather.score[A.faction]||0);
+  // Final bonuses — champions get the full finalScoreBonus; mobs get their own faction's weather score
+  scoreA += ('controller' in A) ? finalScoreBonus(state, A) : (state.weather.score[A.faction]||0);
+  scoreB += ('controller' in B) ? finalScoreBonus(state, B) : (state.weather.score[B.faction]||0);
   return { scoreA, scoreB };
 }
 

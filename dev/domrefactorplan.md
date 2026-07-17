@@ -69,15 +69,17 @@ Three tiny utility files to underpin the entire refactor.
 
 ## The granular plan
 
-### Phase 6.5 â Remediation of earlier phases (small, independent; any order)
+### Phase 6.5 â Remediation of earlier phases (small, independent; any order) [COMPLETE]
 
-- **6.5.1 `h()` custom properties** â in `dom.js`, route `style` keys starting with `--` through `el.style.setProperty`. Fixes the gray header pills (B1). [COMPLETE]
+- **6.5.1 `h()` custom properties** â in `dom.js`, route `style` keys starting with `--` through `el.style.setProperty`. Fixes the gray header pills (B1).
 - **6.5.2 `hud.js`** â build `#victoryText` content with `h()` + classes (`--faction-color` for the winner name, a `.victory-sub` class for the secondary line); add `.toast--bad` modifier in CSS instead of hardcoded border colors; replace `pulseEnd`'s inline transform with a CSS class toggle (e.g. `.is-pulsing` + transition). (B4)
 - **6.5.3 Reward body without innerHTML** â `rewardPrompt.js` passes a *lines array* instead of a `<br>`-joined string; `modal.js` `setRewardModal` builds line nodes with `h()`; move the choices-container margin to CSS; make the bus `closeReward` handler call `hideModal('rewardModal')` and clear `pendingChoice` (export a small `clearPendingChoice()` or fold the registration into `modal.js`). (B5)
 - **6.5.4 `setupUI.js`** â size pills: add `data-action="selectSize"` + `data-size` in `index.html`, register on the bus, delete the direct listeners; move `data-action="beginGame"` into `index.html` markup; set `--faction-color` on each `.fopt` (revives the dead `setup.css:23` border); move presentational inline styles to CSS classes; `alert()` â `toast()`; derive `controller` from `human` at begin time and drop the duplicate field. (B6)
 - **6.5.5 Tooltip chain** â `getTooltipContent` returns a DOM node; `tooltip.js` `replaceChildren(node)`; add the missing `hex-tooltip__*` CSS rules (`display:block` per line class); split hover updates: build tooltip content only on hex-key change, update position on `pointermove` (kills the per-mousemove BFS); delete the dead window globals, stale `main.js` comments, dead `#tooltip` markup + CSS. (B7)
 - **6.5.6 `heptagramWidget.js`** â delete the `window._onPaleyHover` reads, the three dead window aliases, and the stale comment; **keep** the SVG-string `innerHTML` as a documented exception (`h()` builds HTML elements, not SVGNS nodes) â this closes old "Phase 9". (B8)
 - **6.5.7 Misc sweep** â delete `escapeHtml`; `innerHTML=''` â `replaceChildren()`; de-duplicate `buttons.css`; clamp `championVM.hpPct` to 0â100. (B9)
+
+[PHASE 6.5 IS COMPLETE]
 
 ### Phase 7 â Combat (repair first, then refactor, then unify rewards)
 
