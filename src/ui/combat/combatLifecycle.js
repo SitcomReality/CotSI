@@ -1,5 +1,6 @@
 import {
   createCombatState,
+  sideOf,
   isPickingPhase,
   isRevealPhase,
   recordPick,
@@ -26,10 +27,23 @@ import {
 import { renderCombat } from './combatRenderer.js';
 import { openRewardModal } from './combatRewardUI.js';
 import { showModal, hideModal } from '../modal.js';
+import {
+  wait,
+  revealSlot,
+  clashPulse,
+  countUp,
+  floatText,
+  shakeCard,
+  flashCard,
+  drainHp,
+  getSlot,
+  getFxLayer,
+  getCard,
+} from './combatFx.js';
+
+import { FACTIONS } from '../../core/factions.js';
 
 // ---- helpers ----
-
-const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
 function getOpponentRevealedHistory(combat, awaitingSide) {
   // Returns pick indices from previous exchanges that belong to the opponent
@@ -117,8 +131,6 @@ async function handleRoundEnd() {
   combat.roundScores.attacker = scoreA;
   combat.roundScores.defender = scoreB;
 
-  // TODO(PHASE 4): trigger damage/floating text FX here
-
   const result = resolveRoundDamage(_G, combat);
 
   if (result.defenderDead) {
@@ -141,6 +153,34 @@ async function handleRoundEnd() {
     const refresh = getRefreshAll();
     if (refresh) refresh();
     return;
+  }
+
+  // --- Damage FX ---
+  if (result.damage > 0) {
+    const attSide = sideOf(combat, combat.attacker);
+    const actualDamagedSide = result.to === 'attacker' ? attSide : (attSide === 'first' ? 'second' : 'first');
+    const fxLayer = getFxLayer();
+    const damagedCard = getCard(actualDamagedSide);
+
+    // 1. Float damage text from the damaged card's HP bar
+    if (fxLayer && damagedCard) {
+      const hpBar = damagedCard.querySelector('.hpbar');
+      if (hpBar) {
+        floatText(fxLayer, hpBar, `-${result.damage}`, 'damage');
+      }
+    }
+
+    // 2. Shake + flash the damaged card
+    shakeCard(actualDamagedSide);
+    flashCard(actualDamagedSide);
+
+    // 3. Calculate new HP% and drain the bar
+    const damagedEntity = result.to === 'attacker' ? combat.attacker : combat.defender;
+    const newHpPct = Math.round((damagedEntity.hp / damagedEntity.maxHp) * 100);
+    await drainHp(actualDamagedSide, newHpPct);
+
+    // Render to sync DOM with new state
+    renderCombat();
   }
 
   await wait(1200);
@@ -173,16 +213,99 @@ export function closeCombat() {
   setCombatUI(null);
 }
 
-// ---- Phase 4 placeholder ----
-function animateReveal(reveal) {
-  // Minimal: add a CSS class to the revealed token slots
-  // reveal has shape { first: { factionIdx, ... }, second: { factionIdx, ... } }
-  const allSlots = document.querySelectorAll('.ctok');
-  allSlots.forEach(el => {
-    const ownIdx = parseInt(el.dataset.faction, 10);
-    if (ownIdx === reveal.first.factionIdx || ownIdx === reveal.second.factionIdx) {
-      el.classList.add('reveal-pulse');
-      setTimeout(() => el.classList.remove('reveal-pulse'), 1000);
+async function animateReveal(reveal) {
+  const combat = getCombatUI();
+  if (!combat || !reveal) return;
+
+  const modalEl = document.getElementById('combatModal');
+  const fxLayer = getFxLayer();
+
+  // Determine which slots we're flipping (exchange 0 or 1)
+  const exchangeIdx = combat.phase === 'reveal1' ? 0 : 1;
+
+  // Get the picks for this exchange
+  const exchange = combat.exchanges[exchangeIdx];
+  const pickFirst = exchange.picks.first;
+  const pickSecond = exchange.picks.second;
+
+  // --- Slot A (first's slot) ---
+  const slotAId = exchangeIdx === 0 ? 'sA1' : 'sA2';
+  const slotA = getSlot(slotAId);
+  if (slotA && pickFirst != null) {
+    // Update slot content to show the revealed faction
+    const fac = FACTIONS[reveal.first.factionIdx];
+    slotA.textContent = fac.glyph + ' ' + fac.name;
+    slotA.style.setProperty('--slot-color', fac.color);
+    slotA.classList.add('face-down'); // start face-down
+  }
+
+  // --- Slot B (second's slot) ---
+  const slotBId = exchangeIdx === 0 ? 'sB1' : 'sB2';
+  const slotB = getSlot(slotBId);
+  if (slotB && pickSecond != null) {
+    const fac = FACTIONS[reveal.second.factionIdx];
+    slotB.textContent = fac.glyph + ' ' + fac.name;
+    slotB.style.setProperty('--slot-color', fac.color);
+    slotB.classList.add('face-down');
+  }
+
+  // --- Flip both slots ---
+  if (slotA) revealSlot(slotA, reveal.first.factionIdx);
+  if (slotB) revealSlot(slotB, reveal.second.factionIdx);
+
+  await wait(420); // let flips finish (--dur-slow)
+
+  // --- Clash pulse: highlight winning/losing faction tokens ---
+  clashPulse(reveal, modalEl);
+
+  await wait(150);
+
+  // --- Count-up the running totals ---
+  const leftEl = document.getElementById('csLeft');
+  const rightEl = document.getElementById('csRight');
+
+  // Determine which total maps to which side
+  // runningTotals.attacker sums the attacker's cumulative round score
+  // left = first, right = second. Need to map attackerSide to left/right.
+  const attackerSide = reveal.first.factionIdx === pickFirst
+    ? 'first'
+    : (reveal.first.factionIdx === pickSecond ? 'second' : null);
+  // Better approach: read current displayed values and animate to new totals
+  const curLeft = parseInt(leftEl?.textContent, 10) || 0;
+  const curRight = parseInt(rightEl?.textContent, 10) || 0;
+  const targetAttacker = reveal.runningTotals.attacker;
+  const targetDefender = reveal.runningTotals.defender;
+
+  const attSide = sideOf(combat, combat.attacker);
+
+  if (attSide === 'first') {
+    // attacker = left, defender = right
+    await Promise.all([
+      countUp(leftEl, curLeft, targetAttacker, 500),
+      countUp(rightEl, curRight, targetDefender, 500),
+    ]);
+    // Float score deltas
+    const deltaAtt = targetAttacker - curLeft;
+    const deltaDef = targetDefender - curRight;
+    if (deltaAtt > 0 && fxLayer && leftEl) {
+      floatText(fxLayer, leftEl, `+${deltaAtt}`, 'score');
     }
-  });
+    if (deltaDef > 0 && fxLayer && rightEl) {
+      floatText(fxLayer, rightEl, `+${deltaDef}`, 'score');
+    }
+  } else {
+    // attacker = right, defender = left
+    await Promise.all([
+      countUp(leftEl, curLeft, targetDefender, 500),
+      countUp(rightEl, curRight, targetAttacker, 500),
+    ]);
+    const deltaDef = targetDefender - curLeft;
+    const deltaAtt = targetAttacker - curRight;
+    if (deltaDef > 0 && fxLayer && leftEl) {
+      floatText(fxLayer, leftEl, `+${deltaDef}`, 'score');
+    }
+    if (deltaAtt > 0 && fxLayer && rightEl) {
+      floatText(fxLayer, rightEl, `+${deltaAtt}`, 'score');
+    }
+  }
 }

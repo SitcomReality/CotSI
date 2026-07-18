@@ -140,6 +140,9 @@ First @keyframes in the project, all tokens from styles/abstracts/tokens/motion.
     Review note (§7): The .hpfill transition should also target background-color if the HP bar changes color at low HP thresholds via a style property (not just a class toggle). Verify during implementation.
 
 Styleguide guardrails: modal chrome stays vellum/ink; color bursts are small and faction-keyed; gold accents ≤ budget (score peak + victory floater); no neon/glassmorphism; reuse --st-reveal, --st-hostile, --gold-hi, --fN-glow, --dur-*, --ease-out.
+
+
+
 PHASE 5 — Cleanup
 
     Delete dead code: the 'picking' branch, revealQueue, allPicks, highlightTokens() no-op (combatRenderer.js:134), commit button + wiring, stale PHASE_LABELS.
