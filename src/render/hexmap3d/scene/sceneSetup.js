@@ -8,7 +8,7 @@ import { createCameraState, applyCameraState } from './camera.js';
 export function initScene(mountElement, { shadows = false } = {}) {
   // --- Renderer ---
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.round(Math.min(window.devicePixelRatio, 2)));
   renderer.setClearColor(0x5c5242); // dark parchment (contrast with terrain colors)
 
   if (shadows) {
@@ -20,14 +20,22 @@ export function initScene(mountElement, { shadows = false } = {}) {
 
   // Match the mount element's size
   const rect = mountElement.getBoundingClientRect();
-  renderer.setSize(rect.width, rect.height, true);
+  const initWidth = Math.round(rect.width);
+  const initHeight = Math.round(rect.height);
+  renderer.setSize(initWidth, initHeight, true);
+  // Defensive clamp: force GL viewport to match canvas dimensions exactly
+  // (guards against Three.js setViewport float rounding mismatch)
+  {
+    const gl = renderer.getContext();
+    gl.viewport(0, 0, renderer.domElement.width, renderer.domElement.height);
+  }
   mountElement.appendChild(renderer.domElement);
 
   // --- Scene ---
   const scene = new THREE.Scene();
 
   // --- Orthographic Camera (managed by camera3d) ---
-  const aspect = rect.width / Math.max(rect.height, 1);
+  const aspect = initWidth / Math.max(initHeight, 1);
   const camState = createCameraState(aspect);
 
   const camera = new THREE.OrthographicCamera(
@@ -40,10 +48,17 @@ export function initScene(mountElement, { shadows = false } = {}) {
 
   function resize(width, height) {
     if (!width || !height) return;
-    renderer.setSize(width, height, true);
+    const rw = Math.round(width);
+    const rh = Math.round(height);
+    renderer.setSize(rw, rh, true);
+    // Defensive clamp: force GL viewport to match canvas dimensions exactly
+    {
+      const gl = renderer.getContext();
+      gl.viewport(0, 0, renderer.domElement.width, renderer.domElement.height);
+    }
 
     // Update the stored aspect ratio and re-apply the camera state
-    camState.aspect = width / Math.max(height, 1);
+    camState.aspect = rw / Math.max(rh, 1);
     applyCameraState(camera, camState);
   }
 
