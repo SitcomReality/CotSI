@@ -41,24 +41,64 @@ export function applyFinalBonuses(state, A, B, scoreA, scoreB){
   return { scoreA, scoreB };
 }
 
-/** Process a reveal phase - score the current pair of picks */
+/** Determine whether faction a beats faction b in the Paley tournament.
+ *  faction i beats i+1, i+2, i+4 (mod 7). */
+function beats(a, b) {
+  const diff = (b - a) % 7;
+  return diff === 1 || diff === 2 || diff === 4;
+}
+
+/** Process a reveal phase — score the current exchange and build the rich lastReveal payload. */
 export function processReveal(state, combat){
-  const { attacker, defender, roundPicks } = combat;
-  const pickIdx = combat.phase === 'reveal1' ? 0 : 1;
-  const pickA = roundPicks.attacker[pickIdx];
-  const pickB = roundPicks.defender[pickIdx];
+  // Determine which exchange we're revealing (first or second)
+  const exchangeIdx = combat.phase === 'reveal1' ? 0 : 1;
+  const exchange = combat.exchanges[exchangeIdx];
+  const pickFirst = exchange.picks.first;
+  const pickSecond = exchange.picks.second;
 
-  if(pickA === undefined || pickB === undefined) return null;
+  if (pickFirst === null || pickSecond === null) return null;
 
-  const res = scorePickPair(state, attacker, defender, pickA, pickB);
-  combat.roundScores.attacker += res.scoreA;
-  combat.roundScores.defender += res.scoreB;
+  const firstEntity = combat.first;
+  const secondEntity = combat.second;
+
+  // Score this pair using the stateless engine
+  const result = scorePickPair(state, firstEntity, secondEntity, pickFirst, pickSecond);
+
+  // Accumulate round scores
+  combat.roundScores.attacker += result.scoreA;
+  combat.roundScores.defender += result.scoreB;
+
+  // Compute weather modifications (same weather value used for both sides for consistency)
+  const weatherModFirst = state.weather.potency[pickFirst] || 0;
+  const weatherModSecond = state.weather.potency[pickSecond] || 0;
+
+  // Build the rich lastReveal payload
   combat.lastReveal = {
-    pickA, pickB,
-    scoreA: res.scoreA, scoreB: res.scoreB,
-    logA: res.logA, logB: res.logB,
-    potA: res.potA, potB: res.potB
+    first: {
+      factionIdx: pickFirst,
+      basePotency: result.potA,
+      weatherMod: weatherModFirst,
+      multiplier: 1,                   // no per-pick multiplier in current rules
+      beats: beats(pickFirst, pickSecond),
+      score: result.scoreA
+    },
+    second: {
+      factionIdx: pickSecond,
+      basePotency: result.potB,
+      weatherMod: weatherModSecond,
+      multiplier: 1,
+      beats: beats(pickSecond, pickFirst),
+      score: result.scoreB
+    },
+    runningTotals: {
+      attacker: combat.roundScores.attacker,
+      defender: combat.roundScores.defender
+    }
   };
-  combat.combatLog.push(`Reveal ${combat.phase === 'reveal1' ? 1 : 2}: ${res.logA}  vs  ${res.logB}`);
+
+  combat.combatLog.push(
+    `Reveal ${exchangeIdx + 1}: ${result.logA}  vs  ${result.logB}`
+  );
+
   return combat.lastReveal;
 }

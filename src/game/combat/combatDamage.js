@@ -1,6 +1,7 @@
 import { addLog } from '../log.js';
 import { refreshVision } from '../vision.js';
 import { checkVictory } from '../victory.js';
+import { deriveOrder } from './combatState.js';
 
 function moveDamagedBeforeDamager(state, damagedId, damagerId){
   const di = state.globalOrder.indexOf(damagedId);
@@ -32,13 +33,24 @@ export function resolveRoundDamage(state, combat){
   return { damage: dmg, to, attackerDead: !attacker.alive, defenderDead: !defender.alive };
 }
 
-/** Prepare for next round (reset round-specific state) */
-export function nextCombatRound(combat){
+/** Prepare for next round (reset round-specific state).
+ *  Accepts `state` to re-derive first/second from G.globalOrder
+ *  (after round-end reorder by moveDamagedBeforeDamager).
+ */
+export function nextCombatRound(state, combat){
   combat.round++;
-  combat.roundPicks = { attacker: [], defender: [] };
+  // Re-derive first/second from current globalOrder
+  const { first, second } = deriveOrder(state, combat.attacker, combat.defender);
+  combat.first = first;
+  combat.second = second;
+  // Reset round-specific state
+  combat.exchanges = [
+    { picks: { first: null, second: null } },
+    { picks: { first: null, second: null } },
+  ];
   combat.roundScores = { attacker: 0, defender: 0 };
-  combat.phase = 'pick1_attacker';
-  combat.awaitingPick = 'attacker';
+  combat.phase = 'pick1';
+  combat.awaitingSide = 'first';
   combat.lastReveal = null;
 }
 

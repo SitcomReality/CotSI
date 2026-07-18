@@ -4,19 +4,24 @@
  */
 export {
   createCombatState,
+  deriveOrder,
+  sideOf,
+  entityFor,
   getActiveCombatant,
   isPickingPhase,
   isRevealPhase,
 } from './combatState.js';
 
 export {
-  recordCombatPick,
-  advanceCombatPhase,
+  recordPick,
+  bothPicksIn,
+  advancePhase,
   botCombatPick,
   getAvailablePicks,
 } from './combatPicks.js';
 
 export {
+  scorePickPair,
   applyFinalBonuses,
   processReveal,
 } from './combatScoring.js';

@@ -1,5 +1,5 @@
 import { getCombatUI, setCombatUI, getGameState } from './combatStateManager.js';
-import { getActiveCombatant, getAvailablePicks, botCombatPick, recordCombatPick, advanceCombatPhase, isPickingPhase, isRevealPhase } from '../../game/combat/combat-index.js';
+import { getActiveCombatant, getAvailablePicks, botCombatPick, recordPick, advancePhase, isPickingPhase, isRevealPhase } from '../../game/combat/combat-index.js';
 import { renderCombat } from './combatRenderer.js';
 import { continueCombatFlow, processRevealPhase } from './combatLifecycle.js';
 import { registerAction } from '../actionBus.js';
