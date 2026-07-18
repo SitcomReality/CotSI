@@ -1,4 +1,5 @@
 import {
+  entityFor,
   recordPick,
   advancePhase,
   bothPicksIn,
@@ -20,7 +21,7 @@ export function pickCombatPower(factionIdx) {
   if (!entity || entity.controller !== 'human') return; // not human's turn
 
   const available = getAvailablePicks(entity);
-  if (!available.includes(factionIdx)) return; // no‑repeat guard
+  if (!available.includes(factionIdx)) return; // no-repeat guard
 
   recordPick(combat, side, factionIdx);
 
@@ -29,23 +30,14 @@ export function pickCombatPower(factionIdx) {
   }
 
   renderCombat();
-  runCombatFlow(); // resume sequencer (may handle next non‑human or reveal)
+  runCombatFlow(); // resume sequencer (may handle next non-human or reveal)
 }
 
 // ---- Action bus wiring (called once, e.g. in initCombatModal) ----
 export function wireCombatActions() {
-  // Human pick: faction button click uses data‑action and data‑faction
+  // Human pick: faction button click uses data-action and data-faction
   registerAction('combatPick', (el) => {
     const factionIdx = parseInt(el.dataset.faction, 10);
     pickCombatPower(factionIdx);
   });
-
-}
-
-// ---- Bot/Mob pick ----
-// This function is no longer needed; the sequencer handles it.
-// But we keep a stub for compatibility (or remove if nothing calls it).
-export function makeBotPick(entity) {
-  // Not called directly anymore; sequencer uses botCombatPick internally.
-  // Can be safely deleted if no external references.
 }

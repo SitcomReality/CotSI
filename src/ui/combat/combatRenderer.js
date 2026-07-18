@@ -15,10 +15,10 @@ export function renderCombat() {
 
   // Combatant cards – rebuild from VM
   document.getElementById('leftCombat').replaceChildren(
-    combatantCard(vm.attacker, vm.activeSide === 'attacker', vm.phase)
+    combatantCard(vm.first, vm.activeSide === 'first', vm.phase)
   );
   document.getElementById('rightCombat').replaceChildren(
-    combatantCard(vm.defender, vm.activeSide === 'defender', vm.phase)
+    combatantCard(vm.second, vm.activeSide === 'second', vm.phase)
   );
 
   // Pick slots
@@ -33,13 +33,6 @@ export function renderCombat() {
   if (logEl) {
     logEl.textContent = vm.log.length > 0 ? vm.log[vm.log.length - 1] : '';
   }
-
-  // Commit button
-  const commitBtn = document.getElementById('commitCombat');
-  if (commitBtn) {
-    commitBtn.disabled = !vm.commit.enabled;
-    commitBtn.textContent = vm.commit.label;
-  }
 }
 
 // ─── Combatant card builder ──────────────────────────────────────────────
@@ -53,6 +46,14 @@ function combatantCard(vm, isActivePicker, phase) {
         color: 'var(--faction-color)',
       },
     }, vm.name),
+
+    // Badges row: role (First/Second) and optional Attacker marker
+    h('div', { class: 'combatant-badges' },
+      h('span', { class: 'badge badge-order' }, vm.roleLabel),
+      vm.isAttacker
+        ? h('span', { class: 'badge badge-attacker' }, 'Attacker')
+        : null
+    ),
 
     // HP bar
     h('div', { class: 'hpbar' },
@@ -81,8 +82,8 @@ function buildToken(pot, isActivePicker, phase) {
 
   return h('div', {
     class: classes.join(' '),
-    dataAction: isClickable ? 'pickCombatPower' : undefined,
-    dataF: pot.idx,
+    dataAction: isClickable ? 'combatPick' : undefined,
+    dataFaction: pot.idx,
     // Cross-highlight via heptagram widget (CSS :has(). outlines handle inline highlight)
     mouseenter: () => setHeptagramHighlight(pot.idx),
     mouseleave: () => setHeptagramHighlight(-1),
