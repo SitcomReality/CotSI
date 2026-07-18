@@ -154,19 +154,25 @@ async function handleRoundEnd() {
     if (refresh) refresh();
     return;
   }
+  const damageResult = resolveRoundDamage(_G, combat);
 
-  // --- Damage FX ---
-  if (result.damage > 0) {
+  // Trigger damage visual effects
+  if (damageResult.damage > 0) {
+    const damagedSide = damageResult.to === 'attacker'
+      ? 'first'   // attacker maps to first/second in combat
+      : 'second';
+    // Actually need to map: attacker can be first or second
     const attSide = sideOf(combat, combat.attacker);
-    const actualDamagedSide = result.to === 'attacker' ? attSide : (attSide === 'first' ? 'second' : 'first');
+    const actualDamagedSide = damageResult.to === 'attacker' ? attSide : (attSide === 'first' ? 'second' : 'first');
+
     const fxLayer = getFxLayer();
-    const damagedCard = getCard(actualDamagedSide);
+    const damagedCard = getCard(actualDamagedSide); // need getCard export
 
     // 1. Float damage text from the damaged card's HP bar
     if (fxLayer && damagedCard) {
       const hpBar = damagedCard.querySelector('.hpbar');
       if (hpBar) {
-        floatText(fxLayer, hpBar, `-${result.damage}`, 'damage');
+        floatText(fxLayer, hpBar, `-${damageResult.damage}`, 'damage');
       }
     }
 
@@ -175,7 +181,7 @@ async function handleRoundEnd() {
     flashCard(actualDamagedSide);
 
     // 3. Calculate new HP% and drain the bar
-    const damagedEntity = result.to === 'attacker' ? combat.attacker : combat.defender;
+    const damagedEntity = damageResult.to === 'attacker' ? combat.attacker : combat.defender;
     const newHpPct = Math.round((damagedEntity.hp / damagedEntity.maxHp) * 100);
     await drainHp(actualDamagedSide, newHpPct);
 
@@ -186,7 +192,7 @@ async function handleRoundEnd() {
   await wait(1200);
   if (!getCombatUI()) return;
 
-  nextCombatRound(combat); // re‑derives first/second from updated G.globalOrder
+  nextCombatRound(_G, combat); // re‑derives first/second from updated G.globalOrder
   renderCombat();
   // control returns to runCombatFlow loop
 }

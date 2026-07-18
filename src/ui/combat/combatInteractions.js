@@ -6,10 +6,10 @@ import {
   isPickingPhase,
   getAvailablePicks
 } from '../../game/combat/combat-index.js';
-import { getCombatUI } from './combatStateManager.js';
+import { getCombatUI, getToast } from './combatStateManager.js';
 import { renderCombat } from './combatRenderer.js';
 import { registerAction } from '../actionBus.js';
-import { runCombatFlow } from './combatLifecycle.js';
+import { closeCombat, runCombatFlow } from './combatLifecycle.js';
 
 // ---- Pick ----
 export function pickCombatPower(combat, side, factionIdx) {
@@ -48,5 +48,11 @@ export function wireCombatActions() {
     if (!Number.isFinite(f)) return;
 
     pickCombatPower(combat, side, f);
+  });
+
+  registerAction('fleeCombat', () => {
+    const toast = getToast();
+    if (toast) toast('Fled from combat.', false);
+    closeCombat();
   });
 }

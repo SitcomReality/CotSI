@@ -119,14 +119,18 @@ function buildToken(pot, isActivePicker, phase) {
 
   const isClickable = pot.pickable && phase.startsWith('pick');
 
-  return h('div', {
+  const props = {
     class: classes.join(' '),
-    dataAction: isClickable ? 'combatPick' : undefined,
     dataFaction: pot.idx,
     // Cross-highlight via heptagram widget (CSS :has(). outlines handle inline highlight)
     mouseenter: () => setHeptagramHighlight(pot.idx),
     mouseleave: () => setHeptagramHighlight(-1),
-  },
+  };
+  if (isClickable) {
+    props.dataAction = 'combatPick';
+  }
+
+  return h('div', props,
     h('div', { class: 'ctok__val' }, String(pot.val)),
     h('div', { class: 'ctok__glyph' }, pot.glyph),
   );
