@@ -179,7 +179,7 @@ function animateReveal(reveal) {
   // reveal has shape { first: { factionIdx, ... }, second: { factionIdx, ... } }
   const allSlots = document.querySelectorAll('.ctok');
   allSlots.forEach(el => {
-    const ownIdx = parseInt(el.dataset.f, 10);
+    const ownIdx = parseInt(el.dataset.faction, 10);
     if (ownIdx === reveal.first.factionIdx || ownIdx === reveal.second.factionIdx) {
       el.classList.add('reveal-pulse');
       setTimeout(() => el.classList.remove('reveal-pulse'), 1000);

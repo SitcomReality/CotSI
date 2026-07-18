@@ -4,7 +4,11 @@ import { FACTIONS } from '../../core/factions.js';
 import { setHeptagramHighlight } from '../heptagramWidget.js';
 import { h } from '../utils/dom.js';
 
+// ─── Order-pulse state ────────────────────────────────────────────────────
+let _previousOrderKey = null;
+
 export function renderCombat() {
+  initOrderPulse();
   const _combatUI = getCombatUI();
   if (!_combatUI) return;
   const _humanSide = getHumanSide(_combatUI);
@@ -35,10 +39,16 @@ export function renderCombat() {
     promptEl.textContent = vm.awaitingPrompt || '';
   }
 
-  // Order text
+  // Order text with pulse animation
   const orderEl = document.getElementById('combatOrder');
   if (orderEl) {
     orderEl.textContent = vm.order.text;
+    if (_previousOrderKey && _previousOrderKey !== vm.order.key) {
+      orderEl.classList.remove('order-pulse');
+      void orderEl.offsetWidth;          // force reflow
+      orderEl.classList.add('order-pulse');
+    }
+    _previousOrderKey = vm.order.key;
   }
 
   // Log (last entry)
@@ -48,10 +58,26 @@ export function renderCombat() {
   }
 }
 
+// ─── Order-pulse lazy init ────────────────────────────────────────────────────
+let _orderPulseInited = false;
+
+function initOrderPulse() {
+  if (_orderPulseInited) return;
+  const orderEl = document.getElementById('combatOrder');
+  if (!orderEl) return;
+  orderEl.addEventListener('animationend', () => {
+    orderEl.classList.remove('order-pulse');
+  });
+  _orderPulseInited = true;
+}
+
 // ─── Combatant card builder ──────────────────────────────────────────────
 
 function combatantCard(vm, isActivePicker, phase) {
-  return h('div', { class: 'combatant-card' },
+  const classes = ['combatant-card'];
+  if (isActivePicker) classes.push('is-active');
+
+  return h('div', { class: classes.join(' '), dataSide: vm.side },
     // Name with faction color via custom property
     h('h3', {
       style: {
