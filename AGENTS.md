@@ -2,13 +2,15 @@
 
 This file is a guide for AI coding agents working on **Champions of the Supernal Interregnum** (CotSI). It describes the project's purpose, technology stack, code organization, conventions, build/test workflow, and current architectural state. Read this before making changes.
 
+Always remember that you should ask questions if you are making changes and the user's intentions or desires are unclear. The user likes to talk to you and is delighted to be able to clarify or opine.
+
 ---
 
 ## Project Overview
 
 CotSI is a browser-based, single-player hex-crawl strategy game inspired by tabletop wargames and turn-based strategy games like Heroes of Might and Magic. The player (and AI bots) control one of the seven faction champions on a procedurally generated hex map, moving, fighting, trading, and digging for relics. The win conditions are a relic race and/or last-champion-standing.
 
-Combat is based on a 7 node, two paradoxical Paley tournament, meaning that each power wins against 3 powers and loses against 3 others. Faction i beats i+1, i+2, and i+4 mod 7.
+Combat is based on a 7 node, two paradoxical Paley tournament, meaning that each power wins against 3 powers and loses against 3 others.
 
 The game is intentionally built with **vanilla JavaScript and CSS** — no framework, no bundler, no build step. It runs directly in the browser from `index.html`.
 
@@ -217,9 +219,7 @@ window.__gameState; // same object as G
 - Inline styles are acceptable only for genuinely dynamic values (HP bar width, faction accent color via `--faction-color`). Everything else belongs in CSS.
 - Gold is intentionally rare; do not add it without reading the gold-budget rule in `styleguide.md`.
 
-### UI Architecture (In Progress Refactor)
-
-The project is mid-refactor from inline-HTML renderers to a cleaner architecture:
+### UI Architecture
 
 1. **CSS owns presentation.**
 2. **Render functions should be pure and thin**, producing view models and small HTML fragments.
@@ -232,7 +232,54 @@ New interactions should:
 - Use the `h()` helper in `src/ui/utils/dom.js` instead of `innerHTML` when building dynamic DOM fragments.
 - Add derived UI data to `src/ui/viewModels/` rather than computing it inside renderers.
 
-Some areas (combat renderer, left/right panels, tooltips) still use HTML strings and direct `addEventListener` calls. Do not expand those patterns; migrate toward the action-bus style when touching them.
+---
+
+## Game Rules and Mechanics
+
+### Global Rule: World-Map Turn Order Persistence
+
+- `G.globalOrder` is the **persistent** turn order.
+- At the start of each world day, `G.currentOrder` is snapshotted from
+  `G.globalOrder` (filtered to alive champions). Map movement cycles
+  through `G.currentOrder` for that day.
+- Mutations to `G.globalOrder` during combat **do not** affect
+  `G.currentOrder` until the **next world day**, when a fresh snapshot
+  is taken.
+
+### Combat Round Flow
+
+#### 1. Initiative
+At combat start, the two combatants are ordered by their position in
+`G.globalOrder`: the earlier champion acts **first**, the later champion
+**second**. These roles are stored as `combat.first` / `combat.second`.
+The champion who initiated the fight is `combat.attacker`; this dictates
+reward eligibility, not pick order.
+
+#### 2. First Exchange (hidden, simultaneous reveal)
+- `combat.first` secretly picks a colour.
+- `combat.second` secretly picks a colour.
+- After a short delay both picks are revealed simultaneously.
+
+#### 3. Second Exchange (hidden, reverse order)
+- **`combat.second`** picks first.
+- **`combat.first`** picks second.
+- Both are revealed simultaneously.
+
+> Reversing the order prevents a permanent information advantage across the two exchanges in hot-seat games where choices can't be concealed.
+
+#### 4. Score Calculation & Animation
+All four revealed colours are accumulated into the round score.
+Animations highlight every contributing element.
+
+#### 5. Round End & Turn Order Shift
+- If a champion **took damage** during the round, their position in
+  `G.globalOrder` moves immediately **in front of** the champion who
+  damaged them.
+- The damaged champion will therefore act first in the next combat round.
+
+#### 6. Next Round
+A new round begins using the same `combat.first`/`second` assignments
+(which reflect the now-updated `G.globalOrder`). Steps 2–5 repeat.
 
 ---
 
@@ -244,13 +291,9 @@ There is **no build step**. The project runs as static files. Any modern static 
 
 ### Test
 
-There is **no test framework** currently installed. The project is verified manually by:
+There is **no test framework** currently installed. The project is verified manually by using a local server.
 
-1. Starting a static server on `localhost:8080`.
-2. Opening the game in a browser.
-3. Running through setup, movement, combat, and victory paths.
-
-If you add tests, prefer a lightweight, browser-compatible runner (for example, a Node-based ESM test runner) and document the command here.
+AI devs can't run the game, but the user is always excited to perform any testing requested, to provide needed data; feedback, logs, etc.
 
 ### Deployment
 
@@ -274,14 +317,6 @@ No server-side runtime is required.
 ---
 
 ## Common Tasks
-
-### Add a new faction
-
-Edit `src/core/factions.js`:
-
-- Add a new entry to `FACTIONS`.
-- Add the corresponding CSS variables in `styles/abstracts/tokens/factions.css`.
-- Update the Paley `beats` logic if the tournament topology changes (currently fixed at 7 factions).
 
 ### Add a new UI interaction
 
@@ -307,3 +342,9 @@ Edit `src/game/victory.js` and the `objectives` object passed from `setupUI.js`/
 - The intentional circular dependency between `game/session/` modules and some UI/game modules is now managed through the `liveGame.js` singleton.
 
 When in doubt, prefer consistency with the files in `src/ui/actionBus.js`, `src/ui/setupUI.js`, `src/ui/viewModels/championVM.js`, and `src/ui/utils/dom.js` — these represent the current direction.
+
+---
+
+## Ask Questions if anything's unclear
+
+- The user is here to provide any extra information requested!

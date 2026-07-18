@@ -42,7 +42,7 @@
 .ctok.pickable:hover{transform:scale(1.15);border-color:#c49b5a;background:#fff4cf}
 .ctok.used{opacity:0.5;pointer-events:none}
 .ctok.unavailable{opacity:0.3;pointer-events:none}
-.ctok.potency-hover{transform:scale(1.15)}
+
 .ctok.reveal-pulse{transform:scale(1.15);transition:transform 0.3s}
 
 /* Pick slots */

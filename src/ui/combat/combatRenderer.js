@@ -72,7 +72,7 @@ function combatantCard(vm, isActivePicker, phase) {
 // ─── Potency token builder ──────────────────────────────────────────────
 
 function buildToken(pot, isActivePicker, phase) {
-  const classes = ['ctok'];
+  const classes = ['ctok', 'paley-item', 'paley-item--f' + pot.idx];
   if (pot.used) classes.push('used');
   if (pot.unavailable) classes.push('unavailable');
   if (pot.pickable) classes.push('pickable');
@@ -83,9 +83,9 @@ function buildToken(pot, isActivePicker, phase) {
     class: classes.join(' '),
     dataAction: isClickable ? 'pickCombatPower' : undefined,
     dataF: pot.idx,
-    // Cross-highlight on hover
-    mouseenter: () => highlightTokens(pot.idx),
-    mouseleave: () => highlightTokens(-1),
+    // Cross-highlight via heptagram widget (CSS :has(). outlines handle inline highlight)
+    mouseenter: () => setHeptagramHighlight(pot.idx),
+    mouseleave: () => setHeptagramHighlight(-1),
   },
     h('div', { class: 'ctok__val' }, String(pot.val)),
     h('div', { class: 'ctok__glyph' }, pot.glyph),
@@ -129,16 +129,8 @@ function buildSlotEl(id, slot) {
   return h('div', { id, class: 'play-slot' }, placeholder);
 }
 
-// ─── Cross-token highlight helper ───────────────────────────────────────
+// ─── Cross-token highlight helper (deprecated — CSS :has() handles this now) ──
 
-function highlightTokens(factionIdx) {
-  document.querySelectorAll('.ctok').forEach(el => {
-    el.classList.remove('potency-hover');
-  });
-  if (factionIdx >= 0) {
-    document.querySelectorAll(`.ctok[data-f="${factionIdx}"]`).forEach(el => {
-      el.classList.add('potency-hover');
-    });
-  }
-  setHeptagramHighlight(factionIdx);
+function highlightTokens(_factionIdx) {
+  // Handled via .paley-item CSS :has() rules
 }

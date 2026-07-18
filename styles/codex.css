@@ -28,6 +28,7 @@
 @import "./components/hud.css";
 @import "./components/map-controls.css";
 @import "./components/log-bar.css";
+@import './components/paley-cross-highlight.css';
 
 /* Layout layer */
 @import "./layout/game-grid.css";

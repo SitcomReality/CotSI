@@ -53,7 +53,7 @@ export function bindLeftPanel(G) {
       const fac = FACTIONS[i];
       const isPrimary = i === ch.faction; // preserve visual regression fix
       container.appendChild(
-        h('div', { class: 'left-potency-row' },
+        h('div', { class: 'left-potency-row paley-item paley-item--f' + i },
           h('span', { class: 'left-potency-dot', style: { background: fac.color } }),
           h('span', { class: 'left-potency-track' },
             h('span', { class: 'left-potency-fill', style: { width: Math.min(100, v * 6) + '%', background: fac.color } })

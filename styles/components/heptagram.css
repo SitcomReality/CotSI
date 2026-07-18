@@ -46,3 +46,12 @@
   fill: var(--ink-soft);
   font-family: var(--font-body);
 }
+
+/* ----- Hover enlargement: hover any .paley-item--fN → enlarge that circle ----- */
+html:has(.paley-item--f0:hover) .rt-heptagram-node[data-index="0"] { r: 17; stroke-width: 2.5; }
+html:has(.paley-item--f1:hover) .rt-heptagram-node[data-index="1"] { r: 17; stroke-width: 2.5; }
+html:has(.paley-item--f2:hover) .rt-heptagram-node[data-index="2"] { r: 17; stroke-width: 2.5; }
+html:has(.paley-item--f3:hover) .rt-heptagram-node[data-index="3"] { r: 17; stroke-width: 2.5; }
+html:has(.paley-item--f4:hover) .rt-heptagram-node[data-index="4"] { r: 17; stroke-width: 2.5; }
+html:has(.paley-item--f5:hover) .rt-heptagram-node[data-index="5"] { r: 17; stroke-width: 2.5; }
+html:has(.paley-item--f6:hover) .rt-heptagram-node[data-index="6"] { r: 17; stroke-width: 2.5; }

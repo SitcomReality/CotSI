@@ -25,7 +25,7 @@ export function initSetup() {
       const el = h(
         'div',
         {
-          class: 'fopt' + (r.enabled ? ' on' : ''),
+          class: 'fopt paley-item paley-item--f' + idx + (r.enabled ? ' on' : ''),
           dataAction: 'toggleFaction',
           dataIdx: idx,
           style: { '--faction-color': r.color },

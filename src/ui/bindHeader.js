@@ -58,7 +58,7 @@ function buildDetailCard(vm, champ) {
     const val = vm.pots[i];
     if (val <= 0) continue;
     potRows.push(
-      h('div', { class: 'detail__pot-row' },
+      h('div', { class: 'detail__pot-row paley-item paley-item--f' + i },
         h('span', { class: 'detail__pot-dot', style: { background: FACTIONS[i].color } }),
         h('span', { class: 'detail__pot-name' }, FACTIONS[i].short),
         h('span', { class: 'detail__pot-val' }, String(val))
@@ -124,7 +124,7 @@ export function refreshHeader(G) {
 
     const vm = championVM(G, champ);
     const pill = h('div', {
-      class: 'header__champion',
+      class: 'header__champion paley-item paley-item--f' + champ.faction,
       dataState: state,
       dataChampId: champ.id,
       // --faction-color is genuinely dynamic (per-champion)
