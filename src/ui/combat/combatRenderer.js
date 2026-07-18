@@ -173,9 +173,3 @@ function buildSlotEl(id, slot) {
     : (id.endsWith('1') ? 'Pick 1' : 'Pick 2');
   return h('div', { id, class: 'play-slot' }, placeholder);
 }
-
-// ─── Cross-token highlight helper (deprecated — CSS :has() handles this now) ──
-
-function highlightTokens(_factionIdx) {
-  // Handled via .paley-item CSS :has() rules
-}

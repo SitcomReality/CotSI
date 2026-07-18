@@ -9,7 +9,8 @@ import {
 import { getCombatUI, getToast } from './combatStateManager.js';
 import { renderCombat } from './combatRenderer.js';
 import { registerAction } from '../actionBus.js';
-import { closeCombat, runCombatFlow } from './combatLifecycle.js';
+import { closeCombat } from './combatLifecycle.js';
+import { runCombatFlow } from './combatFlow.js';
 
 // ---- Pick ----
 export function pickCombatPower(combat, side, factionIdx) {
