@@ -224,6 +224,7 @@ window.__gameState; // same object as G
 1. **CSS owns presentation.**
 2. **Render functions should be pure and thin**, producing view models and small HTML fragments.
 3. **One delegated action bus** in `src/ui/actionBus.js` handles all `[data-action]` clicks.
+4. **Highly modular code**: single-purpose files with unique and descriptive filenames.
 
 New interactions should:
 
