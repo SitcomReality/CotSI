@@ -8,6 +8,11 @@
    Update both files together if faction relationships change.
    ========================================================================= */
 
+.paley-item {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
 /* ── Hovered item itself ── */
 .paley-item:hover {
   outline: 2px solid var(--gold);
