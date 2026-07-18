@@ -1,57 +1,51 @@
-import { getCombatUI, setCombatUI, getGameState } from './combatStateManager.js';
-import { getActiveCombatant, getAvailablePicks, botCombatPick, recordPick, advancePhase, isPickingPhase, isRevealPhase } from '../../game/combat/combat-index.js';
+import {
+  recordPick,
+  advancePhase,
+  bothPicksIn,
+  isPickingPhase,
+  getAvailablePicks
+} from '../../game/combat/combat-index.js';
+import { getCombatUI } from './combatStateManager.js';
 import { renderCombat } from './combatRenderer.js';
-import { continueCombatFlow, processRevealPhase } from './combatLifecycle.js';
 import { registerAction } from '../actionBus.js';
+import { runCombatFlow } from './combatLifecycle.js';
 
-// ── Human click-to-pick via action bus ──
-registerAction('pickCombatPower', (el) => {
+// ---- Pick ----
+export function pickCombatPower(factionIdx) {
+  const combat = getCombatUI();
+  if (!combat || !isPickingPhase(combat)) return;
 
-  const _combatUI = getCombatUI();
-  if (!_combatUI || !isPickingPhase(_combatUI)) return;
-  const entity = getActiveCombatant(_combatUI);
-  if (!entity || entity.controller !== 'human') return;
-
-  const pick = parseInt(el.dataset.f, 10);
-  if (isNaN(pick) || pick < 0 || pick > 6) return;
-
-  // Guard: not already picked this round
-  const currentPicks = _combatUI.roundPicks[_combatUI.awaitingPick];
-  if (currentPicks.includes(pick)) return;
-
-  // Guard: available per bot rules (potencyWithPrimary > 0)
-  const available = getAvailablePicks(entity);
-  if (!available.includes(pick)) return;
-
-  recordCombatPick(_combatUI, pick);
-  advanceCombatPhase(_combatUI);
-  renderCombat();
-  continueCombatFlow();
-});
-
-// ── Commit reveals via action bus ──
-registerAction('commitCombat', () => {
-  const _combatUI = getCombatUI();
-  if (!_combatUI || !isRevealPhase(_combatUI)) return;
-  processRevealPhase();
-});
-
-export function makeBotPick() {
-  const _combatUI = getCombatUI();
-  if (!_combatUI || !isPickingPhase(_combatUI)) return;
-  const entity = getActiveCombatant(_combatUI);
-  if (!entity || entity.controller !== 'bot') return;
-
-  const opponentPicks = _combatUI.awaitingPick === 'attacker'
-    ? _combatUI.roundPicks.defender
-    : _combatUI.roundPicks.attacker;
+  const side = combat.awaitingSide;
+  const entity = entityFor(combat, side);
+  if (!entity || entity.controller !== 'human') return; // not human's turn
 
   const available = getAvailablePicks(entity);
-  const pick = botCombatPick(entity, opponentPicks, available);
-  if (pick == null) return;
+  if (!available.includes(factionIdx)) return; // no‑repeat guard
 
-  recordCombatPick(_combatUI, pick);
-  advanceCombatPhase(_combatUI);
+  recordPick(combat, side, factionIdx);
+
+  if (bothPicksIn(combat)) {
+    advancePhase(combat);
+  }
+
   renderCombat();
-  continueCombatFlow();
+  runCombatFlow(); // resume sequencer (may handle next non‑human or reveal)
+}
+
+// ---- Action bus wiring (called once, e.g. in initCombatModal) ----
+export function wireCombatActions() {
+  // Human pick: faction button click uses data‑action and data‑faction
+  registerAction('combatPick', (el) => {
+    const factionIdx = parseInt(el.dataset.faction, 10);
+    pickCombatPower(factionIdx);
+  });
+
+}
+
+// ---- Bot/Mob pick ----
+// This function is no longer needed; the sequencer handles it.
+// But we keep a stub for compatibility (or remove if nothing calls it).
+export function makeBotPick(entity) {
+  // Not called directly anymore; sequencer uses botCombatPick internally.
+  // Can be safely deleted if no external references.
 }

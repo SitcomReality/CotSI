@@ -1,5 +1,30 @@
+## 2. Rewrite `combatLifecycle.js` – the async sequencer
+
+The core logic:
+
+- Loop through phases.
+- If `isPickingPhase(combat)`:
+  - Get the side that should pick (`awaitingSide`).
+  - If the entity is **not** human → auto‑pick after `450 ms`, record, check `bothPicksIn`, advance phase if needed, re‑render, then **continue** the loop (to possibly handle the other side or enter reveal).
+  - If the entity **is** human → **break** the loop. The action bus handler (`pickCombatPower`) will call `recordPick`, check `bothPicksIn`/advance, render, and then call `runCombatFlow()` again.
+- If `isRevealPhase(combat)`:
+  - Call `processReveal(G, combat)` and capture the `lastReveal`.
+  - Animate (placeholder for Phase 4).
+  - Wait `900 ms`, check cancellation, advance phase, re‑render, **continue**.
+- If `phase === 'roundEnd'`:
+  - Apply final bonuses, resolve damage, check deaths.
+  - On death→close combat, reward modal, return.
+  - On no death→wait `1200 ms`, `nextCombatRound`, re‑render, **continue**.
+
+**Cancellation guard**: after every `await`, check `if (!getCombatUI()) return;`.
+
+**Re‑entry guard**: at the top of `startCombat`, `if (getCombatUI()) return;`.
+
+Here’s the full new `combatLifecycle.js`:
+
+```javascript
+// src/ui/combat/combatLifecycle.js
 import {
-  createCombatState,
   isPickingPhase,
   isRevealPhase,
   recordPick,
