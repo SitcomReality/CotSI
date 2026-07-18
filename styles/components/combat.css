@@ -1,0 +1,62 @@
+/* ==========================================================================
+   Combat UI
+   Styles for the combat modal — slots, cards, order pulse, FX overlay.
+   ========================================================================== */
+
+/* ── Combatant Cards ──────────────────────────────────────────────────────── */
+
+.combatant-card {
+  position: relative;
+  transition: box-shadow 200ms ease, outline 200ms ease;
+}
+
+.combatant-card.is-active {
+  outline: 2px solid var(--accent, #c9a84c);
+  box-shadow: 0 0 0.75rem var(--accent-soft, rgba(201, 168, 76, 0.35));
+}
+
+/* ── Colour Pick Slots ────────────────────────────────────────────────────── */
+
+.combat-slot {
+  transition: opacity 250ms ease, filter 250ms ease;
+}
+
+.combat-slot.is-hidden {
+  opacity: 0.75;
+  filter: grayscale(0.6);
+}
+
+.combat-slot.is-hidden .slot-value {
+  font-family: monospace;
+}
+
+/* ── Order Display Pulse ──────────────────────────────────────────────────── */
+
+#combatOrder.order-pulse {
+  animation: combat-order-pulse 500ms ease-out;
+}
+
+@keyframes combat-order-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  45% {
+    transform: scale(1.04);
+    filter: brightness(1.35);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* ── FX / Effects Overlay Layer ───────────────────────────────────────────── */
+
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 5;
+}

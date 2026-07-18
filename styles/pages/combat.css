@@ -107,3 +107,4 @@ button.btn-gold:disabled {
   font-size: 32px;
   margin: 10px 0;
 }
+/* fx-layer is defined in components/combat.css with z-index: 5 */

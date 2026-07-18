@@ -26,6 +26,7 @@
 @import "./components/forms.css";
 @import "./components/stats.css";
 @import "./components/hud.css";
+@import "./components/combat.css";   /* combat component styles — cards, slots, order pulse, fx layer */
 @import "./components/map-controls.css";
 @import "./components/log-bar.css";
 @import './components/paley-cross-highlight.css';

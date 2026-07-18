@@ -91,6 +91,10 @@ You will likely also need CSS later:
 
 ---
 
+Complete to here 2026-07-18
+
+---
+
 ## 3. Update combat CSS/supporting styles
 
 Even though CSS was not listed as a main implementation file, the renderer changes need styling hooks.

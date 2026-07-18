@@ -1,5 +1,5 @@
 import { getCombatUI } from './combatStateManager.js';
-import { getCombatVM } from '../viewModels/combatVM.js';
+import { getCombatVM, getHumanSide } from '../viewModels/combatVM.js';
 import { FACTIONS } from '../../core/factions.js';
 import { setHeptagramHighlight } from '../heptagramWidget.js';
 import { h } from '../utils/dom.js';
@@ -7,7 +7,8 @@ import { h } from '../utils/dom.js';
 export function renderCombat() {
   const _combatUI = getCombatUI();
   if (!_combatUI) return;
-  const vm = getCombatVM(_combatUI);
+  const _humanSide = getHumanSide(_combatUI);
+  const vm = getCombatVM(_combatUI, { humanSide: _humanSide });
   if (!vm) return;
 
   // Round label
@@ -27,6 +28,18 @@ export function renderCombat() {
   // Scores
   document.getElementById('csLeft').textContent = vm.scores.left;
   document.getElementById('csRight').textContent = vm.scores.right;
+
+  // Awaiting prompt
+  const promptEl = document.getElementById('awaitingPrompt');
+  if (promptEl) {
+    promptEl.textContent = vm.awaitingPrompt || '';
+  }
+
+  // Order text
+  const orderEl = document.getElementById('combatOrder');
+  if (orderEl) {
+    orderEl.textContent = vm.order.text;
+  }
 
   // Log (last entry)
   const logEl = document.getElementById('combatLog');
@@ -111,16 +124,17 @@ function updatePickSlots(slots) {
 }
 
 function buildSlotEl(id, slot) {
-  if (slot.text) {
-    const classes = ['play-slot'];
-    if (slot.revealed) classes.push('revealed');
+  const classes = ['play-slot'];
+  if (slot.hidden) classes.push('hidden-pick');
+  if (slot.revealed) classes.push('revealed');
 
-    const props = { id, class: classes.join(' ') };
-    if (slot.factionIdx != null) {
-      props.style = { '--slot-color': FACTIONS[slot.factionIdx].color };
-    }
+  const props = { id, class: classes.join(' ') };
+  if (slot.factionIdx != null && !slot.hidden) {
+    props.style = { '--slot-color': FACTIONS[slot.factionIdx].color };
+  }
 
-    return h('div', props, slot.text);
+  if (!slot.isPlaceholder) {
+    return h('div', props, slot.label);
   }
 
   // Empty slot — show placeholder text
