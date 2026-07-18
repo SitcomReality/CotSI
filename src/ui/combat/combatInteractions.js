@@ -12,11 +12,9 @@ import { registerAction } from '../actionBus.js';
 import { runCombatFlow } from './combatLifecycle.js';
 
 // ---- Pick ----
-export function pickCombatPower(factionIdx) {
-  const combat = getCombatUI();
+export function pickCombatPower(combat, side, factionIdx) {
   if (!combat || !isPickingPhase(combat)) return;
 
-  const side = combat.awaitingSide;
   const entity = entityFor(combat, side);
   if (!entity || entity.controller !== 'human') return; // not human's turn
 
@@ -37,7 +35,18 @@ export function pickCombatPower(factionIdx) {
 export function wireCombatActions() {
   // Human pick: faction button click uses data-action and data-faction
   registerAction('combatPick', (el) => {
-    const factionIdx = parseInt(el.dataset.faction, 10);
-    pickCombatPower(factionIdx);
+    const combat = getCombatUI();
+    if (!combat || !isPickingPhase(combat)) return;
+
+    const side = combat.awaitingSide;
+    if (!side) return;
+
+    const entity = entityFor(combat, side);
+    if (!entity || entity.controller !== 'human') return;
+
+    const f = Number(el.dataset.faction);
+    if (!Number.isFinite(f)) return;
+
+    pickCombatPower(combat, side, f);
   });
 }
