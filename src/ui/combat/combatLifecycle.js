@@ -94,10 +94,10 @@ export async function runCombatFlow() {
       const _G = getGameState();
       const reveal = processReveal(_G, combat); // writes combat.lastReveal
       if (reveal) {
-        animateReveal(reveal); // Phase 4 placeholder
+        await animateReveal(reveal); // Phase 4 placeholder — await for FX completion
       }
       renderCombat();
-      await wait(900);
+      await wait(1200); // extra hold for the eye to register
       if (!getCombatUI()) return;
 
       advancePhase(combat);
@@ -154,25 +154,20 @@ async function handleRoundEnd() {
     if (refresh) refresh();
     return;
   }
-  const damageResult = resolveRoundDamage(_G, combat);
 
-  // Trigger damage visual effects
-  if (damageResult.damage > 0) {
-    const damagedSide = damageResult.to === 'attacker'
-      ? 'first'   // attacker maps to first/second in combat
-      : 'second';
-    // Actually need to map: attacker can be first or second
+  // Trigger damage visual effects (using result from first resolveRoundDamage call)
+  if (result.damage > 0) {
     const attSide = sideOf(combat, combat.attacker);
-    const actualDamagedSide = damageResult.to === 'attacker' ? attSide : (attSide === 'first' ? 'second' : 'first');
+    const actualDamagedSide = result.to === 'attacker' ? attSide : (attSide === 'first' ? 'second' : 'first');
 
     const fxLayer = getFxLayer();
-    const damagedCard = getCard(actualDamagedSide); // need getCard export
+    const damagedCard = getCard(actualDamagedSide);
 
     // 1. Float damage text from the damaged card's HP bar
     if (fxLayer && damagedCard) {
       const hpBar = damagedCard.querySelector('.hpbar');
       if (hpBar) {
-        floatText(fxLayer, hpBar, `-${damageResult.damage}`, 'damage');
+        floatText(fxLayer, hpBar, `-${result.damage}`, 'damage');
       }
     }
 
@@ -181,7 +176,7 @@ async function handleRoundEnd() {
     flashCard(actualDamagedSide);
 
     // 3. Calculate new HP% and drain the bar
-    const damagedEntity = damageResult.to === 'attacker' ? combat.attacker : combat.defender;
+    const damagedEntity = result.to === 'attacker' ? combat.attacker : combat.defender;
     const newHpPct = Math.round((damagedEntity.hp / damagedEntity.maxHp) * 100);
     await drainHp(actualDamagedSide, newHpPct);
 
