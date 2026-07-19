@@ -17,8 +17,8 @@ const REVEAL_MS = 650;
 function sectionEl(index, label, lines) {
   return h(
     'section',
-    { class: 'dispatch__section', style: { '--i': index } },
-    h('div', { class: 'dispatch__section-label' }, label),
+    { class: 'dispatch-modal__section', style: { '--i': index } },
+    h('div', { class: 'dispatch-modal__section-label' }, label),
     ...lines
   );
 }
@@ -26,9 +26,9 @@ function sectionEl(index, label, lines) {
 function taggedLine(tag, text, tone) {
   return h(
     'div',
-    { class: `dispatch__line dispatch__line--${tone}` },
-    h('span', { class: 'dispatch__tag' }, tag),
-    h('span', { class: 'dispatch__text' }, text)
+    { class: `dispatch-modal__line dispatch-modal__line--${tone}` },
+    h('span', { class: 'dispatch-modal__tag' }, tag),
+    h('span', { class: 'dispatch-modal__text' }, text)
   );
 }
 
@@ -49,13 +49,13 @@ export function openDispatchModal(report) {
   card.style.setProperty('--faction-color', report.color);
 
   headerEl.replaceChildren(
-    h('div', { class: 'dispatch__glyph' }, report.glyph),
+    h('div', { class: 'dispatch-modal__glyph' }, report.glyph),
     h(
       'div',
-      { class: 'dispatch__titleblock' },
-      h('div', { class: 'dispatch__kicker' }, `Augur's Dispatch — Day ${report.day} · Week ${report.week}`),
-      h('div', { class: 'dispatch__name' }, report.name),
-      h('div', { class: 'dispatch__weather' }, `${report.weather.name} — ${report.weather.text}`)
+      { class: 'dispatch-modal__titleblock' },
+      h('div', { class: 'dispatch-modal__kicker' }, `Augur's Dispatch — Day ${report.day} · Week ${report.week}`),
+      h('div', { class: 'dispatch-modal__name' }, report.name),
+      h('div', { class: 'dispatch-modal__weather' }, `${report.weather.name} — ${report.weather.text}`)
     )
   );
 
@@ -65,16 +65,16 @@ export function openDispatchModal(report) {
   ];
 
   const ledgerLines = report.ledger.length
-    ? report.ledger.map((entry) => h('div', { class: `dispatch__line dispatch__line--${entry.sign}` }, entry.text))
-    : [h('div', { class: 'dispatch__line dispatch__line--neutral' }, '— the page is blank —')];
+    ? report.ledger.map((entry) => h('div', { class: `dispatch-modal__line dispatch-modal__line--${entry.sign}` }, entry.text))
+    : [h('div', { class: 'dispatch-modal__line dispatch-modal__line--neutral' }, '— the page is blank —')];
 
   bodyEl.replaceChildren(sectionEl(1, 'Auguries', auguryLines), sectionEl(2, 'Ledger', ledgerLines));
 
   // Reveal: veil → un-veil on the next frame so the CSS transitions run.
-  card.classList.add('dispatch-card--veiled');
+  card.classList.add('dispatch-modal-card--veiled');
   ackBtn.disabled = true;
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => card.classList.remove('dispatch-card--veiled'));
+    requestAnimationFrame(() => card.classList.remove('dispatch-modal-card--veiled'));
   });
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   setTimeout(() => {

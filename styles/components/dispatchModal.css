@@ -6,7 +6,7 @@
    redesign pass.
    ========================================================================= */
 
-.dispatch-card {
+.dispatch-modal-card {
   width: min(560px, 94vw);
   max-height: 88vh;
   overflow-y: auto;
@@ -22,7 +22,7 @@
 }
 
 /* ── Header: heraldry first (hot-seat clarity) ── */
-.dispatch-header {
+.dispatch-modal-header {
   --i: 0;
   display: flex;
   align-items: center;
@@ -31,7 +31,7 @@
   border-bottom: var(--hair) solid var(--rule);
 }
 
-.dispatch__glyph {
+.dispatch-modal__glyph {
   font-size: var(--fs-2xl);
   line-height: 1;
   color: var(--faction-color, var(--ink));
@@ -39,13 +39,13 @@
   text-align: center;
 }
 
-.dispatch__titleblock {
+.dispatch-modal__titleblock {
   display: flex;
   flex-direction: column;
   gap: var(--s1);
 }
 
-.dispatch__kicker {
+.dispatch-modal__kicker {
   font-family: var(--font-display);
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-cap);
@@ -53,14 +53,14 @@
   color: var(--ink-faint);
 }
 
-.dispatch__name {
+.dispatch-modal__name {
   font-family: var(--font-display);
   font-size: var(--fs-lg);
   letter-spacing: var(--ls-display);
   color: var(--faction-color, var(--ink));
 }
 
-.dispatch__weather {
+.dispatch-modal__weather {
   font-family: var(--font-body);
   font-style: italic;
   font-size: var(--fs-sm);
@@ -68,13 +68,13 @@
 }
 
 /* ── Sections ── */
-.dispatch__section {
+.dispatch-modal__section {
   display: flex;
   flex-direction: column;
   gap: var(--s2);
 }
 
-.dispatch__section-label {
+.dispatch-modal__section-label {
   font-family: var(--font-display);
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-cap);
@@ -84,7 +84,7 @@
   padding-bottom: var(--s1);
 }
 
-.dispatch__line {
+.dispatch-modal__line {
   display: flex;
   gap: var(--s3);
   font-size: var(--fs-sm);
@@ -92,7 +92,7 @@
   color: var(--ink);
 }
 
-.dispatch__tag {
+.dispatch-modal__tag {
   flex: 0 0 74px;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
@@ -103,30 +103,30 @@
 }
 
 /* Line tones — semantic state pigments used at caption weight only */
-.dispatch__line--gain { color: var(--malachite); }
-.dispatch__line--loss { color: var(--vermilion); }
-.dispatch__line--neutral { color: var(--ink-soft); }
-.dispatch__line--moves .dispatch__text { font-weight: 600; }
-.dispatch__line--boon .dispatch__tag { color: var(--malachite); }
-.dispatch__line--burden .dispatch__tag { color: var(--vermilion); }
+.dispatch-modal__line--gain { color: var(--malachite); }
+.dispatch-modal__line--loss { color: var(--vermilion); }
+.dispatch-modal__line--neutral { color: var(--ink-soft); }
+.dispatch-modal__line--moves .dispatch-modal__text { font-weight: 600; }
+.dispatch-modal__line--boon .dispatch-modal__tag { color: var(--malachite); }
+.dispatch-modal__line--burden .dispatch-modal__tag { color: var(--vermilion); }
 
 /* ── Acknowledge ── */
-.dispatch-btn {
+.dispatch-modal-btn {
   --i: 3;
   align-self: center;
   min-width: 180px;
   margin-top: var(--s2);
 }
 
-.dispatch-btn:disabled {
+.dispatch-modal-btn:disabled {
   opacity: 0.45;
   cursor: default;
 }
 
 /* ── Reveal: veil lifted by JS on the next frame; stagger via --i ── */
-.dispatch-header,
-.dispatch__section,
-.dispatch-btn {
+.dispatch-modal-header,
+.dispatch-modal__section,
+.dispatch-modal-btn {
   opacity: 1;
   transform: translateY(0);
   transition:
@@ -135,17 +135,17 @@
   transition-delay: calc(var(--i, 0) * 90ms);
 }
 
-.dispatch-card--veiled .dispatch-header,
-.dispatch-card--veiled .dispatch__section,
-.dispatch-card--veiled .dispatch-btn {
+.dispatch-modal-card--veiled .dispatch-modal-header,
+.dispatch-modal-card--veiled .dispatch-modal__section,
+.dispatch-modal-card--veiled .dispatch-modal-btn {
   opacity: 0;
   transform: translateY(8px);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dispatch-header,
-  .dispatch__section,
-  .dispatch-btn {
+  .dispatch-modal-header,
+  .dispatch-modal__section,
+  .dispatch-modal-btn {
     transition: none;
   }
 }

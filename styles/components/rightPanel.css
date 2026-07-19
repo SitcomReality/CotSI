@@ -1,6 +1,11 @@
 /* =========================================================================
-   CHAMPION DETAIL DROPDOWN  — Card-stack info card for champion hover/click.
-   Isolated from header.css per uxplan.md Step 11.
+   RIGHT PANEL  — Champion detail view (extracted from championDetail.css).
+   
+   Displays the currently inspected champion's stats, HP, resources, and
+   potency breakdown. Positioned as a dropdown beneath the header champion
+   pills; will migrate to a dedicated right-side panel in a future pass.
+   
+   Extracted from components/championDetail.css per dev/cssConImp.md Phase 1 §4.
    ========================================================================= */
 
 /* ── Container ────────────────────────────────────────── */

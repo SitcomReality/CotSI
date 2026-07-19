@@ -368,21 +368,21 @@ If you find yourself computing a CSS class name in JS (e.g., `` `btn ${isPrimary
 |------|------|--------|-------|
 | 1 | `modalShell.css` | Create (extract from pages/combat.css) | ☐ |
 | 2 | `combatModal.css` | Create (merge pages/combat.css + components/combat.css) | ☐ |
-| 3 | `pages/setup.css` | → `components/setupScreen.css` | ☐ |
-| 4 | `components/dispatch.css` | → `components/dispatchModal.css` (audit class names) | ☐ |
-| 5 | `components/heptagram.css` | → `components/heptagramWidget.css` | ☐ |
-| 6 | `components/header.css` | → `components/headerPanel.css` | ☐ |
-| 7 | `components/log-bar.css` | → `components/logPanel.css` | ☐ |
-| 8 | `components/champion-detail.css` | → `components/championDetail.css` | ☐ |
-| 9 | `components/panel.css` | → `components/manuscriptPanel.css` | ☐ |
-| 10 | `components/buttons.css` | → `components/button.css` | ☐ |
-| 11 | `components/buttons-core.css` | → `components/buttonCore.css` | ☐ |
-| 12 | `components/buttons-legacy.css` | → `components/buttonLegacy.css` | ☐ |
-| 13 | `components/card-variants.css` | → `components/cardVariants.css` | ☐ |
-| 14 | `components/left-champion-card.css` | → `components/championPanel.css` | ☐ |
-| 15 | `components/left-champion-card/hp-row.css` | → `hpRow.css` | ☐ |
-| 16 | `layout/game-grid.css` | → `layout/gameGrid.css` | ☐ |
-| 17 | `pages/token-sheet.css` | → `abstracts/tokenSheet.css` | ☐ |
+| 3 | `pages/setup.css` | → `components/setupScreen.css` | ☑ |
+| 4 | `components/dispatch.css` | → `components/dispatchModal.css` (audit class names) | ☑ |
+| 5 | `components/heptagram.css` | → `components/heptagramWidget.css` | ☑ |
+| 6 | `components/header.css` | → `components/headerPanel.css` | ☑ |
+| 7 | `components/log-bar.css` | → `components/logPanel.css` | ☑ |
+| 8 | `components/champion-detail.css` | → `components/championDetail.css` | ☑ |
+| 9 | `components/panel.css` | → `components/manuscriptPanel.css` | ☑ |
+| 10 | `components/buttons.css` | → `components/button.css` | ☑ |
+| 11 | `components/buttons-core.css` | → `components/buttonCore.css` | ☑ |
+| 12 | `components/buttons-legacy.css` | → `components/buttonLegacy.css` | ☑ |
+| 13 | `components/card-variants.css` | → `components/cardVariants.css` | ☑ |
+| 14 | `components/left-champion-card.css` | → `components/championPanel.css` | ☑ |
+| 15 | `components/left-champion-card/hp-row.css` | → `hpRow.css` | ☑ |
+| 16 | `layout/game-grid.css` | → `layout/gameGrid.css` | ☑ |
+| 17 | `pages/token-sheet.css` | → `abstracts/tokenSheet.css` | ☑ |
 | 18 | `ui/overlays.css` | Dismantle (merge toast→hud.css, tooltip→tooltip.css) | ☐ |
 | 19 | `ui/tooltip-content.css` | Merge into tooltip.css | ☐ |
 | 20 | `ui/utilities.css` | Dismantle (`.u-hidden`→a11y.css, audit `.mini`/`.hint`) | ☐ |
@@ -421,7 +421,6 @@ The migration deliberately avoids renaming **CSS class names** (only renaming fi
 
 | File | Current class(es) | Future ideal |
 |------|-------------------|--------------|
-| `dispatchModal.css` | `.dispatch-*` | `.dispatch-modal` prefix |
 | `tooltip.css` | `#hexTooltip3d` | `.hex-tooltip` (no ID selector) |
 | `manuscriptPanel.css` | `.panel`, `.manuscript-panel` | `.manuscript-panel` only (deprecate `.panel`) |
 | `championPanel.css` / `left-champion-card/` | `.left-*` prefixed | `.champion-panel` prefix |

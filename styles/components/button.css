@@ -1,5 +1,5 @@
 /* =========================================================================
    BUTTONS — Barrel import. Edit the sub-files instead of this one.
    ========================================================================= */
-@import url("buttons-core.css");
-@import url("buttons-legacy.css");
+@import "./buttonCore.css";
+@import "./buttonLegacy.css";

@@ -133,7 +133,6 @@ CotSI/
     ├── abstracts/             # Tokens and reset
     ├── components/            # Component styles
     ├── layout/                # Page layout
-    ├── pages/                 # Screen-specific styles
     └── ui/                    # Utilities, overlays, responsive
 ```
 
@@ -321,7 +320,7 @@ Walk the decision guide in `dev/conventions.md` §5.
 ## Known Rough Edges
 
 - **Boundary debt**: some pre-existing cross-layer imports remain (e.g. `render/` reading `game/state/`, `ui/` reading `game/state/` and `render/`). They are inventoried in `dev/conventions.md` §6 and reported by `dev/check_imports.py`. Do not add new ones; fix them via view-models/snapshots when touching those files.
-- `styles/` naming predates the conventions (e.g. the `pages/combat.css` vs `components/combat.css` clash) and awaits its own pass.
+- `styles/` is mid-migration to the conventions in `dev/cssconventions.md` (camelCase file names matching JS modules). File renames are done; remaining debt is class/file name mismatches (e.g. `.log-bar` classes in `logPanel.css`) — see `dev/cssconventions.md` §11.3.
 
 When in doubt, prefer consistency with the files in `src/shared/actionBus.js`, `src/ui/setupScreen.js`, `src/ui/viewModels/championViewModel.js`, and `src/ui/domBuilder.js` — these represent the current direction.
 

@@ -5,7 +5,7 @@
 
 @import "./left-champion-card/container.css";
 @import "./left-champion-card/header.css";
-@import "./left-champion-card/hp-row.css";
+@import "./left-champion-card/hpRow.css";
 @import "./left-champion-card/resources.css";
 @import "./left-champion-card/equipment.css";
 @import "./left-champion-card/potency.css";

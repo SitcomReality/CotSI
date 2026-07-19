@@ -126,6 +126,8 @@ styles/
 
 Also rename the barrel file `components/left-champion-card.css` (step 12) and update its `@import` to use `hpRow.css` instead of `hp-row.css`.
 
+> **Status: complete.** All 16 listed renames done, plus two the table missed: `components/artifact-choice.css` → `artifactChoice.css` and `components/map-controls.css` → `mapControls.css` (the target structure already showed both as camelCase — the "unchanged" notes there were written against a wrong assumption about the current filenames). The dispatch class audit was carried through `dispatchModal.css`, `src/ui/modals/dispatchModal.js`, and `index.html` (`.dispatch-*`/`.dispatch__*` → `.dispatch-modal-*`/`.dispatch-modal__*`; element IDs unchanged). The empty `pages/` directory was removed immediately (Phase 4 step pulled forward — a no-op since git does not track empty directories). `codex.css` paths updated with import order unchanged.
+
 > **After Phase 2**, run `python3 dev/check_imports.py` to catch any JS references to old class names in string literals (e.g., `'btn primary'` won't break, but if JS references a file path or constructs a class name that matched the old file, it might). Also update `codex.css` with new file names — but **keep the same import order as today**; we'll reorder in Phase 4.
 
 ---

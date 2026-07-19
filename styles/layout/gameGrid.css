@@ -17,7 +17,7 @@
 
 #gameHeader {
   grid-area: header;
-  /* header interior styles live in styles/components/header.css */
+  /* header interior styles live in styles/components/headerPanel.css */
 }
 
 /* Leftbar and its styles are removed entirely */

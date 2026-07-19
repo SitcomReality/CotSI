@@ -7,7 +7,7 @@
 
 /* ── Reward Card ────────────────────────────────────────────────────────────
    The reward modal's inner card. Shares a gradient with .victory-card
-   (defined in card-variants.css), but defined here so the reward modal
+   (defined in cardVariants.css), but defined here so the reward modal
    has its own source of truth for its primary container.
    ──────────────────────────────────────────────────────────────────────── */
 
