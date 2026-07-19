@@ -6,6 +6,7 @@ import { bindLeftPanel } from '../ui/panels/leftPanel.js';
 import { bindRightPanel } from '../ui/panels/rightPanel.js';
 
 import { refreshHeader } from '../ui/panels/headerPanel.js';
+import { showPendingDispatch } from './dispatchPrompt.js';
 import { showPendingReward } from './rewardPrompt.js';
 import { showVictory } from '../ui/hud.js';
 import { refreshZoomDisplay } from '../ui/mapTooltip.js';
@@ -35,6 +36,11 @@ export function refreshAll() {
   if (ch) {
     refreshZoomDisplay();
   }
+
+  // ── Augur's Dispatch: the first interactive element of a human turn ──
+  // While a dispatch is pending, reward prompts and bot turns wait for the
+  // Acknowledge click (which re-enters refreshAll after clearing it).
+  if (showPendingDispatch(G)) return;
 
   // Show pending reward modal (artifact draft, dig loot, combat spoils, etc.)
   showPendingReward(G);

@@ -14,7 +14,7 @@ Combat is based on a 7 node, two paradoxical Paley tournament, meaning that each
 
 The game is intentionally built with **vanilla JavaScript and CSS** — no framework, no bundler, no build step. It runs directly in the browser from `index.html`.
 
-The game is still early in development so the design and mechanics may still change, and some features aren't yet working or completely implemented.
+The game is still early in development so the design and mechanics may still change, and some features aren't yet working or completely implemented, such as trading.
 
 Key documents:
 
@@ -70,6 +70,7 @@ CotSI/
 │   │   │   ├── factionData.js       # Faction data, Paley beats matrix, artifacts
 │   │   │   ├── paleyScoring.js      # scorePower Paley math
 │   │   │   ├── weatherScript.js     # 7-day weather script
+│   │   │   ├── dispatchReport.js    # buildDispatchReport — pure Augur's Dispatch data
 │   │   │   └── terrainGeneration.js # TERRAIN + seeded tile generation
 │   │   └── state/             # Single source of truth: state, queries, mutations
 │   │       ├── liveGame.js          # Live G instance + currentChamp()
@@ -78,6 +79,7 @@ CotSI/
 │   │       ├── fogOfWar.js          # Sight / fog-of-war
 │   │       ├── victoryChecks.js     # Win-condition checks
 │   │       ├── gameLog.js           # addLog helper
+│   │       ├── dispatchLedger.js    # Per-champion ledger of changes for the dispatch
 │   │       ├── championMovement.js  # Movement range, daily moves, arrival effects
 │   │       ├── championAI.js        # Bot decision logic
 │   │       ├── turnActions.js       # beginTurn, artifact choices, digging
@@ -94,6 +96,7 @@ CotSI/
 │   │   ├── refreshAll.js      # Central render orchestrator
 │   │   ├── mapRefresh.js      # 3D map init-once + per-refresh render
 │   │   ├── rewardPrompt.js    # Pending reward modal dispatch
+│   │   ├── dispatchPrompt.js  # Augur's Dispatch: first prompt of every human turn
 │   │   ├── turnPipeline.js    # Human end turn + bot turn runner
 │   │   ├── hexBridge.js       # Hex click → state → UI bridge
 │   │   └── mapControlActions.js # Zoom/camera [data-action] registrations
@@ -118,7 +121,7 @@ CotSI/
 │   │   ├── heptagramWidget.js # Interactive Paley widget
 │   │   ├── paleySVG.js        # SVG generator for the Paley wheel
 │   │   ├── panels/            # headerPanel.js, leftPanel.js, rightPanel.js, logPanel.js
-│   │   ├── modals/            # modalShell.js (generic), rewardModal.js
+│   │   ├── modals/            # modalShell.js (generic), rewardModal.js, dispatchModal.js (Augur's Dispatch)
 │   │   ├── viewModels/        # championViewModel.js, combatViewModel.js
 │   │   └── combat/            # Combat modal UI: combatModal.js, combatUiState.js,
 │   │                          # combatLifecycle/Flow/Reveal/Renderer/Interactions/RewardUI/Fx

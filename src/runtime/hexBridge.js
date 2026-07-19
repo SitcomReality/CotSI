@@ -7,6 +7,7 @@ import { G, currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
 import { movementRange, moveChampion, adjacentPassable } from '../game/state/championMovement.js';
 import { addLog } from '../game/state/gameLog.js';
+import { recordLedgerEntry } from '../game/state/dispatchLedger.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { parseKey, distance } from '../engine/rules/hexGrid.js';
 import { startCombat, openTrader } from '../ui/combat/combatModal.js';
@@ -19,7 +20,7 @@ import { FACTIONS } from '../game/rules/factionData.js';
  */
 export function onHexClick(key) {
 
-  if (!G || G.reward || G.notice || G.winnerId) return;
+  if (!G || G.dispatch || G.reward || G.notice || G.winnerId) return;
   const ch = currentChamp();
   if (!ch || ch.controller !== 'human' || ch.moves <= 0) return;
 
@@ -71,6 +72,7 @@ function interactBase(ch, tile) {
     ch.hp = Math.min(ch.maxHp, ch.hp + healed);
     ch.moves = 0;
     addLog(G, `${ch.name} receives sanctuary (+${healed} HP).`);
+    recordLedgerEntry(ch, `+${healed} HP — sanctuary`, 'gain');
   } else {
     // Buy faction potency
     const cost = ch.faction === 4 ? 14 : 18;
@@ -79,6 +81,11 @@ function interactBase(ch, tile) {
       ch.potencies[tile.feature.faction]++;
       ch.moves = 0;
       addLog(G, `${ch.name} buys ${FACTIONS[tile.feature.faction].name} potency.`);
+      recordLedgerEntry(
+        ch,
+        `-${cost} gold, +1 ${FACTIONS[tile.feature.faction].name} potency — base purchase`,
+        'neutral'
+      );
     } else {
       toast('Not enough gold.');
     }

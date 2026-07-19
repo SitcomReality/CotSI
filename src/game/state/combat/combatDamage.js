@@ -1,6 +1,8 @@
 import { addLog } from '../gameLog.js';
 import { refreshVision } from '../fogOfWar.js';
 import { checkVictory } from '../victoryChecks.js';
+import { recordLedgerEntry } from '../dispatchLedger.js';
+import { FACTIONS } from '../../rules/factionData.js';
 import { deriveOrder } from './combatState.js';
 
 function moveDamagedBeforeDamager(state, damagedId, damagerId){
@@ -20,11 +22,13 @@ export function resolveRoundDamage(state, combat){
     dmg = roundScores.attacker - roundScores.defender;
     defender.hp -= dmg;
     to = 'defender';
+    recordLedgerEntry(defender, `-${dmg} HP — duel vs ${attacker.name}`, 'loss');
     if(defender.potencies) moveDamagedBeforeDamager(state, defender.id, attacker.id);
   } else if(roundScores.defender > roundScores.attacker){
     dmg = roundScores.defender - roundScores.attacker;
     attacker.hp -= dmg;
     to = 'attacker';
+    recordLedgerEntry(attacker, `-${dmg} HP — duel vs ${defender.name}`, 'loss');
     if(attacker.potencies && defender.potencies) moveDamagedBeforeDamager(state, attacker.id, defender.id);
   }
   combat.combatLog.push(`Round ${combat.round} damage: ${to === 'attacker' ? attacker.name : defender.name} takes ${dmg}`);
@@ -62,8 +66,10 @@ export function finalizeCombat(state, attacker, defender, attackerWon){
     const gold = defender.lootGold || (12 + Math.floor(Math.random()*14));
     attacker.gold += gold;
     attacker.relics += 1;
+    recordLedgerEntry(attacker, `+${gold} gold, +1 relic — spoils of ${defender.name}`, 'gain');
     if(attacker.faction===3){
       const rf = Math.floor(Math.random()*7); attacker.potencies[rf] += 1;
+      recordLedgerEntry(attacker, `+1 ${FACTIONS[rf].name} potency — Everknown`, 'gain');
     }
     addLog(state, `${attacker.name} defeats ${defender.name} and claims a relic (+${gold}g).`);
     return { gold, relic:1 };

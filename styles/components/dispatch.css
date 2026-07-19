@@ -1,0 +1,151 @@
+/* =========================================================================
+   AUGUR'S DISPATCH — start-of-turn ritual modal.
+   Chrome-layer card: parchment, ink, ruled lines. Faction colour appears only
+   as glyph tint, name colour, and the left rule (set via --faction-color).
+   Pragmatic first pass — structure is stable; polish comes with the visual
+   redesign pass.
+   ========================================================================= */
+
+.dispatch-card {
+  width: min(560px, 94vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, var(--ivory), var(--parchment));
+  border: var(--edge) solid var(--rule-strong);
+  border-left: var(--edge-heavy) solid var(--faction-color, var(--rule-strong));
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-stack);
+  padding: var(--s5) var(--s6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+/* ── Header: heraldry first (hot-seat clarity) ── */
+.dispatch-header {
+  --i: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding-bottom: var(--s3);
+  border-bottom: var(--hair) solid var(--rule);
+}
+
+.dispatch__glyph {
+  font-size: var(--fs-2xl);
+  line-height: 1;
+  color: var(--faction-color, var(--ink));
+  min-width: 44px;
+  text-align: center;
+}
+
+.dispatch__titleblock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.dispatch__kicker {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.dispatch__name {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  letter-spacing: var(--ls-display);
+  color: var(--faction-color, var(--ink));
+}
+
+.dispatch__weather {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+/* ── Sections ── */
+.dispatch__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.dispatch__section-label {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: var(--hair) solid var(--rule);
+  padding-bottom: var(--s1);
+}
+
+.dispatch__line {
+  display: flex;
+  gap: var(--s3);
+  font-size: var(--fs-sm);
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.dispatch__tag {
+  flex: 0 0 74px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-faint);
+  padding-top: 2px;
+}
+
+/* Line tones — semantic state pigments used at caption weight only */
+.dispatch__line--gain { color: var(--malachite); }
+.dispatch__line--loss { color: var(--vermilion); }
+.dispatch__line--neutral { color: var(--ink-soft); }
+.dispatch__line--moves .dispatch__text { font-weight: 600; }
+.dispatch__line--boon .dispatch__tag { color: var(--malachite); }
+.dispatch__line--burden .dispatch__tag { color: var(--vermilion); }
+
+/* ── Acknowledge ── */
+.dispatch-btn {
+  --i: 3;
+  align-self: center;
+  min-width: 180px;
+  margin-top: var(--s2);
+}
+
+.dispatch-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ── Reveal: veil lifted by JS on the next frame; stagger via --i ── */
+.dispatch-header,
+.dispatch__section,
+.dispatch-btn {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+
+.dispatch-card--veiled .dispatch-header,
+.dispatch-card--veiled .dispatch__section,
+.dispatch-card--veiled .dispatch-btn {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dispatch-header,
+  .dispatch__section,
+  .dispatch-btn {
+    transition: none;
+  }
+}

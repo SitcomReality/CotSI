@@ -17,7 +17,7 @@ import { runBotTurn as aiDecide } from '../game/state/championAI.js';
  * End the human player's turn.
  */
 export function onEndTurn() {
-  if (!G) return;
+  if (!G || G.dispatch) return;
   const ch = currentChamp();
   if (!ch || ch.controller !== 'human') return;
 
