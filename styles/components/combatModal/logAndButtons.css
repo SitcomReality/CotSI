@@ -1,0 +1,20 @@
+/* =========================================================================
+   COMBAT MODAL — Log Area & Action Buttons
+   ========================================================================= */
+
+.combat-log-area {
+  min-height: 22px;
+  margin-top: 4px;
+}
+
+.combat-buttons {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+button.btn-gold:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

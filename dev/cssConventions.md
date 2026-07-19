@@ -12,7 +12,6 @@ Principles
     Replaceability. Redesign a modal → swap one file.
 
 Directory Structure (current)
-text
 
 styles/
 ├── codex.css                  # Sole entry point – only @import rules
@@ -30,15 +29,19 @@ styles/
 │   ├── card.css               # Barrel → cardBase + cardVariants
 │   ├── championPanel.css      # Barrel → left-champion-card/*.css
 │   ├── modalShell.css         # Shared modal chrome
-│   ├── setupScreen.css, combatModal.css, dispatchModal.css, rewardModal.css
+│   ├── setupScreen.css, dispatchModal.css, rewardModal.css
 │   ├── headerPanel.css, rightPanel.css, logPanel.css
 │   ├── heptagramWidget.css, tooltip.css, mapControls.css, fog.css, tile.css
 │   ├── championDetail.css, artifactChoice.css
 │   ├── potencies.css, stats.css, swatch.css, manuscriptPanel.css
 │   ├── note.css, forms.css, textTreatment.css
 │   ├── hud.css, paleyCrossHighlight.css
-│   └── left-champion-card/    # Subdir: container, header, hpRow, resources,
-│                               #   equipment, potency, actions (all camelCase)
+│   ├── left-champion-card/    # Subdir: container, header, hpRow, resources,
+│   │                         #   equipment, potency, actions (all camelCase)
+│   ├── combatModal.css        # Barrel → combatModal/*.css
+│   ├── combatModal/           # Subdir: arena, combatantCard, vsCell, potencyGrid,
+│   │                         #   playSlots, logAndButtons, victory, fxLayer,
+│   │                         #   hpBar, reducedMotion (all camelCase)
 └── ui/
     ├── a11y.css               # .sr-only, focus-visible helpers
     └── responsive.css         # Media query overrides (imported last)
@@ -66,7 +69,6 @@ Naming Conventions
     No ID selectors for styling. IDs (#game, #mapMount) belong to the HTML skeleton only.
 
 Spacing Scale (fixed)
-css
 
 --s1: 4px;   --s2: 8px;   --s3: 12px;
 --s4: 16px;  --s5: 24px;  --s6: 32px;
@@ -77,19 +79,21 @@ Barrel Files & Subdirectories
 
 A barrel is a file that only contains @import rules – zero selectors.
 When a single component file would exceed ~200 lines, split it into a subdirectory with a barrel:
-text
 
 components/championPanel.css          ← barrel
 components/left-champion-card/
   container.css, header.css, hpRow.css, …
 
+components/combatModal.css            ← barrel
+components/combatModal/
+  arena.css, combatantCard.css, vsCell.css, …
+
 Sub‑files use lowerCamelCase.css.
 Inline Styles
 
 Only for dynamic custom properties that CSS cannot express alone. Always use the h() builder:
-js
 
-style: { '--champ-hp-pct': 75 }
+    style: { '--champ-hp-pct': 75 }
 
 Never inline static layout or colour values.
 The h() DOM Builder – CSS‑relevant props
@@ -105,7 +109,7 @@ Quick Rules for Adding CSS
 
     New spacing value? Add a token to spacing.css – do not hard‑code.
 
-    Subdirectory? Only when the file exceeds ~200 lines; mirror the left-champion-card/ pattern.
+    Subdirectory? Only when the file exceeds ~200 lines; mirror the left-champion-card/ or combatModal/ pattern.
 
     Renaming? Update @import paths in codex.css and any barrel files. If class names change, update JS className strings. Run python3 dev/check_imports.py.
 

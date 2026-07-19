@@ -1,0 +1,80 @@
+/* =========================================================================
+   COMBAT MODAL — Floating Text, FX Overlay & Related Position
+   ========================================================================= */
+
+/* ── Floating Text (damage / score / gold) ────────────────────────────────── */
+
+.float-text {
+  position: absolute;
+  pointer-events: none;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 800;
+  font-size: 22px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  transform: translate(-50%, 0);
+  z-index: 10;
+  animation: damageFloat 900ms var(--ease-out) both;
+}
+
+.float-text--damage {
+  color: var(--vermilion);
+}
+
+.float-text--score {
+  color: var(--ink);
+}
+
+.float-text--gold {
+  color: var(--gold);
+}
+
+@keyframes damageFloat {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(0.7);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -6px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -42px) scale(0.85);
+  }
+}
+
+/* ── Score Tick ───────────────────────────────────────────────────────────── */
+
+.cs-big.score-tick {
+  animation: scoreTick 350ms var(--ease-out) both;
+}
+
+@keyframes scoreTick {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.35);
+    color: var(--gold);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ── FX Overlay Layer ─────────────────────────────────────────────────────── */
+
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 5;
+}
+
+/* ── Modal Card Position (parent for float-text) ──────────────────────────── */
+
+#combatModal .modal-card {
+  position: relative;
+}

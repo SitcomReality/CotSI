@@ -1,0 +1,48 @@
+/* =========================================================================
+   COMBAT MODAL — VS Column (centre cell)
+   ========================================================================= */
+
+.vs-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.vs-text {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  color: #b88728;
+  font-weight: 800;
+}
+
+.combat-order {
+  font-size: 11px;
+  color: #7a5634;
+}
+
+.combat-actions {
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* ── Order Pulse ──────────────────────────────────────────────────────────── */
+
+.combat-order.order-pulse {
+  animation: combat-order-pulse 500ms ease-out;
+}
+
+@keyframes combat-order-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  45% {
+    transform: scale(1.04);
+    filter: brightness(1.35);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}

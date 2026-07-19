@@ -1,0 +1,10 @@
+/* =========================================================================
+   COMBAT MODAL — Arena Grid
+   Three-column layout: challenger | VS | defender
+   ========================================================================= */
+
+.combat-arena {
+  display: grid;
+  grid-template-columns: 1fr 86px 1fr;
+  gap: 14px;
+}

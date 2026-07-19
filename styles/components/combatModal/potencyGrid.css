@@ -1,0 +1,93 @@
+/* =========================================================================
+   COMBAT MODAL — Potency Grid & Ctok Tokens
+   Seven-column grid of clickable colour tokens
+   ========================================================================= */
+
+.combat-potencys {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.ctok {
+  text-align: center;
+  padding: 6px 2px;
+  border-radius: 8px;
+  background: #f7e8c3;
+  border: 1px solid #d0a86a;
+  font-size: 11px;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.ctok__val {
+  font-weight: 800;
+}
+
+.ctok__glyph {
+  font-size: 9px;
+}
+
+.ctok.pickable:hover {
+  transform: scale(1.15);
+  border-color: #c49b5a;
+  background: #fff4cf;
+}
+
+.ctok.used {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.ctok.unavailable {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.ctok.reveal-pulse {
+  transform: scale(1.15);
+  transition: transform 0.3s;
+}
+
+/* ── Clash Pulse ──────────────────────────────────────────────────────────── */
+
+.ctok.clash-win {
+  animation: clashPulse 600ms var(--ease-out) both;
+}
+
+.ctok.clash-lose {
+  animation: clashLose 600ms var(--ease-out) both;
+}
+
+@keyframes clashPulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--f0-glow);
+    filter: brightness(1);
+  }
+  35% {
+    box-shadow: 0 0 14px 3px var(--f0-glow);
+    filter: brightness(1.35);
+  }
+  70% {
+    box-shadow: 0 0 18px 5px var(--gold-hi);
+    filter: brightness(1.5);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    filter: brightness(1);
+  }
+}
+
+@keyframes clashLose {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(0.6) saturate(0.5);
+  }
+  100% {
+    filter: brightness(1);
+    transition: filter 300ms ease;
+  }
+}

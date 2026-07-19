@@ -1,0 +1,9 @@
+/* =========================================================================
+   COMBAT MODAL — HP Bar Transition
+   Duplicated from stats.css so combat HP bars always get the transition
+   even when rendered outside the standard stat panel.
+   ========================================================================= */
+
+#combatModal .hpfill {
+  transition: width var(--dur-slow) var(--ease-out);
+}

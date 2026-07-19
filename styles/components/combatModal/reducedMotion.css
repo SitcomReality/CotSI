@@ -1,0 +1,35 @@
+/* =========================================================================
+   COMBAT MODAL — Reduced Motion Overrides
+   Imported last so these win by cascade position.
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .play-slot.face-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .ctok.clash-win,
+  .ctok.clash-lose {
+    animation: none;
+  }
+
+  .cs-big.score-tick {
+    animation: none;
+  }
+
+  .float-text {
+    animation: none;
+    opacity: 0;
+  }
+
+  .combatant-card.card-shake,
+  .combatant-card.card-flash {
+    animation: none;
+  }
+
+  #combatModal .hpfill {
+    transition: none;
+  }
+}
