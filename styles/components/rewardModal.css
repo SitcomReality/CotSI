@@ -1,0 +1,120 @@
+/* =========================================================================
+   REWARD MODAL — Standalone reward modal styles.
+   Extracted from pages/combat.css (via combatModal.css) as part of the
+   Phase 1 CSS refactor: split pages/combat.css into modalShell.css,
+   combatModal.css, and rewardModal.css.
+   ========================================================================= */
+
+/* ── Reward Card ────────────────────────────────────────────────────────────
+   The reward modal's inner card. Shares a gradient with .victory-card
+   (defined in card-variants.css), but defined here so the reward modal
+   has its own source of truth for its primary container.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.reward-card {
+  background: linear-gradient(180deg, #fff7df, #f3e0b3);
+  padding: 28px 24px 24px;
+  border-radius: 14px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px #d0a86a,
+    0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+/* ── Reward Title ───────────────────────────────────────────────────────────
+   Headline for the reward modal. Uses warm sepia to echo parchment
+   manuscript tones.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.reward-title {
+  margin: 0 0 6px;
+  color: #9a5a12;                      /* warm bronze — manuscript ink */
+  font-family: Georgia, serif;
+  font-size: 20px;
+  text-align: center;
+}
+
+/* ── Reward List ────────────────────────────────────────────────────────────
+   Container for itemised reward entries (e.g. "+5 gold", "+1 relic").
+   Uses parchment-glass background for a subtle paper-slip effect.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.reward-list {
+  margin: 12px 0;
+  padding: 10px;
+  background: var(--parchment-glass);
+  border-radius: 8px;
+}
+
+.reward-list--modal {
+  margin-top: 14px;
+}
+
+/* ── Reward Item ────────────────────────────────────────────────────────────
+   A single line in the reward list. Separated from siblings by a
+   faint edge rule.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.reward-item {
+  font-size: 14px;
+  color: var(--ink-soft);
+  padding: 4px 0;
+}
+
+.reward-item:not(:last-child) {
+  border-bottom: 1px solid var(--edge-bold);
+}
+
+/* ── Reward Line ────────────────────────────────────────────────────────────
+   A plain text paragraph within a non-choice reward body (dig loot,
+   combat spoils, etc.). Rendered by setRewardModal via h() — no innerHTML.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.reward-line {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+/* ── Reward Choices (Container) ─────────────────────────────────────────────
+   Wraps artifact-choice options inside the reward modal.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.reward-choices {
+  margin-top: 10px;
+}
+
+/* ── Reward Button / Close ──────────────────────────────────────────────────
+   The close / accept button inside the reward modal.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.reward-btn {
+  margin-top: 14px;
+}
+
+.reward-btn-close {
+  padding: 8px 24px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--ink-soft);
+  color: var(--vellum);
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.reward-btn-close:hover {
+  background: var(--ink);
+}
+
+/* ── Reward Body ────────────────────────────────────────────────────────────
+   The main content area inside the reward card. Uses .mini for size.
+   ──────────────────────────────────────────────────────────────────────── */
+
+#rewardBody {
+  text-align: center;
+}

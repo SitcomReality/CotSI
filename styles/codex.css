@@ -22,12 +22,14 @@
 @import "./components/left-champion-card.css";
 @import "./components/card-variants.css";
 @import "./components/artifact-choice.css";
+@import "./components/modalShell.css";  /* shared modal backdrop + chrome skeleton */
 @import "./components/dispatch.css";
 @import "./components/heptagram.css";
 @import "./components/forms.css";
 @import "./components/stats.css";
 @import "./components/hud.css";
-@import "./components/combat.css";   /* combat component styles — cards, slots, order pulse, fx layer */
+@import "./components/combatModal.css";   /* combat modal — arena, cards, slots, order pulse, fx layer, keyframes (merged from pages/combat.css) */
+@import "./components/rewardModal.css";   /* reward modal — card, title, list, items, lines, choices, button */
 @import "./components/map-controls.css";
 @import "./components/log-bar.css";
 @import './components/paley-cross-highlight.css';
@@ -38,7 +40,6 @@
 /* Page-specific layer */
 @import "./pages/token-sheet.css";
 @import "./pages/setup.css";
-@import "./pages/combat.css";
 
 /* UI overrides */
 @import "./ui/overlays.css";

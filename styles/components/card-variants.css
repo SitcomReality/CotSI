@@ -22,7 +22,6 @@
   position: relative;
 }
 
-.reward-card,
 .victory-card {
   background: linear-gradient(180deg, #fff7df, #f3e0b3);
   border: 2px solid #b9965a;

@@ -1,0 +1,55 @@
+/* =========================================================================
+   MODAL SHELL — Shared backdrop and chrome skeleton for all modals.
+   Every modal in the game reuses these classes for positioning, backdrop,
+   and the standard header pattern.
+   ========================================================================= */
+
+/* ── Modal Backdrop ────────────────────────────────────────────────────────
+   Fixed full-screen overlay with a translucent sepia background and blur.
+   Hidden by default; shown via JS display:flex.
+   The dark sepia glaze evokes candlelit illumination, matching the
+   manuscript-tabletop aesthetic.
+   ──── z-index is set high enough to sit above the game map (z=10) and
+   all UI panels (z=20–30). Modal cards themselves may need additional
+   stacking context via z-index if they contain positioned children.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: #160f09aa;                /* dark sepia at ~67% opacity */
+  backdrop-filter: blur(4px);
+  display: none;                         /* hidden by default */
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+/* ── Modal Header Row ──────────────────────────────────────────────────────
+   Standard two-slot header: title on the left, metadata on the right.
+   Used by the combat modal's "Supernal Duel — Paley Weave" header.
+   Other modals (reward, dispatch, victory) currently define their own
+   header structure. As the design system matures, they should adopt
+   this pattern for visual consistency.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--s2, 8px);         /* fallback if --s2 not set */
+}
+
+.modal-header-row h2 {
+  margin: 0;
+}
+
+/* ── Modal Round Label ─────────────────────────────────────────────────────
+   Small secondary label for the right slot of .modal-header-row.
+   Typically shows "Round N" or turn / phase metadata.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.modal-round-label {
+  font-size: 13px;
+  color: #7a5634;                        /* warm sepia — between ink-faint and rule */
+}

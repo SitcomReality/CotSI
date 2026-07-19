@@ -34,38 +34,3 @@
   margin-top: 4px;
 }
 
-/* =========================================================================
-   REWARD BODY — Lines rendered by setRewardModal (no innerHTML).
-   ========================================================================= */
-
-/** Container for the artifact-choice options inside the reward modal. */
-.reward-choices {
-  margin-top: 10px;
-}
-
-/** A single line of text in a non-choice reward body (dig loot, etc.). */
-.reward-line {
-  font-size: 14px;
-  color: var(--ink-soft);
-  margin-bottom: 4px;
-}
-
-/* =========================================================================
-   REWARD BUTTON — Shared close button for reward bodies.
-   ========================================================================= */
-
-.reward-btn-close {
-  padding: 8px 24px;
-  border: none;
-  border-radius: var(--r-sm);
-  background: var(--ink-soft);
-  color: var(--vellum);
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background var(--duration-fast) var(--ease-out);
-}
-
-.reward-btn-close:hover {
-  background: var(--ink);
-}
