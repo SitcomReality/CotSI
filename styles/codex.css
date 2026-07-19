@@ -1,4 +1,3 @@
-/* The Codex — master stylesheet for Champions of the Supernal Interregnum */
 /* Token system (modular layers) */
 @import "./abstracts/variables.css";
 @import "./abstracts/reset.css";
@@ -8,8 +7,7 @@
 @import "./components/championDetail.css";
 @import "./components/rightPanel.css";    /* extracted from championDetail.css — Phase 1 §4 */
 
-/* Utility layer */
-@import "./ui/utilities.css";
+/* Utility layer — dismantled to ui/a11y.css + components/textTreatment.css; see dev/cssConImp.md */
 
 /* Component layer */
 @import "./components/card.css";
@@ -29,9 +27,11 @@
 @import "./components/forms.css";
 @import "./components/stats.css";
 @import "./components/hud.css";
+@import "./components/textTreatment.css";
 @import "./components/combatModal.css";   /* combat modal — arena, cards, slots, order pulse, fx layer, keyframes (merged from pages/combat.css) */
 @import "./components/rewardModal.css";   /* reward modal — card, title, list, items, lines, choices, button */
 @import "./components/mapControls.css";
+@import "./components/tooltip.css";       /* hex tooltip — merged from ui/overlays.css + ui/tooltip-content.css */
 @import "./components/logPanel.css";
 @import "./components/paleyCrossHighlight.css";
 
@@ -43,5 +43,5 @@
 @import "./components/setupScreen.css";
 
 /* UI overrides */
-@import "./ui/overlays.css";
+@import "./ui/a11y.css";
 @import "./ui/responsive.css";

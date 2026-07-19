@@ -1,0 +1,12 @@
+/* ── Accessibility Utilities ──────────────────────────────────────────────────
+
+   Utility classes for screen-reader‑only content and hidden elements.
+   These are high-specificity overrides; use sparingly.
+
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* .u-hidden — Completely hide an element (display:none with !important)
+   Used in templates and dynamic UI toggles where inline style isn't viable. */
+.u-hidden {
+  display: none !important;
+}

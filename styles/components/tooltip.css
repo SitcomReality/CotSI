@@ -1,0 +1,68 @@
+/* ── Hex map tooltip ──────────────────────────────────────────────────────────
+   The #hexTooltip3d element is a fixed-position overlay shown on hex hover.
+   .hex-tooltip__* classes style the structured lines inside the tooltip.
+   ========================================================================= */
+
+#hexTooltip3d {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  background: rgba(0,0,0,0.75);
+  color: #f0e0c0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  display: none;
+  max-width: 260px;
+}
+
+/* ── Tooltip content lines (from ui/tooltip-content.css) ────────────────────── */
+
+.hex-tooltip__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hex-tooltip__coords {
+  display: block;
+  white-space: nowrap;
+}
+
+.hex-tooltip__feature {
+  display: block;
+  white-space: nowrap;
+  color: #c8a060;
+}
+
+.hex-tooltip__mob {
+  display: block;
+  white-space: nowrap;
+  color: #d46a4a;
+}
+
+.hex-tooltip__champion {
+  display: block;
+  white-space: nowrap;
+  color: var(--faction-color, #f0e0c0);
+}
+
+.hex-tooltip__trader {
+  display: block;
+  white-space: nowrap;
+  color: #c8b060;
+}
+
+.hex-tooltip__reachable {
+  display: block;
+  white-space: nowrap;
+  color: #b88728;
+}
+
+.hex-tooltip__explored {
+  display: block;
+  white-space: nowrap;
+  color: #7a5634;
+  font-style: italic;
+}

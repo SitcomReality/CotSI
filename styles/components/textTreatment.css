@@ -1,0 +1,13 @@
+/* ── Shared Text Treatments ───────────────────────────────────────────────────
+
+   Small utility‑adjacent classes shared across multiple components.
+   These define size/colour combinations that would be wasteful to repeat.
+
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* .mini — Compact muted text (11px, var(--muted) colour).
+   Used in setup screen, combat renderer, reward cards, etc. */
+.mini {
+  font-size: 11px;
+  color: var(--muted);
+}
