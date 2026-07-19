@@ -18,6 +18,14 @@
   background: var(--vellum-2);
 }
 
+/* Selected state — takes precedence over hover */
+.artifact-choice--selected,
+.artifact-choice--selected:hover {
+  border-color: var(--ink);
+  background: color-mix(in srgb, var(--gold) 25%, var(--vellum));
+  box-shadow: 0 0 0 2px var(--gold-hi);
+}
+
 .artifact-choice:active {
   border-color: var(--gold);
   background: var(--vellum);
@@ -33,4 +41,3 @@
   color: var(--ink-soft);
   margin-top: 4px;
 }
-

@@ -1,80 +1,8 @@
-/**
- * rewardModal.js — Reward and artifact-choice modal content.
- * Builds the reward modal body and registers the
- * confirmReward / chooseArtifact action handlers.
- */
-import { registerAction, clearGameReward } from '../../shared/actionBus.js';
+import { registerAction } from '../../shared/actionBus.js';
 import { showModal, hideModal } from './modalShell.js';
 import { h } from '../domBuilder.js';
 
 let pendingChoice = null;
-let _selectionCleanup = null;  // optional: stores a cleanup function
-
-/**
- * fillRewardModal — Populate the reward modal for generic (non-artifact) rewards.
- * Clears any previous artifact choices or reward lists from the body.
- *
- * @param {Object} opts
- * @param {string} opts.title      — Modal headline
- * @param {string[]} [opts.bodyLines]  — Array of body paragraphs (joined by <br>)
- * @param {string[]} [opts.rewards]    — Array of reward strings shown in a list
- */
-export function fillRewardModal({ title, bodyLines, rewards }) {
-  const titleEl = document.getElementById('rewardTitle');
-  const bodyEl = document.getElementById('rewardBody');
-  if (!titleEl || !bodyEl) return;
-
-  titleEl.textContent = title || 'Victory';
-
-  // Clear previous dynamic content (artifact choices, reward lists)
-  _clearBodyContent(bodyEl);
-
-  // Populate body
-  if (bodyLines && bodyLines.length > 0) {
-    bodyEl.innerHTML = bodyLines.join('<br>');
-  } else {
-    bodyEl.textContent = '';
-  }
-
-  // Add reward list if provided
-  if (rewards && rewards.length > 0) {
-    const list = h('ul', { class: 'reward-list' });
-    rewards.forEach(r => {
-      const li = document.createElement('li');
-      li.textContent = r;
-      list.appendChild(li);
-    });
-    bodyEl.appendChild(list);
-  }
-
-  // Ensure confirm button is enabled for generic rewards (no artifact choice pending)
-  const confirmBtn = document.querySelector('[data-action="confirmReward"]');
-  if (confirmBtn) confirmBtn.disabled = false;
-}
-
-/**
- * setRewardModal — Positional-arg wrapper for fillRewardModal.
- * Satisfies the import in rewardPrompt.js which passes (title, lines).
- *
- * @param {string} [title='']
- * @param {string[]} [lines=[]]
- */
-export function setRewardModal(title = '', lines = []) {
-  fillRewardModal({ title, bodyLines: lines });
-}
-
-/**
- * Clear any artifact-choice cards or reward-list elements from the body.
- */
-function _clearBodyContent(bodyEl) {
-  // Remove artifact choice container
-  const choicesContainer = bodyEl.querySelector('.reward-choices');
-  if (choicesContainer) choicesContainer.remove();
-
-  // Remove reward list
-  const rewardList = bodyEl.querySelector('.reward-list');
-  if (rewardList) rewardList.remove();
-}
 
 export function openArtifactChoiceModal(reward, onChoice) {
   const titleEl = document.getElementById('rewardTitle');
@@ -84,11 +12,8 @@ export function openArtifactChoiceModal(reward, onChoice) {
   titleEl.textContent = reward.title;
   bodyEl.textContent = reward.body || '';
 
-  // Clear any previous selection visual state and body content
+  // Clear any previous selection visual state
   clearSelection();
-
-  // Clean any leftover reward-list or artifact choices from bodyEl
-  _clearBodyContent(bodyEl);
 
   const container = h('div', { class: 'reward-choices' });
   const template = document.getElementById('modalChoiceOption');
@@ -152,7 +77,8 @@ registerAction('chooseArtifact', (actionEl) => {
   pendingChoice.selectedIdx = idx;
 
   // Enable the confirm button
-  document.querySelector('[data-action="confirmReward"]').disabled = false;
+  const confirmBtn = document.querySelector('[data-action="confirmReward"]');
+  if (confirmBtn) confirmBtn.disabled = false;
 });
 
 /**

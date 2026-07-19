@@ -18,6 +18,7 @@ import { runBotTurn as aiDecide } from '../game/state/championAI.js';
  */
 export function onEndTurn() {
   if (!G || G.dispatch) return;
+  if (G.reward) return;  // must resolve reward (artifact draft) before ending turn
   const ch = currentChamp();
   if (!ch || ch.controller !== 'human') return;
 
