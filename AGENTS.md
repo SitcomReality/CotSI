@@ -20,8 +20,7 @@ Key documents:
 
 - `styleguide.md` — The visual design bible. Defines the "two-layer rule" (chrome vs. miniature), faction colors, typography, gold budget, and hard rules for UI.
 - `index.html` — The only HTML file; contains the static page skeleton and modal markup.
-- `dev/refactorgoal.md` — High-level architectural goals for the ongoing UI refactor.
-- `dev/domrefactorplan.md` — Step-by-step plan for migrating the UI from inline HTML strings to a delegated action-bus architecture.
+- `dev/conventions.md` — **The canonical architecture and file-tree conventions.** Layer taxonomy, dependency rules, naming rules, and the boundary-debt list. Read it before adding or moving any file.
 
 ---
 
@@ -31,14 +30,14 @@ Key documents:
 |-------|------------|
 | Runtime | Browser (Chrome/Firefox/Edge) |
 | JavaScript | ES2022 modules, no transpiler |
-| 3D rendering | Three.js (vendor copies live in `src/lib/`) |
+| 3D rendering | Three.js (vendor copies live in `src/vendor/`) |
 | 2D overlay | HTML `<canvas>` layered over the Three.js canvas |
 | Styling | Plain CSS with a custom token system (`styles/abstracts/tokens/`) |
 | Fonts | Cinzel, EB Garamond, UnifrakturCook (in `/assets`) |
 | Icons | SVG sprite sheet plus individual SVGs in `assets/icons/` |
 | Package manager | None |
 | Build tool | None |
-| Test runner | None currently |
+| Test runner | None currently (`python3 dev/check_imports.py` is the import gate) |
 
 The project does **not** have a `package.json`, `pyproject.toml`, `Cargo.toml`, or similar manifest. It is served as static files.
 
@@ -59,108 +58,73 @@ CotSI/
 ├── index.html                 # Static page skeleton
 ├── styleguide.md              # Visual design system
 ├── assets/                    # Fonts and SVG icons
-├── dev/                       # Architecture notes and refactor plans
+├── dev/                       # Conventions, architecture notes, dev tooling
 ├── src/
 │   ├── entrypoint.js          # Application entry point
-│   ├── core/                  # Pure, stateless game rules
-│   │   ├── factions.js        # Faction data, Paley beats matrix, artifacts
-│   │   ├── rng.js             # Seeded RNG and noise
-│   │   ├── scorePowerPaleyMath.js
-│   │   └── weather.js         # 7-day weather script
-│   ├── game/                  # Game logic and state mutation
-│   │   ├── gameFactory.js     # createGame(...) — world + champion setup
-│   │   ├── state.js           # Barrel re-exports (legacy, partially stale)
-│   │   ├── session/           # Game lifecycle and central orchestration
-│   │   │   ├── liveGame.js          # Live G instance + currentChamp()
-│   │   │   ├── beginGame.js         # __beginGame(config), window.__beginGame
-│   │   │   ├── refreshAll.js        # Central render orchestrator
-│   │   │   ├── mapRefresh.js        # 3D map init-once + per-refresh render
-│   │   │   └── rewardPrompt.js      # Pending reward modal dispatch
-│   │   ├── turnController.js  # Human end turn + bot turn runner
-│   │   ├── turnLogic.js       # beginTurn, artifact choices, digging
-│   │   ├── worldTurn.js       # Advance turn, world simulation
-│   │   ├── championMovement.js# Movement range, daily moves, arrival effects
-│   │   ├── championAI.js      # Bot decision logic
-│   │   ├── hexInteraction.js  # Click handler for the map
-│   │   ├── entityQueries.js   # Lookups: champion/mob/trader at a hex
-│   │   ├── vision.js          # Fog-of-war / sight
-│   │   ├── victory.js         # Win-condition checks
-│   │   ├── log.js             # addLog helper
-│   │   └── combat/            # Combat rule engine (stateless)
-│   │       ├── combat-index.js
-│   │       ├── combatState.js
-│   │       ├── combatPicks.js
-│   │       ├── combatScoring.js
-│   │       └── combatDamage.js
-│   ├── render/                # 3D map rendering and effects
+│   ├── engine/                # Reusable-across-games code (zero game knowledge)
+│   │   └── rules/             # Pure, stateless, reusable mechanics
+│   │       ├── seededRng.js         # Seeded RNG and noise
+│   │       └── hexGrid.js           # Axial hex-grid math ({q,r}, "q,r" keys)
+│   ├── game/                  # This game's rules and state (no DOM, no Three.js)
+│   │   ├── rules/             # Pure, game-specific logic
+│   │   │   ├── factionData.js       # Faction data, Paley beats matrix, artifacts
+│   │   │   ├── paleyScoring.js      # scorePower Paley math
+│   │   │   ├── weatherScript.js     # 7-day weather script
+│   │   │   └── terrainGeneration.js # TERRAIN + seeded tile generation
+│   │   └── state/             # Single source of truth: state, queries, mutations
+│   │       ├── liveGame.js          # Live G instance + currentChamp()
+│   │       ├── gameFactory.js       # createGame(...) — world + champion setup
+│   │       ├── entityQueries.js     # Lookups: champion/mob/trader at a hex
+│   │       ├── fogOfWar.js          # Sight / fog-of-war
+│   │       ├── victoryChecks.js     # Win-condition checks
+│   │       ├── gameLog.js           # addLog helper
+│   │       ├── championMovement.js  # Movement range, daily moves, arrival effects
+│   │       ├── championAI.js        # Bot decision logic
+│   │       ├── turnActions.js       # beginTurn, artifact choices, digging
+│   │       ├── worldSimulation.js   # Advance turn, daily world simulation
+│   │       └── combat/              # Combat engine (state + resolution)
+│   │           ├── index.js         # Pure re-export barrel (zero logic)
+│   │           ├── combatState.js
+│   │           ├── combatPicks.js
+│   │           ├── combatScoring.js
+│   │           └── combatDamage.js
+│   ├── runtime/               # Composition root: cross-layer orchestration
+│   │   ├── bootstrap.js       # DOMContentLoaded startup wiring
+│   │   ├── beginGame.js       # __beginGame(config), window.__beginGame
+│   │   ├── refreshAll.js      # Central render orchestrator
+│   │   ├── mapRefresh.js      # 3D map init-once + per-refresh render
+│   │   ├── rewardPrompt.js    # Pending reward modal dispatch
+│   │   ├── turnPipeline.js    # Human end turn + bot turn runner
+│   │   ├── hexBridge.js       # Hex click → state → UI bridge
+│   │   └── mapControlActions.js # Zoom/camera [data-action] registrations
+│   ├── render/                # Pixels: Three.js + Canvas2D (reads state, never mutates)
 │   │   ├── hexmap3d/          # Three.js hex-map renderer
-│   │   │   ├── hexmap3d-index.js
-│   │   │   ├── hexUtils.js
-│   │   │   ├── scene/         # Renderer, camera, materials
-│   │   │   │   ├── sceneSetup.js
-│   │   │   │   ├── camera.js
-│   │   │   │   └── materials.js
-│   │   │   ├── terrain/       # Hex tile geometry
-│   │   │   │   └── terrain.js
-│   │   │   ├── features/      # Trees, mountains, bases, knots
-│   │   │   │   ├── features-index.js
-│   │   │   │   ├── featureGeometries.js
-│   │   │   │   ├── bases.js
-│   │   │   │   ├── knots.js
-│   │   │   │   ├── mountains.js
-│   │   │   │   └── trees.js
-│   │   │   ├── units/         # Champion/mob figurine meshes
-│   │   │   │   ├── units-index.js
-│   │   │   │   ├── unitGeometries.js
-│   │   │   │   ├── unitMeshes.js
-│   │   │   │   ├── unitAnimations.js
-│   │   │   │   └── unitUtils.js
-│   │   │   └── interaction/   # Pan, zoom, hover, click, tooltip
-│   │   │       ├── interaction-index.js
-│   │   │       ├── click.js
-│   │   │       ├── hover.js
-│   │   │       ├── pan.js
-│   │   │       ├── panUtils.js
-│   │   │       ├── picking.js
-│   │   │       ├── tooltip.js
-│   │   │       ├── touch.js
-│   │   │       └── zoom.js
-│   │   ├── effects/           # 2D canvas overlay layers (fog, highlights, selection)
-│   │   │   ├── effectsOverlay.js
-│   │   │   ├── fogMaskGen.js
-│   │   │   ├── fogOverlayLayer.js
-│   │   │   ├── graphicsSettings.js
-│   │   │   ├── movementHighlightsLayer.js
-│   │   │   ├── projection.js
-│   │   │   └── selectionRingLayer.js
-│   │   └── heptagramSVG.js    # SVG generator for the Paley wheel
-│   ├── ui/                    # DOM UI layer
-│   │   ├── actionBus.js       # Delegated [data-action] event dispatcher
-│   │   ├── bootstrapUI.js     # DOMContentLoaded startup wiring
-│   │   ├── setupUI.js         # Setup screen faction roster
-│   │   ├── bindHeader.js      # Top-bar champion pills + detail card
+│   │   │   ├── hexMapRenderer.js
+│   │   │   ├── hexWorldSpace.js
+│   │   │   ├── scene/         # sceneSetup.js, cameraControls.js, materials.js
+│   │   │   ├── terrain/       # terrainMesh.js
+│   │   │   ├── features/      # featureMeshes.js + tree/mountain/knot/base meshes
+│   │   │   ├── units/         # index.js (barrel) + unitMeshes/Geometries/Animations
+│   │   │   └── interaction/   # mapInteraction.js, hexClick/hexHover/hexPicking,
+│   │   │                      # cameraPan/cameraZoom/panMath, touchInput, hoverTooltip
+│   │   └── overlays/          # Canvas2D layers: overlayStack, fogOverlay,
+│   │                          # fogMaskGenerator, movementHighlights, selectionRing,
+│   │                          # screenProjection, graphicsSettings
+│   ├── ui/                    # DOM layer: panels, modals, widgets, view-models
+│   │   ├── setupScreen.js     # Setup screen faction roster
 │   │   ├── hud.js             # Toasts, victory modal
-│   │   ├── mapView.js         # Tooltip content, zoom display
-│   │   ├── modal.js           # Generic modal + artifact choice
+│   │   ├── mapTooltip.js      # Hex tooltip content, zoom display
+│   │   ├── domBuilder.js      # `h()` DOM builder
 │   │   ├── heptagramWidget.js # Interactive Paley widget
-│   │   ├── utils/dom.js       # `h()` DOM builder
-│   │   ├── viewModels/        # Pure view-model transformers
-│   │   │   ├── championVM.js
-│   │   │   └── combatVM.js
-│   │   ├── panels/            # Panel data binders (static HTML skeletons)
-│   │   │   ├── bindLeftPanel.js
-│   │   │   ├── bindRightPanel.js
-│   │   │   └── logView.js
-│   │   └── combat/            # Combat UI
-│   │       ├── combatui-index.js
-│   │       ├── combatLifecycle.js
-│   │       ├── combatRenderer.js
-│   │       ├── combatInteractions.js
-│   │       ├── combatRewardUI.js
-│   │       └── combatStateManager.js
-│   ├── world/
-│   │   └── map.js             # Hex grid, terrain generation, coordinate helpers
-│   └── lib/                   # Vendor Three.js builds (do not edit)
+│   │   ├── paleySVG.js        # SVG generator for the Paley wheel
+│   │   ├── panels/            # headerPanel.js, leftPanel.js, rightPanel.js, logPanel.js
+│   │   ├── modals/            # modalShell.js (generic), rewardModal.js
+│   │   ├── viewModels/        # championViewModel.js, combatViewModel.js
+│   │   └── combat/            # Combat modal UI: combatModal.js, combatUiState.js,
+│   │                          # combatLifecycle/Flow/Reveal/Renderer/Interactions/RewardUI/Fx
+│   ├── shared/
+│   │   └── actionBus.js       # Delegated [data-action] dispatcher (leaf, no imports)
+│   └── vendor/                # Three.js builds (do not edit)
 └── styles/                    # CSS token system and component styles
     ├── codex.css              # Master import sheet
     ├── abstracts/             # Tokens and reset
@@ -172,28 +136,35 @@ CotSI/
 
 ### Module Boundaries
 
-- **`core/`** — Pure functions, no DOM, no game state. Safe to import anywhere.
-- **`world/`** — Map geometry and procedural generation. Depends only on `core/rng.js`.
-- **`game/`** — State mutation and rules. May import `core/`, `world/`, and `ui/` only at runtime via live bindings (there is an intentional circular dependency between `game/session/` modules and some UI/game modules).
-- **`render/`** — WebGL/canvas rendering. Reads `window.__gameState` or receives state via arguments; must not mutate game state.
-- **`ui/`** — DOM rendering and event handling. Reads and writes the DOM, dispatches actions, calls into `game/` via the live `G` export or `window.__gameState`.
+The full rules live in `dev/conventions.md` §2. Summary:
+
+- **`engine/`** — Pure, reusable mechanics. Imports only `shared/` and itself. Safe to import anywhere.
+- **`game/rules/`** — Pure, game-specific logic (takes state as a parameter). Imports `engine/`, `shared/`, siblings.
+- **`game/state/`** — All mutable game state plus its queries and mutations. Never imports `runtime/`, `render/`, or `ui/`.
+- **`runtime/`** — The only layer that may import multiple layers; the only place circular dependencies are tolerated (together with the `liveGame.js` singleton it anchors).
+- **`render/`** — WebGL/canvas rendering. Receives state via arguments or reads `window.__gameState`; must not mutate game state.
+- **`ui/`** — DOM rendering and event handling. Dispatches actions through `shared/actionBus.js`; never mutates game state.
+- **`shared/`** — Leaf infrastructure (`actionBus.js`); imports nothing project-local.
+- **`vendor/`** — Third-party Three.js builds. Exempt from naming rules; do not edit.
+
+`python3 dev/check_imports.py` verifies import resolution, named exports, and reports cross-layer imports that violate these rules (the current known-debt list is in `dev/conventions.md` §6).
 
 ---
 
 ## Application Flow
 
 1. `index.html` loads `styles/codex.css` and `src/entrypoint.js` as a module.
-2. `entrypoint.js` imports `src/ui/bootstrapUI.js` and `src/game/session/beginGame.js` for side effects.
-3. On `DOMContentLoaded`, `bootstrapUI.js` initializes the combat modal and then loads `setupUI.js` to render the setup screen.
-4. The player clicks **Begin Interregnum**; `setupUI.js` calls `window.__beginGame(config)`.
+2. `entrypoint.js` imports `src/runtime/bootstrap.js` and `src/runtime/beginGame.js` for side effects.
+3. On `DOMContentLoaded`, `bootstrap.js` initializes the combat modal and then loads `setupScreen.js` to render the setup screen.
+4. The player clicks **Begin Interregnum**; `setupScreen.js` calls `window.__beginGame(config)`.
 5. `beginGame.__beginGame(config)` creates a game via `createGame()`, sets the live game instance, initialises the 3D camera, wires the heptagram widget, and then calls `refreshAll()`.
 6. `refreshAll()` re-renders the header, left/right panels, 3D map, and heptagram widget, and triggers bot turns if needed.
 
 The live game instance is available as:
 
 ```js
-import { G, currentChamp } from './src/game/session/liveGame.js';
-import { refreshAll } from './src/game/session/refreshAll.js';
+import { G, currentChamp } from './src/game/state/liveGame.js';
+import { refreshAll } from './src/runtime/refreshAll.js';
 window.__gameState; // same object as G
 ```
 
@@ -206,8 +177,9 @@ window.__gameState; // same object as G
 - Use ES modules (`import`/`export`). Avoid global script tags.
 - Prefer `const`/`let`; avoid `var`.
 - Hex coordinates are stored as `{ q, r }` objects; keys are `"q,r"` strings.
-- The Paley tournament rule is hard-coded in `core/factions.js`: faction `i` beats `i+1, i+2, i+4` modulo 7.
-- Circular imports between `game/` and `ui/` exist by design: `gameOrchestrator.js` exports a live `G` binding that other modules import and use at runtime.
+- The Paley tournament rule is hard-coded in `game/rules/factionData.js`: faction `i` beats `i+1, i+2, i+4` modulo 7.
+- File and directory naming follows `dev/conventions.md` §3: qualified `camelCase.js` names, no bare domains (`combat.js`, `map.js`), no banned words (`utils`, `helpers`, `controller`, `manager`, `logic`, …). `index.js` only as a zero-logic barrel.
+- The intentional circular imports (live `G` binding from `game/state/liveGame.js`) are tolerated only within `runtime/` + `liveGame.js`. Everywhere else, keep imports acyclic.
 
 ### Styling
 
@@ -223,14 +195,14 @@ window.__gameState; // same object as G
 
 1. **CSS owns presentation.**
 2. **Render functions should be pure and thin**, producing view models and small HTML fragments.
-3. **One delegated action bus** in `src/ui/actionBus.js` handles all `[data-action]` clicks.
-4. **Highly modular code**: single-purpose files with unique and descriptive filenames.
+3. **One delegated action bus** in `src/shared/actionBus.js` handles all `[data-action]` clicks. Registrations that wire layers together live in `runtime/`.
+4. **Highly modular code**: single-purpose files with descriptive, qualified filenames.
 
 New interactions should:
 
 - Add `data-action="myAction"` (and optional `data-*` attributes) to clickable elements.
 - Register the handler with `registerAction('myAction', (el, event) => { ... })`.
-- Use the `h()` helper in `src/ui/utils/dom.js` instead of `innerHTML` when building dynamic DOM fragments.
+- Use the `h()` helper in `src/ui/domBuilder.js` instead of `innerHTML` when building dynamic DOM fragments.
 - Add derived UI data to `src/ui/viewModels/` rather than computing it inside renderers.
 
 ---
@@ -294,6 +266,8 @@ There is **no build step**. The project runs as static files. Any modern static 
 
 There is **no test framework** currently installed. The project is verified manually by using a local server.
 
+`python3 dev/check_imports.py` is the automated gate: it verifies that every relative import in `src/` resolves, that every named import matches a real export (following re-export chains), and prints a report of cross-layer imports that violate the dependency rules in `dev/conventions.md`. Run it after moving or renaming any file.
+
 AI devs can't run the game, but the user is always excited to perform any testing requested, to provide needed data; feedback, logs, etc.
 
 ### Deployment
@@ -322,27 +296,31 @@ No server-side runtime is required.
 ### Add a new UI interaction
 
 1. Put `data-action="foo"` on the element (in HTML or via `h(..., { dataAction: 'foo' })`).
-2. In the relevant module, import `registerAction` from `src/ui/actionBus.js`.
+2. In the relevant module, import `registerAction` from `src/shared/actionBus.js`. (Handlers that wire multiple layers belong in `runtime/`.)
 3. Call `registerAction('foo', (el, event) => { ... })`.
 
 ### Add a new 3D feature or tile type
 
-- Map generation: `src/world/map.js`.
+- Map generation: `src/game/rules/terrainGeneration.js` (hex math: `src/engine/rules/hexGrid.js`).
 - Geometry/materials: `src/render/hexmap3d/terrain/` or `src/render/hexmap3d/features/`.
-- Visibility/fog rules: `src/game/vision.js`.
+- Visibility/fog rules: `src/game/state/fogOfWar.js`.
 
 ### Change win conditions
 
-Edit `src/game/victory.js` and the `objectives` object passed from `setupUI.js`/`gameFactory.js`.
+Edit `src/game/state/victoryChecks.js` and the `objectives` object passed from `setupScreen.js`/`gameFactory.js`.
+
+### Not sure where a new file goes?
+
+Walk the decision guide in `dev/conventions.md` §5.
 
 ---
 
 ## Known Rough Edges
 
-- `src/game/state.js` is a barrel file with some stale re-exports (e.g., it references `movement.js` but the actual file is `championMovement.js`).
-- The intentional circular dependency between `game/session/` modules and some UI/game modules is now managed through the `liveGame.js` singleton.
+- **Boundary debt**: some pre-existing cross-layer imports remain (e.g. `render/` reading `game/state/`, `ui/` reading `game/state/` and `render/`). They are inventoried in `dev/conventions.md` §6 and reported by `dev/check_imports.py`. Do not add new ones; fix them via view-models/snapshots when touching those files.
+- `styles/` naming predates the conventions (e.g. the `pages/combat.css` vs `components/combat.css` clash) and awaits its own pass.
 
-When in doubt, prefer consistency with the files in `src/ui/actionBus.js`, `src/ui/setupUI.js`, `src/ui/viewModels/championVM.js`, and `src/ui/utils/dom.js` — these represent the current direction.
+When in doubt, prefer consistency with the files in `src/shared/actionBus.js`, `src/ui/setupScreen.js`, `src/ui/viewModels/championViewModel.js`, and `src/ui/domBuilder.js` — these represent the current direction.
 
 ---
 

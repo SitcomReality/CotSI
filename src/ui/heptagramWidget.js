@@ -1,5 +1,5 @@
-import { FACTIONS, beats } from '../core/factions.js';
-import { paleySVG } from '../render/heptagramSVG.js';
+import { FACTIONS, beats } from '../game/rules/factionData.js';
+import { paleySVG } from './paleySVG.js';
 
 let selected = -1;
 let mountId = 'paleyMount';

@@ -1,5 +1,6 @@
-import { fillRewardModal, showModal } from '../modal.js';
-import { getToast } from './combatStateManager.js';
+import { fillRewardModal } from '../modals/rewardModal.js';
+import { showModal } from '../modals/modalShell.js';
+import { getToast } from './combatUiState.js';
 
 /**
  * Open the reward modal after combat victory.

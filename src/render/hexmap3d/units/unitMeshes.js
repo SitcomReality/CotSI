@@ -1,8 +1,20 @@
-import * as THREE from '../../../lib/three.module.js';
-import { FACTIONS } from '../../../core/factions.js';
+import * as THREE from '../../../vendor/three.module.js';
+import { FACTIONS } from '../../../game/rules/factionData.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
+import { hexCenter3D } from '../hexWorldSpace.js';
+import { tileTopY } from '../terrain/terrainMesh.js';
 
 import { getChampionBodyGeo, getChampionHeadGeo, getMobBodyGeo, getTraderBodyGeo } from './unitGeometries.js';
-import { hexCenter3D, hexToRgb, coordKey, tileTopY } from './unitUtils.js';
+
+/**
+ * Convert a hex color string (#rrggbb) to an RGB array (0..1).
+ */
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  return [r, g, b];
+}
 
 /**
  * Build unit meshes for all visible champions, mobs, and traders.

@@ -12,7 +12,7 @@
  * HP:    .hpfill inside .hpbar inside .combatant-card
  */
 
-import { FACTIONS } from '../../core/factions.js';
+import { FACTIONS } from '../../game/rules/factionData.js';
 
 // ─── Promise timer ──────────────────────────────────────────────────────────
 export const wait = (ms) => new Promise(r => setTimeout(r, ms));

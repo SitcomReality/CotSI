@@ -1,13 +1,13 @@
-import { createCombatState } from '../../game/combat/combat-index.js';
+import { createCombatState } from '../../game/state/combat/index.js';
 
 import {
   getCombatUI,
   setCombatUI,
   getGameState
-} from './combatStateManager.js';
+} from './combatUiState.js';
 
 import { renderCombat } from './combatRenderer.js';
-import { showModal, hideModal } from '../modal.js';
+import { showModal, hideModal } from '../modals/modalShell.js';
 import { runCombatFlow } from './combatFlow.js';
 
 /**

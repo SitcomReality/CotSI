@@ -1,5 +1,5 @@
-import { FACTIONS } from '../core/factions.js';
-import { h } from './utils/dom.js';
+import { FACTIONS } from '../game/rules/factionData.js';
+import { h } from './domBuilder.js';
 
 /** Show a brief toast notification. Pass bad=true for error styling. */
 export function toast(msg, bad) {

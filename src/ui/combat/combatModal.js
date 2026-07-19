@@ -1,0 +1,12 @@
+// combatModal.js — public API re-exports and initializer
+export { startCombat, closeCombat } from './combatLifecycle.js';
+import { setGameState, setCallbacks } from './combatUiState.js';
+export { setGameState, setCallbacks };
+export { openRewardModal, openTrader } from './combatRewardUI.js';
+export { openArtifactChoiceModal } from '../modals/rewardModal.js';
+import { wireCombatActions } from './combatInteractions.js';
+
+export function initCombatModal(deps) {
+  setCallbacks(deps.refreshAll, deps.toast);
+  wireCombatActions();
+}

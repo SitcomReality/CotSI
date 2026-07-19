@@ -1,6 +1,6 @@
-import { FACTIONS } from '../../core/factions.js';
-import { getCombatUI } from './combatStateManager.js';
-import { sideOf } from '../../game/combat/combat-index.js';
+import { FACTIONS } from '../../game/rules/factionData.js';
+import { getCombatUI } from './combatUiState.js';
+import { sideOf } from '../../game/state/combat/index.js';
 import {
   wait,
   revealSlot,

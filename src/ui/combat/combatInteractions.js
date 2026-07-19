@@ -5,10 +5,10 @@ import {
   bothPicksIn,
   isPickingPhase,
   getAvailablePicks
-} from '../../game/combat/combat-index.js';
-import { getCombatUI, getToast } from './combatStateManager.js';
+} from '../../game/state/combat/index.js';
+import { getCombatUI, getToast } from './combatUiState.js';
 import { renderCombat } from './combatRenderer.js';
-import { registerAction } from '../actionBus.js';
+import { registerAction } from '../../shared/actionBus.js';
 import { closeCombat } from './combatLifecycle.js';
 import { runCombatFlow } from './combatFlow.js';
 

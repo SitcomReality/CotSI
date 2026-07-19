@@ -13,14 +13,14 @@ import {
   nextCombatRound,
   finalizeCombat,
   entityFor
-} from '../../game/combat/combat-index.js';
+} from '../../game/state/combat/index.js';
 
 import {
   getCombatUI,
   getGameState,
   getRefreshAll,
   getToast
-} from './combatStateManager.js';
+} from './combatUiState.js';
 
 import { renderCombat } from './combatRenderer.js';
 import { openRewardModal } from './combatRewardUI.js';

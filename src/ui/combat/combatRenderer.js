@@ -1,8 +1,8 @@
-import { getCombatUI } from './combatStateManager.js';
-import { getCombatVM, getHumanSide } from '../viewModels/combatVM.js';
-import { FACTIONS } from '../../core/factions.js';
+import { getCombatUI } from './combatUiState.js';
+import { getCombatVM, getHumanSide } from '../viewModels/combatViewModel.js';
+import { FACTIONS } from '../../game/rules/factionData.js';
 import { setHeptagramHighlight } from '../heptagramWidget.js';
-import { h } from '../utils/dom.js';
+import { h } from '../domBuilder.js';
 
 // ─── Order-pulse state ────────────────────────────────────────────────────
 let _previousOrderKey = null;
