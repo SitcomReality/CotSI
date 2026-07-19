@@ -18,9 +18,9 @@ The game is still early in development so the design and mechanics may still cha
 
 Key documents:
 
-- `styleguide.md` — The visual design bible. Defines the "two-layer rule" (chrome vs. miniature), faction colors, typography, gold budget, and hard rules for UI.
+- `dev/aestheticConventions.md` — The visual design bible. Defines the "two-layer rule" (chrome vs. miniature), faction colors, typography, gold budget, and hard rules for UI.
 - `index.html` — The only HTML file; contains the static page skeleton and modal markup.
-- `dev/conventions.md` — **The canonical architecture and file-tree conventions.** Layer taxonomy, dependency rules, naming rules, and the boundary-debt list. Read it before adding or moving any file.
+- `dev/srcConventions.md` — **The canonical architecture and file-tree conventions.** Layer taxonomy, dependency rules, naming rules, and the boundary-debt list. Read it before adding or moving any file.
 
 ---
 
@@ -56,7 +56,7 @@ During development we're running a local preview server for testing.
 ```
 CotSI/
 ├── index.html                 # Static page skeleton
-├── styleguide.md              # Visual design system
+├── dev/aestheticConventions.md # Visual design system
 ├── assets/                    # Fonts and SVG icons
 ├── dev/                       # Conventions, architecture notes, dev tooling
 ├── src/
@@ -138,7 +138,7 @@ CotSI/
 
 ### Module Boundaries
 
-The full rules live in `dev/conventions.md` §2. Summary:
+The full rules live in `dev/srcConventions.md` §2. Summary:
 
 - **`engine/`** — Pure, reusable mechanics. Imports only `shared/` and itself. Safe to import anywhere.
 - **`game/rules/`** — Pure, game-specific logic (takes state as a parameter). Imports `engine/`, `shared/`, siblings.
@@ -149,7 +149,7 @@ The full rules live in `dev/conventions.md` §2. Summary:
 - **`shared/`** — Leaf infrastructure (`actionBus.js`); imports nothing project-local.
 - **`vendor/`** — Third-party Three.js builds. Exempt from naming rules; do not edit.
 
-`python3 dev/check_imports.py` verifies import resolution, named exports, and reports cross-layer imports that violate these rules (the current known-debt list is in `dev/conventions.md` §6).
+`python3 dev/check_imports.py` verifies import resolution, named exports, and reports cross-layer imports that violate these rules (the current known-debt list is in `dec/srcConventions` §6).
 
 ---
 
@@ -180,18 +180,18 @@ window.__gameState; // same object as G
 - Prefer `const`/`let`; avoid `var`.
 - Hex coordinates are stored as `{ q, r }` objects; keys are `"q,r"` strings.
 - The Paley tournament rule is hard-coded in `game/rules/factionData.js`: faction `i` beats `i+1, i+2, i+4` modulo 7.
-- File and directory naming follows `dev/conventions.md` §3: qualified `camelCase.js` names, no bare domains (`combat.js`, `map.js`), no banned words (`utils`, `helpers`, `controller`, `manager`, `logic`, …). `index.js` only as a zero-logic barrel.
+- File and directory naming follows `dev/srcConventions.md` §3: qualified `camelCase.js` names, no bare domains (`combat.js`, `map.js`), no banned words (`utils`, `helpers`, `controller`, `manager`, `logic`, …). `index.js` only as a zero-logic barrel.
 - The intentional circular imports (live `G` binding from `game/state/liveGame.js`) are tolerated only within `runtime/` + `liveGame.js`. Everywhere else, keep imports acyclic.
 
 ### Styling
 
-- Read `styleguide.md` before adding any visual element.
+- Read `dev/aestheticConventions.md` before adding any visual element.
 - All design tokens live in `styles/abstracts/tokens/` and are imported through `styles/abstracts/variables.css`.
 - Follow the **two-layer rule**:
   - **Chrome** (UI panels, text, buttons) — restrained neutrals (vellum, parchment, ink).
   - **Miniature** (map, units, faction glyphs) — vivid jewel/faction colors.
 - Inline styles are acceptable only for genuinely dynamic values (HP bar width, faction accent color via `--faction-color`). Everything else belongs in CSS.
-- Gold is intentionally rare; do not add it without reading the gold-budget rule in `styleguide.md`.
+- Gold is intentionally rare; do not add it without reading the gold-budget rule in `dev/aestheticConventions.md`.
 
 ### UI Architecture
 
@@ -268,7 +268,7 @@ There is **no build step**. The project runs as static files. Any modern static 
 
 There is **no test framework** currently installed. The project is verified manually by using a local server.
 
-`python3 dev/check_imports.py` is the automated gate: it verifies that every relative import in `src/` resolves, that every named import matches a real export (following re-export chains), and prints a report of cross-layer imports that violate the dependency rules in `dev/conventions.md`. Run it after moving or renaming any file.
+`python3 dev/check_imports.py` is the automated gate: it verifies that every relative import in `src/` resolves, that every named import matches a real export (following re-export chains), and prints a report of cross-layer imports that violate the dependency rules in `dec/srcConventions`. Run it after moving or renaming any file.
 
 AI devs can't run the game, but the user is always excited to perform any testing requested, to provide needed data; feedback, logs, etc.
 
@@ -313,14 +313,14 @@ Edit `src/game/state/victoryChecks.js` and the `objectives` object passed from `
 
 ### Not sure where a new file goes?
 
-Walk the decision guide in `dev/conventions.md` §5.
+Walk the decision guide in `dec/srcConventions` §5.
 
 ---
 
 ## Known Rough Edges
 
-- **Boundary debt**: some pre-existing cross-layer imports remain (e.g. `render/` reading `game/state/`, `ui/` reading `game/state/` and `render/`). They are inventoried in `dev/conventions.md` §6 and reported by `dev/check_imports.py`. Do not add new ones; fix them via view-models/snapshots when touching those files.
-- `styles/` is mid-migration to the conventions in `dev/cssconventions.md` (camelCase file names matching JS modules). File renames are done; remaining debt is class/file name mismatches (e.g. `.log-bar` classes in `logPanel.css`) — see `dev/cssconventions.md` §11.3.
+- **Boundary debt**: some pre-existing cross-layer imports remain (e.g. `render/` reading `game/state/`, `ui/` reading `game/state/` and `render/`). They are inventoried in `dec/srcConventions` §6 and reported by `dev/check_imports.py`. Do not add new ones; fix them via view-models/snapshots when touching those files.
+- `styles/` is mid-migration to the conventions in `dec/cssConventions.md` (camelCase file names matching JS modules). File renames are done; remaining debt is class/file name mismatches (e.g. `.log-bar` classes in `logPanel.css`) — see `dec/cssConventions.md` §11.3.
 
 When in doubt, prefer consistency with the files in `src/shared/actionBus.js`, `src/ui/setupScreen.js`, `src/ui/viewModels/championViewModel.js`, and `src/ui/domBuilder.js` — these represent the current direction.
 

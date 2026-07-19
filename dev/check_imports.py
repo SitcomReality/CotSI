@@ -6,7 +6,7 @@ Gates:
   1. Every relative import/export-from specifier in src/ resolves to a real file.
   2. Every named import refers to a symbol the target module actually exports
      (follows `export { x } from './y.js'` re-export chains).
-  3. Boundary report: cross-layer imports vs the rules in dev/conventions.md §2.
+  3. Boundary report: cross-layer imports vs the rules in dev/cssConventions.md §2.
      Informational only — existing debt is tracked there; do not add to it.
 
 Usage:  python3 dev/check_imports.py
@@ -20,7 +20,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'src')
 
 # ---------------------------------------------------------------------------
-# Layer rules (dev/conventions.md §2). Layers not listed may import anything.
+# Layer rules (dev/cssConventions.md §2). Layers not listed may import anything.
 # ---------------------------------------------------------------------------
 ALLOWED = {
     'shared':     {'shared'},

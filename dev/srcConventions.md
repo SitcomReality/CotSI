@@ -1,8 +1,6 @@
 # CotSI — Architecture & File-Tree Conventions
 
 This is the **canonical** conventions document for Champions of the Supernal Interregnum.
-It supersedes `dev/conventions_1.md`, `dev/conventions_a.md`, and
-`dev/file_conventions_discussion.md` (kept for history).
 
 When a specific rule is unclear or missing, fall back to the principles in §1.
 
