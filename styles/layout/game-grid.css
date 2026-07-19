@@ -1,3 +1,8 @@
+/* ── Root-level variables shared by game-grid layout ── */
+:root {
+  --header-height: 48px;
+}
+
 #game {
   display: grid;
   grid-template-areas:
@@ -5,7 +10,7 @@
     "map     right"
     "log     log";
   grid-template-columns: 1fr 300px;   /* map expands to fill left space */
-  grid-template-rows: 48px 1fr auto;
+  grid-template-rows: var(--header-height) 1fr auto;
   min-height: 100vh;
   background: var(--vellum);  /* table felt behind everything */
 }
@@ -35,11 +40,46 @@
   background: var(--vellum);
   border-left: var(--hair) solid var(--rule);
   padding: var(--s3);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+
+  /* Hard cap so log entries never push the panel past the viewport.
+     Uses dvh (dynamic viewport height) for mobile chrome friendliness;
+     the 100vh fallback covers older browsers that don't support dvh. */
+  max-height: calc(100vh - var(--header-height));
+  max-height: calc(100dvh - var(--header-height));
+}
+
+.rt-heptagram-card {
+  flex-shrink: 0;
+}
+
+.rt-log-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.rt-log-entries {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
+/* ── #logMount: legacy grid area ──
+     This element exists in the HTML but is never rendered into by any JS.
+     Log entries live in the .rightbar panel instead. Keeping the grid
+     area for layout stability (the empty 'log' row takes 'auto' height,
+     effectively 0), but ensuring it doesn't accidentally grow. To avoid
+     confusion when revisiting this file, we collapse it explicitly.      */
 #logMount {
   grid-area: log;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 /* ── Mobile-responsive: class toggle on <body> ── */
@@ -50,5 +90,5 @@ body.is-mobile #game {
     "right"
     "log";
   grid-template-columns: 1fr;
-  grid-template-rows: 48px 1fr auto auto;
+  grid-template-rows: var(--header-height) 1fr auto auto;
 }
