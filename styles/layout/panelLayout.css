@@ -1,0 +1,47 @@
+/* =========================================================================
+   PANEL LAYOUT — Shared panel sizing, max-height, and scroll constraints.
+
+   Structural only — no visual styling (colors, borders, backgrounds,
+   shadows, typography). Visual panel styling lives in
+   components/manuscriptPanel.css.
+
+   Classes here are utility-like: they handle the common patterns of
+   viewport-constrained panels with scrollable inner content areas.
+   ========================================================================= */
+
+/* ── Viewport-constrained panel container ──
+     Caps the panel height to the remaining viewport below the header.
+     Apply to the outermost panel wrapper element.                     */
+.panel-viewport {
+  max-height: calc(100vh - var(--header-height));
+  max-height: calc(100dvh - var(--header-height));
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Scrollable content area ──
+     For the inner content region that should scroll when overflowing.
+     Requires a flex-column ancestor to honour flex-based sizing.     */
+.panel-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ── Flex-column panel structure ──
+     For panels that arrange children vertically and need the
+     min-height: 0 reset for nested flex children to scroll.         */
+.panel-flex {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── Flex-shrink header/footer within a panel ──
+     For non-scrolling children that should stay fixed while the
+     .panel-scroll region scrolls.                                     */
+.panel-fixed {
+  flex-shrink: 0;
+}

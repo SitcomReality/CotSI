@@ -1,47 +1,64 @@
-/* Token system (modular layers) */
+/* ════════════════════════════════════════════════════════════════════════════
+   1. ABSTRACTS — design tokens and reset (zero visual output alone)
+      Imported first so everything downstream can reference custom properties.
+   ════════════════════════════════════════════════════════════════════════════ */
 @import "./abstracts/variables.css";
 @import "./abstracts/reset.css";
 
-/* these are all so well arranged but I don't know where to put this one */
-@import "./components/headerPanel.css";
-@import "./components/championDetail.css";
-@import "./components/rightPanel.css";    /* extracted from championDetail.css — Phase 1 §4 */
+/* ════════════════════════════════════════════════════════════════════════════
+   2. LAYOUT — page skeleton: grid areas, panel positioning, map container
+      These define the boxes; components fill them.
+   ════════════════════════════════════════════════════════════════════════════ */
+@import "./layout/gameGrid.css";
+@import "./layout/panelLayout.css";
 
-/* Utility layer — dismantled to ui/a11y.css + components/textTreatment.css; see dev/cssConImp.md */
-
-/* Component layer */
+/* ════════════════════════════════════════════════════════════════════════════
+   3. COMPONENTS — one file per named UI piece; most foundational first
+      Order:
+        - Shared visual patterns (button, card, modalShell) first
+        - Full-screen setups (setupScreen) next
+        - Modal-heavy pieces (combat, dispatch, reward) next
+        - Panel content (championPanel, headerPanel, rightPanel, logPanel) next
+        - Widgets and overlays (heptagram, tooltip, mapControls, fog, tile) next
+        - Detail views and shared pieces (championDetail, artifactChoice,
+          potencies, stats, swatch, manuscriptPanel, note, forms) next
+        - HUD and decorative elements (hud, paleyCrossHighlight) last
+   ════════════════════════════════════════════════════════════════════════════ */
+@import "./components/button.css";
 @import "./components/card.css";
-@import "./components/potencies.css";
-@import "./components/note.css";
+@import "./components/modalShell.css";
+@import "./components/setupScreen.css";
+@import "./components/combatModal.css";
+@import "./components/dispatchModal.css";
+@import "./components/rewardModal.css";
+@import "./components/championPanel.css";
+@import "./components/headerPanel.css";
+@import "./components/rightPanel.css";
+@import "./components/logPanel.css";
+@import "./components/heptagramWidget.css";
+@import "./components/tooltip.css";
+@import "./components/mapControls.css";
 @import "./components/fog.css";
 @import "./components/tile.css";
-@import "./components/button.css";
+@import "./components/championDetail.css";
+@import "./components/artifactChoice.css";
+@import "./components/potencies.css";
+@import "./components/stats.css";
 @import "./components/swatch.css";
 @import "./components/manuscriptPanel.css";
-@import "./components/championPanel.css";
-@import "./components/cardVariants.css";
-@import "./components/artifactChoice.css";
-@import "./components/modalShell.css";  /* shared modal backdrop + chrome skeleton */
-@import "./components/dispatchModal.css";
-@import "./components/heptagramWidget.css";
+@import "./components/note.css";
 @import "./components/forms.css";
-@import "./components/stats.css";
-@import "./components/hud.css";
 @import "./components/textTreatment.css";
-@import "./components/combatModal.css";   /* combat modal — arena, cards, slots, order pulse, fx layer, keyframes (merged from pages/combat.css) */
-@import "./components/rewardModal.css";   /* reward modal — card, title, list, items, lines, choices, button */
-@import "./components/mapControls.css";
-@import "./components/tooltip.css";       /* hex tooltip — merged from ui/overlays.css + ui/tooltip-content.css */
-@import "./components/logPanel.css";
+@import "./components/hud.css";
 @import "./components/paleyCrossHighlight.css";
 
-/* Layout layer */
-@import "./layout/gameGrid.css";
-
-/* Page-specific layer */
-@import "./abstracts/tokenSheet.css";
-@import "./components/setupScreen.css";
-
-/* UI overrides */
+/* ════════════════════════════════════════════════════════════════════════════
+   4. UI OVERRIDES — accessibility and responsive (imported last so they win
+      by cascade position without needing higher specificity)
+   ════════════════════════════════════════════════════════════════════════════ */
 @import "./ui/a11y.css";
 @import "./ui/responsive.css";
+
+/* ── Dev reference: token preview sheet (not part of game UI, but kept for
+   the dev token-reference page). Consider moving to its own entry point.   */
+@import "./abstracts/tokenSheet.css";
