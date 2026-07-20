@@ -19,7 +19,6 @@ import { initCombatModal } from '../ui/combat/combatModal.js';
 import { toast } from '../ui/hud.js';
 import { refreshAll } from './refreshAll.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
-import { enableSvgDebug } from '../shared/svgDebug.js'; // dev diagnostics
 
 // Action-bus registrations migrated from the now-deleted gameUIBindings.js
 const INSPECT_HINT =
@@ -69,8 +68,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     // and window.__beginGame exists.
     import('../ui/setupScreen.js').then((m) => m.initSetup());
 
-    // Enable SVG diagnostics for debugging (safe no-op if already wired)
-    enableSvgDebug();
   } catch (err) {
     // Fatal error — templates didn't load. Show a clear message.
     document.getElementById('initial-loader')?.remove();
