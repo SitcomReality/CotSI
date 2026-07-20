@@ -70,7 +70,12 @@ export function buildTerrainMesh(state, visible, explored) {
     const tinfo = TERRAIN[tile.terrain];
     const elev = ELEVATION[tile.terrain] || 0;
     const baseColor = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
-    const sideColor = baseColor.map(c => c * SIDE_DARKEN);
+
+    // Lakes get a darker, greener water color to distinguish from ocean
+    const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')
+      ? [baseColor[0] * 0.7, baseColor[1] * 0.85, baseColor[2] * 0.9]
+      : baseColor;
+    const sideColor = resolvedColor.map(c => c * SIDE_DARKEN);
 
     const { x: cx, z: cz } = hexCenter(tile.q, tile.r);
     const corners = hexCornersXZ(cx, cz);

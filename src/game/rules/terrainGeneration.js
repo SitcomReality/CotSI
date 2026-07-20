@@ -99,16 +99,97 @@ export function generateTiles(seedText, radius, biomeDef = null, params = {}){
   }
   for(const k of passableKeys){ if(!seen.has(k)) tiles[k].terrain='mountain'; }
 
-  // sprinkle features using biome frequencies
-  for(const t of Object.values(tiles)){
-    if(!TERRAIN[t.terrain].passable) continue;
-    const roll = seededNoise(seed, t.q, t.r, 4);
-    if(roll > treeThreshold && !treeExclude.includes(t.terrain)) {
-      t.feature = {kind:'tree', nextFruitDay:1, ripe:true};
-    } else if(roll < knotThreshold) {
-      t.feature = {kind:'knot', mined:false, amount:2+Math.floor(roll*100)%3};
+  // ==== Mountain group tagging (chains, peaks, foothills) ====
+  const mountainKeys = Object.keys(tiles).filter(k => tiles[k].terrain === 'mountain');
+  const mtSeen = new Set();
+  for (const key of mountainKeys) {
+    if (mtSeen.has(key)) continue;
+    // Flood-fill to find the contiguous mountain group
+    const group = [];
+    const queue = [key];
+    mtSeen.add(key);
+    while (queue.length) {
+      const cur = queue.shift();
+      group.push(cur);
+      for (const n of neighbors(parseKey(cur)).map(coordKey)) {
+        if (tiles[n] && tiles[n].terrain === 'mountain' && !mtSeen.has(n)) {
+          mtSeen.add(n);
+          queue.push(n);
+        }
+      }
+    }
+    // Tag each tile in the group
+    if (group.length === 1) {
+      tiles[group[0]].mountainType = 'isolated';
+    } else {
+      for (const gk of group) {
+        const neighborCount = neighbors(parseKey(gk))
+          .filter(n => tiles[coordKey(n)] && tiles[coordKey(n)].terrain === 'mountain')
+          .length;
+        tiles[gk].mountainType = neighborCount >= 4 ? 'peak' : 'slope';
+      }
     }
   }
+
+  // ==== Water cluster tagging (lakes vs ocean) ====
+  const waterKeys = Object.keys(tiles).filter(k => tiles[k].terrain === 'water');
+  const wSeen = new Set();
+  for (const key of waterKeys) {
+    if (wSeen.has(key)) continue;
+    // Flood-fill this water cluster
+    const cluster = [];
+    const queue = [key];
+    wSeen.add(key);
+    while (queue.length) {
+      const cur = queue.shift();
+      cluster.push(cur);
+      for (const n of neighbors(parseKey(cur)).map(coordKey)) {
+        if (tiles[n] && tiles[n].terrain === 'water' && !wSeen.has(n)) {
+          wSeen.add(n);
+          queue.push(n);
+        }
+      }
+    }
+    // Check if any tile in the cluster touches the map edge
+    const touchesEdge = cluster.some(k => {
+      const p = parseKey(k);
+      return distance({ q: 0, r: 0 }, p) >= radius - 0.5;
+    });
+    const waterType = touchesEdge ? 'ocean' : 'lake';
+    for (const wk of cluster) {
+      tiles[wk].waterType = waterType;
+    }
+  }
+
+  // ==== Sprinkle features using biome frequencies ====
+  for (const t of Object.values(tiles)) {
+    if (!TERRAIN[t.terrain].passable) continue;
+    const roll = seededNoise(seed, t.q, t.r, 4);
+    if (roll > treeThreshold && !treeExclude.includes(t.terrain)) {
+      // Assign density tier based on terrain
+      const density = t.terrain === 'forest' ? 'dense'
+        : t.terrain === 'plains' ? 'medium'
+        : 'sparse';
+      t.feature = { kind: 'tree', nextFruitDay: 1, ripe: true, density };
+    } else if (roll < knotThreshold) {
+      t.feature = { kind: 'knot', mined: false, amount: 2 + Math.floor(roll * 100) % 3 };
+    }
+  }
+
+  // ==== Environmental debris (grass tufts, rocks, flowers) ====
+  for (const t of Object.values(tiles)) {
+    if (!TERRAIN[t.terrain].passable) continue;
+    if (t.feature) continue; // skip tiles that already have a feature
+    const debrisRoll = seededNoise(seed, t.q, t.r, 5);
+    if (debrisRoll > 0.92) {
+      const kindRoll = seededNoise(seed, t.q, t.r, 6);
+      const kind = kindRoll < 0.4 ? 'tuft'
+        : kindRoll < 0.7 ? 'rock'
+        : 'flower';
+      t.debris = { kind };
+    }
+  }
+
   return tiles;
 }
 

@@ -19,13 +19,10 @@ import {
  * @returns {'round'|'tall'|'wide'}
  */
 function treeVariant(terrain, q, r) {
-  // Simple hash from coordinates
   const hash = ((q * 7 + r * 13) * 31) % 17;
   if (terrain === 'forest') {
-    // Forests get mostly tall pines with some round
     return hash < 10 ? 'tall' : 'round';
   }
-  // Plains, marsh: mix of round and wide
   if (hash < 6) return 'round';
   if (hash < 11) return 'tall';
   return 'wide';
@@ -47,16 +44,28 @@ function canopyForVariant(variant) {
 }
 
 /**
+ * Density multiplier table.
+ * Returns a scale factor for the whole tree (trunk + canopy).
+ */
+function densityScale(density) {
+  switch (density) {
+    case 'dense':  return 1.0;
+    case 'medium': return 0.75;
+    case 'sparse': return 0.50;
+    default:       return 1.0;
+  }
+}
+
+/**
  * Collect tree instance data from visible tiles and return InstancedMeshes.
- * Trees are grouped by canopy variant (round / tall / wide) so each variant
- * gets its own InstancedMesh with the correct geometry.
+ * Trees are grouped by canopy variant (round / tall / wide).
+ * Density tags control per-tree scale.
  *
  * @param {Map} state.tiles
  * @param {string[]} visible
  * @returns {THREE.InstancedMesh[]}
  */
 export function buildTreeMeshes(state, visible) {
-  // Group instances by variant
   const groups = {
     round:  { trunks: [], canopies: [] },
     tall:   { trunks: [], canopies: [] },
@@ -71,23 +80,23 @@ export function buildTreeMeshes(state, visible) {
     const { heightOffset, canopyY } = canopyForVariant(variant);
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
+    const scale = densityScale(tile.feature.density);
 
     const g = groups[variant];
     if (!g) continue;
 
-    g.trunks.push({ x, y: surfaceY + heightOffset * 0.4, z, scale: 1.0 });
-    g.canopies.push({ x, y: surfaceY + canopyY, z, scale: 1.0 });
+    g.trunks.push({ x, y: surfaceY + heightOffset * 0.4 * scale, z, scale });
+    g.canopies.push({ x, y: surfaceY + canopyY * scale, z, scale });
   }
 
   const results = [];
-
   const trunkMat = new THREE.MeshLambertMaterial({ color: 0x8B5E3C, flatShading: true });
   const dummy = new THREE.Object3D();
 
   const variantColors = {
-    round: 0x3CB371,  // medium green
-    tall:  0x2E8B57,  // darker green (pine)
-    wide:  0x66CDAA,  // lighter green (palm-ish)
+    round: 0x3CB371,
+    tall:  0x2E8B57,
+    wide:  0x66CDAA,
   };
 
   for (const [variant, data] of Object.entries(groups)) {
