@@ -52,7 +52,7 @@ function runWorldTurn(state) {
       const dmg = 4 + Math.floor(Math.random() * 5);
       adj.hp -= dmg;
       addLog(state, `${mob.name} harasses ${adj.name} for ${dmg} damage.`);
-      recordLedgerEntry(adj, `-${dmg} HP — ${mob.name} harassment`, 'loss');
+      recordLedgerEntry(adj, `-${dmg} HP — ${mob.name} harassment`, 'loss', 'hp');
       if (adj.hp <= 0) {
         adj.alive = false;
         state.notice = `${adj.name} was erased by marginalia.`;

@@ -327,6 +327,14 @@ Source files in assets/icons/{factions,actions,equip,terrain,resource,decor,patt
     <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
    </g>
   </symbol>
+  <symbol id="i-score" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/>
+    <path d="M12 4v3M12 17v3M4 12h3M17 12h3"/>
+    <circle cx="12" cy="12" r="3"/>
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+   </g>
+  </symbol>
 
   <!-- Decor / FX -->
   <symbol id="d-knot" viewBox="0 0 24 24">

@@ -182,10 +182,12 @@ window.__gameState; // same object as G
 - The Paley tournament rule is hard-coded in `game/rules/factionData.js`: faction `i` beats `i+1, i+2, i+4` modulo 7.
 - File and directory naming follows `dev/srcConventions.md` §3: qualified `camelCase.js` names, no bare domains (`combat.js`, `map.js`), no banned words (`utils`, `helpers`, `controller`, `manager`, `logic`, …). `index.js` only as a zero-logic barrel.
 - The intentional circular imports (live `G` binding from `game/state/liveGame.js`) are tolerated only within `runtime/` + `liveGame.js`. Everywhere else, keep imports acyclic.
+- Code uses two-space indentations (not tabs).
 
 ### Styling
 
 - Read `dev/aestheticConventions.md` before adding any visual element.
+  - We may pivot dramatically from this style.
 - All design tokens live in `styles/abstracts/tokens/` and are imported through `styles/abstracts/variables.css`.
 - Follow the **two-layer rule**:
   - **Chrome** (UI panels, text, buttons) — restrained neutrals (vellum, parchment, ink).

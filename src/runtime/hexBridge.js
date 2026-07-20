@@ -72,7 +72,7 @@ function interactBase(ch, tile) {
     ch.hp = Math.min(ch.maxHp, ch.hp + healed);
     ch.moves = 0;
     addLog(G, `${ch.name} receives sanctuary (+${healed} HP).`);
-    recordLedgerEntry(ch, `+${healed} HP — sanctuary`, 'gain');
+    recordLedgerEntry(ch, `+${healed} HP — sanctuary`, 'gain', 'hp');
   } else {
     // Buy faction potency
     const cost = ch.faction === 4 ? 14 : 18;
@@ -84,7 +84,8 @@ function interactBase(ch, tile) {
       recordLedgerEntry(
         ch,
         `-${cost} gold, +1 ${FACTIONS[tile.feature.faction].name} potency — base purchase`,
-        'neutral'
+        'neutral',
+        'gold'
       );
     } else {
       toast('Not enough gold.');

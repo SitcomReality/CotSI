@@ -35,32 +35,32 @@ export function beginTurn(state, champId) {
   ch.lastActionCombat = false;
   if (ch.artifact === 'ledger') {
     ch.gold += 2;
-    recordLedgerEntry(ch, "+2 gold — Beggar-Saint's Ledger", 'gain');
+    recordLedgerEntry(ch, "+2 gold — Beggar-Saint's Ledger", 'gain', 'gold');
   }
   if (ch.artifact === 'bandage') {
     const healed = Math.min(ch.maxHp, ch.hp + 2) - ch.hp;
     ch.hp += healed;
-    if (healed > 0) recordLedgerEntry(ch, `+${healed} HP — Patient Bandage`, 'gain');
+    if (healed > 0) recordLedgerEntry(ch, `+${healed} HP — Patient Bandage`, 'gain', 'hp');
   }
   // Reverie
   if (ch.faction === 1) {
     const roll = Math.floor(state._rng() * 5);
     if (roll === 0) {
       ch.gold += 4;
-      recordLedgerEntry(ch, "+4 gold — Another's Dream", 'gain');
+      recordLedgerEntry(ch, "+4 gold — Another's Dream", 'gain', 'gold');
     } else if (roll === 1) {
       ch.moves += 1;
-      recordLedgerEntry(ch, "+1 move — Another's Dream", 'gain');
+      recordLedgerEntry(ch, "+1 move — Another's Dream", 'gain', 'move');
     } else if (roll === 2) {
       const healed = Math.min(ch.maxHp, ch.hp + 4) - ch.hp;
       ch.hp += healed;
-      if (healed > 0) recordLedgerEntry(ch, `+${healed} HP — Another's Dream`, 'gain');
+      if (healed > 0) recordLedgerEntry(ch, `+${healed} HP — Another's Dream`, 'gain', 'hp');
     } else if (roll === 4) {
       const f = Math.floor(state._rng() * 7);
       ch.potencies[f] += 1;
-      recordLedgerEntry(ch, `+1 ${FACTIONS[f].name} potency — Another's Dream`, 'gain');
+      recordLedgerEntry(ch, `+1 ${FACTIONS[f].name} potency — Another's Dream`, 'gain', 'potency');
     } else {
-      recordLedgerEntry(ch, "The dream was silent — Another's Dream", 'neutral');
+      recordLedgerEntry(ch, "The dream was silent — Another's Dream", 'neutral', 'info');
     }
     addLog(state, `${ch.name} receives a Reverie dream.`);
   }
@@ -71,7 +71,7 @@ export function beginTurn(state, champId) {
     if (roll < 0.075) {
       ch.relics++;
       addLog(state, `${ch.name} digs up a relic!`);
-      recordLedgerEntry(ch, '+1 relic — night dig', 'gain');
+      recordLedgerEntry(ch, '+1 relic — night dig', 'gain', 'relic');
       if (ch.controller === 'human') {
         state.reward = {
           championId: ch.id,
@@ -86,19 +86,19 @@ export function beginTurn(state, champId) {
         const rf = Math.floor(state._rng() * 7);
 
         ch.potencies[rf]++;
-        recordLedgerEntry(ch, `+1 ${FACTIONS[rf].name} potency — Everknown`, 'gain');
+        recordLedgerEntry(ch, `+1 ${FACTIONS[rf].name} potency — Everknown`, 'gain', 'potency');
       }
     } else if (roll < 0.33) {
       const f = Math.floor(state._rng() * 7);
 
       ch.potencies[f]++;
       addLog(state, `${ch.name} digs up a ${FACTIONS[f].name} potency.`);
-      recordLedgerEntry(ch, `+1 ${FACTIONS[f].name} potency — night dig`, 'gain');
+      recordLedgerEntry(ch, `+1 ${FACTIONS[f].name} potency — night dig`, 'gain', 'potency');
     } else {
       const gold = 7 + Math.floor(state._rng() * 12) + Math.floor(state.day / 7);
       ch.gold += gold;
       addLog(state, `${ch.name} digs up ${gold} gold.`);
-      recordLedgerEntry(ch, `+${gold} gold — night dig`, 'gain');
+      recordLedgerEntry(ch, `+${gold} gold — night dig`, 'gain', 'gold');
     }
   }
   // artifact draft first turn

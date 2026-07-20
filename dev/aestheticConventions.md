@@ -76,3 +76,35 @@ Stop and reconsider if you see any of these:
     Gray fog or gray disabled buttons.
     Body text set in Cinzel or blackletter.
     A component that needed its own one-off colour or radius.
+
+8. Playful Whimsy & Icon-First Language
+    
+    The game's visual voice is shifting toward a more playful, bold, and
+    whimsical register — without breaking the tabletop-manuscript metaphor.
+    
+    Principles:
+    
+    Symbols speak first. Icons are a primary communication channel, not
+    decoration. Players should grasp critical state changes (gold gained, HP
+    lost, potency shifted) from icons + numbers alone — text is the fallback
+    for detail, not the main carrier of meaning.
+    This applies especially to ritual moments: the Augur's Dispatch, combat
+    results, discovery rewards. These are the game's "big picture" beats.
+    
+    Spectacle has its place. The quiet-chrome rule (§1) applies to the
+    everyday interface. Key moments — the Augur's Dispatch, combat resolution,
+    victory — get deliberate visual energy. The Dispatch is an illuminated
+    manuscript page, a diegetic object, not a UI panel. Its weather display
+    (big tinted panel with fog pattern and corner knots) is the model for
+    future spectacle moments: bold colour fields, symbolic representation,
+    minimal text.
+    
+    Chroma is permission, not a requirement. "Playful" means expressive use
+    of existing iconography and colour accents, not garish palettes. The
+    faction colours, weather tints, and monoline icon set give enough range.
+    When in doubt, add an icon before adding a sentence.
+    
+    The two-layer rule still holds for the frame. Chrome stays restrained in
+    panels, sidebars, and navigation. The playfulness lives in the content
+    areas — the painted board, the modal cards, the weather, the icons that
+    tell you what happened while you weren't looking.

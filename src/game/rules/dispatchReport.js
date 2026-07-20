@@ -15,10 +15,11 @@ const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 const weekOf = (day) => Math.floor((day - 1) / 7) + 1;
 
 // ── Effect contributors ─────────────────────────────────────────────────────
-// Each contributor(state, champ, effects) pushes { source, text, tone } lines
-// (tone: 'boon' | 'burden' | 'neutral'). New sources (seasons, curses, camps,
-// real equipment bonuses) plug in by adding a contributor and one line to
-// CONTRIBUTORS — the modal renders whatever arrives.
+// Each contributor(state, champ, effects) pushes { source, text, tone, category } lines
+// (tone: 'boon' | 'burden' | 'neutral', category: icon key for the modal).
+// New sources (seasons, curses, camps, real equipment bonuses) plug in by
+// adding a contributor and one line to CONTRIBUTORS — the modal renders
+// whatever arrives.
 
 function weatherEffects(state, champ, effects) {
   const w = state.weather;
@@ -30,6 +31,8 @@ function weatherEffects(state, champ, effects) {
       source: 'Weather',
       text: `${w.name}: ${fac.name} potency ${signed(pot)} in combat.`,
       tone: pot > 0 ? 'boon' : 'burden',
+      category: 'potency',
+      value: pot,
     });
   }
   if (score !== 0) {
@@ -37,6 +40,8 @@ function weatherEffects(state, champ, effects) {
       source: 'Weather',
       text: `${w.name}: ${signed(score)} to your final combat score.`,
       tone: score > 0 ? 'boon' : 'burden',
+      category: 'score',
+      value: score,
     });
   }
 }
@@ -47,16 +52,17 @@ function artifactEffects(state, champ, effects) {
   const name = art?.name || champ.artifact;
   switch (champ.artifact) {
     case 'lens':
-      effects.push({ source: 'Artifact', text: `${name}: +1 sight radius.`, tone: 'boon' });
+      effects.push({ source: 'Artifact', text: `${name}: +1 sight radius.`, tone: 'boon', category: 'artifact' });
       break;
     case 'margin':
-      effects.push({ source: 'Artifact', text: `${name}: +2 final combat score.`, tone: 'boon' });
+      effects.push({ source: 'Artifact', text: `${name}: +2 final combat score.`, tone: 'boon', category: 'artifact' });
       break;
     case 'tongs':
       effects.push({
         source: 'Artifact',
         text: `${name}: replacing equipment refunds double God's Knot.`,
         tone: 'neutral',
+        category: 'artifact',
       });
       break;
     case 'echo':
@@ -64,6 +70,7 @@ function artifactEffects(state, champ, effects) {
         source: 'Artifact',
         text: `${name}: potency gains may echo into your primary.`,
         tone: 'neutral',
+        category: 'artifact',
       });
       break;
     // 'spur' is covered by the movement line; 'ledger'/'bandage' grant at
@@ -79,6 +86,7 @@ function factionEffects(state, champ, effects) {
         source: 'Faction',
         text: `Scarshield: enemies take -${week} to their final combat score.`,
         tone: 'boon',
+        category: 'faction',
       });
       break;
     case 1:
@@ -86,6 +94,7 @@ function factionEffects(state, champ, effects) {
         source: 'Faction',
         text: `Another's Dream: a dawn boon was dreamed (see Ledger).`,
         tone: 'neutral',
+        category: 'faction',
       });
       break;
     case 2:
@@ -93,6 +102,7 @@ function factionEffects(state, champ, effects) {
         source: 'Faction',
         text: `Gaia's Wail: mobs will not harass you; manuscript fruit heals double.`,
         tone: 'boon',
+        category: 'faction',
       });
       break;
     case 3:
@@ -100,6 +110,7 @@ function factionEffects(state, champ, effects) {
         source: 'Faction',
         text: `Everknown: each relic found also wakes a random potency.`,
         tone: 'boon',
+        category: 'faction',
       });
       break;
     case 4:
@@ -107,6 +118,7 @@ function factionEffects(state, champ, effects) {
         source: 'Faction',
         text: `Compersion: trade and base purchases cost less.`,
         tone: 'boon',
+        category: 'faction',
       });
       break;
     case 5:
@@ -114,6 +126,7 @@ function factionEffects(state, champ, effects) {
         source: 'Faction',
         text: `Silent Ovation: the crowd's favor shifts with each week of combat.`,
         tone: 'neutral',
+        category: 'faction',
       });
       break;
     case 6: {
@@ -124,6 +137,7 @@ function factionEffects(state, champ, effects) {
         source: 'Faction',
         text: `Vaunted Nothing: your wounds add ${signed(bonus)} to your final combat score.`,
         tone: bonus > 0 ? 'boon' : 'neutral',
+        category: 'faction',
       });
       break;
     }
@@ -146,7 +160,7 @@ function terrainEffects(state, champ, effects) {
   } else if (f?.kind === 'knot' && !f.mined) {
     text += ` An unmined God's Knot glimmers.`;
   }
-  effects.push({ source: 'Terrain', text, tone: 'neutral' });
+  effects.push({ source: 'Terrain', text, tone: 'neutral', category: 'terrain' });
 }
 
 function equipmentEffects(state, champ, effects) {
@@ -155,6 +169,7 @@ function equipmentEffects(state, champ, effects) {
     source: 'Equipment',
     text: `${cap(champ.weapon)}; ${champ.armor}.`,
     tone: 'neutral',
+    category: 'equipment',
   });
 }
 
