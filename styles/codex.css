@@ -39,6 +39,7 @@
 @import "./components/heptagramWidget.css";
 @import "./components/tooltip.css";
 @import "./components/mapControls.css";
+@import "./components/minimap.css";
 @import "./components/fog.css";
 @import "./components/tile.css";
 @import "./components/championDetail.css";

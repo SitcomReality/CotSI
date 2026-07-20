@@ -15,6 +15,8 @@
           <span class="size-pill" data-r="13" data-action="selectSize">Vast</span>
           <span class="size-pill" data-r="17" data-action="selectSize">Immense</span>
           <span class="size-pill" data-r="21" data-action="selectSize">Mythic</span>
+          <span class="size-pill" data-r="30" data-action="selectSize">Titanic</span>
+          <span class="size-pill" data-r="40" data-action="selectSize">Apocalyptic</span>
         </div>
         <div class="rel-fields">
           <h4>Biome</h4>

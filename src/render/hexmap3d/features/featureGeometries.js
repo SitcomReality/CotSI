@@ -151,8 +151,6 @@ export function getDebrisRockGeo() {
 }
 
 /** Tiny flower tuft */
-let debrisFlowerGeo = null;
-
 export function getDebrisFlowerGeo() {
   if (!debrisFlowerGeo) {
     // A small 5-petal flower: use a small sphere cluster

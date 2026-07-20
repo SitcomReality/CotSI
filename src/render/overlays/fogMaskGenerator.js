@@ -83,6 +83,10 @@ function drawHexPoly(ctx, pts) {
 let _visibleCanvas = null;
 let _exploredCanvas = null;
 let _lastDpr = 0;
+let _lastFogRevision = -1;
+let _lastCamTargetX = null;
+let _lastCamTargetZ = null;
+let _lastCamFrustum = null;
 
 function getMaskCanvas(w, h, dpr) {
   const c = document.createElement('canvas');
@@ -98,11 +102,38 @@ function ensureCanvases(physicalW, physicalH, dpr) {
     const v = getMaskCanvas(physicalW, physicalH, dpr);
     _visibleCanvas = v.canvas;
     _lastDpr = dpr;
+    // Force cache miss when canvas is resized
+    _lastFogRevision = -1;
   }
   if (!_exploredCanvas || _exploredCanvas.width !== physicalW || _exploredCanvas.height !== physicalH) {
     const e = getMaskCanvas(physicalW, physicalH, dpr);
     _exploredCanvas = e.canvas;
+    _lastFogRevision = -1;
   }
+}
+
+/**
+ * Check whether the camera state has changed since the last mask generation.
+ */
+function cameraHasChanged(camera) {
+  // The camera's projection matrix and position define the view.
+  // We compare the position and frustum size stored on the camera state
+  // (accessed via the canvas's __camera ref or from the camera object directly).
+  const pos = camera.position;
+  const frustum = camera.top - camera.bottom; // orthographic vertical extent
+
+  // Hash the camera state into a rough comparison key
+  const keyX = Math.round(pos.x * 10);
+  const keyZ = Math.round(pos.z * 10);
+  const keyF = Math.round(frustum * 10);
+
+  if (keyX !== _lastCamTargetX || keyZ !== _lastCamTargetZ || keyF !== _lastCamFrustum) {
+    _lastCamTargetX = keyX;
+    _lastCamTargetZ = keyZ;
+    _lastCamFrustum = keyF;
+    return true;
+  }
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -131,6 +162,17 @@ export function generateFogMasks(state, camera, overlayCanvas, visible, explored
   const cssW = physicalW / dpr;
   const cssH = physicalH / dpr;
   ensureCanvases(physicalW, physicalH, dpr);
+
+  const fogRev = state._fogRevision || 0;
+
+  // Cache hit: skip redraw if fog state and camera haven't changed
+  if (fogRev === _lastFogRevision && !cameraHasChanged(camera)) {
+    return {
+      visibleMask: _visibleCanvas,
+      exploredMask: _exploredCanvas,
+    };
+  }
+  _lastFogRevision = fogRev;
 
   const vCtx = _visibleCanvas.getContext('2d');
   const eCtx = _exploredCanvas.getContext('2d');

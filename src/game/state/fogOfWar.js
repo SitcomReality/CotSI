@@ -16,6 +16,9 @@ export function refreshVision(state) {
     c.visible = vis;
     c.explored = Array.from(new Set([...(c.explored || []), ...vis]));
   }
+  // Bump revision counters so caches (fog masks, minimap terrain) know to redraw
+  state._fogRevision = (state._fogRevision || 0) + 1;
+  state._minimapRevision = (state._minimapRevision || 0) + 1;
 }
 
 export function getHumanView(state) {

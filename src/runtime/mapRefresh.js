@@ -4,13 +4,17 @@
  * Owns the singleton `map3dInitialized` and `lastCenteredChampionId` flags.
  * Imports live bindings (G, currentChamp) at runtime like its callers.
  */
-import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext, centerCameraOnHex } from '../render/hexmap3d/hexMapRenderer.js';
+import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext, centerCameraOnHex, fitCameraToMap } from '../render/hexmap3d/hexMapRenderer.js';
 import { onHexClick } from './hexBridge.js';
 import { getTooltipContent } from '../ui/mapTooltip.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
+import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/minimap.js';
 
 /** Whether the 3D scene has been initialized once. */
 let map3dInitialized = false;
+
+/** Whether the minimap has been initialized. */
+let minimapInitialized = false;
 
 /** Track which champion we last centered the camera on (by id). */
 let lastCenteredChampionId = null;
@@ -40,6 +44,12 @@ export function refreshMap() {
     try {
       const ctx = initHexMap3D(mountEl);
       console.log('[refreshMap] initHexMap3D done — canvas:', mountEl.querySelector('canvas')?.clientWidth + 'x' + mountEl.querySelector('canvas')?.clientHeight);
+
+      // Auto-fit camera to map size so the full map is visible at start
+      if (G.radius) {
+        fitCameraToMap(ctx.getCameraState(), G.radius);
+        ctx.applyCamera();
+      }
     } catch (err) {
       console.error('[refreshMap] initHexMap3D threw:', err);
     }
@@ -56,7 +66,16 @@ export function refreshMap() {
     console.error('[refreshMap] renderHexMap3D threw:', err);
   }
 
-  // Center camera on human champion at turn start
+  // Initialize minimap on first render after game state is ready
+  if (!minimapInitialized) {
+    initMinimap(mountEl, G.radius);
+    minimapInitialized = true;
+  }
+
+  // Render minimap each refresh (caches internally)
+  renderMinimap(G);
+
+  // Center camera on human champion at turn start (only when champion changes)
   const ch = currentChamp();
   if (ch && ch.controller === 'human' && ch.id !== lastCenteredChampionId) {
     const ctx3d = getSceneContext();
@@ -73,5 +92,7 @@ export function refreshMap() {
  */
 export function resetMapInitialized() {
   map3dInitialized = false;
+  minimapInitialized = false;
   lastCenteredChampionId = null;
+  disposeMinimap();
 }
