@@ -1,5 +1,5 @@
 /**
- * Minimal template loader — fetches .html files, caches as DocumentFragment.
+ * Minimal template loader — fetches .inc files, caches as DocumentFragment.
  *
  * Returns { frag, refs } where:
  *   frag   — a fresh DocumentFragment clone, safe to mutate and append
@@ -33,8 +33,8 @@ const isDev = location.hostname === 'localhost' || location.hostname === '127.0.
 export async function loadTemplate(name) {
   if (!CACHE.has(name)) {
     const url = isDev
-      ? `${BASE_URL}${name}.html?t=${Date.now()}`
-      : `${BASE_URL}${name}.html`;
+      ? `${BASE_URL}${name}.inc?t=${Date.now()}`
+      : `${BASE_URL}${name}.inc`;
 
     const resp = await fetch(url);
     if (!resp.ok) {
