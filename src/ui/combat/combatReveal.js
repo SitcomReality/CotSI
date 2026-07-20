@@ -1,6 +1,7 @@
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { getCombatUI } from './combatUiState.js';
 import { sideOf } from '../../game/state/combat/index.js';
+import { svgIcon } from '../svgIcon.js';
 import {
   wait,
   revealSlot,
@@ -36,7 +37,7 @@ export async function animateReveal(reveal) {
   const slotA = getSlot(slotAId);
   if (slotA && pickFirst != null) {
     const fac = FACTIONS[reveal.first.factionIdx];
-    slotA.textContent = fac.glyph + ' ' + fac.name;
+    slotA.replaceChildren(svgIcon(fac.glyphId, 20), ' ', fac.name);
     slotA.style.setProperty('--slot-color', fac.color);
     slotA.classList.add('face-down');
   }
@@ -46,7 +47,7 @@ export async function animateReveal(reveal) {
   const slotB = getSlot(slotBId);
   if (slotB && pickSecond != null) {
     const fac = FACTIONS[reveal.second.factionIdx];
-    slotB.textContent = fac.glyph + ' ' + fac.name;
+    slotB.replaceChildren(svgIcon(fac.glyphId, 20), ' ', fac.name);
     slotB.style.setProperty('--slot-color', fac.color);
     slotB.classList.add('face-down');
   }

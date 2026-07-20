@@ -139,7 +139,8 @@ function combatantVM(combat, side, ent, exchanges, phase, activeSide, lastReveal
     pots: pots.map((val, idx) => ({
       idx,
       val,
-      glyph: FACTIONS[idx].glyph,
+      glyphId: FACTIONS[idx].glyphId,
+      glyph: FACTIONS[idx].textGlyph,
       color: FACTIONS[idx].color,
       used: lockedPicks.has(idx),
       unavailable: val <= 0 || lockedPicks.has(idx),
@@ -174,7 +175,7 @@ function isExchangeRevealed(phase, exchangeIndex) {
 
 function formatPick(factionIdx) {
   if (factionIdx == null) return '';
-  return FACTIONS[factionIdx].glyph + ' ' + FACTIONS[factionIdx].name;
+  return FACTIONS[factionIdx].textGlyph + ' ' + FACTIONS[factionIdx].name;
 }
 
 /**

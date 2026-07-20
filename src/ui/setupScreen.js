@@ -1,5 +1,6 @@
 import { FACTIONS } from '../game/rules/factionData.js';
 import { h } from './domBuilder.js';
+import { svgIcon } from './svgIcon.js';
 import { registerAction } from '../shared/actionBus.js';
 import { toast } from './hud.js';
 
@@ -32,7 +33,7 @@ export function initSetup() {
         },
         h('div', { class: 'fdot' }),
         h('div', { class: 'faction-info' },
-          h('div', { class: 'faction-name' }, `${r.glyph} ${r.name}`),
+          h('div', { class: 'faction-name' }, svgIcon(r.glyphId, 16), ' ', r.name),
           h('div', { class: 'faction-trait' }, r.trait)
         ),
         h('button', { class: 'fctrl', dataAction: 'toggleController', dataIdx: idx }, btnLabel)

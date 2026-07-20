@@ -1,3 +1,4 @@
+import { svgIcon } from './svgIcon.js';
 import { TERRAIN } from '../game/rules/terrainGeneration.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
@@ -55,7 +56,8 @@ export function getTooltipContent(gameState, key, activeChampion) {
     ),
     ...(ch
       ? [h('span', { class: 'hex-tooltip__champion' },
-          `${FACTIONS[ch.faction].glyph} ${ch.name} ${ch.hp}/${ch.maxHp}hp`
+          svgIcon(FACTIONS[ch.faction].glyphId, 14),
+          ` ${ch.name} ${ch.hp}/${ch.maxHp}hp`
         )]
       : []
     ),

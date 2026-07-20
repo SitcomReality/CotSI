@@ -22,8 +22,8 @@ export function scorePickPair(state, A, B, pickA, pickB){
   const sA = scorePower(pickA, potA[pickA]||0, [pickB]);
   const sB = scorePower(pickB, potB[pickB]||0, [pickA]);
 
-  let logA = `${FACTIONS[pickA].glyph} ${potA[pickA]}→${sA}`;
-  let logB = `${FACTIONS[pickB].glyph} ${potB[pickB]}→${sB}`;
+  let logA = `${FACTIONS[pickA].textGlyph} ${potA[pickA]}→${sA}`;
+  let logB = `${FACTIONS[pickB].textGlyph} ${potB[pickB]}→${sB}`;
 
   // Crucible Scarshield applies to final score only, not per-pair
   return { scoreA: sA, scoreB: sB, logA, logB, potA: potA[pickA], potB: potB[pickB] };

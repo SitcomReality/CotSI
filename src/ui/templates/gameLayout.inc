@@ -41,11 +41,11 @@
           <!-- Resources row -->
           <div class="left-resources-row">
             <span class="left-res-item">
-              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-collect"/></svg>
+              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-relic"/></svg>
               <span data-ui="relics">—</span> Relics
             </span>
             <span class="left-res-item">
-              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-trade"/></svg>
+              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-gold"/></svg>
               <span data-ui="gold">—</span> Gold
             </span>
             <span class="left-res-item">
@@ -57,11 +57,11 @@
           <!-- Equipment row -->
           <div class="left-equip-row">
             <span class="left-equip-item">
-              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-attack"/></svg>
+              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-weapon"/></svg>
               <span data-ui="weapon">—</span>
             </span>
             <span class="left-equip-item">
-              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-flee"/></svg>
+              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-armor"/></svg>
               <span data-ui="armor">—</span>
             </span>
             <span class="left-equip-artifact">

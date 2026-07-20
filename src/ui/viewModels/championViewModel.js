@@ -9,7 +9,7 @@ export function championVM(state, champ) {
   return {
     id: champ.id,
     factionColor: fac.color,
-    factionGlyph: fac.glyph,
+    factionGlyphId: fac.glyphId,
     name: fac.name,
     hp: champ.hp,
     maxHp: champ.maxHp,

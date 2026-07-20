@@ -27,7 +27,7 @@ export function paleySVG(highlight=-1, w=300, h=250){
     const isHi = p.i===highlight;
     // Use token-based stroke (ivory) and ink-soft for label; CSS variables resolve in inline SVG
     s += `<circle class="rt-heptagram-node paley-item paley-item--f${p.i}" data-index="${p.i}" cx="${p.x}" cy="${p.y}" r="${isHi?17:14}" fill="${p.f.color}" style="stroke:var(--ivory)" stroke-width="${isHi?2.5:1.6}"/>`;
-    s += `<text x="${p.x}" y="${p.y+4}" text-anchor="middle" fill="white" font-size="${isHi?13:12}" font-weight="700" style="pointer-events:none">${p.f.glyph}</text>`;
+    s += `<g transform="translate(${p.x-7}, ${p.y-7})"><use href="assets/icons/sprite.svg#${p.f.glyphId}" width="14" height="14"/></g>`;
     s += `<text class="rt-heptagram-label" x="${p.x}" y="${p.y+28}" text-anchor="middle" font-size="9" style="pointer-events:none">${p.f.short}</text>`;
   });
   s += `</svg>`;

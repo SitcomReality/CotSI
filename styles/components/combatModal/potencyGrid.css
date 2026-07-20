@@ -26,7 +26,11 @@
 }
 
 .ctok__glyph {
-  font-size: 9px;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ctok.pickable:hover {

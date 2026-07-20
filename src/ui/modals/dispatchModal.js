@@ -5,6 +5,7 @@
  * lives in runtime/dispatchPrompt.js (cross-layer orchestration).
  */
 import { h } from '../domBuilder.js';
+import { svgIcon } from '../svgIcon.js';
 import { showModal } from './modalShell.js';
 
 /**
@@ -49,7 +50,7 @@ export function openDispatchModal(report) {
   card.style.setProperty('--faction-color', report.color);
 
   headerEl.replaceChildren(
-    h('div', { class: 'dispatch-modal__glyph' }, report.glyph),
+    h('div', { class: 'dispatch-modal__glyph' }, svgIcon(report.glyphId, 22)),
     h(
       'div',
       { class: 'dispatch-modal__titleblock' },

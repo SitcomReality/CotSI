@@ -3,6 +3,7 @@ import { getCombatVM, getHumanSide } from '../viewModels/combatViewModel.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { setHeptagramHighlight } from '../heptagramWidget.js';
 import { h } from '../domBuilder.js';
+import { svgIcon } from '../svgIcon.js';
 
 // ─── Order-pulse state ────────────────────────────────────────────────────
 let _previousOrderKey = null;
@@ -132,7 +133,7 @@ function buildToken(pot, isActivePicker, phase) {
 
   return h('div', props,
     h('div', { class: 'ctok__val' }, String(pot.val)),
-    h('div', { class: 'ctok__glyph' }, pot.glyph),
+    h('div', { class: 'ctok__glyph' }, svgIcon(FACTIONS[pot.idx].glyphId, 14)),
   );
 }
 

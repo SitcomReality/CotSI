@@ -1,7 +1,7 @@
 <!--
 Supernal Interregnum — SVG Sprite
 Self-contained monoline icon sprite for runtime <use>.
-Source files in assets/icons/{factions,actions,decor,patterns}/
+Source files in assets/icons/{factions,actions,equip,terrain,resource,decor,patterns}/
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
  <defs>
@@ -16,7 +16,7 @@ Source files in assets/icons/{factions,actions,decor,patterns}/
    </g>
   </pattern>
 
-  <!-- ----- Faction Glyphs ----- -->
+  <!-- Faction Glyphs -->
   <symbol id="g-crucible" viewBox="0 0 24 24">
    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
     <path d="M12 3 20 6v6c0 5-4 8-8 9-4-1-8-4-8-9V6Z"/>
@@ -66,7 +66,7 @@ Source files in assets/icons/{factions,actions,decor,patterns}/
    </g>
   </symbol>
 
-  <!-- ----- Action Icons ----- -->
+  <!-- Action Icons -->
   <symbol id="i-move" viewBox="0 0 24 24">
    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M5 12h12"/>
@@ -130,7 +130,205 @@ Source files in assets/icons/{factions,actions,decor,patterns}/
    </g>
   </symbol>
 
-  <!-- ----- Decor / FX ----- -->
+  <!-- New Action Icons -->
+  <symbol id="i-wait" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <rect x="8" y="4" width="8" height="4" rx="1"/>
+    <path d="M8 8l4 4-4 4"/>
+    <rect x="8" y="16" width="8" height="4" rx="1" transform="rotate(180 12 18)"/>
+    <path d="M16 8l-4 4 4 4"/>
+   </g>
+  </symbol>
+  <symbol id="i-cancel" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <circle cx="12" cy="12" r="8"/>
+    <path d="M9 9l6 6M15 9l-6 6"/>
+   </g>
+  </symbol>
+  <symbol id="i-confirm" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="8"/>
+    <path d="M8 12l3 3 5-5"/>
+   </g>
+  </symbol>
+  <symbol id="i-heal" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 4v16M4 12h16"/>
+    <circle cx="12" cy="12" r="9"/>
+   </g>
+  </symbol>
+  <symbol id="i-recruit" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9" cy="7" r="3"/>
+    <path d="M3 21v-2a5 5 0 0 1 10 0v2"/>
+    <path d="M18 8v6M15 11h6"/>
+   </g>
+  </symbol>
+  <symbol id="i-dismiss" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9" cy="7" r="3"/>
+    <path d="M3 21v-2a5 5 0 0 1 10 0v2"/>
+    <path d="M17 9l6 6M23 9l-6 6"/>
+   </g>
+  </symbol>
+  <symbol id="i-waypoint" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 3v18"/>
+    <path d="M6 3l12 4-12 4"/>
+    <circle cx="6" cy="21" r="1.5" fill="currentColor" stroke="none"/>
+   </g>
+  </symbol>
+  <symbol id="i-patrol" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 4a8 8 0 1 0 2.8 15.2"/>
+    <path d="M12 4l3 3M15 7l-3 3"/>
+    <path d="M12 20a8 8 0 1 0-2.8-15.2"/>
+    <path d="M12 20l-3-3M9 17l3-3"/>
+   </g>
+  </symbol>
+
+  <!-- Equipment Icons -->
+  <symbol id="i-weapon" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 19l7-7-2-2-7 7 2 2Z"/>
+    <path d="M13 12l5-5-2-2-5 5 2 2Z"/>
+    <path d="M11 11l-2-4 4-2 3 3-2 4-3-1Z"/>
+    <path d="M16 21l5-5"/>
+   </g>
+  </symbol>
+  <symbol id="i-armor" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 6a4 4 0 0 1 8 0v3l3 2v4l-4 3v3H9v-3l-4-3v-4l3-2V6Z"/>
+    <path d="M8 12l-1 2M16 12l1 2"/>
+   </g>
+  </symbol>
+  <symbol id="i-helmet" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 14c0-3 2-8 5-10 3 2 5 7 5 10"/>
+    <path d="M7 14h10"/>
+    <path d="M5 14l2 4h10l2-4"/>
+    <circle cx="12" cy="14" r="2" fill="currentColor" stroke="none"/>
+   </g>
+  </symbol>
+  <symbol id="i-boots" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 14l4 6h4l4-6"/>
+    <path d="M10 9l-2 3M14 9l2 3"/>
+    <path d="M10 10a2 2 0 0 1 4 0"/>
+    <path d="M6 14v4M18 14v4"/>
+   </g>
+  </symbol>
+  <symbol id="i-ring" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8" r="5"/>
+    <circle cx="12" cy="8" r="2" fill="currentColor" stroke="none"/>
+    <path d="M7 20c0-2 2-5 5-5s5 3 5 5"/>
+   </g>
+  </symbol>
+  <symbol id="i-amulet" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 10a4 4 0 0 0-4 4v3"/>
+    <circle cx="12" cy="6" r="2.5"/>
+    <path d="M10 17l-2 4h8l-2-4"/>
+    <path d="M12 6v4"/>
+    <path d="M6 16h12"/>
+   </g>
+  </symbol>
+  <symbol id="i-artifact" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 14l2-7h8l2 7"/>
+    <path d="M6 14l-1 3h14l-1-3"/>
+    <path d="M12 14v5"/>
+    <path d="M9 19h6"/>
+    <path d="M11 7l1-3 1 3"/>
+    <circle cx="12" cy="5" r=".8" fill="currentColor" stroke="none"/>
+    <path d="M8 2h8"/>
+   </g>
+  </symbol>
+
+  <!-- Terrain / Feature Icons -->
+  <symbol id="i-ruins" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 21V8l3-4h2l3 4v13"/>
+    <path d="M16 12l3-2 2 2-3 2-2-2ZM8 12l-3-2-2 2 3 2 2-2Z"/>
+    <path d="M12 10v4"/>
+    <path d="M10 18h4"/>
+   </g>
+  </symbol>
+  <symbol id="i-grove" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 4c-3 2-5 5-5 9 0 3 2 5 5 7 3-2 5-4 5-7 0-4-2-7-5-9Z"/>
+    <path d="M12 4l-2 3 2 3 2-3-2-3ZM12 10l-3 3 3 3 3-3-3-3ZM12 16l-1 2 1 2 1-2-1-2Z"/>
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+   </g>
+  </symbol>
+  <symbol id="i-shrine" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 21V11a4 4 0 0 1 8 0v10"/>
+    <path d="M6 21h12"/>
+    <path d="M12 11v4"/>
+    <circle cx="12" cy="7" r="2" fill="currentColor" stroke="none"/>
+    <path d="M9 3l3 2 3-2"/>
+   </g>
+  </symbol>
+  <symbol id="i-well" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 10h14v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-7Z"/>
+    <path d="M5 10l3-6h8l3 6"/>
+    <path d="M10 16l2-2 2 2M12 14v4"/>
+   </g>
+  </symbol>
+  <symbol id="i-camp" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 21h16"/>
+    <path d="M6 21V8l4-4h4l4 4v13"/>
+    <path d="M6 14l3-2 3 2 3-2 3 2"/>
+    <path d="M10 4v3h4V4"/>
+   </g>
+  </symbol>
+  <symbol id="i-tower" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 4h6l2 3v12H7V7l2-3Z"/>
+    <path d="M7 10l2-1 3 1 3-1 2 1"/>
+    <path d="M7 14l2-1 3 1 3-1 2 1"/>
+    <path d="M7 18l2-1 3 1 3-1 2 1"/>
+    <path d="M10 4v3h4V4"/>
+    <circle cx="12" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+   </g>
+  </symbol>
+  <symbol id="i-mine" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 19V9c0-3 2-5 4-5s4 2 4 5v10"/>
+    <path d="M5 21h14"/>
+    <path d="M8 12h8"/>
+    <path d="M10 9l2 2 2-2"/>
+    <path d="M10 15h4"/>
+   </g>
+  </symbol>
+
+  <!-- Resource / Stat Icons -->
+  <symbol id="i-gold" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="8"/>
+    <path d="M8 14c1 2 6 2 7 0s-2-3-5-4-3-3-2-4 3-1 5 0"/>
+    <path d="M12 6v2M12 16v2"/>
+   </g>
+  </symbol>
+  <symbol id="i-relic" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 4h12v5l-4 3 4 3v5H6v-5l4-3-4-3V4Z"/>
+    <path d="M12 12v4"/>
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+   </g>
+  </symbol>
+  <symbol id="i-potency" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2l3 7 7-1-5 5 4 6-7-1-2 7-2-7-7 1 4-6-5-5 7 1 3-7Z"/>
+    <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
+   </g>
+  </symbol>
+
+  <!-- Decor / FX -->
   <symbol id="d-knot" viewBox="0 0 24 24">
    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
     <path d="M12 4a4 4 0 1 1-3.46 6 4 4 0 1 1 6.92 0A4 4 0 1 1 12 4Z"/>
@@ -159,11 +357,3 @@ Source files in assets/icons/{factions,actions,decor,patterns}/
 
  </defs>
 </svg>
-```
-
-Let me verify everything landed cleanly:
-
-```tool
-TOOL_NAME: run_terminal_command
-BEGIN_ARG: command
-find assets/icons -type f | sort
