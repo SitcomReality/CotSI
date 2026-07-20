@@ -1,0 +1,71 @@
+/* =========================================================================
+   CONFIRM MODAL — Compact yes/no confirmation dialog.
+   Replaces browser confirm() with an in-game dialogue using established
+   visual language (card gradient, gold button, parchment tones).
+   ========================================================================= */
+
+.confirm-card {
+  background: linear-gradient(180deg, var(--ivory), var(--parchment));
+  border: var(--edge-bold) solid var(--rule-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-stack);
+  padding: 28px 24px 24px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.confirm-title {
+  margin: 0 0 10px;
+  color: var(--gold);
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+
+.confirm-body {
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+  line-height: 1.45;
+}
+
+/* ── Action Row ───────────────────────────────────────────────────────
+   Side-by-side buttons: primary (gold) Yes and secondary (neutral) No.
+   ──────────────────────────────────────────────────────────────────── */
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-btn {
+  min-width: 100px;
+  padding: 10px 20px;
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  border: var(--edge) solid;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+
+.confirm-btn--yes {
+  background: linear-gradient(180deg, var(--gold), #d4a138);
+  border-color: #b88728;
+  color: #2a1700;
+  box-shadow: 0 4px 12px #b8872840;
+}
+
+.confirm-btn--yes:hover {
+  filter: brightness(1.06);
+}
+
+.confirm-btn--no {
+  background: var(--vellum-2);
+  border-color: var(--rule-strong);
+  color: var(--ink);
+}
+
+.confirm-btn--no:hover {
+  background: var(--parchment);
+}

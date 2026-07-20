@@ -12,6 +12,7 @@ import { coordKey } from '../engine/rules/hexGrid.js';
 import { startCombat } from '../ui/combat/combatModal.js';
 import { resolveCombatSilently } from '../game/state/combat/combatAutoResolve.js';
 import { toast } from '../ui/hud.js';
+import { openConfirmModal } from '../ui/modals/confirmModal.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { runBotTurn as aiDecide } from '../game/state/championAI.js';
 import { getClock } from '../shared/clockScheduler.js';
@@ -44,14 +45,19 @@ export function onEndTurn() {
   if (!ch || ch.controller !== 'human') return;
 
   if (ch.moves > 0) {
-    if (
-      !confirm(
-        isDigEligible(G, ch)
-          ? 'End turn here and dig for rewards?'
-          : 'End turn with moves remaining?'
-      )
-    )
-      return;
+    const msg = isDigEligible(G, ch)
+      ? 'End turn here and dig for rewards?'
+      : 'End turn with moves remaining?';
+    openConfirmModal({ title: 'End Turn', message: msg })
+      .then(confirmed => {
+        if (confirmed) {
+          setTurnLock(true);
+          disableEndTurnBtn(true);
+          finishTurn(G);
+          refreshAll();
+        }
+      });
+    return;
   }
 
   setTurnLock(true);

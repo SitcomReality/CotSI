@@ -14,7 +14,6 @@ import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 let resizeWired = false;
 
 export function __beginGame(config) {
-  console.log('[beginGame] starting with config seed:', config.seed, 'radius:', config.radius);
 
   const game = createGame(config);
   setGameInstance(game);      // sets live G + window.__gameState
@@ -27,7 +26,6 @@ export function __beginGame(config) {
 
   const setupEl = document.getElementById('setup');
   const gameEl = document.getElementById('game');
-  console.log('[beginGame] #setup:', !!setupEl, '#game:', !!gameEl);
 
   if (setupEl) setupEl.style.display = 'none';
   if (gameEl) {
@@ -35,11 +33,6 @@ export function __beginGame(config) {
     // Force synchronous layout reflow so children (especially #mapMount) have
     // non-zero dimensions when initHexMap3D reads them in the same call stack.
     gameEl.offsetHeight;
-
-    // DEBUG: visible outline to confirm #game is rendered and sized
-    gameEl.style.outline = '4px dashed red';
-
-    console.log('[beginGame] #game display:', getComputedStyle(gameEl).display, 'rect:', gameEl.getBoundingClientRect().width + 'x' + gameEl.getBoundingClientRect().height);
   } else {
     console.error('[beginGame] #game element NOT FOUND — game layout template may not be appended');
   }
@@ -49,14 +42,9 @@ export function __beginGame(config) {
     resetCamera3D(ctx3d.getCameraState());
     ctx3d.applyCamera();
   }
-
-  console.log('[beginGame] binding header events');
   bindHeaderEvents();
-  console.log('[beginGame] initializing heptagram widget');
   initHeptagramWidget('paleyMount');
-  console.log('[beginGame] calling refreshAll');
   refreshAll();
-  console.log('[beginGame] done');
 }
 
 window.__beginGame = __beginGame;
