@@ -13,9 +13,17 @@
  */
 
 import { FACTIONS } from '../../game/rules/factionData.js';
+import { getClock } from '../../shared/clockScheduler.js';
 
-// ─── Promise timer ──────────────────────────────────────────────────────────
-export const wait = (ms) => new Promise(r => setTimeout(r, ms));
+// ─── Promise timer (clock-controlled) ───────────────────────────────────
+/**
+ * Wait for `ms` virtual milliseconds in the given speed group.
+ * Respects pause and speed multiplier for the group.
+ * @param {number} ms
+ * @param {string} [group='combat']
+ * @returns {Promise<void>}
+ */
+export const wait = (ms, group = 'combat') => getClock().wait(ms, group);
 
 // ─── Slot reveal — face-down → face-up flip ──────────────────────────────────
 /**
@@ -79,13 +87,13 @@ export function clashPulse(reveal, modalEl) {
   if (scoreRight) scoreRight.classList.add('score-tick');
 
   // Clean up after animation
-  setTimeout(() => {
+  const cleanupId = getClock().setTimeout(() => {
     for (const tok of allTokens) {
       tok.classList.remove('clash-win', 'clash-lose');
     }
     if (scoreLeft) scoreLeft.classList.remove('score-tick');
     if (scoreRight) scoreRight.classList.remove('score-tick');
-  }, 800);
+  }, 800, 'combat');
 }
 
 // ─── Count-up — rAF score ticker ──────────────────────────────────────────
@@ -104,7 +112,7 @@ export function countUp(el, from, to, ms = 500) {
     const start = performance.now();
     const diff = to - from;
 
-    function tick(now) {
+    const deregister = getClock().onTick((now) => {
       const elapsed = now - start;
       const fraction = Math.min(1, elapsed / ms);
       // Ease-out cubic
@@ -112,14 +120,11 @@ export function countUp(el, from, to, ms = 500) {
       const current = Math.round(from + diff * eased);
       el.textContent = String(current);
 
-      if (fraction < 1) {
-        requestAnimationFrame(tick);
-      } else {
+      if (fraction >= 1) {
+        deregister();
         resolve();
       }
-    }
-
-    requestAnimationFrame(tick);
+    });
   });
 }
 
@@ -155,9 +160,9 @@ export function floatText(parentEl, anchorEl, text, kind = 'damage') {
   });
 
   // Fallback cleanup in case animationend doesn't fire
-  setTimeout(() => {
+  getClock().setTimeout(() => {
     if (span.parentNode) span.parentNode.removeChild(span);
-  }, 1000);
+  }, 1000, 'combat');
 
   return span;
 }
@@ -223,7 +228,7 @@ export function drainHp(side, newHpPct) {
     const pct = Math.min(100, Math.max(0, Math.round(newHpPct)));
     hpFill.style.width = `${pct}%`;
 
-    setTimeout(resolve, 420); // --dur-slow
+    getClock().setTimeout(resolve, 420, 'combat'); // --dur-slow
   });
 }
 

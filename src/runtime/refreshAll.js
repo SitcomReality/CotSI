@@ -12,6 +12,7 @@ import { showVictory } from '../ui/hud.js';
 import { refreshZoomDisplay } from '../ui/mapTooltip.js';
 import { runBot } from './turnPipeline.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
+import { getClock } from '../shared/clockScheduler.js';
 
 // ---- Central render orchestrator ----
 
@@ -51,7 +52,7 @@ export function refreshAll() {
     !G.notice &&
     !G.winnerId
   ) {
-    setTimeout(runBot, 620);
+    getClock().setTimeout(runBot, 620, 'bot');
   }
 
   // Victory check

@@ -9,6 +9,7 @@ import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/
 import { renderFogOverlay } from '../overlays/fogOverlay.js';
 import { renderSelectionRing } from '../overlays/selectionRing.js';
 import { renderMovementHighlights } from '../overlays/movementHighlights.js';
+import { getClock } from '../../shared/clockScheduler.js';
 
 // Re‑export symbols needed by external consumers
 export { tileTopY } from './terrain/terrainMesh.js';
@@ -26,8 +27,13 @@ let unitMeshes = [];
 export function initHexMap3D(mountElement) {
   if (ctx) {
     disposeAll();
+    // Clear all clock tasks and frame callbacks from the previous game
+    getClock().dispose();
   }
-  ctx = initScene(mountElement);
+  ctx = initScene(mountElement, { clock: getClock() });
+
+  // Start the clock's rAF loop (safe to call multiple times)
+  getClock().start();
 
   // Init 2D effects overlay and register layers
   initEffectsOverlay(ctx);

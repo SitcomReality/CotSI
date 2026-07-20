@@ -70,11 +70,14 @@ Forbidden: `engine → game/runtime/render/ui`; `game → runtime/render/ui`;
 - **`game/state/`** — The single source of truth. Mutable game state (`liveGame.js`
   holds the live `G`), queries (`entityQueries.js`), and mutations
   (`championMovement.js`, `worldSimulation.js`, `combat/`).
-- **`runtime/`** — Orchestration: startup (`bootstrap.js`, `beginGame.js`), the render
-  loop (`refreshAll.js`, `mapRefresh.js`), input bridges (`hexBridge.js`), turn
+- **`runtime/`** — Orchestration: startup (`bootstrap.js`, `beginGame.js`), render
+  orchestration (`refreshAll.js`, `mapRefresh.js`), input bridges (`hexBridge.js`), turn
   sequencing (`turnPipeline.js`), action registrations that span layers
   (`mapControlActions.js`). Keep it thin: if a file here does game logic, move it to
   `game/state/`; if it does DOM work, move it to `ui/`.
+  Note: the actual rAF render loop now lives in `shared/clockScheduler.js`, not in
+  `render/hexmap3d/scene/sceneSetup.js`. `sceneSetup.js` registers its render callback
+  via `clock.onTick()`.
 - **`render/`** — Everything that touches pixels: `hexmap3d/` (Three.js scene, terrain,
   features, units, interaction) and `overlays/` (Canvas2D fog, highlights, selection).
   Receives state via arguments; given the same state it produces the same visuals.
@@ -82,7 +85,9 @@ Forbidden: `engine → game/runtime/render/ui`; `game → runtime/render/ui`;
   (`combat/`), view-models (`viewModels/`), decorative SVG, the `h()` DOM builder.
   Dispatches intent through `shared/actionBus.js`; never mutates game state.
 - **`shared/`** — Layer-neutral infrastructure. Today: `actionBus.js` (the
-  `[data-action]` dispatcher). Must stay dependency-free.
+  `[data-action]` dispatcher) and `clockScheduler.js` (the centralized Clock
+  with pause/resume, per-group speed control, and the master rAF loop).
+  Must stay dependency-free.
 - **`vendor/`** — Three.js builds. Exempt from every rule above.
 
 ---
@@ -170,6 +175,7 @@ New code must follow the pipeline; existing violations are paid down over time.
 4. Draws to canvas or WebGL?                      → render/
 5. Touches the DOM or handles user input?         → ui/
 6. Generic infrastructure, imports nothing local? → shared/
+   (e.g. `actionBus.js`, `clockScheduler.js`)
 7. None of the above? The code is probably doing two jobs — split it.
 ```
 

@@ -14,13 +14,25 @@ Combat is based on a 7 node, two paradoxical Paley tournament, meaning that each
 
 The game is intentionally built with **vanilla JavaScript and CSS** — no framework, no bundler, no build step. It runs directly in the browser from `index.html`.
 
-The game is still early in development so the design and mechanics may still change, and some features aren't yet working or completely implemented, such as trading.
-
 Key documents:
 
-- `dev/aestheticConventions.md` — The visual design bible. Defines the "two-layer rule" (chrome vs. miniature), faction colors, typography, gold budget, and hard rules for UI.
+- `dev/aestheticConventions.md` — The visual design bible. Defines the "two-layer rule" (chrome vs. miniature), faction colors, typography, gold budget, and hard rules for UI. Likely to be changed.
 - `index.html` — The only HTML file; contains the static page skeleton and modal markup.
 - `dev/srcConventions.md` — **The canonical architecture and file-tree conventions.** Layer taxonomy, dependency rules, naming rules, and the boundary-debt list. Read it before adding or moving any file.
+
+---
+
+## Early Private Development
+
+The game is still early in development so the design and mechanics may still change, and some features aren't yet working or completely implemented.
+
+Known features yet to be implemented properly:
+- Trading
+- Equipment (one armor slot, one weapon slot)
+- World gen (biomes, features)
+- Online multiplayer
+- Mobs/environment creatures
+- Entering a dungeon for 3 consecutive turns of battle to get a big reward
 
 ---
 
@@ -38,6 +50,7 @@ Key documents:
 | Package manager | None |
 | Build tool | None |
 | Test runner | None currently (`python3 dev/check_imports.py` is the import gate) |
+| Game clock | `src/shared/clockScheduler.js` — centralized Clock with pause/resume, per-group speed control, and per-group independent pause |
 
 The project does **not** have a `package.json`, `pyproject.toml`, `Cargo.toml`, or similar manifest. It is served as static files.
 
@@ -126,7 +139,8 @@ CotSI/
 │   │   └── combat/            # Combat modal UI: combatModal.js, combatUiState.js,
 │   │                          # combatLifecycle/Flow/Reveal/Renderer/Interactions/RewardUI/Fx
 │   ├── shared/
-│   │   └── actionBus.js       # Delegated [data-action] dispatcher (leaf, no imports)
+│   │   ├── actionBus.js       # Delegated [data-action] dispatcher (leaf, no imports)
+│   │   └── clockScheduler.js  # Centralized Clock: pause, speed groups, rAF loop
 │   └── vendor/                # Three.js builds (do not edit)
 └── styles/                    # CSS token system and component styles
     ├── codex.css              # Master import sheet
@@ -146,7 +160,7 @@ The full rules live in `dev/srcConventions.md` §2. Summary:
 - **`runtime/`** — The only layer that may import multiple layers; the only place circular dependencies are tolerated (together with the `liveGame.js` singleton it anchors).
 - **`render/`** — WebGL/canvas rendering. Receives state via arguments or reads `window.__gameState`; must not mutate game state.
 - **`ui/`** — DOM rendering and event handling. Dispatches actions through `shared/actionBus.js`; never mutates game state.
-- **`shared/`** — Leaf infrastructure (`actionBus.js`); imports nothing project-local.
+- **`shared/`** — Leaf infrastructure (`actionBus.js`, `clockScheduler.js`); imports nothing project-local.
 - **`vendor/`** — Third-party Three.js builds. Exempt from naming rules; do not edit.
 
 `python3 dev/check_imports.py` verifies import resolution, named exports, and reports cross-layer imports that violate these rules (the current known-debt list is in `dec/srcConventions` §6).
@@ -160,7 +174,8 @@ The full rules live in `dev/srcConventions.md` §2. Summary:
 3. On `DOMContentLoaded`, `bootstrap.js` initializes the combat modal and then loads `setupScreen.js` to render the setup screen.
 4. The player clicks **Begin Interregnum**; `setupScreen.js` calls `window.__beginGame(config)`.
 5. `beginGame.__beginGame(config)` creates a game via `createGame()`, sets the live game instance, initialises the 3D camera, wires the heptagram widget, and then calls `refreshAll()`.
-6. `refreshAll()` re-renders the header, left/right panels, 3D map, and heptagram widget, and triggers bot turns if needed.
+   - The clock (`getClock()`) is started inside `hexMapRenderer.initHexMap3D()` when the 3D scene is initialised for the first time. On game restart, `dispose()` clears all pending tasks and resets the clock before reinitialising.
+6. `refreshAll()` re-renders the header, left/right panels, 3D map, and heptagram widget, triggers the Augur's Dispatch modal, and schedules bot turns via the clock (`getClock().setTimeout(runBot, 620, 'bot')`).
 
 The live game instance is available as:
 
@@ -208,6 +223,74 @@ New interactions should:
 - Register the handler with `registerAction('myAction', (el, event) => { ... })`.
 - Use the `h()` helper in `src/ui/domBuilder.js` instead of `innerHTML` when building dynamic DOM fragments.
 - Add derived UI data to `src/ui/viewModels/` rather than computing it inside renderers.
+
+### Clock Scheduler
+
+Every timer in the codebase (raw `setTimeout`, `setInterval`, `requestAnimationFrame`) is replaced by a single centralized **Clock** in `src/shared/clockScheduler.js`. The clock:
+- Owns the `requestAnimationFrame` loop (the Three.js render loop registered via `clock.onTick()`)
+- Provides `setTimeout`/`setInterval`/`wait`/`onTick` that respect pausing and speed multipliers
+- Supports **5 named speed groups** for independent pause/speed control
+
+#### Speed groups
+
+| Group | Used by | Purpose |
+|-------|---------|---------|
+| `default` | General purpose | Fallback for ungrouped timers |
+| `bot` | `refreshAll.js`, `turnPipeline.js` | Bot turn delays, bot AI pauses |
+| `combat` | `combatFx.js`, `combatFlow.js` | Combat exchange waits, HP drain, cleanup timers |
+| `animation` | `combatFx.js` (countUp, clashPulse) | Score count-up, slot-flip timing, visual effects |
+| `ui` | `dispatchModal.js`, `hud.js`, `headerPanel.js` | Dispatch reveal, toast auto-hide, tooltip close delays |
+
+#### Pause semantics
+
+- `getClock().pause()` — freezes ALL groups (master pause). No timeout tasks fire; no virtual clocks advance.
+- `getClock().resume()` — unfreezes all groups.
+- `getClock().pauseGroup('combat')` — freezes only the combat group. Bot turns and UI animations keep running.
+- `getClock().resumeGroup('combat')` — unfreezes that group.
+- `frame callbacks` (registered via `onTick`) always fire every real rAF frame regardless of pause state. They receive the real `performance.now()` timestamp in milliseconds.
+
+#### Speed control
+
+- `getClock().setSpeed('bot', 2)` — bot turns run at 2× speed (a 620ms nominal delay fires after 310ms real time).
+- `getClock().setSpeed('combat', 0.5)` — combat animations run at half speed.
+- `getClock().getSpeed('bot')` — returns the current multiplier (default `1.0`).
+
+#### How to use
+
+```js
+import { getClock } from '../shared/clockScheduler.js';
+
+// Fire once after a delay
+const taskId = getClock().setTimeout(() => doSomething(), 500, 'combat');
+getClock().clearTimeout(taskId); // cancel
+
+// Fire repeatedly
+const intervalId = getClock().setInterval(() => poll(), 1000, 'bot');
+getClock().clearInterval(intervalId);
+
+// Wait as a promise (composable with async/await)
+await getClock().wait(300, 'ui');
+
+// Per-frame callback (returns deregistration function)
+const stop = getClock().onTick((timestamp) => {
+  updateAnim(timestamp);
+});
+stop(); // deregister later
+
+// Pause / resume
+getClock().pauseGroup('combat');
+getClock().resumeGroup('combat');
+getClock().pause();          // master pause
+getClock().resume();         // master resume
+```
+
+#### Rules
+
+1. **No raw browser timers** anywhere outside `clockScheduler.js`. Every `setTimeout`, `setInterval`, or `requestAnimationFrame` must route through the clock.
+2. **Always specify a group** when the task is gameplay-related (`'bot'`, `'combat'`, `'animation'`, `'ui'`). Use `'default'` only for truly generic one-off timers.
+3. **`onTick` is for per-frame work** (rendering, animation). The callback fires every real frame; do not use it for delayed logic (use `setTimeout`/`wait` instead).
+4. **`dispose()` on game restart** — `hexMapRenderer.initHexMap3D()` calls `getClock().dispose()` when reinitialising, which stops the rAF loop and clears all pending tasks. No manual cleanup needed.
+5. **Group names are sticky** — using an unrecognised group name auto-creates it with default speed `1.0` and unpaused. Stick to the 5 defined groups above.
 
 ---
 
@@ -289,7 +372,7 @@ No server-side runtime is required.
 
 ## Security Considerations
 
-- The game uses `innerHTML` in several legacy renderers (panels, combat, tooltips, log). Inputs that reach these renderers come from trusted game data, but when refactoring, prefer `textContent`/DOM-building (`h()`) over `innerHTML`.
+- The game might `innerHTML` in several legacy renderers. Inputs that reach these renderers come from trusted game data, but when refactoring, prefer `textContent`/DOM-building (`h()`) over `innerHTML`.
 - Do not introduce dependencies that require `eval`, `new Function`, or unsafe inline scripts.
 - The game state is stored in a mutable global (`window.__gameState`). This is intentional for debugging, but do not expose it to untrusted user input.
 
@@ -315,7 +398,21 @@ Edit `src/game/state/victoryChecks.js` and the `objectives` object passed from `
 
 ### Not sure where a new file goes?
 
-Walk the decision guide in `dec/srcConventions` §5.
+Walk the decision guide in `dev/srcConventions` §5.
+
+### Schedule a timed operation (delay, interval, animation frame)
+
+1. Import `getClock` from `src/shared/clockScheduler.js`.
+2. Pick the right speed group (`'bot'`, `'combat'`, `'animation'`, `'ui'`, or `'default'`).
+3. Call `getClock().setTimeout(fn, ms, group)` for a one-shot delay, or `getClock().setInterval(fn, ms, group)` for repetition.
+4. For async/await flows, use `await getClock().wait(ms, group)`.
+5. For per-frame work (animations, continuous effects), use `getClock().onTick(fn)` which returns a deregistration function.
+
+### Add a pause button or speed slider
+
+- **Pause button**: wire `data-action="pauseGame"` → `getClock().pause()` / `getClock().resume()` in the handler.
+- **Speed slider**: `getClock().setSpeed('combat', sliderValue)` where `1.0` is normal, `2.0` is double speed, `0.5` is half speed.
+- **Granular pause**: `getClock().pauseGroup('bot')` freezes only bot turns while combat and UI continue.
 
 ---
 

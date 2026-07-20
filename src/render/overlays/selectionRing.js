@@ -21,7 +21,7 @@ export function renderSelectionRing(ctx2d, state, camera, time) {
   const screen = worldToScreen(x, surfaceY + 0.18, z, camera, ctx2d.canvas);
   if (!screen) return;
   
-  const pulse = 1 + Math.sin(time * 3) * 0.15;
+  const pulse = 1 + Math.sin(time * 0.003) * 0.15;
   const radius = RING_RADIUS * pulse;
   
   ctx2d.beginPath();

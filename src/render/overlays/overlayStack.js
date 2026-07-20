@@ -3,6 +3,8 @@
 // Handles size syncing, pixel ratio, and provides a registry
 // for layered 2D effect renderers.
 
+import { getClock } from '../../shared/clockScheduler.js';
+
 let overlay = null;
 let ctx2d = null;
 let threeCanvas = null;
@@ -61,8 +63,8 @@ export function initEffectsOverlay(sceneContext) {
     // Initial sync
     updateCanvases();
   
-  // Hook into existing tick loop
-  sceneContext.onTick((time) => {
+  // Hook into the clock's tick loop (replaces old sceneContext.onTick)
+  getClock().onTick((time) => {
     // state and camera are fetched lazily via globals or passed from renderHexMap3D
     if (!overlay._state || !overlay._camera) return;
     renderFrame(overlay._state, overlay._camera, time);

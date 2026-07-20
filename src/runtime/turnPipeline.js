@@ -12,6 +12,7 @@ import { coordKey } from '../engine/rules/hexGrid.js';
 import { startCombat } from '../ui/combat/combatModal.js';
 import { toast } from '../ui/hud.js';
 import { runBotTurn as aiDecide } from '../game/state/championAI.js';
+import { getClock } from '../shared/clockScheduler.js';
 
 /**
  * End the human player's turn.
@@ -39,7 +40,7 @@ export function onEndTurn() {
 
 /**
  * Execute one bot champion's decision (move, attack, or end).
- * Called by refreshAll via setTimeout when the active champion is a bot.
+ * Called by refreshAll via the clock scheduler when the active champion is a bot.
  */
 export function runBot() {
   const decision = aiDecide(G);
@@ -64,9 +65,9 @@ export function runBot() {
     const cost = range[key] ?? decision.cost ?? 1;
     moveChampion(G, ch, key, cost);
     refreshAll();
-    setTimeout(() => {
+    getClock().setTimeout(() => {
       finishTurn(G);
       refreshAll();
-    }, 380);
+    }, 380, 'bot');
   }
 }

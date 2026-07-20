@@ -3,9 +3,16 @@ import { createCameraState, applyCameraState } from './cameraControls.js';
 
 /**
  * Initialize the Three.js scene, renderer, camera, and lights.
- * Returns all objects needed by other modules.
+ * The clock parameter provides the rAF loop and per-frame callbacks;
+ * sceneSetup no longer owns its own animation loop.
+ *
+ * @param {HTMLElement} mountElement
+ * @param {object} [options]
+ * @param {object} [options.clock] - Clock instance (from clockScheduler)
+ * @param {boolean} [options.shadows]
+ * @returns {object} scene context
  */
-export function initScene(mountElement, { shadows = false } = {}) {
+export function initScene(mountElement, { clock, shadows = false } = {}) {
   // --- Renderer ---
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.round(Math.min(window.devicePixelRatio, 2)));
@@ -95,22 +102,14 @@ export function initScene(mountElement, { shadows = false } = {}) {
   ground.position.y = -0.2;
   scene.add(ground);
 
-  // --- Animation loop ---
-  let running = true;
-  const tickCallbacks = [];
-
-  function animate() {
-    if (!running) return;
-    requestAnimationFrame(animate);
-
-    const time = performance.now() * 0.001; // seconds
-    for (const fn of tickCallbacks) {
-      fn(time);
-    }
-
-    renderer.render(scene, camera);
+  // --- Animation loop (clock-owned) ---
+  // Register the Three.js render call as a per-frame callback on the clock.
+  // This replaces the old internal animate() + tickCallbacks pattern.
+  if (clock) {
+    clock.onTick(() => {
+      renderer.render(scene, camera);
+    });
   }
-  animate();
 
   return {
     renderer,
@@ -121,9 +120,8 @@ export function initScene(mountElement, { shadows = false } = {}) {
     lights: { ambient, hemisphere, directional: dirLight },
     applyCamera() { applyCameraState(camera, camState); },
     getCameraState() { return camState; },
-    onTick(fn) { tickCallbacks.push(fn); },
+    getClock() { return clock; },
     dispose() {
-      running = false;
       renderer.dispose();
       if (renderer.domElement.parentNode) {
         renderer.domElement.parentNode.removeChild(renderer.domElement);

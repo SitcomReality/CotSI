@@ -5,7 +5,10 @@
  * @param {function} getState - function that returns the current game state
  */
 export function setupUnitAnimations(ctx, getState) {
-  ctx.onTick((time) => {
+  const clock = ctx.getClock && ctx.getClock();
+  if (!clock) return;
+
+  clock.onTick((time) => {
     const state = getState();
     if (!state) return;
 

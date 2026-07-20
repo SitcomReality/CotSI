@@ -13,6 +13,7 @@
 import { championVM } from '../viewModels/championViewModel.js';
 import { h } from '../domBuilder.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
+import { getClock } from '../../shared/clockScheduler.js';
 
 /** Guard: prevent duplicate event listener registration on repeated __beginGame calls. */
 let wired = false;
@@ -155,12 +156,12 @@ export function bindHeaderEvents() {
   if (!champsEl || !detailEl || !headerEl) return;
 
   let openId = null;
-  let closeTimer = null;
+  let closeTimerId = null;
 
   function clearCloseTimer() {
-    if (closeTimer) {
-      clearTimeout(closeTimer);
-      closeTimer = null;
+    if (closeTimerId !== null) {
+      getClock().clearTimeout(closeTimerId);
+      closeTimerId = null;
     }
   }
 
@@ -216,14 +217,14 @@ export function bindHeaderEvents() {
   // ── Delayed close on leave ──
   function scheduleClose() {
     clearCloseTimer();
-    closeTimer = setTimeout(() => {
+    closeTimerId = getClock().setTimeout(() => {
       if (
         !champsEl.matches(':hover') &&
         !detailEl.matches(':hover')
       ) {
         closeDetail();
       }
-    }, 150);
+    }, 150, 'ui');
   }
 
   champsEl.addEventListener('mouseleave', scheduleClose);

@@ -10,6 +10,7 @@
 import { h } from '../domBuilder.js';
 import { svgIcon } from '../svgIcon.js';
 import { showModal } from './modalShell.js';
+import { getClock } from '../../shared/clockScheduler.js';
 
 /**
  * Total reveal window (ms). The Acknowledge button unlocks after this, so the
@@ -227,16 +228,22 @@ export function openDispatchModal(report) {
   if (ledgerSection) bodyParts.push(ledgerSection);
   bodyEl.replaceChildren(...bodyParts);
 
-  // ── Reveal: veil → un-veil on the next frame so the CSS transitions run ──
+  // ── Reveal: veil → un-veil across two clock ticks so the CSS transitions ──
+  // The veiled class must paint first; removing it on the next frame triggers
+  // the transition from the correct initial state.
   card.classList.add('dispatch-modal-card--veiled');
   ackBtn.disabled = true;
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => card.classList.remove('dispatch-modal-card--veiled'));
+  const unveil1 = getClock().onTick(() => {
+    unveil1();
+    const unveil2 = getClock().onTick(() => {
+      unveil2();
+      card.classList.remove('dispatch-modal-card--veiled');
+    });
   });
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-  setTimeout(() => {
+  getClock().setTimeout(() => {
     ackBtn.disabled = false;
-  }, reduced ? 0 : REVEAL_MS);
+  }, reduced ? 0 : REVEAL_MS, 'ui');
 
   showModal('dispatchModal');
 }
