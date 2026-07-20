@@ -14,8 +14,8 @@
   text-align: center;
   padding: 6px 2px;
   border-radius: 8px;
-  background: #f7e8c3;
-  border: 1px solid #d0a86a;
+  background: var(--parchment);
+  border: var(--edge) solid var(--rule-strong);
   font-size: 11px;
   cursor: pointer;
   transition: transform 0.2s, opacity 0.2s;
@@ -35,8 +35,8 @@
 
 .ctok.pickable:hover {
   transform: scale(1.15);
-  border-color: #c49b5a;
-  background: #fff4cf;
+  border-color: var(--gold);
+  background: var(--ivory);
 }
 
 .ctok.used {

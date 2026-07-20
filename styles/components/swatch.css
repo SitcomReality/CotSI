@@ -8,7 +8,7 @@
 .sw .chip {
   height: 46px;
   border-radius: var(--r-sm);
-  border: var(--hair) solid rgba(34,28,20,.18);
+  border: var(--hair) solid var(--rule);
   box-shadow: var(--shadow-card);
 }
 

@@ -11,7 +11,7 @@
   /* left positioned by JS to align with the champion slot */
   width: 180px;
   background: var(--parchment);
-  border: var(--edge) solid var(--rule);
+  border: var(--edge) solid var(--rule-strong);
   border-radius: var(--r);
   box-shadow: var(--shadow-stack);
   padding: var(--s3);
@@ -51,7 +51,7 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  border: var(--hair) solid rgba(34, 28, 20, 0.15);
+  border: var(--hair) solid var(--rule);
 }
 
 .detail__name {
@@ -152,7 +152,7 @@
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
-  border: var(--hair) solid rgba(34, 28, 20, 0.12);
+  border: var(--hair) solid var(--rule);
 }
 
 .detail__pot-name {

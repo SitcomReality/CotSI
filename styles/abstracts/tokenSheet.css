@@ -1,11 +1,10 @@
 /* =========================================================================
    TOKEN SHEET (styleguide page) — Layout for the design token preview.
-   Used in visguide/tokenpage.html only; not for game UI.
+   Updated for v2 dark chrome palette.
    ========================================================================= */
 body.token-sheet {
   margin: 0;
-  background:
-    radial-gradient(120% 80% at 50% -10%, var(--vellum) 0%, var(--vellum-2) 100%);
+  background: var(--vellum);
   color: var(--ink);
   font: 400 var(--fs-md)/var(--lh) var(--font-body);
   padding: var(--s6);

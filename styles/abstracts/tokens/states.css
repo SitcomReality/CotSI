@@ -1,13 +1,35 @@
 /* =========================================================================
-   STATE  — Universal semantic colours for UI states and interactions.
+   STATE  — Universal semantic treatments for UI states and interactions.
+
+   CRITICAL RULE: State is conveyed through BORDER + ICON treatments,
+   NOT entity fills. Faction colors identify WHO; state borders tell
+   you WHAT they are to you (ally, hostile, neutral, selected).
+
+   Ally = teal border  (NOT green — that's VER's faction color)
+   Hostile = amber border  (NOT red — that's CRU's faction color)
+   Neutral = cool gray border
+   Selected = gold border + glow
    ========================================================================= */
 :root {
-  --st-hostile:  var(--vermilion);
-  --st-ally:     var(--malachite);
-  --st-neutral:  var(--ink-soft);
-  --st-selected: var(--gold);
+  /* ── State border colors ── */
+  --st-hostile:  #ff7700;  /* amber — deliberate departure from red (CRU)  */
+  --st-ally:     #00ddcc;  /* teal  — deliberate departure from green (VER) */
+  --st-neutral:  #5a6070;  /* cool gray */
+  --st-selected: var(--gold);  /* gold border + glow (same as gold token) */
+
+  /* ── Legacy state fills (for background washes and highlights only) ── */
   --st-reveal:   #5fbf7a;  /* combat reveal glow — matched play-slot.revealed box-shadow */
-  --st-move:     color-mix(in srgb, var(--malachite) 20%, transparent);
-  --st-danger:   color-mix(in srgb, var(--vermilion) 18%, transparent);
-  --st-fog-seen: color-mix(in srgb, var(--vellum-2) 55%, transparent);
+  --st-move:     color-mix(in srgb, #00ddcc 15%, transparent);  /* movement highlight overlay */
+  --st-danger:   color-mix(in srgb, #ff7700 15%, transparent);  /* danger zone overlay */
+  --st-fog-seen: color-mix(in srgb, #252d3d 55%, transparent);  /* fog overlay on seen tiles */
 }
+
+/* ── Re-export for element-inheritance contexts ── */
+/* Apply state classes or data-attributes to entities:
+   .entity.ally   → 3px solid var(--st-ally)
+   .entity.hostile → 3px solid var(--st-hostile)
+   .entity.neutral → 1px solid var(--st-neutral)
+   .entity.selected → 3px solid var(--st-selected) + glow
+
+   Entity fills always use faction colors or pigment colors.
+*/

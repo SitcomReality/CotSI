@@ -1,6 +1,5 @@
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--parchment);color:var(--ink);font-family:Georgia,'Times New Roman',serif}
-html,body{margin:0;height:100%;background:var(--vellum);color:var(--ink);}
+html,body{margin:0;height:100%;background:var(--vellum);color:var(--ink);font-family:Georgia,'Times New Roman',serif}
 code{font-family:var(--font-mono, ui-monospace, Menlo, monospace)}
 :root {
   --faction-color: #888;

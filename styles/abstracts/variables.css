@@ -15,13 +15,13 @@
 
 /* ---- Backward-compatible aliases (legacy names) ---- */
 :root {
-  --parchment:   var(--vellum);
+  --parchment:   var(--parchment);
   --parchment2:  var(--vellum-2);
   --ink:         var(--ink);
   --ink2:        var(--ink-soft);
   --muted:       var(--ink-faint);
   --gold:        var(--gold);
   --paper-shadow:var(--shadow-card);
-  --panel:       var(--ivory);
+  --panel:       var(--parchment);
   --panel-border:var(--rule-strong);
 }

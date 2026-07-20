@@ -18,12 +18,12 @@ export function setHoveredHexKey(key) {
 // ---------------------------------------------------------------------------
 // Visual constants
 // ---------------------------------------------------------------------------
-const ALLOWED_FILL   = 'rgba(255, 216, 107, 0.35)';
-const ALLOWED_STROKE = '#ffd86b';
+const ALLOWED_FILL   = 'rgba(255, 232, 128, 0.35)';
+const ALLOWED_STROKE = '#ffe880';
 const ALLOWED_WIDTH  = 2;
 
-const HOVER_FILL     = 'rgba(255, 255, 200, 0.55)';
-const HOVER_STROKE   = '#FFF8DC';
+const HOVER_FILL     = 'rgba(232, 228, 220, 0.55)';
+const HOVER_STROKE   = '#e8e4dc';
 const HOVER_WIDTH    = 3;
 
 // Slightly smaller than the tile radius to fit inside hex borders

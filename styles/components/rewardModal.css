@@ -12,15 +12,13 @@
    ──────────────────────────────────────────────────────────────────────── */
 
 .reward-card {
-  background: linear-gradient(180deg, #fff7df, #f3e0b3);
+  background: linear-gradient(180deg, var(--ivory), var(--parchment));
   padding: 28px 24px 24px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   max-width: 420px;
   width: 100%;
   text-align: center;
-  box-shadow:
-    0 0 0 1px #d0a86a,
-    0 8px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-stack);
 }
 
 /* ── Reward Title ───────────────────────────────────────────────────────────
@@ -30,7 +28,7 @@
 
 .reward-title {
   margin: 0 0 6px;
-  color: #9a5a12;                      /* warm bronze — manuscript ink */
+  color: var(--gold);
   font-family: Georgia, serif;
   font-size: 20px;
   text-align: center;
@@ -64,7 +62,7 @@
 }
 
 .reward-item:not(:last-child) {
-  border-bottom: 1px solid var(--edge-bold);
+  border-bottom: var(--hair) solid var(--rule);
 }
 
 /* ── Reward Line ────────────────────────────────────────────────────────────
@@ -97,18 +95,18 @@
 
 .reward-btn-close {
   padding: 8px 24px;
-  border: none;
+  border: var(--edge) solid var(--rule-strong);
   border-radius: var(--r-sm);
-  background: var(--ink-soft);
-  color: var(--vellum);
+  background: var(--parchment);
+  color: var(--ink);
   font-weight: 700;
   cursor: pointer;
   margin-top: 10px;
-  transition: background var(--duration-fast) var(--ease-out);
+  transition: background var(--dur-fast) var(--ease-out);
 }
 
 .reward-btn-close:hover {
-  background: var(--ink);
+  background: var(--vellum-2);
 }
 
 /* ── Reward Body ────────────────────────────────────────────────────────────

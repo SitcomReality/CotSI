@@ -5,15 +5,15 @@
 .combatant-card {
   position: relative;
   background: var(--parchment-glass);
-  border: 1px solid #d0a86a;
-  border-radius: 14px;
+  border: var(--edge) solid var(--rule-strong);
+  border-radius: var(--r-lg);
   padding: 12px;
   transition: box-shadow 200ms ease, outline 200ms ease;
 }
 
 .combatant-card.is-active {
-  outline: 2px solid var(--accent, #c9a84c);
-  box-shadow: 0 0 0.75rem var(--accent-soft, rgba(201, 168, 76, 0.35));
+  outline: 2px solid var(--st-selected);
+  box-shadow: 0 0 0.75rem var(--st-selected);
 }
 
 /* ── Card Shake ───────────────────────────────────────────────────────────── */

@@ -1,13 +1,15 @@
 /* =========================================================================
    FACTIONS  — base / glow / pale   (f0–f6)
    Each faction gets three tonal grades for token, halo, and background.
+   Hues preserved from v1; saturation boosted for contrast against the
+   dark chrome base.
    ========================================================================= */
 :root {
-  --f0: #b22f24; --f0-glow:#f07a6a; --f0-pale:#f0b2a2; /* Crucible */
-  --f1: #6d4bb6; --f1-glow:#b79aff; --f1-pale:#c6b3f2; /* Reverie  */
-  --f2: #2f7e44; --f2-glow:#6de98a; --f2-pale:#b5deb3; /* Verdant  */
-  --f3: #2f5f9f; --f3-glow:#7cb8ff; --f3-pale:#a9c4ed; /* Archive  */
-  --f4: #b88728; --f4-glow:#ffd86b; --f4-pale:#efd38b; /* Hearth   */
-  --f5: #9b3f79; --f5-glow:#ff8edb; --f5-pale:#e4aacd; /* Masque   */
-  --f6: #3f4658; --f6-glow:#8a9cff; --f6-pale:#c3c5bd; /* Hollow   */
+  --f0: #cc3628; --f0-glow:#f07a6a; --f0-pale:#e87a6a; /* Crucible */
+  --f1: #7d55cc; --f1-glow:#b79aff; --f1-pale:#b388f0; /* Reverie  */
+  --f2: #34a055; --f2-glow:#6de98a; --f2-pale:#88d888; /* Verdant  */
+  --f3: #3a70c0; --f3-glow:#7cb8ff; --f3-pale:#8ab8f0; /* Archive  */
+  --f4: #d49a24; --f4-glow:#ffd86b; --f4-pale:#efc86b; /* Hearth   */
+  --f5: #b04d88; --f5-glow:#ff8edb; --f5-pale:#e488c0; /* Masque   */
+  --f6: #4a5570; --f6-glow:#8a9cff; --f6-pale:#a0a8c0; /* Hollow   */
 }

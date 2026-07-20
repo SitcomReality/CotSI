@@ -2,7 +2,7 @@
 // potency: per-faction potency buff, score: flat combat score buff, dayLength: movement multiplier
 export const WEATHER_SCRIPT = [
   { name:'Rainbow Aftermath', text:'Gold-leaf rainbows bless Verdant and Hearth powers.', dayLength:1.0, potency:[-1,0,2,0,2,0,-1], score:[0,0,1,0,1,0,0], tint:'#f5d76a' },
-  { name:'Memory Storm', text:'Archive and Reverie inscriptions crawl the margins.', dayLength:1.0, potency:[0,2,0,2,0,-1,-1], score:[0,1,0,1,0,0,0], tint:'#a9c4ed' },
+  { name:'Memory Storm', text:'Archive and Reverie inscriptions crawl the margins.', dayLength:1.0, potency:[0,2,0,2,0,-1,-1], score:[0,1,0,1,0,0,0], tint:'#8ab8f0' },
   { name:'Leyline Ebb', text:'Hollow currents lengthen shadows, draining the warm.', dayLength:0.8, potency:[0,0,-1,-1,-1,0,2], score:[0,0,-1,-1,-1,0,1], tint:'#8a9cff' },
   { name:'Ash Rain', text:'Crucible and Masque flourish under red-black drizzle.', dayLength:1.2, potency:[2,0,-1,0,0,2,0], score:[1,0,-1,0,0,1,0], tint:'#e05a48' },
   { name:'Quiet Tide', text:'Hearth candles and Hollow silences agree, uneasily.', dayLength:1.0, potency:[0,-1,0,0,1,0,1], score:[0,0,0,0,1,0,1], tint:'#d6c49a' },

@@ -11,10 +11,10 @@
 
   font-size: var(--fs-xs, 0.75rem);
   font-family: var(--font-display, Cinzel, serif);
-  color: var(--color-ink, #c8b89a);
-  background: var(--color-parchment-dark, #1e1a16);
-  border: 1px solid var(--color-parchment-mid, #3a3228);
-  border-left: 3px solid var(--indicator-color, var(--color-ink, #c8b89a));
+  color: var(--ink);
+  background: var(--vellum-2);
+  border: var(--edge) solid var(--rule-strong);
+  border-left: 3px solid var(--indicator-color, var(--ink-soft));
   border-radius: 4px;
   padding: 4px 14px;
   white-space: nowrap;

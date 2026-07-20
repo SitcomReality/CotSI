@@ -5,7 +5,7 @@
 import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, tileTopY } from '../hexmap3d/hexMapRenderer.js';
 
-const RING_COLOR = '#ffd86b';
+const RING_COLOR = '#ffe880';
 const RING_RADIUS = 22; // base pixel radius
 const RING_WIDTH = 3;
 

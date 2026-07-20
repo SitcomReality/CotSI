@@ -22,7 +22,7 @@
 .note .seal svg {
   width: 42px;
   height: 42px;
-  filter: drop-shadow(var(--shadow-seal));
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.6));
 }
 
 .note .seal .g {
@@ -30,7 +30,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--ink);
 }
 
 .note .seal .g svg {

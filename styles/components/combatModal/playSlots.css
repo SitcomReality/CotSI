@@ -15,7 +15,7 @@
   width: 92px;
   height: 60px;
   border-radius: 10px;
-  border: 2px dashed var(--slot-color, #c49b5a);
+  border: var(--edge-bold) dashed var(--rule-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,7 +50,7 @@
 .play-arrow {
   display: flex;
   align-items: center;
-  color: #a77;
+  color: var(--ink-soft);
 }
 
 /* ── Colour Pick Slots (compact, hidden-until-reveal) ────────────────────── */

@@ -6,12 +6,12 @@ import { seededNoise, stringSeed } from '../../engine/rules/seededRng.js';
 import { coordKey, parseKey, distance, neighbors, hexesWithinRadius } from '../../engine/rules/hexGrid.js';
 
 export const TERRAIN = {
-  plains:  { fill:'#ead6a8', ink:'#7a5634', label:'Plains', passable:true, mark:'' },
-  forest:  { fill:'#c8d0a1', ink:'#3a5a2a', label:'Forest', passable:true, mark:'∷' },
-  desert:  { fill:'#e6c990', ink:'#8a6a2a', label:'Desert', passable:true, mark:'·' },
-  marsh:   { fill:'#b9c4a8', ink:'#4a5a3a', label:'Marsh', passable:true, mark:'≈' },
-  mountain:{ fill:'#b7aa92', ink:'#5a4630', label:'Impassable peaks', passable:false, mark:'∧' },
-  water:   { fill:'#a6b9c0', ink:'#2a4a5a', label:'Broken water', passable:false, mark:'~' },
+  plains:  { fill:'#74ad5d', ink:'#c8e0b8', label:'Plains', passable:true, mark:'' },
+  forest:  { fill:'#4b8e41', ink:'#a0d090', label:'Forest', passable:true, mark:'∷' },
+  desert:  { fill:'#d6b15b', ink:'#f0d890', label:'Desert', passable:true, mark:'·' },
+  marsh:   { fill:'#819967', ink:'#b8cfa0', label:'Marsh', passable:true, mark:'≈' },
+  mountain:{ fill:'#877c6a', ink:'#c0b8a8', label:'Impassable peaks', passable:false, mark:'∧' },
+  water:   { fill:'#5f9ac1', ink:'#a0d0e8', label:'Broken water', passable:false, mark:'~' },
 };
 
 export function generateTiles(seedText, radius){

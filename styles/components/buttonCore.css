@@ -19,16 +19,16 @@
   background: var(--vellum-2);
 }
 
-/* Primary action — gold leaf fill */
+/* Primary action — gold leaf fill (pops beautifully against dark chrome) */
 .btn.primary {
   background: linear-gradient(180deg, var(--gold-hi), var(--gold));
-  border-color: #8a6512;
-  color: #2a1d05;
+  border-color: #b8941a;
+  color: #1a1205;
   box-shadow: var(--shadow-card);
 }
 
 .btn.primary:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.12);
 }
 
 /* Ghost / text button */
@@ -46,7 +46,9 @@
 /* End-turn button */
 .btn.end {
   flex: 1;
-  background: linear-gradient(180deg, #ffe18a, #d4a138);
-  border-color: #b88728;
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold));
+  border-color: #b8941a;
+  color: #1a1205;
   font-weight: 800;
+  box-shadow: var(--shadow-card);
 }

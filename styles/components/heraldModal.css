@@ -11,7 +11,7 @@
   overflow-y: auto;
   background: linear-gradient(180deg, var(--ivory), var(--parchment));
   border: var(--edge) solid var(--rule-strong);
-  border-left: var(--edge-heavy) solid var(--ink-strong);
+  border-left: var(--edge-heavy) solid var(--ink-soft);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-stack);
   padding: var(--s5) var(--s6);
@@ -136,9 +136,9 @@
 }
 
 .herald-modal__turn-item--active {
-  background: var(--parchment-dark);
+  background: var(--parchment);
   border-color: var(--rule-strong);
-  border-left: 3px solid var(--ink-strong);
+  border-left: 3px solid var(--ink-soft);
 }
 
 .herald-modal__turn-num {
@@ -156,13 +156,13 @@
 }
 
 /* Faction-based circle coloring via paley-item classes */
-.herald-modal__turn-f0 { background: var(--scarlet); }
-.herald-modal__turn-f1 { background: var(--orchid); }
-.herald-modal__turn-f2 { background: var(--moss); }
-.herald-modal__turn-f3 { background: var(--alizarin); }
-.herald-modal__turn-f4 { background: var(--cobalt); }
-.herald-modal__turn-f5 { background: var(--gold); }
-.herald-modal__turn-f6 { background: var(--purple); }
+.herald-modal__turn-f0 { background: var(--f0); }
+.herald-modal__turn-f1 { background: var(--f1); }
+.herald-modal__turn-f2 { background: var(--f2); }
+.herald-modal__turn-f3 { background: var(--f3); }
+.herald-modal__turn-f4 { background: var(--f4); }
+.herald-modal__turn-f5 { background: var(--f5); }
+.herald-modal__turn-f6 { background: var(--f6); }
 
 .herald-modal__turn-name {
   flex: 1;

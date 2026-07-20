@@ -5,9 +5,8 @@
 
    ──────────────────────────────────────────────────────────────────────── */
 
-/* .mini — Compact muted text (11px, var(--muted) colour).
-   Used in setup screen, combat renderer, reward cards, etc. */
+/* .mini — Compact muted text (11px, var(--ink-faint) colour). */
 .mini {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--ink-faint);
 }

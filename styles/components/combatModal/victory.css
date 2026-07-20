@@ -6,11 +6,12 @@
   text-transform: uppercase;
   letter-spacing: 0.24em;
   font-size: 11px;
-  color: #7a5634;
+  color: var(--ink-soft);
 }
 
 .victory-text {
   font-family: Georgia, serif;
   font-size: 32px;
   margin: 10px 0;
+  color: var(--ink);
 }

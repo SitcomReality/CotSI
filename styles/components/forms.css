@@ -1,9 +1,10 @@
 .field-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #c49b5a;
+  border: var(--edge) solid var(--rule-strong);
   border-radius: 10px;
-  background: #fff7df;
+  background: var(--parchment);
+  color: var(--ink);
   font-family: Georgia, serif;
   font-size: 16px;
 }

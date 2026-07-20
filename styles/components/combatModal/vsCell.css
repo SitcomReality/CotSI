@@ -12,13 +12,13 @@
 .vs-text {
   font-family: Georgia, serif;
   font-size: 22px;
-  color: #b88728;
+  color: var(--gold);
   font-weight: 800;
 }
 
 .combat-order {
   font-size: 11px;
-  color: #7a5634;
+  color: var(--ink-soft);
 }
 
 .combat-actions {

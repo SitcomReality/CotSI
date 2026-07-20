@@ -1,16 +1,17 @@
 /* =========================================================================
    SHAPES & LINES  — Border radii and stroke weights.
+   Slightly chunkier than v1 to support the bold low-poly cartoon feel.
    ========================================================================= */
 :root {
   /* Border radii */
-  --r-sm:   6px;
-  --r:      10px;
-  --r-lg:   16px;
+  --r-sm:   8px;
+  --r:      12px;
+  --r-lg:   20px;
   --r-pill: 999px;
 
   /* Line / stroke weights */
   --hair:       1px;
-  --edge:       1.6px;   /* standard border */
-  --edge-bold:  2.4px;   /* emphasis border */
-  --edge-heavy: 3.2px;   /* heavy accent */
+  --edge:       2px;     /* standard border */
+  --edge-bold:  3px;     /* emphasis border */
+  --edge-heavy: 4px;     /* heavy accent */
 }

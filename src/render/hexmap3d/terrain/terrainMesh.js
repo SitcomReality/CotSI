@@ -27,12 +27,12 @@ export function tileTopY(terrain) {
 // Terrain fill colors (mapped to vertex colors)
 // These are RGB tuples for vertex color attributes
 const TERRAIN_COLOR = {
-  plains:   [0.918, 0.839, 0.651],  // #ead6a8
-  forest:   [0.784, 0.816, 0.631],  // #c8d0a1
-  desert:   [0.902, 0.788, 0.565],  // #e6c990
-  marsh:    [0.725, 0.769, 0.659],  // #b9c4a8
-  mountain: [0.718, 0.667, 0.573],  // #b7aa92
-  water:    [0.651, 0.725, 0.753],  // #a6b9c0
+  plains:   [0.455, 0.678, 0.365],  // #74ad5d — vibrant meadow green
+  forest:   [0.294, 0.557, 0.255],  // #4b8e41 — deep vivid forest
+  desert:   [0.839, 0.694, 0.357],  // #d6b15b — warm golden sand
+  marsh:    [0.506, 0.600, 0.404],  // #819967 — murky vibrant marsh
+  mountain: [0.529, 0.486, 0.416],  // #877c6a — rocky warm gray
+  water:    [0.373, 0.604, 0.757],  // #5f9ac1 — bright cyan-blue
 };
 
 // Darken factor for side faces

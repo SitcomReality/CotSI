@@ -5,7 +5,7 @@
 .log-bar {
   grid-column: 1 / -1;
   background: var(--vellum);
-  border-top: var(--hair) solid var(--rule);
+  border-top: var(--edge) solid var(--rule);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -90,7 +90,7 @@
 /* ── Log line types ── */
 .log-bar__line {
   padding: 2px 0;
-  border-bottom: 1px dashed var(--rule);
+  border-bottom: var(--hair) dashed var(--rule);
   color: var(--ink-soft);
 }
 

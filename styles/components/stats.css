@@ -1,21 +1,21 @@
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.sbox{background:#fff7df99;border:1px solid #d0a86a66;border-radius:10px;padding:8px 10px}
-.sl{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
-.sv{font-size:17px;font-weight:700}
+.sbox{background:var(--parchment-glass);border:var(--hair) solid var(--rule);border-radius:10px;padding:8px 10px}
+.sl{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-faint)}
+.sv{font-size:17px;font-weight:700;color:var(--ink)}
 .tk-row{display:flex;align-items:center;gap:8px;margin:5px 0}
 .tk-dot{width:16px;height:16px;border-radius:5px;flex:0 0 16px}
-.tk-bar{flex:1;height:9px;background:#e5cc96;border-radius:99px;overflow:hidden;border:1px solid #c49b5a88}
+.tk-bar{flex:1;height:9px;background:var(--vellum-2);border-radius:99px;overflow:hidden;border:var(--hair) solid var(--rule)}
 .tk-fill{height:100%;border-radius:99px}
-.tk-num{width:30px;text-align:right;font-weight:700;font-size:12px}
+.tk-num{width:30px;text-align:right;font-weight:700;font-size:12px;color:var(--ink)}
 .equip-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.equip{background:#fff7df99;border:1px dashed #c49b5a99;border-radius:10px;padding:8px;font-size:12px}
-.equip b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:2px}
-.hpbar{height:9px;background:#e5cc96;border-radius:99px;overflow:hidden;border:1px solid #c49b5a;margin:6px 0}
-.hpfill{height:100%;background:linear-gradient(90deg,#5fc98a,#2f9f5a)}
+.equip{background:var(--parchment-glass);border:var(--edge) dashed var(--rule-strong);border-radius:10px;padding:8px;font-size:12px;color:var(--ink-soft)}
+.equip b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-faint);margin-bottom:2px}
+.hpbar{height:9px;background:var(--vellum-2);border-radius:99px;overflow:hidden;border:var(--hair) solid var(--rule);margin:6px 0}
+.hpfill{height:100%;background:linear-gradient(90deg,#22bb66,#0f9d55)}
 .hpfill{
   height:100%;
-  background:linear-gradient(90deg,#5fc98a,#2f9f5a);
-  transition: width var(--dur-slow) var(--ease-out);   /* ← ADD THIS LINE */
+  background:linear-gradient(90deg,#22bb66,#0f9d55);
+  transition: width var(--dur-slow) var(--ease-out);
 }
 .score-bar {
   display: flex;
@@ -23,6 +23,6 @@
   max-width: 520px;
   margin: 4px auto 0;
   font-size: 13px;
-  color: #6a4a2a;
+  color: var(--ink-soft);
 }
-.cs-big{font-weight:800;font-size:20px}
+.cs-big{font-weight:800;font-size:20px;color:var(--ink)}

@@ -6,9 +6,9 @@
 .manuscript-panel,
 .panel {
   background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  box-shadow: 0 6px 24px var(--paper-shadow), inset 0 1px 0 #fff8;
+  border: var(--edge) solid var(--panel-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-panel);
   padding: 16px;
 }
 

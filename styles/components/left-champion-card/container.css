@@ -7,7 +7,7 @@
   pointer-events: auto;
   width: 280px;
   background: var(--parchment);
-  border: var(--edge) solid var(--rule);
+  border: var(--edge) solid var(--rule-strong);
   border-radius: var(--r);
   box-shadow: var(--shadow-panel);
   padding: var(--space-sm);

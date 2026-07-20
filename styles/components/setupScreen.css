@@ -1,28 +1,59 @@
-#setup{min-height:100vh;display:flex;align-items:center;justify-content:center;background:
- radial-gradient(900px 560px at 20% 12%, #f7e9c6 0%, transparent 60%),
- radial-gradient(800px 500px at 88% 80%, #e5c99855 0%, transparent 60%),
- linear-gradient(180deg, #f3e2b9, #e7cf9a);
+/* =========================================================================
+   SETUP SCREEN — Faction selection and game configuration.
+   Dark tabletop diorama background.
+   ========================================================================= */
+
+#setup {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(900px 560px at 20% 12%, var(--vellum-2) 0%, transparent 60%),
+    radial-gradient(800px 500px at 88% 80%, var(--parchment) 0%, transparent 60%),
+    var(--vellum);
 }
-.setup-card h1{font-size:44px;line-height:1.02;text-align:center;letter-spacing:-.01em}
-.setup-sub{text-align:center;color:var(--ink2);margin:8px 0 18px}
-.setup-grid{display:grid;grid-template-columns:1.05fr 1.55fr;gap:20px}
+
+.setup-card h1 {
+  font-size: 44px;
+  line-height: 1.02;
+  text-align: center;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+
+.setup-sub {
+  text-align: center;
+  color: var(--ink-soft);
+  margin: 8px 0 18px;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.55fr;
+  gap: 20px;
+}
+
 .setup-mini {
   margin-top: 10px;
 }
+
 /* Faction option */
 .fopt {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px;
-  border: 1px solid transparent;
+  border: var(--edge) solid transparent;
   border-radius: 6px;
   cursor: pointer;
 }
+
 .fopt.on {
   border-color: var(--faction-color);
-  background: rgba(255,255,255,0.2);
+  background: color-mix(in srgb, var(--faction-color) 12%, var(--vellum));
 }
+
 /* Faction dot — uses --faction-color set on .fopt */
 .fdot {
   width: 8px;
@@ -31,28 +62,33 @@
   background: var(--faction-color);
   flex-shrink: 0;
 }
+
 /* Faction info container (replaces inline flex:1) */
 .faction-info {
   flex: 1;
   min-width: 0;
 }
+
 /* Faction name row */
 .faction-name {
   font-weight: 700;
   color: var(--faction-color);
 }
+
 /* Faction trait row */
 .faction-trait {
   font-size: 11px;
-  color: #6a4a2a;
+  color: var(--ink-soft);
 }
+
 .fctrl {
   margin-left: auto;
   font-size: 12px;
   padding: 2px 6px;
 }
+
 /* Size pill active state */
 .size-pill.active {
   border-color: var(--ink);
-  background: var(--vellum2);
+  background: var(--vellum-2);
 }

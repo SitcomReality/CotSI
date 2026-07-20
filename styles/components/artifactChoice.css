@@ -4,13 +4,13 @@
 
 .artifact-choice {
   border: var(--edge-bold) solid var(--gold);
-  background: color-mix(in srgb, var(--vellum) 85%, transparent);
+  background: var(--parchment-glass);
   border-radius: var(--r);
   padding: 12px;
   margin: 8px 0;
   cursor: pointer;
-  transition: border-color var(--duration-fast) var(--ease-out),
-              background var(--duration-fast) var(--ease-out);
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
 }
 
 .artifact-choice:hover {
@@ -21,8 +21,8 @@
 /* Selected state — takes precedence over hover */
 .artifact-choice--selected,
 .artifact-choice--selected:hover {
-  border-color: var(--ink);
-  background: color-mix(in srgb, var(--gold) 25%, var(--vellum));
+  border-color: var(--st-selected);
+  background: color-mix(in srgb, var(--gold) 25%, var(--parchment));
   box-shadow: 0 0 0 2px var(--gold-hi);
 }
 

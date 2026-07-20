@@ -5,8 +5,8 @@
   justify-content: space-between;
   height: 48px;
   padding: 0 var(--space-md);
-  background: var(--vellum);
-  border-bottom: var(--hair) solid var(--rule);
+  background: var(--vellum-2);
+  border-bottom: var(--edge) solid var(--rule-strong);
   box-shadow: var(--shadow-panel);
   color: var(--ink);
   font-family: var(--font-body);

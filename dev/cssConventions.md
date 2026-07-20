@@ -115,12 +115,20 @@ Quick Rules for Adding CSS
 
     When in doubt: Match the file name to the JS module or visual concern. Use kebab‑case classes. Reference spacing tokens. No new pages/ directory – full‑screen views are components.
 
-Visual Design Constraints (from dev/aestheticConventions.md)
+Visual Design Constraints (from dev/aestheticConventions.md v2 — "Vibrant Tabletop Diorama")
 
     Two‑layer rule:
 
-        Chrome (panels, text, buttons) uses restrained neutrals (vellum, parchment, ink).
+        Chrome (panels, text, buttons) uses dark base tones (charcoal-navy, medium-dark panels, light text).
 
         Miniature (map, units, faction glyphs) uses vivid jewel/faction colours.
 
-    Gold budget: Gold is intentionally rare. Only the game title, victory banners, and faction‑accented tints on equipment frames may use gold. Do not add gold elsewhere without consulting dev/aestheticConventions.md §3.
+    State vs Faction: State (ally/hostile/neutral/selected) is conveyed through border
+        treatments + icons, never by changing an entity's faction fill colour.
+        Ally = teal border, Hostile = amber border, Neutral = cool gray border, Selected = gold border + glow.
+
+    Gold budget: Gold is intentionally rare. Against the dark chrome, gold actually pops —
+        enforce the budget more strictly, not less. Only the primary CTA, selection halo,
+        and drop caps may use gold. Do not add gold elsewhere without consulting dev/aestheticConventions.md §3.
+
+    Shadows: Use hard cartoon offset shadows (--shadow-card, --shadow-stack), not soft paper-stack shadows.

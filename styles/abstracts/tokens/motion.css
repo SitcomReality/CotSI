@@ -1,14 +1,17 @@
 /* =========================================================================
-   MOTION  — Restrained, "page" pacing. Easing inspired by paper settling.
+   MOTION  — Bouncy, playful pacing for a cartoon tabletop feel.
+   Retains the restrained timing values but adds a bounce easing curve
+   for playful emphasis on key interactions.
    ========================================================================= */
 :root {
-  --ease:       cubic-bezier(.22,.61,.36,1);
-  --ease-in:    cubic-bezier(.55,.06,.68,.19);
-  --ease-out:   cubic-bezier(.22,.61,.36,1);
-  --dur-fast:   150ms;
-  --dur:        250ms;
-  --dur-slow:   420ms;
-  --dur-xslow:  600ms;
+  --ease:         cubic-bezier(.22,.61,.36,1);
+  --ease-in:      cubic-bezier(.55,.06,.68,.19);
+  --ease-out:     cubic-bezier(.22,.61,.36,1);
+  --ease-bounce:  cubic-bezier(.34,1.56,.64,1);  /* playful pop */
+  --dur-fast:     150ms;
+  --dur:          250ms;
+  --dur-slow:     420ms;
+  --dur-xslow:    600ms;
 
   /* Stacking context */
   --z-map:   1;

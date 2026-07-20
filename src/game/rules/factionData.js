@@ -10,13 +10,13 @@
 //6 beats 0, 1, 3
 
 export const FACTIONS = [
-  { id:0, name:'Crucible', short:'CRU', glyphId:'g-crucible', textGlyph:'[CRU]', color:'#b22f24', glow:'#f07a6a', pale:'#f0b2a2', trait:'Scarshield', desc:'–week enemy final score' },
-  { id:1, name:'Reverie', short:'REV', glyphId:'g-reverie',  textGlyph:'[REV]', color:'#6d4bb6', glow:'#b79aff', pale:'#c6b3f2', trait:"Another's Dream", desc:'Dawn random boon' },
-  { id:2, name:'Verdant', short:'VER', glyphId:'g-verdant',  textGlyph:'[VER]', color:'#2f7e44', glow:'#6de98a', pale:'#b5deb3', trait:"Gaia's Wail", desc:'+1 move, mobs pacified, fruit++' },
-  { id:3, name:'Archive', short:'ARC', glyphId:'g-archive',  textGlyph:'[ARC]', color:'#2f5f9f', glow:'#7cb8ff', pale:'#a9c4ed', trait:'Everknown', desc:'Relic → +random potency' },
-  { id:4, name:'Hearth',  short:'HRT', glyphId:'g-hearth',   textGlyph:'[HRT]', color:'#b88728', glow:'#ffd86b', pale:'#efd38b', trait:'Compersion', desc:'Trade -20%' },
-  { id:5, name:'Masque',  short:'MSK', glyphId:'g-masque',   textGlyph:'[MSK]', color:'#9b3f79', glow:'#ff8edb', pale:'#e4aacd', trait:'Silent Ovation', desc:'Combat turn +week random' },
-  { id:6, name:'Hollow',  short:'HOL', glyphId:'g-hollow',   textGlyph:'[HOL]', color:'#3f4658', glow:'#8a9cff', pale:'#c3c5bd', trait:'Vaunted Nothing', desc:'+⌈week/3⌉ per missing HP' },
+  { id:0, name:'Crucible', short:'CRU', glyphId:'g-crucible', textGlyph:'[CRU]', color:'#cc3628', glow:'#f07a6a', pale:'#e87a6a', trait:'Scarshield', desc:'–week enemy final score' },
+  { id:1, name:'Reverie', short:'REV', glyphId:'g-reverie',  textGlyph:'[REV]', color:'#7d55cc', glow:'#b79aff', pale:'#b388f0', trait:"Another's Dream", desc:'Dawn random boon' },
+  { id:2, name:'Verdant', short:'VER', glyphId:'g-verdant',  textGlyph:'[VER]', color:'#34a055', glow:'#6de98a', pale:'#88d888', trait:"Gaia's Wail", desc:'+1 move, mobs pacified, fruit++' },
+  { id:3, name:'Archive', short:'ARC', glyphId:'g-archive',  textGlyph:'[ARC]', color:'#3a70c0', glow:'#7cb8ff', pale:'#8ab8f0', trait:'Everknown', desc:'Relic → +random potency' },
+  { id:4, name:'Hearth',  short:'HRT', glyphId:'g-hearth',   textGlyph:'[HRT]', color:'#d49a24', glow:'#ffd86b', pale:'#efc86b', trait:'Compersion', desc:'Trade -20%' },
+  { id:5, name:'Masque',  short:'MSK', glyphId:'g-masque',   textGlyph:'[MSK]', color:'#b04d88', glow:'#ff8edb', pale:'#e488c0', trait:'Silent Ovation', desc:'Combat turn +week random' },
+  { id:6, name:'Hollow',  short:'HOL', glyphId:'g-hollow',   textGlyph:'[HOL]', color:'#4a5570', glow:'#8a9cff', pale:'#a0a8c0', trait:'Vaunted Nothing', desc:'+⌈week/3⌉ per missing HP' },
 ];
 
 export const beats = (a,b)=> ((b - a + 7) % 7 === 1) || ((b - a + 7) % 7 === 2) || ((b - a + 7) % 7 === 4);
