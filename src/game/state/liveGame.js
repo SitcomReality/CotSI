@@ -22,3 +22,18 @@ export function setGameInstance(g) {
 export function currentChamp() {
   return G ? G.champions.find((c) => c.id === G.activeChampionId) : null;
 }
+
+/**
+ * Set or clear the turn lock.
+ * When locked, no new bot turn or human end-turn may begin.
+ */
+export function setTurnLock(locked) {
+  if (G) G.turnLock = locked;
+}
+
+/**
+ * Check whether a turn is currently in progress.
+ */
+export function isTurnLocked() {
+  return G ? !!G.turnLock : false;
+}

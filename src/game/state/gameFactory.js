@@ -58,6 +58,7 @@ export function createGame({ seed = 'glut-17', radius = 7, champions = [], objec
     notice: null,
     winnerId: null,
     victoryReason: '',
+    turnLock: false,
     _rng: rng,
   };
 
@@ -148,6 +149,13 @@ export function createGame({ seed = 'glut-17', radius = 7, champions = [], objec
     rand
   );
   state.globalOrder = [...state.currentOrder];
+  // Set herald for day 1 so it shows before the first champion's dispatch
+  state.herald = {
+    day: state.day,
+    weather: { name: state.weather.name, text: state.weather.text, tint: state.weather.tint },
+    order: [...state.currentOrder],
+    champions: state.champions,
+  };
   state.activeChampionId = state.currentOrder[0];
   refreshVision(state);
   beginTurn(state, state.activeChampionId);

@@ -173,7 +173,7 @@ function equipmentEffects(state, champ, effects) {
   });
 }
 
-const CONTRIBUTORS = [weatherEffects, artifactEffects, factionEffects, terrainEffects, equipmentEffects];
+const CONTRIBUTORS = [artifactEffects, factionEffects, terrainEffects, equipmentEffects];
 
 // ── Movement breakdown ──────────────────────────────────────────────────────
 // Parts mirror the inputs of dailyMoves (game/state/championMovement.js);
@@ -210,7 +210,6 @@ export function buildDispatchReport(state, champ, ledgerEntries = []) {
     color: fac.color,
     day: state.day,
     week: weekOf(state.day),
-    weather: { name: state.weather.name, text: state.weather.text, tint: state.weather.tint },
     movement: movementReport(state, champ),
     effects,
     ledger: ledgerEntries,

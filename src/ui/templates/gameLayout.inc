@@ -14,6 +14,7 @@
     <div id="championDetail" class="champion-detail">
       <!-- expandable detail dropdown (repositioned by JS) -->
     </div>
+    <div id="botIndicator" class="bot-indicator"></div>
   </header>
 
   <!-- Map area: map-hud removed, controls moved inside mapMount -->

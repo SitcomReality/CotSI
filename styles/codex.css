@@ -30,6 +30,7 @@
 @import "./components/setupScreen.css";
 @import "./components/combatModal.css";
 @import "./components/dispatchModal.css";
+@import "./components/heraldModal.css";
 @import "./components/rewardModal.css";
 @import "./components/championPanel.css";
 @import "./components/headerPanel.css";
@@ -51,6 +52,7 @@
 @import "./components/textTreatment.css";
 @import "./components/hud.css";
 @import "./components/paleyCrossHighlight.css";
+@import "./components/bot-indicator.css";
 
 /* ════════════════════════════════════════════════════════════════════════════
    4. UI OVERRIDES — accessibility and responsive (imported last so they win

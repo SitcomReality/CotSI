@@ -39,9 +39,22 @@ export function advanceTurn(state) {
     state.weather = weatherForDay(state.day);
     addLog(state, `— Day ${state.day}: ${state.weather.name}. ${state.weather.text}`);
     state.currentOrder = state.globalOrder.filter(id => getChampion(state, id)?.alive);
+    state.herald = {
+      day: state.day,
+      weather: { name: state.weather.name, text: state.weather.text, tint: state.weather.tint },
+      order: [...state.currentOrder],
+      champions: state.champions,
+    };
     state.activeChampionId = state.currentOrder[0] || null;
   }
-  if (state.activeChampionId) beginTurn(state, state.activeChampionId);
+  if (state.activeChampionId) {
+    beginTurn(state, state.activeChampionId);
+    // Clear turn lock so the new champion's turn can proceed.
+    // The lock is set by runBot/onEndTurn as a re-entry guard, but each
+    // fresh champion — human or bot — starts unlocked. runBot sets it
+    // again before doing work, and onEndTurn checks it.
+    state.turnLock = false;
+  }
 }
 
 function runWorldTurn(state) {

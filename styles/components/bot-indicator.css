@@ -1,0 +1,40 @@
+/* =========================================================================
+   BOT INDICATOR — Shown while a bot champion is taking its turn
+   ========================================================================= */
+
+#botIndicator {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+
+  font-size: var(--fs-xs, 0.75rem);
+  font-family: var(--font-display, Cinzel, serif);
+  color: var(--color-ink, #c8b89a);
+  background: var(--color-parchment-dark, #1e1a16);
+  border: 1px solid var(--color-parchment-mid, #3a3228);
+  border-left: 3px solid var(--indicator-color, var(--color-ink, #c8b89a));
+  border-radius: 4px;
+  padding: 4px 14px;
+  white-space: nowrap;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+  z-index: 10;
+}
+
+#botIndicator.is-visible {
+  opacity: 1;
+}
+
+/* Subtle pulse while visible */
+#botIndicator.is-visible {
+  animation: bot-indicator-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes bot-indicator-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}

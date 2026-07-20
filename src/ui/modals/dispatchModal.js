@@ -181,9 +181,7 @@ export function openDispatchModal(report) {
   const headerEl = document.getElementById('dispatchHeader');
   const bodyEl = document.getElementById('dispatchBody');
   const ackBtn = document.getElementById('dispatchAck');
-  const weatherEl = document.querySelector('[data-ref="weatherDisplay"]');
-  const captionEl = document.querySelector('[data-ref="weatherCaption"]');
-  if (!card || !headerEl || !bodyEl || !ackBtn || !weatherEl || !captionEl) return;
+  if (!card || !headerEl || !bodyEl || !ackBtn) return;
 
   // Faction accent: genuinely dynamic per champion (two-layer rule: chrome
   // stays neutral, the miniature's colour appears as glyph/name/left rule).
@@ -199,12 +197,6 @@ export function openDispatchModal(report) {
       h('div', { class: 'dispatch-modal__name' }, report.name),
     )
   );
-
-  // ── Weather display ──
-  weatherEl.replaceChildren(weatherDisplayEl(report.weather, report.glyphId));
-
-  // ── Weather caption ──
-  captionEl.textContent = `${report.weather.name} — ${report.weather.text}`;
 
   // ── Stat grid ──
   const statGrid = statGridEl(report);

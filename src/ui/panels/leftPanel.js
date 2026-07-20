@@ -3,6 +3,25 @@ import { currentChamp } from '../../game/state/liveGame.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { h } from '../domBuilder.js';
 
+/**
+ * Enable or disable the End Turn button based on whether a human champion is active.
+ */
+function syncEndTurnBtn(isHumanTurn) {
+  const btn = document.querySelector('.left-endturn-btn');
+  if (!btn) return;
+  // Only touch button state when enabling — the "Ending Turn…" disabled state
+  // set by onEndTurn should persist until a human turn actually arrives.
+  if (isHumanTurn) {
+    btn.disabled = false;
+    btn.textContent = 'End Turn';
+    btn.classList.remove('is-ending');
+  } else {
+    btn.disabled = true;
+    // Don't change text — may be "Ending Turn…" from onEndTurn, or staying
+    // disabled during bot turns which is fine either way.
+  }
+}
+
 export function bindLeftPanel(G) {
   const el = document.getElementById('championCard');
   if (!el) {
@@ -26,8 +45,12 @@ export function bindLeftPanel(G) {
     card.querySelectorAll('[data-ui]').forEach(n => { n.textContent = '--'; });
     const bars = card.querySelector('.left-potency-bars');
     if (bars) bars.replaceChildren();
+    syncEndTurnBtn(false);
     return;
   }
+
+  // End Turn button state
+  syncEndTurnBtn(ch.controller === 'human');
 
   const vm = championVM(G, ch);
 
