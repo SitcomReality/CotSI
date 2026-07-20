@@ -1,6 +1,11 @@
 /**
  * terrainGeneration.js — Seeded terrain generation and terrain type rules.
  * Pure: takes a seed, returns tiles. Hex-grid math lives in engine/rules/hexGrid.js.
+ *
+ * Supports biome-driven thresholds and map parameter multipliers:
+ *   - heightVariation: scales elevation noise amplitude
+ *   - wateriness:     multiplies the water maxElevation threshold (higher = more water)
+ *   - mountainousness: divides the mountain minElevation threshold (higher = more mountains)
  */
 import { seededNoise, stringSeed } from '../../engine/rules/seededRng.js';
 import { coordKey, parseKey, distance, neighbors, hexesWithinRadius } from '../../engine/rules/hexGrid.js';
@@ -14,18 +19,68 @@ export const TERRAIN = {
   water:   { fill:'#5f9ac1', ink:'#a0d0e8', label:'Broken water', passable:false, mark:'~' },
 };
 
-export function generateTiles(seedText, radius){
+// Default thresholds used when no biome is supplied (backward-compatible)
+const DEFAULT_THRESHOLDS = {
+  mountain: { minElevation: 0.905 },
+  water: { maxElevation: 0.07, minMoisture: 0.5 },
+  forest: { minMoisture: 0.72 },
+  desert: { maxMoisture: 0.20 },
+  marsh: { minMoisture: 0.58, maxElevation: 0.35 },
+};
+
+const DEFAULT_FEATURES = {
+  tree: { threshold: 0.935, exclude: ['desert'] },
+  knot: { threshold: 0.038 },
+};
+
+/**
+ * Generate a tile map for a given seed and radius.
+ *
+ * @param {string}  seedText     - Seed string for reproducible generation
+ * @param {number}  radius       - Hex map radius (center 0,0)
+ * @param {object}  [biomeDef]   - Resolved biome archetype definition, or null for defaults
+ * @param {object}  [params]     - Map parameter multipliers
+ * @param {number}  [params.heightVariation=1]  - Elevation noise amplitude multiplier
+ * @param {number}  [params.wateriness=1]       - Water threshold multiplier
+ * @param {number}  [params.mountainousness=1]  - Mountain threshold divisor
+ * @returns {object} tiles keyed by "q,r"
+ */
+export function generateTiles(seedText, radius, biomeDef = null, params = {}){
   const seed = stringSeed(seedText);
+  const thresholds = biomeDef?.terrainThresholds || DEFAULT_THRESHOLDS;
+  const features = biomeDef?.featureFrequencies || DEFAULT_FEATURES;
+
+  const heightMult = params.heightVariation ?? 1.0;
+  const waterMult = params.wateriness ?? 1.0;
+  const mountainMult = params.mountainousness ?? 1.0;
+
+  // Resolve thresholds with parameter multipliers
+  const mtThreshold = thresholds.mountain?.minElevation !== undefined
+    ? thresholds.mountain.minElevation / Math.max(0.1, mountainMult)
+    : 0.905 / Math.max(0.1, mountainMult);
+  const waterThreshold = thresholds.water?.maxElevation !== undefined
+    ? thresholds.water.maxElevation * waterMult
+    : 0.07 * waterMult;
+  const waterMinMoisture = thresholds.water?.minMoisture ?? 0.5;
+  const forestMinMoisture = thresholds.forest?.minMoisture ?? 0.72;
+  const desertMaxMoisture = thresholds.desert?.maxMoisture ?? 0.20;
+  const marshMinMoisture = thresholds.marsh?.minMoisture ?? 0.58;
+  const marshMaxElevation = thresholds.marsh?.maxElevation ?? 0.35;
+
+  const treeThreshold = features.tree?.threshold ?? 0.935;
+  const treeExclude = features.tree?.exclude ?? ['desert'];
+  const knotThreshold = features.knot?.threshold ?? 0.038;
+
   const tiles={};
   for(const c of hexesWithinRadius(radius)){
-    const elevation = seededNoise(seed, c.q, c.r, 1);
+    const elevation = seededNoise(seed, c.q, c.r, 1) * heightMult;
     const moisture = seededNoise(seed, c.q, c.r, 2);
     let terrain='plains';
-    if(elevation>0.905) terrain='mountain';
-    else if(elevation<0.07 && moisture>0.5) terrain='water';
-    else if(moisture>0.72) terrain='forest';
-    else if(moisture<0.20) terrain='desert';
-    else if(moisture>0.58 && elevation<0.35) terrain='marsh';
+    if(elevation > mtThreshold) terrain='mountain';
+    else if(elevation < waterThreshold && moisture > waterMinMoisture) terrain='water';
+    else if(moisture > forestMinMoisture) terrain='forest';
+    else if(moisture < desertMaxMoisture) terrain='desert';
+    else if(moisture > marshMinMoisture && elevation < marshMaxElevation) terrain='marsh';
     const key = coordKey(c);
     tiles[key] = {...c, terrain, feature:null };
   }
@@ -44,12 +99,15 @@ export function generateTiles(seedText, radius){
   }
   for(const k of passableKeys){ if(!seen.has(k)) tiles[k].terrain='mountain'; }
 
-  // sprinkle features
+  // sprinkle features using biome frequencies
   for(const t of Object.values(tiles)){
     if(!TERRAIN[t.terrain].passable) continue;
     const roll = seededNoise(seed, t.q, t.r, 4);
-    if(roll>0.935 && t.terrain!=='desert') t.feature = {kind:'tree', nextFruitDay:1, ripe:true};
-    else if(roll<0.038) t.feature = {kind:'knot', mined:false, amount:2+Math.floor(roll*100)%3};
+    if(roll > treeThreshold && !treeExclude.includes(t.terrain)) {
+      t.feature = {kind:'tree', nextFruitDay:1, ripe:true};
+    } else if(roll < knotThreshold) {
+      t.feature = {kind:'knot', mined:false, amount:2+Math.floor(roll*100)%3};
+    }
   }
   return tiles;
 }

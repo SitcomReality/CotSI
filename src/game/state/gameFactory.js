@@ -7,7 +7,7 @@ import { weatherForDay } from '../rules/weatherScript.js';
 import { makeRng } from '../../engine/rules/seededRng.js';
 import { distance, coordKey, parseKey } from '../../engine/rules/hexGrid.js';
 import { generateTiles, nearestOpenKey, nearestOpenMultiRing, TERRAIN } from '../rules/terrainGeneration.js';
-import { getArchetypesByType } from '../rules/archetypes.js';
+import { getArchetypesByType, getArchetype } from '../rules/archetypes.js';
 import '../rules/archetypeData.js'; // side-effect: populate archetype registry
 import { refreshVision } from './fogOfWar.js';
 import { beginTurn } from './turnActions.js';
@@ -35,14 +35,19 @@ export function shuffle(arr, rand) {
   return a;
 }
 
-export function createGame({ seed = 'glut-17', radius = 7, champions = [], objectives = { relicRace: true, relicTarget: 7, lastStanding: true } }) {
-  const tiles = generateTiles(seed, radius);
+export function createGame({ seed = 'glut-17', radius = 7, champions = [], objectives = { relicRace: true, relicTarget: 7, lastStanding: true }, biome = 'biome_default', mapSettings = {} }) {
+  const biomeDef = getArchetype(biome) || getArchetype('biome_default');
+  const biomePalette = biomeDef?.palette || null;
+  const tiles = generateTiles(seed, radius, biomeDef, mapSettings);
   const rng = makeRng(seed);
   const rand = () => rng();
   const state = {
     screen: 'world',
     seed,
     radius,
+    biome,
+    mapSettings,
+    biomePalette,
     day: 1,
     weather: weatherForDay(1),
     tiles,

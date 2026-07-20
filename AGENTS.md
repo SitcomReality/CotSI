@@ -84,7 +84,9 @@ CotSI/
 │   │   │   ├── paleyScoring.js      # scorePower Paley math
 │   │   │   ├── weatherScript.js     # 7-day weather script
 │   │   │   ├── dispatchReport.js    # buildDispatchReport — pure Augur's Dispatch data
-│   │   │   └── terrainGeneration.js # TERRAIN + seeded tile generation
+│   │   │   ├── archetypes.js        # Data-driven archetype registry (mobs, biomes, features)
+│   │   │   ├── archetypeData.js     # All archetype definitions (mobs, biomes, features)
+│   │   │   └── terrainGeneration.js # TERRAIN + seeded tile generation (biome-aware)
 │   │   └── state/             # Single source of truth: state, queries, mutations
 │   │       ├── liveGame.js          # Live G instance + currentChamp()
 │   │       ├── gameFactory.js       # createGame(...) — world + champion setup
@@ -340,6 +342,58 @@ Animations highlight every contributing element.
 #### 6. Next Round
 A new round begins using the same `combat.first`/`second` assignments
 (which reflect the now-updated `G.globalOrder`). Steps 2–5 repeat.
+
+---
+
+### Biome System
+
+Biomes are data-driven archetypes defined in `src/game/rules/archetypeData.js` (type: `'biome'`). Each biome defines:
+
+- **`terrainThresholds`** — noise cutoffs for assigning terrain types. Each key is a terrain type with `{ minElevation, maxElevation, minMoisture, maxMoisture }`. A tile must satisfy ALL conditions to be assigned that terrain.
+- **`featureFrequencies`** — noise thresholds for spawning features (trees, knots).
+- **`palette`** — RGB color tuples `[r, g, b]` per terrain type, used by `terrainMesh.js` as vertex color overrides.
+- **`terrainTags`** — which terrain types appear in this biome.
+- **`weatherAffinity`** — hint for weather system integration (future).
+
+#### Biome Selection
+
+The setup screen populates a `<select>` from `listArchetypes('biome')`. The selected biome key flows through config → `createGame()` → `generateTiles()`. The resolved palette is stored on `state.biomePalette` and read by the renderer.
+
+#### Map Settings Parameters
+
+The setup screen's "Advanced" section exposes three parameter sliders:
+
+| Parameter | Effect | Range |
+|-----------|--------|-------|
+| `heightVariation` | Multiplies elevation noise amplitude | 0.5–2.0 |
+| `wateriness` | Multiplies the water maxElevation threshold (higher = more water) | 0.0–2.0 |
+| `mountainousness` | Divides the mountain minElevation threshold (higher = more mountains) | 0.0–2.0 |
+
+These are collected as `mapSettings` in the config object and passed to `generateTiles(seedText, radius, biomeDef, mapSettings)`.
+
+#### Current Biomes
+
+| Archetype Key | Display Name | Character |
+|---------------|-------------|-----------|
+| `biome_default` | Default Manuscript | Balanced, current behavior refactored |
+| `biome_verdant` | Verdant Weald | Lush, forest-heavy, less desert, deeper greens |
+| `biome_arid` | Sere Wastes | Dry, desert-heavy, rare water, warm tones |
+
+#### Adding a New Biome
+
+```js
+defineArchetype('biome_my_new_biome', {
+  type: 'biome',
+  name: 'Display Name',
+  terrainThresholds: { /* ... */ },
+  featureFrequencies: { tree: { threshold: 0.935, exclude: ['desert'] }, knot: { threshold: 0.038 } },
+  palette: { plains: [r,g,b], forest: [r,g,b], desert: [r,g,b], marsh: [r,g,b], mountain: [r,g,b], water: [r,g,b] },
+  terrainTags: ['plains', 'forest', 'mountain'],
+  weatherAffinity: ['temperate'],
+});
+```
+
+The new biome automatically appears in the setup screen dropdown — no wiring changes needed.
 
 ---
 

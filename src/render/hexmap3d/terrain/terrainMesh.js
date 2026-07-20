@@ -63,10 +63,13 @@ export function buildTerrainMesh(state, visible, explored) {
 
   let vi = 0; // vertex index (in floats, so vi/3 = vertex count)
 
+  // Resolve colors — biome palette overrides the default TERRAIN_COLOR
+  const palette = state.biomePalette || {};
+
   for (const tile of activeTiles) {
     const tinfo = TERRAIN[tile.terrain];
     const elev = ELEVATION[tile.terrain] || 0;
-    const baseColor = TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
+    const baseColor = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
     const sideColor = baseColor.map(c => c * SIDE_DARKEN);
 
     const { x: cx, z: cz } = hexCenter(tile.q, tile.r);

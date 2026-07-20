@@ -92,3 +92,59 @@
   border-color: var(--ink);
   background: var(--vellum-2);
 }
+
+/* Biome select dropdown */
+.biome-select {
+  appearance: auto;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+/* Advanced settings collapsible section */
+.setup-advanced {
+  margin-top: 14px;
+}
+
+.setup-advanced-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--ink-soft);
+  user-select: none;
+}
+
+.setup-advanced-toggle input[type="checkbox"] {
+  accent-color: var(--ink);
+}
+
+.setup-advanced-body {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: var(--edge) solid var(--rule);
+  border-radius: 8px;
+  background: var(--vellum);
+}
+
+/* Slider rows inside the advanced section */
+.slider-row {
+  margin-bottom: 10px;
+}
+
+.slider-row:last-child {
+  margin-bottom: 0;
+}
+
+.slider-row label {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 2px;
+}
+
+.slider-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--ink);
+  cursor: pointer;
+}

@@ -8,12 +8,36 @@
         <input id="seedInput" class="field-input" value="glut-17">
         <div class="rel-fields">
           <h4>Map size</h4>
+          <span class="size-pill" data-r="3" data-action="selectSize">Tiny</span>
           <span class="size-pill" data-r="5" data-action="selectSize">Small</span>
           <span class="size-pill" data-r="7" data-action="selectSize">Medium</span>
           <span class="size-pill active" data-r="9" data-action="selectSize">Large</span>
           <span class="size-pill" data-r="13" data-action="selectSize">Vast</span>
           <span class="size-pill" data-r="17" data-action="selectSize">Immense</span>
           <span class="size-pill" data-r="21" data-action="selectSize">Mythic</span>
+        </div>
+        <div class="rel-fields">
+          <h4>Biome</h4>
+          <select id="biomeSelect" class="field-input biome-select"></select>
+        </div>
+        <div class="setup-advanced">
+          <label class="setup-advanced-toggle">
+            <input type="checkbox" id="advToggle"> Advanced
+          </label>
+          <div class="setup-advanced-body" id="advBody">
+            <div class="slider-row">
+              <label>Height variation <span id="hvVal">1.0</span>x</label>
+              <input type="range" id="hvSlider" min="0.5" max="2.0" step="0.1" value="1.0">
+            </div>
+            <div class="slider-row">
+              <label>Wateriness <span id="wtVal">1.0</span>x</label>
+              <input type="range" id="wtSlider" min="0.0" max="2.0" step="0.1" value="1.0">
+            </div>
+            <div class="slider-row">
+              <label>Mountainousness <span id="mtVal">1.0</span>x</label>
+              <input type="range" id="mtSlider" min="0.0" max="2.0" step="0.1" value="1.0">
+            </div>
+          </div>
         </div>
         <div class="setup-grid-row">
           <label>Relic target<br><input id="relicTarget" class="field-input small" type="number" min="5" max="50" value="25"></label>
