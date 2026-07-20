@@ -4,7 +4,12 @@ import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileTopY } from '../terrain/terrainMesh.js';
 
-import { getChampionBodyGeo, getChampionHeadGeo, getMobBodyGeo, getTraderBodyGeo } from './unitGeometries.js';
+import {
+  getChampionBodyGeo,
+  getChampionHeadGeo,
+  getMobGeo,
+  getTraderBodyGeo,
+} from './unitGeometries.js';
 
 /**
  * Convert a hex color string (#rrggbb) to an RGB array (0..1).
@@ -18,16 +23,21 @@ function hexToRgb(hex) {
 
 /**
  * Build unit meshes for all visible champions, mobs, and traders.
- * Returns an array of THREE InstancedMesh objects to add to the scene.
+ * Mobs are grouped by archetype shape so each distinct mob type gets its own
+ * InstancedMesh with the correct geometry.
+ *
+ * @param {Object} state   - Game state
+ * @param {Set}    visible - Set of visible hex keys
+ * @returns {THREE.InstancedMesh[]}
  */
 export function buildUnitMeshes(state, visible) {
   const results = [];
 
-  // Collect instance data
+  // ---- Collect instance data ----
   const championBodyInstances = [];
-
   const championHeadInstances = [];
-  const mobInstances = [];
+  /** @type {Map<string, Array<{x:number, y:number, z:number, scale:number, color:number[]}>>} */
+  const mobInstancesByShape = new Map();
   const traderInstances = [];
 
   for (const key of visible) {
@@ -47,18 +57,27 @@ export function buildUnitMeshes(state, visible) {
       const fac = FACTIONS[champ.faction];
       const color = fac ? hexToRgb(fac.color) : [0.8, 0.8, 0.8];
       championBodyInstances.push({ x, y: surfaceY + 0.15, z, color });
-
       championHeadInstances.push({ x, y: surfaceY + 0.45, z, color: [1, 1, 1] });
     } else if (mob) {
       const fac = FACTIONS[mob.faction];
       const color = fac ? hexToRgb(fac.color).map(c => c * 0.7) : [0.4, 0.3, 0.2];
-      mobInstances.push({ x, y: surfaceY + 0.15, z, color });
+      const shapeKey = mob.archetypeName || 'default';
+      if (!mobInstancesByShape.has(shapeKey)) {
+        mobInstancesByShape.set(shapeKey, []);
+      }
+      mobInstancesByShape.get(shapeKey).push({
+        x,
+        y: surfaceY + 0.15,
+        z,
+        scale: mob.visualScale || 1.0,
+        color,
+      });
     } else if (trader) {
       traderInstances.push({ x, y: surfaceY + 0.2, z, color: [0.29, 0.75, 0.6] });
     }
   }
 
-  // Champion body InstancedMesh
+  // ---- Champion body InstancedMesh ----
   if (championBodyInstances.length > 0) {
     const mat = new THREE.MeshLambertMaterial({ flatShading: true });
     const im = new THREE.InstancedMesh(getChampionBodyGeo(), mat, championBodyInstances.length);
@@ -76,7 +95,7 @@ export function buildUnitMeshes(state, visible) {
     results.push(im);
   }
 
-  // Champion heads InstancedMesh
+  // ---- Champion heads InstancedMesh ----
   if (championHeadInstances.length > 0) {
     const mat = new THREE.MeshLambertMaterial({ color: 0xffe8c8, flatShading: true });
     const im = new THREE.InstancedMesh(getChampionHeadGeo(), mat, championHeadInstances.length);
@@ -92,25 +111,27 @@ export function buildUnitMeshes(state, visible) {
     results.push(im);
   }
 
-  // Mob InstancedMesh
-  if (mobInstances.length > 0) {
+  // ---- Mob InstancedMeshes — one per shape ----
+  for (const [shapeKey, instances] of mobInstancesByShape) {
+    if (instances.length === 0) continue;
+    const geo = getMobGeo(shapeKey);
     const mat = new THREE.MeshLambertMaterial({ flatShading: true });
-    const im = new THREE.InstancedMesh(getMobBodyGeo(), mat, mobInstances.length);
+    const im = new THREE.InstancedMesh(geo, mat, instances.length);
     const dummy = new THREE.Object3D();
-    mobInstances.forEach((inst, i) => {
+    instances.forEach((inst, i) => {
       dummy.position.set(inst.x, inst.y, inst.z);
-      dummy.scale.setScalar(1.0);
+      dummy.scale.setScalar(inst.scale);
       dummy.updateMatrix();
       im.setMatrixAt(i, dummy.matrix);
       im.setColorAt(i, new THREE.Color(inst.color[0], inst.color[1], inst.color[2]));
     });
     im.instanceMatrix.needsUpdate = true;
     im.instanceColor.needsUpdate = true;
-    im.name = 'mobs';
+    im.name = `mobs_${shapeKey}`;
     results.push(im);
   }
 
-  // Trader InstancedMesh
+  // ---- Trader InstancedMesh ----
   if (traderInstances.length > 0) {
     const mat = new THREE.MeshLambertMaterial({ color: 0x4abf9a, flatShading: true });
     const im = new THREE.InstancedMesh(getTraderBodyGeo(), mat, traderInstances.length);

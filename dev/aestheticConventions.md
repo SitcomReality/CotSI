@@ -287,3 +287,57 @@ State background washes (for hex highlights, map overlay areas) use the 15% mix 
 ```
 
 These are overlays — they sit on top of the entity, not replacing it.
+
+---
+
+## 11. Scale Conventions (3D Miniatures)
+
+The 3D scene follows "board game piece" scale — stylized proportions by piece type,
+not real-world fidelity. A champion miniature can be as tall as a mountain miniature
+because both are game pieces on a table, not real-world objects.
+
+### Base units
+
+| Measurement | Value | Notes |
+|-------------|-------|-------|
+| Hex radius (world units) | `HEX_RADIUS = 1.0` | Flat-top hex, center-to-vertex |
+| Hex tile thickness | `HEX_THICKNESS = 1.25` | The "board game base" each tile sits on |
+| Elevation range | -0.15 (water) to +0.60 (mountain) | Additional Y offset on top of thickness |
+
+### Piece heights (Y offset above tile surface)
+
+| Piece type | Height range | Example |
+|------------|--------------|---------|
+| Champion body | 0.50 | Cylinder body + sphere head (total ~0.45 from surface) |
+| Mob body | 0.30–0.50 | Varies by archetype (bear=short, goose=tall) |
+| Trader | 0.45 | Cone figure |
+| Tree (trunk + canopy) | 0.40 + 0.50 = 0.90 | Trunk from surface, canopy above |
+| Mountain | 0.90 | Cone peak |
+| Faction base | 0.70 (body) + 0.15 (cap) = 0.85 | Two-tier tower |
+
+### Scale rules
+
+1. **No real-world proportionality.** A mountain piece (0.90 units) can be ~2× the
+   height of a champion piece (0.45 units) — that's "big terrain piece" vs "small
+   figure," not geology vs biology.
+2. **Features (trees, mountains, bases) are taller than units (champions, mobs, traders).**
+   This keeps the board readable: terrain reads as the environment, units as actors on it.
+3. **Within a type, scale signals importance.**
+   - A tier-2 mob uses `visualScale = 1.4–1.5` (40–50% bigger than tier-1)
+   - All champions are the same base scale (distinction comes from geometry + faction color)
+4. **All pieces sit on the tile surface** (accounting for terrain elevation). No floating.
+5. **InstancedMeshes share a geometry per shape/type**, so piece variety comes from:
+   - Different base geometries (bear vs. scorpion)
+   - Instance color (faction tint, mutation tint)
+   - Instance scale (tier variation)
+
+### Geometry budget
+
+- **Mobs**: one geometry per archetype shape (~7 shapes), cached permanently
+- **Champions**: one shared body geometry, one shared head geometry (faction distinction
+  via color only for now — per-faction geometries are a future enhancement)
+- **Trees**: 2–3 canopy variants (round, tall, wide), selected by terrain + seed
+- **Mountains**: displaced-vertex cone for natural variation
+- **Bases**: faction-generic cylinder + cap (per-faction decoration is a future enhancement)
+- **Debris**: one InstancedMesh with 2–3 small geometry variants for environmental flavor
+  (grass tuft, pebble, flower — very sparse)

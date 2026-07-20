@@ -6,6 +6,9 @@ import { getMountainGeo } from './featureGeometries.js';
 
 /**
  * Collect mountain instance data from visible tiles and return InstancedMeshes.
+ * Uses a displaced-vertex 6-sided cone for natural variation.
+ * Each instance is slightly rotated and scaled for organic variety.
+ *
  * @param {Map} state.tiles
  * @param {string[]} visible
  * @returns {THREE.InstancedMesh[]}
@@ -20,10 +23,16 @@ export function buildMountainMeshes(state, visible) {
     if (!f || (f.kind !== 'mountain' && tile.terrain !== 'mountain')) continue;
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
+
+    // Use tile coordinates for deterministic variety
+    const hash = ((tile.q * 13 + tile.r * 7) * 19) % 100;
+    const scale = 0.85 + (hash % 30) / 100; // 0.85–1.15
+    const rotY = (hash * 0.618) % (Math.PI * 2); // golden angle for even distribution
+
     instances.push({
       x, y: surfaceY + 0.35, z,
-      scale: 1.0,
-      color: [0.718, 0.667, 0.573],
+      scale,
+      rotY,
     });
   }
 
@@ -34,7 +43,8 @@ export function buildMountainMeshes(state, visible) {
   const dummy = new THREE.Object3D();
   instances.forEach((inst, i) => {
     dummy.position.set(inst.x, inst.y, inst.z);
-    dummy.scale.setScalar(1.0);
+    dummy.scale.setScalar(inst.scale);
+    dummy.rotation.y = inst.rotY;
     dummy.updateMatrix();
     mesh.setMatrixAt(i, dummy.matrix);
   });
