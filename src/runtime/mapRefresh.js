@@ -20,15 +20,29 @@ let lastCenteredChampionId = null;
  * Centers the camera on the human champion's position at turn start.
  */
 export function refreshMap() {
-  if (!G) return;
+  if (!G) {
+    console.warn('[refreshMap] G is null — bail');
+    return;
+  }
 
   const mountEl = document.getElementById('mapMount');
-  if (!mountEl) return;
+  if (!mountEl) {
+    console.warn('[refreshMap] #mapMount not found in DOM');
+    return;
+  }
+
+  const rect = mountEl.getBoundingClientRect();
+  console.log('[refreshMap] #mapMount found —', rect.width + 'x' + rect.height, 'initialized:', map3dInitialized);
 
   if (!map3dInitialized) {
     // First call: clear mount, init 3D scene
     mountEl.replaceChildren();
-    initHexMap3D(mountEl);
+    try {
+      const ctx = initHexMap3D(mountEl);
+      console.log('[refreshMap] initHexMap3D done — canvas:', mountEl.querySelector('canvas')?.clientWidth + 'x' + mountEl.querySelector('canvas')?.clientHeight);
+    } catch (err) {
+      console.error('[refreshMap] initHexMap3D threw:', err);
+    }
     setupMapInteraction3D(
       onHexClick,
       (key) => getTooltipContent(G, key, currentChamp())
@@ -36,7 +50,11 @@ export function refreshMap() {
     map3dInitialized = true;
   }
 
-  renderHexMap3D(G);
+  try {
+    renderHexMap3D(G);
+  } catch (err) {
+    console.error('[refreshMap] renderHexMap3D threw:', err);
+  }
 
   // Center camera on human champion at turn start
   const ch = currentChamp();

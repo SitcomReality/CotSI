@@ -16,11 +16,38 @@ import { G, currentChamp } from '../game/state/liveGame.js';
 // ---- Central render orchestrator ----
 
 export function refreshAll() {
-  if (!G) return;
+  if (!G) {
+    console.warn('[refreshAll] G is null/undefined — bailing');
+    return;
+  }
 
   window.__gameState = G;
 
   const ch = currentChamp();
+  console.log('[refreshAll] running — day:', G.day, 'champ:', ch?.name, 'controller:', ch?.controller);
+
+  // Debug: check key DOM elements exist
+  const debugEls = {
+    game: document.getElementById('game'),
+    setup: document.getElementById('setup'),
+    championCard: document.getElementById('championCard'),
+    mapMount: document.getElementById('mapMount'),
+    paleyMount: document.getElementById('paleyMount'),
+    rightPanel: document.getElementById('rightPanel'),
+    gameHeader: document.getElementById('gameHeader'),
+    logEntries: document.querySelector('.rt-log-entries'),
+  };
+  for (const [k, v] of Object.entries(debugEls)) {
+    if (!v) console.warn('[refreshAll] MISSING element:', k);
+  }
+  if (debugEls.game) {
+    const rect = debugEls.game.getBoundingClientRect();
+    console.log('[refreshAll] #game rect:', rect.width + 'x' + rect.height, 'display:', getComputedStyle(debugEls.game).display);
+  }
+  if (debugEls.mapMount) {
+    const rect = debugEls.mapMount.getBoundingClientRect();
+    console.log('[refreshAll] #mapMount rect:', rect.width + 'x' + rect.height);
+  }
 
   // ── Header (pure DOM update via headerPanel) ──
   refreshHeader(G);
@@ -31,11 +58,6 @@ export function refreshAll() {
 
   // ── Map (3D replacement) ──
   refreshMap();
-
-  // HUD
-  if (ch) {
-    refreshZoomDisplay();
-  }
 
   // ── Augur's Dispatch: the first interactive element of a human turn ──
   // While a dispatch is pending, reward prompts and bot turns wait for the

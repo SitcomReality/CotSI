@@ -5,10 +5,16 @@ import { h } from '../domBuilder.js';
 
 export function bindLeftPanel(G) {
   const el = document.getElementById('championCard');
-  if (!el) return;
+  if (!el) {
+    console.warn('[bindLeftPanel] #championCard not found');
+    return;
+  }
 
   const card = el.querySelector('.left-champion-card');
-  if (!card) return;
+  if (!card) {
+    console.warn('[bindLeftPanel] .left-champion-card not found inside #championCard');
+    return;
+  }
 
   const ch = currentChamp();
 

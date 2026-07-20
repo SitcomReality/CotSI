@@ -14,6 +14,8 @@ import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 let resizeWired = false;
 
 export function __beginGame(config) {
+  console.log('[beginGame] starting with config seed:', config.seed, 'radius:', config.radius);
+
   const game = createGame(config);
   setGameInstance(game);      // sets live G + window.__gameState
   setGameState(game);         // keep combatModal in sync
@@ -23,8 +25,24 @@ export function __beginGame(config) {
     resizeWired = true;
   }
 
-  document.getElementById('setup').style.display = 'none';
-  document.getElementById('game').style.display = 'grid';
+  const setupEl = document.getElementById('setup');
+  const gameEl = document.getElementById('game');
+  console.log('[beginGame] #setup:', !!setupEl, '#game:', !!gameEl);
+
+  if (setupEl) setupEl.style.display = 'none';
+  if (gameEl) {
+    gameEl.style.display = 'grid';
+    // Force synchronous layout reflow so children (especially #mapMount) have
+    // non-zero dimensions when initHexMap3D reads them in the same call stack.
+    gameEl.offsetHeight;
+
+    // DEBUG: visible outline to confirm #game is rendered and sized
+    gameEl.style.outline = '4px dashed red';
+
+    console.log('[beginGame] #game display:', getComputedStyle(gameEl).display, 'rect:', gameEl.getBoundingClientRect().width + 'x' + gameEl.getBoundingClientRect().height);
+  } else {
+    console.error('[beginGame] #game element NOT FOUND — game layout template may not be appended');
+  }
 
   const ctx3d = getSceneContext();
   if (ctx3d) {
@@ -32,9 +50,13 @@ export function __beginGame(config) {
     ctx3d.applyCamera();
   }
 
+  console.log('[beginGame] binding header events');
   bindHeaderEvents();
-  initHeptagramWidget('paleyMount');  // one-time: SVG fills the now-static #paleyMount
+  console.log('[beginGame] initializing heptagram widget');
+  initHeptagramWidget('paleyMount');
+  console.log('[beginGame] calling refreshAll');
   refreshAll();
+  console.log('[beginGame] done');
 }
 
 window.__beginGame = __beginGame;
