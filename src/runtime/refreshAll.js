@@ -76,7 +76,7 @@ export function refreshAll() {
       endMeasure('refreshAll');
       return;
     }
-    const taskId = getClock().setTimeout(runBot, 620, 'bot');
+    const taskId = getClock().setTimeout(runBot, 100, 'bot');
     // Expose task ID for dev tools Stop button (avoids circular import)
     if (window.__devTools) {
       window.__devTools._pendingBotTaskId = taskId;

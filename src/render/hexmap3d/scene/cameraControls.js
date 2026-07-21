@@ -229,6 +229,8 @@ export function centerCameraOnHex(state, q, r) {
 
 /** Currently active camera pan animation stop function, if any. */
 let _panStopFn = null;
+/** Number of frames rendered in the current pan, for debug logging. */
+let _panFrameCount = 0;
 
 /**
  * Smoothly animate the camera to center on a hex position.
@@ -247,6 +249,7 @@ let _panStopFn = null;
  */
 export function animateCenterOnHex(state, applyFn, q, r, duration = 200) {
   // Cancel any in-flight animation and snap to its target first
+  const hadPrevPan = !!_panStopFn;
   if (_panStopFn) {
     _panStopFn();
     _panStopFn = null;
@@ -255,7 +258,15 @@ export function animateCenterOnHex(state, applyFn, q, r, duration = 200) {
   const { x: toX, z: toZ } = hexCenter(q, r);
   const fromX = state.targetX;
   const fromZ = state.targetZ;
+  const dist = Math.hypot(toX - fromX, toZ - fromZ);
   const startTime = performance.now();
+
+  console.debug(
+    `[camera] pan start  q=${q} r=${r}  from=(%.4f,%.4f) to=(%.4f,%.4f)  dist=%.4f  dur=%d  prev=%s`,
+    fromX, fromZ, toX, toZ, dist, duration, hadPrevPan
+  );
+
+  _panFrameCount = 0;
 
   _panStopFn = getClock().onTick((timestamp) => {
     const elapsed = timestamp - startTime;
@@ -267,6 +278,16 @@ export function animateCenterOnHex(state, applyFn, q, r, duration = 200) {
     state.targetZ = fromZ + (toZ - fromZ) * eased;
     applyFn();
 
+    // Log first few frames and final frame to detect position jumps
+    if (_panFrameCount < 3 || t >= 1) {
+      console.debug(
+        `[camera] frame#%d  t=%.3f  eased=%.3f  pos=(%.4f,%.4f)  elapsed=%.0fms`,
+        _panFrameCount, t, eased, state.targetX, state.targetZ, elapsed
+      );
+    }
+
+    _panFrameCount++;
+
     if (t >= 1) {
       // Snap to exact final position to avoid floating-point drift
       state.targetX = toX;
@@ -277,6 +298,10 @@ export function animateCenterOnHex(state, applyFn, q, r, duration = 200) {
       resetFogMaskCameraHash();
       _panStopFn();
       _panStopFn = null;
+      console.debug(
+        `[camera] pan end    target=(%.4f,%.4f)  frames=%d  dur=%.0fms`,
+        toX, toZ, _panFrameCount, performance.now() - startTime
+      );
     }
   });
 }

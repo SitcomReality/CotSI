@@ -10,16 +10,8 @@ import {
   getMobGeo,
   getTraderBodyGeo,
 } from './unitGeometries.js';
-
-/**
- * Convert a hex color string (#rrggbb) to an RGB array (0..1).
- */
-function hexToRgb(hex) {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-  return [r, g, b];
-}
+import { isAnimating } from './movementAnimator.js';
+import { hexToRgb } from './movementCurves.js';
 
 /**
  * Build unit meshes for all visible champions, mobs, and traders.
@@ -54,6 +46,10 @@ export function buildUnitMeshes(state, visible) {
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
 
     if (champ) {
+      // Skip champions that are currently being animated — the movement
+      // animator layer shows a temporary mesh for them instead.
+      if (isAnimating(champ.id)) continue;
+
       const fac = FACTIONS[champ.faction];
       const color = fac ? hexToRgb(fac.base) : [0.5, 0.4, 0.3];
       championBodyInstances.push({ x, y: surfaceY + 0.15, z, color });

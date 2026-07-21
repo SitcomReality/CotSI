@@ -2,7 +2,7 @@ import { initScene } from './scene/sceneSetup.js';
 import { buildTerrainMesh } from './terrain/terrainMesh.js';
 
 import { buildFeatureMeshes } from './features/featureMeshes.js';
-import { buildUnitMeshes, setupUnitAnimations } from './units/index.js';
+import { buildUnitMeshes, setupUnitAnimations, initMovementAnimator, disposeMovementAnimator, cleanupCompleted } from './units/index.js';
 import { getHumanView } from '../../game/state/fogOfWar.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/mapInteraction.js';
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/overlayStack.js';
@@ -44,6 +44,9 @@ export function initHexMap3D(mountElement) {
   // Setup animations (needs game state access)
   setupUnitAnimations(ctx, () => window.__gameState);
 
+  // Init movement animation layer — needs scene reference to add/remove meshes
+  initMovementAnimator(ctx.scene);
+
   return ctx;
 }
 
@@ -77,6 +80,10 @@ export function renderHexMap3D(state) {
   // Build 3D features (trees, mountains, knots, bases)
   featureMeshes = buildFeatureMeshes(state, humanView.visible);
   for (const fm of featureMeshes) ctx.scene.add(fm);
+
+  // Clean up any movement-animation meshes that have completed so the
+  // champion transitions seamlessly from temp mesh → normal InstancedMesh.
+  cleanupCompleted();
 
   // Build unit figurines
   unitMeshes = buildUnitMeshes(state, humanView.visible);
@@ -114,6 +121,7 @@ function disposeAll() {
   featureMeshes = [];
   for (const um of unitMeshes) disposeMesh(um);
   unitMeshes = [];
+  disposeMovementAnimator();
   // Clean up interaction listeners
   if (ctx && ctx._interactionCleanup) {
     ctx._interactionCleanup();

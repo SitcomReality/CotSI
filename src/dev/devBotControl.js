@@ -99,9 +99,16 @@ function _updateStepUI() {
 
 // ─── Step once ─────────────────────────────────────────────────────────────
 
-export function stepOnce() {
+/** Guard: prevent stepping while a bot action is still in flight. */
+let _stepping = false;
+
+export async function stepOnce() {
   if (!botDevState.stepMode) {
     toast('Enable Step Mode first', true);
+    return;
+  }
+  if (_stepping) {
+    toast('Bot action still in progress…', true);
     return;
   }
   const ch = currentChamp();
@@ -116,10 +123,16 @@ export function stepOnce() {
     decisionEl.textContent = 'Stepping…';
   }
 
-  // runBot is already imported — it executes one bot decision
-  runBot();
+  _stepping = true;
+  try {
+    await runBot();
+  } catch (err) {
+    console.error('[devBotControl] runBot threw:', err);
+  } finally {
+    _stepping = false;
+  }
 
-  // After runBot completes, show the decision (runs synchronously)
+  // Update the last-decision display after the bot action completes
   _updateLastDecision();
 }
 

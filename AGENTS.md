@@ -503,6 +503,7 @@ When in doubt, prefer consistency with the files in `src/shared/actionBus.js`, `
 
 ---
 
-## Ask Questions if anything's unclear
+## Ask questions and use English when talking to the user
 
-- The user is here to provide any extra information requested!
+- The user is here to provide any extra information requested! Ask questions if anything's unclear!
+- The user is monolingual and can only read English so responses and code need to be in English.

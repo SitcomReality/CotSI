@@ -67,5 +67,5 @@ export function runBotTurn(state){
   if(!path || !path.length) return {action:'end'};
   const steps = Math.min(champ.moves, path.length);
   const step = path[steps-1];
-  return {action:'move', to: step, cost: steps};
+  return {action:'move', to: step, cost: steps, path: path.slice(0, steps)};
 }

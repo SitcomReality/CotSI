@@ -6,11 +6,13 @@
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
 import { movementRange, moveChampion, adjacentPassable } from '../game/state/championMovement.js';
-import { getSceneContext, animateCenterOnHex } from '../render/hexmap3d/hexMapRenderer.js';
+import { getSceneContext, animateCenterOnHex, tileTopY } from '../render/hexmap3d/hexMapRenderer.js';
+import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
+import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { addLog } from '../game/state/gameLog.js';
 import { recordLedgerEntry } from '../game/state/dispatchLedger.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
-import { parseKey, distance } from '../engine/rules/hexGrid.js';
+import { parseKey, distance, coordKey } from '../engine/rules/hexGrid.js';
 import { startCombat, openTrader } from '../ui/combat/combatModal.js';
 import { toast, pulseEnd } from '../ui/hud.js';
 import { FACTIONS } from '../game/rules/factionData.js';
@@ -62,12 +64,25 @@ export function onHexClick(key) {
   // Movement: only adjacent and passable hexes (cost always 1)
   const allowed = adjacentPassable(G, ch);
   if (allowed.includes(key)) {
+    // Capture world-space origin before the state mutation
+    const fromTile = G.tiles[coordKey(ch.pos)];
+    const fromY = fromTile ? tileTopY(fromTile.terrain) + 0.15 : 0.15;
+    const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
     moveChampion(G, ch, key, 1);
+    // Capture world-space destination after mutation
+    const toTile = G.tiles[key];
+    const toY = toTile ? tileTopY(toTile.terrain) + 0.15 : 0.15;
+    const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
+    const fac = FACTIONS[ch.faction];
+    if (fac) {
+      queueMovement(ch.id, fromWorld, toWorld, fac.base, MOVE_DURATION);
+    }
     refreshAll();
     // Recenter camera on the champion's new position
     const ctx3d = getSceneContext();
     if (ctx3d) {
-      animateCenterOnHex(ctx3d.getCameraState(), ctx3d.applyCamera, ch.pos.q, ch.pos.r);
+      // Match camera pan duration to unit movement animation so both land together.
+      animateCenterOnHex(ctx3d.getCameraState(), ctx3d.applyCamera, ch.pos.q, ch.pos.r, MOVE_DURATION);
     }
     if (ch.moves <= 0) pulseEnd();
   }
