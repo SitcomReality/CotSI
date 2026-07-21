@@ -8,13 +8,13 @@
 .sw .chip {
   height: 46px;
   border-radius: var(--r-sm);
-  border: var(--hair) solid var(--rule);
+  border: var(--hair) solid var(--crease);
   box-shadow: var(--shadow-card);
 }
 
 .sw code {
   font: 500 11px/1.3 var(--font-mono);
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   display: block;
   margin-top: 4px;
 }

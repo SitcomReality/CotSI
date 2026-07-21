@@ -125,7 +125,7 @@ export function refreshHeader(G) {
 
     const vm = championVM(G, champ);
     const pill = h('div', {
-      class: 'header__champion paley-item paley-item--f' + champ.faction,
+      class: 'header__champion',
       dataState: state,
       dataChampId: champ.id,
       // --faction-color is genuinely dynamic (per-champion)

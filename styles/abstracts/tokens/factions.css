@@ -1,15 +1,30 @@
 /* =========================================================================
-   FACTIONS  — base / glow / pale   (f0–f6)
-   Each faction gets three tonal grades for token, halo, and background.
-   Hues preserved from v1; saturation boosted for contrast against the
-   dark chrome base.
+   FACTIONS — Two-color system (base / accent / glow)
+   All factions share a warm, muted tone band so no single faction
+   consumes a full spectral hue. The full spectrum belongs to the
+   pigment palette.
+   
+   base   — the miniature body / silhouette fill
+   accent — the glyph color, trim, and UI identifier
+   glow   — the pale highlight / emissive glow
    ========================================================================= */
 :root {
-  --f0: #cc3628; --f0-glow:#f07a6a; --f0-pale:#e87a6a; /* Crucible */
-  --f1: #7d55cc; --f1-glow:#b79aff; --f1-pale:#b388f0; /* Reverie  */
-  --f2: #34a055; --f2-glow:#6de98a; --f2-pale:#88d888; /* Verdant  */
-  --f3: #3a70c0; --f3-glow:#7cb8ff; --f3-pale:#8ab8f0; /* Archive  */
-  --f4: #d49a24; --f4-glow:#ffd86b; --f4-pale:#efc86b; /* Hearth   */
-  --f5: #b04d88; --f5-glow:#ff8edb; --f5-pale:#e488c0; /* Masque   */
-  --f6: #4a5570; --f6-glow:#8a9cff; --f6-pale:#a0a8c0; /* Hollow   */
+  --f-cru: #6e2e22; --f-cru-accent: #b84530; --f-cru-glow: #e87a6a; /* Crucible */
+  --f-rev: #5a3a5a; --f-rev-accent: #8a5aaa; --f-rev-glow: #b388f0; /* Reverie  */
+  --f-ver: #3a5a3a; --f-ver-accent: #5a8a4a; --f-ver-glow: #88d888; /* Verdant  */
+  --f-arc: #3a4a5a; --f-arc-accent: #5a7a9a; --f-arc-glow: #8ab8f0; /* Archive  */
+  --f-hrt: #5a4a22; --f-hrt-accent: #9a8a3a; --f-hrt-glow: #efc86b; /* Hearth   */
+  --f-msk: #5a3a4a; --f-msk-accent: #8a5a7a; --f-msk-glow: #e488c0; /* Masque   */
+  --f-hol: #3a3a44; --f-hol-accent: #5a5a7a; --f-hol-glow: #a0a8c0; /* Hollow   */
+}
+
+/* ── Backward-compat aliases (legacy f0–f6 names) ── */
+:root {
+  --f0: var(--f-cru); --f0-glow: var(--f-cru-glow); --f0-pale: var(--f-cru-accent);
+  --f1: var(--f-rev); --f1-glow: var(--f-rev-glow); --f1-pale: var(--f-rev-accent);
+  --f2: var(--f-ver); --f2-glow: var(--f-ver-glow); --f2-pale: var(--f-ver-accent);
+  --f3: var(--f-arc); --f3-glow: var(--f-arc-glow); --f3-pale: var(--f-arc-accent);
+  --f4: var(--f-hrt); --f4-glow: var(--f-hrt-glow); --f4-pale: var(--f-hrt-accent);
+  --f5: var(--f-msk); --f5-glow: var(--f-msk-glow); --f5-pale: var(--f-msk-accent);
+  --f6: var(--f-hol); --f6-glow: var(--f-hol-glow); --f6-pale: var(--f-hol-accent);
 }

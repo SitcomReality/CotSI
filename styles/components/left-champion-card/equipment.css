@@ -14,8 +14,8 @@
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  background: var(--ivory);
-  border: var(--hair) dashed var(--rule-strong);
+  background: var(--board-hi);
+  border: var(--hair) dashed var(--crease-bold);
   border-radius: var(--r-sm);
   font-size: 11px;
   color: var(--ink);
@@ -23,13 +23,13 @@
 }
 
 .left-equip-item svg {
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   flex-shrink: 0;
 }
 
 .left-equip-artifact {
   font-size: 10px;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   font-style: italic;
   width: 100%;
   padding: 2px 4px;

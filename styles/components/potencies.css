@@ -9,7 +9,7 @@
   display: flex;
   gap: var(--s2);
   align-items: flex-end;
-  background: var(--ivory);
+  background: var(--board-hi);
   padding: var(--s3);
   border-radius: var(--r);
   box-shadow: var(--shadow-card);

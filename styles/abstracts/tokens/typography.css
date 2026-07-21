@@ -1,55 +1,63 @@
 /* =========================================================================
-   TYPOGRAPHY  — Type families, sizes, and spacing.
-   Font files expected in /assets/ directory.
+   TYPOGRAPHY — Type families, sizes, and spacing.
+   Font files in /assets/ directory.
+   
+   New v4 stack: Rubik (display), Outfit (body), Caveat (handwritten).
+   Previous stack (Cinzel, EB Garamond, UnifrakturCook) removed.
    ========================================================================= */
+
+/* ── Rubik — Bold geometric sans for headings, buttons, prominent text ── */
 @font-face {
-  font-family: 'Cinzel';
-  src: url('/assets/Cinzel-VariableFont_wght.ttf') format('truetype-variations');
-  font-weight: 400 900;
+  font-family: 'Rubik';
+  src: url('/assets/Rubik-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 300 900;
   font-display: swap;
 }
 @font-face {
-  font-family: 'EB Garamond';
-  src: url('/assets/EBGaramond-VariableFont_wght.ttf') format('truetype-variations');
-  font-weight: 400 800;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'EB Garamond';
-  src: url('/assets/EBGaramond-Italic-VariableFont_wght.ttf') format('truetype-variations');
-  font-weight: 400 800;
+  font-family: 'Rubik';
+  src: url('/assets/Rubik-Italic-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 300 900;
   font-style: italic;
   font-display: swap;
 }
+
+/* ── Outfit — Clean, legible sans for body text, panels, tooltips ── */
 @font-face {
-  font-family: 'UnifrakturCook';
-  src: url('/assets/UnifrakturCook-Bold.ttf') format('truetype');
-  font-weight: 700;
+  font-family: 'Outfit';
+  src: url('/assets/Outfit-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* ── Caveat — Handwritten / journal style for lore, Dispatch, flavor ── */
+@font-face {
+  font-family: 'Caveat';
+  src: url('/assets/Caveat-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 400 700;
   font-display: swap;
 }
 
 :root {
   /* Typefaces */
-  --font-display: 'Cinzel', Georgia, serif;     /* headings, drop caps */
-  --font-body:    'EB Garamond', Georgia, serif; /* everything else */
-  --font-accent:  'UnifrakturCook', 'Cinzel', serif; /* wordmark ONLY */
-  --font-mono:    ui-monospace, Menlo, monospace;    /* code, labels */
+  --font-display: 'Rubik', sans-serif;        /* headings, buttons, champion names */
+  --font-body:    'Outfit', sans-serif;        /* panels, tooltips, log, labels */
+  --font-hand:    'Caveat', cursive;           /* Dispatch lore, flavor text */
 
   /* Tabular numbers for stat alignment */
   --tnum: 'tnum' 1;
 
   /* Sizes */
-  --fs-xs:  12px;
-  --fs-sm:  14px;
-  --fs-md:  16px;
-  --fs-lg:  20px;
-  --fs-xl:  28px;
-  --fs-2xl: 40px;
-  --fs-3xl: 56px;
+  --fs-xs:  11px;  /* captions, labels */
+  --fs-sm:  13px;  /* body text, panels */
+  --fs-md:  15px;  /* default text */
+  --fs-lg:  20px;  /* subheadings */
+  --fs-xl:  28px;  /* section headings */
+  --fs-2xl: 36px;  /* modal titles */
+  --fs-3xl: 52px;  /* display / hero text */
 
   /* Line height & letter spacing */
   --lh:         1.45;
   --lh-tight:   1.15;
-  --ls-cap:     .06em;  /* small-caps / uppercase labels */
-  --ls-display: .01em;  /* display headings */
+  --ls-cap:     .06em;   /* small-caps / uppercase labels */
+  --ls-display: -.01em;  /* display headings at large sizes */
 }

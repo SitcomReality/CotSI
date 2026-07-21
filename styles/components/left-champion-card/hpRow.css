@@ -12,7 +12,7 @@
   font: 600 var(--fs-xs) var(--font-display);
   letter-spacing: var(--ls-cap);
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   width: 20px;
   flex-shrink: 0;
 }
@@ -20,9 +20,9 @@
 .left-hp-track {
   flex: 1;
   height: 8px;
-  background: var(--vellum-2);
+  background: var(--shadow);
   border-radius: 999px;
-  border: var(--hair) solid var(--rule);
+  border: var(--hair) solid var(--crease);
   overflow: hidden;
 }
 

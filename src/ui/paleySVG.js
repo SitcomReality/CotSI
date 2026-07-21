@@ -1,7 +1,8 @@
 import { FACTIONS, beats } from '../game/rules/factionData.js';
 
-export function paleySVG(highlight=-1, w=300, h=250){
-  const cx=w/2, cy=h/2+4, R=94;
+export function paleySVG(highlight=-1, w=300, h=250, R){
+  const cx=w/2, cy=h/2+4;
+  if (R === undefined) R = Math.min(w, h) * 0.32; // proportional to viewBox
   const pts = FACTIONS.map((f,i)=>{
     const ang = -Math.PI/2 + i*2*Math.PI/7;
     return {x: cx + Math.cos(ang)*R, y: cy + Math.sin(ang)*R, f, i};

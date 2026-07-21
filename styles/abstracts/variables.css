@@ -15,10 +15,11 @@
 
 /* ---- Backward-compatible aliases (legacy names) ---- */
 :root {
-  --parchment2:  var(--vellum-2);
-  --ink2:        var(--ink-soft);
+  --board2:  var(--shadow);
+  --ink2:        var(--ink-mid);
   --muted:       var(--ink-faint);
   --paper-shadow:var(--shadow-card);
-  --panel:       var(--parchment);
-  --panel-border:var(--rule-strong);
+  --panel:       var(--board);
+  --panel-border:var(--crease-bold);
+  /* --font-accent was aliased here; the old name is now retired */
 }

@@ -7,7 +7,7 @@
   display: grid;
   place-items: center;
   border-radius: var(--r);
-  background: var(--parchment);
+  background: var(--board);
   box-shadow: var(--shadow-card);
 }
 
@@ -37,6 +37,6 @@
   display: block;
   text-align: center;
   font: 500 10px var(--font-body);
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   margin-top: 4px;
 }

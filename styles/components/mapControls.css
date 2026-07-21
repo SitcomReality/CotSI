@@ -33,8 +33,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: var(--parchment);
-  border: var(--hair) solid var(--rule);
+  background: var(--board);
+  border: var(--hair) solid var(--crease);
   box-shadow: var(--shadow-card);
   cursor: pointer;
   color: var(--ink);
@@ -42,7 +42,7 @@
 }
 
 .map-btn:hover {
-  background: var(--ivory);
+  background: var(--board-hi);
   box-shadow: var(--shadow-panel);
 }
 

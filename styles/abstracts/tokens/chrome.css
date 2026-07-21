@@ -1,17 +1,18 @@
 /* =========================================================================
-   CHROME — The tabletop / the frame  (dark, restrained base)
-   Deep charcoal-navy background with warm off-white text.
-   The table surface recedes so the painted board commands attention.
+   CHROME — The proscenium / the stage frame  (dark, receded, velvety)
+   Deep blacks and charcoals. The dark theater around a puppet show.
+   Recedes so the painted Puppet layer commands attention.
    ========================================================================= */
 :root {
-  --vellum:        #161a24;  /* table felt / page ground                 */
-  --vellum-2:      #1e2433;  /* recessed panels, map mount backdrop      */
-  --parchment:     #252d3d;  /* card / panel surface                     */
-  --ivory:         #2d3648;  /* raised card, modal, gesso                */
-  --ink:           #e8e4dc;  /* warm off-white — body text, line icons   */
-  --ink-soft:      #a8a4b0;  /* secondary text, captions                 */
-  --ink-faint:     #6a6e7a;  /* tertiary, placeholders                   */
-  --rule:          #3d4558;  /* neutral hairline / ruled baselines       */
-  --rule-strong:   #505a72;  /* slightly heavier divider                 */
-  --parchment-glass: #2d3648cc;  /* semi-transparent card overlay (combat cards, play slots, reward box) */
+  --abyss:         #0c0e12;  /* deepest stage void / page ground           */
+  --shadow:        #14171e;  /* recessed panels, stage wings, map mount    */
+  --board:         #1c202a;  /* card / panel surface                       */
+  --board-hi:      #242a38;  /* raised card, modal surface                 */
+  --ink:           #e8e4dc;  /* warm off-white — body text, line icons     */
+  --ink-mid:       #a8a4b0;  /* secondary text, captions                   */
+  --ink-faint:     #6a6e7a;  /* tertiary, placeholders                     */
+  --ink-line:      #121418;  /* ink outline color for Puppet elements      */
+  --crease:        #2a3040;  /* neutral hairline / ruled baselines         */
+  --crease-bold:   #3a4460;  /* slightly heavier divider                   */
+  --board-glass:   #242a38cc;  /* semi-transparent overlay (combat cards, play slots, reward box) */
 }

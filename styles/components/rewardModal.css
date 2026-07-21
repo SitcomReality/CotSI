@@ -9,8 +9,8 @@
    shadow — reads as a physical card on the table.
    ────────────────────────────────────────────────────────────────────────── */
 .reward-card {
-  background: linear-gradient(180deg, var(--ivory), var(--parchment));
-  border: var(--edge-bold) solid var(--rule-strong);
+  background: linear-gradient(180deg, var(--board-hi), var(--board));
+  border: var(--edge-bold) solid var(--crease-bold);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-stack);
   padding: 24px;
@@ -74,7 +74,7 @@
 
 .reward-line {
   font-size: 14px;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   margin: 0 0 4px;
   text-align: center;
 }
@@ -97,7 +97,7 @@
   padding: 6px 8px;
   font-size: 14px;
   color: var(--ink);
-  border-bottom: var(--hair) solid var(--rule);
+  border-bottom: var(--hair) solid var(--crease);
 }
 
 .reward-effect:last-child {
@@ -107,7 +107,7 @@
 .reward-effect svg {
   display: block;
   flex-shrink: 0;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
 }
 
 .reward-effect__label {
@@ -117,7 +117,7 @@
 }
 
 .reward-effect__label--detail {
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   font-style: italic;
 }
 
@@ -138,7 +138,7 @@
    ────────────────────────────────────────────────────────────────────────── */
 .reward-choice-card {
   border: var(--edge-bold) solid var(--gold);
-  background: color-mix(in srgb, var(--gold) 8%, var(--parchment));
+  background: color-mix(in srgb, var(--gold) 8%, var(--board));
   border-radius: var(--r);
   padding: 14px;
   cursor: pointer;
@@ -152,20 +152,20 @@
 
 .reward-choice-card:hover {
   border-color: var(--gold-hi);
-  background: color-mix(in srgb, var(--gold) 14%, var(--parchment));
+  background: color-mix(in srgb, var(--gold) 14%, var(--board));
 }
 
 /* Selected state — gold glow border, brighter background */
 .reward-choice-card--selected,
 .reward-choice-card--selected:hover {
   border-color: var(--st-selected);
-  background: color-mix(in srgb, var(--gold) 25%, var(--parchment));
+  background: color-mix(in srgb, var(--gold) 25%, var(--board));
   box-shadow: 0 0 0 2px var(--gold-hi), var(--shadow-stack);
 }
 
 .reward-choice-card:active {
   border-color: var(--gold);
-  background: var(--vellum-2);
+  background: var(--shadow);
 }
 
 /* ── Choice Type Badge ────────────────────────────────────────────────────────
@@ -214,7 +214,7 @@
 .reward-choice-effects .reward-effect {
   padding: 4px 4px;
   font-size: 13px;
-  border-bottom: var(--hair) solid var(--rule);
+  border-bottom: var(--hair) solid var(--crease);
 }
 
 .reward-choice-effects .reward-effect:last-child {

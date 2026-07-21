@@ -5,8 +5,8 @@
   justify-content: space-between;
   height: 48px;
   padding: 0 var(--space-md);
-  background: var(--vellum-2);
-  border-bottom: var(--edge) solid var(--rule-strong);
+  background: var(--shadow);
+  border-bottom: var(--edge) solid var(--crease-bold);
   box-shadow: var(--shadow-panel);
   color: var(--ink);
   font-family: var(--font-body);
@@ -21,7 +21,7 @@
   align-items: center;
   gap: var(--space-sm);
   white-space: nowrap;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-cap);
   text-transform: uppercase;
@@ -48,8 +48,13 @@
   font-size: var(--fs-xs);
   font-variant-numeric: var(--tnum);
   cursor: pointer;
-  transition: opacity var(--dur-fast) var(--ease-out);
+  transition: opacity var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
   position: relative;
+}
+
+/* Header champion hover glow (no cross-highlight — keeps kaleidoscope-free) */
+.header__champion:hover {
+  box-shadow: 0 0 6px var(--ink-mid);
 }
 
 /* State variants (applied via JS as data attributes or classes) */
@@ -111,7 +116,7 @@
 }
 
 .header__champion-pot {
-    color: var(--ink-soft);
+    color: var(--ink-mid);
     font-size: 10px;
 }
 

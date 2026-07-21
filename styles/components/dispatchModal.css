@@ -12,9 +12,9 @@
   width: min(600px, 94vw);
   max-height: 90vh;
   overflow-y: auto;
-  background: linear-gradient(180deg, var(--ivory), var(--parchment));
-  border: var(--edge) solid var(--rule-strong);
-  border-left: var(--edge-heavy) solid var(--faction-color, var(--rule-strong));
+  background: linear-gradient(180deg, var(--board-hi), var(--board));
+  border: var(--edge) solid var(--crease-bold);
+  border-left: var(--edge-heavy) solid var(--faction-color, var(--crease-bold));
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-stack);
   padding: var(--s5) var(--s6);
@@ -30,7 +30,7 @@
   align-items: center;
   gap: var(--s4);
   padding-bottom: var(--s3);
-  border-bottom: var(--hair) solid var(--rule);
+  border-bottom: var(--hair) solid var(--crease);
 }
 
 .dispatch-modal__glyph {
@@ -80,8 +80,8 @@
   border-radius: var(--r-sm);
   /* tint wash over vellum */
   background:
-    color-mix(in srgb, var(--weather-tint, var(--ink-soft)) 22%, var(--vellum));
-  border: var(--hair) solid color-mix(in srgb, var(--weather-tint, var(--rule)) 40%, var(--rule));
+    color-mix(in srgb, var(--weather-tint, var(--ink-mid)) 22%, var(--abyss));
+  border: var(--hair) solid color-mix(in srgb, var(--weather-tint, var(--crease)) 40%, var(--crease));
   margin-bottom: var(--s1);
   overflow: hidden;
 }
@@ -127,7 +127,7 @@
   font-family: var(--font-body);
   font-style: italic;
   font-size: var(--fs-sm);
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   padding: 0 var(--s1);
   margin-bottom: var(--s1);
 }
@@ -152,13 +152,13 @@
   align-items: center;
   gap: var(--s1);
   padding: var(--s3) var(--s2);
-  background: var(--vellum);
-  border: var(--hair) solid var(--rule);
+  background: var(--abyss);
+  border: var(--hair) solid var(--crease);
   border-radius: var(--r-sm);
 }
 
 .dispatch-modal__stat-card-icon {
-  color: var(--ink-soft);
+  color: var(--ink-mid);
 }
 
 .dispatch-modal__stat-card-value {
@@ -170,11 +170,11 @@
 }
 
 .dispatch-modal__stat-card--gain .dispatch-modal__stat-card-value {
-  color: var(--malachite);
+  color: var(--verdigris);
 }
 
 .dispatch-modal__stat-card--loss .dispatch-modal__stat-card-value {
-  color: var(--vermilion);
+  color: var(--crimson);
 }
 
 .dispatch-modal__stat-card-label {
@@ -197,8 +197,8 @@
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-cap);
   text-transform: uppercase;
-  color: var(--ink-soft);
-  border-bottom: var(--hair) solid var(--rule);
+  color: var(--ink-mid);
+  border-bottom: var(--hair) solid var(--crease);
   padding-bottom: var(--s1);
 }
 
@@ -225,16 +225,16 @@
 /* Line tones */
 .dispatch-modal__line--gain,
 .dispatch-modal__line--boon {
-  color: var(--malachite);
+  color: var(--verdigris);
 }
 
 .dispatch-modal__line--loss,
 .dispatch-modal__line--burden {
-  color: var(--vermilion);
+  color: var(--crimson);
 }
 
 .dispatch-modal__line--neutral {
-  color: var(--ink-soft);
+  color: var(--ink-mid);
 }
 
 .dispatch-modal__line--moves .dispatch-modal__line-text {

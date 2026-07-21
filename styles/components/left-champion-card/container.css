@@ -6,8 +6,8 @@
 .left-champion-card {
   pointer-events: auto;
   width: 280px;
-  background: var(--parchment);
-  border: var(--edge) solid var(--rule-strong);
+  background: var(--board);
+  border: var(--edge) solid var(--crease-bold);
   border-radius: var(--r);
   box-shadow: var(--shadow-panel);
   padding: var(--space-sm);

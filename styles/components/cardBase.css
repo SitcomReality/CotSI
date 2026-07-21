@@ -5,8 +5,8 @@
    ========================================================================= */
 
 .card {
-  background: var(--parchment);
-  border: var(--edge) solid var(--rule-strong);
+  background: var(--board);
+  border: var(--edge) solid var(--crease-bold);
   border-radius: var(--r);
   box-shadow: var(--shadow-card);
   padding: var(--s4);
@@ -16,7 +16,7 @@
   font: 600 var(--fs-xs) var(--font-display);
   letter-spacing: var(--ls-cap);
   text-transform: uppercase;
-  color: var(--vermilion);
+  color: var(--crimson);
   margin-bottom: var(--s1);
 }
 

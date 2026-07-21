@@ -4,8 +4,8 @@
    ========================================================================= */
 .fog {
   border-radius: var(--r);
-  border: var(--edge) solid var(--rule);
-  background: var(--parchment);
+  border: var(--edge) solid var(--crease);
+  background: var(--board);
 }
 
 .fog svg {

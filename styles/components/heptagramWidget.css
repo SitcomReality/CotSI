@@ -36,22 +36,26 @@
 
 /* ----- Nodes (circles) ----- */
 .rt-heptagram-svg .rt-heptagram-node {
-  stroke: var(--ivory);
+  stroke: var(--ink-line);
   transition: r var(--dur-fast) var(--ease-out),
               stroke-width var(--dur-fast) var(--ease-out);
 }
 
 /* ----- Faction short labels beneath nodes ----- */
 .rt-heptagram-svg .rt-heptagram-label {
-  fill: var(--ink-soft);
+  fill: var(--ink-mid);
   font-family: var(--font-body);
 }
 
-/* ----- Hover enlargement: hover any .paley-item--fN → enlarge that circle ----- */
-html:has(.paley-item--f0:hover) .rt-heptagram-node[data-index="0"] { r: 17; stroke-width: 2.5; }
-html:has(.paley-item--f1:hover) .rt-heptagram-node[data-index="1"] { r: 17; stroke-width: 2.5; }
-html:has(.paley-item--f2:hover) .rt-heptagram-node[data-index="2"] { r: 17; stroke-width: 2.5; }
-html:has(.paley-item--f3:hover) .rt-heptagram-node[data-index="3"] { r: 17; stroke-width: 2.5; }
-html:has(.paley-item--f4:hover) .rt-heptagram-node[data-index="4"] { r: 17; stroke-width: 2.5; }
-html:has(.paley-item--f5:hover) .rt-heptagram-node[data-index="5"] { r: 17; stroke-width: 2.5; }
-html:has(.paley-item--f6:hover) .rt-heptagram-node[data-index="6"] { r: 17; stroke-width: 2.5; }
+/* ----- Hover enlargement: data-cross-highlight on <html> → enlarge + glow that node ----- */
+html[data-cross-highlight="0"] .rt-heptagram-node[data-index="0"],
+html[data-cross-highlight="1"] .rt-heptagram-node[data-index="1"],
+html[data-cross-highlight="2"] .rt-heptagram-node[data-index="2"],
+html[data-cross-highlight="3"] .rt-heptagram-node[data-index="3"],
+html[data-cross-highlight="4"] .rt-heptagram-node[data-index="4"],
+html[data-cross-highlight="5"] .rt-heptagram-node[data-index="5"],
+html[data-cross-highlight="6"] .rt-heptagram-node[data-index="6"] {
+  r: 18;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px var(--gold));
+}

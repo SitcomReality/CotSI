@@ -12,7 +12,7 @@
   font: 600 var(--fs-xs) var(--font-display);
   letter-spacing: var(--ls-cap);
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -44,9 +44,9 @@
   gap: 4px;
   margin-top: 6px;
   padding: 6px;
-  background: var(--ivory);
+  background: var(--board-hi);
   border-radius: var(--r-sm);
-  border: var(--hair) solid var(--rule);
+  border: var(--hair) solid var(--crease);
 }
 
 .left-potency-row {
@@ -65,9 +65,9 @@
 .left-potency-track {
   flex: 1;
   height: 7px;
-  background: var(--vellum-2);
+  background: var(--shadow);
   border-radius: 999px;
-  border: var(--hair) solid var(--rule);
+  border: var(--hair) solid var(--crease);
   overflow: hidden;
 }
 
@@ -83,7 +83,7 @@
   text-align: right;
   font-size: 11px;
   font-weight: 600;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   font-variant-numeric: var(--tnum);
 }
 

@@ -1,6 +1,7 @@
 /* =========================================================================
-   SETUP SCREEN — Faction selection and game configuration.
-   Dark tabletop diorama background.
+   SETUP SCREEN — Faction selection via heptagram layout.
+   Dark stage background with a central heptagram of clickable faction
+   badges and a center control panel.
    ========================================================================= */
 
 #setup {
@@ -9,142 +10,420 @@
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(900px 560px at 20% 12%, var(--vellum-2) 0%, transparent 60%),
-    radial-gradient(800px 500px at 88% 80%, var(--parchment) 0%, transparent 60%),
-    var(--vellum);
+    radial-gradient(1200px 800px at 50% 40%, var(--shadow) 0%, transparent 60%),
+    var(--abyss);
+  padding: var(--s6) var(--s4);
+  overflow-y: auto;
 }
 
-.setup-card h1 {
-  font-size: 44px;
-  line-height: 1.02;
+/* =========================================================================
+   Heptagram container — the main layout structure
+   ========================================================================= */
+
+.setup-heptagram {
+  position: relative;
+  width: min(700px, 100%);
+  max-width: 700px;
+  aspect-ratio: 700 / 580;
+  margin: 0 auto;
+}
+
+/* SVG layer — the background heptagram lines and circles */
+.setup-heptagram-svg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none; /* let clicks pass through to the interactive overlay */
+}
+
+.setup-heptagram-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Make SVG circles clickable for cross-highlight, but let other events pass */
+.setup-heptagram-svg .rt-heptagram-node {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* ── Heptagram SVG line colors (faint, behind controls) ── */
+.setup-heptagram-svg .rt-heptagram-line {
+  stroke: var(--ink-faint);
+  stroke-opacity: 0.2;
+  stroke-width: 1.2;
+}
+
+/* =========================================================================
+   Faction nodes — interactive badges overlaid on heptagram points
+   ========================================================================= */
+
+.setup-nodes {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.setup-node {
+  width: 150px;
+  padding: var(--s2) var(--s2);
+  border-radius: var(--r);
+  cursor: pointer;
   text-align: center;
-  letter-spacing: -.01em;
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+  /* Ink outline via border (matches border-radius) */
+  border: var(--ink-weight) solid var(--ink-line);
+  background: var(--board);
+}
+
+.setup-node:hover {
+  transform: scale(1.05);
+}
+
+.setup-node.on {
+  background: var(--shadow);
+  border-color: var(--faction-color, var(--ink-line));
+  box-shadow: 0 0 12px 2px var(--faction-color, transparent);
+}
+
+/* Disabled in 3P mode */
+.setup-node.locked {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+  filter: grayscale(0.6);
+}
+
+.setup-node-glyph {
+  color: var(--faction-color, var(--ink));
+  margin-bottom: var(--s1);
+  line-height: 1;
+}
+
+.setup-node-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-bottom: var(--s1);
+}
+
+.setup-node-trait {
+  font-size: 10px;
+  color: var(--ink-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.setup-node-trait svg {
+  flex-shrink: 0;
+  color: var(--ink-faint);
+}
+
+/* Controller toggle button (small, top-right of node) */
+.setup-node-ctrl {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: var(--ink-weight-thin) solid var(--ink-line);
+  background: var(--board-hi);
+  color: var(--ink-mid);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+  z-index: 1;
+}
+
+.setup-node-ctrl:hover {
+  background: var(--faction-color, var(--ink));
+  color: var(--ink-line);
+}
+
+/* Lock overlay for disabled factions in 3P mode */
+.setup-node-lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r);
+  background: color-mix(in srgb, var(--abyss) 40%, transparent);
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+
+/* =========================================================================
+   Center control panel — overlaid at heptagram center
+   ========================================================================= */
+
+.setup-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  pointer-events: auto;
+}
+
+/* Begin button */
+.setup-begin-btn {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  letter-spacing: .02em;
+  padding: var(--s3) var(--s5);
+  border-radius: var(--r-pill);
+  border: var(--ink-weight) solid var(--ink-line);
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold));
+  color: #1a1205;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  white-space: nowrap;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+
+.setup-begin-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* Game mode toggle */
+.setup-mode-toggle {
+  display: flex;
+  gap: 2px;
+  border-radius: var(--r-pill);
+  border: var(--ink-weight-thin) solid var(--ink-line);
+  overflow: hidden;
+}
+
+.setup-mode-btn {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: var(--s1) var(--s2);
+  border: none;
+  background: var(--board);
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.setup-mode-btn.active {
+  background: var(--board-hi);
   color: var(--ink);
 }
 
-.setup-sub {
-  text-align: center;
-  color: var(--ink-soft);
-  margin: 8px 0 18px;
+.setup-mode-btn:first-child {
+  border-radius: var(--r-pill) 0 0 var(--r-pill);
 }
 
-.setup-grid {
-  display: grid;
-  grid-template-columns: 1.05fr 1.55fr;
-  gap: 20px;
+.setup-mode-btn:last-child {
+  border-radius: 0 var(--r-pill) var(--r-pill) 0;
 }
 
-.setup-mini {
-  margin-top: 10px;
+/* Center row (seed input) */
+.setup-center-row {
+  width: 100%;
 }
 
-/* Faction option */
-.fopt {
+.setup-field {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px;
-  border: var(--edge) solid transparent;
-  border-radius: 6px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setup-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-mid);
+}
+
+.field-input {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  padding: var(--s1) var(--s2);
+  border-radius: var(--r-sm);
+  border: var(--ink-weight-thin) solid var(--ink-line);
+  background: var(--board);
+  color: var(--ink);
+  width: 100%;
+}
+
+.field-input.small {
+  width: 80px;
+}
+
+/* Details/summary for Map Settings */
+.setup-details {
+  width: 100%;
+}
+
+.setup-details-summary {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-mid);
   cursor: pointer;
+  padding: var(--s1) 0;
+  text-align: center;
 }
 
-.fopt.on {
-  border-color: var(--faction-color);
-  background: color-mix(in srgb, var(--faction-color) 12%, var(--vellum));
+.setup-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s2);
+  border-radius: var(--r-sm);
+  background: var(--shadow);
+  border: var(--hair) solid var(--crease);
 }
 
-/* Faction dot — uses --faction-color set on .fopt */
-.fdot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--faction-color);
-  flex-shrink: 0;
+/* Size pills */
+.setup-size-pills {
+  display: flex;
+  gap: 4px;
 }
 
-/* Faction info container (replaces inline flex:1) */
-.faction-info {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Faction name row */
-.faction-name {
-  font-weight: 700;
-  color: var(--faction-color);
-}
-
-/* Faction trait row */
-.faction-trait {
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-
-.fctrl {
-  margin-left: auto;
-  font-size: 12px;
-  padding: 2px 6px;
-}
-
-/* Size pill active state */
-.size-pill.active {
-  border-color: var(--ink);
-  background: var(--vellum-2);
-}
-
-/* Biome select dropdown */
-.biome-select {
-  appearance: auto;
-  cursor: pointer;
-  margin-top: 4px;
-}
-
-/* Advanced settings collapsible section */
-.setup-advanced {
-  margin-top: 14px;
-}
-
-.setup-advanced-toggle {
+.size-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  border: var(--ink-weight-thin) solid var(--ink-line);
+  background: var(--board);
+  color: var(--ink-mid);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 700;
   cursor: pointer;
-  font-size: 13px;
-  color: var(--ink-soft);
-  user-select: none;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
 }
 
-.setup-advanced-toggle input[type="checkbox"] {
-  accent-color: var(--ink);
+.size-pill.active {
+  background: var(--board-hi);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
-.setup-advanced-body {
-  margin-top: 10px;
-  padding: 10px 12px;
-  border: var(--edge) solid var(--rule);
-  border-radius: 8px;
-  background: var(--vellum);
+.size-pill:hover {
+  background: var(--board-hi);
 }
 
-/* Slider rows inside the advanced section */
-.slider-row {
-  margin-bottom: 10px;
+/* Check row */
+.setup-check-row {
+  flex-direction: row !important;
+  align-items: center;
+  gap: var(--s1);
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
 }
 
-.slider-row:last-child {
-  margin-bottom: 0;
+.setup-check-row input[type="checkbox"] {
+  accent-color: var(--verdigris);
 }
 
-.slider-row label {
+/* Advanced terrain sliders */
+.setup-advanced-details {
+  margin-top: var(--s1);
+}
+
+.setup-advanced-details summary {
+  font-size: 10px;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.setup-slider-row {
+  margin-top: var(--s1);
+}
+
+.setup-slider-row label {
   display: block;
-  font-size: 12px;
-  color: var(--ink-soft);
+  font-size: 10px;
+  color: var(--ink-faint);
   margin-bottom: 2px;
 }
 
-.slider-row input[type="range"] {
+.setup-slider-row input[type="range"] {
   width: 100%;
-  accent-color: var(--ink);
+  accent-color: var(--ink-mid);
   cursor: pointer;
+}
+
+/* =========================================================================
+   Mobile responsive — fall back to stacked layout
+   ========================================================================= */
+
+@media (max-width: 640px) {
+  .setup-heptagram {
+    aspect-ratio: auto;
+    height: auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s3);
+  }
+
+  .setup-heptagram-svg {
+    display: none; /* hide heptagram lines on mobile */
+  }
+
+  .setup-nodes {
+    position: relative;
+    inset: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s2);
+    padding: var(--s4);
+  }
+
+  .setup-node {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: auto;
+  }
+
+  .setup-center {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 90%;
+  }
 }

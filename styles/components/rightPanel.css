@@ -15,8 +15,8 @@
   top: 100%;
   /* left positioned by JS to align with the champion slot */
   width: 180px;
-  background: var(--parchment);
-  border: var(--edge) solid var(--rule-strong);
+  background: var(--board);
+  border: var(--edge) solid var(--crease-bold);
   border-radius: var(--r);
   box-shadow: var(--shadow-stack);
   padding: var(--s3);
@@ -35,7 +35,7 @@
   content: '';
   position: absolute;
   inset: 3px;
-  border: var(--hair) solid var(--vellum-2);
+  border: var(--hair) solid var(--shadow);
   border-radius: calc(var(--r) - 4px);
   pointer-events: none;
 }
@@ -48,7 +48,7 @@
   gap: var(--s2);
   margin-bottom: var(--s2);
   padding-bottom: var(--s2);
-  border-bottom: var(--hair) solid var(--rule);
+  border-bottom: var(--hair) solid var(--crease);
 }
 
 .detail__faction-dot {
@@ -56,7 +56,7 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  border: var(--hair) solid var(--rule);
+  border: var(--hair) solid var(--crease);
 }
 
 .detail__name {
@@ -77,7 +77,7 @@
   align-items: baseline;
   margin-bottom: var(--s1);
   font-size: var(--fs-xs);
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   font-variant-numeric: var(--tnum);
 }
 
@@ -103,7 +103,7 @@
   gap: var(--s2);
   margin-bottom: var(--s2);
   padding-bottom: var(--s2);
-  border-bottom: var(--hair) solid var(--rule);
+  border-bottom: var(--hair) solid var(--crease);
   font-size: var(--fs-xs);
 }
 
@@ -157,12 +157,12 @@
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
-  border: var(--hair) solid var(--rule);
+  border: var(--hair) solid var(--crease);
 }
 
 .detail__pot-name {
   flex: 1;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   font-size: 11px;
 }
 

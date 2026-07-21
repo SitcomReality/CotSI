@@ -1,15 +1,21 @@
 /* =========================================================================
-   SHAPES & LINES  — Border radii and stroke weights.
-   Slightly chunkier than v1 to support the bold low-poly cartoon feel.
+   SHAPES & LINES — Border radii, stroke weights, and ink outline weights.
+   Supports the bold low-poly cartoon feel with consistent ink outlines
+   on all Puppet-layer elements.
    ========================================================================= */
 :root {
-  /* Border radii */
+  /* ── Border radii ── */
   --r-sm:   8px;
   --r:      12px;
   --r-lg:   20px;
   --r-pill: 999px;
 
-  /* Line / stroke weights */
+  /* ── Ink outline weights (Puppet layer — structural, not interactive) ── */
+  --ink-weight:      3px;    /* standard ink outline on Puppet elements */
+  --ink-weight-thin: 1.5px;  /* small elements, glyph strokes, text outlines */
+  --ink-weight-bold: 5px;    /* heavy emphasis, selected champion, key CTA */
+
+  /* ── Line / stroke weights (Proscenium layer — creases, edges) ── */
   --hair:       1px;
   --edge:       2px;     /* standard border */
   --edge-bold:  3px;     /* emphasis border */

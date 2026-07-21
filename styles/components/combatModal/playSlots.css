@@ -15,12 +15,12 @@
   width: 92px;
   height: 60px;
   border-radius: 10px;
-  border: var(--edge-bold) dashed var(--rule-strong);
+  border: var(--edge-bold) dashed var(--crease-bold);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  background: var(--parchment-glass);
+  background: var(--board-glass);
   transition: box-shadow 0.3s;
 }
 
@@ -50,7 +50,7 @@
 .play-arrow {
   display: flex;
   align-items: center;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
 }
 
 /* ── Colour Pick Slots (compact, hidden-until-reveal) ────────────────────── */

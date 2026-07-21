@@ -3,7 +3,7 @@
    ========================================================================= */
 .note {
   position: relative;
-  background: var(--parchment);
+  background: var(--board);
   border-radius: var(--r-sm);
   padding: var(--s4);
   box-shadow: var(--shadow-stack);

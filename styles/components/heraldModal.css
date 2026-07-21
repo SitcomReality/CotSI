@@ -9,9 +9,9 @@
   width: min(560px, 94vw);
   max-height: 90vh;
   overflow-y: auto;
-  background: linear-gradient(180deg, var(--ivory), var(--parchment));
-  border: var(--edge) solid var(--rule-strong);
-  border-left: var(--edge-heavy) solid var(--ink-soft);
+  background: linear-gradient(180deg, var(--board-hi), var(--board));
+  border: var(--edge) solid var(--crease-bold);
+  border-left: var(--edge-heavy) solid var(--ink-mid);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-stack);
   padding: var(--s5) var(--s6);
@@ -27,7 +27,7 @@
   align-items: center;
   gap: var(--s4);
   padding-bottom: var(--s3);
-  border-bottom: var(--hair) solid var(--rule);
+  border-bottom: var(--hair) solid var(--crease);
   text-align: center;
   justify-content: center;
 }
@@ -65,8 +65,8 @@
   min-height: 120px;
   border-radius: var(--r-sm);
   background:
-    color-mix(in srgb, var(--weather-tint, var(--ink-soft)) 22%, var(--vellum));
-  border: var(--hair) solid color-mix(in srgb, var(--weather-tint, var(--rule)) 40%, var(--rule));
+    color-mix(in srgb, var(--weather-tint, var(--ink-mid)) 22%, var(--abyss));
+  border: var(--hair) solid color-mix(in srgb, var(--weather-tint, var(--crease)) 40%, var(--crease));
   margin-bottom: var(--s1);
   overflow: hidden;
 }
@@ -109,7 +109,7 @@
   font-family: var(--font-body);
   font-style: italic;
   font-size: var(--fs-sm);
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   padding: 0 var(--s1);
   margin-bottom: var(--s1);
 }
@@ -130,15 +130,15 @@
   gap: var(--s3);
   padding: var(--s2) var(--s3);
   border-radius: var(--r-sm);
-  background: var(--vellum);
-  border: var(--hair) solid var(--rule);
+  background: var(--abyss);
+  border: var(--hair) solid var(--crease);
   transition: background 180ms ease;
 }
 
 .herald-modal__turn-item--active {
-  background: var(--parchment);
-  border-color: var(--rule-strong);
-  border-left: 3px solid var(--ink-soft);
+  background: var(--board);
+  border-color: var(--crease-bold);
+  border-left: 3px solid var(--ink-mid);
 }
 
 .herald-modal__turn-num {
@@ -178,7 +178,7 @@
   text-transform: uppercase;
   color: var(--ink-faint);
   padding: 2px 8px;
-  border: var(--hair) solid var(--rule);
+  border: var(--hair) solid var(--crease);
   border-radius: var(--r-sm);
 }
 

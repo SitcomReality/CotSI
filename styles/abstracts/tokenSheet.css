@@ -4,7 +4,7 @@
    ========================================================================= */
 body.token-sheet {
   margin: 0;
-  background: var(--vellum);
+  background: var(--abyss);
   color: var(--ink);
   font: 400 var(--fs-md)/var(--lh) var(--font-body);
   padding: var(--s6);
@@ -17,13 +17,13 @@ body.token-sheet {
 }
 
 .token-sheet h1 .accent {
-  font-family: var(--font-accent);
-  color: var(--vermilion);
+  font-family: var(--font-display);
+  color: var(--crimson);
   font-weight: 700;
 }
 
 .token-sheet .sub {
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   font-style: italic;
   margin: 0 0 var(--s6);
 }
@@ -32,9 +32,9 @@ body.token-sheet {
   font: 600 var(--fs-lg) var(--font-display);
   letter-spacing: var(--ls-cap);
   text-transform: uppercase;
-  color: var(--vermilion);
+  color: var(--crimson);
   margin: var(--s7) 0 var(--s3);
-  border-bottom: var(--hair) solid var(--rule-strong);
+  border-bottom: var(--hair) solid var(--crease-bold);
   padding-bottom: var(--s2);
 }
 
@@ -55,5 +55,5 @@ body.token-sheet {
   font: 600 var(--fs-xs) var(--font-display);
   letter-spacing: var(--ls-cap);
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
 }

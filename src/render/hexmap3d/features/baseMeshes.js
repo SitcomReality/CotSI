@@ -27,8 +27,8 @@ export function buildBaseMeshes(state, visible) {
     const group = new THREE.Group();
     group.name = `base_${f.faction}`;
 
-    const towerMat = new THREE.MeshLambertMaterial({ color: fac.color, flatShading: true });
-    const accentMat = new THREE.MeshLambertMaterial({ color: fac.glow || fac.color, flatShading: true });
+    const towerMat = new THREE.MeshLambertMaterial({ color: fac.base, flatShading: true });
+    const accentMat = new THREE.MeshLambertMaterial({ color: fac.color, flatShading: true });
 
     // ---- Tower body ----
     const towerGeo = new THREE.CylinderGeometry(0.22, 0.25, 0.7, 8);

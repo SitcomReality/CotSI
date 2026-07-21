@@ -4,8 +4,8 @@
 
 .log-bar {
   grid-column: 1 / -1;
-  background: var(--vellum);
-  border-top: var(--edge) solid var(--rule);
+  background: var(--abyss);
+  border-top: var(--edge) solid var(--crease);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -79,7 +79,7 @@
 .log-bar__entries--empty {
   align-items: center;
   justify-content: center;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   font-style: italic;
 }
 
@@ -90,16 +90,16 @@
 /* ── Log line types ── */
 .log-bar__line {
   padding: 2px 0;
-  border-bottom: var(--hair) dashed var(--rule);
-  color: var(--ink-soft);
+  border-bottom: var(--hair) dashed var(--crease);
+  color: var(--ink-mid);
 }
 
 .log-bar__line--combat {
-  color: var(--vermilion);
+  color: var(--crimson);
 }
 
 .log-bar__line--heal {
-  color: var(--malachite);
+  color: var(--verdigris);
 }
 
 .log-bar__line--system {
@@ -108,5 +108,5 @@
 }
 
 .log-bar__line--standard {
-  color: var(--ink-soft);
+  color: var(--ink-mid);
 }

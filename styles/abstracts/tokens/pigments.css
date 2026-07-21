@@ -1,14 +1,18 @@
 /* =========================================================================
-   MINIATURE PIGMENTS — Jewel colours that "sing" against the dark chrome
+   MINIATURE PIGMENTS — Full-spectrum vivid colours for the Puppet layer
+   Freed from faction duty by the two-color faction system, these now
+   provide max-contrast semantic colour: damage, healing, magic, gold.
    Use sparingly — each has a clear semantic or elemental role.
-   Boosted saturation and brightness for contrast against dark backgrounds.
    ========================================================================= */
 :root {
-  --ultramarine:   #2a50dd;  /* deep blue — water, sky, lapis accents    */
-  --vermilion:     #ff5533;  /* hot red  — fire, rubric, hostile accent  */
-  --malachite:     #22bb66;  /* bright green — positive growth, forest   */
-  --emerald:       #0f9d55;  /* deep green — Verdant terrain shadow      */
-  --tyrian:        #9a2a7a;  /* royal purple — Masque / Reverie sky      */
-  --gold:          #ffd700;  /* GOLD LEAF — RARE accent only (pops on dark) */
-  --gold-hi:       #ffe880;  /* burnished highlight (animation peak)     */
+  --crimson:   #e82020;  /* fire / damage / blood                   */
+  --cinnabar:  #ff6600;  /* heat / danger / hostile accent           */
+  --gold:      #ffbf00;  /* GOLD LEAF — RARE accent only             */
+  --gold-hi:   #ffe060;  /* burnished highlight (animation peak)     */
+  --verdigris: #00cc88;  /* growth / ally accent / healing           */
+  --cerulean:  #00aaff;  /* water / sky / arcane                     */
+  --indigo:    #5555ff;  /* deep magic / covenant                     */
+  --magenta:   #ff00aa;  /* Reverie / dream / Masque magic           */
 }
+
+/* ── Backward-compat aliases retired in v4 rename ── */

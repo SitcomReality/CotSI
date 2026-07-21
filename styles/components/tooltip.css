@@ -7,9 +7,9 @@
   position: fixed;
   pointer-events: none;
   z-index: 1000;
-  background: var(--vellum);
+  background: var(--abyss);
   color: var(--ink);
-  border: var(--edge) solid var(--rule-strong);
+  border: var(--edge) solid var(--crease-bold);
   padding: 6px 10px;
   border-radius: var(--r-sm);
   font-size: 12px;

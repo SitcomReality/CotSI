@@ -55,12 +55,12 @@ export function buildUnitMeshes(state, visible) {
 
     if (champ) {
       const fac = FACTIONS[champ.faction];
-      const color = fac ? hexToRgb(fac.color) : [0.8, 0.8, 0.8];
+      const color = fac ? hexToRgb(fac.base) : [0.5, 0.4, 0.3];
       championBodyInstances.push({ x, y: surfaceY + 0.15, z, color });
       championHeadInstances.push({ x, y: surfaceY + 0.45, z, color: [1, 1, 1] });
     } else if (mob) {
       const fac = FACTIONS[mob.faction];
-      const color = fac ? hexToRgb(fac.color).map(c => c * 0.7) : [0.4, 0.3, 0.2];
+      const color = fac ? hexToRgb(fac.base).map(c => c * 0.7) : [0.3, 0.25, 0.2];
       const shapeKey = mob.archetypeName || 'default';
       if (!mobInstancesByShape.has(shapeKey)) {
         mobInstancesByShape.set(shapeKey, []);

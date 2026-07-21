@@ -1,60 +1,72 @@
 <div id="setup" class="setup-screen">
-  <div class="setup-card">
-    <h1>Champions of the Supernal Interregnum</h1>
-    <div class="setup-sub">An illuminated manuscript hex-crawl. Seven broken gods. One Paley paradox. — Codex v2 modular build</div>
-    <div class="setup-grid">
-      <div class="panel">
-        <h4>World seed</h4>
-        <input id="seedInput" class="field-input" value="glut-17">
-        <div class="rel-fields">
-          <h4>Map size</h4>
-          <span class="size-pill" data-r="3" data-action="selectSize">Tiny</span>
-          <span class="size-pill" data-r="5" data-action="selectSize">Small</span>
-          <span class="size-pill" data-r="7" data-action="selectSize">Medium</span>
-          <span class="size-pill active" data-r="9" data-action="selectSize">Large</span>
-          <span class="size-pill" data-r="13" data-action="selectSize">Vast</span>
-          <span class="size-pill" data-r="17" data-action="selectSize">Immense</span>
-          <span class="size-pill" data-r="21" data-action="selectSize">Mythic</span>
-          <span class="size-pill" data-r="30" data-action="selectSize">Titanic</span>
-          <span class="size-pill" data-r="40" data-action="selectSize">Apocalyptic</span>
-        </div>
-        <div class="rel-fields">
-          <h4>Biome</h4>
-          <select id="biomeSelect" class="field-input biome-select"></select>
-        </div>
-        <div class="setup-advanced">
-          <label class="setup-advanced-toggle">
-            <input type="checkbox" id="advToggle"> Advanced
+  <div class="setup-heptagram">
+    <!-- Paley heptagram SVG injected by JS as background layer -->
+    <div id="setupHeptagramSVG" class="setup-heptagram-svg"></div>
+
+    <!-- Faction badges overlaid on heptagram nodes, injected by JS -->
+    <div id="setupNodes" class="setup-nodes"></div>
+
+    <!-- Central control panel (overlaid at heptagram center) -->
+    <div class="setup-center">
+      <button class="btn-gold setup-begin-btn" id="beginBtn" data-action="beginGame">Begin Interregnum</button>
+
+      <div class="setup-mode-toggle">
+        <button class="setup-mode-btn active" data-mode="7" data-action="setGameMode">7 Champions</button>
+        <button class="setup-mode-btn" data-mode="3" data-action="setGameMode">3 Champions</button>
+      </div>
+
+      <div class="setup-center-row">
+        <label class="setup-field">
+          <span class="setup-label">Seed</span>
+          <input id="seedInput" class="field-input" value="glut-17">
+        </label>
+      </div>
+
+      <details class="setup-details">
+        <summary class="setup-details-summary">Map Settings</summary>
+        <div class="setup-details-body">
+          <label class="setup-field">
+            <span class="setup-label">Biome</span>
+            <select id="biomeSelect" class="field-input"></select>
           </label>
-          <div class="setup-advanced-body" id="advBody">
-            <div class="slider-row">
-              <label>Height variation <span id="hvVal">1.0</span>x</label>
+
+          <label class="setup-field">
+            <span class="setup-label">Size</span>
+            <div class="setup-size-pills">
+              <span class="size-pill" data-r="5" data-action="selectSize">S</span>
+              <span class="size-pill" data-r="7" data-action="selectSize">M</span>
+              <span class="size-pill active" data-r="9" data-action="selectSize">L</span>
+              <span class="size-pill" data-r="13" data-action="selectSize">XL</span>
+              <span class="size-pill" data-r="21" data-action="selectSize">XXL</span>
+            </div>
+          </label>
+
+          <label class="setup-field">
+            <span class="setup-label">Relic target</span>
+            <input id="relicTarget" class="field-input small" type="number" min="5" max="50" value="25">
+          </label>
+
+          <label class="setup-field setup-check-row">
+            <input type="checkbox" id="optLast" checked> Last Standing victory
+          </label>
+
+          <details class="setup-advanced-details">
+            <summary>Terrain sliders</summary>
+            <div class="setup-slider-row">
+              <label>Height <span id="hvVal">1.0</span>x</label>
               <input type="range" id="hvSlider" min="0.5" max="2.0" step="0.1" value="1.0">
             </div>
-            <div class="slider-row">
-              <label>Wateriness <span id="wtVal">1.0</span>x</label>
+            <div class="setup-slider-row">
+              <label>Water <span id="wtVal">1.0</span>x</label>
               <input type="range" id="wtSlider" min="0.0" max="2.0" step="0.1" value="1.0">
             </div>
-            <div class="slider-row">
-              <label>Mountainousness <span id="mtVal">1.0</span>x</label>
+            <div class="setup-slider-row">
+              <label>Mountains <span id="mtVal">1.0</span>x</label>
               <input type="range" id="mtSlider" min="0.0" max="2.0" step="0.1" value="1.0">
             </div>
-          </div>
+          </details>
         </div>
-        <div class="setup-grid-row">
-          <label>Relic target<br><input id="relicTarget" class="field-input small" type="number" min="5" max="50" value="25"></label>
-          <label class="relic-label-row"><input type="checkbox" id="optLast" checked> Last Standing</label>
-        </div>
-        <p class="mini setup-mini">Seeded manuscript terrain: plains • forest • desert • marsh • mountains • broken water. Fog of War = visible / explored. Dig on empty parchment at night.</p>
-      </div>
-      <div class="panel">
-        <h4>Choose your champions (2–7)</h4>
-        <div id="factionList"></div>
-        <div class="faction-actions">
-          <div class="mini">Click a faction to toggle. Click Human/Bot to switch. Paley: i beats i+1,i+2,i+4.</div>
-          <button class="btn-gold" id="beginBtn" data-action="beginGame">Begin Interregnum ▶</button>
-        </div>
-      </div>
+      </details>
     </div>
   </div>
 </div>

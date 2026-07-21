@@ -12,9 +12,9 @@
   font-size: var(--fs-xs, 0.75rem);
   font-family: var(--font-display, Cinzel, serif);
   color: var(--ink);
-  background: var(--vellum-2);
-  border: var(--edge) solid var(--rule-strong);
-  border-left: 3px solid var(--indicator-color, var(--ink-soft));
+  background: var(--shadow);
+  border: var(--edge) solid var(--crease-bold);
+  border-left: 3px solid var(--indicator-color, var(--ink-mid));
   border-radius: 4px;
   padding: 4px 14px;
   white-space: nowrap;

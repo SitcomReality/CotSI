@@ -1,7 +1,7 @@
 import { getCombatUI } from './combatUiState.js';
 import { getCombatVM, getHumanSide } from '../viewModels/combatViewModel.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
-import { setHeptagramHighlight } from '../heptagramWidget.js';
+import { setCrossHighlight } from '../heptagramWidget.js';
 import { h } from '../domBuilder.js';
 import { svgIcon } from '../svgIcon.js';
 
@@ -123,9 +123,9 @@ function buildToken(pot, isActivePicker, phase) {
   const props = {
     class: classes.join(' '),
     dataFaction: pot.idx,
-    // Cross-highlight via heptagram widget (CSS :has(). outlines handle inline highlight)
-    mouseenter: () => setHeptagramHighlight(pot.idx),
-    mouseleave: () => setHeptagramHighlight(-1),
+    // Cross-highlight via document data attribute (CSS glow in paleyCrossHighlight.css)
+    mouseenter: () => setCrossHighlight(pot.idx),
+    mouseleave: () => setCrossHighlight(-1),
   };
   if (isClickable) {
     props.dataAction = 'combatPick';

@@ -1,15 +1,20 @@
 /* =========================================================================
-   SHADOWS  — Bold hard-offset shadows for a cartoon tabletop feel.
-   No soft paper-stack shadows. These use hard offset steps like comic-book
-   panel shadows or chunky game-board pieces.
+   SHADOWS — Bold hard-offset shadows and state glow effects.
+   Hard offset steps for comic-book / board-game feel. No soft
+   paper-stack shadows. Glow shadows for state treatments.
    ========================================================================= */
 :root {
-  --shadow-card:   0 4px 0 #0d1018,
+  /* Hard cartoon shadows */
+  --shadow-card:   0 4px 0 #07080b,
                    0 6px 12px rgba(0,0,0,.5);
-  --shadow-stack:  0 2px 0 #0d1018,
-                   0 6px 0 #0d1018,
+  --shadow-stack:  0 2px 0 #07080b,
+                   0 6px 0 #07080b,
                    0 8px 16px rgba(0,0,0,.55);
-  --shadow-seal:   0 3px 0 #0d1018,
+  --shadow-seal:   0 3px 0 #07080b,
                    inset 0 1px 0 rgba(255,255,255,.08);
-  --shadow-panel:  0 2px 0 #0d1018;
+  --shadow-panel:  0 2px 0 #07080b;
+
+  /* Backlight glow shadows (for state treatments — replaces CSS outline) */
+  --shadow-glow:   0 0 12px var(--gold);        /* selection glow */
+  --shadow-state:  0 0 16px 2px;                 /* state glow — color set per state var */
 }

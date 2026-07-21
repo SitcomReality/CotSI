@@ -7,8 +7,8 @@
   top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--ivory);
-  border: var(--edge) solid var(--rule-strong);
+  background: var(--board-hi);
+  border: var(--edge) solid var(--crease-bold);
   padding: 9px 14px;
   border-radius: 11px;
   font-size: 13px;
@@ -28,6 +28,6 @@
 .victory-sub {
   display: block;
   font-size: 16px;
-  color: var(--ink-soft);
+  color: var(--ink-mid);
   margin-top: 6px;
 }

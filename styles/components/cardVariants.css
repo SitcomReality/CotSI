@@ -3,19 +3,10 @@
    These extend or diverge from the base .card component in card.css.
    ========================================================================= */
 
-.setup-card {
-  width: min(1040px, 96vw);
-  background: linear-gradient(180deg, var(--ivory), var(--parchment));
-  border: var(--edge-heavy) solid var(--rule-strong);
-  border-radius: 22px;
-  box-shadow: var(--shadow-stack);
-  padding: 28px 30px;
-}
-
 .modal-card {
   width: min(1020px, 96vw);
-  background: linear-gradient(180deg, var(--ivory), var(--parchment));
-  border: var(--edge-bold) solid var(--rule-strong);
+  background: linear-gradient(180deg, var(--board-hi), var(--board));
+  border: var(--edge-bold) solid var(--crease-bold);
   border-radius: 20px;
   padding: 18px 20px;
   box-shadow: var(--shadow-stack);
@@ -23,7 +14,7 @@
 }
 
 .victory-card {
-  background: linear-gradient(180deg, var(--ivory), var(--parchment));
+  background: linear-gradient(180deg, var(--board-hi), var(--board));
   border: var(--edge-heavy) solid var(--gold);
   border-radius: 18px;
   padding: 22px;
@@ -34,8 +25,8 @@
 
 /* New card styles — step layout / modal / section panels */
 .champion-card-variant {
-  background: var(--parchment);
-  border: var(--edge) solid var(--rule-strong);
+  background: var(--board);
+  border: var(--edge) solid var(--crease-bold);
   border-radius: var(--r);
   box-shadow: var(--shadow-stack);
   padding: var(--space-sm);
@@ -45,8 +36,8 @@
 }
 
 .quest-card {
-  background: var(--parchment);
-  border: var(--edge) solid var(--rule-strong);
+  background: var(--board);
+  border: var(--edge) solid var(--crease-bold);
   border-radius: var(--r);
   box-shadow: var(--shadow-stack);
   padding: var(--space-sm);

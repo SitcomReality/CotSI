@@ -4,6 +4,20 @@ import { paleySVG } from './paleySVG.js';
 let selected = -1;
 let mountId = 'paleyMount';
 
+/**
+ * Set the document-level cross-highlight data attribute.
+ * This triggers CSS rules in paleyCrossHighlight.css to show
+ * win/lose glow relationships on all .paley-item--fN elements.
+ * Pass -1 to clear.
+ */
+export function setCrossHighlight(factionIdx) {
+  if (factionIdx >= 0 && factionIdx < 7) {
+    document.documentElement.dataset.crossHighlight = String(factionIdx);
+  } else {
+    delete document.documentElement.dataset.crossHighlight;
+  }
+}
+
 /** Highlight a faction node on the Paley wheel, -1 to clear */
 export function setHeptagramHighlight(factionIdx) {
   selected = factionIdx;
@@ -37,5 +51,13 @@ export function initHeptagramWidget(elId = 'paleyMount') {
   const mount = document.getElementById(mountId);
   if (!mount) return;
   mount.innerHTML = paleySVG(-1);
-  // CSS :has() handles all cross-highlight hover; no JS binding needed.
+  // Wire hover handlers on heptagram nodes for cross-highlight
+  const svg = mount.querySelector('svg');
+  if (svg) {
+    svg.querySelectorAll('.rt-heptagram-node').forEach(circle => {
+      const idx = parseInt(circle.getAttribute('data-index'), 10);
+      circle.addEventListener('mouseenter', () => setCrossHighlight(idx));
+      circle.addEventListener('mouseleave', () => setCrossHighlight(-1));
+    });
+  }
 }
