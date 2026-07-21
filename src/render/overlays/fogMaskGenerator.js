@@ -141,6 +141,19 @@ function cameraHasChanged(camera) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Reset the cached camera hash so the next call to generateFogMasks always
+ * regenerates the masks. Used after camera animations finish, when the fog
+ * mask cache might hold masks keyed to a slightly stale camera position
+ * (due to the rounded camera hash not crossing a boundary during tiny
+ * ease-out movements).
+ */
+export function resetFogMaskCameraHash() {
+  _lastCamTargetX = null;
+  _lastCamTargetZ = null;
+  _lastCamFrustum = null;
+}
+
+/**
  * Generate both visibility masks for the current frame.
  *
  * The returned canvases are sized identically to the effects overlay (same

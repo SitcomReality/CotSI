@@ -4,7 +4,7 @@
  * Owns the singleton `map3dInitialized` and `lastCenteredChampionId` flags.
  * Imports live bindings (G, currentChamp) at runtime like its callers.
  */
-import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext, centerOnHexWithFitCamera, centerOnHexWithFixedZoom, fitCameraToMap } from '../render/hexmap3d/hexMapRenderer.js';
+import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext, animateCenterOnHex, centerOnHexWithFixedZoom, fitCameraToMap } from '../render/hexmap3d/hexMapRenderer.js';
 import { onHexClick } from './hexBridge.js';
 import { getTooltipContent, refreshZoomDisplay } from '../ui/mapTooltip.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
@@ -54,16 +54,21 @@ export function refreshMap() {
         ctx.applyCamera();
       }
 
-      // At game start, center on the first human champion in the turn order
-      // so human players aren't looking at black space if bots go first.
+      // At game start, center on the first human champion at a close-up
+      // zoom (~400%) so players aren't looking at the full map overview.
       const humansInOrder = G.currentOrder
         .map(id => G.champions.find(c => c.id === id))
         .filter(c => c && c.controller === 'human' && c.alive);
       if (humansInOrder.length > 0) {
         const firstHuman = humansInOrder[0];
-        centerOnHexWithFitCamera(ctx.getCameraState(), firstHuman.pos.q, firstHuman.pos.r);
+        const state = ctx.getCameraState();
+        // Set zoom immediately, then animate the pan smoothly
+        const panFromX = state.targetX, panFromZ = state.targetZ;
+        centerOnHexWithFixedZoom(state, firstHuman.pos.q, firstHuman.pos.r, 400);
+        state.targetX = panFromX;
+        state.targetZ = panFromZ;
+        animateCenterOnHex(state, ctx.applyCamera, firstHuman.pos.q, firstHuman.pos.r);
         lastCenteredChampionId = firstHuman.id;
-        ctx.applyCamera();
       }
     } catch (err) {
       console.error('[refreshMap] initHexMap3D threw:', err);
@@ -98,8 +103,13 @@ export function refreshMap() {
   if (ch && ch.controller === 'human' && ch.id !== lastCenteredChampionId) {
     const ctx3d = getSceneContext();
     if (ctx3d) {
-      centerOnHexWithFixedZoom(ctx3d.getCameraState(), ch.pos.q, ch.pos.r, 400);
-      ctx3d.applyCamera();
+      const state = ctx3d.getCameraState();
+      // Set zoom immediately, then animate the pan smoothly
+      const panFromX = state.targetX, panFromZ = state.targetZ;
+      centerOnHexWithFixedZoom(state, ch.pos.q, ch.pos.r, 400);
+      state.targetX = panFromX;
+      state.targetZ = panFromZ;
+      animateCenterOnHex(state, ctx3d.applyCamera, ch.pos.q, ch.pos.r);
     }
     lastCenteredChampionId = ch.id;
   }

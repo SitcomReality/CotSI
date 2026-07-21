@@ -6,6 +6,7 @@
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
 import { movementRange, moveChampion, adjacentPassable } from '../game/state/championMovement.js';
+import { getSceneContext, animateCenterOnHex } from '../render/hexmap3d/hexMapRenderer.js';
 import { addLog } from '../game/state/gameLog.js';
 import { recordLedgerEntry } from '../game/state/dispatchLedger.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
@@ -63,6 +64,11 @@ export function onHexClick(key) {
   if (allowed.includes(key)) {
     moveChampion(G, ch, key, 1);
     refreshAll();
+    // Recenter camera on the champion's new position
+    const ctx3d = getSceneContext();
+    if (ctx3d) {
+      animateCenterOnHex(ctx3d.getCameraState(), ctx3d.applyCamera, ch.pos.q, ch.pos.r);
+    }
     if (ch.moves <= 0) pulseEnd();
   }
 }

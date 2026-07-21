@@ -83,14 +83,19 @@ export function getTooltipContent(gameState, key, activeChampion) {
 
 /**
  * Update the zoom percentage display in the HUD.
+ * Percentage is map-relative: 100% = full-map view (referenceFrustum).
+ * Falls back to the legacy hardcoded 40 when no reference is available.
  */
 export function refreshZoomDisplay() {
   const zoomEl = document.getElementById('hudZoom');
   if (!zoomEl) return;
 
   const ctx3d = getSceneContext();
-  const pct = ctx3d
-    ? Math.round(100 * 40 / ctx3d.getCameraState().frustumSize)
-    : 100;
+  const cs = ctx3d?.getCameraState();
+  const pct = cs?.referenceFrustum
+    ? Math.round(100 * cs.referenceFrustum / cs.frustumSize)
+    : cs
+      ? Math.round(100 * 40 / cs.frustumSize)
+      : 100;
   zoomEl.textContent = pct + '%';
 }

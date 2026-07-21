@@ -5,11 +5,13 @@
  * (~50° pitch, looking from south-west). Only pan (reposition target)
  * and zoom (adjust frustum size) are allowed. No tilt or rotation.
  *
- * Zoom is clamped per-map: `maxFrustumSize` is set by fitCameraToMap
- * so the user can never zoom out farther than what shows the whole
- * map with a comfortable margin.
+ * Zoom percentage is map-relative: 100% = fit the full map in the viewport.
+ * `referenceFrustum` (set by fitCameraToMap) anchors the percentage so the
+ * same 400% zoom means the same visual framing on every map size.
  */
 
+import { getClock } from '../../../shared/clockScheduler.js';
+import { resetFogMaskCameraHash } from '../../overlays/fogMaskGenerator.js';
 import { hexCenter } from '../hexWorldSpace.js';
 
 const DEFAULT_FRUSTUM = 8; // vertical world units visible at zoom=1
@@ -27,6 +29,7 @@ export function createCameraState(aspect) {
     distance: 50,           // camera distance from target (along look vector)
     mapRadius: null,        // set by fitCameraToMap
     maxFrustumSize: null,   // set by fitCameraToMap — zoom upper bound
+    referenceFrustum: null, // set by fitCameraToMap — anchors zoom percentage
   };
 }
 
@@ -88,8 +91,8 @@ export function setPanBounds(state, radius) {
 /**
  * Auto-fit the camera frustum to show the entire map.
  * Call on first init after the map radius is known.
- * Also stores `mapRadius` and `maxFrustumSize` on state so zoomCamera
- * clamps dynamically rather than using a hard ceiling.
+ * Stores `mapRadius`, `maxFrustumSize`, and `referenceFrustum` on state so
+ * zoomCamera clamps dynamically and the zoom display is map-relative.
  *
  * NOTE: the visible ground extent equals `frustumSize / sin(pitch)`
  * (the orthographic frustum is foreshortened at the isometric angle).
@@ -107,17 +110,19 @@ export function fitCameraToMap(state, radius) {
   // is frustumSize / sin(pitch). We want the map to fit comfortably.
   const margin = 1.6;
   const sinPitch = Math.sin(state.pitch);
-  const desiredWorldExtent = mapExtent * margin;
-  const desiredFrustum = sinPitch > 0.01 ? desiredWorldExtent * sinPitch : desiredWorldExtent;
+  const refWorldExtent = mapExtent * margin;
+  const referenceFrustum = sinPitch > 0.01 ? refWorldExtent * sinPitch : refWorldExtent;
 
-  // Max zoom: let the user zoom out further than the initial view.
-  const maxMargin = 2.0;
+  // Max zoom: generous margin so the user can zoom well out past the fit view.
+  const maxMargin = 3.5;
   const maxWorldExtent = mapExtent * maxMargin;
   const maxDesired = sinPitch > 0.01 ? maxWorldExtent * sinPitch : maxWorldExtent;
 
   state.mapRadius = radius;
+  state.referenceFrustum = referenceFrustum;
   state.maxFrustumSize = Math.max(DEFAULT_FRUSTUM, Math.min(ABSOLUTE_MAX_FRUSTUM, maxDesired));
-  state.frustumSize = Math.max(DEFAULT_FRUSTUM, Math.min(state.maxFrustumSize, desiredFrustum));
+  // Start at the reference (100% = full map view)
+  state.frustumSize = Math.max(DEFAULT_FRUSTUM, Math.min(state.maxFrustumSize, referenceFrustum));
   state.targetX = 0;
   state.targetZ = 0;
   setPanBounds(state, radius);
@@ -190,15 +195,18 @@ export function centerOnHexWithSightZoom(state, q, r, sight) {
 
 /**
  * Center the camera on a hex tile at a fixed zoom percentage.
- * Zoom percentage is defined as 100 × 40 / frustumSize, so 400% = frustum 10.
+ * Zoom percentage is map-relative: 400% = 4× closer than the full-map view.
  * Clamped within the current min/max frustum bounds.
+ * Uses `state.referenceFrustum` (set by fitCameraToMap) as the 100% anchor;
+ * falls back to hardcoded 40 when no reference is available.
  * @param {object} state - camera state
  * @param {number} q - hex column coordinate
  * @param {number} r - hex row coordinate
  * @param {number} zoomPercent - desired zoom level (e.g. 400 for 400%)
  */
 export function centerOnHexWithFixedZoom(state, q, r, zoomPercent) {
-  const desiredFrustum = (100 * 40) / zoomPercent;
+  const ref = state.referenceFrustum ?? 40;
+  const desiredFrustum = (100 * ref) / zoomPercent;
   state.frustumSize = Math.max(MIN_FRUSTUM, Math.min(
     state.maxFrustumSize ?? ABSOLUTE_MAX_FRUSTUM,
     desiredFrustum
@@ -217,4 +225,68 @@ export function centerCameraOnHex(state, q, r) {
   const { x, z } = hexCenter(q, r);
   state.targetX = x;
   state.targetZ = z;
+}
+
+/** Currently active camera pan animation stop function, if any. */
+let _panStopFn = null;
+
+/**
+ * Smoothly animate the camera to center on a hex position.
+ * Uses an onTick callback for per-frame interpolation with cubic ease-out.
+ * Preserves the current zoom level — only pans.
+ *
+ * If called while a previous pan animation is still running, the old one
+ * is cancelled and the camera jumps to its final position immediately.
+ *
+ * @param {object} state - camera state
+ * @param {function} applyFn - function to call each frame to sync the
+ *                             Three.js camera (e.g. `ctx.applyCamera`)
+ * @param {number} q - hex column coordinate
+ * @param {number} r - hex row coordinate
+ * @param {number} [duration=200] - animation duration in milliseconds
+ */
+export function animateCenterOnHex(state, applyFn, q, r, duration = 200) {
+  // Cancel any in-flight animation and snap to its target first
+  if (_panStopFn) {
+    _panStopFn();
+    _panStopFn = null;
+  }
+
+  const { x: toX, z: toZ } = hexCenter(q, r);
+  const fromX = state.targetX;
+  const fromZ = state.targetZ;
+  const startTime = performance.now();
+
+  _panStopFn = getClock().onTick((timestamp) => {
+    const elapsed = timestamp - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    // Cubic ease-out: 1 - (1 - t)³
+    const eased = 1 - Math.pow(1 - t, 3);
+
+    state.targetX = fromX + (toX - fromX) * eased;
+    state.targetZ = fromZ + (toZ - fromZ) * eased;
+    applyFn();
+
+    if (t >= 1) {
+      // Snap to exact final position to avoid floating-point drift
+      state.targetX = toX;
+      state.targetZ = toZ;
+      applyFn();
+      // Invalidate fog mask camera hash so the overlay regenerates masks
+      // from the exact final camera position on the next frame.
+      resetFogMaskCameraHash();
+      _panStopFn();
+      _panStopFn = null;
+    }
+  });
+}
+
+/**
+ * Cancel any in-flight camera pan animation and snap to its current target.
+ */
+export function cancelCameraPan() {
+  if (_panStopFn) {
+    _panStopFn();
+    _panStopFn = null;
+  }
 }
