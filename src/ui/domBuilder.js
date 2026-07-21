@@ -13,6 +13,7 @@ export function h(tag, props = {}, ...children) {
     }
     else if (key.startsWith('data')) el.setAttribute(key.replace(/[A-Z]/g, m => '-' + m.toLowerCase()), val);
     else if (key.startsWith('on') && typeof val === 'function') el.addEventListener(key.slice(2), val);
+    else if (typeof val === 'function') el.addEventListener(key, val);
     else el.setAttribute(key, val);
   }
   // Skip null/undefined/boolean children so `cond && h(...)` composition is safe

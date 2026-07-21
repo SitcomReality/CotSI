@@ -225,6 +225,10 @@ export function generateFogMasks(state, camera, overlayCanvas, visible, explored
   };
 }
 
+// Cached temp canvases for blur (reused to avoid per-frame allocation)
+let _blurTemp = null;
+let _blurTemp2 = null;
+
 /**
  * Apply a Gaussian blur to a mask canvas in physical-pixel space.
  * The canvas has a DPR transform set on its context; we work around this by
@@ -236,29 +240,34 @@ function blurMaskInPlace(canvas, radius) {
   const w = canvas.width;
   const h = canvas.height;
 
-  // Temp canvas at the same physical size, no DPR transform
-  const temp = document.createElement('canvas');
-  temp.width = w;
-  temp.height = h;
-  const tempCtx = temp.getContext('2d');
+  // Reuse or create temp canvases at the same physical size
+  if (!_blurTemp || _blurTemp.width !== w || _blurTemp.height !== h) {
+    _blurTemp = document.createElement('canvas');
+    _blurTemp.width = w;
+    _blurTemp.height = h;
+  }
+  if (!_blurTemp2 || _blurTemp2.width !== w || _blurTemp2.height !== h) {
+    _blurTemp2 = document.createElement('canvas');
+    _blurTemp2.width = w;
+    _blurTemp2.height = h;
+  }
+
+  const tempCtx = _blurTemp.getContext('2d');
 
   // Draw the original canvas at physical resolution onto temp
   tempCtx.drawImage(canvas, 0, 0);
 
   // Blur temp onto itself via another intermediate (avoids in-place issues)
-  const temp2 = document.createElement('canvas');
-  temp2.width = w;
-  temp2.height = h;
-  const temp2Ctx = temp2.getContext('2d');
+  const temp2Ctx = _blurTemp2.getContext('2d');
   temp2Ctx.filter = `blur(${radius}px)`;
-  temp2Ctx.drawImage(temp, 0, 0);
+  temp2Ctx.drawImage(_blurTemp, 0, 0);
 
   // Copy blurred result back to the original canvas, replacing its content at
   // the physical level. Clear first (reset DPR transform for raw pixel ops).
   const ctx = canvas.getContext('2d');
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, w, h);
-  ctx.drawImage(temp2, 0, 0);
+  ctx.drawImage(_blurTemp2, 0, 0);
 
   // Restore the DPR transform so subsequent CSS-coord draws still work
   const dpr = window.devicePixelRatio || 1;

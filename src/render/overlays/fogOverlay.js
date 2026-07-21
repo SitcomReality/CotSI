@@ -6,10 +6,7 @@
 
 import { generateFogMasks } from './fogMaskGenerator.js';
 import { getHumanView } from '../../game/state/fogOfWar.js';
-    //imports for diagnostics
-    import { worldToScreen } from './screenProjection.js'
-    import { hexCenter } from '../hexmap3d/hexWorldSpace.js';
-    import { tileTopY } from '../hexmap3d/terrain/terrainMesh.js';
+
 // ---------------------------------------------------------------------------
 // Tunable constants
 // ---------------------------------------------------------------------------

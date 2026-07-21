@@ -1,5 +1,4 @@
 import * as THREE from '../../../vendor/three.module.js';
-import { TERRAIN } from '../../../game/rules/terrainGeneration.js';
 import { terrainMaterial } from '../scene/materials.js';
 import { HEX_RADIUS, hexCenter, hexCornersXZ } from '../hexWorldSpace.js';
 
@@ -67,7 +66,6 @@ export function buildTerrainMesh(state, visible, explored) {
   const palette = state.biomePalette || {};
 
   for (const tile of activeTiles) {
-    const tinfo = TERRAIN[tile.terrain];
     const elev = ELEVATION[tile.terrain] || 0;
     const baseColor = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
 

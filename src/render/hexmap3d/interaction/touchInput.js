@@ -45,6 +45,7 @@ export function createTouchHandlers(ctx) {
       ctx.lastPointerY = e.touches[0].clientY;
       const worldPerPixel = state.frustumSize / ctx.canvas.clientHeight;
       const camera = ctx.canvas.__camera;
+      if (!camera) return;
       const worldDelta = screenToWorldPan(dx, dy, camera);
       panCamera(state, worldDelta.x * worldPerPixel, worldDelta.z * worldPerPixel);
       ctx.applyCamera();
@@ -69,6 +70,7 @@ export function createTouchHandlers(ctx) {
         touchStartCenter.y = cy;
         const worldPerPixel = state.frustumSize / ctx.canvas.clientHeight;
         const camera = ctx.canvas.__camera;
+        if (!camera) return;
         const worldDelta = screenToWorldPan(dx, dy, camera);
         panCamera(state, worldDelta.x * worldPerPixel, worldDelta.z * worldPerPixel);
         ctx.applyCamera();

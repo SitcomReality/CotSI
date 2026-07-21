@@ -1,5 +1,6 @@
-import { FACTIONS, potencyWithPrimary } from '../../rules/factionData.js';
+import { FACTIONS, potencyWithPrimary, beats } from '../../rules/factionData.js';
 import { scorePower } from '../../rules/paleyScoring.js';
+import { sideOf } from './combatState.js';
 
 function finalScoreBonus(state, champ){
   let bonus = state.weather.score[champ.faction] || 0;
@@ -41,13 +42,6 @@ export function applyFinalBonuses(state, A, B, scoreA, scoreB){
   return { scoreA, scoreB };
 }
 
-/** Determine whether faction a beats faction b in the Paley tournament.
- *  faction i beats i+1, i+2, i+4 (mod 7). */
-function beats(a, b) {
-  const diff = (b - a) % 7;
-  return diff === 1 || diff === 2 || diff === 4;
-}
-
 /** Process a reveal phase — score the current exchange and build the rich lastReveal payload. */
 export function processReveal(state, combat){
   // Determine which exchange we're revealing (first or second)
@@ -64,9 +58,15 @@ export function processReveal(state, combat){
   // Score this pair using the stateless engine
   const result = scorePickPair(state, firstEntity, secondEntity, pickFirst, pickSecond);
 
-  // Accumulate round scores
-  combat.roundScores.attacker += result.scoreA;
-  combat.roundScores.defender += result.scoreB;
+  // Accumulate round scores — map by pick order (first/second) to combat role (attacker/defender)
+  const attackerSide = sideOf(combat, combat.attacker);
+  if (attackerSide === 'first') {
+    combat.roundScores.attacker += result.scoreA;
+    combat.roundScores.defender += result.scoreB;
+  } else {
+    combat.roundScores.attacker += result.scoreB;
+    combat.roundScores.defender += result.scoreA;
+  }
 
   // Compute weather modifications (same weather value used for both sides for consistency)
   const weatherModFirst = state.weather.potency[pickFirst] || 0;

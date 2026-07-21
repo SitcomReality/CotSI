@@ -11,6 +11,7 @@
 
 import { loadTemplate } from '../ui/templates/templateLoader.js';
 import { registerAction } from '../shared/actionBus.js';
+import { getClock } from '../shared/clockScheduler.js';
 import {
   cheatGold10,
   cheatHp50,
@@ -144,7 +145,7 @@ function _refreshPerfStats() {
 
 function _startPerfPolling() {
   if (_perfIntervalId) return;
-  _perfIntervalId = setInterval(_refreshPerfStats, 500);
+  _perfIntervalId = getClock().setInterval(_refreshPerfStats, 500, 'ui');
 }
 
 // ─── Action registrations ──────────────────────────────────────────────────

@@ -36,6 +36,9 @@ export function openCombatModal() {
  * Close the combat modal and clear state.
  */
 export function closeCombat() {
-  hideModal('combatModal');
-  setCombatUI(null);
+  try {
+    hideModal('combatModal');
+  } finally {
+    setCombatUI(null);
+  }
 }

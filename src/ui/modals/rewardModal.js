@@ -135,6 +135,10 @@ export function openArtifactChoiceModal(reward, onChoice) {
 /** Clear pending artifact choice state (used externally by combat modal teardown). */
 export function clearPendingChoice() {
   _clearSelection();
+  if (_selectionCleanup) {
+    _selectionCleanup();
+    _selectionCleanup = null;
+  }
 }
 
 // ── Internal helpers ─────────────────────────────────────────────────────────

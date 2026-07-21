@@ -63,12 +63,13 @@ export function finalizeCombat(state, attacker, defender, attackerWon){
   attacker.moves = 0;
   if(attackerWon && attacker.alive && !defender.alive){
     attacker.pos = {...defender.pos};
-    const gold = defender.lootGold || (12 + Math.floor(Math.random()*14));
+    refreshVision(state);
+    const gold = defender.lootGold || (12 + Math.floor(state._rng()*14));
     attacker.gold += gold;
     attacker.relics += 1;
     recordLedgerEntry(attacker, `+${gold} gold, +1 relic — spoils of ${defender.name}`, 'gain', 'relic');
     if(attacker.faction===3){
-      const rf = Math.floor(Math.random()*7); attacker.potencies[rf] += 1;
+      const rf = Math.floor(state._rng()*7); attacker.potencies[rf] += 1;
       recordLedgerEntry(attacker, `+1 ${FACTIONS[rf].name} potency — Everknown`, 'gain', 'potency');
     }
     addLog(state, `${attacker.name} defeats ${defender.name} and claims a relic (+${gold}g).`);

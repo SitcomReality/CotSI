@@ -33,6 +33,7 @@ export function createPanHandlers(canvas, getCameraState, applyCamera, shared) {
 
     const worldPerPixel = state.frustumSize / canvas.clientHeight;
     const camera = canvas.__camera;
+    if (!camera) return;
     const worldDelta = screenToWorldPan(dx, dy, camera);
     panCamera(state, worldDelta.x * worldPerPixel, worldDelta.z * worldPerPixel);
     applyCamera();

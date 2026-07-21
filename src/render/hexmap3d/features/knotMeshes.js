@@ -21,7 +21,6 @@ export function buildKnotMeshes(state, visible) {
     instances.push({
       x, y: surfaceY + 0.30, z,
       scale: 1.0,
-      color: [0.486, 0.247, 0.694],
     });
   }
 

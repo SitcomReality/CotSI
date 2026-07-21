@@ -61,8 +61,8 @@ function runWorldTurn(state) {
   // mob harass
   for (const mob of state.mobs.filter(m => m.alive)) {
     const adj = state.champions.find(c => c.alive && c.faction !== 2 && distance(c.pos, mob.pos) === 1);
-    if (adj && Math.random() < 0.55) {
-      const dmg = 4 + Math.floor(Math.random() * 5);
+    if (adj && state._rng() < 0.55) {
+      const dmg = 4 + Math.floor(state._rng() * 5);
       adj.hp -= dmg;
       addLog(state, `${mob.name} harasses ${adj.name} for ${dmg} damage.`);
       recordLedgerEntry(adj, `-${dmg} HP — ${mob.name} harassment`, 'loss', 'hp');
@@ -70,7 +70,7 @@ function runWorldTurn(state) {
         adj.alive = false;
         state.notice = `${adj.name} was erased by marginalia.`;
       }
-    } else if (mob.aggressive && Math.random() < 0.45) {
+    } else if (mob.aggressive && state._rng() < 0.45) {
       // wander
       const opts = neighbors(mob.pos)
         .map(coordKey)
@@ -82,7 +82,7 @@ function runWorldTurn(state) {
             !occupiedByMob(state, k)
         );
       if (opts.length) {
-        mob.pos = parseKey(opts[Math.floor(Math.random() * opts.length)]);
+        mob.pos = parseKey(opts[Math.floor(state._rng() * opts.length)]);
       }
     }
   }
@@ -109,7 +109,7 @@ function runWorldTurn(state) {
         const bases = Object.entries(state.tiles)
           .filter(([k, v]) => v.feature?.kind === 'base')
           .map(([k]) => k);
-        tr.targetBaseKey = bases[Math.floor(Math.random() * bases.length)] || nk;
+        tr.targetBaseKey = bases[Math.floor(state._rng() * bases.length)] || nk;
         break;
       }
     }

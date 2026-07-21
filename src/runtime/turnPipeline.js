@@ -15,6 +15,7 @@ import { toast } from '../ui/hud.js';
 import { openConfirmModal } from '../ui/modals/confirmModal.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { runBotTurn as aiDecide } from '../game/state/championAI.js';
+import { getCombatUI } from '../ui/combat/combatUiState.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { showBotIndicator, hideBotIndicator } from '../ui/panels/botIndicator.js';
 import { startMeasure, endMeasure } from '../dev/devPerformance.js';
@@ -42,6 +43,7 @@ export function onEndTurn() {
   if (!G || G.dispatch) return;
   if (G.reward) return;  // must resolve reward (artifact draft) before ending turn
   if (isTurnLocked()) return;
+  if (getCombatUI()) return; // combat is active — cannot end turn
   const ch = currentChamp();
   if (!ch || ch.controller !== 'human') return;
 
@@ -78,56 +80,61 @@ export function runBot() {
   if (isTurnLocked()) { endMeasure('runBot'); return; }
   setTurnLock(true);
 
-  const ch = currentChamp();
-  if (ch) {
-    const fac = FACTIONS[ch.faction];
-    showBotIndicator(ch.name, fac?.color);
-  }
-
-  const decision = aiDecide(G);
-  if (!decision || decision.action === 'end') {
-    finishTurn(G);
-    refreshAll();
-    hideBotIndicator();
-    // Lock cleared by refreshAll → beginTurn (or next champion)
-    endMeasure('runBot');
-    return;
-  }
-
-  if (
-    decision.action === 'attackChampion' ||
-    decision.action === 'attackMob'
-  ) {
-    const target = decision.target;
-    const bothNonHuman =
-      ch.controller !== 'human' &&
-      (!target.controller || target.controller !== 'human');
-
-    if (bothNonHuman) {
-      resolveCombatSilently(G, ch, target);
-      finishTurn(G);
-      refreshAll();
-      hideBotIndicator();
-    } else {
-      startCombat(ch, target);
-      // hideBotIndicator is called in the combat flow's completion refresh
+  try {
+    const ch = currentChamp();
+    if (ch) {
+      const fac = FACTIONS[ch.faction];
+      showBotIndicator(ch.name, fac?.color);
     }
-    endMeasure('runBot');
-    return;
-  }
 
-  if (decision.action === 'move') {
-    const key = coordKey(decision.to);
-    const range = movementRange(G, ch);
-    const cost = range[key] ?? decision.cost ?? 1;
-    moveChampion(G, ch, key, cost);
-    refreshAll();
-    getClock().setTimeout(() => {
+    const decision = aiDecide(G);
+    if (!decision || decision.action === 'end') {
       finishTurn(G);
       refreshAll();
       hideBotIndicator();
-    }, 380, 'bot');
-  }
+      // Lock cleared by refreshAll → beginTurn (or next champion)
+      endMeasure('runBot');
+      return;
+    }
 
-  endMeasure('runBot');
+    if (
+      decision.action === 'attackChampion' ||
+      decision.action === 'attackMob'
+    ) {
+      const target = decision.target;
+      const bothNonHuman =
+        ch.controller !== 'human' &&
+        (!target.controller || target.controller !== 'human');
+
+      if (bothNonHuman) {
+        resolveCombatSilently(G, ch, target);
+        finishTurn(G);
+        refreshAll();
+        hideBotIndicator();
+      } else {
+        startCombat(ch, target);
+        // hideBotIndicator is called in the combat flow's completion refresh
+      }
+      endMeasure('runBot');
+      return;
+    }
+
+    if (decision.action === 'move') {
+      const key = coordKey(decision.to);
+      const range = movementRange(G, ch);
+      const cost = range[key] ?? decision.cost ?? 1;
+      moveChampion(G, ch, key, cost);
+      refreshAll();
+      getClock().setTimeout(() => {
+        finishTurn(G);
+        refreshAll();
+        hideBotIndicator();
+      }, 380, 'bot');
+    }
+
+    endMeasure('runBot');
+  } catch (err) {
+    setTurnLock(false);
+    throw err;
+  }
 }

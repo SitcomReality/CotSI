@@ -3,6 +3,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileTopY } from '../terrain/terrainMesh.js';
+import { getBaseSpikeGeo, getBaseRingGeo, getBaseRingDotGeo } from './featureGeometries.js';
 
 /**
  * Build base meshes (groups) for visible tiles with 'base' feature.
@@ -112,7 +113,7 @@ function addSpikes(group, cx, cy, cz, count, radius, height, mat) {
  * Add a thin torus ring.
  */
 function addRing(group, cx, cy, cz, radius, thickness, mat) {
-  const ringGeo = new THREE.TorusGeometry(radius, thickness, 6, 12);
+  const ringGeo = getBaseRingGeo();
   const ring = new THREE.Mesh(ringGeo, mat);
   ring.position.set(cx, cy, cz);
   ring.rotation.x = Math.PI / 2;
@@ -123,7 +124,7 @@ function addRing(group, cx, cy, cz, radius, thickness, mat) {
  * Add small dots in a ring.
  */
 function addRingDots(group, cx, cy, cz, ringRadius, count, mat) {
-  const dotGeo = new THREE.SphereGeometry(0.03, 4, 3);
+  const dotGeo = getBaseRingDotGeo();
   for (let i = 0; i < count; i++) {
     const angle = (Math.PI * 2 / count) * i;
     const dot = new THREE.Mesh(dotGeo, mat);

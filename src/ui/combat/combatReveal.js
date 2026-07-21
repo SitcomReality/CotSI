@@ -59,7 +59,8 @@ export async function animateReveal(reveal) {
   await wait(420); // let flips finish (--dur-slow)
 
   // --- Clash pulse: highlight winning/losing faction tokens ---
-  clashPulse(reveal);
+  const modalEl = document.getElementById('combatOverlay');
+  clashPulse(reveal, modalEl);
 
   await wait(150);
 

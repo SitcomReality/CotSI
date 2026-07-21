@@ -269,7 +269,8 @@ function renderOverlayLayer(G) {
     if (!champ.alive) continue;
     const key = coordKey(champ.pos);
     if (!visible.has(key)) continue;
-    const { px, py } = worldToMinimap(champ.pos.q, champ.pos.r);
+    const { x, z } = hexCenter(champ.pos.q, champ.pos.r);
+    const { px, py } = worldToMinimap(x, z);
     overlayCtx.fillStyle = factionColorCSS(champ.faction);
     overlayCtx.beginPath();
     overlayCtx.ellipse(px, py, 3, 3, 0, 0, Math.PI * 2);
@@ -282,7 +283,8 @@ function renderOverlayLayer(G) {
       if (!mob.alive) continue;
       const key = coordKey(mob.pos);
       if (!visible.has(key)) continue;
-      const { px, py } = worldToMinimap(mob.pos.q, mob.pos.r);
+      const { x, z } = hexCenter(mob.pos.q, mob.pos.r);
+      const { px, py } = worldToMinimap(x, z);
       overlayCtx.fillStyle = 'rgba(120, 100, 80, 0.8)';
       overlayCtx.beginPath();
       overlayCtx.ellipse(px, py, 2, 2, 0, 0, Math.PI * 2);
@@ -295,7 +297,8 @@ function renderOverlayLayer(G) {
     for (const trader of G.traders) {
       const key = coordKey(trader.pos);
       if (!visible.has(key)) continue;
-      const { px, py } = worldToMinimap(trader.pos.q, trader.pos.r);
+      const { x, z } = hexCenter(trader.pos.q, trader.pos.r);
+      const { px, py } = worldToMinimap(x, z);
       overlayCtx.fillStyle = 'rgba(74, 191, 154, 0.9)';
       overlayCtx.beginPath();
       overlayCtx.ellipse(px, py, 2, 2, 0, 0, Math.PI * 2);

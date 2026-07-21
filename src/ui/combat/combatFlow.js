@@ -71,7 +71,7 @@ export async function runCombatFlow() {
         const history = getOpponentRevealedHistory(combat, side);
         const available = getAvailablePicks(entity);
         const pick = botCombatPick(entity, history, available);
-        if (pick == null) { endMeasure('combatFlow'); break; } // no valid pick (shouldn't happen)
+        if (pick == null) { endMeasure('combatFlow'); closeCombat(); break; } // no valid pick — abort combat
 
         recordPick(combat, side, pick);
         if (bothPicksIn(combat)) {

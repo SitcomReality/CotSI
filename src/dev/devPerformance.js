@@ -61,7 +61,7 @@ export function endMeasure(name) {
     performance.measure(name, m._startMark, `dev:${name}.end`);
     performance.clearMarks(m._startMark);
     performance.clearMarks(`dev:${name}.end`);
-    performance.clearMeasures(name);
+    // Keep measures in the buffer so they appear in DevTools; browser manages eviction
   }
 
   m._startTime = undefined;

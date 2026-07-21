@@ -27,9 +27,11 @@ export function potencyWithPrimary(champ){
   const raw = champ.potencies;
   if (!raw) return Array(7).fill(0).map((_, i) => i === champ.faction ? 5 : 0);
   const t = raw.slice();
+  // Pad to length 7 if array is shorter
+  while (t.length < 7) t.push(0);
   const primary = champ.faction;
   let weakest = Infinity;
-  for(let i=0;i<7;i++) if(i!==primary) weakest = Math.min(weakest, t[i] ?? 0);
+  for(let i=0;i<7;i++) if(i!==primary) weakest = Math.min(weakest, t[i]);
   if(!isFinite(weakest)) weakest = 0;
   t[primary] += weakest;
   return t;

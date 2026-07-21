@@ -13,8 +13,13 @@ export function getChampionBodyGeo() {
   return championBodyGeo;
 }
 
+let championHeadGeo = null;
+
 export function getChampionHeadGeo() {
-  return new THREE.SphereGeometry(0.1, 8, 6);
+  if (!championHeadGeo) {
+    championHeadGeo = new THREE.SphereGeometry(0.1, 8, 6);
+  }
+  return championHeadGeo;
 }
 
 // =========================================================================

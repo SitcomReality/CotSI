@@ -54,11 +54,11 @@ export function runBotTurn(state){
   if(!champ || !champ.alive || champ.controller!=='bot') return false;
   // adjacent attack?
   const adjEnemies = state.champions.filter(c=> c.alive && c.id!==champ.id && distance(c.pos, champ.pos)===1);
-  if(adjEnemies.length && champ.hp>35 && Math.random()>0.55){
+  if(adjEnemies.length && champ.hp>35 && state._rng()>0.55){
     return {action:'attackChampion', target: adjEnemies[0]};
   }
   const adjMobs = state.mobs.filter(m=> m.alive && distance(m.pos, champ.pos)===1);
-  if(adjMobs.length && champ.hp>28 && Math.random()>0.4){
+  if(adjMobs.length && champ.hp>28 && state._rng()>0.4){
     return {action:'attackMob', target: adjMobs[0]};
   }
   const target = botChooseTarget(state, champ);

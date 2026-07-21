@@ -72,6 +72,9 @@ export function getArchetype(name) {
  * @param {object} overrides  - Properties to override on the parent
  */
 export function createVariant(name, parentName, overrides) {
+  if (overrides && 'parent' in overrides) {
+    console.warn(`[archetypes] createVariant("${name}") — \`parent\` key in overrides is ignored; parent is always "${parentName}".`);
+  }
   defineArchetype(name, { parent: parentName, ...overrides });
 }
 

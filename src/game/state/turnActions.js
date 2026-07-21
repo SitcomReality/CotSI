@@ -74,7 +74,7 @@ export function beginTurn(state, champId) {
       ch.relics++;
       addLog(state, `${ch.name} digs up a relic!`);
       recordLedgerEntry(ch, '+1 relic — night dig', 'gain', 'relic');
-      if (ch.controller === 'human') {
+      if (ch.controller === 'human' && !state.reward) {
         state.reward = {
           championId: ch.id,
           type: 'treasure',

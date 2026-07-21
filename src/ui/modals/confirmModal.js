@@ -84,6 +84,18 @@ function _resolve(value) {
  */
 import { registerAction } from '../../shared/actionBus.js';
 
+/**
+ * Resolve any pending confirm dialog and clean up.
+ * Safe to call on game restart to prevent stale promises.
+ */
+export function disposeConfirmModal() {
+  if (_pendingResolver) {
+    _pendingResolver(false);
+    _pendingResolver = null;
+  }
+  hideModal('confirmModal');
+}
+
 registerAction('confirmYes', () => {
   _resolve(true);
 });

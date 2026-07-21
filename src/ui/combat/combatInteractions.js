@@ -11,6 +11,7 @@ import { renderCombat } from './combatRenderer.js';
 import { registerAction } from '../../shared/actionBus.js';
 import { closeCombat } from './combatLifecycle.js';
 import { runCombatFlow } from './combatFlow.js';
+import { getGameState } from './combatUiState.js';
 
 // ---- Pick ----
 export function pickCombatPower(combat, side, factionIdx) {
@@ -54,6 +55,8 @@ export function wireCombatActions() {
   registerAction('fleeCombat', () => {
     const toast = getToast();
     if (toast) toast('Fled from combat.', false);
+    const _G = getGameState();
+    if (_G) _G.turnLock = false;
     closeCombat();
   });
 }

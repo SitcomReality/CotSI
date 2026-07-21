@@ -38,9 +38,7 @@ export function initHexMap3D(mountElement) {
   // Init 2D effects overlay and register layers
   initEffectsOverlay(ctx);
   registerLayer('fogOverlay', 0, renderFogOverlay);
-  registerLayer('selectionRing', 10, renderSelectionRing);
-  registerLayer('fogOverlay', 0, renderFogOverlay);
-  registerLayer('movementHighlights', 5, renderMovementHighlights);  // <-- NEW
+  registerLayer('movementHighlights', 5, renderMovementHighlights);
   registerLayer('selectionRing', 10, renderSelectionRing);
 
   // Setup animations (needs game state access)
@@ -68,6 +66,7 @@ export function renderHexMap3D(state) {
   const oldGround = ctx.scene.getObjectByName('ground');
   if (oldGround) {
     oldGround.geometry.dispose();
+    if (oldGround.material) oldGround.material.dispose();
     ctx.scene.remove(oldGround);
   }
 
