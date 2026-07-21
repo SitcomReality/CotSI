@@ -270,7 +270,7 @@ export function animateCenterOnHex(state, applyFn, q, r, duration = 200) {
 
   _panStopFn = getClock().onTick((timestamp) => {
     const elapsed = timestamp - startTime;
-    const t = Math.min(elapsed / duration, 1);
+    const t = Math.max(0, Math.min(elapsed / duration, 1));
     // Cubic ease-out: 1 - (1 - t)³
     const eased = 1 - Math.pow(1 - t, 3);
 

@@ -156,7 +156,7 @@ export function queueOrStart(championId, fromPos, toPos, factionColorHex, durati
 
   anim.stopFn = getClock().onTick((timestamp) => {
     const elapsed = timestamp - startTime;
-    const t = Math.min(elapsed / duration, 1);
+    const t = Math.max(0, Math.min(elapsed / duration, 1));
 
     applyAnimationFrame(anim, t);
 
