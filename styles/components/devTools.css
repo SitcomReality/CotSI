@@ -1,0 +1,302 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   DEV TOOLS PANEL — Hidden debug/cheat/performance overlay.
+   Chrome layer: dark, restrained, recedes into the table.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+#devToolsMount {
+  position: fixed;
+  top: 48px;
+  right: 8px;
+  z-index: 1000;
+  display: none;
+  width: 360px;
+  max-height: calc(100vh - 64px);
+}
+
+#devToolsMount.is-visible {
+  display: block;
+}
+
+.devtools {
+  background: var(--vellum-2, #1e2433);
+  border: var(--edge, 2px) solid var(--rule-strong, #505a72);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
+  font-family: var(--font-ui, 'EB Garamond', serif);
+  font-size: 0.8rem;
+  color: var(--ink, #e8e4dc);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+}
+
+/* ── Header ── */
+
+.devtools__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--parchment, #252d3d);
+  border-bottom: var(--edge, 2px) solid var(--rule-strong, #505a72);
+}
+
+.devtools__title {
+  font-family: var(--font-display, Cinzel, serif);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.devtools__hint {
+  font-size: 0.65rem;
+  color: var(--ink-faint, #6a6e7a);
+}
+
+/* ── Tab bar ── */
+
+.devtools__tabs {
+  display: flex;
+  border-bottom: 1px solid var(--rule, #3d4558);
+}
+
+.devtools__tab {
+  flex: 1;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--ink-soft, #a8a4b0);
+  font-family: var(--font-display, Cinzel, serif);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+}
+
+.devtools__tab:hover {
+  color: var(--ink, #e8e4dc);
+}
+
+.devtools__tab.is-active {
+  color: var(--ink, #e8e4dc);
+  border-bottom-color: var(--ink-soft, #a8a4b0);
+}
+
+/* ── Bodies ── */
+
+.devtools__bodies {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 10px;
+}
+
+.devtools__body {
+  display: none;
+}
+
+.devtools__body.is-active {
+  display: block;
+}
+
+/* ── Sections ── */
+
+.devtools__section {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule, #3d4558);
+}
+
+.devtools__section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.devtools__section-title {
+  font-family: var(--font-display, Cinzel, serif);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft, #a8a4b0);
+  margin-bottom: 6px;
+}
+
+/* ── Button rows ── */
+
+.devtools__btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.devtools__btn {
+  padding: 4px 10px;
+  background: var(--parchment, #252d3d);
+  border: 1px solid var(--rule-strong, #505a72);
+  border-radius: 4px;
+  color: var(--ink, #e8e4dc);
+  font-family: var(--font-ui, 'EB Garamond', serif);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms;
+  white-space: nowrap;
+}
+
+.devtools__btn:hover {
+  background: var(--ivory, #2d3648);
+  border-color: var(--ink-soft, #a8a4b0);
+}
+
+.devtools__btn:active {
+  background: var(--rule-strong, #505a72);
+}
+
+.devtools__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.devtools__btn--toggle.is-active {
+  border-color: var(--ink-soft, #a8a4b0);
+  background: var(--ivory, #2d3648);
+}
+
+/* ── Input fields ── */
+
+.devtools__field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.devtools__label {
+  font-size: 0.7rem;
+  color: var(--ink-soft, #a8a4b0);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.devtools__input {
+  width: 60px;
+  padding: 2px 6px;
+  background: var(--vellum, #161a24);
+  border: 1px solid var(--rule-strong, #505a72);
+  border-radius: 3px;
+  color: var(--ink, #e8e4dc);
+  font-family: var(--font-ui, 'EB Garamond', serif);
+  font-size: 0.75rem;
+}
+
+/* ── Performance measurements ── */
+
+.devtools__measurement {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.devtools__perf-val {
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: var(--ink-soft, #a8a4b0);
+}
+
+.devtools__stat-row {
+  display: flex;
+  gap: 16px;
+}
+
+.devtools__stat {
+  font-size: 0.75rem;
+}
+
+.devtools__stat strong {
+  color: var(--ink, #e8e4dc);
+  font-family: monospace;
+}
+
+/* ── Bot control ── */
+
+#devBotChampList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.devtools__champ-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 6px;
+  background: var(--vellum, #161a24);
+  border-radius: 3px;
+  font-size: 0.7rem;
+}
+
+.devtools__champ-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.devtools__champ-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.devtools__champ-ctrl-btn {
+  padding: 2px 8px;
+  background: var(--parchment, #252d3d);
+  border: 1px solid var(--rule-strong, #505a72);
+  border-radius: 3px;
+  color: var(--ink, #e8e4dc);
+  font-family: var(--font-ui, 'EB Garamond', serif);
+  font-size: 0.65rem;
+  cursor: pointer;
+}
+
+.devtools__champ-ctrl-btn:hover {
+  background: var(--ivory, #2d3648);
+}
+
+.devtools__decision {
+  padding: 6px 8px;
+  background: var(--vellum, #161a24);
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-family: monospace;
+  color: var(--ink-soft, #a8a4b0);
+  min-height: 1.6em;
+}
+
+/* ── Live overlay (fixed-position FPS/timing display) ── */
+
+#devPerfOverlay {
+  position: fixed;
+  bottom: 8px;
+  left: 8px;
+  z-index: 1001;
+  display: none;
+  padding: 4px 8px;
+  background: var(--vellum-2, #1e2433);
+  border: 1px solid var(--rule-strong, #505a72);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: var(--ink-soft, #a8a4b0);
+  pointer-events: none;
+  line-height: 1.4;
+}
+
+#devPerfOverlay.is-visible {
+  display: block;
+}

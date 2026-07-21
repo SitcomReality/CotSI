@@ -55,6 +55,7 @@
 @import "./components/paleyCrossHighlight.css";
 @import "./components/bot-indicator.css";
 @import "./components/confirmModal.css";
+@import "./components/devTools.css";
 
 /* ════════════════════════════════════════════════════════════════════════════
    4. UI OVERRIDES — accessibility and responsive (imported last so they win

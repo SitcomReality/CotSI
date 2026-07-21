@@ -67,7 +67,15 @@ export function refreshAll() {
     !getCombatUI() &&
     !anyModalOpen()
   ) {
-    getClock().setTimeout(runBot, 620, 'bot');
+    // Dev tools step-through guard — don't auto-schedule if step mode is on
+    if (window.__devTools && window.__devTools.stepMode) {
+      return;
+    }
+    const taskId = getClock().setTimeout(runBot, 620, 'bot');
+    // Expose task ID for dev tools Stop button (avoids circular import)
+    if (window.__devTools) {
+      window.__devTools._pendingBotTaskId = taskId;
+    }
   }
 
   // Victory check

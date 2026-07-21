@@ -74,6 +74,11 @@ CotSI/
 ├── dev/                       # Conventions, architecture notes, dev tooling
 ├── src/
 │   ├── entrypoint.js          # Application entry point
+│   ├── dev/                   # Dev tools: cheats, performance profiler, bot control
+│   │   ├── devTools.js              # Panel entry point, keyboard toggle, action wiring
+│   │   ├── devCheats.js             # Resource/movement/combat cheat functions
+│   │   ├── devPerformance.js        # Per-frame profiler (FPS, timing measurements, overlay)
+│   │   └── devBotControl.js         # Controller toggle, step-through, play/stop
 │   ├── engine/                # Reusable-across-games code (zero game knowledge)
 │   │   └── rules/             # Pure, stateless, reusable mechanics
 │   │       ├── seededRng.js         # Seeded RNG and noise
@@ -461,6 +466,16 @@ Walk the decision guide in `dev/srcConventions` §5.
 3. Call `getClock().setTimeout(fn, ms, group)` for a one-shot delay, or `getClock().setInterval(fn, ms, group)` for repetition.
 4. For async/await flows, use `await getClock().wait(ms, group)`.
 5. For per-frame work (animations, continuous effects), use `getClock().onTick(fn)` which returns a deregistration function.
+
+### Use the dev tools panel
+
+The dev tools panel is hidden by default and toggled with the backtick/grave key (`` ` ``). It has three tabs:
+
+- **Cheats** — resource manipulation (+gold, +HP, +relics, +knots, +potency), movement (fill moves, teleport mode), and combat (deal N damage, instant win). Teleport mode intercepts hex clicks to move the champion to any hex immediately.
+- **Performance** — FPS counter, frame time, and named timing measurements (`refreshAll`, `mapRefresh`, `runBot`, `combatFlow`) with checkboxes to enable/disable each. Each measurement tracks lifetime average + exponential moving average and optionally emits User Timing API marks for browser dev tools. A live overlay can be toggled on/off.
+- **Bot Control** — toggle each champion between human/bot controller, step-through mode (run one bot decision per "Step" click), and Play/Stop auto-advance.
+
+New measurements can be added by calling `setMeasurementEnabled(name, true)` and wrapping code with `startMeasure(name)` / `endMeasure(name)`. See `src/dev/devPerformance.js`.
 
 ### Add a pause button or speed slider
 

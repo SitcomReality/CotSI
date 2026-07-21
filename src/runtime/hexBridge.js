@@ -13,12 +13,19 @@ import { parseKey, distance } from '../engine/rules/hexGrid.js';
 import { startCombat, openTrader } from '../ui/combat/combatModal.js';
 import { toast, pulseEnd } from '../ui/hud.js';
 import { FACTIONS } from '../game/rules/factionData.js';
+import { handleTeleportClick } from '../dev/devTools.js';
 
 /**
  * Called when the user clicks a hex on the map.
  * @param {string} key  Cubical co‑ordinate key (e.g. "0,0,0")
  */
 export function onHexClick(key) {
+
+  // Dev tools teleport mode: bypass all game checks
+  if (window.__devTools && window.__devTools.teleportMode) {
+    handleTeleportClick(parseKey(key));
+    return;
+  }
 
   if (!G || G.dispatch || G.reward || G.notice || G.winnerId) return;
   const ch = currentChamp();

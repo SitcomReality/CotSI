@@ -19,6 +19,7 @@ import { initCombatModal } from '../ui/combat/combatModal.js';
 import { toast } from '../ui/hud.js';
 import { refreshAll } from './refreshAll.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
+import '../dev/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
 
 // Action-bus registrations migrated from the now-deleted gameUIBindings.js
 const INSPECT_HINT =
