@@ -33,6 +33,9 @@ Known features yet to be implemented properly:
 - Online multiplayer
 - Mobs/environment creatures
 - Entering a dungeon for 3 consecutive turns of battle to get a big reward
+- Saving and loading games
+
+Ultimately the game will be vastly larger in scale, with much larger maps that support a heavy focus on explorating vast worlds.
 
 ---
 
@@ -82,7 +85,8 @@ CotSI/
 │   ├── engine/                # Reusable-across-games code (zero game knowledge)
 │   │   └── rules/             # Pure, stateless, reusable mechanics
 │   │       ├── seededRng.js         # Seeded RNG and noise
-│   │       └── hexGrid.js           # Axial hex-grid math ({q,r}, "q,r" keys)
+│   │       ├── hexGrid.js           # Axial hex-grid math ({q,r}, "q,r" keys)
+│   │       └── shuffle.js           # Fisher-Yates shuffle (caller-supplied RNG)
 │   ├── game/                  # This game's rules and state (no DOM, no Three.js)
 │   │   ├── rules/             # Pure, game-specific logic
 │   │   │   ├── factionData.js       # Faction data, Paley beats matrix, artifacts
@@ -91,10 +95,14 @@ CotSI/
 │   │   │   ├── dispatchReport.js    # buildDispatchReport — pure Augur's Dispatch data
 │   │   │   ├── archetypes.js        # Data-driven archetype registry (mobs, biomes, features)
 │   │   │   ├── archetypeData.js     # All archetype definitions (mobs, biomes, features)
-│   │   │   └── terrainGeneration.js # TERRAIN + seeded tile generation (biome-aware)
+│   │   │   ├── terrainGeneration.js # TERRAIN + seeded tile generation (biome-aware)
+│   │   │   └── traderStock.js       # Trader inventory generation
 │   │   └── state/             # Single source of truth: state, queries, mutations
 │   │       ├── liveGame.js          # Live G instance + currentChamp()
-│   │       ├── gameFactory.js       # createGame(...) — world + champion setup
+│   │       ├── gameFactory.js       # createGame(...) — orchestrator (composes sub-factories)
+│   │       ├── initialGameState.js  # createInitialState — bare game-state skeleton
+│   │       ├── championFactory.js   # createChampions — radial spawn + champion entries
+│   │       ├── entityFactory.js     # createMobs + createTraders
 │   │       ├── entityQueries.js     # Lookups: champion/mob/trader at a hex
 │   │       ├── fogOfWar.js          # Sight / fog-of-war
 │   │       ├── victoryChecks.js     # Win-condition checks
