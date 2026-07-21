@@ -1,343 +1,593 @@
-# Champions of the Supernal Interregnum — Style Guide (v2)
+# Champions of the Supernal Interregnum — Aesthetic Conventions (v4)
 
-A short, opinionated reference for keeping the visual language consistent. This replaces v1's
-"illuminated codex" metaphor entirely.
-
----
-
-## 0. North Star
+## Thematic Core
 
 > _"A vibrant tabletop diorama — painted miniatures on a dark felt board."_
+> _But the felt is a stage curtain. The board is a shadow-puppet theater. The miniatures are vivid, cartoon-bright puppets dancing over a pit of absolute dark._
 
-The player is looking at a richly colored board game come to life. Every element reads as a
-physical game piece: chunky cards on a dark table, boldly painted miniatures, inked edges,
-brightly colored tokens. Not a manuscript page, not a web UI, not a video game HUD.
+The player's screen is a **pop-up storybook from a haunted library** — a dark carnival of ink lines, painted gouache color, and velvet shadow. Every element has a bold, black **ink outline** like a comic-book panel come to life, filled with unnaturally bright color that shouldn't feel this cheerful given what's actually happening in the game.
 
-If a choice makes it feel more like a web app or a glossy screen, reject it. If it makes it
-feel like a physical game piece — a card, a miniature, a token, a die — accept it.
+The visual voice is: **irreverent and playful facade over a brooding, epic darkness.**
+
+Like a thematically dark comic with vivid color and bold, distinctive outlines. Like a kid's cartoon from the late 90s when people were really starting to push boundaries — beautiful and colorful but with an unnerving grimness underneath. Like Memphis Design meets gory noir horror visual novel, with the flavor of spectacular cyberpunk detritus and epic high-fantasy cosmic mysticism.
+
+The UI should appeal to toddlers and almost-blind old men because it's bold enough to draw the eye with clear graphics and a screamingly legible visual flow. It should also appeal to angsty adolescents because it has an overtly menacing undertone and a distinctive darkness to it.
 
 ---
 
-## 1. The Two-Layer Rule (unchanged structure, new colors)
+## 1. The Two-Layer Rule
 
 The interface is exactly two visual layers. They have different jobs and different intensities.
 
-| Layer | What it is | Intensity | Value |
-|-------|------------|-----------|-------|
-| **Chrome** (the table + frame) | Panels, cards, text, buttons, borders, modals | Restrained, dark, recedes | Deep charcoal-navy base. Medium-dark panels. White/off-white text. No faction colors in the chrome except as small accents (a dot, a left rule). |
-| **Miniature** (the painted board) | Hex map, terrain, units, faction glyphs, knots, effects | Vivid, saturated, "sings" | Full faction hues, bright jewel pigments, gold. These are the painted miniatures on the table. |
+| Layer | What it is | What it looks like |
+|-------|------------|-------------------|
+| **Proscenium** (the stage + frame) | Panels, cards, text, buttons, borders, modals | Deep dark velvety blacks and charcoals. Thin, precise ink creases. The dark theater around a puppet show. |
+| **Puppet** (the painted show) | Hex map, terrain, units, faction glyphs, knots, effects | Vivid, saturated color inside bold black outlines. Hand-painted gouache brightness. Comic-book pop. |
 
-**Squint test:** The center (the board) should be the only area that stays colorful; the
-frame should recede into deep, warm shadow. If a panel is brighter than the map, you've
-broken the layer rule.
+- The **Proscenium** stays dark and quiet. It frames the action, never competes with it.
+- The **Puppet** layer is where color lives. Everything on this layer gets a bold ink outline.
 
 ---
 
 ## 2. Principles (ranked — use as tie-breakers)
 
-When two good options conflict, the higher principle wins.
+1. **Legibility first.** High contrast, bold shapes, clear hierarchy. The game should be readable on a phone screen in sunlight or on a 12-year-old's CRT monitor.
 
-1. **Legibility first.** A strategy game is read, not admired. High contrast is non-negotiable.
-   Dark chrome backgrounds, white text, bold icons. If ornament reduces scan-ability, cut it.
+2. **Ink before color.** Every Puppet element reads correctly as a silhouette. Color is the flourish, not the structure. If it doesn't work in black and white, it doesn't work.
 
-2. **Coherence over novelty.** One line weight, one icon hand, one type system, one shadow
-   language. A new element should look like it was already in the box.
+3. **Coherence over novelty.** One line weight, one icon hand, one type system, one shadow language, **one outline convention** for everything on the Puppet layer.
 
-3. **Tabletop tactility.** Chunky cards, painted miniatures, hard shadows, inked edges —
-   physical game materials. Not wood grain, not cloth texture, not paper fiber.
+4. **Playful surface, sinister depth.** Use color and shape that feel inviting, even cute. The menace comes from the content, the darkness of the proscenium, and the subtle wrongness of the compositions — never from making the UI ugly or hard to use.
 
-4. **Restraint reads as craft.** Fewer, calmer chrome elements feel more expensive than busy
-   ones. The table is clean; the spectacle is on the board.
+5. **Restraint reads as craft.** The Proscenium is a disciplined, quiet frame. Spectacle (color, animation, flourish) is **earned** — it belongs to the Puppet layer, combat, the Augur's Dispatch, and victory.
 
-5. **Flavour is the reward, not the default.** Vivid color is earned by factions, terrain,
-   and key moments (combat, Augur's Dispatch, victory). The everyday chrome stays quiet so
-   those moments land.
+6. **Icons speak first.** Critical game information should be graspable from icons + numbers alone. Text is the fallback for detail.
 
 ---
 
-## 3. Hard Rules (do not violate)
+## 3. The Ink Outline Convention
 
-### 3.1 State and faction are separate visual channels
+**This replaces the old `:has()` outline-on-interaction system, which created kaleidoscope confusion (especially in the header and heptagram, where square outlines around circular elements fought the visual rhythm).**
 
-- **Faction color = entity identity.** The fill of a unit, glyph, or token tells you *who*
-  they are. Never override an entity's fill color with a state color.
-- **State = border + icon treatment.** Ally/hostile/neutral/selected are shown through
-  border color, border weight, and a state icon. They never replace the entity's faction fill.
-- This means a CRU champion (red fill) that is yours wears a **teal ally border**.
-  A CRU champion that is your enemy wears an **amber hostile border**.
-  A VER champion (green fill) that is yours also wears a **teal ally border**.
-  The fill tells you who; the border tells you what they are to you.
+### Core rule
 
-### 3.2 Gold is rare — budget of ~3 per screen
+Every element on the **Puppet layer** has a **permanent, built-in ink outline** — a bold, dark stroke that defines its silhouette, like a comic-book inker's line. This is part of the element's structural rendering, not an interaction state.
 
-Gold appears only on: the single primary CTA, the selection halo/mandorla, and drop caps.
-Against dark surfaces, gold actually shines — so enforce the budget more strictly, not less.
-Never on borders, dividers, body text, or as a general "premium" tint.
+- **Shapes get a dark stroke on their own geometry** (SVG `stroke`, Canvas `strokeStyle`, 3D model toon outlines)
+- **CSS-styled elements** use `border` with a matching `border-radius` — not CSS `outline`, which ignores border-radius and creates the square-on-circle problem
+- **Ink color:** `--ink-line` (a deep, dark black-brown, not pure black)
+- **Default weight:** `--ink-weight` (3px on UI elements, proportionally scaled on 3D meshes)
+- **Weight variants:** `--ink-weight-thin` (1.5px — small text/glyph outlines) and `--ink-weight-bold` (5px — emphasis, like the selected champion in the header)
 
-### 3.3 No blackletter in body or UI
+### What this means for interaction states
 
-The blackletter face (`--font-accent`) is for the wordmark only. Headings = Cinzel small-caps;
-everything else = EB Garamond.
+**State is NEVER shown via CSS `outline`.** The old pattern of using `outline: 2px solid var(--st-ally)` on hover is dead. Instead, state is conveyed through:
 
-### 3.4 No flat gray
+| State | Visual treatment | How it avoids outline clashes |
+|-------|-----------------|------------------------------|
+| **Ally** | Colored **backlight glow** (a `box-shadow` with the state color) + optional shield icon | Glow sits _behind_ the element, doesn't fight its ink border |
+| **Hostile** | Colored **backlight glow** (amber/orange `box-shadow`) + optional crosshair icon | Same — glow is behind the shape |
+| **Selected** | Gold **backlight glow** + subtle scale pulse animation | Glow + animation, no extra border |
+| **Neutral** | No glow, standard ink border | Default state |
+| **Current turn** | Left-edge accent bar (in faction color) + gold dot indicator | Edge accent, not full outline |
+| **Played/waiting** | Opacity reduction (`.played = 0.45`, `.waiting = 0.75`) | No additional borders needed |
+| **Dead** | Desaturated + hidden | No interaction state needed |
 
-Fog, disabled states, and backdrops use dark washes, hatching, or the cloud-band pattern —
-never neutral `#888`-style gray.
+### The heptagram
 
-### 3.5 One ink line language
+The heptagram already does this mostly right — **colored line strokes** show relationships (green/red lines between nodes). This is the correct pattern. Extend it:
 
-2D chrome and 3D miniatures share the same inked edge weight and `currentColor` iconography.
-That shared line is what makes them one object.
+- Nodes (circles) have a **permanent ink stroke** of `--ink-weight-thin` in `--ink-line` color
+- Hovered nodes **enlarge and get a gold backlight glow** (`filter: drop-shadow(...)`) instead of a gold outline
+- Relationship lines use colored strokes — this works because lines are thin strokes, not shapes with outlines
 
-### 3.6 Faction hex values are fixed (per the token sheet)
+### The header champion bar
 
-Don't "improve" a faction color; tune the chrome around it instead.
+Currently a kaleidoscope problem when hovering because every faction's `:has()` triggers across all `.paley-item` elements in the header. Fix:
 
-### 3.7 State border colors are fixed
-
-- **Ally state**: `--st-ally` (#00ddcc teal) — never green (that's VER's domain).
-- **Hostile state**: `--st-hostile` (#ff7700 amber) — never red (that's CRU's domain).
-- **Neutral state**: `--st-neutral` (#5a6070 gray)
-- **Selected state**: `--st-selected` (#ffd700 gold)
-
----
-
-## 4. Quick Do / Don't
-
-| Do | Don't |
-|----|-------|
-| Dark table base, light text, dark panels | Light/parchment backgrounds, dark text |
-| Chunky hard-offset shadows (comic-book style) | Soft paper-stack shadows, glassmorphism, neon glows |
-| Jewel pigments on the board and glyphs | Saturated fills in the chrome / sidebars |
-| Gilded primary token + primary button only | Gold borders, gold text, gold "everywhere" |
-| Cinzel headings + Garamond body + tabular nums | Blackletter body text, sans-serif UI |
-| State as border/icon (teal, amber, gray, gold) | State as entity fill (conflicts with faction) |
-| Monoline icon set, one stroke weight | Mixing icon packs / stroke weights |
-| Thick inked borders (2px+) | Hairline 1px borders that disappear on dark |
-| Cloud-band / hatch fog on dark base | Solid semi-transparent gray fog |
-| Compact equipment row with icon wells | Hiding equipment entirely |
-| Drop cap on log + modal titles | Drop caps in body paragraphs |
+- Header champions do **not** carry the `.paley-item` class at all
+- Each header champion gets: a **left-edge accent bar** in its faction base color, a **faction-color dot**, and text
+- Current champion: gold dot indicator below
+- Hover: slight background wash, cursor change — no outline
 
 ---
 
-## 5. Decision Checklist — when adding a new element
+## 4. Color Architecture
 
-Before shipping any new component, screen, or asset, ask in order:
+### The fundamental shift
 
-1. **Layer?** Is it chrome or miniature? (If unsure, it's chrome — keep it dark and quiet.)
-2. **Does it already exist?** Can an existing token, icon, or component do the job?
-3. **Hierarchy?** What should the eye land on first? Make one thing dominant; demote the rest.
-4. **Gold budget?** Am I adding gold? Is there room, or do I demote something?
-5. **State colors?** Am I using border/icon treatments for state, or am I accidentally
-   recoloring an entity's fill? State goes on the **border**, not the fill.
-6. **Squint test.** Does the center still win? Does the chrome recede into the dark table?
-7. **Tactility test.** Does it feel like a physical game piece on a table? If it feels like
-   a web widget, restyle.
+In v3, the 7 faction colors spanned the full spectrum (red, purple, green, blue, yellow, pink, gray). This consumed every available hue and left the pigment/semantic palette with nothing but leftovers.
 
----
+**New architecture: Factions occupy a tight warm/muted band. The full spectrum belongs to the pigment palette.**
 
-## 6. Colour Palette Reference
+### Why this works
 
-### Chrome palette (table + frame)
+- Faction miniatures look like a **cohesive painted set** — they share a visual family, not a rainbow
+- Faction identity comes from: silhouette + glyph + accent color + secondary markings — not from screaming "I'm red"
+- The pigment palette (now vivid, full-spectrum) provides **max-contrast semantic color**: HP, gold, state borders (shown as glow), weather, magic effects
+
+### 4.1 Chrome / Proscenium Palette
+
+The theater frame. Deep, dark, velvety. All neutral tones.
 
 | Token | Value | Use |
 |-------|-------|-----|
-| `--vellum` | #161a24 | Table surface / page ground |
-| `--vellum-2` | #1e2433 | Recessed panel, map mount |
-| `--parchment` | #252d3d | Card / panel surface |
-| `--ivory` | #2d3648 | Raised surface, modal card |
-| `--ink` | #e8e4dc | Body text |
-| `--ink-soft` | #a8a4b0 | Secondary text, captions |
-| `--ink-faint` | #6a6e7a | Tertiary, placeholders |
-| `--rule` | #3d4558 | Hairline divider |
-| `--rule-strong` | #505a72 | Stronger divider |
-| `--parchment-glass` | #2d3648cc | Semi-transparent overlay |
+| `--abyss` | `#0c0e12` | Deepest background / stage void |
+| `--shadow` | `#14171e` | Recessed panel / stage wings |
+| `--board` | `#1c202a` | Card / panel surface |
+| `--board-hi` | `#242a38` | Raised card / modal surface |
+| `--ink` | `#e8e4dc` | Body text / primary content |
+| `--ink-mid` | `#a8a4b0` | Secondary text / captions |
+| `--ink-faint` | `#6a6e7a` | Tertiary / placeholders |
+| `--ink-line` | `#121418` | Ink outline color (dark black-brown, not pure black) |
+| `--crease` | `#2a3040` | Hairline divider |
+| `--crease-bold` | `#3a4460` | Stronger divider |
+| `--board-glass` | `#242a38cc` | Semi-transparent overlay (play slots, reward box) |
 
-### Faction palette
+### 4.2 Faction Palette — Two-Color System
 
-| Faction | Base | Glow | Pale | Hex (for JS) |
-|---------|------|------|------|-----|
-| CRU | #cc3628 | #f07a6a | #e87a6a | #cc3628 |
-| REV | #7d55cc | #b79aff | #b388f0 | #7d55cc |
-| VER | #34a055 | #6de98a | #88d888 | #34a055 |
-| ARC | #3a70c0 | #7cb8ff | #8ab8f0 | #3a70c0 |
-| HRT | #d49a24 | #ffd86b | #efc86b | #d49a24 |
-| MSK | #b04d88 | #ff8edb | #e488c0 | #b04d88 |
-| HOL | #4a5570 | #8a9cff | #a0a8c0 | #4a5570 |
+Each faction is identified by a **pair of colors**: a muted **base** (the body/silhouette fill on the miniature) and a more distinct **accent** (the glyph, the trim, the glow). Both live in a **warm, earthy band** — think of well-worn painted wooden game pieces.
 
-### Pigment palette (elemental / semantic)
+All base colors share similar lightness (L ~30-38%) so no faction dominates the visual hierarchy by brightness alone.
+
+| Faction | Base | Accent | Base Hex | Accent Hex | Role |
+|---------|------|--------|----------|------------|------|
+| CRU | Burnt umber | Rust | `#6e2e22` | `#b84530` | Aggressive, fiery foundation |
+| REV | Dusty plum | Violet | `#5a3a5a` | `#8a5aaa` | Dreamy, mysterious |
+| VER | Deep moss | Olive | `#3a5a3a` | `#5a8a4a` | Earthy, natural |
+| ARC | Slate | Weathered blue | `#3a4a5a` | `#5a7a9a` | Ancient knowledge |
+| HRT | Aged bronze | Tarnished gold | `#5a4a22` | `#9a8a3a` | Warmth, home, trade |
+| MSK | Faded madder | Dusty rose | `#5a3a4a` | `#8a5a7a` | Performance, masks |
+| HOL | Warm charcoal | Cool steel | `#3a3a44` | `#5a5a7a` | Void, absence |
+
+CSS variable naming:
+
+```css
+--f-cru:        #6e2e22;  /* base */
+--f-cru-accent: #b84530;  /* accent */
+--f-cru-glow:   #e87a6a;  /* glow / pale highlight (kept from v3 for glow effects) */
+
+--f-rev:        #5a3a5a;
+--f-rev-accent: #8a5aaa;
+--f-rev-glow:   #b388f0;
+
+--f-ver:        #3a5a3a;
+--f-ver-accent: #5a8a4a;
+--f-ver-glow:   #88d888;
+
+--f-arc:        #3a4a5a;
+--f-arc-accent: #5a7a9a;
+--f-arc-glow:   #8ab8f0;
+
+--f-hrt:        #5a4a22;
+--f-hrt-accent: #9a8a3a;
+--f-hrt-glow:   #efc86b;
+
+--f-msk:        #5a3a4a;
+--f-msk-accent: #8a5a7a;
+--f-msk-glow:   #e488c0;
+
+--f-hol:        #3a3a44;
+--f-hol-accent: #5a5a7a;
+--f-hol-glow:   #a0a8c0;
+```
+
+The `factionData.js` `color` / `glow` / `pale` fields should continue to map to `--f-N`, `--f-N-glow`, and `--f-N-accent` respectively.
+
+### 4.3 Pigment Palette — Full Spectrum, Max Saturation
+
+Free to be vivid because factions no longer consume the spectrum. These are the "gouache paints" that fill the ink-outlined shapes.
 
 | Token | Value | Role |
 |-------|-------|------|
-| `--ultramarine` | #2a50dd | Water, sky, lapis accents |
-| `--vermilion` | #ff5533 | Fire, rubric, hostile accent |
-| `--malachite` | #22bb66 | Forest, positive growth |
-| `--emerald` | #0f9d55 | Deep forest / Verdant shadow |
-| `--tyrian` | #9a2a7a | Masque / dream accents |
-| `--gold` | #ffd700 | **RARE** — primary CTA, selection halo, drop caps |
-| `--gold-hi` | #ffe880 | Burnished highlight (animation peak) |
+| `--crimson` | `#e82020` | Fire / damage / blood |
+| `--cinnabar` | `#ff6600` | Heat / danger / hostile accent |
+| `--gold` | `#ffbf00` | **RARE** — primary CTA, selection glow, drop caps |
+| `--gold-hi` | `#ffe060` | Burnished highlight (animation peak) |
+| `--verdigris` | `#00cc88` | Growth / ally accent / healing |
+| `--cerulean` | `#00aaff` | Water / sky / arcane |
+| `--indigo` | `#5555ff` | Deep magic / covenant |
+| `--magenta` | `#ff00aa` | Reverie / dream / Masque magic |
 
-### State palette (border + icon treatments only)
+### 4.4 State Palette — Drawn from Pigments, Applied as Glow
 
-| Token | Value | Visual |
-|-------|-------|--------|
-| `--st-hostile` | #ff7700 | Thick amber border (not red — that's CRU) |
-| `--st-ally` | #00ddcc | Thick teal border (not green — that's VER) |
-| `--st-neutral` | #5a6070 | Normal gray border |
-| `--st-selected` | #ffd700 | Gold pulsing border (same as gold token) |
-| `--st-reveal` | #5fbf7a | Combat reveal glow |
-| `--st-move` | #00ddcc 15% mix | Movement highlight overlay |
-| `--st-danger` | #ff7700 15% mix | Danger zone highlight |
-| `--st-fog-seen` | #252d3d 55% mix | Fog overlay on seen tiles |
+State is shown through **backlight glow** (`box-shadow` + `filter: drop-shadow`) and optional icon changes — never through CSS `outline`.
 
----
+| Token | Value | Maps to pigment | Visual |
+|-------|-------|-----------------|--------|
+| `--st-hostile` | `#ff6600` | `--cinnabar` | Amber/orange glow — not red (that's CRU's accent) |
+| `--st-ally` | `#00cc88` | `--verdigris` | Teal-green glow — not green (that's VER's accent) |
+| `--st-neutral` | `#5a6070` | (separate gray) | Neutral gray, no glow |
+| `--st-selected` | `#ffbf00` | `--gold` | Gold glow — same as gold token |
+| `--st-reveal` | `#44bb66` | (derived from verdigris) | Combat reveal glow |
+| `--st-move` | `color-mix(in srgb, #00cc88 15%, transparent)` | Verdigris wash | Movement highlight overlay |
+| `--st-danger` | `color-mix(in srgb, #ff6600 15%, transparent)` | Cinnabar wash | Danger zone overlay |
+| `--st-fog-seen` | `color-mix(in srgb, #1c202a 55%, transparent)` | Board color wash | Fog overlay on seen tiles |
 
-## 7. Fixed vs. Flexible
+### 4.5 The Two-Color Interaction System
 
-**Fixed** (don't change without a group decision): the metaphor (§0), the two-layer split (§1),
-faction hex triplets, the pigment palette names, the gold budget, the state-vs-fill rule,
-the type roles, the icon stroke weight, the shadow language.
+Because factions now have a **base** and an **accent**, champion UI can use both to create richer identification:
 
-**Flexible** (tune freely within the rules): spacing, exact panel widths, copy, individual
-glyph/icon shapes (as long as they stay in the one monoline hand), animation timings,
-which corners get knotwork.
-
----
-
-## 8. Drift Detectors (red flags)
-
-Stop and reconsider if you see any of these:
-
-- A panel that's more colourful than the map.
-- State expressed by changing an entity's fill color instead of its border.
-- A second gold border appearing "because it looks nice on dark."
-- A new sans-serif or a second serif creeping in.
-- Icons of mismatched stroke weight or corner radius.
-- A big soft drop shadow on a card (use hard offset shadows instead).
-- Gray fog or gray disabled buttons.
-- Body text set in Cinzel or blackletter.
-- A component that needed its own one-off colour or radius.
-- Hairline borders that disappear against the dark chrome.
+- **In the header**: `--faction-color` is the accent. The dot is the accent color. The left-edge bar is the base color.
+- **On the map**: The miniature body/base is the base color. The glyph/pennant is the accent color. The glow is the glow color.
+- **In the heptagram**: The circle fill is the accent color. The circle stroke (ink line) is `--ink-line`. Hover glow is gold.
+- **In setup screen**: Selected faction shows its accent border, with a background wash of the base.
 
 ---
 
-## 9. Playful Whimsy & Icon-First Language
+## 5. Typography
 
-The game's visual voice is bold, playful, and whimsical — like a delightfully charming board
-game.
+Complete replacement of the v3 font stack (previously Cinzel, EB Garamond, UnifrakturCook). The new stack balances bold cartoon readability with a dark-carnival flavor.
+
+### Font stack
+
+| Role | Font | Weight | Fallback | Use |
+|------|------|--------|----------|-----|
+| Display | **Rubik** | 700–900 | `sans-serif` | Headings, champion names, prominent text, buttons |
+| Body | **Outfit** | 400–700 | `sans-serif` | Panels, tooltips, log text, labels, numbers |
+| Hand | **Caveat** | 500–700 | `cursive` | Augur's Dispatch lore, flavor text, handwritten notes |
+| Title | **Rubik Gloss** or **Rubik Black** | 900 | `sans-serif` | Game wordmark "CotSI", chapter titles, very large headings |
+
+### Rationale
+
+- **Rubik**: Geometric, slightly quirky (rounded joins on straight stems). Bold weight reads as playful and approachable — the "facade". At black weight it becomes chunky and imposing — the "darkness". Excellent range.
+- **Outfit**: Clean, modern, ultra-legible at 12–14px for game UI. The subtle geometric quality echoes Rubik's shapes without competing.
+- **Caveat**: Hand-drawn, approachable, slightly rough. Gives the Dispatch and lore a "written in an ancient journal" feel. The roughness adds to the handcrafted darkness.
+- **Rubik Gloss** (optional): A variable version with glossy/distortion effects for the main title only. Falls back to Rubik Black.
+
+### Sizes
+
+```css
+--fs-xs:  11px;  /* captions, labels */
+--fs-sm:  13px;  /* body text, panels */
+--fs-md:  15px;  /* default text */
+--fs-lg:  20px;  /* subheadings */
+--fs-xl:  28px;  /* section headings */
+--fs-2xl: 36px;  /* modal titles */
+--fs-3xl: 52px;  /* display / hero text */
+```
+
+### Line height & letter spacing
+
+```css
+--lh:         1.45;
+--lh-tight:   1.15;
+--ls-cap:     .06em;   /* small-caps / uppercase labels */
+--ls-display: -.01em;  /* display headings at large sizes — tighter for impact */
+```
+
+---
+
+## 6. Shapes & Lines
+
+### Outline weights (for the ink-line convention)
+
+```css
+--ink-weight:       3px;    /* standard ink outline on Puppet elements */
+--ink-weight-thin:  1.5px;  /* small elements, glyph strokes, text outlines */
+--ink-weight-bold:  5px;    /* heavy emphasis, selected champion, key CTA */
+```
+
+### Border radii
+
+Rounded to reinforce the cartoon / playful facade. No sharp right angles on interactive elements.
+
+```css
+--r-sm:   8px;
+--r:      12px;
+--r-lg:   20px;
+--r-pill: 999px;
+```
+
+### Edge / divider weights (for the Proscenium layer — no ink outlines here)
+
+```css
+--crease:       1px;
+--crease-bd:    2px;
+--crease-bd-hi: 3px;
+```
+
+---
+
+## 7. Shadows
+
+Hard, comic-book shadows. No soft paper-stack shadows. The offset creates the illusion of chunky physical game pieces on a dark stage.
+
+```css
+--shadow-card:   0 4px 0 #07080b,
+                 0 6px 12px rgba(0,0,0,.5);
+--shadow-stack:  0 2px 0 #07080b,
+                 0 6px 0 #07080b,
+                 0 8px 16px rgba(0,0,0,.55);
+--shadow-seal:   0 3px 0 #07080b,
+                 inset 0 1px 0 rgba(255,255,255,.08);
+--shadow-panel:  0 2px 0 #07080b;
+--shadow-glow:   0 0 12px var(--gold);        /* selection glow */
+--shadow-state:  0 0 16px 2px;                 /* state glow — color set per state */
+```
+
+The shadow base (`#07080b`) is slightly darker than `--abyss` to create a true hard-shadow step beneath every chunky element.
+
+---
+
+## 8. Motion & Easing
+
+Bouncy, playful pacing that respects the cartoon facade. But not *too* bouncy — the darkness underneath means some motions should feel heavy, weighted.
+
+```css
+--ease-pop:     cubic-bezier(.34,1.56,.64,1);   /* playful — for reveals, rewards, good moments */
+--ease-snap:    cubic-bezier(.22,.61,.36,1);    /* standard — snappy but smooth */
+--ease-slide:   cubic-bezier(.16,.4,.34,1);     /* heavy — modals opening, dark reveals */
+--ease-drone:   cubic-bezier(.55,.06,.68,.19);  /* ominous — for damage, bad events */
+
+--dur-fast:  120ms;   /* micro-interactions */
+--dur:       200ms;   /* standard transitions */
+--dur-slow:  350ms;   /* reveal animations */
+--dur-xslow: 500ms;   /* modal entrances, dramatic moments */
+--dur-epic:  800ms;   /* Augur's Dispatch, combat resolution, victory */
+```
+
+### What gets which easing
+
+| Interaction | Easing | Rationale |
+|-------------|--------|-----------|
+| Button hover, item select | `--ease-snap` | Snappy, responsive |
+| Reward reveal, gold counter | `--ease-pop` | Playful — you earned this! |
+| Modal open, panel slide | `--ease-slide` | Heavy — like a stage curtain drawing closed |
+| HP loss, damage flash | `--ease-drone` | Ominous — something bad happened |
+| Combat score count-up | `--ease-pop` | Playful competition |
+| Death, elimination | `--ease-slide` | Heavy, final |
+
+---
+
+## 9. Icon & Glyph Language
 
 ### Principles
 
-**Symbols speak first.** Icons are a primary communication channel, not decoration. Players
-should grasp critical state changes (gold gained, HP lost, potency shifted) from icons +
-numbers alone — text is the fallback for detail.
+- **One stroke weight** across all icons: `--ink-weight-thin` (1.5px)
+- **One visual hand**: all icons look like they were drawn by the same inker. Consistent cap styles, corner radii, and line endings.
+- **Rounded linecaps and joins** — the cartoon hand
+- **Filled shapes prefer ink-outlined silhouettes** rather than thin line art
+- **Icons are always the ink-line color** by default (on dark backgrounds) or white (on colorful backgrounds)
+- **Faction glyphs** are the faction accent color inside an ink-outlined circle
 
-This applies especially to ritual moments: the Augur's Dispatch, combat results, discovery
-rewards. These are the game's "big picture" beats.
+### Existing SVG sprite
 
-**Spectacle pops against dark.** Against a dark chrome base, vivid spectacle moments land
-harder. The Dispatch's weather display (big tinted panel with fog pattern and corner knots)
-is the model — bold colour fields, symbolic representation, minimal text — but now it sits
-on a dark backdrop instead of parchment.
-
-**Chroma is permission, not a requirement.** "Playful" means expressive use of existing
-iconography and colour accents, not garish palettes. The faction colours, weather tints,
-and monoline icon set give enough range. When in doubt, add an icon before adding a sentence.
-
-**The two-layer rule still holds.** Chrome stays dark and restrained in panels, sidebars,
-and navigation. The playfulness lives in the content areas — the painted board, the modal
-cards, the weather, the icons that tell you what happened.
+The sprite sheet at `assets/icons/sprite.svg` uses the `--ink-line` color for default icons and `--f-N-accent` for faction glyphs. All new icons follow the same pattern.
 
 ---
 
-## 10. State Border Application Guide
+## 10. How State Is Now Applied (Replacing the Old Outline System)
 
-Use these CSS patterns when applying state to any entity (champion, mob, hex, card):
+### Before (v3 — broken)
 
 ```css
-/* State = border treatment. Entity fill is always the faction/pigment color. */
+/* v3: CSS outline on EVERYTHING — causes kaleidoscope clashes */
+.paley-item:hover {
+  outline: 2px solid var(--gold);  /* clashes with borders, square on circles */
+}
+html:has(.paley-item--f0:hover) :is(.paley-item--f1, .paley-item--f2, ...) {
+  outline-color: var(--st-ally);  /* triggers across header, heptagram, etc. = chaos */
+}
+```
 
+### After (v4 — glow + icon)
+
+```css
+/* v4: Backlight glow + icon change — no outline clashes */
 .entity.ally {
-  border: var(--edge-bold) solid var(--st-ally);
-  /* also applies a shield icon via ::before or data-attribute */
+  box-shadow: 0 0 12px 2px var(--st-ally);
+  /* optional: ::before shield icon */
 }
-
 .entity.hostile {
-  border: var(--edge-bold) solid var(--st-hostile);
+  box-shadow: 0 0 12px 2px var(--st-hostile);
 }
-
 .entity.neutral {
-  border: var(--edge) solid var(--st-neutral);
+  /* no glow — default ink border only */
 }
-
 .entity.selected {
-  border: var(--edge-bold) solid var(--st-selected);
-  box-shadow: 0 0 12px var(--st-selected);
+  box-shadow: var(--shadow-glow);
+  animation: selectedPulse 2s ease-in-out infinite;
+}
+
+@keyframes selectedPulse {
+  0%, 100% { box-shadow: 0 0 12px 2px var(--gold); }
+  50%      { box-shadow: 0 0 18px 4px var(--gold); }
 }
 ```
 
-State background washes (for hex highlights, map overlay areas) use the 15% mix tokens:
+### Header champion state (no more outlines or `:has()` on header items)
+
 ```css
-.hex.ally-zone {
-  background: var(--st-move);
+.header__champion.current {
+  border-left: 3px solid var(--faction-color);  /* accent bar */
 }
-.hex.danger-zone {
-  background: var(--st-danger);
+.header__champion.current::after {
+  content: '';
+  background: var(--gold);  /* gold dot indicator */
+}
+.header__champion.played {
+  opacity: 0.45;
+}
+.header__champion.waiting {
+  opacity: 0.75;
 }
 ```
 
-These are overlays — they sit on top of the entity, not replacing it.
+### Heptagram state (stays mostly right — colored line strokes, no node outlines)
+
+```css
+/* Heptagram nodes: permanent ink stroke, no interaction outline */
+.rt-heptagram-node {
+  stroke: var(--ink-line);
+  stroke-width: var(--ink-weight-thin);
+}
+
+/* Hovered node: enlarge + gold drop-shadow (not outline) */
+html:has(.paley-item--f0:hover) .rt-heptagram-node[data-index="0"] {
+  r: 18;
+  filter: drop-shadow(0 0 6px var(--gold));
+}
+```
+
+### Cross-highlight (for faction list items not in the header)
+
+`.paley-item` elements that trigger cross-highlighting should only exist in **one place at a time** — either the heptagram or a dedicated faction-reference widget — not on every champion representation throughout the UI.
 
 ---
 
-## 11. Scale Conventions (3D Miniatures)
+## 11. The 3D Map — Low Poly Cartoon
 
-The 3D scene follows "board game piece" scale — stylized proportions by piece type,
-not real-world fidelity. A champion miniature can be as tall as a mountain miniature
-because both are game pieces on a table, not real-world objects.
+The three-dimensional map follows the same artistic rules as the 2D UI: **low-poly models with bold ink outlines.**
 
-### Base units
+### Toon shader convention
 
-| Measurement | Value | Notes |
-|-------------|-------|-------|
-| Hex radius (world units) | `HEX_RADIUS = 1.0` | Flat-top hex, center-to-vertex |
-| Hex tile thickness | `HEX_THICKNESS = 1.25` | The "board game base" each tile sits on |
-| Elevation range | -0.15 (water) to +0.60 (mountain) | Additional Y offset on top of thickness |
+- Models use a **three-tone toon shader** (lit, midtone, shadow) with hard transitions between bands — like the flat shading of a cel-animated cartoon
+- **Outlines**: An inverted-hull outline pass on all miniature/puppet-layer geometry, matching `--ink-line` color
+- Outline thickness: proportional to `--ink-weight` (scaled by the model's visual size)
 
-### Piece heights (Y offset above tile surface)
+### Miniature scale (cartoon proportions, not realistic)
 
-| Piece type | Height range | Example |
-|------------|--------------|---------|
-| Champion body | 0.50 | Cylinder body + sphere head (total ~0.45 from surface) |
-| Mob body | 0.30–0.50 | Varies by archetype (bear=short, goose=tall) |
-| Trader | 0.45 | Cone figure |
-| Tree (trunk + canopy) | 0.40 + 0.50 = 0.90 | Trunk from surface, canopy above |
-| Mountain | 0.90 | Cone peak |
-| Faction base | 0.70 (body) + 0.15 (cap) = 0.85 | Two-tier tower |
+Same as v3 — stylized piece scale, not real-world fidelity. A champion and a mountain are both "game pieces on a stage" and can share similar heights.
 
-### Scale rules
+---
 
-1. **No real-world proportionality.** A mountain piece (0.90 units) can be ~2× the
-   height of a champion piece (0.45 units) — that's "big terrain piece" vs "small
-   figure," not geology vs biology.
-2. **Features (trees, mountains, bases) are taller than units (champions, mobs, traders).**
-   This keeps the board readable: terrain reads as the environment, units as actors on it.
-3. **Within a type, scale signals importance.**
-   - A tier-2 mob uses `visualScale = 1.4–1.5` (40–50% bigger than tier-1)
-   - All champions are the same base scale (distinction comes from geometry + faction color)
-4. **All pieces sit on the tile surface** (accounting for terrain elevation). No floating.
-5. **InstancedMeshes share a geometry per shape/type**, so piece variety comes from:
-   - Different base geometries (bear vs. scorpion)
-   - Instance color (faction tint, mutation tint)
-   - Instance scale (tier variation)
+## 12. The Dark Carnival Light
 
-### Geometry budget
+The lighting model across both 2D and 3D should feel like a **stage show in a dark room**:
 
-- **Mobs**: one geometry per archetype shape (~7 shapes), cached permanently
-- **Champions**: one shared body geometry, one shared head geometry (faction distinction
-  via color only for now — per-faction geometries are a future enhancement)
-- **Trees**: 2–3 canopy variants (round, tall, wide), selected by terrain + seed
-- **Mountains**: displaced-vertex cone for natural variation
-- **Bases**: faction-generic cylinder + cap (per-faction decoration is a future enhancement)
-- **Debris**: one InstancedMesh with 2–3 small geometry variants for environmental flavor
-  (grass tuft, pebble, flower — very sparse)
+- **Top-down / spotlight feel**: Primary illumination comes from above, like a theater spotlight
+- **Deep, warm shadows**: Shadow areas lean warm-black, not cool-gray
+- **Colored backlight**: Occasional colored rim light from below (faction color, or the eerie glow of a magic effect) for dramatic moments
+- **Proscenium is unlit**: The chrome/UI layer has no 3D lighting — it's flat, dark, and receded
+
+---
+
+## 13. Hard Rules (do not violate)
+
+### 13.1 State and faction are separate visual channels
+
+- **Faction color = entity identity.** The fill of a unit, glyph, or token tells you *who* they are.
+- **State = glow + icon treatment.** Ally/hostile/neutral/selected are shown through backlight glow (`box-shadow`, `filter: drop-shadow`), optional state icons, and opacity changes.
+- This means a CRU champion (burnt umber fill, rust accent) that is yours wears a **verdigris backlight glow**. A CRU champion that is your enemy wears a **cinnabar backlight glow**.
+
+### 13.2 No CSS `outline` for interaction state
+
+CSS `outline` is banned for interaction states. It does not respect `border-radius`, it stacks on top of borders, and when combined with `:has()` selectors it creates cascade chaos. Use `box-shadow` for state glows and `border` (with matching `border-radius`) for structural styling.
+
+### 13.3 The ink line is structural, not interactive
+
+The `--ink-weight` outline is a **permanent visual style** on Puppet-layer elements, not an interaction effect. It is present at rest and does not change on hover or selection. State is expressed through glow + icons.
+
+### 13.4 Faction hex values are fixed (per the token sheet)
+
+Don't "improve" a faction color; tune the chrome around it instead.
+
+### 13.5 State glow colors are fixed
+
+- **Ally state**: `--verdigris` (`#00cc88`) — never generic green (that's VER's accent domain)
+- **Hostile state**: `--cinnabar` (`#ff6600`) — never red (that's CRU's accent domain)
+- **Neutral state**: `--st-neutral` (`#5a6070` cool gray) — no glow
+- **Selected state**: `--gold` (`#ffbf00`) — gold glow
+
+### 13.6 Gold is intentionally rare
+
+Gold (`--gold`) is for the primary CTA (Begin Interregnum, Confirm), selection halos, drop caps, and the current-champion indicator dot. Do not add gold elsewhere without review.
+
+### 13.7 One ink-to-edge rule
+
+No borderless elements on the Puppet layer. If it's a painted game piece (a faction glyph, a unit icon, a terrain tile), it has an ink outline. The only exceptions: background washes, fog overlays, and backlight glow effects (which sit visually *behind* the element).
+
+---
+
+## 14. Decision Checklist
+
+Before shipping any new component, screen, or asset, ask in order:
+
+1. **Layer?** Proscenium or Puppet? (If unsure, it's Proscenium — keep it dark and quiet.)
+2. **Does it have its ink outline?** If it's a Puppet element, does it have the standard `--ink-weight` dark stroke? How is it rendered — SVG stroke, CSS border, or 3D outline pass?
+3. **Does it already exist?** Can an existing token, icon, or component do the job?
+4. **Hierarchy?** What should the eye land on first? Make one thing dominant; demote the rest.
+5. **State glow, not outline?** Am I showing state via `box-shadow` glow + icon, or am I reaching for `outline`? (Don't.)
+6. **Squint test.** Is the eye being drawn intentionally? Is the most important thing the most prominent thing? Does it work as a silhouette?
+7. **Tactility test.** Does it feel like a painted game piece on a dark stage? Chunky, physical, deliberate?
+8. **Duality check.** Is there a playful surface AND a sinister undertone? Or does it land on just one note?
+9. **Comic book test.** Would this look out of place in a boldly-inked, vividly-colored graphic novel? If yes, redesign.
+
+---
+
+## 15. Drift Detectors (red flags)
+
+Stop and reconsider if you see any of these:
+
+- An element using CSS `outline` for anything other than debugging
+- A panel that's more colourful than the map
+- State expressed by changing an entity's fill color instead of adding a backlight glow
+- A faction color that strays out of the warm/muted band into full-spectrum territory
+- Icons of mismatched stroke weight or corner radius
+- A big soft drop shadow on a card (use hard offset shadows)
+- A component that needed its own one-off colour or radius
+- Two different outline conventions on the same page
+- The `:has()` selector triggering across the entire page when hovering any `.paley-item`
+- Gold used for anything other than CTA / selection / current-turn indicator
+
+---
+
+## 16. Old-to-New Variable Name Migration
+
+When implementing this redesign, rename CSS custom properties as follows:
+
+### Chrome renames
+
+| Old name | New name | Reason |
+|----------|----------|--------|
+| `--vellum` | `--abyss` | "Vellum" evokes medieval manuscripts — wrong metaphor |
+| `--vellum-2` | `--shadow` | "Shadow" is the theater darkness |
+| `--parchment` | `--board` | "Parchment" is ancient paper — wrong metaphor |
+| `--ivory` | `--board-hi` | "Ivory" evokes pale bone — wrong for dark theme |
+| `--ink` | `--ink` | Keep — ink is timeless |
+| `--ink-soft` | `--ink-mid` | More descriptive: it's mid-weight ink |
+| `--ink-faint` | `--ink-faint` | Keep — still means what it says |
+| `--rule` | `--crease` | "Crease" fits the paper-theater metaphor |
+| `--rule-strong` | `--crease-bold` | Consistency with crease naming |
+| `--parchment-glass` | `--board-glass` | Consistent with board naming |
+
+### Faction renames
+
+| Old name | New name | Notes |
+|----------|----------|-------|
+| `--f0` through `--f6` | `--f-cru` through `--f-hol` | Short faction names more readable than indices |
+| `--f0-glow` / `--f0-pale` | `--f-cru-glow` / `--f-cru-accent` | "Accent" replaces "pale" — more descriptive |
+
+### State renames
+
+| Old name | New name | Notes |
+|----------|----------|-------|
+| `--st-hostile` | `--st-hostile` | Keep — value changes to `--cinnabar` |
+| `--st-ally` | `--st-ally` | Keep — value changes to `--verdigris` |
+| `--st-neutral` | `--st-neutral` | Keep |
+| `--st-selected` | `--st-selected` | Keep — value points to `--gold` |
+| `--st-reveal` | `--st-reveal` | Keep |
+| `--st-move` | `--st-move` | Keep |
+| `--st-danger` | `--st-danger` | Keep |
+| `--st-fog-seen` | `--st-fog-seen` | Keep |
+
+### New variables
+
+| New name | Value | Purpose |
+|----------|-------|---------|
+| `--ink-line` | `#121418` | Ink outline color for Puppet elements |
+| `--ink-weight` | `3px` | Standard ink outline width |
+| `--ink-weight-thin` | `1.5px` | Thin ink outline (small elements, glyph strokes) |
+| `--ink-weight-bold` | `5px` | Bold ink outline (emphasis) |
+| `--shadow-glow` | `0 0 12px var(--gold)` | Selection glow shadow |
+| `--shadow-state` | `0 0 16px 2px` | State glow shadow (color set by each state var) |
+
+---
+
+## 17. Visual Reference — What It Should Feel Like
+
+- **Puppet layer:** A cross between a boldly-inked comic book (Scott Pilgrim, The Umbrella Academy), a late-90s Cartoon Network show with teeth (Courage the Cowardly Dog, Cow and Chicken), and a hand-painted wooden board game piece
+- **Proscenium layer:** Dark theater velvet. The stage frame. A pop-up book cover in deep shadow.
+- **Typography:** Bold, slightly playful headlines (Rubik) in white or faction colors. Clean body text (Outfit). Handwritten journal entries (Caveat).
+- **Overall:** A game that looks like it *could* be for kids — bright colors, bold outlines, chunky friendly shapes — but something about the darkness of the frame, the content of the text, and the weight of the shadows tells you it's not. It's for *you*.

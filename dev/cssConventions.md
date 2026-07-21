@@ -115,20 +115,37 @@ Quick Rules for Adding CSS
 
     When in doubt: Match the file name to the JS module or visual concern. Use kebab‑case classes. Reference spacing tokens. No new pages/ directory – full‑screen views are components.
 
-Visual Design Constraints (from dev/aestheticConventions.md v2 — "Vibrant Tabletop Diorama")
+Visual Design Constraints (from dev/aestheticConventions.md v4 — "The Dark Carnival / Shadow-Puppet Theater")
 
-    Two‑layer rule:
+    Two‑layer rule (rethemed):
 
-        Chrome (panels, text, buttons) uses dark base tones (charcoal-navy, medium-dark panels, light text).
+        Proscenium (panels, text, buttons) — deep dark velvety blacks and charcoals.
+            Thin, precise ink creases. The dark theater frame around a puppet show.
 
-        Miniature (map, units, faction glyphs) uses vivid jewel/faction colours.
+        Puppet layer (map, units, faction glyphs) — vivid, saturated color inside
+            bold black ink outlines. Comic-book pop. Gouache brightness.
 
-    State vs Faction: State (ally/hostile/neutral/selected) is conveyed through border
-        treatments + icons, never by changing an entity's faction fill colour.
-        Ally = teal border, Hostile = amber border, Neutral = cool gray border, Selected = gold border + glow.
+    Ink outline convention (replaces CSS outline):
 
-    Gold budget: Gold is intentionally rare. Against the dark chrome, gold actually pops —
-        enforce the budget more strictly, not less. Only the primary CTA, selection halo,
-        and drop caps may use gold. Do not add gold elsewhere without consulting dev/aestheticConventions.md §3.
+        Every Puppet-layer element has a permanent `--ink-weight` dark stroke (3px)
+        as part of its structural rendering. This is NOT a CSS `outline` — it's a
+        `border` with matching `border-radius`, an SVG `stroke`, or a 3D toon outline.
 
-    Shadows: Use hard cartoon offset shadows (--shadow-card, --shadow-stack), not soft paper-stack shadows.
+    State as glow + icon (replaces outline):
+
+        State (ally/hostile/neutral/selected) is conveyed through `box-shadow`
+        backlight glow + optional icon changes. CSS `outline` is BANNED for
+        interaction states. Ally = verdigris glow, Hostile = cinnabar glow,
+        Neutral = no glow (cool gray), Selected = gold glow + pulse animation.
+
+    Faction two-color system:
+
+        Each faction has a muted **base** (the body fill) and a distinct **accent**
+        (the glyph/trim). Both live in a warm, earthy tone band. Vivid full-spectrum
+        colors belong to the pigment palette, not to factions.
+
+    Gold budget: Gold is intentionally rare. Only the primary CTA, selection halo,
+        and current-turn indicator dot may use gold. Do not add gold elsewhere
+        without consulting dev/aestheticConventions.md §13.6.
+
+    Shadows: Use hard cartoon offset shadows (--shadow-card, --shadow-stack).

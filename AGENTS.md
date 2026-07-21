@@ -16,7 +16,7 @@ The game is intentionally built with **vanilla JavaScript and CSS** — no frame
 
 Key documents:
 
-- `dev/aestheticConventions.md` — The visual design bible. Defines the "two-layer rule" (chrome vs. miniature), faction colors, typography, gold budget, and hard rules for UI. Likely to be changed.
+- `dev/aestheticConventions.md` — The visual design bible. Defines the "shadow-puppet theater" metaphor, the two-layer rule (proscenium vs. puppet), the ink outline convention, the two-color faction system, typography, gold budget, and hard rules for UI.
 - `index.html` — The only HTML file; contains the static page skeleton and modal markup.
 - `dev/srcConventions.md` — **The canonical architecture and file-tree conventions.** Layer taxonomy, dependency rules, naming rules, and the boundary-debt list. Read it before adding or moving any file.
 
@@ -209,11 +209,12 @@ window.__gameState; // same object as G
 ### Styling
 
 - Read `dev/aestheticConventions.md` before adding any visual element.
-  - We may pivot dramatically from this style.
 - All design tokens live in `styles/abstracts/tokens/` and are imported through `styles/abstracts/variables.css`.
-- Follow the **two-layer rule**:
-  - **Chrome** (UI panels, text, buttons) — restrained neutrals (vellum, parchment, ink).
-  - **Miniature** (map, units, faction glyphs) — vivid jewel/faction colors.
+- Follow the **two-layer rule** (rethemed in v4):
+  - **Proscenium** (UI panels, text, buttons) — deep dark velvety blacks and charcoals (`--abyss`, `--shadow`, `--board`, `--board-hi`, `--ink`).
+  - **Puppet** (map, units, faction glyphs) — vivid saturated color inside bold ink outlines.
+- The **ink outline convention**: every Puppet-layer element has a permanent `--ink-weight` dark stroke. State is shown via `box-shadow` backlight glow + icon changes, **not** CSS `outline`.
+- The **two-color faction system**: each faction has a muted warm **base** and a distinct **accent**. Full-spectrum vivid colors belong to the pigment palette.
 - Inline styles are acceptable only for genuinely dynamic values (HP bar width, faction accent color via `--faction-color`). Everything else belongs in CSS.
 - Gold is intentionally rare; do not add it without reading the gold-budget rule in `dev/aestheticConventions.md`.
 
