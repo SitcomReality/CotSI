@@ -1,5 +1,5 @@
 import { openArtifactChoiceModal } from '../ui/combat/combatModal.js';
-import { setRewardModal } from '../ui/modals/rewardModal.js';
+import { fillRewardModal } from '../ui/modals/rewardModal.js';
 import { currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
 import { addLog } from '../game/state/gameLog.js';
@@ -8,7 +8,8 @@ import { addLog } from '../game/state/gameLog.js';
  * Show whichever reward modal is pending on `G.reward`, if any.
  * Safe to call even when no reward exists (no-op).
  *
- * Passes a lines array (not innerHTML string) to setRewardModal.
+ * For generic rewards, passes structured entries (icon + label) through
+ * to fillRewardModal. For artifact drafts, delegates to openArtifactChoiceModal.
  */
 export function showPendingReward(G) {
   // Artifact draft: reward has choices and no guaranteed items.
@@ -27,7 +28,11 @@ export function showPendingReward(G) {
 
   // Generic reward (dig loot, combat spoils, etc.)
   if (G.reward && !G.reward.choices) {
-    const lines = [G.reward.body, ...(G.reward.guaranteed || [])].filter(Boolean);
-    setRewardModal(G.reward.title || 'Reward', lines);
+    fillRewardModal({
+      title: G.reward.title || 'Reward',
+      type: G.reward.type,
+      bodyLines: G.reward.body ? [G.reward.body] : undefined,
+      rewards: G.reward.guaranteed,
+    });
   }
 }

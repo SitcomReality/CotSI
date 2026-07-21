@@ -1,60 +1,84 @@
 /**
  * rewardModal.js — Reward and artifact-choice modal content.
- * Builds the reward modal body and registers the
- * confirmReward / chooseArtifact action handlers.
+ * Icon-driven card rendering with type badges, effect rows, and
+ * selectable choice cards for artifact drafts.
+ *
+ * Uses `h()` for DOM construction and `svgIcon()` for sprite icons.
  */
 import { registerAction, clearGameReward } from '../../shared/actionBus.js';
 import { showModal, hideModal } from './modalShell.js';
 import { h } from '../domBuilder.js';
+import { svgIcon } from '../svgIcon.js';
 
 let pendingChoice = null;
-let _selectionCleanup = null;  // optional: stores a cleanup function
+let _selectionCleanup = null;
+
+// ── Type badge config ────────────────────────────────────────────────────────
+// Maps reward type keys to display label and icon id.
+const TYPE_META = {
+  artifact: { label: 'Artifact', icon: 'i-artifact' },
+  treasure: { label: 'Treasure', icon: 'i-treasure' },
+  spoils:   { label: 'Spoils',   icon: 'i-treasure' },
+  weapon:   { label: 'Weapon',   icon: 'i-weapon' },
+  armor:    { label: 'Armor',    icon: 'i-armor' },
+  knot:     { label: "God's Knot", icon: 'd-knot' },
+};
+
+// ── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * fillRewardModal — Populate the reward modal for generic (non-artifact) rewards.
- * Clears any previous artifact choices or reward lists from the body.
+ * fillRewardModal — Populate and show the reward modal with icon-driven content.
  *
  * @param {Object} opts
- * @param {string} opts.title      — Modal headline
- * @param {string[]} [opts.bodyLines]  — Array of body paragraphs (joined by <br>)
- * @param {string[]} [opts.rewards]    — Array of reward strings shown in a list
+ * @param {string}  [opts.title]      — Modal headline (default: 'Victory')
+ * @param {string}  [opts.type]       — Reward type key for the type badge
+ * @param {string[]} [opts.bodyLines]  — Optional narrative paragraphs
+ * @param {Array<{icon:string,label:string}>} [opts.rewards] — Structured effect entries
  */
-export function fillRewardModal({ title, bodyLines, rewards }) {
+export function fillRewardModal({ title, type, bodyLines, rewards }) {
   const titleEl = document.getElementById('rewardTitle');
   const bodyEl = document.getElementById('rewardBody');
+  const badgeEl = document.getElementById('rewardTypeBadge');
+  const effectsEl = document.getElementById('rewardEffects');
+  const choicesEl = document.getElementById('rewardChoices');
   if (!titleEl || !bodyEl) return;
 
   titleEl.textContent = title || 'Victory';
 
-  // Clear previous dynamic content (artifact choices, reward lists)
-  _clearBodyContent(bodyEl);
+  // Clear all dynamic content
+  _clearSections(bodyEl, badgeEl, effectsEl, choicesEl);
 
-  // Populate body
+  // Type badge
+  if (type && TYPE_META[type]) {
+    const meta = TYPE_META[type];
+    badgeEl.appendChild(h('span', { class: 'reward-type-badge' },
+      svgIcon(meta.icon, 14, { ariaHidden: true }),
+      meta.label
+    ));
+  }
+
+  // Body paragraphs (narrative fallback)
   if (bodyLines && bodyLines.length > 0) {
-    bodyEl.innerHTML = bodyLines.join('<br>');
-  } else {
-    bodyEl.textContent = '';
-  }
-
-  // Add reward list if provided
-  if (rewards && rewards.length > 0) {
-    const list = h('ul', { class: 'reward-list' });
-    rewards.forEach(r => {
-      const li = document.createElement('li');
-      li.textContent = r;
-      list.appendChild(li);
+    bodyLines.forEach(line => {
+      bodyEl.appendChild(h('p', { class: 'reward-line' }, line));
     });
-    bodyEl.appendChild(list);
   }
 
-  // Ensure confirm button is enabled for generic rewards (no artifact choice pending)
+  // Structured effect rows
+  if (rewards && rewards.length > 0) {
+    rewards.forEach(r => {
+      effectsEl.appendChild(_renderEffectRow(r));
+    });
+  }
+
+  // Ensure confirm button is enabled for generic rewards
   const confirmBtn = document.querySelector('[data-action="confirmReward"]');
   if (confirmBtn) confirmBtn.disabled = false;
 }
 
 /**
  * setRewardModal — Positional-arg wrapper for fillRewardModal.
- * Satisfies the import in rewardPrompt.js which passes (title, lines).
+ * Satisfies legacy callers that pass (title, lines).
  *
  * @param {string} [title='']
  * @param {string[]} [lines=[]]
@@ -64,95 +88,158 @@ export function setRewardModal(title = '', lines = []) {
 }
 
 /**
- * Clear any artifact-choice cards or reward-list elements from the body.
+ * openArtifactChoiceModal — Show artifact draft with selectable choice cards.
+ *
+ * @param {Object} reward   — { title, body, choices: [{ id, label, detail, type, effects }] }
+ * @param {Function} onChoice — Callback invoked with the chosen artifact object
  */
-function _clearBodyContent(bodyEl) {
-  // Remove artifact choice container
-  const choicesContainer = bodyEl.querySelector('.reward-choices');
-  if (choicesContainer) choicesContainer.remove();
-
-  // Remove reward list
-  const rewardList = bodyEl.querySelector('.reward-list');
-  if (rewardList) rewardList.remove();
-}
-
 export function openArtifactChoiceModal(reward, onChoice) {
   const titleEl = document.getElementById('rewardTitle');
   const bodyEl = document.getElementById('rewardBody');
+  const badgeEl = document.getElementById('rewardTypeBadge');
+  const effectsEl = document.getElementById('rewardEffects');
+  const choicesEl = document.getElementById('rewardChoices');
   if (!titleEl || !bodyEl) return;
 
   titleEl.textContent = reward.title;
-  bodyEl.textContent = reward.body || '';
+  _clearSections(bodyEl, badgeEl, effectsEl, choicesEl);
 
-  // Clear any previous selection visual state and body content
-  clearSelection();
+  // Type badge (generic artifact badge if reward has no explicit type)
+  const rt = reward.type || 'artifact';
+  const meta = TYPE_META[rt] || TYPE_META.artifact;
+  badgeEl.appendChild(h('span', { class: 'reward-type-badge' },
+    svgIcon(meta.icon, 14, { ariaHidden: true }),
+    meta.label
+  ));
 
-  // Clean any leftover reward-list or artifact choices from bodyEl
-  _clearBodyContent(bodyEl);
+  // Body text (narrative flavour)
+  if (reward.body) {
+    bodyEl.appendChild(h('p', { class: 'reward-line' }, reward.body));
+  }
 
-  const container = h('div', { class: 'reward-choices' });
-  const template = document.getElementById('modalChoiceOption');
-  if (!template) return;
-
+  // Choice cards
   reward.choices.forEach((c, i) => {
-    const frag = template.content.cloneNode(true);
-    const choiceEl = frag.querySelector('.artifact-choice');
-    choiceEl.dataset.idx = i;
-
-    const labelEl = frag.querySelector('.artifact-choice__label');
-    const detailEl = frag.querySelector('.artifact-choice__detail');
-    if (labelEl) labelEl.textContent = c.label;
-    if (detailEl) detailEl.textContent = c.detail;
-    container.appendChild(frag);
+    choicesEl.appendChild(_buildChoiceCard(c, i));
   });
 
-  bodyEl.appendChild(container);
-
+  // Store pending state
   pendingChoice = { choices: reward.choices, onChoice };
 
-  // Disable the confirm button on open
+  // Disable confirm until a choice is selected
   const confirmBtn = document.querySelector('[data-action="confirmReward"]');
   if (confirmBtn) confirmBtn.disabled = true;
 
   showModal('rewardModal');
 }
 
-function clearSelection() {
+/** Clear pending artifact choice state (used externally by combat modal teardown). */
+export function clearPendingChoice() {
+  _clearSelection();
+}
+
+// ── Internal helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Render a single effect row: [icon] label
+ */
+function _renderEffectRow(effect) {
+  if (typeof effect === 'string') {
+    // Backward compat: plain string → no icon
+    return h('div', { class: 'reward-effect' }, effect);
+  }
+  return h('div', { class: 'reward-effect' },
+    svgIcon(effect.icon, 18, { ariaHidden: true }),
+    h('span', { class: 'reward-effect__label' }, effect.label)
+  );
+}
+
+/**
+ * Build a clickable choice card for artifact drafts.
+ */
+function _buildChoiceCard(choice, idx) {
+  const card = h('div', {
+    class: 'reward-choice-card',
+    dataAction: 'chooseArtifact',
+    dataIdx: String(idx),
+  });
+
+  // Type badge (from choice.type, fallback to 'artifact')
+  const rt = choice.type || 'artifact';
+  const meta = TYPE_META[rt] || TYPE_META.artifact;
+  card.appendChild(h('span', { class: 'reward-choice-type' },
+    svgIcon(meta.icon, 12, { ariaHidden: true }),
+    meta.label
+  ));
+
+  // Artifact name
+  card.appendChild(h('div', { class: 'reward-choice-name' }, choice.label));
+
+  // Effect rows
+  if (choice.effects && choice.effects.length > 0) {
+    const effectsWrapper = h('div', { class: 'reward-choice-effects' });
+    choice.effects.forEach(eff => {
+      effectsWrapper.appendChild(_renderEffectRow(eff));
+    });
+    card.appendChild(effectsWrapper);
+  } else if (choice.detail) {
+    // Fallback: show detail text if no structured effects
+    card.appendChild(h('div', { class: 'reward-choice-effects' },
+      h('div', { class: 'reward-effect' },
+        h('span', { class: 'reward-effect__label reward-effect__label--detail' }, choice.detail)
+      )
+    ));
+  }
+
+  return card;
+}
+
+/**
+ * Clear all dynamic content sections in one pass.
+ */
+function _clearSections(...elements) {
+  elements.forEach(el => {
+    if (el) el.innerHTML = '';
+  });
+}
+
+/**
+ * Clear pending selection state + de-highlight all choice cards.
+ */
+function _clearSelection() {
   pendingChoice = null;
-  document.querySelectorAll('.artifact-choice--selected').forEach(el =>
-    el.classList.remove('artifact-choice--selected')
+  document.querySelectorAll('.reward-choice-card--selected').forEach(el =>
+    el.classList.remove('reward-choice-card--selected')
   );
   const confirmBtn = document.querySelector('[data-action="confirmReward"]');
   if (confirmBtn) confirmBtn.disabled = true;
 }
 
-export function clearPendingChoice() {
-  clearSelection();
-}
+// ── Action bus handlers ──────────────────────────────────────────────────────
 
 /**
- * chooseArtifact — PURELY visual selection. Never confirms.
- * Highlights the clicked choice, enables the confirm button.
+ * chooseArtifact — PURELY visual selection. Highlights the clicked card and
+ * enables the confirm button.
  */
 registerAction('chooseArtifact', (actionEl) => {
-  if (!pendingChoice) return;  // no pending artifact modal
+  if (!pendingChoice) return;
 
   const idx = parseInt(actionEl.dataset.idx, 10);
   if (isNaN(idx)) return;
 
-  // Deselect all choices in this modal
-  const container = actionEl.closest('.reward-choices');
+  // Deselect all choice cards in the choices container
+  const container = actionEl.closest('#rewardChoices');
   if (!container) return;
-  container.querySelectorAll('.artifact-choice').forEach(el =>
-    el.classList.remove('artifact-choice--selected')
+  container.querySelectorAll('.reward-choice-card').forEach(el =>
+    el.classList.remove('reward-choice-card--selected')
   );
 
-  // Select clicked one
-  actionEl.classList.add('artifact-choice--selected');
+  // Select clicked card
+  actionEl.classList.add('reward-choice-card--selected');
   pendingChoice.selectedIdx = idx;
 
-  // Enable the confirm button
-  document.querySelector('[data-action="confirmReward"]').disabled = false;
+  // Enable confirm
+  const confirmBtn = document.querySelector('[data-action="confirmReward"]');
+  if (confirmBtn) confirmBtn.disabled = false;
 });
 
 /**
@@ -162,7 +249,6 @@ registerAction('chooseArtifact', (actionEl) => {
  */
 registerAction('confirmReward', () => {
   if (pendingChoice && pendingChoice.selectedIdx !== undefined && pendingChoice.selectedIdx !== null) {
-    // Confirm! Invoke the stored callback
     const choice = pendingChoice.choices[pendingChoice.selectedIdx];
     const cb = pendingChoice.onChoice;
     pendingChoice = null;

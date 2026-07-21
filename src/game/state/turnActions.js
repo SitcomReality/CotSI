@@ -25,6 +25,8 @@ export function artifactChoices(state) {
     label: x.name,
     detail: x.detail,
     artifactId: x.id,
+    type: x.type,
+    effects: x.effects,
   }));
 }
 
@@ -75,9 +77,13 @@ export function beginTurn(state, champId) {
       if (ch.controller === 'human') {
         state.reward = {
           championId: ch.id,
+          type: 'treasure',
           title: 'A relic under the dust',
           body: 'Divine shard, still warm.',
-          guaranteed: ['+1 relic', `+1 ${FACTIONS[ch.faction].name} potency`],
+          guaranteed: [
+            { icon: 'i-relic', label: '+1 relic' },
+            { icon: 'i-potency', label: `+1 ${FACTIONS[ch.faction].name} potency` },
+          ],
           choices: null,
         };
       }
@@ -106,6 +112,7 @@ export function beginTurn(state, champId) {
     if (ch.controller === 'human') {
       state.reward = {
         championId: ch.id,
+        type: 'artifact',
         title: 'First illumination',
         body: 'Two artifacts shine from the margin. Choose one permanent blessing.',
         guaranteed: [],

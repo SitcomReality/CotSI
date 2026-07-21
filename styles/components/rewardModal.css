@@ -1,118 +1,235 @@
 /* =========================================================================
-   REWARD MODAL — Standalone reward modal styles.
-   Extracted from pages/combat.css (via combatModal.css) as part of the
-   Phase 1 CSS refactor: split pages/combat.css into modalShell.css,
-   combatModal.css, and rewardModal.css.
+   REWARD MODAL — Icon-driven reward card with type badges and effect rows.
+   Dark chrome card on the tabletop — the "table" is the modal backdrop,
+   the "card" is a chunky game-piece with inked edges.
    ========================================================================= */
 
-/* ── Reward Card ────────────────────────────────────────────────────────────
-   The reward modal's inner card. Shares a gradient with .victory-card
-   (defined in cardVariants.css), but defined here so the reward modal
-   has its own source of truth for its primary container.
-   ──────────────────────────────────────────────────────────────────────── */
-
+/* ── Reward Card ──────────────────────────────────────────────────────────────
+   The primary card container. Dark chrome gradient, chunky border, hard-offset
+   shadow — reads as a physical card on the table.
+   ────────────────────────────────────────────────────────────────────────── */
 .reward-card {
   background: linear-gradient(180deg, var(--ivory), var(--parchment));
-  padding: 28px 24px 24px;
+  border: var(--edge-bold) solid var(--rule-strong);
   border-radius: var(--r-lg);
+  box-shadow: var(--shadow-stack);
+  padding: 24px;
   max-width: 420px;
   width: 100%;
-  text-align: center;
-  box-shadow: var(--shadow-stack);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
-/* ── Reward Title ───────────────────────────────────────────────────────────
-   Headline for the reward modal. Uses warm sepia to echo parchment
-   manuscript tones.
-   ──────────────────────────────────────────────────────────────────────── */
+/* ── Type Badge ───────────────────────────────────────────────────────────────
+   Small pill at the top of the card showing the reward category (Artifact,
+   Spoils, Treasure) with a monoline icon. Gold border, compact.
+   ────────────────────────────────────────────────────────────────────────── */
+#rewardTypeBadge {
+  display: flex;
+  justify-content: center;
+  min-height: 0;
+}
 
-.reward-title {
-  margin: 0 0 6px;
+.reward-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px 3px 8px;
+  border: var(--edge) solid var(--gold);
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs, 11px);
+  letter-spacing: var(--ls-cap, 0.08em);
+  text-transform: uppercase;
   color: var(--gold);
-  font-family: Georgia, serif;
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+}
+
+.reward-type-badge svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ── Reward Title ─────────────────────────────────────────────────────────────
+   Gold drop-cap headline. Uses the display font for card headings.
+   ────────────────────────────────────────────────────────────────────────── */
+.reward-title {
+  margin: 0;
+  color: var(--gold);
+  font-family: var(--font-display);
   font-size: 20px;
   text-align: center;
+  line-height: 1.2;
 }
 
-/* ── Reward List ────────────────────────────────────────────────────────────
-   Container for itemised reward entries (e.g. "+5 gold", "+1 relic").
-   Uses parchment-glass background for a subtle paper-slip effect.
-   ──────────────────────────────────────────────────────────────────────── */
-
-.reward-list {
-  margin: 12px 0;
-  padding: 10px;
-  background: var(--parchment-glass);
-  border-radius: 8px;
+/* ── Body Paragraphs ──────────────────────────────────────────────────────────
+   Narrative fallback text when no structured effects are provided.
+   ────────────────────────────────────────────────────────────────────────── */
+#rewardBody {
+  text-align: center;
+  width: 100%;
 }
-
-.reward-list--modal {
-  margin-top: 14px;
-}
-
-/* ── Reward Item ────────────────────────────────────────────────────────────
-   A single line in the reward list. Separated from siblings by a
-   faint edge rule.
-   ──────────────────────────────────────────────────────────────────────── */
-
-.reward-item {
-  font-size: 14px;
-  color: var(--ink-soft);
-  padding: 4px 0;
-}
-
-.reward-item:not(:last-child) {
-  border-bottom: var(--hair) solid var(--rule);
-}
-
-/* ── Reward Line ────────────────────────────────────────────────────────────
-   A plain text paragraph within a non-choice reward body (dig loot,
-   combat spoils, etc.). Rendered by setRewardModal via h() — no innerHTML.
-   ──────────────────────────────────────────────────────────────────────── */
 
 .reward-line {
   font-size: 14px;
   color: var(--ink-soft);
-  margin-bottom: 4px;
+  margin: 0 0 4px;
   text-align: center;
 }
 
-/* ── Reward Choices (Container) ─────────────────────────────────────────────
-   Wraps artifact-choice options inside the reward modal.
-   ──────────────────────────────────────────────────────────────────────── */
-
-.reward-choices {
-  margin-top: 10px;
+/* ── Effects List ─────────────────────────────────────────────────────────────
+   Container for structured effect rows (icon + label).
+   ────────────────────────────────────────────────────────────────────────── */
+.reward-effects {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 4px 0;
 }
 
-/* ── Reward Button / Close ──────────────────────────────────────────────────
-   The close / accept button inside the reward modal.
-   ──────────────────────────────────────────────────────────────────────── */
-
-.reward-btn {
-  margin-top: 14px;
-}
-
-.reward-btn-close {
-  padding: 8px 24px;
-  border: var(--edge) solid var(--rule-strong);
-  border-radius: var(--r-sm);
-  background: var(--parchment);
+.reward-effect {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 14px;
   color: var(--ink);
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background var(--dur-fast) var(--ease-out);
+  border-bottom: var(--hair) solid var(--rule);
 }
 
-.reward-btn-close:hover {
+.reward-effect:last-child {
+  border-bottom: none;
+}
+
+.reward-effect svg {
+  display: block;
+  flex-shrink: 0;
+  color: var(--ink-soft);
+}
+
+.reward-effect__label {
+  flex: 1;
+  text-align: left;
+  color: var(--ink);
+}
+
+.reward-effect__label--detail {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* ── Choices Container ────────────────────────────────────────────────────────
+   Wraps selectable artifact-choice cards inside the reward modal.
+   ────────────────────────────────────────────────────────────────────────── */
+.reward-choices {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ── Choice Card ──────────────────────────────────────────────────────────────
+   A single selectable card for artifact drafts. Gold border unselected,
+   gold glow selected. Built entirely with h() — no innerHTML.
+   ────────────────────────────────────────────────────────────────────────── */
+.reward-choice-card {
+  border: var(--edge-bold) solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 8%, var(--parchment));
+  border-radius: var(--r);
+  padding: 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.reward-choice-card:hover {
+  border-color: var(--gold-hi);
+  background: color-mix(in srgb, var(--gold) 14%, var(--parchment));
+}
+
+/* Selected state — gold glow border, brighter background */
+.reward-choice-card--selected,
+.reward-choice-card--selected:hover {
+  border-color: var(--st-selected);
+  background: color-mix(in srgb, var(--gold) 25%, var(--parchment));
+  box-shadow: 0 0 0 2px var(--gold-hi), var(--shadow-stack);
+}
+
+.reward-choice-card:active {
+  border-color: var(--gold);
   background: var(--vellum-2);
 }
 
-/* ── Reward Body ────────────────────────────────────────────────────────────
-   The main content area inside the reward card. Uses .mini for size.
-   ──────────────────────────────────────────────────────────────────────── */
+/* ── Choice Type Badge ────────────────────────────────────────────────────────
+   Small inline badge inside each choice card showing the item category.
+   ────────────────────────────────────────────────────────────────────────── */
+.reward-choice-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 6px;
+  border: var(--hair) solid var(--gold);
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: var(--ls-cap, 0.08em);
+  text-transform: uppercase;
+  color: var(--gold);
+  align-self: flex-start;
+}
 
-#rewardBody {
-  text-align: center;
+.reward-choice-type svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ── Choice Name ──────────────────────────────────────────────────────────────
+   Bold artifact/weapon/armor name inside a choice card.
+   ────────────────────────────────────────────────────────────────────────── */
+.reward-choice-name {
+  font-weight: 800;
+  color: var(--ink);
+  font-size: 15px;
+  text-align: left;
+}
+
+/* ── Choice Effects ───────────────────────────────────────────────────────────
+   Effect rows nested inside a choice card.
+   ────────────────────────────────────────────────────────────────────────── */
+.reward-choice-effects {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-left: 2px;
+}
+
+.reward-choice-effects .reward-effect {
+  padding: 4px 4px;
+  font-size: 13px;
+  border-bottom: var(--hair) solid var(--rule);
+}
+
+.reward-choice-effects .reward-effect:last-child {
+  border-bottom: none;
+}
+
+.reward-choice-effects .reward-effect svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Confirm Button ───────────────────────────────────────────────────────────
+   Existing btn-gold pattern. Margin tweak for spacing inside the card.
+   ────────────────────────────────────────────────────────────────────────── */
+.reward-btn {
+  margin-top: 4px;
+  width: 100%;
 }

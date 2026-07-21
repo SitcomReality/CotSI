@@ -130,8 +130,12 @@ export async function handleRoundEnd() {
     closeCombat();
     openRewardModal(attacker, {
       title: 'Victory!',
+      type: 'spoils',
       body: `${attacker.name} has won the battle!`,
-      rewards: [`+${rewards.gold} gold`, '+1 relic']
+      rewards: [
+        { icon: 'i-gold', label: `+${rewards.gold} gold` },
+        { icon: 'i-relic', label: '+1 relic' },
+      ],
     });
     const refresh = getRefreshAll();
     if (refresh) refresh();
