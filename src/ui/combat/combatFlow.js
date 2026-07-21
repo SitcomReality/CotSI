@@ -25,6 +25,7 @@ import {
 import { renderCombat } from './combatRenderer.js';
 import { openRewardModal } from './combatRewardUI.js';
 import { closeCombat } from './combatLifecycle.js';
+import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 import {
   wait,
   shakeCard,
@@ -51,6 +52,8 @@ function getOpponentRevealedHistory(combat, awaitingSide) {
 // ---- async sequencer ----
 
 export async function runCombatFlow() {
+  startMeasure('combatFlow');
+
   while (getCombatUI()) {
     const combat = getCombatUI();
 
@@ -58,17 +61,17 @@ export async function runCombatFlow() {
     if (isPickingPhase(combat)) {
       const side = combat.awaitingSide;
       const entity = entityFor(combat, side);
-      if (!entity) break; // safety
+      if (!entity) { endMeasure('combatFlow'); break; } // safety
 
       // Non-human (bot or mob - mobs have no controller)
       if (entity.controller !== 'human') {
         await wait(450);
-        if (!getCombatUI()) return; // cancelled (e.g. flee)
+        if (!getCombatUI()) { endMeasure('combatFlow'); return; } // cancelled (e.g. flee)
 
         const history = getOpponentRevealedHistory(combat, side);
         const available = getAvailablePicks(entity);
         const pick = botCombatPick(entity, history, available);
-        if (pick == null) break; // no valid pick (shouldn't happen)
+        if (pick == null) { endMeasure('combatFlow'); break; } // no valid pick (shouldn't happen)
 
         recordPick(combat, side, pick);
         if (bothPicksIn(combat)) {
@@ -79,6 +82,7 @@ export async function runCombatFlow() {
       }
 
       // Human - stop the loop; action bus will call runCombatFlow again
+      endMeasure('combatFlow');
       break;
     }
 
@@ -91,7 +95,7 @@ export async function runCombatFlow() {
       }
       renderCombat();
       await wait(1200); // extra hold for the eye to register
-      if (!getCombatUI()) return;
+      if (!getCombatUI()) { endMeasure('combatFlow'); return; }
 
       advancePhase(combat);
       continue;
@@ -101,12 +105,16 @@ export async function runCombatFlow() {
     if (combat.phase === 'roundEnd') {
       await handleRoundEnd();
       if (getCombatUI()) continue;
+      endMeasure('combatFlow');
       return;
     }
 
     // Unknown phase - stop
+    endMeasure('combatFlow');
     break;
   }
+
+  endMeasure('combatFlow');
 }
 
 export async function handleRoundEnd() {

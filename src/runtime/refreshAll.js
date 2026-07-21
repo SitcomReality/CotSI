@@ -15,6 +15,7 @@ import { runBot } from './turnPipeline.js';
 import { G, currentChamp, isTurnLocked } from '../game/state/liveGame.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { getCombatUI } from '../ui/combat/combatUiState.js';
+import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 
 /**
  * Check whether any game modal is currently visible.
@@ -26,8 +27,11 @@ function anyModalOpen() {
 // ---- Central render orchestrator ----
 
 export function refreshAll() {
+  startMeasure('refreshAll');
+
   if (!G) {
     console.warn('[refreshAll] G is null/undefined — bailing');
+    endMeasure('refreshAll');
     return;
   }
 
@@ -46,12 +50,12 @@ export function refreshAll() {
   refreshMap();
 
   // ── Herald's Prognosis: shown at day start before any dispatch ──
-  if (showHeraldReport(G)) return;
+  if (showHeraldReport(G)) { endMeasure('refreshAll'); return; }
 
   // ── Augur's Dispatch: the first interactive element of a human turn ──
   // While a dispatch is pending, reward prompts and bot turns wait for the
   // Acknowledge click (which re-enters refreshAll after clearing it).
-  if (showPendingDispatch(G)) return;
+  if (showPendingDispatch(G)) { endMeasure('refreshAll'); return; }
 
   // Show pending reward modal (artifact draft, dig loot, combat spoils, etc.)
   showPendingReward(G);
@@ -69,6 +73,7 @@ export function refreshAll() {
   ) {
     // Dev tools step-through guard — don't auto-schedule if step mode is on
     if (window.__devTools && window.__devTools.stepMode) {
+      endMeasure('refreshAll');
       return;
     }
     const taskId = getClock().setTimeout(runBot, 620, 'bot');
@@ -81,4 +86,6 @@ export function refreshAll() {
   // Victory check
   checkVictory(G);
   if (G.winnerId) showVictory(G);
+
+  endMeasure('refreshAll');
 }

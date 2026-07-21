@@ -9,6 +9,7 @@ import { onHexClick } from './hexBridge.js';
 import { getTooltipContent } from '../ui/mapTooltip.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/minimap.js';
+import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 
 /** Whether the 3D scene has been initialized once. */
 let map3dInitialized = false;
@@ -24,26 +25,28 @@ let lastCenteredChampionId = null;
  * Centers the camera on the human champion's position at turn start.
  */
 export function refreshMap() {
+  startMeasure('mapRefresh');
+
   if (!G) {
     console.warn('[refreshMap] G is null — bail');
+    endMeasure('mapRefresh');
     return;
   }
 
   const mountEl = document.getElementById('mapMount');
   if (!mountEl) {
     console.warn('[refreshMap] #mapMount not found in DOM');
+    endMeasure('mapRefresh');
     return;
   }
 
   const rect = mountEl.getBoundingClientRect();
-  console.log('[refreshMap] #mapMount found —', rect.width + 'x' + rect.height, 'initialized:', map3dInitialized);
 
   if (!map3dInitialized) {
     // First call: clear mount, init 3D scene
     mountEl.replaceChildren();
     try {
       const ctx = initHexMap3D(mountEl);
-      console.log('[refreshMap] initHexMap3D done — canvas:', mountEl.querySelector('canvas')?.clientWidth + 'x' + mountEl.querySelector('canvas')?.clientHeight);
 
       // Auto-fit camera to map size so the full map is visible at start
       if (G.radius) {
@@ -85,6 +88,8 @@ export function refreshMap() {
     }
     lastCenteredChampionId = ch.id;
   }
+
+  endMeasure('mapRefresh');
 }
 
 /**

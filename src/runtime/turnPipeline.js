@@ -17,6 +17,7 @@ import { FACTIONS } from '../game/rules/factionData.js';
 import { runBotTurn as aiDecide } from '../game/state/championAI.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { showBotIndicator, hideBotIndicator } from '../ui/panels/botIndicator.js';
+import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 
 /**
  * Disable or re-enable the End Turn button with visual feedback.
@@ -71,8 +72,10 @@ export function onEndTurn() {
  * Called by refreshAll via the clock scheduler when the active champion is a bot.
  */
 export function runBot() {
+  startMeasure('runBot');
+
   // Re-entry guard — another turn is already in flight
-  if (isTurnLocked()) return;
+  if (isTurnLocked()) { endMeasure('runBot'); return; }
   setTurnLock(true);
 
   const ch = currentChamp();
@@ -87,6 +90,7 @@ export function runBot() {
     refreshAll();
     hideBotIndicator();
     // Lock cleared by refreshAll → beginTurn (or next champion)
+    endMeasure('runBot');
     return;
   }
 
@@ -108,6 +112,7 @@ export function runBot() {
       startCombat(ch, target);
       // hideBotIndicator is called in the combat flow's completion refresh
     }
+    endMeasure('runBot');
     return;
   }
 
@@ -123,4 +128,6 @@ export function runBot() {
       hideBotIndicator();
     }, 380, 'bot');
   }
+
+  endMeasure('runBot');
 }
