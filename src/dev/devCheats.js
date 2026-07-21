@@ -11,12 +11,14 @@ import { G, currentChamp } from '../game/state/liveGame.js';
 import { getCombatUI } from '../ui/combat/combatUiState.js';
 import { moveChampion } from '../game/state/championMovement.js';
 import { coordKey } from '../engine/rules/hexGrid.js';
+import { refreshVision } from '../game/state/fogOfWar.js';
 import { toast } from '../ui/hud.js';
 
 // ─── Dev state (shared with devTools.js) ───────────────────────────────────
 
 export const devState = {
   teleportMode: false,
+  fogRevealed: false,
 };
 
 // ─── Resource cheats ───────────────────────────────────────────────────────
@@ -108,6 +110,41 @@ export function teleportToHex(hexCoords) {
   }
   toast(`Teleported to ${key}`);
   return true;
+}
+
+// ─── Fog-of-war cheat ──────────────────────────────────────────────────────
+
+export function cheatRevealFog() {
+  if (!G) return;
+
+  devState.fogRevealed = !devState.fogRevealed;
+  const btn = document.getElementById('devRevealFogBtn');
+
+  if (devState.fogRevealed) {
+    // Reveal all tiles to every champion
+    const allKeys = Object.keys(G.tiles);
+    for (const c of G.champions) {
+      if (!c.alive) continue;
+      c.visible = [...allKeys];
+      c.explored = [...allKeys];
+    }
+    if (btn) {
+      btn.textContent = 'Reveal Map: ON';
+      btn.classList.add('is-active');
+    }
+    toast('Fog of war revealed');
+  } else {
+    // Recalculate real vision from champion sight ranges
+    refreshVision(G);
+    if (btn) {
+      btn.textContent = 'Reveal Map: OFF';
+      btn.classList.remove('is-active');
+    }
+    toast('Fog of war restored');
+  }
+
+  G._fogRevision = (G._fogRevision || 0) + 1;
+  G._minimapRevision = (G._minimapRevision || 0) + 1;
 }
 
 // ─── Combat cheats ─────────────────────────────────────────────────────────

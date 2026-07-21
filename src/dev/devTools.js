@@ -23,6 +23,7 @@ import {
   teleportToHex,
   cheatCombatDamage,
   cheatCombatWin,
+  cheatRevealFog,
   devState,
 } from './devCheats.js';
 import {
@@ -107,12 +108,13 @@ function toggleDevTools() {
 // ─── Tab switching ─────────────────────────────────────────────────────────
 
 function _switchTab(tabName) {
-  const tabs = document.querySelectorAll('.devtools__tab');
-  const bodies = document.querySelectorAll('.devtools__body');
-
-  tabs.forEach(t => t.classList.toggle('is-active', t.dataset.devtabs === tabName));
-  bodies.forEach(b => b.classList.toggle('is-active', b.id === `devBody${tabName.charAt(0).toUpperCase() + tabName.slice(1)}` ||
-    b.id === `devBody${tabName === 'cheats' ? 'Cheats' : tabName === 'perf' ? 'Perf' : 'Bot'}`));
+  document.querySelectorAll('.devtools__tab').forEach(t =>
+    t.classList.toggle('is-active', t.dataset.tab === tabName)
+  );
+  document.querySelectorAll('.devtools__body').forEach(b => {
+    const targetId = 'devBody' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+    b.classList.toggle('is-active', b.id === targetId);
+  });
 }
 
 // ─── Performance stats refresh ─────────────────────────────────────────────
@@ -156,6 +158,11 @@ function _registerCheatActions() {
   registerAction('dev:cheat:potencyAll', cheatPotencyAll);
   registerAction('dev:cheat:fillMoves', cheatFillMoves);
   registerAction('dev:cheat:teleport', cheatTeleport);
+
+  registerAction('dev:cheat:revealFog', () => {
+    cheatRevealFog();
+    refreshAll();
+  });
 
   registerAction('dev:cheat:combatDamage', () => {
     const input = document.getElementById('devCombatDmgInput');
@@ -205,14 +212,9 @@ function _registerBotActions() {
   registerAction('dev:bot:autoStop', autoStop);
 }
 
-// ─── Tab click wiring (not via action bus — direct delegation) ─────────────
-
-function _wireTabClicks() {
-  document.addEventListener('click', (e) => {
-    const tab = e.target.closest('.devtools__tab');
-    if (tab && tab.dataset.devtabs) {
-      _switchTab(tab.dataset.devtabs);
-    }
+function _registerTabActions() {
+  registerAction('dev:switchTab', (el) => {
+    _switchTab(el.dataset.tab);
   });
 }
 
@@ -244,13 +246,11 @@ export async function initDevTools() {
   // Keyboard listener
   window.addEventListener('keydown', _onKeyDown);
 
-  // Tab clicks
-  _wireTabClicks();
-
   // Register all actions
   _registerCheatActions();
   _registerPerfActions();
   _registerBotActions();
+  _registerTabActions();
 
   // Start performance polling
   _startPerfPolling();

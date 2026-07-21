@@ -4,9 +4,9 @@
     <span class="devtools__hint">` to toggle</span>
   </div>
   <div class="devtools__tabs" id="devToolsTabs">
-    <button class="devtools__tab is-active" data-devtab="cheats">Cheats</button>
-    <button class="devtools__tab" data-devtab="perf">Performance</button>
-    <button class="devtools__tab" data-devtab="bot">Bot Control</button>
+    <button class="devtools__tab is-active" data-action="dev:switchTab" data-tab="cheats">Cheats</button>
+    <button class="devtools__tab" data-action="dev:switchTab" data-tab="perf">Performance</button>
+    <button class="devtools__tab" data-action="dev:switchTab" data-tab="bot">Bot Control</button>
   </div>
   <div class="devtools__bodies" id="devToolsBodies">
     <!-- Cheats tab -->
@@ -27,6 +27,12 @@
         <div class="devtools__btn-row">
           <button class="devtools__btn" data-action="dev:cheat:fillMoves">Fill Moves</button>
           <button class="devtools__btn devtools__btn--toggle" data-action="dev:cheat:teleport" id="devTeleportBtn">Teleport Mode: OFF</button>
+        </div>
+      </div>
+      <div class="devtools__section">
+        <div class="devtools__section-title">Map</div>
+        <div class="devtools__btn-row">
+          <button class="devtools__btn devtools__btn--toggle" data-action="dev:cheat:revealFog" id="devRevealFogBtn">Reveal Map: OFF</button>
         </div>
       </div>
       <div class="devtools__section">
