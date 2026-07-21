@@ -23,6 +23,13 @@ export function refreshVision(state) {
 
 export function getHumanView(state) {
   const humans = state.champions.filter(c => c.controller === 'human' && c.alive);
+  // No human players → permanently revealed map, no fog of war.
+  if (humans.length === 0) {
+    return {
+      visible: new Set(Object.keys(state.tiles)),
+      explored: new Set(Object.keys(state.tiles)),
+    };
+  }
   return {
     visible: new Set(humans.flatMap(c => c.visible || [])),
     explored: new Set(humans.flatMap(c => c.explored || [])),

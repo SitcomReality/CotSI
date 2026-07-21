@@ -9,6 +9,7 @@
   --r:      12px;
   --r-lg:   20px;
   --r-pill: 999px;
+  --r-panel: 4px;   /* structural chrome — sharp, theatrical frame */
 
   /* ── Ink outline weights (Puppet layer — structural, not interactive) ── */
   --ink-weight:      3px;    /* standard ink outline on Puppet elements */

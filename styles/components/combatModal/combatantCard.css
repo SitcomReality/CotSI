@@ -6,7 +6,7 @@
   position: relative;
   background: var(--board-glass);
   border: var(--edge) solid var(--crease-bold);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-panel);
   padding: 12px;
   transition: box-shadow 200ms ease;
 }

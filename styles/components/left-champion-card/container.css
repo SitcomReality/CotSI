@@ -8,7 +8,7 @@
   width: 280px;
   background: var(--board);
   border: var(--edge) solid var(--crease-bold);
-  border-radius: var(--r);
+  border-radius: var(--r-panel);
   box-shadow: var(--shadow-panel);
   padding: var(--space-sm);
   border-left: 2px solid var(--faction-color, var(--ink));

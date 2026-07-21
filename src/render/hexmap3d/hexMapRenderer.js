@@ -14,7 +14,7 @@ import { getClock } from '../../shared/clockScheduler.js';
 // Re‑export symbols needed by external consumers
 export { tileTopY } from './terrain/terrainMesh.js';
 export { hexCenter, hexCornersXZ, hexCenter3D } from './hexWorldSpace.js';
-export { resetCamera, zoomCamera, centerCameraOnHex, fitCameraToMap, setPanBounds } from './scene/cameraControls.js';
+export { resetCamera, zoomCamera, centerCameraOnHex, centerOnHexWithFitCamera, centerOnHexWithSightZoom, centerOnHexWithFixedZoom, fitCameraToMap, setPanBounds } from './scene/cameraControls.js';
 
 let ctx = null; // singleton scene context
 let terrainMesh = null;

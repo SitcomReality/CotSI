@@ -11,7 +11,7 @@
 .reward-card {
   background: linear-gradient(180deg, var(--board-hi), var(--board));
   border: var(--edge-bold) solid var(--crease-bold);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-panel);
   box-shadow: var(--shadow-stack);
   padding: 24px;
   max-width: 420px;

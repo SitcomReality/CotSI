@@ -37,8 +37,9 @@
 
 .rightbar {
   grid-area: right;
+  position: relative;
   background: var(--abyss);
-  border-left: var(--hair) solid var(--crease);
+  border-left: var(--edge) solid var(--crease);
   padding: var(--s3);
   display: flex;
   flex-direction: column;
@@ -50,6 +51,17 @@
      the 100vh fallback covers older browsers that don't support dvh. */
   max-height: calc(100vh - var(--header-height));
   max-height: calc(100dvh - var(--header-height));
+}
+
+/* Subtle fog-cloud texture overlay — whispers "dark carnival stage" */
+.rightbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/icons/patterns/fog-clouds.svg') repeat-x bottom / auto 24px;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: -1; /* behind in-flow content */
 }
 
 .rt-heptagram-card {

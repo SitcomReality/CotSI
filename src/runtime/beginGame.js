@@ -4,7 +4,7 @@ import { setGameState } from '../ui/combat/combatModal.js';
 import { syncSize } from '../render/overlays/overlayStack.js';
 import {
   getSceneContext,
-  resetCamera as resetCamera3D,
+  fitCameraToMap,
 } from '../render/hexmap3d/hexMapRenderer.js';
 import { bindHeaderEvents } from '../ui/panels/headerPanel.js';
 import { refreshAll } from './refreshAll.js';
@@ -39,7 +39,8 @@ export function __beginGame(config) {
 
   const ctx3d = getSceneContext();
   if (ctx3d) {
-    resetCamera3D(ctx3d.getCameraState());
+    // On game restart, re-fit the camera to the new map's size
+    fitCameraToMap(ctx3d.getCameraState(), game.radius);
     ctx3d.applyCamera();
   }
   bindHeaderEvents();

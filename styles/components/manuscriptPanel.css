@@ -7,7 +7,7 @@
 .panel {
   background: var(--panel);
   border: var(--edge) solid var(--panel-border);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-panel);
   box-shadow: var(--shadow-panel);
   padding: 16px;
 }

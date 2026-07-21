@@ -3,7 +3,7 @@
    Requires SVG pattern #fog-clouds defined in the sprite sheet.
    ========================================================================= */
 .fog {
-  border-radius: var(--r);
+  border-radius: var(--r-panel);
   border: var(--edge) solid var(--crease);
   background: var(--board);
 }
@@ -13,5 +13,5 @@
   height: 100%;
   color: var(--ink-faint);
   opacity: 0.3;
-  border-radius: var(--r);
+  border-radius: var(--r-panel);
 }

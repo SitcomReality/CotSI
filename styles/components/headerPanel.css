@@ -6,8 +6,8 @@
   height: 48px;
   padding: 0 var(--space-md);
   background: var(--shadow);
-  border-bottom: var(--edge) solid var(--crease-bold);
-  box-shadow: var(--shadow-panel);
+  border-bottom: var(--edge-bold) solid var(--crease-bold);
+  box-shadow: var(--shadow-panel), 0 1px 0 var(--abyss);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--fs-sm);

@@ -7,7 +7,7 @@
   width: min(1020px, 96vw);
   background: linear-gradient(180deg, var(--board-hi), var(--board));
   border: var(--edge-bold) solid var(--crease-bold);
-  border-radius: 20px;
+  border-radius: var(--r-panel);
   padding: 18px 20px;
   box-shadow: var(--shadow-stack);
   position: relative;
@@ -16,7 +16,7 @@
 .victory-card {
   background: linear-gradient(180deg, var(--board-hi), var(--board));
   border: var(--edge-heavy) solid var(--gold);
-  border-radius: 18px;
+  border-radius: var(--r-panel);
   padding: 22px;
   text-align: center;
   box-shadow: var(--shadow-stack);
@@ -27,7 +27,7 @@
 .champion-card-variant {
   background: var(--board);
   border: var(--edge) solid var(--crease-bold);
-  border-radius: var(--r);
+  border-radius: var(--r-panel);
   box-shadow: var(--shadow-stack);
   padding: var(--space-sm);
   display: flex;
@@ -38,7 +38,7 @@
 .quest-card {
   background: var(--board);
   border: var(--edge) solid var(--crease-bold);
-  border-radius: var(--r);
+  border-radius: var(--r-panel);
   box-shadow: var(--shadow-stack);
   padding: var(--space-sm);
 }

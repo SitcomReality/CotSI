@@ -17,7 +17,7 @@
   width: 180px;
   background: var(--board);
   border: var(--edge) solid var(--crease-bold);
-  border-radius: var(--r);
+  border-radius: var(--r-panel);
   box-shadow: var(--shadow-stack);
   padding: var(--s3);
   font-size: var(--fs-xs);

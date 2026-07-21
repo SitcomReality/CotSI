@@ -12,7 +12,7 @@
   background: linear-gradient(180deg, var(--board-hi), var(--board));
   border: var(--edge) solid var(--crease-bold);
   border-left: var(--edge-heavy) solid var(--ink-mid);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-panel);
   box-shadow: var(--shadow-stack);
   padding: var(--s5) var(--s6);
   display: flex;

@@ -4,9 +4,9 @@
  * Owns the singleton `map3dInitialized` and `lastCenteredChampionId` flags.
  * Imports live bindings (G, currentChamp) at runtime like its callers.
  */
-import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext, centerCameraOnHex, fitCameraToMap } from '../render/hexmap3d/hexMapRenderer.js';
+import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext, centerOnHexWithFitCamera, centerOnHexWithFixedZoom, fitCameraToMap } from '../render/hexmap3d/hexMapRenderer.js';
 import { onHexClick } from './hexBridge.js';
-import { getTooltipContent } from '../ui/mapTooltip.js';
+import { getTooltipContent, refreshZoomDisplay } from '../ui/mapTooltip.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/minimap.js';
 import { startMeasure, endMeasure } from '../dev/devPerformance.js';
@@ -53,6 +53,18 @@ export function refreshMap() {
         fitCameraToMap(ctx.getCameraState(), G.radius);
         ctx.applyCamera();
       }
+
+      // At game start, center on the first human champion in the turn order
+      // so human players aren't looking at black space if bots go first.
+      const humansInOrder = G.currentOrder
+        .map(id => G.champions.find(c => c.id === id))
+        .filter(c => c && c.controller === 'human' && c.alive);
+      if (humansInOrder.length > 0) {
+        const firstHuman = humansInOrder[0];
+        centerOnHexWithFitCamera(ctx.getCameraState(), firstHuman.pos.q, firstHuman.pos.r);
+        lastCenteredChampionId = firstHuman.id;
+        ctx.applyCamera();
+      }
     } catch (err) {
       console.error('[refreshMap] initHexMap3D threw:', err);
     }
@@ -61,6 +73,8 @@ export function refreshMap() {
       (key) => getTooltipContent(G, key, currentChamp())
     );
     map3dInitialized = true;
+    // Show the real zoom level after init instead of the hardcoded "100%"
+    refreshZoomDisplay();
   }
 
   try {
@@ -78,12 +92,13 @@ export function refreshMap() {
   // Render minimap each refresh (caches internally)
   renderMinimap(G);
 
-  // Center camera on human champion at turn start (only when champion changes)
+  // Center camera on human champion at turn start (only when champion changes).
+  // Zooms to a fixed ~400% zoom for a tight context-rich view.
   const ch = currentChamp();
   if (ch && ch.controller === 'human' && ch.id !== lastCenteredChampionId) {
     const ctx3d = getSceneContext();
     if (ctx3d) {
-      centerCameraOnHex(ctx3d.getCameraState(), ch.pos.q, ch.pos.r);
+      centerOnHexWithFixedZoom(ctx3d.getCameraState(), ch.pos.q, ch.pos.r, 400);
       ctx3d.applyCamera();
     }
     lastCenteredChampionId = ch.id;

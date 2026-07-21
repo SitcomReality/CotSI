@@ -88,6 +88,7 @@
         </div>
       </div>
       <div class="map-controls">
+        <span id="hudZoom" class="map-zoom-indicator">100%</span>
         <button class="btn map-btn" id="zoomIn" data-action="zoomIn" title="Zoom In (Mouse Wheel)">
           <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/sprite.svg#i-zoomin"/></svg>
         </button>

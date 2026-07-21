@@ -12,7 +12,7 @@
   width: 180px;
   background: var(--board);
   border: var(--edge) solid var(--crease-bold);
-  border-radius: var(--r);
+  border-radius: var(--r-panel);
   box-shadow: var(--shadow-stack);
   padding: var(--s3);
   font-size: var(--fs-xs);
@@ -31,7 +31,7 @@
   position: absolute;
   inset: 3px;
   border: var(--hair) solid var(--shadow);
-  border-radius: calc(var(--r) - 4px);
+  border-radius: calc(var(--r-panel) - 2px);
   pointer-events: none;
 }
 

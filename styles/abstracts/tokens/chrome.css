@@ -10,9 +10,9 @@
   --board-hi:      #242a38;  /* raised card, modal surface                 */
   --ink:           #e8e4dc;  /* warm off-white — body text, line icons     */
   --ink-mid:       #a8a4b0;  /* secondary text, captions                   */
-  --ink-faint:     #6a6e7a;  /* tertiary, placeholders                     */
+  --ink-faint:     #6a5e5a;  /* warm gray-brown — recedes without feeling cold */
   --ink-line:      #121418;  /* ink outline color for Puppet elements      */
-  --crease:        #2a3040;  /* neutral hairline / ruled baselines         */
-  --crease-bold:   #3a4460;  /* slightly heavier divider                   */
+  --crease:        #2a2620;  /* warm charcoal-brown — reads as genuine crease */
+  --crease-bold:   #3a3530;  /* warm deep charcoal — reads as thicker fold     */
   --board-glass:   #242a38cc;  /* semi-transparent overlay (combat cards, play slots, reward box) */
 }
