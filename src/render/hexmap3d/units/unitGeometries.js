@@ -23,7 +23,7 @@ export function getChampionHeadGeo() {
 }
 
 // =========================================================================
-// Trader geometry
+// Trader geometry (legacy — kept for compatibility, unused by new piece system)
 // =========================================================================
 
 let traderBodyGeo = null;
@@ -33,6 +33,29 @@ export function getTraderBodyGeo() {
     traderBodyGeo = new THREE.ConeGeometry(0.13, 0.45, 8);
   }
   return traderBodyGeo;
+}
+
+// =========================================================================
+// Piece geometries — flat cylinders ("thick coins") for mob & trader NPCs
+// =========================================================================
+
+let pieceBodyGeo = null;
+let pieceCapGeo = null;
+
+/** Thin uniform-radius cylinder — the "coin" body whose rim shows faction colour. */
+export function getPieceBodyGeo() {
+  if (!pieceBodyGeo) {
+    pieceBodyGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.10, 16);
+  }
+  return pieceBodyGeo;
+}
+
+/** Ultra-thin disc sitting on top of the body, carrying the icon CanvasTexture. */
+export function getPieceCapGeo() {
+  if (!pieceCapGeo) {
+    pieceCapGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.025, 24);
+  }
+  return pieceCapGeo;
 }
 
 // =========================================================================

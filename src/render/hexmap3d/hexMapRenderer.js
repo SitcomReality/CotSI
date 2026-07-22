@@ -2,7 +2,7 @@ import { initScene } from './scene/sceneSetup.js';
 import { buildTerrainMesh } from './terrain/terrainMesh.js';
 
 import { buildFeatureMeshes } from './features/featureMeshes.js';
-import { buildUnitMeshes, setupUnitAnimations, initMovementAnimator, disposeMovementAnimator, cleanupCompleted } from './units/index.js';
+import { buildUnitMeshes, setupUnitAnimations, initMovementAnimator, disposeMovementAnimator, cleanupCompleted, initPieceTextures, disposePieceTextures } from './units/index.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/mapInteraction.js';
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/overlayStack.js';
 import { renderFogOverlay } from '../overlays/fogOverlay.js';
@@ -48,6 +48,9 @@ export function initHexMap3D(mountElement) {
 
   // Init movement animation layer — needs scene reference to add/remove meshes
   initMovementAnimator(ctx.scene);
+
+  // Pre-generate mob/trader piece icon textures (synchronous, cached)
+  initPieceTextures();
 
   return ctx;
 }
@@ -124,6 +127,7 @@ function disposeAll() {
   for (const um of unitMeshes) disposeMesh(um);
   unitMeshes = [];
   disposeMovementAnimator();
+  disposePieceTextures();
   // Clean up interaction listeners
   if (ctx && ctx._interactionCleanup) {
     ctx._interactionCleanup();
