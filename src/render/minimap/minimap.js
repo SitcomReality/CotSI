@@ -9,12 +9,16 @@ import { initMinimap as domInit, disposeMinimap as domDispose } from './minimapD
 import { renderTerrainLayer, resetTerrainCache } from './minimapTerrainLayer.js';
 import { renderOverlayLayer } from './minimapOverlayLayer.js';
 import { handleMinimapClick } from './minimapClickHandler.js';
+import { getClock } from '../../shared/clockScheduler.js';
 
 // ---- Module-level shared state ----
 let _getExploredForClick = null;
 let _cachedScale = 0;
 let _cachedOffsetX = 0;
 let _cachedOffsetZ = 0;
+let _overlayTickStop = null;
+let _lastG = null;
+let _lastHumanView = null;
 
 // ---- Initialization ----
 
@@ -31,6 +35,14 @@ export function initMinimap(mountEl, radius, getExploredFn) {
       handleMinimapClick(mx, my, _cachedScale, _cachedOffsetX, _cachedOffsetZ, _getExploredForClick);
     }
   });
+
+  // Register per-frame overlay redraw so the camera indicator follows
+  // interactive pan/zoom without needing a full game-state refresh.
+  _overlayTickStop = getClock().onTick(() => {
+    if (_lastG && _lastHumanView && _cachedScale > 0) {
+      renderOverlayLayer(_lastG, _lastHumanView, _cachedScale, _cachedOffsetX, _cachedOffsetZ);
+    }
+  });
 }
 
 // ---- Public API ----
@@ -42,6 +54,8 @@ export function initMinimap(mountEl, radius, getExploredFn) {
  * @param {{ visible: Set<string>, explored: Set<string> }} humanView - Pre-computed fog-of-war view
  */
 export function renderMinimap(G, humanView) {
+  _lastG = G;
+  _lastHumanView = humanView;
   const result = renderTerrainLayer(G, humanView);
   if (result) {
     _cachedScale = result.scale;
@@ -55,10 +69,16 @@ export function renderMinimap(G, humanView) {
  * Clean up minimap resources (called on game restart).
  */
 export function disposeMinimap() {
+  if (_overlayTickStop) {
+    _overlayTickStop();
+    _overlayTickStop = null;
+  }
   domDispose();
   resetTerrainCache();
   _getExploredForClick = null;
   _cachedScale = 0;
   _cachedOffsetX = 0;
   _cachedOffsetZ = 0;
+  _lastG = null;
+  _lastHumanView = null;
 }

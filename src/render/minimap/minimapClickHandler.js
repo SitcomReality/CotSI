@@ -18,7 +18,7 @@ import { PADDING } from './minimapDom.js';
  * @param {number} scale - Current minimap scale
  * @param {number} offsetX - Current world X offset
  * @param {number} offsetZ - Current world Z offset
- * @param {function} getExploredFn - (gameState) => Set<string>
+ * @param {function} getExploredFn - (gameState) => {{ visible: Set<string>, explored: Set<string> }}
  */
 export function handleMinimapClick(px, py, scale, offsetX, offsetZ, getExploredFn) {
   if (scale <= 0) return;
@@ -31,7 +31,8 @@ export function handleMinimapClick(px, py, scale, offsetX, offsetZ, getExploredF
   const G = window.__gameState;
   if (!G) return;
 
-  const explored = getExploredFn ? getExploredFn(G) : new Set();
+  const humanView = getExploredFn ? getExploredFn(G) : { explored: new Set() };
+  const explored = humanView.explored;
   let bestKey = null;
   let bestDist = Infinity;
 
