@@ -1,10 +1,10 @@
-.game-header {
+.header-panel {
   grid-area: header;
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 48px;
-  padding: 0 var(--space-md);
+  padding: 0 var(--s5);
   background: var(--shadow);
   border-bottom: var(--edge-bold) solid var(--crease-bold);
   box-shadow: var(--shadow-panel), 0 1px 0 var(--abyss);
@@ -12,14 +12,14 @@
   font-family: var(--font-body);
   font-size: var(--fs-sm);
   font-variant-numeric: var(--tnum);
-  gap: var(--space-md);
+  gap: var(--s5);
 }
 
 /* World info (day, week, weather) */
-.header__world {
+.header-panel__world {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--s4);
   white-space: nowrap;
   color: var(--ink-mid);
   font-size: var(--fs-xs);
@@ -28,7 +28,7 @@
 }
 
 /* Champion turn-order bar (center) */
-.header__champions {
+.header-panel__champions {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -39,7 +39,7 @@
   padding: 0;
 }
 
-.header__champion {
+.header-panel__champion {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -53,17 +53,17 @@
 }
 
 /* Header champion hover glow (no cross-highlight — keeps kaleidoscope-free) */
-.header__champion:hover {
+.header-panel__champion:hover {
   box-shadow: 0 0 6px var(--ink-mid);
 }
 
 /* State variants (applied via JS as data attributes or classes) */
-.header__champion[data-state="current"] {
+.header-panel__champion[data-state="current"] {
   /* faction tint left-edge + gold indicator dot */
   border-left: 2px solid var(--faction-color, var(--ink));
   /* Gold dot via pseudo-element; counts against gold budget */
 }
-.header__champion[data-state="current"]::after {
+.header-panel__champion[data-state="current"]::after {
   content: '';
   position: absolute;
   bottom: 2px;
@@ -74,26 +74,26 @@
   border-radius: 50%;
   background: var(--gold);
 }
-.header__champion[data-state="played"] {
+.header-panel__champion[data-state="played"] {
   opacity: 0.45;
 }
-.header__champion[data-state="waiting"] {
+.header-panel__champion[data-state="waiting"] {
   opacity: 0.75;
 }
-.header__champion[data-state=\"dead\"] {
+.header-panel__champion[data-state=\"dead\"] {
     display: none;
 }
 
 /* Actions zone (right) */
-.header__actions {
+.header-panel__actions {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--s4);
 }
 
 
 /* Champion pill inner elements */
-.header__champion-dot {
+.header-panel__champion-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -102,25 +102,25 @@
     border: var(--hair) solid rgba(34, 28, 20, 0.15);
 }
 
-.header__champion-hp,
-.header__champion-pot {
+.header-panel__champion-hp,
+.header-panel__champion-pot {
     font-variant-numeric: var(--tnum);
     line-height: 1;
 }
 
-.header__champion-hp {
+.header-panel__champion-hp {
     color: var(--ink);
     font-weight: 600;
     min-width: 1.5em;
     text-align: right;
 }
 
-.header__champion-pot {
+.header-panel__champion-pot {
     color: var(--ink-mid);
     font-size: 10px;
 }
 
-.header__champion-hp::after {
+.header-panel__champion-hp::after {
     content: '♥';
     font-size: 8px;
     color: var(--red, #c0392b);

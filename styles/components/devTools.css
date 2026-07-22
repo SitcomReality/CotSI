@@ -3,7 +3,7 @@
    Chrome layer: dark, restrained, recedes into the table.
    ════════════════════════════════════════════════════════════════════════════ */
 
-#devToolsMount {
+.devtools-mount {
   position: fixed;
   top: 48px;
   right: 8px;
@@ -13,7 +13,7 @@
   max-height: calc(100vh - 64px);
 }
 
-#devToolsMount.is-visible {
+.devtools-mount.is-visible {
   display: block;
 }
 
@@ -224,7 +224,7 @@
 
 /* ── Bot control ── */
 
-#devBotChampList {
+.devtools__champ-list {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -280,7 +280,7 @@
 
 /* ── Live overlay (fixed-position FPS/timing display) ── */
 
-#devPerfOverlay {
+.devtools-perf-overlay {
   position: fixed;
   bottom: 8px;
   left: 8px;
@@ -297,6 +297,6 @@
   line-height: 1.4;
 }
 
-#devPerfOverlay.is-visible {
+.devtools-perf-overlay.is-visible {
   display: block;
 }

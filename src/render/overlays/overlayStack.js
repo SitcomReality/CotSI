@@ -95,4 +95,27 @@ export function setEffectsState(state, camera) {
   overlay._camera = camera;
 }
 
+// ---- Derived state (pre-computed by runtime/, consumed by overlay layers) ----
+let _derivedHumanView = null;
+let _derivedMoveHighlights = null;
+
+/**
+ * Store pre-computed derived data so overlay layers don't need to import
+ * from game/state/ directly. Called by runtime/mapRefresh.js.
+ * @param {{ visible: Set<string>, explored: Set<string> }} humanView
+ * @param {string[]} moveHighlights — hex keys from adjacentPassable
+ */
+export function setDerivedState(humanView, moveHighlights) {
+  _derivedHumanView = humanView;
+  _derivedMoveHighlights = moveHighlights;
+}
+
+export function getDerivedHumanView() {
+  return _derivedHumanView;
+}
+
+export function getDerivedMoveHighlights() {
+  return _derivedMoveHighlights;
+}
+
 export { syncSize, registerLayer };

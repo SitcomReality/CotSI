@@ -29,7 +29,7 @@ export const botDevState = {
  * Shows each champion with a controller toggle button.
  */
 export function renderChampionList() {
-  const container = document.getElementById('devBotChampList');
+  const container = document.querySelector('.devtools__champ-list');
   if (!container || !G) return;
 
   container.replaceChildren();

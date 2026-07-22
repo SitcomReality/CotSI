@@ -2,7 +2,7 @@
    Log Bar  —  Event log with expand/collapse (extracted from game.css)
    ========================================================================= */
 
-.log-bar {
+.log-panel {
   grid-column: 1 / -1;
   background: var(--abyss);
   border-top: var(--edge) solid var(--crease);
@@ -14,12 +14,12 @@
   position: relative;
 }
 
-.log-bar.log-bar--open {
+.log-panel.log-panel--open {
   height: 160px; /* expanded */
 }
 
 /* Cloud-band decorative pattern for empty/collapsed state */
-.log-bar::before {
+.log-panel::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -29,7 +29,7 @@
   z-index: 0;
 }
 
-.log-bar__toggle {
+.log-panel__toggle {
   display: flex;
   justify-content: flex-end;
   padding: var(--s1) var(--s3);
@@ -37,7 +37,7 @@
   z-index: 1;
 }
 
-.log-bar__chevron {
+.log-panel__chevron {
   background: none;
   border: none;
   cursor: pointer;
@@ -52,11 +52,11 @@
   height: 28px;
 }
 
-.log-bar__chevron:hover {
+.log-panel__chevron:hover {
   opacity: 1;
 }
 
-.log-bar__chevron svg {
+.log-panel__chevron svg {
   width: 14px;
   height: 14px;
   fill: none;
@@ -64,7 +64,7 @@
   stroke-width: 1.5;
 }
 
-.log-bar__entries {
+.log-panel__entries {
   flex: 1;
   overflow-y: auto;
   padding: 0 var(--s3) var(--s2);
@@ -76,37 +76,37 @@
   z-index: 1;
 }
 
-.log-bar__entries--empty {
+.log-panel__entries--empty {
   align-items: center;
   justify-content: center;
   color: var(--ink-mid);
   font-style: italic;
 }
 
-.log-bar__hint {
+.log-panel__hint {
   opacity: 0.6;
 }
 
 /* ── Log line types ── */
-.log-bar__line {
+.log-panel__line {
   padding: 2px 0;
   border-bottom: var(--hair) dashed var(--crease);
   color: var(--ink-mid);
 }
 
-.log-bar__line--combat {
+.log-panel__line--combat {
   color: var(--crimson);
 }
 
-.log-bar__line--heal {
+.log-panel__line--heal {
   color: var(--verdigris);
 }
 
-.log-bar__line--system {
+.log-panel__line--system {
   color: var(--ink);
   font-weight: 500;
 }
 
-.log-bar__line--standard {
+.log-panel__line--standard {
   color: var(--ink-mid);
 }

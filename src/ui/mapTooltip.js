@@ -4,7 +4,6 @@ import { FACTIONS } from '../game/rules/factionData.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { getHumanView } from '../game/state/fogOfWar.js';
 import { movementRange } from '../game/state/championMovement.js';
-import { getSceneContext } from '../render/hexmap3d/hexMapRenderer.js';
 import { h } from './domBuilder.js';
 
 const maybe = (test, ...args) => test ? args : [];
@@ -81,21 +80,4 @@ export function getTooltipContent(gameState, key, activeChampion) {
   return container;
 }
 
-/**
- * Update the zoom percentage display in the HUD.
- * Percentage is map-relative: 100% = full-map view (referenceFrustum).
- * Falls back to the legacy hardcoded 40 when no reference is available.
- */
-export function refreshZoomDisplay() {
-  const zoomEl = document.getElementById('hudZoom');
-  if (!zoomEl) return;
 
-  const ctx3d = getSceneContext();
-  const cs = ctx3d?.getCameraState();
-  const pct = cs?.referenceFrustum
-    ? Math.round(100 * cs.referenceFrustum / cs.frustumSize)
-    : cs
-      ? Math.round(100 * 40 / cs.frustumSize)
-      : 100;
-  zoomEl.textContent = pct + '%';
-}

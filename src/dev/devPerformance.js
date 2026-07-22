@@ -92,7 +92,7 @@ export function setOverlayEnabled(on) {
     // Create overlay element if needed
     if (!_overlayEl) {
       _overlayEl = document.createElement('div');
-      _overlayEl.id = 'devPerfOverlay';
+      _overlayEl.className = 'devtools-perf-overlay';
       document.body.appendChild(_overlayEl);
     }
     _overlayEl.classList.add('is-visible');

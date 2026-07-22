@@ -102,7 +102,7 @@
     <div class="devtools__body" id="devBodyBot">
       <div class="devtools__section">
         <div class="devtools__section-title">Controller Override</div>
-        <div id="devBotChampList">
+        <div class="devtools__champ-list">
           <!-- populated by JS -->
         </div>
       </div>

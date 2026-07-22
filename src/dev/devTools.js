@@ -61,10 +61,10 @@ window.__devTools.stepMode = false;
 
 async function _injectTemplate() {
   // Already injected?
-  if (document.getElementById('devToolsMount')) return;
+  if (document.querySelector('.devtools-mount')) return;
 
   const mount = document.createElement('div');
-  mount.id = 'devToolsMount';
+  mount.className = 'devtools-mount';
   document.body.appendChild(mount);
 
   const { frag } = await loadTemplate('devTools');
@@ -93,7 +93,7 @@ function _onKeyDown(e) {
 
 function toggleDevTools() {
   _visible = !_visible;
-  const mount = document.getElementById('devToolsMount');
+  const mount = document.querySelector('.devtools-mount');
   if (!mount) return;
   mount.classList.toggle('is-visible', _visible);
 

@@ -2,7 +2,7 @@
    BOT INDICATOR — Shown while a bot champion is taking its turn
    ========================================================================= */
 
-#botIndicator {
+.bot-indicator {
   position: absolute;
   top: 100%;
   left: 50%;
@@ -25,12 +25,12 @@
   z-index: 10;
 }
 
-#botIndicator.is-visible {
+.bot-indicator.is-visible {
   opacity: 1;
 }
 
 /* Subtle pulse while visible */
-#botIndicator.is-visible {
+.bot-indicator.is-visible {
   animation: bot-indicator-pulse 1.6s ease-in-out infinite;
 }
 

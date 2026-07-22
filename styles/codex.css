@@ -18,10 +18,10 @@
         - Shared visual patterns (button, card, modalShell) first
         - Full-screen setups (setupScreen) next
         - Modal-heavy pieces (combat, dispatch, reward) next
-        - Panel content (championPanel, headerPanel, rightPanel, logPanel) next
+        - Panel content (championPanel, headerPanel, logPanel) next
         - Widgets and overlays (heptagram, tooltip, mapControls, fog, tile) next
         - Detail views and shared pieces (championDetail, artifactChoice,
-          potencies, stats, swatch, manuscriptPanel, note, forms) next
+          potencies, swatch, manuscriptPanel, note, forms) next
         - HUD and decorative elements (hud, paleyCrossHighlight) last
    ════════════════════════════════════════════════════════════════════════════ */
 @import "./components/button.css";
@@ -34,7 +34,6 @@
 @import "./components/rewardModal.css";
 @import "./components/championPanel.css";
 @import "./components/headerPanel.css";
-@import "./components/rightPanel.css";
 @import "./components/logPanel.css";
 @import "./components/heptagramWidget.css";
 @import "./components/tooltip.css";
@@ -45,7 +44,6 @@
 @import "./components/championDetail.css";
 
 @import "./components/potencies.css";
-@import "./components/stats.css";
 @import "./components/swatch.css";
 @import "./components/manuscriptPanel.css";
 @import "./components/note.css";

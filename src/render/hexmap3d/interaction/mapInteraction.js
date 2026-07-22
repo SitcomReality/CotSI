@@ -4,7 +4,6 @@ import { createClickHandler } from './hexClick.js';
 import { createZoomHandler } from './cameraZoom.js';
 import { createTouchHandlers } from './touchInput.js';
 import { hideTooltip, bindTooltipToContainer } from './hoverTooltip.js';
-import { refreshZoomDisplay } from '../../../ui/mapTooltip.js';
 
 /**
  * Wire up 3D canvas events for pan, zoom, hex hover (tooltip), hex click, and touch.
@@ -17,7 +16,8 @@ export function setupMapInteraction3D(
   getCameraState,
   getTerrainMesh,
   onHexClick,
-  getTooltipContent
+  getTooltipContent,
+  onZoomChange
 ) {
   if (!canvas) return () => {};
 
@@ -32,7 +32,7 @@ export function setupMapInteraction3D(
   const pan = createPanHandlers(canvas, getCameraState, applyCamera, shared);
   const hover = createHoverHandler(canvas, getTerrainMesh, getTooltipContent, shared);
   const click = createClickHandler(canvas, getTerrainMesh, onHexClick, shared);
-  const zoom = createZoomHandler(getCameraState, applyCamera, refreshZoomDisplay);
+  const zoom = createZoomHandler(getCameraState, applyCamera, onZoomChange || (() => {}));
 
   const touchCtx = { canvas, getCameraState, applyCamera, lastPointerX: 0, lastPointerY: 0, lastTouchDist: 0 };
   const touch = createTouchHandlers(touchCtx);

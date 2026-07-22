@@ -11,7 +11,6 @@
 
 import { coordKey, parseKey } from '../../engine/rules/hexGrid.js';
 import { hexCenter } from '../hexmap3d/hexWorldSpace.js';
-import { getHumanView } from '../../game/state/fogOfWar.js';
 import { centerCameraOnHex } from '../hexmap3d/hexMapRenderer.js';
 import { getSceneContext } from '../hexmap3d/hexMapRenderer.js';
 
@@ -30,6 +29,9 @@ let lastExploredRevision = -1;
 let cachedScale = 1;
 let cachedOffsetX = 0;
 let cachedOffsetZ = 0;
+
+// Callback for minimap click handler (injected by runtime/mapRefresh.js)
+let _getExploredForClick = null;
 
 // ---- Helpers ----
 
@@ -70,8 +72,10 @@ function worldToMinimap(x, z) {
  * Create the minimap DOM element and its two canvases.
  * @param {HTMLElement} mountEl - The #mapMount element
  * @param {number} radius - Map radius (for initial sizing context)
+ * @param {function} [getExploredFn] - (gameState) => Set<string> for click handler
  */
-export function initMinimap(mountEl, radius) {
+export function initMinimap(mountEl, radius, getExploredFn) {
+  if (getExploredFn) _getExploredForClick = getExploredFn;
   if (minimapEl) {
     // Already initialized — reuse
     return;
@@ -135,7 +139,7 @@ function handleMinimapClick(px, py) {
   const G = window.__gameState;
   if (!G) return;
 
-  const { explored } = getHumanView(G);
+  const explored = _getExploredForClick ? _getExploredForClick(G) : new Set();
   let bestKey = null;
   let bestDist = Infinity;
 
@@ -163,8 +167,8 @@ function handleMinimapClick(px, py) {
 
 // ---- Terrain layer (cached) ----
 
-function renderTerrainLayer(G) {
-  const { explored } = getHumanView(G);
+function renderTerrainLayer(G, humanView) {
+  const { explored } = humanView || { explored: new Set() };
 
   // Check if we need to redraw the terrain cache
   const fogRev = G._fogRevision || 0;
@@ -198,7 +202,7 @@ function renderTerrainLayer(G) {
 
   // Precompute scale corrected for hex aspect ratio
   // (flat-top hexes are sqrt(3) wide per 1.5 tall)
-  const visibleSet = getHumanView(G).visible;
+  const visibleSet = humanView ? humanView.visible : new Set();
 
   // Resolve palette
   const palette = G.biomePalette || {};
@@ -246,12 +250,12 @@ function rgbToCSS(rgb) {
 
 // ---- Overlay layer (entities + camera indicator, per frame) ----
 
-function renderOverlayLayer(G) {
+function renderOverlayLayer(G, humanView) {
   const dpr = window.devicePixelRatio || 1;
   overlayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   overlayCtx.clearRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
 
-  const { visible } = getHumanView(G);
+  const visible = humanView ? humanView.visible : new Set();
 
   // Draw bases (visible only)
   for (const key of visible) {
@@ -364,12 +368,13 @@ function drawCameraIndicator(G) {
  * Render the minimap for the current game state.
  * Terrain layer is cached; overlay layer is always re-drawn.
  * @param {object} G - Game state
+ * @param {{ visible: Set<string>, explored: Set<string> }} humanView - Pre-computed fog-of-war view
  */
-export function renderMinimap(G) {
+export function renderMinimap(G, humanView) {
   if (!minimapEl || !G) return;
 
-  renderTerrainLayer(G);
-  renderOverlayLayer(G);
+  renderTerrainLayer(G, humanView);
+  renderOverlayLayer(G, humanView);
 }
 
 /**

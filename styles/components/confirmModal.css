@@ -4,7 +4,7 @@
    visual language (card gradient, gold button, parchment tones).
    ========================================================================= */
 
-.confirm-card {
+.confirm-modal-card {
   background: linear-gradient(180deg, var(--board-hi), var(--board));
   border: var(--edge-bold) solid var(--crease-bold);
   border-radius: var(--r-panel);
@@ -15,14 +15,14 @@
   text-align: center;
 }
 
-.confirm-title {
+.confirm-modal-title {
   margin: 0 0 10px;
   color: var(--gold);
   font-family: Georgia, serif;
   font-size: 20px;
 }
 
-.confirm-body {
+.confirm-modal-body {
   color: var(--ink-mid);
   margin-bottom: 20px;
   line-height: 1.45;
@@ -32,13 +32,13 @@
    Side-by-side buttons: primary (gold) Yes and secondary (neutral) No.
    ──────────────────────────────────────────────────────────────────── */
 
-.confirm-actions {
+.confirm-modal-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
 }
 
-.confirm-btn {
+.confirm-modal-btn {
   min-width: 100px;
   padding: 10px 20px;
   border-radius: var(--r-sm);
@@ -49,23 +49,23 @@
   transition: filter var(--dur-fast) var(--ease-out);
 }
 
-.confirm-btn--yes {
+.confirm-modal-btn--yes {
   background: linear-gradient(180deg, var(--gold), #d4a138);
   border-color: #b88728;
   color: #2a1700;
   box-shadow: 0 4px 12px #b8872840;
 }
 
-.confirm-btn--yes:hover {
+.confirm-modal-btn--yes:hover {
   filter: brightness(1.06);
 }
 
-.confirm-btn--no {
+.confirm-modal-btn--no {
   background: var(--shadow);
   border-color: var(--crease-bold);
   color: var(--ink);
 }
 
-.confirm-btn--no:hover {
+.confirm-modal-btn--no:hover {
   background: var(--board);
 }

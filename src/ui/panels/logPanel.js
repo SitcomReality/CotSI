@@ -6,12 +6,12 @@ import { h } from '../domBuilder.js';
  */
 export function buildLogEntries(logs) {
   if (!logs || logs.length === 0) {
-    return [h('div', { class: 'log-view__empty' }, 'There is no history.')];
+    return [h('div', { class: 'log-panel__empty' }, 'There is no history.')];
   }
 
   return logs.map((line) => {
     const cls = classifyLogLine(line);
-    return h('div', { class: `log-view__line log-view__line--${cls}` }, line);
+    return h('div', { class: `log-panel__line log-panel__line--${cls}` }, line);
   });
 }
 

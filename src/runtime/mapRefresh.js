@@ -6,9 +6,13 @@
  */
 import { initHexMap3D, renderHexMap3D, setupMapInteraction3D, getSceneContext, animateCenterOnHex, centerOnHexWithFixedZoom, fitCameraToMap } from '../render/hexmap3d/hexMapRenderer.js';
 import { onHexClick } from './hexBridge.js';
-import { getTooltipContent, refreshZoomDisplay } from '../ui/mapTooltip.js';
+import { getTooltipContent } from '../ui/mapTooltip.js';
+import { refreshZoomDisplay } from './zoomDisplay.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
+import { getHumanView } from '../game/state/fogOfWar.js';
+import { adjacentPassable } from '../game/state/championMovement.js';
 import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/minimap.js';
+import { setDerivedState } from '../render/overlays/overlayStack.js';
 import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 
 /** Whether the 3D scene has been initialized once. */
@@ -32,6 +36,14 @@ export function refreshMap() {
     endMeasure('mapRefresh');
     return;
   }
+
+  // Pre-compute derived data so render layers don't need to import game/state/
+  const humanView = getHumanView(G);
+  const activeChamp = currentChamp();
+  const moveHighlights = activeChamp && activeChamp.alive && activeChamp.controller === 'human'
+    ? adjacentPassable(G, activeChamp)
+    : [];
+  setDerivedState(humanView, moveHighlights);
 
   const mountEl = document.getElementById('mapMount');
   if (!mountEl) {
@@ -75,7 +87,8 @@ export function refreshMap() {
     }
     setupMapInteraction3D(
       onHexClick,
-      (key) => getTooltipContent(G, key, currentChamp())
+      (key) => getTooltipContent(G, key, currentChamp()),
+      refreshZoomDisplay
     );
     map3dInitialized = true;
     // Show the real zoom level after init instead of the hardcoded "100%"
@@ -83,19 +96,19 @@ export function refreshMap() {
   }
 
   try {
-    renderHexMap3D(G);
+    renderHexMap3D(G, humanView);
   } catch (err) {
     console.error('[refreshMap] renderHexMap3D threw:', err);
   }
 
   // Initialize minimap on first render after game state is ready
   if (!minimapInitialized) {
-    initMinimap(mountEl, G.radius);
+    initMinimap(mountEl, G.radius, getHumanView);
     minimapInitialized = true;
   }
 
   // Render minimap each refresh (caches internally)
-  renderMinimap(G);
+  renderMinimap(G, humanView);
 
   // Center camera on human champion at turn start (only when champion changes).
   // Zooms to a fixed ~400% zoom for a tight context-rich view.

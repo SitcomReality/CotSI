@@ -5,7 +5,7 @@
  * runtime/bootstrap.js.
  */
 import { getSceneContext, zoomCamera, resetCamera, animateCenterOnHex } from '../render/hexmap3d/hexMapRenderer.js';
-import { refreshZoomDisplay } from '../ui/mapTooltip.js';
+import { refreshZoomDisplay } from './zoomDisplay.js';
 import { currentChamp } from '../game/state/liveGame.js';
 import { registerAction } from '../shared/actionBus.js';
 

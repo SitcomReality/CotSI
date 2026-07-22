@@ -3,7 +3,7 @@
 
 import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileTopY } from '../hexmap3d/hexMapRenderer.js';
-import { adjacentPassable } from '../../game/state/championMovement.js';
+import { getDerivedMoveHighlights } from './overlayStack.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
 
 // ---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ export function renderMovementHighlights(ctx2d, state, camera, _time) {
   );
   if (!champ || champ.controller !== 'human' || champ.moves <= 0) return;
 
-  const allowed = adjacentPassable(state, champ);
+  const allowed = getDerivedMoveHighlights() || [];
   if (allowed.length === 0) return;
 
   const canvas = ctx2d.canvas;

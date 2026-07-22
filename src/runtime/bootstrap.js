@@ -18,6 +18,7 @@ import { onEndTurn } from './turnPipeline.js';
 import { initCombatModal } from '../ui/combat/combatModal.js';
 import { toast } from '../ui/hud.js';
 import { refreshAll } from './refreshAll.js';
+import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
 import '../dev/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
 
@@ -67,6 +68,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     initCombatModal({
       refreshAll,
       toast,
+      startMeasure,
+      endMeasure,
     });
 
     // Delay setup init so beginGame.js is fully evaluated

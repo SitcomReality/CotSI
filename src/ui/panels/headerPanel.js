@@ -100,18 +100,18 @@ export function refreshHeader(G) {
 
   // ── World info (day, week, weather) ──
   const week = Math.floor((G.day - 1) / 7) + 1;
-  const headerWorldEl = document.querySelector('#gameHeader .header__world');
+  const headerWorldEl = document.querySelector('#gameHeader .header-panel__world');
   if (headerWorldEl) {
     headerWorldEl.replaceChildren();
     headerWorldEl.append(
-      h('span', { class: 'header__day' }, `Day ${G.day}`),
-      h('span', { class: 'header__week' }, `Week ${week}`),
-      h('span', { class: 'header__weather' }, G.weather.name)
+      h('span', { class: 'header-panel__day' }, `Day ${G.day}`),
+      h('span', { class: 'header-panel__week' }, `Week ${week}`),
+      h('span', { class: 'header-panel__weather' }, G.weather.name)
     );
   }
 
   // ── Champion turn-order pills ──
-  const headerChampsEl = document.querySelector('#gameHeader .header__champions');
+  const headerChampsEl = document.querySelector('#gameHeader .header-panel__champions');
   if (!headerChampsEl) return;
 
   headerChampsEl.replaceChildren();
@@ -125,15 +125,15 @@ export function refreshHeader(G) {
 
     const vm = championVM(G, champ);
     const pill = h('div', {
-      class: 'header__champion',
+      class: 'header-panel__champion',
       dataState: state,
       dataChampId: champ.id,
       // --faction-color is genuinely dynamic (per-champion)
       style: { '--faction-color': vm.factionColor },
     },
-      h('span', { class: 'header__champion-dot' }),
-      h('span', { class: 'header__champion-hp' }, String(vm.hp)),
-      h('span', { class: 'header__champion-pot' }, String(vm.totalPot))
+      h('span', { class: 'header-panel__champion-dot' }),
+      h('span', { class: 'header-panel__champion-hp' }, String(vm.hp)),
+      h('span', { class: 'header-panel__champion-pot' }, String(vm.totalPot))
     );
     headerChampsEl.append(pill);
   }
@@ -141,7 +141,7 @@ export function refreshHeader(G) {
 
 /**
  * bindHeaderEvents()
- * Delegation-based hover/click on .header__champions.
+ * Delegation-based hover/click on .header-panel__champions.
  * Fills #championDetail using championVM() + h() for all markup.
  * Call once after DOM is ready (from bootstrapUI or __beginGame).
  */
@@ -150,7 +150,7 @@ export function bindHeaderEvents() {
   if (wired) return;
   wired = true;
 
-  const champsEl = document.querySelector('#gameHeader .header__champions');
+  const champsEl = document.querySelector('#gameHeader .header-panel__champions');
   const detailEl = document.getElementById('championDetail');
   const headerEl = document.getElementById('gameHeader');
   if (!champsEl || !detailEl || !headerEl) return;
@@ -196,7 +196,7 @@ export function bindHeaderEvents() {
 
   // ── Hover → show (delegated) ──
   champsEl.addEventListener('mouseover', (e) => {
-    const slot = e.target.closest('.header__champion');
+    const slot = e.target.closest('.header-panel__champion');
     if (!slot) return;
     const id = slot.dataset.champId;
     if (!id) return;
@@ -236,7 +236,7 @@ export function bindHeaderEvents() {
 
   // ── Click → toggle (touch-friendly) ──
   champsEl.addEventListener('click', (e) => {
-    const slot = e.target.closest('.header__champion');
+    const slot = e.target.closest('.header-panel__champion');
     if (!slot) return;
     const id = slot.dataset.champId;
     if (!id) return;
@@ -250,7 +250,7 @@ export function bindHeaderEvents() {
   // ── Outside click → close ──
   document.addEventListener('click', (e) => {
     if (
-      !e.target.closest('.header__champion') &&
+      !e.target.closest('.header-panel__champion') &&
       !e.target.closest('#championDetail')
     ) {
       closeDetail();

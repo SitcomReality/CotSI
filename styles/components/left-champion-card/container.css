@@ -10,7 +10,7 @@
   border: var(--edge) solid var(--crease-bold);
   border-radius: var(--r-panel);
   box-shadow: var(--shadow-panel);
-  padding: var(--space-sm);
+  padding: var(--s4);
   border-left: 2px solid var(--faction-color, var(--ink));
   display: flex;
   flex-direction: column;

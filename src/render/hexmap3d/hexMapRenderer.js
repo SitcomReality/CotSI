@@ -3,7 +3,6 @@ import { buildTerrainMesh } from './terrain/terrainMesh.js';
 
 import { buildFeatureMeshes } from './features/featureMeshes.js';
 import { buildUnitMeshes, setupUnitAnimations, initMovementAnimator, disposeMovementAnimator, cleanupCompleted } from './units/index.js';
-import { getHumanView } from '../../game/state/fogOfWar.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/mapInteraction.js';
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/overlayStack.js';
 import { renderFogOverlay } from '../overlays/fogOverlay.js';
@@ -52,11 +51,11 @@ export function initHexMap3D(mountElement) {
 
 /**
  * Full render pass — builds terrain, features, and unit meshes from game state.
+ * @param {Object} state - Game state
+ * @param {{ visible: Set<string>, explored: Set<string> }} humanView - Pre-computed fog-of-war view
  */
-export function renderHexMap3D(state) {
+export function renderHexMap3D(state, humanView) {
   if (!ctx) return;
-
-  const humanView = getHumanView(state);
 
   // Dispose old meshes
   disposeMesh(terrainMesh);
@@ -135,8 +134,11 @@ function disposeAll() {
 
 /**
  * Wire canvas events for pan, zoom, hex picking, tooltips, and clicks.
+ * @param {function} onTileClick - Callback when a hex is clicked
+ * @param {function} getTooltipContent - (key) => content for hex hover tooltip
+ * @param {function} [onZoomChange] - Optional callback fired after camera zoom changes
  */
-export function setupMapInteraction3D(onTileClick, getTooltipContent) {
+export function setupMapInteraction3D(onTileClick, getTooltipContent, onZoomChange) {
   if (!ctx) return () => {};
 
   // Clean up previous interaction if any
@@ -151,7 +153,8 @@ export function setupMapInteraction3D(onTileClick, getTooltipContent) {
     ctx.getCameraState,
     () => terrainMesh,  // getter always returns current mesh
     onTileClick,
-    getTooltipContent
+    getTooltipContent,
+    onZoomChange
   );
   ctx._interactionCleanup = cleanup;
   return cleanup;

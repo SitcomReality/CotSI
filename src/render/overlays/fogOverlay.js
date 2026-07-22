@@ -5,7 +5,7 @@
 // using precomputed blurred masks.
 
 import { generateFogMasks } from './fogMaskGenerator.js';
-import { getHumanView } from '../../game/state/fogOfWar.js';
+import { getDerivedHumanView } from './overlayStack.js';
 
 // ---------------------------------------------------------------------------
 // Tunable constants
@@ -47,7 +47,8 @@ export function renderFogOverlay(ctx2d, state, camera, _time) {
   const cssH = canvas.height / dpr;
 
   // 1. Get vision sets and generate the two mask canvases
-  const { visible, explored } = getHumanView(state);
+  const humanView = getDerivedHumanView();
+  const { visible, explored } = humanView || { visible: new Set(), explored: new Set() };
   const { visibleMask, exploredMask } = generateFogMasks(
     state,
     camera,

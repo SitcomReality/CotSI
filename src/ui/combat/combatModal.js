@@ -7,6 +7,6 @@ export { openArtifactChoiceModal } from '../modals/rewardModal.js';
 import { wireCombatActions } from './combatInteractions.js';
 
 export function initCombatModal(deps) {
-  setCallbacks(deps.refreshAll, deps.toast);
+  setCallbacks(deps.refreshAll, deps.toast, deps.startMeasure, deps.endMeasure);
   wireCombatActions();
 }
