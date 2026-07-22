@@ -1,4 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
+import { shadowLightConfig } from '../../shadowLightConfig.js';
 
 /**
  * Create and add ambient, hemisphere, and directional lights to a scene.
@@ -9,29 +10,32 @@ import * as THREE from '../../../vendor/three.module.js';
  * @returns {{ ambient: THREE.AmbientLight, hemisphere: THREE.HemisphereLight, directional: THREE.DirectionalLight }}
  */
 export function addLights(scene, { shadows = false } = {}) {
-  const ambient = new THREE.AmbientLight(0xc8b898, 0.6);
+  const cfg = shadowLightConfig;
+
+  const ambient = new THREE.AmbientLight(cfg.ambientColor, cfg.ambientIntensity);
   scene.add(ambient);
 
-  const hemisphere = new THREE.HemisphereLight(0xffe8c8, 0x8a6a3a, 0.4);
+  const hemisphere = new THREE.HemisphereLight(cfg.hemisphereSkyColor, cfg.hemisphereGroundColor, cfg.hemisphereIntensity);
   scene.add(hemisphere);
 
-  const dirLight = new THREE.DirectionalLight(0xfff4e0, 3.0);
-  dirLight.position.set(15, 25, 10); // north-east, matching existing shadow convention
+  const dirLight = new THREE.DirectionalLight(cfg.sunColor, cfg.sunIntensity);
+  dirLight.position.set(cfg.sunPosition.x, cfg.sunPosition.y, cfg.sunPosition.z);
   scene.add(dirLight);
 
-  if (shadows) {
+  if (shadows && cfg.enabled) {
     dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 100;
+    dirLight.shadow.mapSize.width = cfg.mapSize;
+    dirLight.shadow.mapSize.height = cfg.mapSize;
+    dirLight.shadow.camera.near = cfg.cameraNear;
+    dirLight.shadow.camera.far = cfg.cameraFar;
     // Initial modest frustum; setShadowMapExtent() resizes to match the map.
     dirLight.shadow.camera.left = -15;
     dirLight.shadow.camera.right = 15;
     dirLight.shadow.camera.top = 15;
     dirLight.shadow.camera.bottom = -15;
-    dirLight.shadow.bias = -0.0005;
-    dirLight.shadow.normalBias = 0.02;
+    dirLight.shadow.bias = cfg.bias;
+    dirLight.shadow.normalBias = cfg.normalBias;
+    dirLight.shadow.radius = cfg.radius;
   }
 
   return { ambient, hemisphere, directional: dirLight };
@@ -62,7 +66,7 @@ export function setShadowMapExtent(light, mapRadius) {
 
   // Generous padding so tall objects at the map edge still cast visible
   // shadows onto the map rather than off the shadow map.
-  const padding = 2.0;
+  const padding = shadowLightConfig.frustumPadding;
   const shadowWorldExtent = mapExtent * padding;
 
   // The shadow camera's local axes are rotated relative to world space.

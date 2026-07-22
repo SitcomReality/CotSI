@@ -28,9 +28,6 @@ export function buildBaseMeshes(state, visible) {
     const group = new THREE.Group();
     group.name = `base_${f.faction}`;
 
-    // All base children cast shadows
-    group.traverse(child => { if (child.isMesh) child.castShadow = true; });
-
     const towerMat = new THREE.MeshLambertMaterial({ color: fac.base, flatShading: true });
     const accentMat = new THREE.MeshLambertMaterial({ color: fac.color, flatShading: true });
 
@@ -86,6 +83,9 @@ export function buildBaseMeshes(state, visible) {
         }
         break;
     }
+
+    // All base children cast shadows (traverse after children are added)
+    group.traverse(child => { if (child.isMesh) child.castShadow = true; });
 
     results.push(group);
   }

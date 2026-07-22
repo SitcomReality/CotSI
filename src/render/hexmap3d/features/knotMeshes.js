@@ -41,6 +41,7 @@ export function buildKnotMeshes(state, visible) {
     mesh.setMatrixAt(i, dummy.matrix);
   });
   mesh.instanceMatrix.needsUpdate = true;
+  mesh.castShadow = true;
   mesh.name = 'knots';
   return [mesh];
 }

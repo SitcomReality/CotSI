@@ -1,4 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
+import { shadowLightConfig, SHADOW_MAP_TYPES } from '../../shadowLightConfig.js';
 
 /**
  * Create and configure the WebGLRenderer.
@@ -13,9 +14,9 @@ export function createRenderer(mountElement, { shadows = false } = {}) {
   renderer.setPixelRatio(Math.round(Math.min(window.devicePixelRatio, 2)));
   renderer.setClearColor(0x5c5242); // dark parchment (contrast with terrain colors)
 
-  if (shadows) {
+  if (shadows && shadowLightConfig.enabled) {
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = SHADOW_MAP_TYPES[shadowLightConfig.shadowMapType] ?? THREE.PCFSoftShadowMap;
   } else {
     renderer.shadowMap.enabled = false;
   }

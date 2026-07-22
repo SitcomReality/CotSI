@@ -9,6 +9,7 @@ import { renderFogOverlay } from '../overlays/fogOverlay.js';
 import { renderSelectionRing } from '../overlays/selectionRing.js';
 import { renderMovementHighlights } from '../overlays/movementHighlights.js';
 import { getClock } from '../../shared/clockScheduler.js';
+import { shadowLightConfig } from '../shadowLightConfig.js';
 
 // Re‑export symbols needed by external consumers
 export { tileTopY, HEX_THICKNESS } from './terrain/terrainMesh.js';
@@ -32,7 +33,7 @@ export function initHexMap3D(mountElement) {
     // Clear all clock tasks and frame callbacks from the previous game
     getClock().dispose();
   }
-  ctx = initScene(mountElement, { clock: getClock(), shadows: true });
+  ctx = initScene(mountElement, { clock: getClock(), shadows: shadowLightConfig.enabled });
 
   // Start the clock's rAF loop (safe to call multiple times)
   getClock().start();
