@@ -11,7 +11,7 @@ import { renderMovementHighlights } from '../overlays/movementHighlights.js';
 import { getClock } from '../../shared/clockScheduler.js';
 
 // Re‑export symbols needed by external consumers
-export { tileTopY } from './terrain/terrainMesh.js';
+export { tileTopY, HEX_THICKNESS } from './terrain/terrainMesh.js';
 export { hexCenter, hexCornersXZ, hexCenter3D } from './hexWorldSpace.js';
 export { resetCamera, zoomCamera, fitCameraToMap } from './scene/cameraZoomMath.js';
 export { setPanBounds } from './scene/cameraPanMath.js';

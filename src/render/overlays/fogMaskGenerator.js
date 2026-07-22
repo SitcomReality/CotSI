@@ -6,7 +6,7 @@
 // main fog layer to "punch holes" into the full-screen dark overlay via
 // destination-out compositing.
 
-import { getMaskCornersWorld } from './fogHexGeometry.js';
+import { getHexCornersWorld } from './fogHexGeometry.js';
 import { projectCorners, isOffScreen } from './fogProjection.js';
 import { drawHexPoly } from './fogDrawing.js';
 import { blurMaskInPlace } from './fogBlur.js';
@@ -70,22 +70,27 @@ export function generateFogMasks(state, camera, overlayCanvas, visible, explored
   vCtx.clearRect(0, 0, cssW, cssH);
   eCtx.clearRect(0, 0, cssW, cssH);
 
-  // Draw all explored hexes
+  // Draw all explored hexes — project both the top and bottom surfaces of each
+  // hex so the fog hole covers the full visible height of the hex body,
+  // preventing a dark fringe ("shadow") at the base of elevated tiles.
   for (const [, tile] of Object.entries(state.tiles)) {
     const key = `${tile.q},${tile.r}`;
     if (!explored.has(key)) continue;
 
     const isVisible = visible.has(key);
-    const corners = getMaskCornersWorld(tile.q, tile.r, tile.terrain);
-    const pts = projectCorners(corners, camera, overlayCanvas);
-    if (!pts || isOffScreen(pts, cssW, cssH)) continue;
+    const { top: topCorners, bottom: bottomCorners } = getHexCornersWorld(tile.q, tile.r, tile.terrain);
 
-    if (isVisible) {
-      drawHexPoly(vCtx, pts);
-    } else {
-      // Explored but not currently visible
-      drawHexPoly(eCtx, pts);
-    }
+    const topPts = projectCorners(topCorners, camera, overlayCanvas);
+    const bottomPts = projectCorners(bottomCorners, camera, overlayCanvas);
+
+    // Need at least one valid projection that isn't off-screen
+    const topOk = topPts && !isOffScreen(topPts, cssW, cssH);
+    const botOk = bottomPts && !isOffScreen(bottomPts, cssW, cssH);
+    if (!topOk && !botOk) continue;
+
+    const ctx = isVisible ? vCtx : eCtx;
+    if (topOk) drawHexPoly(ctx, topPts);
+    if (botOk) drawHexPoly(ctx, bottomPts);
   }
 
   // Apply blur to both masks for soft edges.

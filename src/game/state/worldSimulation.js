@@ -30,23 +30,28 @@ export function advanceTurn(state) {
   if (checkVictory(state)) return;
   const livingOrder = state.currentOrder.filter(id => getChampion(state, id)?.alive);
   const idx = livingOrder.indexOf(state.activeChampionId);
+
   if (idx >= 0 && idx + 1 < livingOrder.length) {
+    // Normal case: advance to the next champion in the living order
     state.activeChampionId = livingOrder[idx + 1];
+  } else if (idx >= 0) {
+    // All living champions have played — world turn + next day
+    _runWorldTurn(state);
   } else {
-    // world turn
-    runWorldTurn(state);
-    state.day += 1;
-    state.weather = weatherForDay(state.day);
-    addLog(state, `— Day ${state.day}: ${state.weather.name}. ${state.weather.text}`);
-    state.currentOrder = state.globalOrder.filter(id => getChampion(state, id)?.alive);
-    state.herald = {
-      day: state.day,
-      weather: { name: state.weather.name, text: state.weather.text, tint: state.weather.tint },
-      order: [...state.currentOrder],
-      champions: state.champions,
-    };
-    state.activeChampionId = state.currentOrder[0] || null;
+    // Active champion died during their own turn (e.g. bot lost combat).
+    // Find the next living champion after the dead one's position in currentOrder.
+    const deadPos = state.currentOrder.indexOf(state.activeChampionId);
+    const nextAlive = state.currentOrder
+      .slice(deadPos + 1)
+      .find(id => getChampion(state, id)?.alive);
+    if (nextAlive) {
+      state.activeChampionId = nextAlive;
+    } else {
+      // No living champions remain after this position — world turn
+      _runWorldTurn(state);
+    }
   }
+
   if (state.activeChampionId) {
     beginTurn(state, state.activeChampionId);
     // Clear turn lock so the new champion's turn can proceed.
@@ -55,6 +60,22 @@ export function advanceTurn(state) {
     // again before doing work, and onEndTurn checks it.
     state.turnLock = false;
   }
+}
+
+/** World-turn logic extracted to avoid duplication. */
+function _runWorldTurn(state) {
+  runWorldTurn(state);
+  state.day += 1;
+  state.weather = weatherForDay(state.day);
+  addLog(state, `— Day ${state.day}: ${state.weather.name}. ${state.weather.text}`);
+  state.currentOrder = state.globalOrder.filter(id => getChampion(state, id)?.alive);
+  state.herald = {
+    day: state.day,
+    weather: { name: state.weather.name, text: state.weather.text, tint: state.weather.tint },
+    order: [...state.currentOrder],
+    champions: state.champions,
+  };
+  state.activeChampionId = state.currentOrder[0] || null;
 }
 
 function runWorldTurn(state) {
