@@ -8,9 +8,10 @@
 
 ## Add a 3D Feature or Tile Type
 
-- Map generation: `src/game/rules/terrainGeneration.js`
+- Map generation: `src/game/rules/terrainGenerator.js` (terrain types in `src/game/rules/terrainTypes.js`)
 - Hex math: `src/engine/rules/hexGrid.js`
-- Geometry/materials: `src/render/hexmap3d/terrain/` or `src/render/hexmap3d/features/`
+- Feature geometry: `src/render/hexmap3d/features/geometries/` (one file per feature type)
+- Feature meshes: `src/render/hexmap3d/features/` (treeMeshes.js, mountainMeshes.js, etc.)
 - Visibility/fog: `src/game/state/fogOfWar.js`
 
 ## Change Win Conditions

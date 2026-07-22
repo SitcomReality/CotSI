@@ -1,5 +1,5 @@
 import { svgIcon } from './svgIcon.js';
-import { TERRAIN } from '../game/rules/terrainGeneration.js';
+import { TERRAIN } from '../game/rules/terrainTypes.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { getHumanView } from '../game/state/fogOfWar.js';

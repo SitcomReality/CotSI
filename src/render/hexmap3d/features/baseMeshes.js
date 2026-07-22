@@ -3,7 +3,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileTopY } from '../terrain/terrainMesh.js';
-import { getBaseSpikeGeo, getBaseRingGeo, getBaseRingDotGeo } from './featureGeometries.js';
+import { getBaseSpikeGeo, getBaseRingGeo, getBaseRingDotGeo } from './geometries/index.js';
 
 /**
  * Build base meshes (groups) for visible tiles with 'base' feature.

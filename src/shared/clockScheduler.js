@@ -11,6 +11,9 @@
  * Layer: shared/ — imports nothing project-local.
  */
 
+import { createGroups, pauseGroup, resumeGroup, setSpeed, getSpeed, now as groupNow, isPaused as groupIsPaused, advanceGroup } from './speedGroup.js';
+import { createTask, addTask, removeTask, popExpired, reschedule } from './timerQueue.js';
+
 // ─── Clock instance factory ─────────────────────────────────────────────
 
 export function createClock() {
@@ -23,24 +26,9 @@ export function createClock() {
   let _frameCallbacks = [];
   let _frameCallbackIdCounter = 1;
 
-  // Per-group state
-  // The `animation` group is reserved for future use (score count-up, slot-flip timing)
-  const _groups = {
-    default:   { paused: false, speed: 1, virtualNow: 0 },
-    bot:       { paused: false, speed: 1, virtualNow: 0 },
-    combat:    { paused: false, speed: 1, virtualNow: 0 },
-    animation: { paused: false, speed: 1, virtualNow: 0 },
-    ui:        { paused: false, speed: 1, virtualNow: 0 },
-  };
+  const _groups = createGroups();
 
   // ── Internal helpers ────────────────────────────────────────────────
-
-  function _groupRef(group) {
-    if (!_groups[group]) {
-      _groups[group] = { paused: false, speed: 1, virtualNow: 0 };
-    }
-    return _groups[group];
-  }
 
   function _tick(timestamp) {
     if (!_running) return;
@@ -54,45 +42,19 @@ export function createClock() {
     const realDelta = timestamp - _lastTime;
     _lastTime = timestamp;
 
-    // ── Advance group virtual clocks ──
+    // ── Advance group virtual clocks and fire due timers ──
     if (!_masterPaused) {
       for (const key of Object.keys(_groups)) {
-        const g = _groups[key];
-        if (!g.paused) {
-          g.virtualNow += realDelta * g.speed;
-        }
+        advanceGroup(_groups, key, realDelta);
       }
 
-      // ── Fire due timeout tasks ──
-      // Sort so we process in chronological order
-      _timeoutTasks.sort((a, b) => a.fireAt - b.fireAt);
-      const due = [];
-      const remaining = [];
-      for (const task of _timeoutTasks) {
-        if (task.cancelled) continue;
-        const grp = _groupRef(task.group);
-        if (grp.virtualNow >= task.fireAt) {
-          due.push(task);
-        } else {
-          remaining.push(task);
-        }
-      }
-      _timeoutTasks = remaining;
-
+      const due = popExpired(_timeoutTasks, _groups);
       for (const task of due) {
         if (!task.cancelled) {
           task.fn();
-          // If interval task, re-schedule
-          if (task.interval > 0) {
-            const grp = _groupRef(task.group);
-            _timeoutTasks.push({
-              id: task.id,
-              fn: task.fn,
-              group: task.group,
-              fireAt: grp.virtualNow + task.interval,
-              interval: task.interval,
-              cancelled: false,
-            });
+          const next = reschedule(task);
+          if (next) {
+            addTask(_timeoutTasks, next);
           }
         }
       }
@@ -123,16 +85,9 @@ export function createClock() {
      * given speed group. Returns a handle usable with clearTimeout.
      */
     setTimeout(fn, ms, group = 'default') {
-      const grp = _groupRef(group);
+      const grp = _groups[group] || _groups.default;
       const id = _idCounter++;
-      _timeoutTasks.push({
-        id,
-        fn,
-        group,
-        fireAt: grp.virtualNow + ms,
-        interval: 0,
-        cancelled: false,
-      });
+      addTask(_timeoutTasks, createTask(id, fn, grp.virtualNow + ms, 0, group));
       return id;
     },
 
@@ -140,12 +95,7 @@ export function createClock() {
      * Cancel a previously scheduled timeout or interval.
      */
     clearTimeout(id) {
-      for (const task of _timeoutTasks) {
-        if (task.id === id) {
-          task.cancelled = true;
-          return;
-        }
-      }
+      removeTask(_timeoutTasks, id);
     },
 
     /**
@@ -153,16 +103,9 @@ export function createClock() {
      * Returns a handle usable with clearInterval / clearTimeout.
      */
     setInterval(fn, ms, group = 'default') {
-      const grp = _groupRef(group);
+      const grp = _groups[group] || _groups.default;
       const id = _idCounter++;
-      _timeoutTasks.push({
-        id,
-        fn,
-        group,
-        fireAt: grp.virtualNow + ms,
-        interval: ms,
-        cancelled: false,
-      });
+      addTask(_timeoutTasks, createTask(id, fn, grp.virtualNow + ms, ms, group));
       return id;
     },
 
@@ -235,16 +178,14 @@ export function createClock() {
      * normally.
      */
     pauseGroup(group) {
-      const grp = _groupRef(group);
-      grp.paused = true;
+      pauseGroup(_groups, group);
     },
 
     /**
      * Resume a single speed group.
      */
     resumeGroup(group) {
-      const grp = _groupRef(group);
-      grp.paused = false;
+      resumeGroup(_groups, group);
     },
 
     /**
@@ -252,15 +193,14 @@ export function createClock() {
      * 1.0 = normal, 2.0 = double speed, 0.5 = half speed.
      */
     setSpeed(group, multiplier) {
-      const grp = _groupRef(group);
-      grp.speed = multiplier;
+      setSpeed(_groups, group, multiplier);
     },
 
     /**
      * Get the current speed multiplier for a group.
      */
     getSpeed(group = 'default') {
-      return _groupRef(group).speed;
+      return getSpeed(_groups, group);
     },
 
     // ── Queries ──
@@ -271,7 +211,7 @@ export function createClock() {
      * group is not paused.
      */
     now(group = 'default') {
-      return _groupRef(group).virtualNow;
+      return groupNow(_groups, group);
     },
 
     /**
@@ -280,7 +220,7 @@ export function createClock() {
      */
     isPaused(group) {
       if (group !== undefined) {
-        return _masterPaused || _groupRef(group).paused;
+        return _masterPaused || groupIsPaused(_groups, group);
       }
       return _masterPaused;
     },

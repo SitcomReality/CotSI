@@ -2,7 +2,7 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileTopY } from '../terrain/terrainMesh.js';
-import { getKnotGeo } from './featureGeometries.js';
+import { getKnotGeo } from './geometries/index.js';
 
 /**
  * Collect knot instance data from visible tiles and return InstancedMeshes.

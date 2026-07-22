@@ -9,13 +9,12 @@ import { movementRange, moveChampion, adjacentPassable } from '../game/state/cha
 import { getSceneContext, animateCenterOnHex, tileTopY } from '../render/hexmap3d/hexMapRenderer.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
-import { addLog } from '../game/state/gameLog.js';
-import { recordLedgerEntry } from '../game/state/dispatchLedger.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { parseKey, distance, coordKey } from '../engine/rules/hexGrid.js';
 import { startCombat, openTrader } from '../ui/combat/combatModal.js';
-import { toast, pulseEnd } from '../ui/hud.js';
+import { pulseEnd } from '../ui/hud.js';
 import { FACTIONS } from '../game/rules/factionData.js';
+import { interactBase } from '../game/state/baseInteraction.js';
 import { handleTeleportClick } from '../dev/devTools.js';
 
 /**
@@ -85,38 +84,5 @@ export function onHexClick(key) {
       animateCenterOnHex(ctx3d.getCameraState(), ctx3d.applyCamera, ch.pos.q, ch.pos.r, MOVE_DURATION);
     }
     if (ch.moves <= 0) pulseEnd();
-  }
-}
-
-/**
- * Handle interacting with a base (sanctuary or potency purchase).
- * @param {object} ch
- * @param {object} tile
- */
-function interactBase(ch, tile) {
-  if (tile.feature.faction === ch.faction) {
-    // Sanctuary — heal 50% max HP
-    const healed = Math.ceil(ch.maxHp * 0.5);
-    ch.hp = Math.min(ch.maxHp, ch.hp + healed);
-    ch.moves = 0;
-    addLog(G, `${ch.name} receives sanctuary (+${healed} HP).`);
-    recordLedgerEntry(ch, `+${healed} HP — sanctuary`, 'gain', 'hp');
-  } else {
-    // Buy faction potency
-    const cost = ch.faction === 4 ? 14 : 18;
-    if (ch.gold >= cost) {
-      ch.gold -= cost;
-      ch.potencies[tile.feature.faction]++;
-      ch.moves = 0;
-      addLog(G, `${ch.name} buys ${FACTIONS[tile.feature.faction].name} potency.`);
-      recordLedgerEntry(
-        ch,
-        `-${cost} gold, +1 ${FACTIONS[tile.feature.faction].name} potency — base purchase`,
-        'neutral',
-        'gold'
-      );
-    } else {
-      toast('Not enough gold.');
-    }
   }
 }

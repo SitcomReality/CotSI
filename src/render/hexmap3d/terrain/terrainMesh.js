@@ -25,7 +25,7 @@ export function tileTopY(terrain) {
 
 // Terrain fill colors (mapped to vertex colors)
 // These are RGB tuples for vertex color attributes
-const TERRAIN_COLOR = {
+export const TERRAIN_COLOR = {
   plains:   [0.455, 0.678, 0.365],  // #74ad5d — vibrant meadow green
   forest:   [0.294, 0.557, 0.255],  // #4b8e41 — deep vivid forest
   desert:   [0.839, 0.694, 0.357],  // #d6b15b — warm golden sand

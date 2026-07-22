@@ -3,7 +3,7 @@
  * Depends only on map utilities (coordKey, parseKey, TERRAIN).
  */
 import { coordKey, parseKey } from '../../engine/rules/hexGrid.js';
-import { TERRAIN } from '../rules/terrainGeneration.js';
+import { TERRAIN } from '../rules/terrainTypes.js';
 
 export function getChampion(state, id) {
   return state.champions.find(c => c.id === id);

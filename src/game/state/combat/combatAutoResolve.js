@@ -9,7 +9,8 @@
  */
 
 import { createCombatState } from './combatState.js';
-import { botCombatPick, getAvailablePicks, recordPick, bothPicksIn, advancePhase } from './combatPicks.js';
+import { botCombatPick } from './combatBotAI.js';
+import { getAvailablePicks, recordPick, bothPicksIn, advancePhase } from './combatPicks.js';
 import { processReveal, applyFinalBonuses } from './combatScoring.js';
 import { resolveRoundDamage, nextCombatRound, finalizeCombat } from './combatDamage.js';
 

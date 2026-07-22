@@ -11,6 +11,7 @@ import { h } from '../domBuilder.js';
 import { svgIcon } from '../svgIcon.js';
 import { showModal } from './modalShell.js';
 import { getClock } from '../../shared/clockScheduler.js';
+import { weatherDisplayEl } from '../weatherDisplay.js';
 
 /**
  * Total reveal window (ms). The Acknowledge button unlocks after this, so the
@@ -43,50 +44,6 @@ const LEDGER_ICONS = {
 };
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
-
-function weatherDisplayEl(weather, glyphId) {
-  // Big visual weather area: tint background, fog pattern overlay,
-  // weather name in large display text, decorative corners.
-  //
-  // The fog pattern is rendered as an inline SVG rect so it can reference
-  // the <pattern> defined in the sprite — CSS url(#fragment) can't reach
-  // cross-document SVG patterns.
-  // Build fog-pattern SVG inline (the sprite's <pattern> def is in an external
-  // file and can't be referenced via url(#...) from the main document).
-  const fogSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  fogSvg.setAttribute('class', 'dispatch-modal__weather-fog');
-  fogSvg.setAttribute('viewBox', '0 0 84 84');
-  fogSvg.setAttribute('preserveAspectRatio', 'none');
-  const fogDefs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  fogDefs.innerHTML =
-    '<pattern id="fog-clouds-dispatch" width="84" height="84" patternUnits="userSpaceOnUse">' +
-    '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".5">' +
-    '<path d="M6 30 q10 -12 22 -4 q10 -10 22 0 q12 -6 18 6"/>' +
-    '<path d="M-4 60 q12 -12 24 -2 q12 -10 24 2 q10 -6 18 4"/>' +
-    '<path d="M40 12 q8 -8 16 0"/>' +
-    '<circle cx="64" cy="44" r="2.4" fill="currentColor" stroke="none"/>' +
-    '</g></pattern>';
-  fogSvg.append(fogDefs);
-  const fogRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  fogRect.setAttribute('width', '100%');
-  fogRect.setAttribute('height', '100%');
-  fogRect.setAttribute('fill', 'url(#fog-clouds-dispatch)');
-  fogSvg.append(fogRect);
-
-  const name = h('div', { class: 'dispatch-modal__weather-name' }, weather.name);
-
-  // Decorative corner SVGs
-  const cornerTL = svgIcon('d-corner', 36, { class: 'dispatch-modal__wc dispatch-modal__wc--tl' });
-  const cornerTR = svgIcon('d-corner', 36, { class: 'dispatch-modal__wc dispatch-modal__wc--tr' });
-  const cornerBL = svgIcon('d-corner', 36, { class: 'dispatch-modal__wc dispatch-modal__wc--bl' });
-  const cornerBR = svgIcon('d-corner', 36, { class: 'dispatch-modal__wc dispatch-modal__wc--br' });
-
-  const el = h('div', {
-    class: 'dispatch-modal__weather-display',
-    style: { '--weather-tint': weather.tint },
-  }, fogSvg, cornerTL, cornerTR, cornerBL, cornerBR, name);
-  return el;
-}
 
 function statGridEl(report) {
   // Build stat cards from the report's movement and weather effects

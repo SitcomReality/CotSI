@@ -7,9 +7,9 @@
  * it imports from game/state, game/rules, and engine/rules.
  */
 import { makeRng } from '../../engine/rules/seededRng.js';
-import { generateTiles } from '../rules/terrainGeneration.js';
+import { generateTiles } from '../rules/terrainGenerator.js';
 import { getArchetype } from '../rules/archetypes.js';
-import '../rules/archetypeData.js'; // side-effect: populate archetype registry
+import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { shuffle } from '../../engine/rules/shuffle.js';
 import { createInitialState } from './initialGameState.js';
 import { createChampions } from './championFactory.js';

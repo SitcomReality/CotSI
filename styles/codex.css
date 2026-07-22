@@ -28,6 +28,7 @@
 @import "./components/card.css";
 @import "./components/modalShell.css";
 @import "./components/setupScreen.css";
+@import "./components/setupControls.css";
 @import "./components/combatModal.css";
 @import "./components/dispatchModal.css";
 @import "./components/heraldModal.css";

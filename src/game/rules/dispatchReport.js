@@ -7,7 +7,7 @@
  * No DOM, no mutation — takes state as a parameter.
  */
 import { FACTIONS, ARTIFACTS } from './factionData.js';
-import { TERRAIN } from './terrainGeneration.js';
+import { TERRAIN } from './terrainTypes.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);

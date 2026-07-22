@@ -12,7 +12,7 @@
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { refreshAll } from '../runtime/refreshAll.js';
-import { runBot } from '../runtime/turnPipeline.js';
+import { runBot } from '../runtime/botTurnRunner.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { toast } from '../ui/hud.js';
 

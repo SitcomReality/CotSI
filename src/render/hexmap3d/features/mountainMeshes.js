@@ -2,9 +2,7 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileTopY } from '../terrain/terrainMesh.js';
-import { getMountainGeo } from './featureGeometries.js';
-import { getMountainSlopeGeo } from './featureGeometries.js';
-import { getMountainPeakGeo } from './featureGeometries.js';
+import { getMountainGeo, getMountainSlopeGeo, getMountainPeakGeo } from './geometries/index.js';
 
 /**
  * Collect mountain instance data from visible tiles and return InstancedMeshes.

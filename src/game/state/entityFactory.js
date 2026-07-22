@@ -4,9 +4,9 @@
  * mobs and traders on unclaimed passable tiles.
  */
 import { parseKey } from '../../engine/rules/hexGrid.js';
-import { TERRAIN } from '../rules/terrainGeneration.js';
+import { TERRAIN } from '../rules/terrainTypes.js';
 import { getArchetypesByType } from '../rules/archetypes.js';
-import '../rules/archetypeData.js'; // side-effect: populate archetype registry
+import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { traderStock } from '../rules/traderStock.js';
 
 /**

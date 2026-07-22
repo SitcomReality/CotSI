@@ -3,11 +3,11 @@
  * Depends on entityQueries, turnActions, fogOfWar, and victoryChecks.
  */
 import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
-import { TERRAIN } from '../rules/terrainGeneration.js';
+import { TERRAIN } from '../rules/terrainTypes.js';
 import { weatherForDay } from '../rules/weatherScript.js';
 import { getChampion, occupiedByChampion, occupiedByMob } from './entityQueries.js';
 import { beginTurn, isDigEligible } from './turnActions.js';
-import { interactOnArrival } from './championMovement.js';
+import { interactOnArrival } from './arrivalInteractions.js';
 import { addLog } from './gameLog.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { checkVictory } from './victoryChecks.js';

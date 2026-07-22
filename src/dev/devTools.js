@@ -10,43 +10,18 @@
  */
 
 import { loadTemplate } from '../ui/templates/templateLoader.js';
-import { registerAction } from '../shared/actionBus.js';
 import { getClock } from '../shared/clockScheduler.js';
-import {
-  cheatGold10,
-  cheatHp50,
-  cheatHpFull,
-  cheatRelic1,
-  cheatKnot5,
-  cheatPotencyAll,
-  cheatFillMoves,
-  cheatTeleport,
-  teleportToHex,
-  cheatCombatDamage,
-  cheatCombatWin,
-  cheatRevealFog,
-  devState,
-} from './devCheats.js';
+import { teleportToHex, devState } from './devCheats.js';
 import {
   setMeasurementEnabled,
-  setOverlayEnabled,
   getMeasurementStats,
   getFps,
   getLastFrameTime,
   ensureFrameTracking,
 } from './devPerformance.js';
-import {
-  renderChampionList,
-  toggleStepMode,
-  stepOnce,
-  autoPlay,
-  autoStop,
-  botDevState,
-} from './devBotControl.js';
-import { G } from '../game/state/liveGame.js';
-import { coordKey } from '../engine/rules/hexGrid.js';
-import { moveChampion } from '../game/state/championMovement.js';
+import { renderChampionList } from './devBotControl.js';
 import { refreshAll } from '../runtime/refreshAll.js';
+import { registerAllDevActions } from './devActionWiring.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 
@@ -149,75 +124,9 @@ function _startPerfPolling() {
 }
 
 // ─── Action registrations ──────────────────────────────────────────────────
-
-function _registerCheatActions() {
-  registerAction('dev:cheat:gold10', cheatGold10);
-  registerAction('dev:cheat:hp50', cheatHp50);
-  registerAction('dev:cheat:hpFull', cheatHpFull);
-  registerAction('dev:cheat:relic1', cheatRelic1);
-  registerAction('dev:cheat:knot5', cheatKnot5);
-  registerAction('dev:cheat:potencyAll', cheatPotencyAll);
-  registerAction('dev:cheat:fillMoves', cheatFillMoves);
-  registerAction('dev:cheat:teleport', cheatTeleport);
-
-  registerAction('dev:cheat:revealFog', () => {
-    cheatRevealFog();
-    refreshAll();
-  });
-
-  registerAction('dev:cheat:combatDamage', () => {
-    const input = document.getElementById('devCombatDmgInput');
-    const amount = input ? parseInt(input.value, 10) : 20;
-    cheatCombatDamage(amount);
-  });
-
-  registerAction('dev:cheat:combatWin', cheatCombatWin);
-}
-
-function _registerPerfActions() {
-  registerAction('dev:perf:toggleOverlay', () => {
-    const btn = document.getElementById('devPerfOverlayBtn');
-    const current = btn?.classList.contains('is-active') || false;
-    const next = !current;
-    setOverlayEnabled(next);
-    if (btn) {
-      btn.textContent = next ? 'Live Overlay: ON' : 'Live Overlay: OFF';
-      btn.classList.toggle('is-active', next);
-    }
-  });
-
-  // Toggle individual measurements via checkbox (data-action on label,
-  // so clicking the label text works — find the checkbox inside)
-  registerAction('dev:perf:toggle:refreshAll', (el) => {
-    const cb = el.querySelector('input[type="checkbox"]');
-    if (cb) setMeasurementEnabled('refreshAll', cb.checked);
-  });
-  registerAction('dev:perf:toggle:mapRefresh', (el) => {
-    const cb = el.querySelector('input[type="checkbox"]');
-    if (cb) setMeasurementEnabled('mapRefresh', cb.checked);
-  });
-  registerAction('dev:perf:toggle:runBot', (el) => {
-    const cb = el.querySelector('input[type="checkbox"]');
-    if (cb) setMeasurementEnabled('runBot', cb.checked);
-  });
-  registerAction('dev:perf:toggle:combatFlow', (el) => {
-    const cb = el.querySelector('input[type="checkbox"]');
-    if (cb) setMeasurementEnabled('combatFlow', cb.checked);
-  });
-}
-
-function _registerBotActions() {
-  registerAction('dev:bot:stepMode', toggleStepMode);
-  registerAction('dev:bot:stepOnce', stepOnce);
-  registerAction('dev:bot:autoPlay', autoPlay);
-  registerAction('dev:bot:autoStop', autoStop);
-}
-
-function _registerTabActions() {
-  registerAction('dev:switchTab', (el) => {
-    _switchTab(el.dataset.tab);
-  });
-}
+//
+// All data-action handlers are registered in devActionWiring.js via
+// registerAllDevActions().
 
 // ─── Teleport mode: intercept hex clicks ───────────────────────────────────
 
@@ -247,11 +156,8 @@ export async function initDevTools() {
   // Keyboard listener
   window.addEventListener('keydown', _onKeyDown);
 
-  // Register all actions
-  _registerCheatActions();
-  _registerPerfActions();
-  _registerBotActions();
-  _registerTabActions();
+  // Register all data-action handlers
+  registerAllDevActions({ switchTab: _switchTab });
 
   // Start performance polling
   _startPerfPolling();

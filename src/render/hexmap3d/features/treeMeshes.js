@@ -7,7 +7,7 @@ import {
   getTreeCanopyRoundGeo,
   getTreeCanopyTallGeo,
   getTreeCanopyWideGeo,
-} from './featureGeometries.js';
+} from './geometries/index.js';
 
 /**
  * Determine tree variant from tile data.

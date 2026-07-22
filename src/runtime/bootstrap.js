@@ -14,7 +14,7 @@
  */
 import { registerAction, initModalActions } from '../shared/actionBus.js';
 import { preloadTemplates, loadTemplate } from '../ui/templates/templateLoader.js';
-import { onEndTurn } from './turnPipeline.js';
+import { onEndTurn } from './endTurn.js';
 import { initCombatModal } from '../ui/combat/combatModal.js';
 import { toast } from '../ui/hud.js';
 import { refreshAll } from './refreshAll.js';

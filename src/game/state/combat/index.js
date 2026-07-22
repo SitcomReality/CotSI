@@ -16,9 +16,12 @@ export {
   recordPick,
   bothPicksIn,
   advancePhase,
-  botCombatPick,
   getAvailablePicks,
 } from './combatPicks.js';
+
+export {
+  botCombatPick,
+} from './combatBotAI.js';
 
 export {
   scorePickPair,

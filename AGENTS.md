@@ -81,4 +81,4 @@ I'm SitcomReality, the creator. I read only English. I'm a competent coder but d
 
 ## Use Sub-Agents Liberally
 
-Spawning agents to perform investigations deeper into subsystems is extremely useful to keep context limited to only what's needed.
+Delegate to sub-agents as much as possible. Spawning agents to perform specific tasks or detail the workings of individual systems is extremely useful to keep context limited to only what's needed.
