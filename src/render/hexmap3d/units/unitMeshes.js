@@ -96,6 +96,7 @@ export function buildUnitMeshes(state, visible) {
     });
     im.instanceMatrix.needsUpdate = true;
     im.instanceColor.needsUpdate = true;
+    im.castShadow = true;
     im.name = 'championBodies';
     results.push(im);
   }
@@ -112,6 +113,7 @@ export function buildUnitMeshes(state, visible) {
       im.setMatrixAt(i, dummy.matrix);
     });
     im.instanceMatrix.needsUpdate = true;
+    im.castShadow = true;
     im.name = 'championHeads';
     results.push(im);
   }
@@ -158,6 +160,7 @@ function _buildPiecePair(instances, iconId, label, results) {
   });
   bodyIm.instanceMatrix.needsUpdate = true;
   bodyIm.instanceColor.needsUpdate = true;
+  bodyIm.castShadow = true;
   bodyIm.name = `pieceBody_${label}`;
   results.push(bodyIm);
 
@@ -178,6 +181,7 @@ function _buildPiecePair(instances, iconId, label, results) {
     capIm.setMatrixAt(i, dummy.matrix);
   });
   capIm.instanceMatrix.needsUpdate = true;
+  capIm.castShadow = true;
   capIm.name = `pieceCap_${label}`;
   results.push(capIm);
 }

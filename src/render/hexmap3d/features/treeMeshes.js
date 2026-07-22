@@ -116,6 +116,7 @@ export function buildTreeMeshes(state, visible) {
       trunkMesh.setMatrixAt(i, dummy.matrix);
     });
     trunkMesh.instanceMatrix.needsUpdate = true;
+    trunkMesh.castShadow = true;
     trunkMesh.name = `tree-trunks-${variant}`;
     results.push(trunkMesh);
 
@@ -131,6 +132,7 @@ export function buildTreeMeshes(state, visible) {
       canopyMesh.setMatrixAt(i, dummy.matrix);
     });
     canopyMesh.instanceMatrix.needsUpdate = true;
+    canopyMesh.castShadow = true;
     canopyMesh.name = `tree-canopies-${variant}`;
     results.push(canopyMesh);
   }

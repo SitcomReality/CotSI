@@ -5,6 +5,7 @@
  * Per-refresh rendering lives in mapRefresh.js; shared camera-focus in mapCamera.js.
  */
 import { initHexMap3D, setupMapInteraction3D, fitCameraToMap } from '../render/hexmap3d/hexMapRenderer.js';
+import { setShadowMapExtent } from '../render/hexmap3d/scene/lightSetup.js';
 import { onHexClick } from './hexBridge.js';
 import { getTooltipContent } from '../ui/mapTooltip.js';
 import { refreshZoomDisplay } from './zoomDisplay.js';
@@ -26,6 +27,11 @@ export function initMap3D(mountEl, gameState) {
   mountEl.replaceChildren();
   try {
     const ctx = initHexMap3D(mountEl);
+
+    // Size the shadow camera to cover the full map
+    if (gameState.radius) {
+      setShadowMapExtent(ctx.lights.directional, gameState.radius);
+    }
 
     // Auto-fit camera to map size so the full map is visible at start
     if (gameState.radius) {

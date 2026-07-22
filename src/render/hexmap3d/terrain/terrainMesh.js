@@ -118,6 +118,8 @@ export function buildTerrainMesh(state, visible, explored) {
 
   const mesh = new THREE.Mesh(geo, terrainMaterial);
   mesh.name = 'terrain';
+  mesh.receiveShadow = true;
+  mesh.castShadow = true;
   return mesh;
 }
 

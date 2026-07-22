@@ -73,6 +73,7 @@ export function buildMountainMeshes(state, visible) {
       mesh.setMatrixAt(i, dummy.matrix);
     });
     mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = true;
     mesh.name = 'mountains';
     results.push(mesh);
   }
@@ -88,6 +89,7 @@ export function buildMountainMeshes(state, visible) {
       mesh.setMatrixAt(i, dummy.matrix);
     });
     mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = true;
     mesh.name = 'mountain-peaks';
     results.push(mesh);
   }
@@ -103,6 +105,7 @@ export function buildMountainMeshes(state, visible) {
       mesh.setMatrixAt(i, dummy.matrix);
     });
     mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = true;
     mesh.name = 'mountain-slopes';
     results.push(mesh);
   }

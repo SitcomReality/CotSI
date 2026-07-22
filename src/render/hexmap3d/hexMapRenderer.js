@@ -32,7 +32,7 @@ export function initHexMap3D(mountElement) {
     // Clear all clock tasks and frame callbacks from the previous game
     getClock().dispose();
   }
-  ctx = initScene(mountElement, { clock: getClock() });
+  ctx = initScene(mountElement, { clock: getClock(), shadows: true });
 
   // Start the clock's rAF loop (safe to call multiple times)
   getClock().start();
