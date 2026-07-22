@@ -78,7 +78,7 @@ export function buildUnitMeshes(state, visible) {
         color,
       });
     } else if (trader) {
-      traderInstances.push({ x, y: surfaceY + 0.05, z, color: [0.29, 0.75, 0.6] });
+      traderInstances.push({ x, y: surfaceY + 0.05, z, scale: 1.0, color: [0.29, 0.75, 0.6] });
     }
   }
 
