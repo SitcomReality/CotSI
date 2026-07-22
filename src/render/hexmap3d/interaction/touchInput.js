@@ -1,4 +1,5 @@
-import { panCamera, zoomCamera } from '../scene/cameraControls.js';
+import { panCamera } from '../scene/cameraPanMath.js';
+import { zoomCamera } from '../scene/cameraZoomMath.js';
 import { screenToWorldPan } from './panMath.js';
 
 /**

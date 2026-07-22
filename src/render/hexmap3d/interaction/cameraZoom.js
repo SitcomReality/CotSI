@@ -1,4 +1,4 @@
-import { zoomCamera } from '../scene/cameraControls.js';
+import { zoomCamera } from '../scene/cameraZoomMath.js';
 
 /**
  * Create a wheel handler for zoom.

@@ -13,7 +13,10 @@ import { getClock } from '../../shared/clockScheduler.js';
 // Re‑export symbols needed by external consumers
 export { tileTopY } from './terrain/terrainMesh.js';
 export { hexCenter, hexCornersXZ, hexCenter3D } from './hexWorldSpace.js';
-export { resetCamera, zoomCamera, centerCameraOnHex, animateCenterOnHex, centerOnHexWithFitCamera, centerOnHexWithSightZoom, centerOnHexWithFixedZoom, fitCameraToMap, setPanBounds } from './scene/cameraControls.js';
+export { resetCamera, zoomCamera, fitCameraToMap } from './scene/cameraZoomMath.js';
+export { setPanBounds } from './scene/cameraPanMath.js';
+export { centerCameraOnHex, centerOnHexWithFitCamera, centerOnHexWithSightZoom, centerOnHexWithFixedZoom } from './scene/cameraCentering.js';
+export { animateCenterOnHex, cancelCameraPan } from './scene/panAnimation.js';
 
 let ctx = null; // singleton scene context
 let terrainMesh = null;

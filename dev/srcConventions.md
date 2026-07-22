@@ -112,7 +112,7 @@ Forbidden: `engine → game/runtime/render/ui`; `game → runtime/render/ui`;
   sees the name in an editor tab with no context.
 - **No bare domains.** Never a file named `combat.js`, `map.js`, `turn.js`,
   `player.js`, `world.js`, `state.js`, `camera.js`. Always qualify:
-  `combatState.js`, `hexGrid.js`, `turnPipeline.js`, `cameraControls.js`.
+  `combatState.js`, `hexGrid.js`, `turnPipeline.js`, `cameraState.js`.
 - **Verbs for actions/mutations** (`advanceTurn.js`, `resolveRoundDamage`); **nouns for
   data, queries, and components** (`factionData.js`, `entityQueries.js`,
   `headerPanel.js`).

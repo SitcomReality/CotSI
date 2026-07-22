@@ -115,10 +115,6 @@ export function queueOrStart(championId, fromPos, toPos, factionColorHex, durati
     actualFromX = fromPos.x;
     actualFromY = fromPos.y;
     actualFromZ = fromPos.z;
-    console.debug(
-      `[move] start  from=(%.3f,%.3f,%.3f) → to=(%.3f,%.3f,%.3f)`,
-      fromPos.x, fromPos.y, fromPos.z, toPos.x, toPos.y, toPos.z
-    );
   }
 
   // Build temporary meshes

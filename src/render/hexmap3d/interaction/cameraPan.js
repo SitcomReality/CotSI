@@ -1,4 +1,4 @@
-import { panCamera } from '../scene/cameraControls.js';
+import { panCamera } from '../scene/cameraPanMath.js';
 import { screenToWorldPan } from './panMath.js';
 import { hideTooltip } from './hoverTooltip.js';
 /**

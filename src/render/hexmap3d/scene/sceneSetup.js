@@ -1,5 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
-import { createCameraState, applyCameraState } from './cameraControls.js';
+import { createCameraState, applyCameraState } from './cameraState.js';
 
 /**
  * Initialize the Three.js scene, renderer, camera, and lights.
