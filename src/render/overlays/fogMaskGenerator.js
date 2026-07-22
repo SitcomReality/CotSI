@@ -117,8 +117,6 @@ function ensureCanvases(physicalW, physicalH, dpr) {
  */
 function cameraHasChanged(camera) {
   // The camera's projection matrix and position define the view.
-  // We compare the position and frustum size stored on the camera state
-  // (accessed via the canvas's __camera ref or from the camera object directly).
   const pos = camera.position;
   const frustum = camera.top - camera.bottom; // orthographic vertical extent
 
@@ -179,13 +177,17 @@ export function generateFogMasks(state, camera, overlayCanvas, visible, explored
   const fogRev = state._fogRevision || 0;
 
   // Cache hit: skip redraw if fog state and camera haven't changed
-  if (fogRev === _lastFogRevision && !cameraHasChanged(camera)) {
+  const camChanged = cameraHasChanged(camera);
+  if (fogRev === _lastFogRevision && !camChanged) {
     return {
       visibleMask: _visibleCanvas,
       exploredMask: _exploredCanvas,
     };
   }
   _lastFogRevision = fogRev;
+
+  let visibleCount = 0;
+  let exploredCount = 0;
 
   const vCtx = _visibleCanvas.getContext('2d');
   const eCtx = _exploredCanvas.getContext('2d');
@@ -206,16 +208,15 @@ export function generateFogMasks(state, camera, overlayCanvas, visible, explored
 
     if (isVisible) {
       drawHexPoly(vCtx, pts);
+      visibleCount++;
     } else {
       // Explored but not currently visible
       drawHexPoly(eCtx, pts);
+      exploredCount++;
     }
   }
 
   // Apply blur to both masks for soft edges.
-  // We use the 2D context filter property (GPU-accelerated in modern browsers).
-  // The blur operates in physical pixels on the raw canvas buffer, so we
-  // temporarily reset the transform, blur onto a temp canvas, then draw back.
   blurMaskInPlace(_visibleCanvas, MASK_BLUR);
   blurMaskInPlace(_exploredCanvas, MASK_BLUR);
 
@@ -254,11 +255,16 @@ function blurMaskInPlace(canvas, radius) {
 
   const tempCtx = _blurTemp.getContext('2d');
 
+  // Clear temp canvases so source-over compositing doesn't accumulate
+  // polygons from previous frames when the source has transparent areas.
+  tempCtx.clearRect(0, 0, w, h);
+
   // Draw the original canvas at physical resolution onto temp
   tempCtx.drawImage(canvas, 0, 0);
 
   // Blur temp onto itself via another intermediate (avoids in-place issues)
   const temp2Ctx = _blurTemp2.getContext('2d');
+  temp2Ctx.clearRect(0, 0, w, h);
   temp2Ctx.filter = `blur(${radius}px)`;
   temp2Ctx.drawImage(_blurTemp, 0, 0);
 

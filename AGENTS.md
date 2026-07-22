@@ -76,3 +76,9 @@ window.__gameState; // same object as G
 ## The User
 
 I'm SitcomReality, the creator. I read only English. I'm a competent coder but don't always remember every system detail — happy to clarify. For complex bugs, I prefer adding console logs to narrow things down; I'll test and report back. This is a collaborative process.
+
+---
+
+## Use Sub-Agents Liberally
+
+Spawning agents to perform investigations deeper into subsystems is extremely useful to keep context limited to only what's needed.
