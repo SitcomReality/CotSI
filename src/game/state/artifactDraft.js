@@ -3,7 +3,8 @@
  */
 import { ARTIFACTS } from '../rules/factionData.js';
 import { G } from './liveGame.js';
-import { addLog } from './gameLog.js';
+import { addLogEntry } from './gameLog.js';
+import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
 
 export function artifactChoices(state) {
   const pool = [...ARTIFACTS];
@@ -34,6 +35,14 @@ export function processFirstTurnDraft(state, ch) {
     const picks = artifactChoices(state);
     ch.artifact = picks[0].artifactId;
     ch.offeredArtifact = true;
-    addLog(state, `${ch.name} accepts ${picks[0].label}.`);
+    const factionMap = buildChampionFactionMap(state.champions);
+    addLogEntry(state,
+      `${ch.name} accepts ${picks[0].label}.`,
+      [
+        championSegment(ch.name, factionMap),
+        ' accepts ',
+        { text: picks[0].label, color: 'var(--gold)' },
+        '.',
+      ]);
   }
 }

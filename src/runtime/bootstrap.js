@@ -37,6 +37,7 @@ const CRITICAL_TEMPLATES = [
   'rewardModal',
   'dispatchModal',
   'heraldModal',
+  'deathModal',
   'victoryModal',
   'toast',
   'confirmModal',
@@ -61,6 +62,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadTemplate('rewardModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('dispatchModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('heraldModal').then(({ frag }) => root.appendChild(frag));
+    await loadTemplate('deathModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('victoryModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('confirmModal').then(({ frag }) => root.appendChild(frag));
 

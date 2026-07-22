@@ -8,9 +8,11 @@ import { weatherForDay } from '../rules/weatherScript.js';
 import { getChampion, occupiedByChampion, occupiedByMob } from './entityQueries.js';
 import { beginTurn, isDigEligible } from './turnActions.js';
 import { interactOnArrival } from './arrivalInteractions.js';
-import { addLog } from './gameLog.js';
+import { addLog, addLogEntry, createLogEntry } from './gameLog.js';
+import { buildChampionFactionMap, championSegment, factionAccentVar } from '../rules/logHelpers.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { checkVictory } from './victoryChecks.js';
+import { recordDeath } from './deathTracker.js';
 
 export function finishTurn(state) {
   const champ = getChampion(state, state.activeChampionId);
@@ -20,7 +22,11 @@ export function finishTurn(state) {
       interactOnArrival(state, champ);
     } else if (isDigEligible(state, champ)) {
       champ.pendingDig = true;
-      addLog(state, `${champ.name} spends the night digging in blank parchment.`);
+      const factionMap = buildChampionFactionMap(state.champions);
+      addLogEntry(state, `${champ.name} spends the night digging in blank parchment.`, [
+        championSegment(champ.name, factionMap),
+        ' spends the night digging in blank parchment.',
+      ], 'standard');
     }
   }
   advanceTurn(state);
@@ -67,29 +73,45 @@ function _runWorldTurn(state) {
   runWorldTurn(state);
   state.day += 1;
   state.weather = weatherForDay(state.day);
-  addLog(state, `— Day ${state.day}: ${state.weather.name}. ${state.weather.text}`);
+  addLogEntry(state, `— Day ${state.day}: ${state.weather.name}. ${state.weather.text}`, [
+    '— Day ',
+    `${state.day}`,
+    ': ',
+    { text: state.weather.name, color: 'var(--ink-mid)' },
+    '. ',
+    { text: state.weather.text, color: 'var(--ink-faint)' },
+  ], 'day', { isDayMarker: true });
   state.currentOrder = state.globalOrder.filter(id => getChampion(state, id)?.alive);
   state.herald = {
     day: state.day,
     weather: { name: state.weather.name, text: state.weather.text, tint: state.weather.tint },
     order: [...state.currentOrder],
     champions: state.champions,
+    deathOrder: [...state.deathOrder],
   };
   state.activeChampionId = state.currentOrder[0] || null;
 }
 
 function runWorldTurn(state) {
+  const _factionMap = buildChampionFactionMap(state.champions);
   // mob harass
   for (const mob of state.mobs.filter(m => m.alive)) {
     const adj = state.champions.find(c => c.alive && c.faction !== 2 && distance(c.pos, mob.pos) === 1);
     if (adj && state._rng() < 0.55) {
       const dmg = 4 + Math.floor(state._rng() * 5);
       adj.hp -= dmg;
-      addLog(state, `${mob.name} harasses ${adj.name} for ${dmg} damage.`);
+      addLogEntry(state, `${mob.name} harasses ${adj.name} for ${dmg} damage.`, [
+        mob.name,
+        ' harasses ',
+        championSegment(adj.name, _factionMap),
+        ' for ',
+        { text: String(dmg), color: 'var(--crimson)' },
+        ' damage.',
+      ], 'combat');
       recordLedgerEntry(adj, `-${dmg} HP — ${mob.name} harassment`, 'loss', 'hp');
       if (adj.hp <= 0) {
         adj.alive = false;
-        state.notice = `${adj.name} was erased by marginalia.`;
+        recordDeath(state, adj, 'was erased by marginalia');
       }
     } else if (mob.aggressive && state._rng() < 0.45) {
       // wander

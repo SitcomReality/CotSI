@@ -1,4 +1,4 @@
-import { buildLogEntries } from './logPanel.js';
+import { buildLogOverflow } from './logPanel.js';
 
 export function bindRightPanel(G) {
   const container = document.querySelector('.rt-log-entries');
@@ -7,5 +7,5 @@ export function bindRightPanel(G) {
     return;
   }
 
-  container.replaceChildren(...buildLogEntries(G?.logs || []));
+  container.replaceChildren(buildLogOverflow(G?.logs || []));
 }

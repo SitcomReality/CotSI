@@ -29,7 +29,7 @@ export function onHexClick(key) {
     return;
   }
 
-  if (!G || G.dispatch || G.reward || G.notice || G.winnerId) return;
+  if (!G || G.dispatch || G.reward || G.winnerId) return;
   const ch = currentChamp();
   if (!ch || ch.controller !== 'human' || ch.moves <= 0) return;
 

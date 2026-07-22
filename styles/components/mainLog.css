@@ -1,0 +1,120 @@
+/* =========================================================================
+   Main Log Bar — Rich event log at bottom of screen
+   ========================================================================= */
+
+.main-log {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s2) var(--s3);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  line-height: var(--lh);
+  height: 100%;
+  overflow-y: auto;
+}
+
+.main-log__entry {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) var(--s2);
+  border-radius: var(--r-sm);
+  color: var(--ink-mid);
+  min-height: 22px;
+}
+
+/* Combat entries get a red-tinted left accent */
+.main-log__entry--combat {
+  border-left: 2px solid var(--crimson);
+  padding-left: var(--s2);
+}
+
+/* Heal entries get a green-tinted left accent */
+.main-log__entry--heal {
+  border-left: 2px solid var(--verdigris);
+  padding-left: var(--s2);
+}
+
+/* Death entries — prominent */
+.main-log__entry--death {
+  border-left: 3px solid var(--crimson);
+  padding-left: var(--s2);
+  color: var(--ink);
+  font-weight: 500;
+  background: color-mix(in srgb, var(--crimson) 8%, transparent);
+  animation: mainLogDeathIn 0.3s var(--ease-in);
+}
+
+@keyframes mainLogDeathIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* System entries */
+.main-log__entry--system {
+  color: var(--ink);
+}
+
+/* Day markers — full-width divider */
+.main-log__entry--day {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) 0;
+  border: none;
+  width: 100%;
+  color: var(--ink-faint);
+  font-size: var(--fs-xs);
+  animation: mainLogDayIn 0.3s var(--ease);
+}
+
+.main-log__entry--day::before,
+.main-log__entry--day::after {
+  content: '';
+  flex: 1;
+  height: 0;
+  border-top: 1px solid var(--crease-bold);
+}
+
+@keyframes mainLogDayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Individual colored text segments */
+.main-log__segment {
+  color: var(--seg-color, inherit);
+}
+
+/* SVG icon within entries */
+.main-log__icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.main-log__icon--death {
+  opacity: 1;
+  color: var(--crimson);
+}
+
+.main-log__icon--combat {
+  color: var(--crimson);
+  opacity: 0.8;
+}
+
+.main-log__icon--heal {
+  color: var(--verdigris);
+  opacity: 0.8;
+}
+
+/* Empty state */
+.main-log__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--ink-faint);
+  font-style: italic;
+  font-size: var(--fs-sm);
+}

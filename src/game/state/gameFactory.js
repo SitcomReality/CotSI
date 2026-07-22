@@ -62,6 +62,7 @@ export function createGame({
     },
     order: [...state.currentOrder],
     champions: state.champions,
+    deathOrder: [],
   };
 
   state.activeChampionId = state.currentOrder[0];

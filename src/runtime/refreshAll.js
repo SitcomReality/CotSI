@@ -4,9 +4,11 @@ import { refreshMap } from './mapRefresh.js';
 
 import { bindLeftPanel } from '../ui/panels/leftPanel.js';
 import { bindRightPanel } from '../ui/panels/rightPanel.js';
+import { bindMainLog } from '../ui/panels/mainLog.js';
 
 import { refreshHeader } from '../ui/panels/headerPanel.js';
 import { showHeraldReport } from './heraldPrompt.js';
+import { showDeathAnnouncement } from './deathAnnouncement.js';
 import { showPendingDispatch } from './dispatchPrompt.js';
 import { showPendingReward } from './rewardPrompt.js';
 import { showVictory } from '../ui/hud.js';
@@ -45,9 +47,13 @@ export function refreshAll() {
   // Panels
   bindLeftPanel(G);
   bindRightPanel(G);
+  bindMainLog(G);
 
   // ── Map (3D replacement) ──
   refreshMap();
+
+  // ── Death Announcement: shown before anything else ──
+  if (showDeathAnnouncement(G)) { endMeasure('refreshAll'); return; }
 
   // ── Herald's Prognosis: shown at day start before any dispatch ──
   if (showHeraldReport(G)) { endMeasure('refreshAll'); return; }
@@ -65,7 +71,6 @@ export function refreshAll() {
     ch &&
     ch.controller === 'bot' &&
     !G.reward &&
-    !G.notice &&
     !G.winnerId &&
     !isTurnLocked() &&
     !getCombatUI() &&

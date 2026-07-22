@@ -45,23 +45,45 @@ export function refreshHeader(G) {
   headerChampsEl.replaceChildren();
   const states = championStates(G);
 
+  // 1. Living champions in current order
   for (const id of G.currentOrder) {
     const champ = G.champions.find(c => c.id === id);
     if (!champ) continue;
     const state = states[id];
-    if (state === 'dead') continue; // dead champions are hidden
 
     const vm = championVM(G, champ);
     const pill = h('div', {
       class: 'header-panel__champion',
       dataState: state,
       dataChampId: champ.id,
-      // --faction-color is genuinely dynamic (per-champion)
       style: { '--faction-color': vm.factionColor },
     },
       h('span', { class: 'header-panel__champion-dot' }),
       h('span', { class: 'header-panel__champion-hp' }, String(vm.hp)),
       h('span', { class: 'header-panel__champion-pot' }, String(vm.totalPot))
+    );
+    headerChampsEl.append(pill);
+  }
+
+  // 2. Dead champions appended at the end (greyed out)
+  const deadChamps = G.champions
+    .filter(c => !c.alive)
+    .sort((a, b) => {
+      const ai = G.deathOrder.indexOf(a.id);
+      const bi = G.deathOrder.indexOf(b.id);
+      return ai - bi; // first death first
+    });
+  for (const champ of deadChamps) {
+    const vm = championVM(G, champ);
+    const pill = h('div', {
+      class: 'header-panel__champion header-panel__champion--dead',
+      dataState: 'dead',
+      dataChampId: champ.id,
+      style: { '--faction-color': vm.factionColor },
+    },
+      h('span', { class: 'header-panel__champion-dot' }),
+      h('span', { class: 'header-panel__champion-hp' }, '0'),
+      h('span', { class: 'header-panel__champion-pot' }, '0')
     );
     headerChampsEl.append(pill);
   }

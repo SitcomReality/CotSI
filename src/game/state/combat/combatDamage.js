@@ -1,6 +1,8 @@
-import { addLog } from '../gameLog.js';
+import { addLogEntry } from '../gameLog.js';
+import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
 import { refreshVision } from '../fogOfWar.js';
 import { checkVictory } from '../victoryChecks.js';
+import { recordDeath } from '../deathTracker.js';
 import { recordLedgerEntry } from '../dispatchLedger.js';
 import { FACTIONS } from '../../rules/factionData.js';
 import { deriveOrder } from './combatState.js';
@@ -32,8 +34,14 @@ export function resolveRoundDamage(state, combat){
     if(attacker.potencies && defender.potencies) moveDamagedBeforeDamager(state, attacker.id, defender.id);
   }
   combat.combatLog.push(`Round ${combat.round} damage: ${to === 'attacker' ? attacker.name : defender.name} takes ${dmg}`);
-  if(attacker.hp <= 0) attacker.alive = false;
-  if(defender.hp <= 0) defender.alive = false;
+  if(attacker.hp <= 0) {
+    attacker.alive = false;
+    recordDeath(state, attacker, `fell in combat against ${defender.name}`);
+  }
+  if(defender.hp <= 0) {
+    defender.alive = false;
+    recordDeath(state, defender, `fell in combat against ${attacker.name}`);
+  }
   return { damage: dmg, to, attackerDead: !attacker.alive, defenderDead: !defender.alive };
 }
 
@@ -59,6 +67,7 @@ export function nextCombatRound(state, combat){
 }
 
 export function finalizeCombat(state, attacker, defender, attackerWon){
+  const factionMap = buildChampionFactionMap(state.champions);
   attacker.lastActionCombat = true;
   attacker.moves = 0;
   if(attackerWon && attacker.alive && !defender.alive){
@@ -72,11 +81,30 @@ export function finalizeCombat(state, attacker, defender, attackerWon){
       const rf = Math.floor(state._rng()*7); attacker.potencies[rf] += 1;
       recordLedgerEntry(attacker, `+1 ${FACTIONS[rf].name} potency — Everknown`, 'gain', 'potency');
     }
-    addLog(state, `${attacker.name} defeats ${defender.name} and claims a relic (+${gold}g).`);
+    addLogEntry(state,
+      `${attacker.name} defeats ${defender.name} and claims a relic (+${gold}g).`,
+      [
+        championSegment(attacker.name, factionMap),
+        ' defeats ',
+        championSegment(defender.name, factionMap),
+        ' and claims a relic (+',
+        { text: `${gold}`, color: 'var(--gold)' },
+        'g).'
+      ],
+      'combat');
     return { gold, relic:1 };
   }
   if(!attacker.alive){
-    addLog(state, `${attacker.name} falls in combat against ${defender.name}.`);
+    addLogEntry(state,
+      `${attacker.name} falls in combat against ${defender.name}.`,
+      [
+        championSegment(attacker.name, factionMap),
+        ' falls in combat against ',
+        championSegment(defender.name, factionMap),
+        '.'
+      ],
+      'death',
+      { isDeath: true });
   }
   refreshVision(state);
   checkVictory(state);

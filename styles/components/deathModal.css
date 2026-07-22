@@ -1,0 +1,121 @@
+/* =========================================================================
+   DEATH ANNOUNCEMENT — shown when a champion falls.
+   Somber, greyed-out styling — desaturated faction colors, darker palette.
+   ========================================================================= */
+
+.death-modal-card {
+  width: min(480px, 90vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, var(--board), #0a0a0f);
+  border: var(--edge) solid var(--crease-bold);
+  border-left: var(--edge-heavy) solid var(--ink-mid);
+  border-radius: var(--r-panel);
+  box-shadow: var(--shadow-stack);
+  padding: var(--s5) var(--s6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* ── Header ── */
+.death-modal-header {
+  text-align: center;
+  padding-bottom: var(--s3);
+  border-bottom: var(--hair) solid var(--crease);
+}
+
+.death-modal__kicker {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: var(--s1);
+}
+
+.death-modal__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  letter-spacing: var(--ls-display);
+  color: var(--ink-mid);
+  opacity: 0.7;
+}
+
+/* ── Body ── */
+.death-modal-body {
+  padding: var(--s3) 0;
+}
+
+.death-modal__body-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s4);
+}
+
+/* ── Entry (one per dead champion, used for double-knockouts) ── */
+.death-modal__entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  width: 100%;
+}
+.death-modal__entry + .death-modal__entry {
+  border-top: var(--hair) solid var(--crease);
+  padding-top: var(--s3);
+}
+
+.death-modal__entry-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  color: var(--ink-mid);
+  opacity: 0.7;
+}
+
+.death-modal__cause {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+  text-align: center;
+  padding: var(--s2) var(--s3);
+  border-left: 2px solid var(--crease);
+  line-height: 1.5;
+}
+
+/* ── Stats ── */
+.death-modal__stats {
+  display: flex;
+  gap: var(--s5);
+  justify-content: center;
+}
+
+.death-modal__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.death-modal__stat-label {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-cap);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.death-modal__stat-value {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  color: var(--ink-mid);
+}
+
+/* ── Acknowledge ── */
+.death-modal-btn {
+  align-self: center;
+  min-width: 180px;
+  margin-top: var(--s2);
+}

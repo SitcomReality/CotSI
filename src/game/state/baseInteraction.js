@@ -3,9 +3,10 @@
  * References `G` via live binding (circular import, used at runtime only).
  */
 import { G } from './liveGame.js';
-import { addLog } from './gameLog.js';
+import { addLog, addLogEntry } from './gameLog.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { FACTIONS } from '../rules/factionData.js';
+import { buildChampionFactionMap, championSegment, factionAccentVar } from '../rules/logHelpers.js';
 import { toast } from '../../ui/hud.js';
 
 /**
@@ -14,12 +15,19 @@ import { toast } from '../../ui/hud.js';
  * @param {object} tile
  */
 export function interactBase(ch, tile) {
+  const factionMap = buildChampionFactionMap(G.champions);
+
   if (tile.feature.faction === ch.faction) {
     // Sanctuary — heal 50% max HP
     const healed = Math.ceil(ch.maxHp * 0.5);
     ch.hp = Math.min(ch.maxHp, ch.hp + healed);
     ch.moves = 0;
-    addLog(G, `${ch.name} receives sanctuary (+${healed} HP).`);
+    addLogEntry(G, `${ch.name} receives sanctuary (+${healed} HP).`, [
+      championSegment(ch.name, factionMap),
+      ' receives sanctuary (+',
+      { text: String(healed), color: 'var(--verdigris)' },
+      ' HP).',
+    ]);
     recordLedgerEntry(ch, `+${healed} HP — sanctuary`, 'gain', 'hp');
   } else {
     // Buy faction potency
@@ -28,7 +36,12 @@ export function interactBase(ch, tile) {
       ch.gold -= cost;
       ch.potencies[tile.feature.faction]++;
       ch.moves = 0;
-      addLog(G, `${ch.name} buys ${FACTIONS[tile.feature.faction].name} potency.`);
+      addLogEntry(G, `${ch.name} buys ${FACTIONS[tile.feature.faction].name} potency.`, [
+        championSegment(ch.name, factionMap),
+        ' buys ',
+        { text: FACTIONS[tile.feature.faction].name, color: factionAccentVar(tile.feature.faction) },
+        ' potency.',
+      ]);
       recordLedgerEntry(
         ch,
         `-${cost} gold, +1 ${FACTIONS[tile.feature.faction].name} potency — base purchase`,

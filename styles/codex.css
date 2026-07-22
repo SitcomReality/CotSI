@@ -32,10 +32,12 @@
 @import "./components/combatModal.css";
 @import "./components/dispatchModal.css";
 @import "./components/heraldModal.css";
+@import "./components/deathModal.css";
 @import "./components/rewardModal.css";
 @import "./components/championPanel.css";
 @import "./components/headerPanel.css";
 @import "./components/logPanel.css";
+@import "./components/mainLog.css";
 @import "./components/heptagramWidget.css";
 @import "./components/tooltip.css";
 @import "./components/mapControls.css";

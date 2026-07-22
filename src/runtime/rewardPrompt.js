@@ -2,7 +2,8 @@ import { openArtifactChoiceModal } from '../ui/combat/combatModal.js';
 import { fillRewardModal } from '../ui/modals/rewardModal.js';
 import { currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
-import { addLog } from '../game/state/gameLog.js';
+import { addLogEntry } from '../game/state/gameLog.js';
+import { buildChampionFactionMap, championSegment } from '../game/rules/logHelpers.js';
 
 /**
  * Show whichever reward modal is pending on `G.reward`, if any.
@@ -20,7 +21,13 @@ export function showPendingReward(G) {
       ch.artifact = choice.artifactId;
       ch.offeredArtifact = true;
       G.reward = null;
-      addLog(G, `${ch.name} accepts ${choice.label}.`);
+      const factionMap = buildChampionFactionMap(G.champions);
+      addLogEntry(
+        G,
+        `${ch.name} accepts ${choice.label}.`,
+        [championSegment(ch.name, factionMap), ` accepts ${choice.label}.`],
+        'system'
+      );
       refreshAll();
     });
     return;

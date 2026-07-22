@@ -3,8 +3,9 @@
  */
 import { FACTIONS } from '../rules/factionData.js';
 import { G } from './liveGame.js';
-import { addLog } from './gameLog.js';
+import { addLogEntry } from './gameLog.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
+import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
 
 export function processReverie(state, ch) {
   const roll = Math.floor(state._rng() * 5);
@@ -25,5 +26,9 @@ export function processReverie(state, ch) {
   } else {
     recordLedgerEntry(ch, "The dream was silent — Another's Dream", 'neutral', 'info');
   }
-  addLog(state, `${ch.name} receives a Reverie dream.`);
+  const factionMap = buildChampionFactionMap(state.champions);
+  addLogEntry(state, `${ch.name} receives a Reverie dream.`, [
+    championSegment(ch.name, factionMap),
+    ' receives a Reverie dream.',
+  ]);
 }

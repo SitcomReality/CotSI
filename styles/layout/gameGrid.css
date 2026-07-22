@@ -81,17 +81,15 @@
   overflow-y: auto;
 }
 
-/* ── #logMount: legacy grid area ──
-     This element exists in the HTML but is never rendered into by any JS.
-     Log entries live in the .rightbar panel instead. Keeping the grid
-     area for layout stability (the empty 'log' row takes 'auto' height,
-     effectively 0), but ensuring it doesn't accidentally grow. To avoid
-     confusion when revisiting this file, we collapse it explicitly.      */
+/* ── #logMount: main event log bar ──
+     Full-width bar at the bottom showing the 5 most recent game events
+     with rich styling, icons, and per-segment faction coloring.          */
 #logMount {
   grid-area: log;
-  height: 0;
-  overflow: hidden;
-  pointer-events: none;
+  background: var(--abyss);
+  border-top: 1px solid var(--crease);
+  height: 96px;
+  overflow-y: auto;
 }
 
 /* ── Mobile-responsive: class toggle on <body> ── */

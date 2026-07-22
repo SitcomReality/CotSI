@@ -1,46 +1,30 @@
 import { h } from '../domBuilder.js';
 
-/**
- * Return an array of DOM nodes (or a single empty-state node) for the log.
- * Caller is responsible for appending them to the log container.
- */
-export function buildLogEntries(logs) {
-  if (!logs || logs.length === 0) {
-    return [h('div', { class: 'log-panel__empty' }, 'There is no history.')];
-  }
+export function buildLogOverflow(logs) {
+  const isOpen = false; // default collapsed
 
-  return logs.map((line) => {
-    const cls = classifyLogLine(line);
-    return h('div', { class: `log-panel__line log-panel__line--${cls}` }, line);
-  });
+  const textContent = (logs && logs.length > 0)
+    ? logs.slice().reverse().map(e => typeof e === 'string' ? e : (e.plainText || '')).join('\n')
+    : 'No history yet.';
+
+  const textArea = h('textarea', {
+    class: 'log-overflow__text',
+    readonly: 'true',
+    rows: '12',
+    style: { display: isOpen ? 'block' : 'none' },
+  }, textContent);
+
+  const toggleBtn = h('button', {
+    class: 'log-overflow__toggle',
+    onclick: () => {
+      const isNowOpen = textArea.style.display !== 'block';
+      textArea.style.display = isNowOpen ? 'block' : 'none';
+      toggleBtn.classList.toggle('log-overflow__toggle--open', isNowOpen);
+    },
+  }, h('span', { class: 'log-overflow__chevron' }, '\u25B6'), ' Log History');
+
+  return h('div', { class: 'log-overflow' },
+    toggleBtn,
+    textArea,
+  );
 }
-
-/* ── Helpers ── */
-
-/**
- * Classify a log line by its semantic content for color coding.
- * Returns one of: 'standard', 'combat', 'heal', 'system'
- */
-function classifyLogLine(line) {
-  const lower = line.toLowerCase();
-  // Combat / damage / death keywords
-  if (
-    /\b(attacks?|strikes?|hits?|damage|killed?|destroyed?|defeated?|slain|wounds?|bleeds?|dies?|death)\b/.test(lower)
-  ) {
-    return 'combat';
-  }
-  // Healing / gain keywords
-  if (
-    /\b(heals?|restores?|recovers?|regenerates?|gains?|earns?|receives?)\b/.test(lower)
-  ) {
-    return 'heal';
-  }
-  // System / weather / turn events
-  if (
-    /\b(turn|weather|day|night|dawn|dusk|phase)\b/.test(lower)
-  ) {
-    return 'system';
-  }
-  return 'standard';
-}
-

@@ -80,8 +80,13 @@
 .header-panel__champion[data-state="waiting"] {
   opacity: 0.75;
 }
-.header-panel__champion[data-state=\"dead\"] {
-    display: none;
+.header-panel__champion--dead {
+  opacity: 0.35;
+  cursor: default;
+  filter: grayscale(0.7);
+}
+.header-panel__champion--dead:hover {
+  box-shadow: none;
 }
 
 /* Actions zone (right) */

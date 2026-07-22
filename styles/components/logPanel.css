@@ -1,112 +1,57 @@
 /* =========================================================================
-   Log Bar  —  Event log with expand/collapse (extracted from game.css)
+   Log Overflow — Collapsible text-only history in the right sidebar
+   Memory-efficient: uses a single <textarea> for all entries.
    ========================================================================= */
 
-.log-panel {
-  grid-column: 1 / -1;
-  background: var(--abyss);
-  border-top: var(--edge) solid var(--crease);
+.log-overflow {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  transition: height 0.2s ease;
-  height: 40px; /* collapsed */
-  position: relative;
+  gap: var(--s1);
 }
 
-.log-panel.log-panel--open {
-  height: 160px; /* expanded */
-}
-
-/* Cloud-band decorative pattern for empty/collapsed state */
-.log-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url('/assets/icons/patterns/fog-clouds.svg') repeat-x bottom / auto 24px;
-  opacity: 0.08;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.log-panel__toggle {
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--s1) var(--s3);
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.log-panel__chevron {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--ink);
-  padding: var(--s1);
+.log-overflow__toggle {
   display: flex;
   align-items: center;
-  justify-content: center;
-  opacity: 0.5;
+  gap: var(--s2);
+  background: none;
+  border: none;
+  color: var(--ink-mid);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  padding: var(--s1) 0;
+  opacity: 0.6;
   transition: opacity 0.15s;
-  width: 28px;
-  height: 28px;
 }
 
-.log-panel__chevron:hover {
+.log-overflow__toggle:hover {
   opacity: 1;
 }
 
-.log-panel__chevron svg {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
+.log-overflow__toggle--open .log-overflow__chevron {
+  transform: rotate(90deg);
 }
 
-.log-panel__entries {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 var(--s3) var(--s2);
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  font-size: var(--fs-small);
-  line-height: 1.5;
-  z-index: 1;
+.log-overflow__chevron {
+  display: inline-block;
+  transition: transform 0.15s;
+  font-size: 10px;
 }
 
-.log-panel__entries--empty {
-  align-items: center;
-  justify-content: center;
-  color: var(--ink-mid);
-  font-style: italic;
+.log-overflow__text {
+  width: 100%;
+  background: var(--abyss);
+  color: var(--ink-faint);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  padding: var(--s2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
 }
 
-.log-panel__hint {
-  opacity: 0.6;
-}
-
-/* ── Log line types ── */
-.log-panel__line {
-  padding: 2px 0;
-  border-bottom: var(--hair) dashed var(--crease);
-  color: var(--ink-mid);
-}
-
-.log-panel__line--combat {
-  color: var(--crimson);
-}
-
-.log-panel__line--heal {
-  color: var(--verdigris);
-}
-
-.log-panel__line--system {
-  color: var(--ink);
-  font-weight: 500;
-}
-
-.log-panel__line--standard {
-  color: var(--ink-mid);
+.log-overflow__text:focus {
+  border-color: var(--crease-bold);
 }

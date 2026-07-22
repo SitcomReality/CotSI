@@ -171,6 +171,28 @@
   color: var(--ink);
 }
 
+/* ── Dead champion item ── */
+.herald-modal__turn-item--dead {
+  opacity: 0.4;
+  filter: grayscale(0.65);
+}
+.herald-modal__turn-item--dead .herald-modal__turn-name {
+  font-style: italic;
+  color: var(--ink-faint);
+}
+.herald-modal__turn-num--dead {
+  background: var(--crease) !important;
+}
+.herald-modal__turn-name--dead {
+  color: var(--ink-faint) !important;
+}
+.herald-modal__turn-badge--dead {
+  border-color: var(--crease);
+  color: var(--ink-faint);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 .herald-modal__turn-badge {
   font-family: var(--font-display);
   font-size: var(--fs-xs);

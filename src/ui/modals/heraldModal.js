@@ -14,9 +14,20 @@ import { weatherDisplayEl } from '../weatherDisplay.js';
 
 const REVEAL_MS = 650;
 
+/** Ordinal suffix for a positive integer (1 → "st", 2 → "nd", 3 → "rd", else "th"). */
+function ordinalSuffix(n) {
+  if (n >= 11 && n <= 13) return 'th';
+  const mod = n % 10;
+  if (mod === 1) return 'st';
+  if (mod === 2) return 'nd';
+  if (mod === 3) return 'rd';
+  return 'th';
+}
+
 // ── Turn-order list ────────────────────────────────────────────────────
 
-function turnOrderEl(order, champions) {
+function turnOrderEl(order, champions, deathOrder) {
+  const totalChamps = champions.length;
   const items = order.map((champId, idx) => {
     const champ = champions.find(c => c.id === champId);
     if (!champ) return null;
@@ -25,13 +36,35 @@ function turnOrderEl(order, champions) {
       'div',
       {
         class: 'herald-modal__turn-item' + (isFirst ? ' herald-modal__turn-item--active' : ''),
-        style: { '--faction-color': `` }, // faction color handled by CSS class below
+        style: { '--faction-color': `` },
       },
       h('span', { class: `herald-modal__turn-num herald-modal__turn-f${champ.faction}` }, String(idx + 1)),
       h('span', { class: 'herald-modal__turn-name' }, champ.name),
       isFirst ? h('span', { class: 'herald-modal__turn-badge' }, 'First') : null
     );
   }).filter(Boolean);
+
+  // Dead champions: appended at the end, greyed out, with placement badge
+  if (deathOrder && deathOrder.length > 0) {
+    const deadChamps = deathOrder
+      .map((id, deathIdx) => {
+        const champ = champions.find(c => c.id === id);
+        if (!champ || champ.alive) return null;
+        const place = totalChamps - deathIdx; // 7, 6, 5, ...
+        return h(
+          'div',
+          {
+            class: 'herald-modal__turn-item herald-modal__turn-item--dead',
+            style: { '--faction-color': `` },
+          },
+          h('span', { class: `herald-modal__turn-num herald-modal__turn-f${champ.faction} herald-modal__turn-num--dead` }, ''),
+          h('span', { class: 'herald-modal__turn-name herald-modal__turn-name--dead' }, champ.name),
+          h('span', { class: 'herald-modal__turn-badge herald-modal__turn-badge--dead' }, `${place}${ordinalSuffix(place)} Place`)
+        );
+      })
+      .filter(Boolean);
+    items.push(...deadChamps);
+  }
 
   return h('div', { class: 'herald-modal__turn-order' }, ...items);
 }
@@ -62,7 +95,7 @@ export function openHeraldModal(report) {
   captionEl.textContent = `${report.weather.name} — ${report.weather.text}`;
 
   // ── Turn order ──
-  const orderEl = turnOrderEl(report.order, report.champions);
+  const orderEl = turnOrderEl(report.order, report.champions, report.deathOrder);
 
   // ── Body ──
   bodyEl.replaceChildren(orderEl);
