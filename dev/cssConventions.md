@@ -115,37 +115,5 @@ Quick Rules for Adding CSS
 
     When in doubt: Match the file name to the JS module or visual concern. Use kebab‑case classes. Reference spacing tokens. No new pages/ directory – full‑screen views are components.
 
-Visual Design Constraints (from dev/aestheticConventions.md v4 — "The Dark Carnival / Shadow-Puppet Theater")
-
-    Two‑layer rule (rethemed):
-
-        Proscenium (panels, text, buttons) — deep dark velvety blacks and charcoals.
-            Thin, precise ink creases. The dark theater frame around a puppet show.
-
-        Puppet layer (map, units, faction glyphs) — vivid, saturated color inside
-            bold black ink outlines. Comic-book pop. Gouache brightness.
-
-    Ink outline convention (replaces CSS outline):
-
-        Every Puppet-layer element has a permanent `--ink-weight` dark stroke (3px)
-        as part of its structural rendering. This is NOT a CSS `outline` — it's a
-        `border` with matching `border-radius`, an SVG `stroke`, or a 3D toon outline.
-
-    State as glow + icon (replaces outline):
-
-        State (ally/hostile/neutral/selected) is conveyed through `box-shadow`
-        backlight glow + optional icon changes. CSS `outline` is BANNED for
-        interaction states. Ally = verdigris glow, Hostile = cinnabar glow,
-        Neutral = no glow (cool gray), Selected = gold glow + pulse animation.
-
-    Faction two-color system:
-
-        Each faction has a muted **base** (the body fill) and a distinct **accent**
-        (the glyph/trim). Both live in a warm, earthy tone band. Vivid full-spectrum
-        colors belong to the pigment palette, not to factions.
-
-    Gold budget: Gold is intentionally rare. Only the primary CTA, selection halo,
-        and current-turn indicator dot may use gold. Do not add gold elsewhere
-        without consulting dev/aestheticConventions.md §13.6.
-
-    Shadows: Use hard cartoon offset shadows (--shadow-card, --shadow-stack).
+For visual design rules (two-layer system, ink outlines, color architecture, typography,
+state glow conventions, gold budget), see `dev/aestheticConventions.md`.

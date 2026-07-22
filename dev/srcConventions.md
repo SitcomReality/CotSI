@@ -181,54 +181,13 @@ New code must follow the pipeline; existing violations are paid down over time.
 
 ---
 
-## 6. Boundary debt (known violations, fix later)
+## 6. Boundary debt
 
-The 2026-07 migration was structural: files were placed in the correct layer, but some
-pre-existing cross-layer imports remained. Several categories have since been addressed.
-
-### Fixed (July 2026)
-
-| Category | Files | Fix approach |
-|----------|-------|-------------|
-| `render → game/state` | `hexMapRenderer.js`, `fogOverlay.js`, `movementHighlights.js`, `minimap.js` | Pre-compute fog/movement data in `runtime/mapRefresh.js` and pass down through `render/overlays/overlayStack.setDerivedState()` |
-| `render → ui` | `mapInteraction.js` → `mapTooltip.js` (`refreshZoomDisplay`) | Wired via `onZoomChange` callback from `runtime/` through `hexMapRenderer.setupMapInteraction3D()` |
-| `ui → render` | `mapTooltip.js` → `hexMapRenderer.js` (`getSceneContext`) | Moved `refreshZoomDisplay` to `runtime/zoomDisplay.js` (runtime layer can import from render) |
-| `ui → dev` | `combatFlow.js` → `devPerformance.js` | Injected `startMeasure`/`endMeasure` through `combatUiState.setCallbacks()` pattern |
-
-### Remaining — `ui → game/state` (future work)
-
-These `ui/` files import from `game/state/` for combat state queries/mutations and view-model
-data. The architectural fix is to feed view-models via `runtime/`-precomputed snapshots, but
-this is deferred due to complexity (combat state functions are used across ~5 files with async
-flow).
-
-| File | Imports from `game/state/` |
-|------|---------------------------|
-| `mapTooltip.js` | `entityQueries.js`, `fogOfWar.js`, `championMovement.js` |
-| `panels/leftPanel.js` | `liveGame.js` |
-| `viewModels/championViewModel.js` | `championMovement.js` |
-| `viewModels/combatViewModel.js` | `combat/index.js` |
-| `combat/combatFlow.js` | `combat/index.js` |
-| `combat/combatInteractions.js` | `combat/index.js` |
-| `combat/combatLifecycle.js` | `combat/index.js` |
-| `combat/combatReveal.js` | `combat/index.js` |
-
-### Tolerated — static-data reads (`game/rules/`)
-
-These imports read static data (faction colors/glyphs, terrain constants, archetype definitions).
-They are tolerated because passing static constants through `runtime/` would add ceremony
-without architectural benefit. Do not extend beyond the current pattern.
-
-- `ui → game/rules`: 15 imports across `heptagramWidget.js`, `hud.js`, `mapTooltip.js`,
-  `paleySVG.js`, `setupScreen.js`, `headerPanel.js`, `leftPanel.js`, `championViewModel.js`,
-  `combatViewModel.js`, `combatFx.js`, `combatRenderer.js`, `combatReveal.js`.
-- `render → game/rules`: 2 imports — `unitMeshes.js`, `baseMeshes.js` (read `FACTIONS` for
-  faction colors in 3D meshes).
-
-### Current totals
-
-`python3 dev/check_imports.py` reports **27 boundary-debt imports** (all in the remaining or
-tolerated categories above). All imports resolve and all named exports are verified.
+Some pre-existing cross-layer imports remain from before the layer migration. They are
+tracked by `python3 dev/check_imports.py`. Do not add new violations; fix existing ones
+via view-models/snapshots when touching affected files. Static-data reads from
+`game/rules/` (faction colors, terrain constants) are tolerated — passing them through
+`runtime/` would add ceremony without architectural benefit.
 
 ---
 
@@ -241,8 +200,4 @@ tolerated categories above). All imports resolve and all named exports are verif
 
 ---
 
-## 8. Out of scope / future passes
 
-- `styles/` naming (the `pages/combat.css` vs `components/combat.css` clash).
-- Event/snapshot architecture to eliminate §6 debt.
-- Dead code noted during migration (e.g. `#hudZoom` has no element in `index.html`).

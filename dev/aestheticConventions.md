@@ -1,5 +1,10 @@
 # Champions of the Supernal Interregnum — Aesthetic Conventions (v4)
 
+> **This is an aspirational design reference.** The game is early in development and
+> visual direction will continue to evolve. Use this as guidance, not as a strict
+> specification. Many details described here are not yet fully implemented in the
+> actual stylesheets.
+
 ## Thematic Core
 
 > _"A vibrant tabletop diorama — painted miniatures on a dark felt board."_
