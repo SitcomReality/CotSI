@@ -130,6 +130,8 @@ export function queueOrStart(championId, fromPos, toPos, factionColorHex, durati
 
   const body = new THREE.Mesh(getChampionBodyGeo(), bodyMat);
   const head = new THREE.Mesh(getChampionHeadGeo(), headMat);
+  body.castShadow = true;
+  head.castShadow = true;
 
   scene.add(body);
   scene.add(head);

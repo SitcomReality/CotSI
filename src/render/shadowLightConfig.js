@@ -19,13 +19,13 @@ export const shadowLightConfig = {
   /** Normal bias for smoother self-shadow avoidance. */
   normalBias: 0.02,
   /** PCF blur radius — higher values soften shadow edges. Default 1.0. */
-  radius: 1.0,
+  radius: 2.0,
 
   // ---- Directional (sun) light ----
   sunColor: 0xfff4e0,
   sunIntensity: 3.0,
   /** Light position in world space (direction is toward origin). */
-  sunPosition: { x: 15, y: 25, z: 10 },
+  sunPosition: { x: 10, y: 15, z: 5 },
 
   // ---- Ambient fill ----
   ambientColor: 0xc8b898,
