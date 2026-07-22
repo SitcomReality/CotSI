@@ -23,9 +23,9 @@ export function finishTurn(state) {
     } else if (isDigEligible(state, champ)) {
       champ.pendingDig = true;
       const factionMap = buildChampionFactionMap(state.champions);
-      addLogEntry(state, `${champ.name} spends the night digging in blank parchment.`, [
+      addLogEntry(state, `${champ.name} spends the night digging in blank parchment`, [
         championSegment(champ.name, factionMap),
-        ' spends the night digging in blank parchment.',
+        ' spends the night digging in blank parchment',
       ], 'standard');
     }
   }
@@ -73,12 +73,12 @@ function _runWorldTurn(state) {
   runWorldTurn(state);
   state.day += 1;
   state.weather = weatherForDay(state.day);
-  addLogEntry(state, `— Day ${state.day}: ${state.weather.name}. ${state.weather.text}`, [
+  addLogEntry(state, `— Day ${state.day}: ${state.weather.name} — ${state.weather.text}`, [
     '— Day ',
     `${state.day}`,
     ': ',
     { text: state.weather.name, color: 'var(--ink-mid)' },
-    '. ',
+    ' — ',
     { text: state.weather.text, color: 'var(--ink-faint)' },
   ], 'day', { isDayMarker: true });
   state.currentOrder = state.globalOrder.filter(id => getChampion(state, id)?.alive);
@@ -100,13 +100,13 @@ function runWorldTurn(state) {
     if (adj && state._rng() < 0.55) {
       const dmg = 4 + Math.floor(state._rng() * 5);
       adj.hp -= dmg;
-      addLogEntry(state, `${mob.name} harasses ${adj.name} for ${dmg} damage.`, [
+      addLogEntry(state, `${mob.name} harasses ${adj.name} for ${dmg} damage`, [
         mob.name,
         ' harasses ',
         championSegment(adj.name, _factionMap),
         ' for ',
         { text: String(dmg), color: 'var(--crimson)' },
-        ' damage.',
+        ' damage',
       ], 'combat');
       recordLedgerEntry(adj, `-${dmg} HP — ${mob.name} harassment`, 'loss', 'hp');
       if (adj.hp <= 0) {

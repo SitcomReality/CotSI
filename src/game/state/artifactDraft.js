@@ -37,12 +37,11 @@ export function processFirstTurnDraft(state, ch) {
     ch.offeredArtifact = true;
     const factionMap = buildChampionFactionMap(state.champions);
     addLogEntry(state,
-      `${ch.name} accepts ${picks[0].label}.`,
+      `${ch.name} accepts ${picks[0].label}`,
       [
         championSegment(ch.name, factionMap),
         ' accepts ',
         { text: picks[0].label, color: 'var(--gold)' },
-        '.',
       ]);
   }
 }

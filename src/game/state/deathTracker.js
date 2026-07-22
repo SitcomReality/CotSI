@@ -28,10 +28,10 @@ export function recordDeath(state, champ, cause) {
   state.deathOrder.push(champ.id);
 
   const factionMap = buildChampionFactionMap(state.champions);
-  const plainText = `${champ.name} has fallen — ${cause}.`;
+  const plainText = `${champ.name} has fallen — ${cause}`;
   addLogEntry(state, plainText, [
     championSegment(champ.name, factionMap),
-    ` has fallen — ${cause}.`,
+    ` has fallen — ${cause}`,
   ], 'death', { isDeath: true });
 
   // Support multiple simultaneous deaths (e.g. double knockout in combat)

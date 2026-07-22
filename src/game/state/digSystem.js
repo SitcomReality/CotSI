@@ -45,21 +45,21 @@ export function resolvePendingDig(state, ch) {
   } else if (roll < 0.33) {
     const f = Math.floor(state._rng() * 7);
     ch.potencies[f]++;
-    addLogEntry(state, `${ch.name} digs up a ${FACTIONS[f].name} potency.`, [
+    addLogEntry(state, `${ch.name} digs up a ${FACTIONS[f].name} potency`, [
       championSegment(ch.name, factionMap),
       ' digs up a ',
       { text: FACTIONS[f].name, color: factionAccentVar(f) },
-      ' potency.',
+      ' potency',
     ]);
     recordLedgerEntry(ch, `+1 ${FACTIONS[f].name} potency — night dig`, 'gain', 'potency');
   } else {
     const gold = 7 + Math.floor(state._rng() * 12) + Math.floor(state.day / 7);
     ch.gold += gold;
-    addLogEntry(state, `${ch.name} digs up ${gold} gold.`, [
+    addLogEntry(state, `${ch.name} digs up ${gold} gold`, [
       championSegment(ch.name, factionMap),
       ' digs up ',
       { text: String(gold), color: 'var(--gold)' },
-      ' gold.',
+      ' gold',
     ]);
     recordLedgerEntry(ch, `+${gold} gold — night dig`, 'gain', 'gold');
   }

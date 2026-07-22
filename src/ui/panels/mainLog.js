@@ -64,34 +64,12 @@ function normalizeEntry(entry) {
 
 /**
  * Render a day-change entry as a full-width horizontal divider with a
- * centered label.
+ * centered label. Uses the CSS --day class ::before/::after pseudo-elements
+ * to draw the horizontal lines on either side of the text.
  */
 function buildDayMarker(entry) {
-  return h('div', { class: 'main-log__entry' },
-    h('div', { style: { position: 'relative', width: '100%' } },
-      h('hr', {
-        class: 'main-log__divider',
-        style: {
-          border: 'none',
-          borderTop: '1px solid var(--crease-bold)',
-          width: '100%',
-          margin: '0',
-        },
-      }),
-      h('span', {
-        class: 'main-log__divider-label',
-        style: {
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          color: 'var(--ink-faint)',
-          fontSize: 'var(--fs-xs)',
-          background: 'var(--abyss)',
-          padding: '0 0.5em',
-        },
-      }, entry.plainText),
-    ),
+  return h('div', { class: 'main-log__entry main-log__entry--day' },
+    entry.plainText
   );
 }
 

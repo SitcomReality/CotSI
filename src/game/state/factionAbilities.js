@@ -27,8 +27,8 @@ export function processReverie(state, ch) {
     recordLedgerEntry(ch, "The dream was silent — Another's Dream", 'neutral', 'info');
   }
   const factionMap = buildChampionFactionMap(state.champions);
-  addLogEntry(state, `${ch.name} receives a Reverie dream.`, [
+  addLogEntry(state, `${ch.name} receives a Reverie dream`, [
     championSegment(ch.name, factionMap),
-    ' receives a Reverie dream.',
+    ' receives a Reverie dream',
   ]);
 }

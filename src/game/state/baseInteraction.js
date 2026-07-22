@@ -22,11 +22,11 @@ export function interactBase(ch, tile) {
     const healed = Math.ceil(ch.maxHp * 0.5);
     ch.hp = Math.min(ch.maxHp, ch.hp + healed);
     ch.moves = 0;
-    addLogEntry(G, `${ch.name} receives sanctuary (+${healed} HP).`, [
+    addLogEntry(G, `${ch.name} receives sanctuary (+${healed} HP)`, [
       championSegment(ch.name, factionMap),
       ' receives sanctuary (+',
       { text: String(healed), color: 'var(--verdigris)' },
-      ' HP).',
+      ' HP)',
     ]);
     recordLedgerEntry(ch, `+${healed} HP — sanctuary`, 'gain', 'hp');
   } else {
@@ -36,11 +36,11 @@ export function interactBase(ch, tile) {
       ch.gold -= cost;
       ch.potencies[tile.feature.faction]++;
       ch.moves = 0;
-      addLogEntry(G, `${ch.name} buys ${FACTIONS[tile.feature.faction].name} potency.`, [
+      addLogEntry(G, `${ch.name} buys ${FACTIONS[tile.feature.faction].name} potency`, [
         championSegment(ch.name, factionMap),
         ' buys ',
         { text: FACTIONS[tile.feature.faction].name, color: factionAccentVar(tile.feature.faction) },
-        ' potency.',
+        ' potency',
       ]);
       recordLedgerEntry(
         ch,

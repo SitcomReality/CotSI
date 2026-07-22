@@ -18,12 +18,12 @@ export function interactOnArrival(state, champ) {
       tile.feature.ripe = false;
       addLogEntry(
         state,
-        `${champ.name} eats manuscript fruit (+${heal} HP).`,
+        `${champ.name} eats manuscript fruit (+${heal} HP)`,
         [
           championSegment(champ.name, factionMap),
           ' eats manuscript fruit (+',
           { text: `${heal}`, color: 'var(--verdigris)' },
-          ' HP).',
+          ' HP)',
         ],
         'heal',
       );
@@ -36,12 +36,12 @@ export function interactOnArrival(state, champ) {
     tile.feature.mined = true;
     addLogEntry(
       state,
-      `${champ.name} mines ${amt} God's Knot.`,
+      `${champ.name} mines ${amt} God's Knot`,
       [
         championSegment(champ.name, factionMap),
         ' mines ',
         { text: `${amt}`, color: 'var(--gold)' },
-        " God's Knot.",
+        " God's Knot",
       ],
     );
     recordLedgerEntry(champ, `+${amt} God's Knot — mined`, 'gain', 'knot');

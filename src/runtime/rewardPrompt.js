@@ -24,8 +24,8 @@ export function showPendingReward(G) {
       const factionMap = buildChampionFactionMap(G.champions);
       addLogEntry(
         G,
-        `${ch.name} accepts ${choice.label}.`,
-        [championSegment(ch.name, factionMap), ` accepts ${choice.label}.`],
+        `${ch.name} accepts ${choice.label}`,
+        [championSegment(ch.name, factionMap), ` accepts ${choice.label}`],
         'system'
       );
       refreshAll();

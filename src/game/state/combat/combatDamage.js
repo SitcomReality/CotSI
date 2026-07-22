@@ -82,26 +82,25 @@ export function finalizeCombat(state, attacker, defender, attackerWon){
       recordLedgerEntry(attacker, `+1 ${FACTIONS[rf].name} potency — Everknown`, 'gain', 'potency');
     }
     addLogEntry(state,
-      `${attacker.name} defeats ${defender.name} and claims a relic (+${gold}g).`,
+      `${attacker.name} defeats ${defender.name} and claims a relic (+${gold}g)`,
       [
         championSegment(attacker.name, factionMap),
         ' defeats ',
         championSegment(defender.name, factionMap),
         ' and claims a relic (+',
         { text: `${gold}`, color: 'var(--gold)' },
-        'g).'
+        'g)'
       ],
       'combat');
     return { gold, relic:1 };
   }
   if(!attacker.alive){
     addLogEntry(state,
-      `${attacker.name} falls in combat against ${defender.name}.`,
+      `${attacker.name} falls in combat against ${defender.name}`,
       [
         championSegment(attacker.name, factionMap),
         ' falls in combat against ',
         championSegment(defender.name, factionMap),
-        '.'
       ],
       'death',
       { isDeath: true });
