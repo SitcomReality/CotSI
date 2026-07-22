@@ -1,16 +1,17 @@
 /**
  * svgIcon.js — Build an <svg><use href="..."/></svg> DOM node
- * from the project's monoline sprite.
+ * from a category sprite file.
  *
  * Usage:
  *   import { svgIcon } from './svgIcon.js';
  *   el.append(svgIcon('g-crucible', 16));
  *   el.append(svgIcon('i-move', 12, { class: 'foo', ariaHidden: true }));
  *
+ * Icon IDs are resolved to the correct category sprite via iconPaths.js.
  * The `href` is resolved relative to the page root (index.html),
  * so any consumer can call this — no import.meta.url gymnastics.
  */
-const SPRITE_PATH = 'assets/icons/sprite.svg';
+import { iconSpritePath } from './iconPaths.js';
 
 /**
  * @param {string} id  symbol id, e.g. 'g-crucible' or 'i-move'
@@ -34,7 +35,7 @@ export function svgIcon(id, size = 14, extra = {}) {
   svg.setAttribute('aria-hidden', extra.ariaHidden !== undefined ? String(extra.ariaHidden) : 'true');
 
   const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-  use.setAttribute('href', `${SPRITE_PATH}#${id}`);
+  use.setAttribute('href', `${iconSpritePath(id)}#${id}`);
   svg.append(use);
   return svg;
 }

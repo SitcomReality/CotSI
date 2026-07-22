@@ -360,7 +360,7 @@ Bouncy, playful pacing that respects the cartoon facade. But not *too* bouncy â€
 
 ### Existing SVG sprite
 
-The sprite sheet at `assets/icons/sprite.svg` uses the `--ink-line` color for default icons and `--f-N-accent` for faction glyphs. All new icons follow the same pattern.
+The sprite sheets at `assets/icons/{factions,actions,equip,terrain,resource,decor,pieces}.svg` use the `--ink-line` color for default icons and `--f-N-accent` for faction glyphs. All new icons follow the same pattern.
 
 ---
 

@@ -14,7 +14,7 @@
 import * as THREE from '../../../vendor/three.module.js';
 
 // ─── Icon SVG definitions ───────────────────────────────────────────────────
-// These mirror the <symbol> entries in assets/icons/sprite.svg.
+// These mirror the <symbol> entries in assets/icons/pieces.svg.
 // Each is a standalone SVG fragment (paths, circles, etc.) with a 24×24 viewBox.
 // Kept inline so this module can run synchronously without fetching the sprite.
 

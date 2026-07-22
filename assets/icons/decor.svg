@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <symbol id="d-knot" viewBox="0 0 24 24">
+   <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+    <path d="M12 4a4 4 0 1 1-3.46 6 4 4 0 1 1 6.92 0A4 4 0 1 1 12 4Z"/>
+    <path d="M12 9.5 14 13h-4Z"/>
+   </g>
+  </symbol>
+  <symbol id="d-mandorla" viewBox="0 0 24 24">
+   <path d="M12 2c8 6 8 14 0 20C4 16 4 8 12 2Z" fill="none" stroke="currentColor" stroke-width="2"/>
+  </symbol>
+  <symbol id="d-seal" viewBox="0 0 24 24">
+   <g fill="currentColor">
+    <circle cx="12" cy="12" r="8"/>
+    <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+     <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M19.4 4.6l-2.1 2.1M6.7 17.3l-2.1 2.1"/>
+    </g>
+    <circle cx="12" cy="12" r="5.4" fill="#000" opacity=".18"/>
+   </g>
+  </symbol>
+  <symbol id="d-corner" viewBox="0 0 48 48">
+   <g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+    <path d="M4 44V12a8 8 0 0 1 8-8h32"/>
+    <path d="M10 44V14a4 4 0 0 1 4-4h30"/>
+    <circle cx="14" cy="14" r="3"/>
+   </g>
+  </symbol>
+ </defs>
+</svg>

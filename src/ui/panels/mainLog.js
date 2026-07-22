@@ -1,4 +1,5 @@
 import { h } from '../domBuilder.js';
+import { iconSpritePath } from '../iconPaths.js';
 
 /**
  * Build a <div class="main-log"> containing the 5 most recent log entries.
@@ -132,7 +133,7 @@ function logIcon(iconId) {
   svg.setAttribute('height', '14');
   svg.setAttribute('aria-hidden', 'true');
   const use = document.createElementNS(ns, 'use');
-  use.setAttribute('href', `assets/icons/sprite.svg#${iconId}`);
+  use.setAttribute('href', `${iconSpritePath(iconId)}#${iconId}`);
   svg.appendChild(use);
   return svg;
 }

@@ -27,7 +27,7 @@
             <span class="left-faction-dot"></span>
             <span class="left-champ-name" data-ui="name">—</span>
             <span class="left-champ-moves">
-              <svg width="12" height="12"><use href="assets/icons/sprite.svg#i-move"/></svg>
+              <svg width="12" height="12"><use href="assets/icons/actions.svg#i-move"/></svg>
               <span data-ui="moves">—</span>
             </span>
           </div>
@@ -42,15 +42,15 @@
           <!-- Resources row -->
           <div class="left-resources-row">
             <span class="left-res-item">
-              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-relic"/></svg>
+              <svg width="14" height="14"><use href="assets/icons/resource.svg#i-relic"/></svg>
               <span data-ui="relics">—</span> Relics
             </span>
             <span class="left-res-item">
-              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-gold"/></svg>
+              <svg width="14" height="14"><use href="assets/icons/resource.svg#i-gold"/></svg>
               <span data-ui="gold">—</span> Gold
             </span>
             <span class="left-res-item">
-              <svg width="14" height="14"><use href="assets/icons/sprite.svg#d-knot"/></svg>
+              <svg width="14" height="14"><use href="assets/icons/decor.svg#d-knot"/></svg>
               <span data-ui="knot">—</span> Knots
             </span>
           </div>
@@ -58,11 +58,11 @@
           <!-- Equipment row -->
           <div class="left-equip-row">
             <span class="left-equip-item">
-              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-weapon"/></svg>
+              <svg width="14" height="14"><use href="assets/icons/equip.svg#i-weapon"/></svg>
               <span data-ui="weapon">—</span>
             </span>
             <span class="left-equip-item">
-              <svg width="14" height="14"><use href="assets/icons/sprite.svg#i-armor"/></svg>
+              <svg width="14" height="14"><use href="assets/icons/equip.svg#i-armor"/></svg>
               <span data-ui="armor">—</span>
             </span>
             <span class="left-equip-artifact">
@@ -90,16 +90,16 @@
       <div class="map-controls">
         <span id="hudZoom" class="map-zoom-indicator">100%</span>
         <button class="btn map-btn" id="zoomIn" data-action="zoomIn" title="Zoom In (Mouse Wheel)">
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/sprite.svg#i-zoomin"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/actions.svg#i-zoomin"/></svg>
         </button>
         <button class="btn map-btn" id="zoomOut" data-action="zoomOut" title="Zoom Out (Mouse Wheel)">
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/sprite.svg#i-zoomout"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/actions.svg#i-zoomout"/></svg>
         </button>
         <button class="btn map-btn" id="zoomReset" data-action="resetCamera" title="Reset View">
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/sprite.svg#i-center"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/actions.svg#i-center"/></svg>
         </button>
         <button class="btn map-btn" id="centerChampion" data-action="centerChampion" title="Center on Champion (C)">
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/sprite.svg#d-seal"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/decor.svg#d-seal"/></svg>
         </button>
       </div>
     </div>

@@ -45,7 +45,7 @@ let pieceCapGeo = null;
 /** Thin uniform-radius cylinder — the "coin" body whose rim shows faction colour. */
 export function getPieceBodyGeo() {
   if (!pieceBodyGeo) {
-    pieceBodyGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.10, 16);
+    pieceBodyGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.10, 16);
   }
   return pieceBodyGeo;
 }
@@ -53,7 +53,7 @@ export function getPieceBodyGeo() {
 /** Ultra-thin disc sitting on top of the body, carrying the icon CanvasTexture. */
 export function getPieceCapGeo() {
   if (!pieceCapGeo) {
-    pieceCapGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.025, 24);
+    pieceCapGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.025, 24);
   }
   return pieceCapGeo;
 }
