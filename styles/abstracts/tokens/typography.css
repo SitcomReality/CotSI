@@ -43,6 +43,9 @@
   --font-body:    'Outfit', sans-serif;        /* panels, tooltips, log, labels */
   --font-hand:    'Caveat', cursive;           /* Dispatch lore, flavor text */
 
+  /* Monospace for measurement readouts, debug panels */
+  --font-mono: 'ui-monospace', 'Menlo', 'Consolas', monospace;
+
   /* Tabular numbers for stat alignment */
   --tnum: 'tnum' 1;
 

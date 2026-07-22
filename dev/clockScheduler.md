@@ -13,7 +13,7 @@ The clock owns the `requestAnimationFrame` loop (Three.js renders via `clock.onT
 | `default` | General purpose | Fallback for ungrouped timers |
 | `bot` | `refreshAll.js`, `turnPipeline.js` | Bot turn delays, bot AI pauses |
 | `combat` | `combatFx.js`, `combatFlow.js` | Combat exchange waits, HP drain, cleanup |
-| `animation` | `combatFx.js` (countUp, clashPulse) | Score count-up, slot-flip timing |
+| `animation` | *(reserved, currently unused)* | Reserved for score count-up, slot-flip timing |
 | `ui` | `dispatchModal.js`, `hud.js`, `headerPanel.js` | Dispatch reveal, toast auto-hide, tooltip close |
 
 ---
@@ -73,4 +73,4 @@ getClock().resume();         // master resume
 2. **Always specify a group** for gameplay-related tasks; use `'default'` only for generic one-offs
 3. **`onTick` is for per-frame work** (rendering, animation), not delayed logic (use `setTimeout`/`wait`)
 4. **`dispose()` on game restart** — `hexMapRenderer.initHexMap3D()` calls `getClock().dispose()`, which stops the rAF loop and clears all pending tasks
-5. **Group names are sticky** — unrecognized names auto-create with speed `1.0` and unpaused. Stick to the 5 defined groups
+5. **Group names are sticky** — unrecognized names auto-create with speed `1.0` and unpaused. Stick to the 5 defined groups (`default`, `bot`, `combat`, `animation` (reserved), `ui`)

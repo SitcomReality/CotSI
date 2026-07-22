@@ -24,6 +24,7 @@ export function createClock() {
   let _frameCallbackIdCounter = 1;
 
   // Per-group state
+  // The `animation` group is reserved for future use (score count-up, slot-flip timing)
   const _groups = {
     default:   { paused: false, speed: 1, virtualNow: 0 },
     bot:       { paused: false, speed: 1, virtualNow: 0 },

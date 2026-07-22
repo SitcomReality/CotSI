@@ -123,10 +123,10 @@ The theater frame. Deep, dark, velvety. All neutral tones.
 | `--board-hi` | `#242a38` | Raised card / modal surface |
 | `--ink` | `#e8e4dc` | Body text / primary content |
 | `--ink-mid` | `#a8a4b0` | Secondary text / captions |
-| `--ink-faint` | `#6a6e7a` | Tertiary / placeholders |
+| `--ink-faint` | `#6a5e5a` | Tertiary / placeholders |
 | `--ink-line` | `#121418` | Ink outline color (dark black-brown, not pure black) |
-| `--crease` | `#2a3040` | Hairline divider |
-| `--crease-bold` | `#3a4460` | Stronger divider |
+| `--crease` | `#2a2620` | Hairline divider |
+| `--crease-bold` | `#3a3530` | Stronger divider |
 | `--board-glass` | `#242a38cc` | Semi-transparent overlay (play slots, reward box) |
 
 ### 4.2 Faction Palette — Two-Color System
@@ -252,13 +252,15 @@ Complete replacement of the v3 font stack (previously Cinzel, EB Garamond, Unifr
 --fs-3xl: 52px;  /* display / hero text */
 ```
 
-### Line height & letter spacing
+### Line height, letter spacing & misc
 
 ```css
 --lh:         1.45;
 --lh-tight:   1.15;
 --ls-cap:     .06em;   /* small-caps / uppercase labels */
 --ls-display: -.01em;  /* display headings at large sizes — tighter for impact */
+
+--font-mono:  'ui-monospace', 'Menlo', 'Consolas', monospace;  /* debug panels, measurement readouts */
 ```
 
 ---
@@ -282,6 +284,7 @@ Rounded to reinforce the cartoon / playful facade. No sharp right angles on inte
 --r:      12px;
 --r-lg:   20px;
 --r-pill: 999px;
+--r-panel: 4px;   /* structural chrome — sharp, theatrical frame */
 ```
 
 ### Edge / divider weights (for the Proscenium layer — no ink outlines here)
@@ -320,28 +323,27 @@ The shadow base (`#07080b`) is slightly darker than `--abyss` to create a true h
 Bouncy, playful pacing that respects the cartoon facade. But not *too* bouncy — the darkness underneath means some motions should feel heavy, weighted.
 
 ```css
---ease-pop:     cubic-bezier(.34,1.56,.64,1);   /* playful — for reveals, rewards, good moments */
---ease-snap:    cubic-bezier(.22,.61,.36,1);    /* standard — snappy but smooth */
---ease-slide:   cubic-bezier(.16,.4,.34,1);     /* heavy — modals opening, dark reveals */
---ease-drone:   cubic-bezier(.55,.06,.68,.19);  /* ominous — for damage, bad events */
+--ease:         cubic-bezier(.22,.61,.36,1);    /* standard — snappy but smooth */
+--ease-in:      cubic-bezier(.55,.06,.68,.19);  /* ominous — for damage, bad events */
+--ease-out:     cubic-bezier(.22,.61,.36,1);    /* standard easing-out */
+--ease-bounce:  cubic-bezier(.34,1.56,.64,1);  /* playful pop — reveals, rewards, good moments */
 
---dur-fast:  120ms;   /* micro-interactions */
---dur:       200ms;   /* standard transitions */
---dur-slow:  350ms;   /* reveal animations */
---dur-xslow: 500ms;   /* modal entrances, dramatic moments */
---dur-epic:  800ms;   /* Augur's Dispatch, combat resolution, victory */
+--dur-fast:  150ms;   /* micro-interactions */
+--dur:       250ms;   /* standard transitions */
+--dur-slow:  420ms;   /* reveal animations */
+--dur-xslow: 600ms;   /* modal entrances, dramatic moments */
 ```
 
 ### What gets which easing
 
 | Interaction | Easing | Rationale |
 |-------------|--------|-----------|
-| Button hover, item select | `--ease-snap` | Snappy, responsive |
-| Reward reveal, gold counter | `--ease-pop` | Playful — you earned this! |
-| Modal open, panel slide | `--ease-slide` | Heavy — like a stage curtain drawing closed |
-| HP loss, damage flash | `--ease-drone` | Ominous — something bad happened |
-| Combat score count-up | `--ease-pop` | Playful competition |
-| Death, elimination | `--ease-slide` | Heavy, final |
+| Button hover, item select | `--ease` | Snappy, responsive |
+| Reward reveal, gold counter | `--ease-bounce` | Playful — you earned this! |
+| Modal open, panel slide | `--ease` | Snappy but smooth — like a stage curtain drawing closed |
+| HP loss, damage flash | `--ease-in` | Ominous — something bad happened |
+| Combat score count-up | `--ease-bounce` | Playful competition |
+| Death, elimination | `--ease-in` | Heavy, final |
 
 ---
 

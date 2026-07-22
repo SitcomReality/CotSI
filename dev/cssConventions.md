@@ -32,7 +32,7 @@ styles/
 │   ├── setupScreen.css, dispatchModal.css, rewardModal.css
 │   ├── headerPanel.css, rightPanel.css, logPanel.css
 │   ├── heptagramWidget.css, tooltip.css, mapControls.css, fog.css, tile.css
-│   ├── championDetail.css, artifactChoice.css
+│   ├── championDetail.css
 │   ├── potencies.css, stats.css, swatch.css, manuscriptPanel.css
 │   ├── note.css, forms.css, textTreatment.css
 │   ├── hud.css, paleyCrossHighlight.css

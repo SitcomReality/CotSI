@@ -1,22 +1,16 @@
 # AGENTS.md — Champions of the Supernal Interregnum
 
-Guide for AI coding agents working on CotSI. Read this before making changes.
-When in doubt, ask — the user welcomes questions.
-
 ---
 
 ## Project
 
-CotSI is a browser-based, single-player hex-crawl strategy game. Seven faction champions
-move, fight, trade, and dig for relics on a procedurally generated hex map. Combat uses a
-7-node Paley tournament (each power beats 3, loses to 3).
+CotSI is a browser-based, single-player hex-crawl strategy game, early in development. Seven faction champions move, fight, trade, and dig for relics on a procedurally generated hex map. Combat uses a 7-node Paley tournament (each power beats 3, loses to 3).
 
-**Stack:** Vanilla JS (ES modules) + plain CSS. No framework, no bundler, no build step.
-Three.js for 3D rendering (`src/vendor/`). Served as static files from any HTTP server
-(ES modules require an origin — opening `index.html` from disk fails).
+**Stack:** Vanilla JS (ES modules) + plain CSS. No framework, no bundler, no build step. Three.js for 3D rendering (`src/vendor/`). Served as static files from any HTTP server (ES modules require an origin — opening `index.html` from disk fails).
 
-**Test:** `python3 dev/check_imports.py` verifies all imports resolve and checks layer
-boundaries. No formal test runner. AI devs can't run the game; the user tests on request.
+**Test:** `python3 dev/check_imports.py` verifies all imports resolve and checks layer boundaries. No formal test runner. AI devs can't run the game; the user tests on request.
+
+**The User Can Help:** If there's ambiguity or confusion, ask questions. If there are complicated bugs, add console logs or debug features and the user will report results to help narrow it down.
 
 ---
 
@@ -81,7 +75,4 @@ window.__gameState; // same object as G
 
 ## The User
 
-I'm SitcomReality, the creator. I read only English. I'm a competent coder but don't
-always remember every system detail — happy to clarify. For complex bugs, I prefer
-adding console logs to narrow things down; I'll test and report back. This is a
-collaborative process.
+I'm SitcomReality, the creator. I read only English. I'm a competent coder but don't always remember every system detail — happy to clarify. For complex bugs, I prefer adding console logs to narrow things down; I'll test and report back. This is a collaborative process.

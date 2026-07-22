@@ -35,10 +35,11 @@ When a specific rule is unclear or missing, fall back to the principles in §1.
 ```
 src/
   entrypoint.js   Composition-root entry. Imports bootstrap for side effects only.
+  dev/            Dev tools panel (cheats, perf, bot control). Not part of game UI.
   engine/         Reusable-across-games code. Zero knowledge of factions, lore, UI.
   game/           This game's rules and state. No DOM, no Three.js, no wiring.
   runtime/        Composition root. The ONLY layer that may import multiple layers.
-  render/         Pixels: Three.js scene + Canvas2D overlays. Reads state, never mutates.
+  render/         Pixels: Three.js scene, Canvas2D overlays, minimap. Reads state, never mutates.
   ui/             DOM: panels, modals, widgets, view-models. Never mutates game state.
   shared/         Leaf infrastructure imported by any layer; imports nothing project-local.
   vendor/         Third-party builds (Three.js). Exempt from naming rules. Do not edit.
@@ -62,32 +63,42 @@ Forbidden: `engine → game/runtime/render/ui`; `game → runtime/render/ui`;
 ### What lives where
 
 - **`engine/rules/`** — Pure, reusable mechanics: seeded RNG, hex-grid math,
-  pathfinding, noise. Testable in Node without a browser. (`engine/state/` — a generic
+  noise, Fisher-Yates shuffle. Testable in Node without a browser. (`engine/state/` — a generic
   store — is reserved for the future; do not create empty directories.)
 - **`game/rules/`** — Pure, game-specific logic: faction data, Paley scoring, weather
-  script, terrain generation. Functions take state as a parameter; they never reach
-  for mutable state.
+  script, terrain generation, archetype definitions, dispatch reports, trader stock.
+  Functions take state as a parameter; they never reach for mutable state.
 - **`game/state/`** — The single source of truth. Mutable game state (`liveGame.js`
   holds the live `G`), queries (`entityQueries.js`), and mutations
-  (`championMovement.js`, `worldSimulation.js`, `combat/`).
+  (`championMovement.js`, `worldSimulation.js`, `combat/`). Additional files:
+  `championFactory.js`, `entityFactory.js`, `initialGameState.js`, `gameFactory.js`,
+  `fogOfWar.js`, `turnActions.js`, `gameLog.js`, `dispatchLedger.js`, `victoryChecks.js`,
+  `championAI.js`. (Representative — the actual set grows as systems are added.)
 - **`runtime/`** — Orchestration: startup (`bootstrap.js`, `beginGame.js`), render
-  orchestration (`refreshAll.js`, `mapRefresh.js`), input bridges (`hexBridge.js`), turn
-  sequencing (`turnPipeline.js`), action registrations that span layers
-  (`mapControlActions.js`). Keep it thin: if a file here does game logic, move it to
-  `game/state/`; if it does DOM work, move it to `ui/`.
-  Note: the actual rAF render loop now lives in `shared/clockScheduler.js`, not in
+  orchestration (`refreshAll.js`, `mapRefresh.js`), zoom display (`zoomDisplay.js`),
+  input bridges (`hexBridge.js`), turn sequencing (`turnPipeline.js`), action registrations
+  that span layers (`mapControlActions.js`), and prompts (`rewardPrompt.js`,
+  `heraldPrompt.js`, `dispatchPrompt.js`). Keep it thin: if a file here does game logic,
+  move it to `game/state/`; if it does DOM work, move it to `ui/`.
+- **`render/`** — Everything that touches pixels: `hexmap3d/` (Three.js scene, terrain,
+  features, units, interaction), `overlays/` (Canvas2D fog, highlights, selection), and
+  `minimap/` (2D minimap overview).
+  Receives state via arguments; given the same state it produces the same visuals.
+  Note: the rAF render loop lives in `shared/clockScheduler.js`, not in
   `render/hexmap3d/scene/sceneSetup.js`. `sceneSetup.js` registers its render callback
   via `clock.onTick()`.
-- **`render/`** — Everything that touches pixels: `hexmap3d/` (Three.js scene, terrain,
-  features, units, interaction) and `overlays/` (Canvas2D fog, highlights, selection).
-  Receives state via arguments; given the same state it produces the same visuals.
 - **`ui/`** — HTML bindings, panels (`panels/`), modals (`modals/`), combat modal
-  (`combat/`), view-models (`viewModels/`), decorative SVG, the `h()` DOM builder.
+  (`combat/`), view-models (`viewModels/`), templates (`templates/`), decorative SVG,
+  the `h()` DOM builder.
   Dispatches intent through `shared/actionBus.js`; never mutates game state.
 - **`shared/`** — Layer-neutral infrastructure. Today: `actionBus.js` (the
-  `[data-action]` dispatcher) and `clockScheduler.js` (the centralized Clock
-  with pause/resume, per-group speed control, and the master rAF loop).
+  `[data-action]` dispatcher with keyboard shortcuts and modal-action helpers)
+  and `clockScheduler.js` (the centralized Clock with pause/resume, per-group
+  speed control, and the master rAF loop).
   Must stay dependency-free.
+- **`dev/`** — Developer tools: `devTools.js` (panel shell with three tabs),
+  `devCheats.js`, `devBotControl.js`, `devPerformance.js`. Not imported by any
+  game-layer code; loaded only when the dev panel is opened.
 - **`vendor/`** — Three.js builds. Exempt from every rule above.
 
 ---
