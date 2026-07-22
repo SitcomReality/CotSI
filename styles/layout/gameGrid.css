@@ -74,10 +74,21 @@
   min-height: 0;
 }
 
+/* Override .panel padding — log entries should stretch edge-to-edge */
+.rt-log-panel.panel {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.rt-log-panel h4 {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
 .rt-log-entries {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }

@@ -6,6 +6,7 @@ let _refreshAll = null;
 let _toast = null;
 let _startMeasure = null;
 let _endMeasure = null;
+let _finishAttackerTurn = null;
 
 export function setGameState(g) {
   _G = g;
@@ -44,4 +45,12 @@ export function getToast() {
 
 export function getMeasure() {
   return _startMeasure ? { start: _startMeasure, end: _endMeasure } : null;
+}
+
+export function setFinishAttackerTurn(fn) {
+  _finishAttackerTurn = fn;
+}
+
+export function getFinishAttackerTurn() {
+  return _finishAttackerTurn;
 }

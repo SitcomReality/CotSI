@@ -18,6 +18,9 @@ import { onEndTurn } from './endTurn.js';
 import { initCombatModal } from '../ui/combat/combatModal.js';
 import { toast } from '../ui/hud.js';
 import { refreshAll } from './refreshAll.js';
+import { finishTurn } from '../game/state/worldSimulation.js';
+import { G } from '../game/state/liveGame.js';
+import { hideBotIndicator } from '../ui/panels/botIndicator.js';
 import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
 import '../dev/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
@@ -72,6 +75,10 @@ window.addEventListener('DOMContentLoaded', async () => {
       toast,
       startMeasure,
       endMeasure,
+      finishAttackerTurn: () => {
+        finishTurn(G);
+        hideBotIndicator();
+      },
     });
 
     // Delay setup init so beginGame.js is fully evaluated

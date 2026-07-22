@@ -3,7 +3,8 @@
  * Handles fruit eating, knot mining, etc.
  */
 import { coordKey } from '../../engine/rules/hexGrid.js';
-import { addLog, addLogEntry } from './gameLog.js';
+import { addLogEntry } from './gameLog.js';
+import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 
@@ -16,17 +17,13 @@ export function interactOnArrival(state, champ) {
       champ.hp = Math.min(champ.maxHp, champ.hp + heal);
       tile.feature.nextFruitDay = state.day + 4;
       tile.feature.ripe = false;
-      addLogEntry(
-        state,
-        `${champ.name} eats manuscript fruit (+${heal} HP)`,
-        [
-          championSegment(champ.name, factionMap),
-          ' eats manuscript fruit (+',
-          { text: `${heal}`, color: 'var(--verdigris)' },
-          ' HP)',
-        ],
-        'heal',
-      );
+      addLogEntry(state, {
+        category: LOG_CATEGORY.HEAL,
+        subject: championSegment(champ.name, factionMap),
+        verb: 'eats manuscript fruit',
+        object: null,
+        detail: { text: `+${heal} HP`, color: 'var(--verdigris)' },
+      });
       recordLedgerEntry(champ, `+${heal} HP — manuscript fruit`, 'gain', 'hp');
     }
   }
@@ -34,16 +31,13 @@ export function interactOnArrival(state, champ) {
     const amt = tile.feature.amount || 2;
     champ.knot += amt;
     tile.feature.mined = true;
-    addLogEntry(
-      state,
-      `${champ.name} mines ${amt} God's Knot`,
-      [
-        championSegment(champ.name, factionMap),
-        ' mines ',
-        { text: `${amt}`, color: 'var(--gold)' },
-        " God's Knot",
-      ],
-    );
+    addLogEntry(state, {
+      category: LOG_CATEGORY.ECONOMY,
+      subject: championSegment(champ.name, factionMap),
+      verb: 'mines',
+      object: null,
+      detail: { text: `${amt} God's Knot`, color: 'var(--gold)' },
+    });
     recordLedgerEntry(champ, `+${amt} God's Knot — mined`, 'gain', 'knot');
     tile.feature = null;
   }

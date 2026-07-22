@@ -1,4 +1,5 @@
 import { addLogEntry } from '../gameLog.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
 import { refreshVision } from '../fogOfWar.js';
 import { checkVictory } from '../victoryChecks.js';
@@ -81,29 +82,23 @@ export function finalizeCombat(state, attacker, defender, attackerWon){
       const rf = Math.floor(state._rng()*7); attacker.potencies[rf] += 1;
       recordLedgerEntry(attacker, `+1 ${FACTIONS[rf].name} potency — Everknown`, 'gain', 'potency');
     }
-    addLogEntry(state,
-      `${attacker.name} defeats ${defender.name} and claims a relic (+${gold}g)`,
-      [
-        championSegment(attacker.name, factionMap),
-        ' defeats ',
-        championSegment(defender.name, factionMap),
-        ' and claims a relic (+',
-        { text: `${gold}`, color: 'var(--gold)' },
-        'g)'
-      ],
-      'combat');
+    addLogEntry(state, {
+      category: LOG_CATEGORY.COMBAT,
+      subject: championSegment(attacker.name, factionMap),
+      verb: 'defeated',
+      object: championSegment(defender.name, factionMap),
+      detail: { text: `+${gold}g, +1 relic`, color: 'var(--gold)' },
+    });
     return { gold, relic:1 };
   }
   if(!attacker.alive){
-    addLogEntry(state,
-      `${attacker.name} falls in combat against ${defender.name}`,
-      [
-        championSegment(attacker.name, factionMap),
-        ' falls in combat against ',
-        championSegment(defender.name, factionMap),
-      ],
-      'death',
-      { isDeath: true });
+    addLogEntry(state, {
+      category: LOG_CATEGORY.DEATH,
+      subject: championSegment(attacker.name, factionMap),
+      verb: 'fell in combat against',
+      object: championSegment(defender.name, factionMap),
+      detail: null,
+    });
   }
   refreshVision(state);
   checkVictory(state);

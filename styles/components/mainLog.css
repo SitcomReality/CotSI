@@ -1,47 +1,57 @@
 /* =========================================================================
-   Main Log Bar — Rich event log at bottom of screen
+   Main Log — Column-aligned table of recent game events
    ========================================================================= */
 
 .main-log {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: var(--s1) 0;
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: auto;
+  overflow: hidden;
   font-family: var(--font-body);
   font-size: var(--fs-sm);
   line-height: var(--lh);
 }
 
-.main-log__entry {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  padding: var(--s1) var(--s2);
-  border-radius: var(--r-sm);
+/* ── Rows ── */
+
+.main-log__row {
   color: var(--ink-mid);
-  min-height: 22px;
 }
 
-/* Combat entries get a red-tinted left accent */
-.main-log__entry--combat {
+.main-log__row td {
+  padding: var(--s1) var(--s2);
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+/* Category accent: left border on first cell */
+.main-log__row--combat td:first-child {
   border-left: 2px solid var(--crimson);
-  padding-left: var(--s2);
 }
-
-/* Heal entries get a green-tinted left accent */
-.main-log__entry--heal {
+.main-log__row--heal td:first-child {
   border-left: 2px solid var(--verdigris);
-  padding-left: var(--s2);
+}
+.main-log__row--economy td:first-child {
+  border-left: 2px solid var(--gold);
+}
+.main-log__row--system td:first-child {
+  border-left: none;
 }
 
-/* Death entries — prominent */
-.main-log__entry--death {
-  border-left: 3px solid var(--crimson);
-  padding-left: var(--s2);
+/* Death — prominent */
+.main-log__row--death {
   color: var(--ink);
   font-weight: 500;
   background: color-mix(in srgb, var(--crimson) 8%, transparent);
   animation: mainLogDeathIn 0.3s var(--ease-in);
+}
+.main-log__row--death td:first-child {
+  border-left: 3px solid var(--crimson);
+}
+
+/* Suppress death animation on re-rendered entries that aren't genuinely new */
+.main-log__row--death-noanim {
+  animation: none;
 }
 
 @keyframes mainLogDeathIn {
@@ -49,30 +59,56 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* System entries */
-.main-log__entry--system {
-  color: var(--ink);
+/* ── Columns ── */
+
+.main-log__icon {
+  width: 16px;
+  text-align: center;
+  padding-right: 0 !important;
+}
+.main-log__icon svg {
+  display: block;
+  margin: 0 auto;
 }
 
-/* Day markers — full-width divider */
-.main-log__entry--day {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  padding: var(--s2) 0;
-  border: none;
+.main-log__subject {
+  color: var(--ink);
+}
+.main-log__verb {
+  color: var(--ink-mid);
+}
+.main-log__object {
+  color: var(--ink);
+}
+.main-log__detail {
   width: 100%;
+  text-align: right;
+  color: var(--ink-mid);
+}
+
+/* ── Day marker — full-width divider row ── */
+
+.main-log__row--marker td {
+  padding: var(--s2) 0;
+}
+
+.main-log__marker {
+  width: 100%;
+  text-align: center;
   color: var(--ink-faint);
   font-size: var(--fs-xs);
   animation: mainLogDayIn 0.3s var(--ease);
 }
 
-.main-log__entry--day::before,
-.main-log__entry--day::after {
+.main-log__marker::before,
+.main-log__marker::after {
   content: '';
-  flex: 1;
+  display: inline-block;
+  width: calc(50% - 6em);
   height: 0;
   border-top: 1px solid var(--crease-bold);
+  vertical-align: middle;
+  margin: 0 var(--s2);
 }
 
 @keyframes mainLogDayIn {
@@ -80,39 +116,11 @@
   to   { opacity: 1; }
 }
 
-/* Individual colored text segments */
-.main-log__segment {
-  color: var(--seg-color, inherit);
-}
+/* ── Empty state ── */
 
-/* SVG icon within entries */
-.main-log__icon {
-  flex-shrink: 0;
-  opacity: 0.7;
-}
-
-.main-log__icon--death {
-  opacity: 1;
-  color: var(--crimson);
-}
-
-.main-log__icon--combat {
-  color: var(--crimson);
-  opacity: 0.8;
-}
-
-.main-log__icon--heal {
-  color: var(--verdigris);
-  opacity: 0.8;
-}
-
-/* Empty state */
 .main-log__empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+  text-align: center;
   color: var(--ink-faint);
   font-style: italic;
-  font-size: var(--fs-sm);
+  padding: var(--s2) !important;
 }

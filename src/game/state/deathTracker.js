@@ -6,8 +6,9 @@
  *  - Set state.deathEvent (triggers the death announcement modal)
  *  - Add a log entry
  */
-import { addLog, addLogEntry } from './gameLog.js';
+import { addLogEntry } from './gameLog.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
+import { LOG_CATEGORY } from '../rules/logGrammar.js';
 
 /**
  * Record a champion's death in game state.
@@ -28,11 +29,13 @@ export function recordDeath(state, champ, cause) {
   state.deathOrder.push(champ.id);
 
   const factionMap = buildChampionFactionMap(state.champions);
-  const plainText = `${champ.name} has fallen — ${cause}`;
-  addLogEntry(state, plainText, [
-    championSegment(champ.name, factionMap),
-    ` has fallen — ${cause}`,
-  ], 'death', { isDeath: true });
+  addLogEntry(state, {
+    category: LOG_CATEGORY.DEATH,
+    subject: championSegment(champ.name, factionMap),
+    verb: 'has fallen',
+    object: null,
+    detail: { text: `— ${cause}` },
+  });
 
   // Support multiple simultaneous deaths (e.g. double knockout in combat)
   if (!state.deathEvent) {

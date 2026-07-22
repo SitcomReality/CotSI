@@ -1,18 +1,22 @@
 /* =========================================================================
-   Log Overflow — Collapsible text-only history in the right sidebar
-   Memory-efficient: uses a single <textarea> for all entries.
+   Log view — toggle button + scrollable content area + text-only history
    ========================================================================= */
 
-.log-overflow {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s1);
+/* Scrollable wrapper for the rich log table.
+   Takes remaining space; the toggle button stays pinned above it. */
+.main-log-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
-.log-overflow__toggle {
+/* View toggle — pinned at the top of .rt-log-entries */
+.log-view-toggle {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: var(--s2);
+  align-self: flex-start;
   background: none;
   border: none;
   color: var(--ink-mid);
@@ -24,18 +28,8 @@
   transition: opacity 0.15s;
 }
 
-.log-overflow__toggle:hover {
+.log-view-toggle:hover {
   opacity: 1;
-}
-
-.log-overflow__toggle--open .log-overflow__chevron {
-  transform: rotate(90deg);
-}
-
-.log-overflow__chevron {
-  display: inline-block;
-  transition: transform 0.15s;
-  font-size: 10px;
 }
 
 .log-overflow__text {

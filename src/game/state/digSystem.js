@@ -6,6 +6,7 @@ import { coordKey } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 import { occupiedByMob } from './entityQueries.js';
 import { addLogEntry } from './gameLog.js';
+import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment, factionAccentVar } from '../rules/logHelpers.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { G } from './liveGame.js';
@@ -16,12 +17,13 @@ export function resolvePendingDig(state, ch) {
   const factionMap = buildChampionFactionMap(state.champions);
   if (roll < 0.075) {
     ch.relics++;
-    addLogEntry(state, `${ch.name} digs up a relic!`, [
-      championSegment(ch.name, factionMap),
-      ' digs up a ',
-      { text: 'relic', color: 'var(--gold)' },
-      '!',
-    ]);
+    addLogEntry(state, {
+      category: LOG_CATEGORY.ECONOMY,
+      subject: championSegment(ch.name, factionMap),
+      verb: 'dug up',
+      object: { text: 'a relic', color: 'var(--gold)' },
+      detail: null,
+    });
     recordLedgerEntry(ch, '+1 relic — night dig', 'gain', 'relic');
     if (ch.controller === 'human' && !state.reward) {
       state.reward = {
@@ -45,22 +47,24 @@ export function resolvePendingDig(state, ch) {
   } else if (roll < 0.33) {
     const f = Math.floor(state._rng() * 7);
     ch.potencies[f]++;
-    addLogEntry(state, `${ch.name} digs up a ${FACTIONS[f].name} potency`, [
-      championSegment(ch.name, factionMap),
-      ' digs up a ',
-      { text: FACTIONS[f].name, color: factionAccentVar(f) },
-      ' potency',
-    ]);
+    addLogEntry(state, {
+      category: LOG_CATEGORY.ECONOMY,
+      subject: championSegment(ch.name, factionMap),
+      verb: 'dug up',
+      object: { text: `a ${FACTIONS[f].name} potency`, color: factionAccentVar(f) },
+      detail: null,
+    });
     recordLedgerEntry(ch, `+1 ${FACTIONS[f].name} potency — night dig`, 'gain', 'potency');
   } else {
     const gold = 7 + Math.floor(state._rng() * 12) + Math.floor(state.day / 7);
     ch.gold += gold;
-    addLogEntry(state, `${ch.name} digs up ${gold} gold`, [
-      championSegment(ch.name, factionMap),
-      ' digs up ',
-      { text: String(gold), color: 'var(--gold)' },
-      ' gold',
-    ]);
+    addLogEntry(state, {
+      category: LOG_CATEGORY.ECONOMY,
+      subject: championSegment(ch.name, factionMap),
+      verb: 'dug up',
+      object: { text: `${gold} gold`, color: 'var(--gold)' },
+      detail: null,
+    });
     recordLedgerEntry(ch, `+${gold} gold — night dig`, 'gain', 'gold');
   }
 }

@@ -3,9 +3,10 @@
  * References `G` via live binding (circular import, used at runtime only).
  */
 import { G } from './liveGame.js';
-import { addLog, addLogEntry } from './gameLog.js';
+import { addLogEntry } from './gameLog.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { FACTIONS } from '../rules/factionData.js';
+import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment, factionAccentVar } from '../rules/logHelpers.js';
 import { toast } from '../../ui/hud.js';
 
@@ -22,12 +23,13 @@ export function interactBase(ch, tile) {
     const healed = Math.ceil(ch.maxHp * 0.5);
     ch.hp = Math.min(ch.maxHp, ch.hp + healed);
     ch.moves = 0;
-    addLogEntry(G, `${ch.name} receives sanctuary (+${healed} HP)`, [
-      championSegment(ch.name, factionMap),
-      ' receives sanctuary (+',
-      { text: String(healed), color: 'var(--verdigris)' },
-      ' HP)',
-    ]);
+    addLogEntry(G, {
+      category: LOG_CATEGORY.HEAL,
+      subject: championSegment(ch.name, factionMap),
+      verb: 'receives sanctuary',
+      object: null,
+      detail: { text: `+${healed} HP`, color: 'var(--verdigris)' },
+    });
     recordLedgerEntry(ch, `+${healed} HP — sanctuary`, 'gain', 'hp');
   } else {
     // Buy faction potency
@@ -36,12 +38,13 @@ export function interactBase(ch, tile) {
       ch.gold -= cost;
       ch.potencies[tile.feature.faction]++;
       ch.moves = 0;
-      addLogEntry(G, `${ch.name} buys ${FACTIONS[tile.feature.faction].name} potency`, [
-        championSegment(ch.name, factionMap),
-        ' buys ',
-        { text: FACTIONS[tile.feature.faction].name, color: factionAccentVar(tile.feature.faction) },
-        ' potency',
-      ]);
+      addLogEntry(G, {
+        category: LOG_CATEGORY.ECONOMY,
+        subject: championSegment(ch.name, factionMap),
+        verb: 'buys',
+        object: { text: FACTIONS[tile.feature.faction].name, color: factionAccentVar(tile.feature.faction) },
+        detail: { text: 'potency' },
+      });
       recordLedgerEntry(
         ch,
         `-${cost} gold, +1 ${FACTIONS[tile.feature.faction].name} potency — base purchase`,

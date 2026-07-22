@@ -1,124 +1,136 @@
 import { h } from '../domBuilder.js';
 import { iconSpritePath } from '../iconPaths.js';
 
+/** @type {number} How many log entries we rendered on the previous call. */
+let _prevLogLength = 0;
+
 /**
- * Build a <div class="main-log"> containing the 5 most recent log entries.
- * Returns the DOM element without mounting it anywhere.
+ * Build a <table class="main-log"> containing the 20 most recent log entries
+ * in a column-aligned table layout.
+ *
+ * Grammar entries (with entry.grammar) render into subject/verb/object/detail
+ * columns.  Legacy entries without grammar fall back to a single-cell row
+ * showing plainText until they age out of the log.
+ *
+ * Day markers span all columns.
+ *
+ * Death-entry animations only fire for entries that are genuinely new since
+ * the previous render, so a trivial action (e.g. moving one hex) doesn't
+ * cause every death row to re-animate.
  *
  * @param {Array} logs — G.logs array (most-recent-first)
- * @returns {HTMLElement}
+ * @returns {HTMLTableElement}
  */
 export function buildMainLogContent(logs) {
-  const recent = (logs || []).slice(0, 5).map(normalizeEntry);
+  const all = logs || [];
+  const recent = all.slice(0, 20);
 
-  return h('div', { class: 'main-log' },
-    recent.length === 0
-      ? h('div', { class: 'main-log__empty', style: { color: 'var(--ink-faint)', fontStyle: 'italic' } },
-          'Awaiting events...'
-        )
-      : recent.map(entry =>
-          entry.isDayMarker ? buildDayMarker(entry) : buildLogEntry(entry)
-        )
+  if (recent.length === 0) {
+    _prevLogLength = 0;
+    return h('table', { class: 'main-log' },
+      h('tr', { class: 'main-log__row' },
+        h('td', { class: 'main-log__empty', colspan: '5' }, 'Awaiting events...'),
+      ),
+    );
+  }
+
+  const currentLength = all.length;
+  // Entries at indices [0 .. cutoff) are newer than what we last rendered
+  const newCount = Math.max(0, currentLength - _prevLogLength);
+  _prevLogLength = currentLength;
+
+  const rows = recent.map((entry, i) => buildRow(entry, i < newCount));
+  return h('table', { class: 'main-log' }, ...rows);
+}
+
+/* ── Row builder ── */
+
+/**
+ * @param {Object} entry
+ * @param {boolean} isNew — true if this entry is newer than the previous render
+ * @returns {HTMLTableRowElement}
+ */
+function buildRow(entry, isNew) {
+  // Day markers — full-width
+  if (entry.isDayMarker || (entry.grammar && entry.category === 'marker')) {
+    return h('tr', { class: 'main-log__row main-log__row--marker' },
+      h('td', { class: 'main-log__marker', colspan: '5' }, entry.plainText),
+    );
+  }
+
+  // Grammar entries — column-aligned
+  if (entry.grammar) {
+    return buildGrammarRow(entry, isNew);
+  }
+
+  // Legacy entries — plain text fallback until they age out
+  return h('tr', { class: 'main-log__row main-log__row--system' },
+    h('td', { colspan: '5', style: { color: 'var(--ink-mid)' } }, entry.plainText || ''),
   );
 }
 
-/**
- * Bind the main log bar by rebuilding #logMount contents from G.logs.
- * Kept for backward compatibility; new code should call buildMainLogContent
- * and mount the result directly.
- *
- * @param {Object} G — live game state (G.logs is an array, most-recent-first)
- */
-export function bindMainLog(G) {
-  const mount = document.getElementById('logMount');
-  if (!mount) {
-    console.warn('[bindMainLog] #logMount not found');
-    return;
-  }
-
-  mount.replaceChildren(buildMainLogContent(G?.logs));
-}
+/* ── Grammar row ── */
 
 /**
- * Coerce a legacy plain-string entry into structured format.
- * Safety net for any log entries that were added before the migration
- * or via an untracked addLog call.
+ * @param {Object} entry
+ * @param {boolean} isNew — if false, skip entry animation (avoid re-triggering
+ *                          on every refresh)
+ * @returns {HTMLTableRowElement}
  */
-function normalizeEntry(entry) {
-  if (typeof entry === 'string') {
-    return {
-      plainText: entry,
-      segments: [{ text: entry }],
-      type: 'standard',
-      isDeath: false,
-      isDayMarker: false,
-    };
-  }
-  // Also handle partially-formed objects missing segments
-  if (!entry.segments) {
-    entry.segments = [{ text: entry.plainText || '' }];
-  }
-  return entry;
-}
+function buildGrammarRow(entry, isNew) {
+  const { category } = entry;
+  const g = entry.grammar || {};
 
-/* ── Day marker ── */
+  let rowClass = `main-log__row main-log__row--${category}`;
+  // Only newly-added entries get the death slide-in animation
+  if (category === 'death' && !isNew) {
+    rowClass += ' main-log__row--death-noanim';
+  }
 
-/**
- * Render a day-change entry as a full-width horizontal divider with a
- * centered label. Uses the CSS --day class ::before/::after pseudo-elements
- * to draw the horizontal lines on either side of the text.
- */
-function buildDayMarker(entry) {
-  return h('div', { class: 'main-log__entry main-log__entry--day' },
-    entry.plainText
+  return h('tr', { class: rowClass },
+    // Icon cell
+    h('td', { class: 'main-log__icon' },
+      categoryIcon(category),
+    ),
+    // Subject
+    h('td', { class: 'main-log__subject' },
+      h('span', segmentStyle(g.subject), g.subject.text),
+    ),
+    // Verb
+    h('td', { class: 'main-log__verb' }, g.verb),
+    // Object
+    h('td', { class: 'main-log__object' },
+      g.object
+        ? h('span', segmentStyle(g.object), g.object.text)
+        : '',
+    ),
+    // Detail
+    h('td', { class: 'main-log__detail' },
+      g.detail
+        ? h('span', segmentStyle(g.detail), g.detail.text)
+        : '',
+    ),
   );
 }
 
-/* ── Standard / combat / heal / death / system entry ── */
-
-function buildLogEntry(entry) {
-  const row = h('div', { class: entryClass(entry) });
-
-  // Prepend icon for death, combat, heal types
-  if (entry.isDeath) {
-    row.appendChild(logIcon('i-attack'));
-    row.style.setProperty('padding-left', 'var(--log-icon-gap, 1.2em)');
-    row.style.setProperty('border-left', '3px solid var(--crimson)');
-  } else if (entry.type === 'combat') {
-    row.appendChild(logIcon('i-attack'));
-  } else if (entry.type === 'heal') {
-    row.appendChild(logIcon('i-heal'));
-  }
-
-  // Append segment spans
-  for (const seg of entry.segments) {
-    const props = {};
-    if (seg.color) {
-      props.style = { '--seg-color': seg.color };
-    }
-    const span = h('span', { class: 'main-log__segment', ...props }, seg.text);
-    if (seg.color) {
-      span.style.setProperty('color', 'var(--seg-color)');
-    }
-    row.appendChild(span);
-  }
-
-  return row;
+function segmentStyle(seg) {
+  if (!seg || !seg.color) return {};
+  return { style: { color: seg.color } };
 }
 
-/**
- * Build the CSS class string for an entry row based on its type and flags.
- */
-function entryClass(entry) {
-  const base = 'main-log__entry';
-  if (entry.isDeath) return `${base} ${base}--death`;
-  if (entry.type === 'combat') return `${base} ${base}--combat`;
-  if (entry.type === 'heal') return `${base} ${base}--heal`;
-  if (entry.type === 'system') return `${base} ${base}--system`;
-  return base;
-}
+/* ── Icon ── */
 
-/* ── SVG icon helper ── */
+const CATEGORY_ICON = {
+  combat: 'i-attack',
+  heal:   'i-heal',
+  death:  'i-attack',
+};
+
+function categoryIcon(category) {
+  const iconId = CATEGORY_ICON[category];
+  if (!iconId) return '';
+  return logIcon(iconId);
+}
 
 /**
  * Create an inline SVG <use> element pointing into the icon sprite.

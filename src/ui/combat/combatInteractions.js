@@ -6,7 +6,7 @@ import {
   isPickingPhase,
   getAvailablePicks
 } from '../../game/state/combat/index.js';
-import { getCombatUI, getToast } from './combatUiState.js';
+import { getCombatUI, getToast, getRefreshAll } from './combatUiState.js';
 import { renderCombat } from './combatRenderer.js';
 import { registerAction } from '../../shared/actionBus.js';
 import { closeCombat } from './combatLifecycle.js';
@@ -58,5 +58,7 @@ export function wireCombatActions() {
     const _G = getGameState();
     if (_G) _G.turnLock = false;
     closeCombat();
+    const refresh = getRefreshAll();
+    if (refresh) refresh();
   });
 }

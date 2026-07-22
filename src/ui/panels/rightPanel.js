@@ -3,9 +3,12 @@ import { buildMainLogContent } from './mainLog.js';
 import { buildLogHistoryText } from './logPanel.js';
 
 /**
- * Bind the right-panel log area, showing the main (rich) log by default.
- * Toggling "Log History" replaces the main log with a text-only overflow view.
- * Only one view is shown at a time — opening the history closes the main log.
+ * Bind the right-panel log area, showing the rich log by default.
+ * Toggling "Log View" swaps between the rich table view and the
+ * text-only history view.
+ *
+ * The toggle button stays pinned at the top so it's always reachable
+ * regardless of log length.
  */
 export function bindRightPanel(G) {
   const container = document.querySelector('.rt-log-entries');
@@ -18,6 +21,7 @@ export function bindRightPanel(G) {
 
   // Build both views
   const mainLogEl = buildMainLogContent(logs);
+  const mainLogScroll = h('div', { class: 'main-log-scroll' }, mainLogEl);
 
   const textArea = h('textarea', {
     class: 'log-overflow__text',
@@ -26,23 +30,21 @@ export function bindRightPanel(G) {
     style: { display: 'none' },
   }, buildLogHistoryText(logs));
 
-  let showingHistory = false;
+  let showingText = false;
 
   const toggleBtn = h('button', {
-    class: 'log-overflow__toggle',
+    class: 'log-view-toggle',
     onclick: () => {
-      showingHistory = !showingHistory;
-      mainLogEl.style.display = showingHistory ? 'none' : '';
-      textArea.style.display = showingHistory ? '' : 'none';
-      toggleBtn.classList.toggle('log-overflow__toggle--open', showingHistory);
+      showingText = !showingText;
+      mainLogScroll.style.display = showingText ? 'none' : '';
+      textArea.style.display = showingText ? '' : 'none';
+      toggleBtn.textContent = showingText ? 'Rich View' : 'Text View';
     },
-  }, h('span', { class: 'log-overflow__chevron' }, '\u25B6'), ' Log History');
+  }, 'Text View');
 
   container.replaceChildren(
-    mainLogEl,
-    h('div', { class: 'log-overflow' },
-      toggleBtn,
-      textArea,
-    ),
+    toggleBtn,
+    mainLogScroll,
+    textArea,
   );
 }

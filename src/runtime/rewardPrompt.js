@@ -3,6 +3,7 @@ import { fillRewardModal } from '../ui/modals/rewardModal.js';
 import { currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
 import { addLogEntry } from '../game/state/gameLog.js';
+import { LOG_CATEGORY } from '../game/rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../game/rules/logHelpers.js';
 
 /**
@@ -22,12 +23,13 @@ export function showPendingReward(G) {
       ch.offeredArtifact = true;
       G.reward = null;
       const factionMap = buildChampionFactionMap(G.champions);
-      addLogEntry(
-        G,
-        `${ch.name} accepts ${choice.label}`,
-        [championSegment(ch.name, factionMap), ` accepts ${choice.label}`],
-        'system'
-      );
+      addLogEntry(G, {
+        category: LOG_CATEGORY.SYSTEM,
+        subject: championSegment(ch.name, factionMap),
+        verb: 'accepts',
+        object: { text: choice.label },
+        detail: null,
+      });
       refreshAll();
     });
     return;
