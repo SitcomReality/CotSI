@@ -64,7 +64,7 @@ export function refreshMap() {
   renderMinimap(G, humanView);
 
   // Center camera on human champion at turn start (only when champion changes).
-  // Zooms to a fixed ~400% zoom for a tight context-rich view.
+  // Zooms to a fixed ~1200% zoom for an intimate, close-up view.
   const ch = currentChamp();
   if (ch && ch.controller === 'human' && ch.id !== getLastCenteredChampionId()) {
     focusCameraOnHex(ch.pos.q, ch.pos.r);

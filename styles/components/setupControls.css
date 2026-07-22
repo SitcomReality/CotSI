@@ -212,6 +212,27 @@
 }
 
 /* =========================================================================
+   Loading screen overlay — shown between setup and game start
+   ========================================================================= */
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--board);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-text {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  color: var(--ink-mid);
+  letter-spacing: 0.05em;
+}
+
+/* =========================================================================
    Mobile responsive — fall back to stacked layout
    ========================================================================= */
 

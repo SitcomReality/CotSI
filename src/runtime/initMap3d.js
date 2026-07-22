@@ -34,7 +34,7 @@ export function initMap3D(mountEl, gameState) {
     }
 
     // At game start, center on the first human champion at a close-up
-    // zoom (~400%) so players aren't looking at the full map overview.
+    // zoom (~1200%) so players get an intimate view of their surroundings.
     const humansInOrder = gameState.currentOrder
       .map(id => gameState.champions.find(c => c.id === id))
       .filter(c => c && c.controller === 'human' && c.alive);

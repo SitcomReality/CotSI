@@ -6,7 +6,7 @@
  * and zoom (adjust frustum size) are allowed. No tilt or rotation.
  */
 
-const DEFAULT_FRUSTUM = 8; // vertical world units visible at zoom=1
+const DEFAULT_FRUSTUM = 6; // vertical world units visible at zoom=1
 
 /**
  * Create a fresh camera state object with default values.

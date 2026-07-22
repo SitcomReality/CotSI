@@ -9,7 +9,7 @@ import { hexCenter } from '../hexWorldSpace.js';
 import { fitCameraToMap } from './cameraZoomMath.js';
 
 const MIN_FRUSTUM = 5;
-const ABSOLUTE_MAX_FRUSTUM = 300;
+const ABSOLUTE_MAX_FRUSTUM = 15;
 
 /**
  * Center the camera on a hex tile and reset to the fit-to-map zoom level.

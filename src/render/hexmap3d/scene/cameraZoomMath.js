@@ -8,9 +8,9 @@
 
 import { setPanBounds } from './cameraPanMath.js';
 
-const DEFAULT_FRUSTUM = 8;
+const DEFAULT_FRUSTUM = 6;
 const MIN_FRUSTUM = 5;
-const ABSOLUTE_MAX_FRUSTUM = 300; // hard ceiling for safety
+const ABSOLUTE_MAX_FRUSTUM = 15; // hard ceiling: 3× MIN_FRUSTUM for an intimate close-up view
 
 /**
  * Auto-fit the camera frustum to show the entire map.

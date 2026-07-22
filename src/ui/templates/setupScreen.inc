@@ -35,10 +35,12 @@
             <div class="setup-size-pills">
               <span class="size-pill" data-r="5" data-action="selectSize">S</span>
               <span class="size-pill" data-r="7" data-action="selectSize">M</span>
-              <span class="size-pill active" data-r="9" data-action="selectSize">L</span>
+              <span class="size-pill" data-r="9" data-action="selectSize">L</span>
               <span class="size-pill" data-r="13" data-action="selectSize">XL</span>
-              <span class="size-pill" data-r="21" data-action="selectSize">XXL</span>
+              <span class="size-pill active" data-r="21" data-action="selectSize">Standard</span>
             </div>
+            <input id="customRadius" class="field-input small" type="number"
+              min="3" max="99" placeholder="custom" style="margin-top:4px">
           </label>
 
           <label class="setup-field">

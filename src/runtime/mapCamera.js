@@ -17,7 +17,7 @@ let lastCenteredChampionId = null;
  * @param {number} r - Hex row
  * @param {number} [zoomPercent=400] - Zoom level as percentage
  */
-export function focusCameraOnHex(q, r, zoomPercent = 400) {
+export function focusCameraOnHex(q, r, zoomPercent = 1200) {
   const ctx = getSceneContext();
   if (!ctx) return;
   const state = ctx.getCameraState();

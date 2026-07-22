@@ -55,7 +55,7 @@ export function createChampions({ tiles, champions, rand, radius }) {
       maxHp: 100,
       baseMove: 5,
       moves: 0,
-      sight: 4,
+      sight: 2,
       gold: 24,
       knot: 0,
       relics: 0,

@@ -14,38 +14,46 @@ import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 let resizeWired = false;
 
 export function __beginGame(config) {
-
-  const game = createGame(config);
-  setGameInstance(game);      // sets live G + window.__gameState
-  setGameState(game);         // keep combatModal in sync
-
-  if (!resizeWired) {
-    window.addEventListener('resize', syncSize);
-    resizeWired = true;
-  }
-
+  // Show loading screen immediately so the player sees it before map generation blocks.
+  const loadingEl = document.getElementById('loading-screen');
   const setupEl = document.getElementById('setup');
-  const gameEl = document.getElementById('game');
 
   if (setupEl) setupEl.style.display = 'none';
-  if (gameEl) {
-    gameEl.style.display = 'grid';
-    // Force synchronous layout reflow so children (especially #mapMount) have
-    // non-zero dimensions when initHexMap3D reads them in the same call stack.
-    gameEl.offsetHeight;
-  } else {
-    console.error('[beginGame] #game element NOT FOUND — game layout template may not be appended');
-  }
+  if (loadingEl) loadingEl.style.display = 'flex';
 
-  const ctx3d = getSceneContext();
-  if (ctx3d) {
-    // On game restart, re-fit the camera to the new map's size
-    fitCameraToMap(ctx3d.getCameraState(), game.radius);
-    ctx3d.applyCamera();
-  }
-  bindHeaderEvents();
-  initHeptagramWidget('paleyMount');
-  refreshAll();
+  // Defer the heavy synchronous createGame so the browser can paint the loading screen.
+  setTimeout(() => {
+    const game = createGame(config);
+    setGameInstance(game);      // sets live G + window.__gameState
+    setGameState(game);         // keep combatModal in sync
+
+    if (!resizeWired) {
+      window.addEventListener('resize', syncSize);
+      resizeWired = true;
+    }
+
+    // Hide loading screen, show the game grid.
+    if (loadingEl) loadingEl.style.display = 'none';
+    const gameEl = document.getElementById('game');
+    if (gameEl) {
+      gameEl.style.display = 'grid';
+      // Force synchronous layout reflow so children (especially #mapMount) have
+      // non-zero dimensions when initHexMap3D reads them in the same call stack.
+      gameEl.offsetHeight;
+    } else {
+      console.error('[beginGame] #game element NOT FOUND — game layout template may not be appended');
+    }
+
+    const ctx3d = getSceneContext();
+    if (ctx3d) {
+      // On game restart, re-fit the camera to the new map's size
+      fitCameraToMap(ctx3d.getCameraState(), game.radius);
+      ctx3d.applyCamera();
+    }
+    bindHeaderEvents();
+    initHeptagramWidget('paleyMount');
+    refreshAll();
+  }, 50);
 }
 
 window.__beginGame = __beginGame;

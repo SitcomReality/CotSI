@@ -44,6 +44,7 @@ const CRITICAL_TEMPLATES = [
   'victoryModal',
   'toast',
   'confirmModal',
+  'loadingScreen',
 ];
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -68,6 +69,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadTemplate('deathModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('victoryModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('confirmModal').then(({ frag }) => root.appendChild(frag));
+    await loadTemplate('loadingScreen').then(({ frag }) => root.appendChild(frag));
 
     initModalActions(() => window.__gameState);
     initCombatModal({

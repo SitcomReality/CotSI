@@ -54,6 +54,9 @@ registerAction('toggleController', (el) => {
 registerAction('selectSize', (el) => {
   document.querySelectorAll('.size-pill').forEach(x => x.classList.remove('active'));
   el.classList.add('active');
+  // Clear custom radius input when a pill is selected
+  const customEl = document.getElementById('customRadius');
+  if (customEl) customEl.value = '';
 });
 
 registerAction('setGameMode', (el) => {
@@ -100,7 +103,10 @@ registerAction('beginGame', () => {
   }
 
   const sizeEl = document.querySelector('.size-pill.active');
-  const radius = sizeEl ? parseInt(sizeEl.dataset.r, 10) : 9;
+  const customRadiusEl = document.getElementById('customRadius');
+  const radius = customRadiusEl?.value
+    ? parseInt(customRadiusEl.value, 10)
+    : (sizeEl ? parseInt(sizeEl.dataset.r, 10) : 21);
   const relicTarget = parseInt(document.getElementById('relicTarget')?.value || '25', 10);
   const lastStanding = document.getElementById('optLast')?.checked ?? true;
 
