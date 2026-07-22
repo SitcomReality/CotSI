@@ -5,13 +5,11 @@
 .main-log {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: var(--s2) var(--s3);
+  gap: 1px;
+  padding: var(--s1) 0;
   font-family: var(--font-body);
   font-size: var(--fs-sm);
   line-height: var(--lh);
-  height: 100%;
-  overflow-y: auto;
 }
 
 .main-log__entry {

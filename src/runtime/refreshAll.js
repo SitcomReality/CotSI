@@ -4,7 +4,6 @@ import { refreshMap } from './mapRefresh.js';
 
 import { bindLeftPanel } from '../ui/panels/leftPanel.js';
 import { bindRightPanel } from '../ui/panels/rightPanel.js';
-import { bindMainLog } from '../ui/panels/mainLog.js';
 
 import { refreshHeader } from '../ui/panels/headerPanel.js';
 import { showHeraldReport } from './heraldPrompt.js';
@@ -47,7 +46,6 @@ export function refreshAll() {
   // Panels
   bindLeftPanel(G);
   bindRightPanel(G);
-  bindMainLog(G);
 
   // ── Map (3D replacement) ──
   refreshMap();

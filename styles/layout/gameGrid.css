@@ -7,10 +7,9 @@
   display: grid;
   grid-template-areas:
     "header  header"
-    "map     right"
-    "log     log";
+    "map     right";
   grid-template-columns: 1fr 300px;   /* map expands to fill left space */
-  grid-template-rows: var(--header-height) 1fr auto;
+  grid-template-rows: var(--header-height) 1fr;
   min-height: 100vh;
   background: var(--abyss);  /* dark table felt behind everything */
 }
@@ -79,17 +78,8 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-}
-
-/* ── #logMount: main event log bar ──
-     Full-width bar at the bottom showing the 5 most recent game events
-     with rich styling, icons, and per-segment faction coloring.          */
-#logMount {
-  grid-area: log;
-  background: var(--abyss);
-  border-top: 1px solid var(--crease);
-  height: 96px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Mobile-responsive: class toggle on <body> ── */
@@ -97,8 +87,7 @@ body.is-mobile #game {
   grid-template-areas:
     "header"
     "map"
-    "right"
-    "log";
+    "right";
   grid-template-columns: 1fr;
-  grid-template-rows: var(--header-height) 1fr auto auto;
+  grid-template-rows: var(--header-height) 1fr auto;
 }

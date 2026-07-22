@@ -1,8 +1,30 @@
 import { h } from '../domBuilder.js';
 
 /**
+ * Build a <div class="main-log"> containing the 5 most recent log entries.
+ * Returns the DOM element without mounting it anywhere.
+ *
+ * @param {Array} logs — G.logs array (most-recent-first)
+ * @returns {HTMLElement}
+ */
+export function buildMainLogContent(logs) {
+  const recent = (logs || []).slice(0, 5).map(normalizeEntry);
+
+  return h('div', { class: 'main-log' },
+    recent.length === 0
+      ? h('div', { class: 'main-log__empty', style: { color: 'var(--ink-faint)', fontStyle: 'italic' } },
+          'Awaiting events...'
+        )
+      : recent.map(entry =>
+          entry.isDayMarker ? buildDayMarker(entry) : buildLogEntry(entry)
+        )
+  );
+}
+
+/**
  * Bind the main log bar by rebuilding #logMount contents from G.logs.
- * Displays the 5 most recent structured log entries.
+ * Kept for backward compatibility; new code should call buildMainLogContent
+ * and mount the result directly.
  *
  * @param {Object} G — live game state (G.logs is an array, most-recent-first)
  */
@@ -13,20 +35,7 @@ export function bindMainLog(G) {
     return;
   }
 
-  const logs = G.logs || [];
-  const recent = logs.slice(0, 5).map(normalizeEntry);
-
-  mount.replaceChildren(
-    h('div', { class: 'main-log' },
-      recent.length === 0
-        ? h('div', { class: 'main-log__empty', style: { color: 'var(--ink-faint)', fontStyle: 'italic' } },
-            'Awaiting events...'
-          )
-        : recent.map(entry =>
-            entry.isDayMarker ? buildDayMarker(entry) : buildLogEntry(entry)
-          )
-    )
-  );
+  mount.replaceChildren(buildMainLogContent(G?.logs));
 }
 
 /**
