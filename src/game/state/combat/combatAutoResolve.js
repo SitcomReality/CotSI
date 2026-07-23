@@ -12,7 +12,8 @@ import { createCombatState } from './combatState.js';
 import { botCombatPick } from './combatBotAI.js';
 import { getAvailablePicks, recordPick, bothPicksIn, advancePhase } from './combatPicks.js';
 import { processReveal, applyFinalBonuses } from './combatScoring.js';
-import { resolveRoundDamage, nextCombatRound, finalizeCombat } from './combatDamage.js';
+import { shouldBotFlee } from './combatBotAI.js';
+import { resolveRoundDamage, nextCombatRound, finalizeCombat, fleeFromCombat } from './combatDamage.js';
 
 const MAX_ROUNDS = 50;
 
@@ -64,6 +65,16 @@ export function resolveCombatSilently(state, attacker, defender) {
       const loser = attackerWon ? combat.defender : combat.attacker;
       finalizeCombat(state, winner, loser, attackerWon);
       return { winner, loser, rounds };
+    }
+
+    // ── After each round: bots flee if continuing would be fatal ──
+    if (shouldBotFlee(combat.defender, combat)) {
+      fleeFromCombat(state, combat, 'defender');
+      return { winner: null, loser: null, rounds, fled: 'defender' };
+    }
+    if (shouldBotFlee(combat.attacker, combat)) {
+      fleeFromCombat(state, combat, 'attacker');
+      return { winner: null, loser: null, rounds, fled: 'attacker' };
     }
 
     // ── Next round ──

@@ -57,6 +57,12 @@ export function renderCombat() {
   if (logEl) {
     logEl.textContent = vm.log.length > 0 ? vm.log[vm.log.length - 1] : '';
   }
+
+  // Flee button — only visible after round 1
+  const fleeBtn = document.getElementById('fleeCombat');
+  if (fleeBtn) {
+    fleeBtn.style.display = vm.canFlee ? '' : 'none';
+  }
 }
 
 // ─── Order-pulse lazy init ────────────────────────────────────────────────────

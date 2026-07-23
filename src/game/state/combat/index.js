@@ -21,6 +21,7 @@ export {
 
 export {
   botCombatPick,
+  shouldBotFlee,
 } from './combatBotAI.js';
 
 export {
@@ -33,4 +34,5 @@ export {
   resolveRoundDamage,
   nextCombatRound,
   finalizeCombat,
+  fleeFromCombat,
 } from './combatDamage.js';

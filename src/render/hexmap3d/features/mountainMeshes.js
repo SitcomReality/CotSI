@@ -2,15 +2,19 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileTopY } from '../terrain/terrainMesh.js';
-import { getMountainGeo, getMountainSlopeGeo, getMountainPeakGeo } from './geometries/index.js';
+import { getMountainGeo } from './geometries/index.js';
 
 /**
  * Collect mountain instance data from visible tiles and return InstancedMeshes.
  * Uses mountainType tags from terrainGeneration for grouped chains:
- *   - 'peak':    tall, narrow cone (center of a large group)
- *   - 'slope':   short, wide cone (edges of a group — foothills)
- *   - 'isolated': single-peak, current default scale
- *   - undefined: fallback to current default
+ *   - 'peak':    tall (center of a large group)
+ *   - 'slope':   short (edges of a group — foothills)
+ *   - 'isolated': medium-height single peak
+ *   - undefined: fallback to isolated
+ *
+ * All instance groups share the same hex-base geometry with vertex colors.
+ * The base hexagon has radius 1.0, matching hexCornersXZ, so adjacent
+ * mountain edges align perfectly with no gaps.
  *
  * @param {Map} state.tiles
  * @param {string[]} visible
@@ -28,32 +32,29 @@ export function buildMountainMeshes(state, visible) {
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     const hash = ((tile.q * 13 + tile.r * 7) * 19) % 100;
-    const rotY = (hash * 0.618) % (Math.PI * 2);
+    const rotY = 0; // no rotation — base hex corners align with tile edges
 
     const mt = tile.mountainType;
 
     if (mt === 'peak') {
-      // Tall, narrow — center of a mountain group
+      // Tall — center of a mountain group
       peakInstances.push({
-        x, y: surfaceY + 0.35, z,
+        x, y: surfaceY, z,
         scaleY: 1.3 + (hash % 15) / 100,
-        scaleXZ: 0.85 + (hash % 10) / 100,
         rotY,
       });
     } else if (mt === 'slope') {
-      // Short, wide — foothills at the group edge
+      // Short — foothills at the group edge
       slopeInstances.push({
-        x, y: surfaceY + 0.25, z,
-        scaleY: 0.65 + (hash % 20) / 100,
-        scaleXZ: 1.15 + (hash % 20) / 100,
+        x, y: surfaceY, z,
+        scaleY: 0.7 + (hash % 15) / 100,
         rotY,
       });
     } else {
-      // Isolated or un-tagged — current default behavior
-      const scale = 0.85 + (hash % 30) / 100;
+      // Isolated or un-tagged — medium height
       normalInstances.push({
-        x, y: surfaceY + 0.35, z,
-        scale,
+        x, y: surfaceY, z,
+        scaleY: 0.9 + (hash % 25) / 100,
         rotY,
       });
     }
@@ -61,13 +62,17 @@ export function buildMountainMeshes(state, visible) {
 
   const results = [];
   const dummy = new THREE.Object3D();
+  const mountainMat = new THREE.MeshLambertMaterial({
+    vertexColors: true,
+    flatShading: true,
+  });
+  const mountainGeo = getMountainGeo();
 
   if (normalInstances.length > 0) {
-    const mat = new THREE.MeshLambertMaterial({ color: 0xb7aa92, flatShading: true });
-    const mesh = new THREE.InstancedMesh(getMountainGeo(), mat, normalInstances.length);
+    const mesh = new THREE.InstancedMesh(mountainGeo, mountainMat, normalInstances.length);
     normalInstances.forEach((inst, i) => {
       dummy.position.set(inst.x, inst.y, inst.z);
-      dummy.scale.setScalar(inst.scale);
+      dummy.scale.set(1, inst.scaleY, 1);
       dummy.rotation.y = inst.rotY;
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
@@ -79,11 +84,10 @@ export function buildMountainMeshes(state, visible) {
   }
 
   if (peakInstances.length > 0) {
-    const peakMat = new THREE.MeshLambertMaterial({ color: 0xc4b8a0, flatShading: true });
-    const mesh = new THREE.InstancedMesh(getMountainPeakGeo(), peakMat, peakInstances.length);
+    const mesh = new THREE.InstancedMesh(mountainGeo, mountainMat, peakInstances.length);
     peakInstances.forEach((inst, i) => {
       dummy.position.set(inst.x, inst.y, inst.z);
-      dummy.scale.set(inst.scaleXZ, inst.scaleY, inst.scaleXZ);
+      dummy.scale.set(1, inst.scaleY, 1);
       dummy.rotation.y = inst.rotY;
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
@@ -95,11 +99,10 @@ export function buildMountainMeshes(state, visible) {
   }
 
   if (slopeInstances.length > 0) {
-    const slopeMat = new THREE.MeshLambertMaterial({ color: 0xaa9e8a, flatShading: true });
-    const mesh = new THREE.InstancedMesh(getMountainSlopeGeo(), slopeMat, slopeInstances.length);
+    const mesh = new THREE.InstancedMesh(mountainGeo, mountainMat, slopeInstances.length);
     slopeInstances.forEach((inst, i) => {
       dummy.position.set(inst.x, inst.y, inst.z);
-      dummy.scale.set(inst.scaleXZ, inst.scaleY, inst.scaleXZ);
+      dummy.scale.set(1, inst.scaleY, 1);
       dummy.rotation.y = inst.rotY;
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);

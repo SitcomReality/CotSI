@@ -35,6 +35,15 @@ All four revealed colours are accumulated into the round score. Animations highl
 ### 6. Next Round
 New round begins using the same `combat.first`/`second` assignments (reflecting the updated `G.globalOrder`). Steps 2–5 repeat.
 
+### 7. Fleeing
+
+- **Minimum one round**: Combatants cannot flee until after at least one full round (two exchanges + damage resolution) has completed. The flee button is hidden during round 1.
+- **Bot auto-flee**: Bot-controlled champions flee the combat after any round where continuing would be fatal (remaining HP ≤ damage taken that round). This prevents bots from dying to other bots in a single turn — the defender will flee before a lethal blow lands, and the attacker's turn ends when combat concludes.
+- **Mob fleeing**: Non-champion creatures (mobs) always flee after round 1 if they lost the round. Round-1 damage is always applied before the mob flees.
+- **Damage on flee**: When a combatant flees, the current round's damage (with final bonuses applied) is resolved normally, but capped to leave the fleeing entity at 1 HP minimum if the damage would otherwise be lethal.
+- **Turn order on flee**: If a champion takes damage from another champion during a flee round, `G.globalOrder` is updated immediately (the damaged champion moves before the damager). Changes to `G.currentOrder` take effect at the start of the next world day.
+- **Attacker's turn**: The champion who initiated combat always ends their turn when combat concludes — whether by death, flee, or otherwise.
+
 ---
 
 ## Biome System

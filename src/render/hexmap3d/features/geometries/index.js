@@ -9,8 +9,6 @@ export {
 
 export {
   getMountainGeo,
-  getMountainPeakGeo,
-  getMountainSlopeGeo,
 } from './mountainGeometries.js';
 
 export {

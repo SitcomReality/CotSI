@@ -4,7 +4,8 @@ import {
   advancePhase,
   bothPicksIn,
   isPickingPhase,
-  getAvailablePicks
+  getAvailablePicks,
+  fleeFromCombat
 } from '../../game/state/combat/index.js';
 import { getCombatUI, getToast, getRefreshAll } from './combatUiState.js';
 import { renderCombat } from './combatRenderer.js';
@@ -53,10 +54,28 @@ export function wireCombatActions() {
   });
 
   registerAction('fleeCombat', () => {
-    const toast = getToast();
-    if (toast) toast('Fled from combat.', false);
+    const combat = getCombatUI();
+    if (!combat) return;
+
+    // Cannot flee before at least one full round has completed
+    if (combat.round <= 1) {
+      const toast = getToast();
+      if (toast) toast('Cannot flee before the first exchange resolves.', true);
+      return;
+    }
+
     const _G = getGameState();
-    if (_G) _G.turnLock = false;
+    if (!_G) return;
+
+    // Determine which role the human plays (attacker or defender)
+    const humanSide = combat.first?.controller === 'human' ? 'first' : 'second';
+    const fleeingRole = humanSide === 'first'
+      ? (combat.first === combat.attacker ? 'attacker' : 'defender')
+      : (combat.second === combat.attacker ? 'attacker' : 'defender');
+
+    fleeFromCombat(_G, combat, fleeingRole);
+
+    _G.turnLock = false;
     closeCombat();
     const refresh = getRefreshAll();
     if (refresh) refresh();

@@ -46,3 +46,43 @@ export function botCombatPick(entity, revealedHistory, available) {
 
   return scored[0].idx;
 }
+
+/**
+ * Decide whether a combatant should flee after the current round.
+ *
+ * Returns true only after round 1 has completed and the entity is
+ * non-human, alive, and continuing would be likely fatal.
+ *
+ * Mobs (no .controller) always flee after round 1 if they lost the round.
+ *
+ * @param {object} entity — The combatant entity (champion or mob)
+ * @param {object} combat — The current combat state
+ * @returns {boolean}
+ */
+export function shouldBotFlee(entity, combat) {
+  if (!entity || !entity.alive) return false;
+  if (combat.round <= 1) return false;
+
+  // Humans decide on their own — never force-flee
+  if (entity.controller === 'human') return false;
+
+  const isChampion = !!entity.potencies;
+  const { roundScores } = combat;
+  const damageFromRound = Math.abs(roundScores.attacker - roundScores.defender);
+
+  // Determine if this entity lost the most recent round
+  const side = entity === combat.attacker ? 'attacker' : 'defender';
+  const lost = side === 'attacker'
+    ? roundScores.defender > roundScores.attacker
+    : roundScores.attacker > roundScores.defender;
+
+  if (!lost) return false;
+
+  // Champions: flee if another round would be lethal
+  if (isChampion) {
+    return entity.hp <= damageFromRound;
+  }
+
+  // Mobs: always flee after round 1 if they lost
+  return true;
+}

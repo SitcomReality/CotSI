@@ -44,6 +44,7 @@ export function getCombatVM(combat, { humanSide } = {}) {
     activeSide,
     awaitingSide,
     awaitingPrompt: buildAwaitingPrompt(combat, humanSide),
+    canFlee: round > 1,
     first: firstVM,
     second: secondVM,
     slots: buildSlots(exchanges, lastReveal, phase, humanSide),

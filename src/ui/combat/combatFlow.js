@@ -8,7 +8,9 @@ import {
   getAvailablePicks,
   botCombatPick,
   processReveal,
-  entityFor
+  entityFor,
+  shouldBotFlee,
+  fleeFromCombat
 } from '../../game/state/combat/index.js';
 
 import {
@@ -93,9 +95,28 @@ export async function runCombatFlow() {
     // ---------- ROUND END ----------
     if (combat.phase === 'roundEnd') {
       await handleRoundEnd();
-      if (getCombatUI()) continue;
-      measureEnd('combatFlow');
-      return;
+      if (!getCombatUI()) { measureEnd('combatFlow'); return; } // combat ended (death)
+
+      // After round 1: bots auto-flee if continuing would be fatal
+      if (combat.round > 1) {
+        const _G = getGameState();
+        if (_G) {
+          if (shouldBotFlee(combat.defender, combat)) {
+            fleeFromCombat(_G, combat, 'defender');
+            closeCombat();
+            measureEnd('combatFlow');
+            return;
+          }
+          if (shouldBotFlee(combat.attacker, combat)) {
+            fleeFromCombat(_G, combat, 'attacker');
+            closeCombat();
+            measureEnd('combatFlow');
+            return;
+          }
+        }
+      }
+
+      continue;
     }
 
     // Unknown phase - stop
