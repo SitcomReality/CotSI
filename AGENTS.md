@@ -15,6 +15,8 @@ CotSI is a browser-based, single-player hex-crawl strategy game, early in develo
 **Performance:** Always try to be mindful of performance impacts and consider what performance optimizations can be incorporated. 
     * The camera perspective (tilt & rotation) will never change, the view can only be zoomed and panned.
 
+**Early Development:** Many features aren't fully implemented (eg. trading) and lots of systems are still using limited placeholder values (eg. map sizes will eventually be much larger with more diverse biomes and features to emphasize exploration).
+
 ---
 
 ## Source Layout
