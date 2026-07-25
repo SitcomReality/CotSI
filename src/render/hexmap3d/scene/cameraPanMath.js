@@ -47,16 +47,16 @@ export function panCamera(state, dx, dz) {
 
 /**
  * Set the zoom-dependent pan constraint anchor to a world-space position.
- * Any existing constraint is replaced; the current camera position is
- * immediately clamped to the new constraint.
+ * The constraint takes effect on the next user-initiated pan (via panCamera)
+ * or zoom (via zoomCamera). The current camera position is NOT snapped —
+ * this allows animated camera pans to reach their target before the
+ * constraint locks to the new anchor.
  * @param {object} state - camera state
  * @param {number} x - world-space X coordinate
  * @param {number} z - world-space Z coordinate
  */
 export function setCameraStartCenter(state, x, z) {
   state.startCenter = { startX: x, startZ: z };
-  // Enforce the new constraint immediately
-  panCamera(state, 0, 0);
 }
 
 /**
