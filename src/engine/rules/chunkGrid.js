@@ -112,11 +112,15 @@ export function chunkNeighbors(cq, cr) {
  */
 export function hexesInChunk(cq, cr) {
   const results = [];
-  const minQ = cq * CHUNK_SIZE;
-  const minR = cr * CHUNK_SIZE;
-  for (let lq = 0; lq < CHUNK_SIZE; lq++) {
-    for (let lr = 0; lr < CHUNK_SIZE; lr++) {
-      results.push({ q: minQ + lq, r: minR + lr });
+  // The +0.5 offset in tileToChunk means chunk (cq, cr) covers
+  // q ∈ [cq*24 - 12, cq*24 + 12) and r ∈ [cr*24 - 12, cr*24 + 12).
+  // Local coords within the chunk range from -12 to +11.
+  const half = CHUNK_SIZE / 2; // 12
+  const baseQ = cq * CHUNK_SIZE;
+  const baseR = cr * CHUNK_SIZE;
+  for (let lq = -half; lq < half; lq++) {
+    for (let lr = -half; lr < half; lr++) {
+      results.push({ q: baseQ + lq, r: baseR + lr });
     }
   }
   return results;
