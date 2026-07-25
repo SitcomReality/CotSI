@@ -73,9 +73,11 @@ export function generateFogMasks(state, camera, overlayCanvas, visible, explored
   // Draw all explored hexes — project both the top and bottom surfaces of each
   // hex so the fog hole covers the full visible height of the hex body,
   // preventing a dark fringe ("shadow") at the base of elevated tiles.
-  for (const [, tile] of Object.entries(state.tiles)) {
-    const key = `${tile.q},${tile.r}`;
-    if (!explored.has(key)) continue;
+  // Iterates the explored Set directly instead of scanning all tiles via
+  // Object.entries(state.tiles), which would trigger a full-map Proxy ownKeys.
+  for (const key of explored) {
+    const tile = state.tiles[key];
+    if (!tile) continue;
 
     const isVisible = visible.has(key);
     const { top: topCorners, bottom: bottomCorners } = getHexCornersWorld(tile.q, tile.r, tile.terrain);

@@ -15,6 +15,7 @@ import { setDerivedState, setInteractionHighlights } from '../render/overlays/ov
 import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
 import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
+import { clearDirtyFlags } from '../game/state/tileAccess.js';
 
 /** Whether the minimap has been initialized. */
 let minimapInitialized = false;
@@ -84,6 +85,11 @@ export function refreshMap() {
   } catch (err) {
     console.error('[refreshMap] renderHexMap3D threw:', err);
   }
+
+  // Clear chunk dirty flags now that the renderer has rebuilt all dirty chunks.
+  // The renderer reads dirty flags but doesn't mutate state (layer boundary);
+  // the runtime layer handles the mutation.
+  clearDirtyFlags(G);
 
   // Initialize minimap on first render after game state is ready
   if (!minimapInitialized) {

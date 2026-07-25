@@ -139,3 +139,83 @@ export function buildTreeMeshes(state, visible) {
 
   return results;
 }
+
+/**
+ * Build tree InstancedMeshes for a single chunk's tiles.
+ * @param {object[]} chunkTiles - Array of tile objects in this chunk
+ * @param {Set<string>} visible - Set of hex keys currently visible
+ * @returns {THREE.InstancedMesh[]}
+ */
+export function buildChunkTreeMeshes(chunkTiles, visible) {
+  const groups = {
+    round:  { trunks: [], canopies: [] },
+    tall:   { trunks: [], canopies: [] },
+    wide:   { trunks: [], canopies: [] },
+  };
+
+  for (const tile of chunkTiles) {
+    const key = `${tile.q},${tile.r}`;
+    if (!visible.has(key)) continue;
+    if (!tile.feature || tile.feature.kind !== 'tree') continue;
+
+    const variant = treeVariant(tile.terrain, tile.q, tile.r);
+    const { heightOffset, canopyY } = canopyForVariant(variant);
+    const surfaceY = tileTopY(tile.terrain);
+    const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
+    const scale = densityScale(tile.feature.density);
+
+    const g = groups[variant];
+    if (!g) continue;
+
+    g.trunks.push({ x, y: surfaceY + heightOffset * 0.4 * scale, z, scale });
+    g.canopies.push({ x, y: surfaceY + canopyY * scale, z, scale });
+  }
+
+  const results = [];
+  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x8B5E3C, flatShading: true });
+  const dummy = new THREE.Object3D();
+
+  const variantColors = {
+    round: 0x3CB371,
+    tall:  0x2E8B57,
+    wide:  0x66CDAA,
+  };
+
+  for (const [variant, data] of Object.entries(groups)) {
+    if (data.trunks.length === 0) continue;
+
+    const color = variantColors[variant] || 0x3CB371;
+    const canopyMat = new THREE.MeshLambertMaterial({ color, flatShading: true });
+
+    const trunkMesh = new THREE.InstancedMesh(
+      getTreeTrunkGeo(), trunkMat, data.trunks.length
+    );
+    data.trunks.forEach((inst, i) => {
+      dummy.position.set(inst.x, inst.y, inst.z);
+      dummy.scale.setScalar(inst.scale);
+      dummy.updateMatrix();
+      trunkMesh.setMatrixAt(i, dummy.matrix);
+    });
+    trunkMesh.instanceMatrix.needsUpdate = true;
+    trunkMesh.castShadow = true;
+    trunkMesh.name = `tree-trunks-${variant}`;
+    results.push(trunkMesh);
+
+    const canopyInfo = canopyForVariant(variant);
+    const canopyMesh = new THREE.InstancedMesh(
+      canopyInfo.geo, canopyMat, data.canopies.length
+    );
+    data.canopies.forEach((inst, i) => {
+      dummy.position.set(inst.x, inst.y, inst.z);
+      dummy.scale.setScalar(inst.scale);
+      dummy.updateMatrix();
+      canopyMesh.setMatrixAt(i, dummy.matrix);
+    });
+    canopyMesh.instanceMatrix.needsUpdate = true;
+    canopyMesh.castShadow = true;
+    canopyMesh.name = `tree-canopies-${variant}`;
+    results.push(canopyMesh);
+  }
+
+  return results;
+}

@@ -157,11 +157,11 @@ function runWorldTurn(state) {
         updateSpatialIndex(state, oldKey, coordKey(tr.pos), tr, 'trader');
       }
       if (nk === tr.targetBaseKey) {
-        // pick new base
-        const bases = Object.entries(state.tiles)
-          .filter(([k, v]) => v.feature?.kind === 'base')
-          .map(([k]) => k);
-        tr.targetBaseKey = bases[Math.floor(state._rng() * bases.length)] || nk;
+        // pick new base from the pre-built base index
+        const bases = [...(state._baseKeys || [])];
+        tr.targetBaseKey = bases.length > 0
+          ? bases[Math.floor(state._rng() * bases.length)]
+          : nk;
         break;
       }
     }

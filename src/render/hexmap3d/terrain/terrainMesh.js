@@ -123,6 +123,84 @@ export function buildTerrainMesh(state, visible, explored) {
   return mesh;
 }
 
+/**
+ * Build a merged BufferGeometry for tiles within a single chunk.
+ * Only tiles present in `explored` are rendered.
+ *
+ * @param {object[]} chunkTiles - Array of tile objects belonging to this chunk
+ * @param {object}   state      - Game state (for biomePalette)
+ * @param {Set}      visible    - Set of hex keys currently visible
+ * @param {Set}      explored   - Set of hex keys ever explored
+ * @returns {THREE.Mesh|null} Mesh, or null if no tiles to render
+ */
+export function buildChunkTerrainMesh(chunkTiles, state, visible, explored) {
+  const activeTiles = [];
+  for (const tile of chunkTiles) {
+    const key = `${tile.q},${tile.r}`;
+    if (explored.has(key)) activeTiles.push(tile);
+  }
+  if (activeTiles.length === 0) return null;
+
+  const tileCount = activeTiles.length;
+  const vertsPerHex = 54;
+  const positions = new Float32Array(tileCount * vertsPerHex * 3);
+  const colors = new Float32Array(tileCount * vertsPerHex * 3);
+
+  let vi = 0;
+  const palette = state.biomePalette || {};
+
+  for (const tile of activeTiles) {
+    const elev = ELEVATION[tile.terrain] || 0;
+    const baseColor = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
+
+    const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')
+      ? [baseColor[0] * 0.7, baseColor[1] * 0.85, baseColor[2] * 0.9]
+      : baseColor;
+    const sideColor = resolvedColor.map(c => c * SIDE_DARKEN);
+
+    const { x: cx, z: cz } = hexCenter(tile.q, tile.r);
+    const corners = hexCornersXZ(cx, cz);
+    const topY = elev + HEX_THICKNESS;
+    const botY = elev;
+
+    // Top face: fan triangulation from center
+    const centerX = cx, centerZ = cz, centerY = topY;
+    for (let i = 0; i < 6; i++) {
+      const c0 = corners[i];
+      const c1 = corners[(i + 1) % 6];
+      addVertex(positions, colors, vi, centerX, centerY, centerZ, baseColor);
+      addVertex(positions, colors, vi + 3, c1.x, topY, c1.z, baseColor);
+      addVertex(positions, colors, vi + 6, c0.x, topY, c0.z, baseColor);
+      vi += 9;
+    }
+
+    // Side faces: 6 quads
+    for (let i = 0; i < 6; i++) {
+      const c0 = corners[i];
+      const c1 = corners[(i + 1) % 6];
+      addVertex(positions, colors, vi,      c0.x, botY, c0.z, sideColor);
+      addVertex(positions, colors, vi + 3,  c0.x, topY, c0.z, sideColor);
+      addVertex(positions, colors, vi + 6,  c1.x, topY, c1.z, sideColor);
+      addVertex(positions, colors, vi + 9,  c0.x, botY, c0.z, sideColor);
+      addVertex(positions, colors, vi + 12, c1.x, topY, c1.z, sideColor);
+      addVertex(positions, colors, vi + 15, c1.x, botY, c1.z, sideColor);
+      vi += 18;
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geo.computeVertexNormals();
+  geo.computeBoundingSphere();
+
+  const mesh = new THREE.Mesh(geo, terrainMaterial);
+  mesh.receiveShadow = true;
+  mesh.castShadow = true;
+  mesh.frustumCulled = true;
+  return mesh;
+}
+
 function addVertex(positions, colors, offset, x, y, z, color) {
   positions[offset]     = x;
   positions[offset + 1] = y;

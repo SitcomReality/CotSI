@@ -45,3 +45,43 @@ export function buildKnotMeshes(state, visible) {
   mesh.name = 'knots';
   return [mesh];
 }
+
+/**
+ * Build knot InstancedMesh for a single chunk's tiles.
+ * @param {object[]} chunkTiles - Array of tile objects in this chunk
+ * @param {Set<string>} visible - Set of hex keys currently visible
+ * @returns {THREE.InstancedMesh[]}
+ */
+export function buildChunkKnotMeshes(chunkTiles, visible) {
+  const instances = [];
+
+  for (const tile of chunkTiles) {
+    const key = `${tile.q},${tile.r}`;
+    if (!visible.has(key)) continue;
+    if (!tile.feature || tile.feature.kind !== 'knot' || tile.feature.mined) continue;
+    const surfaceY = tileTopY(tile.terrain);
+    const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
+    instances.push({ x, y: surfaceY + 0.30, z, scale: 1.0 });
+  }
+
+  if (instances.length === 0) return [];
+
+  const mat = new THREE.MeshLambertMaterial({
+    color: 0x7c3fb1,
+    emissive: 0xb79aff,
+    emissiveIntensity: 0.4,
+    flatShading: true,
+  });
+  const mesh = new THREE.InstancedMesh(getKnotGeo(), mat, instances.length);
+  const dummy = new THREE.Object3D();
+  instances.forEach((inst, i) => {
+    dummy.position.set(inst.x, inst.y, inst.z);
+    dummy.scale.setScalar(1.0);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  });
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.castShadow = true;
+  mesh.name = 'knots';
+  return [mesh];
+}

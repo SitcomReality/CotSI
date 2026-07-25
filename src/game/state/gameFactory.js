@@ -63,6 +63,14 @@ export function createGame({
   });
   state.champions = champEntries;
 
+  // --- Build base key index for fast trader route selection ---
+  state._baseKeys = new Set();
+  for (const [, tile] of Object.entries(flatTiles)) {
+    if (tile.feature?.kind === 'base') {
+      state._baseKeys.add(`${tile.q},${tile.r}`);
+    }
+  }
+
   // --- Seed the map with mobs and traders ---
   state.mobs = createMobs({ tiles, rand, used, radius });
   state.traders = createTraders({ tiles, rand, used, champions });

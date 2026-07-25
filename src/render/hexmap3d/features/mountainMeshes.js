@@ -115,3 +115,88 @@ export function buildMountainMeshes(state, visible) {
 
   return results;
 }
+
+/**
+ * Build mountain InstancedMeshes for a single chunk's tiles.
+ * @param {object[]} chunkTiles - Array of tile objects in this chunk
+ * @param {Set<string>} visible - Set of hex keys currently visible
+ * @returns {THREE.InstancedMesh[]}
+ */
+export function buildChunkMountainMeshes(chunkTiles, visible) {
+  const peakInstances = [];
+  const slopeInstances = [];
+  const normalInstances = [];
+
+  for (const tile of chunkTiles) {
+    const key = `${tile.q},${tile.r}`;
+    if (!visible.has(key)) continue;
+    if (tile.terrain !== 'mountain') continue;
+
+    const surfaceY = tileTopY(tile.terrain);
+    const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
+    const hash = ((tile.q * 13 + tile.r * 7) * 19) % 100;
+    const rotY = 0;
+
+    const mt = tile.mountainType;
+
+    if (mt === 'peak') {
+      peakInstances.push({ x, y: surfaceY, z, scaleY: 1.3 + (hash % 15) / 100, rotY });
+    } else if (mt === 'slope') {
+      slopeInstances.push({ x, y: surfaceY, z, scaleY: 0.7 + (hash % 15) / 100, rotY });
+    } else {
+      normalInstances.push({ x, y: surfaceY, z, scaleY: 0.9 + (hash % 25) / 100, rotY });
+    }
+  }
+
+  const results = [];
+  const dummy = new THREE.Object3D();
+  const mountainMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+  const mountainGeo = getMountainGeo();
+
+  if (normalInstances.length > 0) {
+    const mesh = new THREE.InstancedMesh(mountainGeo, mountainMat, normalInstances.length);
+    normalInstances.forEach((inst, i) => {
+      dummy.position.set(inst.x, inst.y, inst.z);
+      dummy.scale.set(1, inst.scaleY, 1);
+      dummy.rotation.y = inst.rotY;
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = true;
+    mesh.name = 'mountains';
+    results.push(mesh);
+  }
+
+  if (peakInstances.length > 0) {
+    const mesh = new THREE.InstancedMesh(mountainGeo, mountainMat, peakInstances.length);
+    peakInstances.forEach((inst, i) => {
+      dummy.position.set(inst.x, inst.y, inst.z);
+      dummy.scale.set(1, inst.scaleY, 1);
+      dummy.rotation.y = inst.rotY;
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = true;
+    mesh.name = 'mountain-peaks';
+    results.push(mesh);
+  }
+
+  if (slopeInstances.length > 0) {
+    const mesh = new THREE.InstancedMesh(mountainGeo, mountainMat, slopeInstances.length);
+    slopeInstances.forEach((inst, i) => {
+      dummy.position.set(inst.x, inst.y, inst.z);
+      dummy.scale.set(1, inst.scaleY, 1);
+      dummy.rotation.y = inst.rotY;
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = true;
+    mesh.name = 'mountain-slopes';
+    results.push(mesh);
+  }
+
+  return results;
+}

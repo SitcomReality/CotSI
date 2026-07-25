@@ -94,6 +94,74 @@ export function buildBaseMeshes(state, visible) {
 }
 
 /**
+ * Build base meshes (groups) for a single chunk's tiles.
+ * @param {object[]} chunkTiles - Array of tile objects in this chunk
+ * @param {Set<string>} visible - Set of hex keys currently visible
+ * @returns {THREE.Group[]}
+ */
+export function buildChunkBaseMeshes(chunkTiles, visible) {
+  const results = [];
+
+  for (const tile of chunkTiles) {
+    const key = `${tile.q},${tile.r}`;
+    if (!visible.has(key)) continue;
+    if (!tile.feature || tile.feature.kind !== 'base') continue;
+    const f = tile.feature;
+    const fac = FACTIONS[f.faction];
+    if (!fac) continue;
+
+    const surfaceY = tileTopY(tile.terrain);
+    const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
+    const group = new THREE.Group();
+    group.name = `base_${f.faction}`;
+
+    const towerMat = new THREE.MeshLambertMaterial({ color: fac.base, flatShading: true });
+    const accentMat = new THREE.MeshLambertMaterial({ color: fac.color, flatShading: true });
+
+    const towerGeo = new THREE.CylinderGeometry(0.22, 0.25, 0.7, 8);
+    const tower = new THREE.Mesh(towerGeo, towerMat);
+    tower.position.set(x, surfaceY + 0.35, z);
+    group.add(tower);
+
+    const capGeo = new THREE.CylinderGeometry(0.24, 0.2, 0.15, 8);
+    const cap = new THREE.Mesh(capGeo, towerMat);
+    cap.position.set(x, surfaceY + 0.75, z);
+    group.add(cap);
+
+    switch (f.faction) {
+      case 0: addSpikes(group, x, surfaceY + 0.15, z, 6, 0.06, 0.10, accentMat); break;
+      case 1: addRing(group, x, surfaceY + 0.85, z, 0.28, 0.02, accentMat); break;
+      case 2: addSpikes(group, x, surfaceY + 0.80, z, 8, 0.04, 0.08, accentMat); break;
+      case 3: addRingDots(group, x, surfaceY + 0.55, z, 0.32, 4, accentMat); break;
+      case 4: {
+        const domeGeo = new THREE.SphereGeometry(0.18, 6, 4, 0, Math.PI * 2, 0, Math.PI * 0.5);
+        const dome = new THREE.Mesh(domeGeo, accentMat);
+        dome.position.set(x, surfaceY + 0.83, z);
+        group.add(dome);
+      } break;
+      case 5: {
+        const spireGeo = new THREE.ConeGeometry(0.05, 0.15, 6);
+        const spire = new THREE.Mesh(spireGeo, accentMat);
+        spire.position.set(x, surfaceY + 0.87, z);
+        group.add(spire);
+      } break;
+      case 6: {
+        const spikeGeo = new THREE.ConeGeometry(0.04, 0.12, 4);
+        const spike = new THREE.Mesh(spikeGeo, accentMat);
+        spike.position.set(x, surfaceY + 0.07, z);
+        spike.rotation.x = Math.PI;
+        group.add(spike);
+      } break;
+    }
+
+    group.traverse(child => { if (child.isMesh) child.castShadow = true; });
+    results.push(group);
+  }
+
+  return results;
+}
+
+/**
  * Add N small cone spikes in a ring around a center point.
  */
 function addSpikes(group, cx, cy, cz, count, radius, height, mat) {

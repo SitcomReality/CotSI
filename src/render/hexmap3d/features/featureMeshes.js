@@ -1,10 +1,14 @@
-import { buildTreeMeshes } from './treeMeshes.js';
-import { buildMountainMeshes } from './mountainMeshes.js';
-import { buildKnotMeshes } from './knotMeshes.js';
-import { buildBaseMeshes } from './baseMeshes.js';
-import { buildDebrisMeshes } from './debrisMeshes.js';
+import { buildTreeMeshes, buildChunkTreeMeshes } from './treeMeshes.js';
+import { buildMountainMeshes, buildChunkMountainMeshes } from './mountainMeshes.js';
+import { buildKnotMeshes, buildChunkKnotMeshes } from './knotMeshes.js';
+import { buildBaseMeshes, buildChunkBaseMeshes } from './baseMeshes.js';
+import { buildDebrisMeshes, buildChunkDebrisMeshes } from './debrisMeshes.js';
 
-export { buildTreeMeshes, buildMountainMeshes, buildKnotMeshes, buildBaseMeshes, buildDebrisMeshes };
+export {
+  buildTreeMeshes, buildMountainMeshes, buildKnotMeshes, buildBaseMeshes, buildDebrisMeshes,
+  buildChunkTreeMeshes, buildChunkMountainMeshes, buildChunkKnotMeshes, buildChunkBaseMeshes,
+  buildChunkDebrisMeshes,
+};
 
 /**
  * Build all feature InstancedMeshes for the current game state.
@@ -18,6 +22,25 @@ export function buildFeatureMeshes(state, visible) {
   results.push(...buildKnotMeshes(state, visible));
   results.push(...buildBaseMeshes(state, visible));
   results.push(...buildDebrisMeshes(state, visible));
+
+  return results;
+}
+
+/**
+ * Build feature meshes for a single chunk's tiles.
+ * @param {object[]} chunkTiles - Array of tile objects in this chunk
+ * @param {object} state - Game state (unused here, kept for API symmetry)
+ * @param {Set<string>} visible - Set of hex keys currently visible
+ * @returns {(THREE.InstancedMesh|THREE.Group)[]}
+ */
+export function buildChunkFeatureMeshes(chunkTiles, _state, visible) {
+  const results = [];
+
+  results.push(...buildChunkTreeMeshes(chunkTiles, visible));
+  results.push(...buildChunkMountainMeshes(chunkTiles, visible));
+  results.push(...buildChunkKnotMeshes(chunkTiles, visible));
+  results.push(...buildChunkBaseMeshes(chunkTiles, visible));
+  results.push(...buildChunkDebrisMeshes(chunkTiles, visible));
 
   return results;
 }

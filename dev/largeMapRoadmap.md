@@ -7,100 +7,33 @@ independently before moving to the next.
 
 ---
 
-## Phase 1: Algorithmic Decoupling
+## ✅ Completed Foundations
 
-**Goal:** Remove all O(totalTiles) scans from per-turn and per-move code paths so
-the game logic no longer cares how large the map is. Can be done entirely on the
-current small map — no rendering or storage changes.
+### Phase 1 — Algorithmic Decoupling (Done)
 
-### 1a — Vision: ring-based instead of filter-all
-- **File:** `src/game/state/fogOfWar.js`
-- **Current:** `visibleKeysFor` filters all `Object.keys(state.tiles)` by distance.
-- **Target:** Generate the hex ring for `sight` distance, check each key against
-  `state.tiles`. From O(C×N) to O(C×sight²), where sight² ≈ 91 hexes.
-- **Risk:** Low. Pure algorithm swap, same output.
-- **Verification:** All fog-of-war behaviour unchanged on current map.
+All O(totalTiles) scans removed from per-turn and per-move code paths:
 
-### 1b — Bot target: radius-limited search
-- **File:** `src/game/state/championAI.js` — `botChooseTarget`
-- **Current:** Scores every explored tile on the entire map.
-- **Target:** Only score tiles within `sight + maxMoves + margin` (≈20 hex radius).
-  Generate rings or filter from candidate hexes.
-- **Risk:** Low. Bots already can only pathfind a limited distance; scoring distant
-  tiles was always wasted work.
-- **Verification:** Bot behaviour on current map unchanged (all tiles are within 14
-  of centre anyway at R=7).
+- **1a** — `fogOfWar.js` uses `hexesWithinRadius(sight)` for ring-based vision.
+- **1b** — `championAI.js` uses `hexesWithinRadius(searchRadius)` for radius-limited bot targeting.
+- **1c** — `worldSimulation.js` maintains `state._unripeTrees` Set for tree regrowth.
+- **1d** — `spatialIndex.js` provides O(1) entity occupancy lookups via `Map<"q,r", {type, entity}>`.
 
-### 1c — Tree regrowth: maintain unripe-tree index
-- **Files:** `src/game/state/worldSimulation.js`, possibly a new small module
-- **Current:** `runWorldTurn` iterates all tiles checking `feature.kind === 'tree'`.
-- **Target:** Maintain a `Set<string>` of tile keys that have trees with `ripe === false`
-  (or `nextFruitDay > day`). Populate on tree harvest, clear on regrowth.
-- **Risk:** Low. Just changes how we find the trees, not what happens to them.
-- **Verification:** Trees regrow on the same schedule as before.
+### Phase 2 — Chunk Infrastructure (Done)
 
-### 1d — Entity spatial index
-- **Files:** New module in `src/game/state/`, plus `entityQueries.js`
-- **Current:** `occupiedByChampion`/`occupiedByMob`/`occupiedByTrader` do linear
-  scans of arrays (~22 entities).
-- **Target:** A `Map<"q,r", { type, entity }>` rebuilt on entity move/death/spawn.
-  Lookups become O(1).
-- **Risk:** Low. Entities are few; the map just makes them correct. Must rebuild
-  index on every position change.
-- **Verification:** All entity interactions (combat, trade, movement blocking) unchanged.
+Core architectural change — the world is no longer a flat tile object but a collection
+of fixed-size chunks:
 
----
-
-## Phase 2: Chunk Infrastructure
-
-**Goal:** Introduce the chunk concept — the world is no longer a flat `{ "q,r": tile }`
-object but a collection of fixed-size chunks. Tiles are generated per-chunk on demand.
-This is the core architectural change that everything else builds on.
-
-### 2a — Define chunk coordinate system
-- **New module:** `src/engine/rules/chunkGrid.js`
-- Define chunk size (recommendation: 24×24 hex region = 576 tiles, or a hexagonal
-  chunk matching the game's hex-grid aesthetic).
-- `chunkKey({ q, r })` → `"cQ,cR"`, `tileToChunk(tileQ, tileR)` → `{ cQ, cR }`,
-  `localCoord(chunkQ, chunkR, tileQ, tileR)` → `{ lQ, lR }`.
-- Chunk neighbors for generation continuity.
-
-### 2b — Chunked tile storage
-- **Files:** `src/game/state/` — replace flat `state.tiles` object
-- Storage: `Map<chunkKey, { tiles: Map<localKey, tile>, dirty: boolean, generated: boolean }>`
-- Provide a unified accessor: `getTile(state, q, r)` → tile or undefined.
-- Keep a `tileCount` or `allTileKeys()` for code that genuinely needs to iterate
-  everything (spawn placement, victory checks). Minimise these consumers.
-- During this phase, still generate all chunks at startup (no on-demand yet).
-
-### 2c — Per-chunk terrain generation
-- **File:** `src/game/rules/terrainGenerator.js`
-- Each chunk generates from `seededNoise(seed, chunkQ, chunkR, localQ, localR, salt)`
-  — deterministic and idempotent.
-- **Drop global BFS passes:**
-  - *Contiguous land check:* Replace with noise-based landmass shaping. Domain-warped
-    noise produces natural continents without post-processing. Islands are acceptable
-    (they become interesting exploration targets, not bugs).
-  - *Mountain grouping:* Use noise octaves to produce ridge-like structures. A tile is
-    "peak" if it's a local maximum of the mountain noise field.
-  - *Water clustering:* Lake vs ocean determined by local context (e.g., a water tile
-    surrounded by land within 3 hexes = lake, otherwise ocean).
-- Edge continuity: chunks sample noise at their boundaries identically, so terrain
-  types match across chunk borders without communication.
-
-### 2d — Delta / dirty tracking
-- When a tile is modified (tree harvested, knot mined, base built), mark its chunk
-  as `dirty`. The chunk stores the delta.
-- Unmodified tiles are regenerated from seed — they consume no persistent storage
-  beyond the chunk's existence.
-- This is the foundation for save/load and for the rendering dirty-tracking in Phase 3.
-
-### 2e — Adapt all tile consumers
-- Audit every `state.tiles[key]`, `Object.keys(state.tiles)`, `Object.values(state.tiles)`,
-  `Object.entries(state.tiles)` in the codebase.
-- Convert to chunk-aware accessors where possible. Document the few that must remain
-  global (minimap, victory conditions, spawn placement).
-- **Verification:** Game plays identically on current R=7 map with chunked storage.
+- **2a** — `src/engine/rules/chunkGrid.js` defines chunk coordinate math (CHUNK_SIZE = 24).
+- **2b** — `src/game/state/tileAccess.js` provides a Proxy-backed chunked tile store.
+  `state.tiles` delegates reads/writes/iteration to `state.chunks` transparently.
+- **2c** — `terrainGenerator.js` generates tiles per-chunk with noise-based local
+  tagging (no global BFS passes). Seamless chunk boundaries via global-coordinate
+  noise sampling.
+- **2d** — Dirty/delta tracking on each chunk via `markChunkDirty`, `clearDirtyFlags`,
+  `getDirtyChunks` in `tileAccess.js`.
+- **2e** — All existing `state.tiles[key]` consumers work through the Proxy. Remaining
+  full-map iterations (`Object.values/keys/entries`) go through `allTileKeys()` and
+  will be addressed by Phase 3's rendering changes.
 
 ---
 
@@ -119,6 +52,8 @@ mesh management. Only rebuild chunks whose contents changed. Add frustum culling
   boundaries (tiles at the edge share side faces with neighbours in adjacent chunks
   — but since side faces drop below the top surface, visual seams are unlikely at
   the camera's fixed overhead-ish angle).
+- **Note:** The setup screen already defaults to radius 21 (max 99), so the
+  rendering bottleneck is real. Profile at R=21 before shipping Phase 3.
 
 ### 3b — Per-chunk feature meshes
 - **File:** `src/render/hexmap3d/features/featureMeshes.js`
@@ -146,8 +81,9 @@ mesh management. Only rebuild chunks whose contents changed. Add frustum culling
   was interacted with). Full rebuild only on world-turn effects.
 
 ### 3e — Fog and minimap adaptation
-- Fog overlay: either render per-chunk or switch to a 3D fog approach (dark quads over
-  unexplored chunks — simpler at scale).
+- Fog overlay (`fogMaskGenerator.js`): currently iterates all tiles via
+  `Object.entries(state.tiles)`. Must be chunk-aware — render fog per-chunk or
+  switch to full-screen dark overlay with chunk-sized holes.
 - Minimap: at large sizes the minimap becomes too small to be useful. Consider a
   scalable minimap (fixed pixel size, shows only local area) or defer to later phase.
 
@@ -158,24 +94,30 @@ mesh management. Only rebuild chunks whose contents changed. Add frustum culling
 **Goal:** Actually increase the map size. Test, profile, fix whatever breaks.
 
 ### 4a — Increase default radius
-- Bump from R=7 to R=30 (2,791 tiles) as an initial target. Then R=50 (7,651).
-- Add a radius slider or dropdown to the setup screen with reasonable presets.
+- Bump the setup-screen default from 21 to R=30 (2,791 tiles) as an initial target.
+  Then R=50 (7,651).
+- The setup screen already has a radius slider (min=3, max=99, default=21) and the
+  `createGame` function passes it through. No UI changes needed here.
 
 ### 4b — Profile and optimise
 - Use the existing `dev/devPerformance.js` instrumentation.
 - Measure: time to generate all chunks at startup, time per `refreshAll`, time per
   world turn, memory usage.
-- Fix any hotspots that the earlier phases missed.
+- Fix any hotspots that the earlier phases missed. Likely candidates: the rendering
+  full-teardown in `renderHexMap3D`, and the tile-iteration in `fogMaskGenerator.js`.
 
 ### 4c — Spawn placement at scale
 - `nearestOpenKey` and `nearestOpenMultiRing` (in `tileQueries.js`) do expensive
   distance-based scans. At startup with large maps, these need to be more efficient
   or replaced with chunk-local placement.
+- Currently used by `championFactory.js` and `basePlacer.js`.
 
 ### 4d — Bot AI adaptation
 - With larger maps, bots need some directionality. A simple "bias toward unexplored
   or toward nearest enemy" prevents them from wandering in circles.
-- This is a design task as much as a performance one.
+- This is a design task as much as a performance one. The current `botChooseTarget`
+  already radius-limits its search, so bots won't scan the whole map — but they have
+  no global strategy.
 
 ---
 
@@ -215,12 +157,12 @@ move, and evicted when all entities have left the area.
 
 Phases are ordered by dependency:
 
-- **Phase 1** has no dependencies — pure algorithmic fixes on existing code.
-- **Phase 2** depends on Phase 1 only for the spatial index; the rest is independent.
-- **Phase 3** depends on Phase 2 (needs chunks to exist before rendering them).
-- **Phase 4** depends on Phases 1-3 (can't scale up until algorithms and rendering
+- **Phase 1** — no dependencies. ✅ Done.
+- **Phase 2** — depends on Phase 1 only for the spatial index. ✅ Done.
+- **Phase 3** — depends on Phase 2 (needs chunks to exist before rendering them).
+- **Phase 4** — depends on Phases 1-3 (can't scale up until algorithms and rendering
   can handle it).
-- **Phase 5** depends on Phase 4 (streaming is pointless without a large-enough map
+- **Phase 5** — depends on Phase 4 (streaming is pointless without a large-enough map
   to justify it).
 
 Each phase produces a working, playable game. No phase leaves the game in a broken
@@ -238,5 +180,19 @@ phases to work on other features.
   maps up to R=200.
 - **Don't implement LOD in phase 3.** InstancedMesh + frustum culling handles R=100
   comfortably. Add LOD only if profiling shows it's needed.
-- **Don't change the public API of state.tiles until Phase 2b.** Phase 1 works with
-  the existing flat-object storage.
+
+---
+
+## Observations & potential issues
+
+1. The setup screen already defaults to radius 21 (max 99) That's ~1,327 tiles on the default, and the relic target is 25 instead of 7. This means gameFactory.js is already passing larger radii through the chunk-aware pipeline. But the renderer (renderHexMap3D) still does a full teardown-and-rebuild every frame — so anyone who clicks "Begin Game" with the default settings is getting a full rebuild of 1,327 hexes every refresh. It might work at R=21, but it will be slow, and the max of 99 (30,403 tiles) would be unusable. This is the highest-priority problem to address.
+
+2. fogMaskGenerator.js:76 iterates all tiles every frame It uses Object.entries(state.tiles) which goes through the Proxy's allTileKeys() generator — a full map iteration. For each tile it projects corners and draws to a canvas. At R=21 that's over a thousand hexes projected per frame. This needs to become chunk-aware as part of Phase 3 (listed under 3e now).
+
+3. Trader base selection in worldSimulation.js:161 The trader route logic uses Object.entries(state.tiles) to find all bases when a trader arrives at its target, then picks one at random. On a large map this filters thousands of tiles. Worth adding a base index (e.g. state.baseKeys) as part of Phase 3 or even before — it's a cheap win independent of the rendering work.
+
+4. Initial tree ripeness is correct for the _unripeTrees Set Tracks are all generated with ripe: true and nextFruitDay: 1. The _unripeTrees Set starts empty and only gets populated on harvest (in arrivalInteractions.js). This is working as designed.
+
+5. Chunk boundary visual seams The roadmap's risk note for 3a is reasonable — at the camera's fixed overhead-ish angle, side faces between chunks likely won't produce visible seams. But this should be validated early in Phase 3 with a quick visual test rather than assumed all the way through.
+
+6. Spawn placement (nearestOpenKey / nearestOpenMultiRing) will bite at scale These do radial distance searches from origin that scale with map size. At R=21 they're fine; at R=50+ they'd become startup bottlenecks. Phase 4c will need to address them, but worth noting early.

@@ -25,14 +25,15 @@ function pixelToNDC(clientX, clientY, canvas) {
  * @param {HTMLCanvasElement} canvas
  * @returns {string|null} "q,r" key or null
  */
-export function pickHex(clientX, clientY, camera, terrainMesh, canvas) {
-  if (!terrainMesh || !camera) return null;
+export function pickHex(clientX, clientY, camera, terrainMeshes, canvas) {
+  if (!terrainMeshes || !camera) return null;
 
   const ndc = pixelToNDC(clientX, clientY, canvas);
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
 
-  const intersects = raycaster.intersectObject(terrainMesh, false);
+  const meshes = Array.isArray(terrainMeshes) ? terrainMeshes : [terrainMeshes];
+  const intersects = raycaster.intersectObjects(meshes, false);
   if (intersects.length === 0) return null;
 
   // Find the closest intersection
@@ -71,8 +72,8 @@ export function pickHex(clientX, clientY, camera, terrainMesh, canvas) {
  * Get the hex key under a pointer position, accounting for the terrain mesh
  * being the only pickable object.
  */
-export function hexAtPointer(clientX, clientY, sceneContext, getTerrainMesh) {
-  const terrainMesh = getTerrainMesh ? getTerrainMesh() : null;
-  if (!sceneContext || !terrainMesh) return null;
-  return pickHex(clientX, clientY, sceneContext.camera, terrainMesh, sceneContext.renderer.domElement);
+export function hexAtPointer(clientX, clientY, sceneContext, getTerrainMeshes) {
+  const terrainMeshes = getTerrainMeshes ? getTerrainMeshes() : null;
+  if (!sceneContext || !terrainMeshes) return null;
+  return pickHex(clientX, clientY, sceneContext.camera, terrainMeshes, sceneContext.renderer.domElement);
 }
