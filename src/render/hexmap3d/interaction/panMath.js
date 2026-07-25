@@ -3,6 +3,11 @@ import * as THREE from '../../../vendor/three.module.js';
 /**
  * Convert screen‑space pointer deltas (dx pixels right, dy pixels down)
  * into a world‑space XZ pan vector using the camera's orientation.
+ *
+ * The camera's quaternion already accounts for both pitch and yaw
+ * (CAMERA_YAW = π/6 from cameraState.js), so this function transparently
+ * produces correctly-oriented world-space pan vectors — no manual yaw
+ * adjustment is needed here or by callers.
  */
 export function screenToWorldPan(dx, dy, camera) {
   const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);

@@ -173,3 +173,7 @@ export function setupMapInteraction3D(onTileClick, getTooltipContent, onZoomChan
 export function getSceneContext() {
   return ctx;
 }
+
+// Console debug access (ES module exports aren't globals).
+// Use __getSceneContext().getCameraState() to inspect camera state from the dev console.
+window.__getSceneContext = getSceneContext;

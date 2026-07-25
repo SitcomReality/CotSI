@@ -60,17 +60,48 @@ export function setCameraStartCenter(state, x, z) {
 }
 
 /**
- * Set pan bounds from a map radius.
- * @param {object} state - camera state
+ * Set pan bounds from a map radius, accounting for camera yaw and pitch.
+ *
+ * At max zoom-out, the rotated camera frustum on the ground extends beyond
+ * the camera's center point. These bounds shrink the allowable center region
+ * so the entire viewport stays within the map's axis-aligned extent.
+ *
+ * @param {object} state - camera state (must have maxFrustumSize, pitch, yaw, aspect)
  * @param {number} radius - map radius in hexes
  */
 export function setPanBounds(state, radius) {
-  const extent = Math.sqrt(3) * radius * 1.0 * 1.2; // 20% margin
+  // Map extent in world units (half-dimensions)
+  const mapHalfW = Math.sqrt(3) * radius;
+  const mapHalfH = 1.5 * radius;
+
+  // How far the rotated frustum extends from center at max zoom-out
+  let marginX = 0;
+  let marginZ = 0;
+  if (state.maxFrustumSize != null && state.pitch != null && state.yaw != null) {
+    const halfW = (state.maxFrustumSize * state.aspect) / 2;
+    const halfH = state.maxFrustumSize / 2;
+    const sinPitch = Math.sin(state.pitch);
+    const stretch = sinPitch > 0.01 ? 1 / sinPitch : 1;
+    const absCos = Math.abs(Math.cos(state.yaw));
+    const absSin = Math.abs(Math.sin(state.yaw));
+    marginX = halfW * absCos + halfH * absSin * stretch;
+    marginZ = halfW * absSin + halfH * absCos * stretch;
+  } else {
+    // Fallback: 20% heuristic margin
+    const fallback = Math.sqrt(3) * radius * 0.2;
+    marginX = fallback;
+    marginZ = fallback;
+  }
+
+  // Clamp margins so they don't exceed the map itself
+  marginX = Math.min(marginX, mapHalfW * 0.9);
+  marginZ = Math.min(marginZ, mapHalfH * 0.9);
+
   state.panBounds = {
-    minX: -extent,
-    maxX: extent,
-    minZ: -extent * 0.75,
-    maxZ: extent * 0.75,
+    minX: -mapHalfW + marginX,
+    maxX: mapHalfW - marginX,
+    minZ: -mapHalfH + marginZ,
+    maxZ: mapHalfH - marginZ,
   };
   // Clamp current position to new bounds
   panCamera(state, 0, 0);

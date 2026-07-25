@@ -9,6 +9,16 @@
 const DEFAULT_FRUSTUM = 6; // vertical world units visible at zoom=1
 
 /**
+ * Camera yaw: horizontal rotation of the orthographic camera around the Y axis.
+ * The camera looks from south-west (30°) toward north-east.
+ *
+ * This is the rotation that the minimap must account for to align its projection
+ * with the 3D view. See `drawCameraIndicator()` in `minimapOverlayLayer.js` for
+ * the canonical usage.
+ */
+export const CAMERA_YAW = Math.PI / 6; // 30°
+
+/**
  * Create a fresh camera state object with default values.
  * @param {number} aspect - viewport width / height
  * @returns {object} camera state
@@ -20,7 +30,7 @@ export function createCameraState(aspect) {
     targetZ: 0,
     aspect,
     pitch: Math.PI / 3.5,  // ~51°
-    yaw: Math.PI / 6,       // ~30° (south-west looking north-east)
+    yaw: CAMERA_YAW,       // ~30° (south-west looking north-east)
     distance: 50,           // camera distance from target (along look vector)
     mapRadius: null,        // set by fitCameraToMap
     maxFrustumSize: null,   // set by fitCameraToMap — zoom upper bound

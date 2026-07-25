@@ -4,6 +4,15 @@
  * Draws explored hexes as colored ellipses, with fog opacity for visible vs.
  * explored-but-not-visible tiles. Caches the terrain bitmap and only redraws
  * when the fog-of-war revision changes.
+ *
+ * NOTE: This minimap projection is axis-aligned — it does NOT account for the
+ * 3D camera's yaw rotation (CAMERA_YAW = Math.PI / 6 in cameraState.js).
+ * The 3D view is rotated 30°, so terrain positions on the minimap are offset
+ * from what is visible in the 3D viewport. If projection rotation is added,
+ * the world-to-pixel mapping here must apply a +CAMERA_YAW rotation to world
+ * (x, z) before the scale+offset transform.
+ *
+ * @see src/render/hexmap3d/scene/cameraState.js CAMERA_YAW
  */
 
 import { parseKey } from '../../engine/rules/hexGrid.js';

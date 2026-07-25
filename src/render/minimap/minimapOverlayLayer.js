@@ -2,7 +2,18 @@
  * minimapOverlayLayer.js — 2D canvas rendering of entities and the camera indicator.
  *
  * Draws bases, champions, mobs, and traders as colored shapes on the overlay canvas.
- * Also draws the 3D camera's orthographic viewport as a white rectangle.
+ * Also draws the 3D camera's orthographic viewport as a rotated rectangle.
+ *
+ * NOTE: The worldToMinimap projection here is axis-aligned — it does NOT account
+ * for the 3D camera's yaw (CAMERA_YAW = Math.PI / 6 in cameraState.js).
+ * The drawCameraIndicator() function *does* apply the yaw rotation to the camera
+ * frustum corners so the rectangle is drawn correctly rotated on the minimap.
+ * However, entity positions (drawn via worldToMinimap) are not rotated, so they
+ * appear in axis-aligned position on the minimap rather than matching the 3D view.
+ * If projection rotation is added, worldToMinimap must apply +CAMERA_YAW to world
+ * (x, z) before the scale+offset transform.
+ *
+ * @see src/render/hexmap3d/scene/cameraState.js CAMERA_YAW
  */
 
 import { coordKey, parseKey } from '../../engine/rules/hexGrid.js';
@@ -99,7 +110,13 @@ export function renderOverlayLayer(G, humanView, scale, offsetX, offsetZ) {
 }
 
 /**
- * Draw the orthographic camera's viewport as a white rectangle on the overlay.
+ * Draw the orthographic camera's viewport as a rotated rectangle on the overlay.
+ *
+ * The camera has a fixed yaw (CAMERA_YAW = π/6), so the ground-plane footprint
+ * of the viewport is a rectangle rotated by that same yaw around (targetX, targetZ),
+ * stretched by 1/sin(pitch) in the camera's local up direction (pitch ≈ 51° makes
+ * this ~1.29×). For the minimap indicator we apply the full correction so the
+ * drawn shape accurately matches what the 3D camera captures.
  */
 function drawCameraIndicator(scale, offsetX, offsetZ) {
   const ctx = getOverlayCtx();
@@ -109,19 +126,34 @@ function drawCameraIndicator(scale, offsetX, offsetZ) {
   if (!ctx3d) return;
 
   const camState = ctx3d.getCameraState();
-  const { frustumSize, targetX, targetZ, aspect } = camState;
+  const { frustumSize, targetX, targetZ, aspect, pitch, yaw } = camState;
 
-  // The orthographic camera sees a rectangle of size (frustumSize * aspect) x frustumSize
-  // centered on (targetX, targetZ) in the ground plane.
+  // Half-extents in camera-local space
   const halfW = (frustumSize * aspect) / 2;
   const halfH = frustumSize / 2;
 
-  // Project the four corners of the camera frustum to minimap coords
+  // Ground-plane footprint of the orthographic frustum.
+  // For an orthographic camera with non-zero pitch, following the parallel
+  // projection rays backward from a camera-space corner (cx, cy) to the
+  // ground plane (y=0) gives:
+  //   x_ground = targetX + cx*cos(yaw) - cy*sin(yaw)/sin(pitch)
+  //   z_ground = targetZ - cx*sin(yaw) - cy*cos(yaw)/sin(pitch)
+  const sinPitch = Math.sin(pitch);
+  const cosYaw = Math.cos(yaw);
+  const sinYaw = Math.sin(yaw);
+  const stretch = sinPitch > 0.01 ? 1 / sinPitch : 1;
+
+  // Four camera-space corners: (+halfW, +halfH), (+halfW, -halfH),
+  // (-halfW, -halfH), (-halfW, +halfH)
   const corners = [
-    { x: targetX - halfW, z: targetZ - halfH },
-    { x: targetX + halfW, z: targetZ - halfH },
-    { x: targetX + halfW, z: targetZ + halfH },
-    { x: targetX - halfW, z: targetZ + halfH },
+    { x: targetX + halfW * cosYaw - halfH * sinYaw * stretch,
+      z: targetZ - halfW * sinYaw - halfH * cosYaw * stretch },
+    { x: targetX + halfW * cosYaw + halfH * sinYaw * stretch,
+      z: targetZ - halfW * sinYaw + halfH * cosYaw * stretch },
+    { x: targetX - halfW * cosYaw + halfH * sinYaw * stretch,
+      z: targetZ + halfW * sinYaw + halfH * cosYaw * stretch },
+    { x: targetX - halfW * cosYaw - halfH * sinYaw * stretch,
+      z: targetZ + halfW * sinYaw - halfH * cosYaw * stretch },
   ];
 
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';

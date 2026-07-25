@@ -3,6 +3,14 @@
  *
  * Inverts the minimap pixel projection to recover world coordinates, then finds
  * the nearest explored hex and centers the 3D camera on it.
+ *
+ * NOTE: The pixel-to-world inversion here assumes an axis-aligned projection.
+ * If the minimap terrain/overlay layers are changed to apply a rotation
+ * (CAMERA_YAW = Math.PI / 6 in cameraState.js), this handler must apply the
+ * inverse rotation (-CAMERA_YAW) to the recovered world coordinates before
+ * searching for the nearest hex.
+ *
+ * @see src/render/hexmap3d/scene/cameraState.js CAMERA_YAW
  */
 
 import { parseKey } from '../../engine/rules/hexGrid.js';
