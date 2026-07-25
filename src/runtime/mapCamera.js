@@ -4,7 +4,7 @@
  * Owns the `lastCenteredChampionId` tracking variable to avoid refocusing
  * on the same champion on every turn-started refresh.
  */
-import { centerOnHexWithFixedZoom, animateCenterOnHex, getSceneContext } from '../render/hexmap3d/hexMapRenderer.js';
+import { centerOnHexWithFixedZoom, animateCenterOnHex, getSceneContext, setCameraStartCenter, hexCenter } from '../render/hexmap3d/hexMapRenderer.js';
 
 /** Track which champion we last centered the camera on (by id). */
 let lastCenteredChampionId = null;
@@ -31,6 +31,21 @@ export function focusCameraOnHex(q, r, zoomPercent = 1200) {
 
 export function getLastCenteredChampionId() {
   return lastCenteredChampionId;
+}
+
+/**
+ * Update the zoom-dependent pan constraint anchor to a hex position.
+ * Must be called at the start of each human turn and after each human
+ * champion move so the camera can never pan beyond the max-zoom-out
+ * viewport from the champion's location.
+ * @param {number} q - hex column coordinate
+ * @param {number} r - hex row coordinate
+ */
+export function updateCameraStartCenter(q, r) {
+  const ctx = getSceneContext();
+  if (!ctx) return;
+  const { x, z } = hexCenter(q, r);
+  setCameraStartCenter(ctx.getCameraState(), x, z);
 }
 
 export function setLastCenteredChampionId(id) {

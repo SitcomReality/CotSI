@@ -12,7 +12,7 @@ import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/mi
 import { setDerivedState } from '../render/overlays/overlayStack.js';
 import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
-import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus } from './mapCamera.js';
+import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
 
 /** Whether the minimap has been initialized. */
 let minimapInitialized = false;
@@ -69,6 +69,12 @@ export function refreshMap() {
   if (ch && ch.controller === 'human' && ch.id !== getLastCenteredChampionId()) {
     focusCameraOnHex(ch.pos.q, ch.pos.r);
     setLastCenteredChampionId(ch.id);
+  }
+
+  // Update the zoom-dependent pan constraint anchor on every human turn start,
+  // even when the champion hasn't changed (e.g. day rollover with same champ).
+  if (ch && ch.controller === 'human') {
+    updateCameraStartCenter(ch.pos.q, ch.pos.r);
   }
 
   endMeasure('mapRefresh');

@@ -15,11 +15,48 @@
 export function panCamera(state, dx, dz) {
   state.targetX += dx;
   state.targetZ += dz;
+
+  // 1. Clamp to map-based pan bounds (if set)
   if (state.panBounds) {
     const { minX, maxX, minZ, maxZ } = state.panBounds;
     state.targetX = Math.max(minX, Math.min(maxX, state.targetX));
     state.targetZ = Math.max(minZ, Math.min(maxZ, state.targetZ));
   }
+
+  // 2. Zoom-dependent constraint: the viewport at the current zoom must
+  //    never extend beyond the viewport at maximum zoom-out from startCenter.
+  //    At full zoom-out both viewports are equal → no panning allowed.
+  //    At closer zoom the camera can pan within the max-zoom-out rectangle.
+  if (state.startCenter && state.maxFrustumSize != null) {
+    const halfPanX = (state.maxFrustumSize - state.frustumSize) * state.aspect / 2;
+    const halfPanZ = (state.maxFrustumSize - state.frustumSize) / 2;
+    if (halfPanX >= 0) {
+      state.targetX = Math.max(
+        state.startCenter.startX - halfPanX,
+        Math.min(state.startCenter.startX + halfPanX, state.targetX)
+      );
+    }
+    if (halfPanZ >= 0) {
+      state.targetZ = Math.max(
+        state.startCenter.startZ - halfPanZ,
+        Math.min(state.startCenter.startZ + halfPanZ, state.targetZ)
+      );
+    }
+  }
+}
+
+/**
+ * Set the zoom-dependent pan constraint anchor to a world-space position.
+ * Any existing constraint is replaced; the current camera position is
+ * immediately clamped to the new constraint.
+ * @param {object} state - camera state
+ * @param {number} x - world-space X coordinate
+ * @param {number} z - world-space Z coordinate
+ */
+export function setCameraStartCenter(state, x, z) {
+  state.startCenter = { startX: x, startZ: z };
+  // Enforce the new constraint immediately
+  panCamera(state, 0, 0);
 }
 
 /**

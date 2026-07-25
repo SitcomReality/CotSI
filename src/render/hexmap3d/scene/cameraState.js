@@ -25,6 +25,7 @@ export function createCameraState(aspect) {
     mapRadius: null,        // set by fitCameraToMap
     maxFrustumSize: null,   // set by fitCameraToMap — zoom upper bound
     referenceFrustum: null, // set by fitCameraToMap — anchors zoom percentage
+    startCenter: null,      // { startX, startZ } — zoom-dependent pan constraint anchor
   };
 }
 

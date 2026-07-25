@@ -6,7 +6,7 @@
  * same 400% zoom means the same visual framing on every map size.
  */
 
-import { setPanBounds } from './cameraPanMath.js';
+import { setPanBounds, panCamera } from './cameraPanMath.js';
 
 const DEFAULT_FRUSTUM = 6;
 const MIN_FRUSTUM = 5;
@@ -61,6 +61,9 @@ export function fitCameraToMap(state, radius) {
 export function zoomCamera(state, factor) {
   const maxFrustum = state.maxFrustumSize ?? ABSOLUTE_MAX_FRUSTUM;
   state.frustumSize = Math.max(MIN_FRUSTUM, Math.min(maxFrustum, state.frustumSize * factor));
+  // Re-clamp camera target: zooming out tightens the zoom-dependent constraint,
+  // so the current pan position may need to be pulled back toward startCenter.
+  panCamera(state, 0, 0);
 }
 
 /**

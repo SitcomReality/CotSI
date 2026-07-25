@@ -15,7 +15,7 @@ import { shadowLightConfig } from '../shadowLightConfig.js';
 export { tileTopY, HEX_THICKNESS } from './terrain/terrainMesh.js';
 export { hexCenter, hexCornersXZ, hexCenter3D } from './hexWorldSpace.js';
 export { resetCamera, zoomCamera, fitCameraToMap } from './scene/cameraZoomMath.js';
-export { setPanBounds } from './scene/cameraPanMath.js';
+export { setPanBounds, setCameraStartCenter } from './scene/cameraPanMath.js';
 export { centerCameraOnHex, centerOnHexWithFitCamera, centerOnHexWithSightZoom, centerOnHexWithFixedZoom } from './scene/cameraCentering.js';
 export { animateCenterOnHex, cancelCameraPan } from './scene/panAnimation.js';
 

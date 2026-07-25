@@ -8,6 +8,7 @@ import { refreshAll } from './refreshAll.js';
 import { movementRange, moveChampion, adjacentPassable } from '../game/state/championMovement.js';
 import { getSceneContext, animateCenterOnHex, tileTopY } from '../render/hexmap3d/hexMapRenderer.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
+import { updateCameraStartCenter } from './mapCamera.js';
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { parseKey, distance, coordKey } from '../engine/rules/hexGrid.js';
@@ -83,6 +84,8 @@ export function onHexClick(key) {
       // Match camera pan duration to unit movement animation so both land together.
       animateCenterOnHex(ctx3d.getCameraState(), ctx3d.applyCamera, ch.pos.q, ch.pos.r, MOVE_DURATION);
     }
+    // Update the zoom-dependent pan constraint to the champion's new position.
+    updateCameraStartCenter(ch.pos.q, ch.pos.r);
     if (ch.moves <= 0) pulseEnd();
   }
 }
