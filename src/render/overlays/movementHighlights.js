@@ -3,17 +3,7 @@
 
 import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileTopY } from '../hexmap3d/hexMapRenderer.js';
-import { getDerivedMoveHighlights } from './overlayStack.js';
-import { coordKey } from '../../engine/rules/hexGrid.js';
-
-// ---------------------------------------------------------------------------
-// Shared hover state (set by hover.js)
-// ---------------------------------------------------------------------------
-let hoveredKey = null;
-
-export function setHoveredHexKey(key) {
-  hoveredKey = key;
-}
+import { getDerivedMoveHighlights, getHoveredKey } from './overlayStack.js';
 
 // ---------------------------------------------------------------------------
 // Visual constants
@@ -42,6 +32,7 @@ export function renderMovementHighlights(ctx2d, state, camera, _time) {
   if (allowed.length === 0) return;
 
   const canvas = ctx2d.canvas;
+  const hoveredKey = getHoveredKey();
 
   for (const key of allowed) {
     const tile = state.tiles[key];

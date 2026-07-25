@@ -4,6 +4,8 @@
 
 let _derivedHumanView = null;
 let _derivedMoveHighlights = null;
+let _interactionHighlights = null;  // Map<hexKey, { type, entity }>
+let _hoveredKey = null;
 
 /**
  * Store pre-computed derived data.
@@ -22,4 +24,26 @@ export function getDerivedHumanView() {
 
 export function getDerivedMoveHighlights() {
   return _derivedMoveHighlights;
+}
+
+/**
+ * Store interaction-highlight data (adjacent hexes with interactive entities).
+ * Called by runtime/mapRefresh.js.
+ * @param {Map<string, {type: string, entity: any}>} map
+ */
+export function setInteractionHighlights(map) {
+  _interactionHighlights = map;
+}
+
+export function getInteractionHighlights() {
+  return _interactionHighlights;
+}
+
+/** Shared hover-state: the hex key the pointer is currently over. */
+export function setHoveredKey(key) {
+  _hoveredKey = key;
+}
+
+export function getHoveredKey() {
+  return _hoveredKey;
 }

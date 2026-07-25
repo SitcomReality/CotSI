@@ -8,8 +8,10 @@ import { renderHexMap3D } from '../render/hexmap3d/hexMapRenderer.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { getHumanView } from '../game/state/fogOfWar.js';
 import { adjacentPassable } from '../game/state/championMovement.js';
+import { neighbors, coordKey } from '../engine/rules/hexGrid.js';
+import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/minimap.js';
-import { setDerivedState } from '../render/overlays/overlayStack.js';
+import { setDerivedState, setInteractionHighlights } from '../render/overlays/overlayStack.js';
 import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
 import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
@@ -37,6 +39,35 @@ export function refreshMap() {
     ? adjacentPassable(G, activeChamp)
     : [];
   setDerivedState(humanView, moveHighlights);
+
+  // Compute interaction-highlight data from ALL adjacent hexes (combat, trade, base)
+  // — not just passable ones, since combat works on blocked hexes too.
+  const interactionHighlights = new Map();
+  if (activeChamp && activeChamp.alive && activeChamp.controller === 'human') {
+    for (const n of neighbors(activeChamp.pos)) {
+      const key = coordKey(n);
+      const mob = occupiedByMob(G, key);
+      if (mob) {
+        interactionHighlights.set(key, { type: 'mob', entity: mob });
+        continue;
+      }
+      const other = occupiedByChampion(G, key);
+      if (other) {
+        interactionHighlights.set(key, { type: 'champion', entity: other });
+        continue;
+      }
+      const trader = occupiedByTrader(G, key);
+      if (trader) {
+        interactionHighlights.set(key, { type: 'trader', entity: trader });
+        continue;
+      }
+      const tile = G.tiles[key];
+      if (tile && tile.feature && tile.feature.kind === 'base') {
+        interactionHighlights.set(key, { type: 'base', entity: tile.feature });
+      }
+    }
+  }
+  setInteractionHighlights(interactionHighlights);
 
   const mountEl = document.getElementById('mapMount');
   if (!mountEl) {

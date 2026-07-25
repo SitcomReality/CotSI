@@ -1,6 +1,6 @@
 import { pickHex } from './hexPicking.js';
 import { showTooltip, hideTooltip } from './hoverTooltip.js';
-import { setHoveredHexKey } from '../../overlays/movementHighlights.js';
+import { setHoveredKey } from '../../overlays/overlayStack.js';
 
 /**
  * Create a pointer-move handler that shows/hides a hex tooltip.
@@ -36,7 +36,7 @@ export function createHoverHandler(canvas, getTerrainMesh, getTooltipContent, sh
     if (key !== hoveredKey) {
       // Hex changed: rebuild tooltip content
       hoveredKey = key;
-      setHoveredHexKey(key);   // notify movement highlights layer
+      setHoveredKey(key);   // notify highlight layers
       cachedNode = null;
       if (key !== null) {
         cachedNode = getTooltipContent(key);

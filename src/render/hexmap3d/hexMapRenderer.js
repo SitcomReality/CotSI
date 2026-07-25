@@ -8,6 +8,7 @@ import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/
 import { renderFogOverlay } from '../overlays/fogOverlay.js';
 import { renderSelectionRing } from '../overlays/selectionRing.js';
 import { renderMovementHighlights } from '../overlays/movementHighlights.js';
+import { renderInteractionHighlights } from '../overlays/interactionHighlights.js';
 import { getClock } from '../../shared/clockScheduler.js';
 import { shadowLightConfig } from '../shadowLightConfig.js';
 
@@ -42,6 +43,7 @@ export function initHexMap3D(mountElement) {
   initEffectsOverlay(ctx);
   registerLayer('fogOverlay', 0, renderFogOverlay);
   registerLayer('movementHighlights', 5, renderMovementHighlights);
+  registerLayer('interactionHighlights', 7, renderInteractionHighlights);
   registerLayer('selectionRing', 10, renderSelectionRing);
 
   // Setup animations (needs game state access)

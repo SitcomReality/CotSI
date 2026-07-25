@@ -16,7 +16,7 @@ import * as THREE from '../../../vendor/three.module.js';
 // ─── Tunable constants ───────────────────────────────────────────────────────
 
 /** Base duration of a single-hex movement animation in milliseconds. */
-export const MOVE_DURATION = 250;
+export const MOVE_DURATION = 500;
 
 // ─── Color conversion ────────────────────────────────────────────────────────
 

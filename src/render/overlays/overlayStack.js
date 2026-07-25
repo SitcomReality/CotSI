@@ -4,7 +4,15 @@
 
 import { initOverlayCanvas, getOverlayCanvas, syncSize } from './overlayCanvas.js';
 import { registerLayer } from './overlayRegistry.js';
-import { setDerivedState, getDerivedHumanView, getDerivedMoveHighlights } from './derivedState.js';
+import {
+  setDerivedState,
+  getDerivedHumanView,
+  getDerivedMoveHighlights,
+  setInteractionHighlights,
+  getInteractionHighlights,
+  setHoveredKey,
+  getHoveredKey,
+} from './derivedState.js';
 
 let overlay = null;
 
@@ -33,5 +41,9 @@ export {
   setDerivedState,
   getDerivedHumanView,
   getDerivedMoveHighlights,
+  setInteractionHighlights,
+  getInteractionHighlights,
+  setHoveredKey,
+  getHoveredKey,
   syncSize,
 };
