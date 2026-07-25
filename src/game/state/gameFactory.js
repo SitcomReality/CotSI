@@ -17,6 +17,8 @@ import { createMobs, createTraders } from './entityFactory.js';
 import { refreshVision } from './fogOfWar.js';
 import { beginTurn } from './turnActions.js';
 import { rebuildSpatialIndex } from './spatialIndex.js';
+import { createTileProxy } from './tileAccess.js';
+import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
 
 export function createGame({
   seed = 'glut-17',
@@ -28,14 +30,32 @@ export function createGame({
 }) {
   const biomeDef = getArchetype(biome) || getArchetype('biome_default');
   const biomePalette = biomeDef?.palette || null;
-  const tiles = generateTiles(seed, radius, biomeDef, mapSettings);
+  const flatTiles = generateTiles(seed, radius, biomeDef, mapSettings);
   const rng = makeRng(seed);
   const rand = () => rng();
 
   // --- Build the bare state skeleton ---
   const state = createInitialState({
-    seed, radius, biome, mapSettings, biomePalette, tiles, objectives, rng,
+    seed, radius, biome, mapSettings, biomePalette, tiles: flatTiles, objectives, rng,
   });
+
+  // --- Build chunk storage from flat tiles, then install the Proxy ---
+  for (const [, tile] of Object.entries(flatTiles)) {
+    const { cq, cr } = tileToChunk(tile.q, tile.r);
+    const ck = chunkKey(cq, cr);
+    let chunk = state.chunks.get(ck);
+    if (!chunk) {
+      chunk = { tiles: new Map(), dirty: false, generated: true };
+      state.chunks.set(ck, chunk);
+    }
+    const { lq, lr } = localCoord(cq, cr, tile.q, tile.r);
+    chunk.tiles.set(localKey(lq, lr), tile);
+  }
+  // Replace the flat state.tiles with a Proxy backed by chunk storage
+  state.tiles = createTileProxy(state);
+
+  // Use the proxy as the tiles reference for downstream consumers
+  const tiles = state.tiles;
 
   // --- Place factions and build champion entries ---
   const { champions: champEntries, used } = createChampions({

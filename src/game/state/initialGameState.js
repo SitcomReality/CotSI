@@ -41,6 +41,7 @@ export function createInitialState({ seed, radius, biome, mapSettings, biomePale
     victoryReason: '',
     turnLock: false,
     _rng: rng,
+    chunks: new Map(),
     spatialIndex: new Map(),
     _unripeTrees: new Set(),
   };
