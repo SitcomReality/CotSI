@@ -1,7 +1,6 @@
 import { FACTIONS } from '../game/rules/factionData.js';
 import { h } from './domBuilder.js';
 import { svgIcon } from './svgIcon.js';
-import { paleySVG } from './paleySVG.js';
 import { BALANCED_3P, TRAIT_DESCS } from './setupConstants.js';
 import { gameMode, roster } from './setupScreen.js';
 
@@ -20,42 +19,21 @@ function setCrossHighlight(idx) {
   _crossHighlightFn(idx);
 }
 
-// ─── Shared geometry ───
+// ─── Roster card builder ───
 
 /**
- * Read the heptagram mount SVG and compute node positions.
- * Returns null if the SVG element is not found.
+ * Create a single roster card DOM element.
+ * @param {number} idx  Faction index (0-6)
+ * @returns {HTMLElement}
  */
-function getHeptagramGeometry(mount) {
-  const svg = mount.querySelector('svg');
-  if (!svg) return null;
-  const vb = (svg.getAttribute('viewBox') || '0 0 700 580').split(' ').map(Number);
-  const cx = vb[2] / 2;
-  const cy = vb[3] / 2 + 4;
-  // Must match paleySVG's R calculation: Math.min(w, h) * 0.32
-  const R = Math.min(vb[2], vb[3]) * 0.32;
-
-  const positions = FACTIONS.map((f, i) => {
-    const ang = -Math.PI / 2 + i * 2 * Math.PI / 7;
-    return { x: cx + Math.cos(ang) * R, y: cy + Math.sin(ang) * R, i, f };
-  });
-
-  return { svg, cx: vb[2] / 2, cy: vb[3] / 2 + 4, R, positions };
-}
-
-// ─── Badge DOM ───
-
-/**
- * Draw/redraw the faction badge nodes overlaid on the heptagram.
- */
-export function drawNodes(container, positions) {
-  container.replaceChildren();
+function createCard(idx) {
+  const r = roster[idx];
+  const isSelected = r.enabled;
 
   // Pre-compute active count and balance info for lock checks in 3P mode
-  const activeIds = roster.filter(r => r.enabled).map(r => r.id);
+  const activeIds = roster.filter(f => f.enabled).map(f => f.id);
   const activeCount = activeIds.length;
 
-  // If exactly 2 active in 3P mode, compute the set of valid third factions
   const validThirds = (gameMode === 3 && activeCount === 2)
     ? (() => {
         const [a, b] = activeIds;
@@ -64,115 +42,98 @@ export function drawNodes(container, positions) {
       })()
     : null;
 
-  positions.forEach((pos) => {
-    const idx = pos.i;
-    const r = roster[idx];
-    const isSelected = r.enabled;
+  const isLocked = validThirds !== null && !r.enabled && !validThirds.includes(idx);
 
-    // In 3P mode, a faction is locked when 2 are already active and
-    // this one cannot form a balanced RPS triple as the third.
-    const isLocked = validThirds !== null && !r.enabled && !validThirds.includes(idx);
+  const classes = ['setup-roster-card'];
+  if (isSelected) classes.push('on');
+  if (isLocked) classes.push('locked');
 
-    const classes = ['setup-node', 'paley-item', 'paley-item--f' + idx];
-    if (isSelected) classes.push('on');
-    if (isLocked) classes.push('locked');
+  // Trait description
+  const traitDesc = TRAIT_DESCS[idx];
+  const traitEl = h('div', { class: 'roster-trait' },
+    svgIcon(traitDesc.icon, 11),
+    traitDesc.text
+  );
 
-    // Build the trait description line with icon
-    const traitDesc = TRAIT_DESCS[idx];
-    const traitEl = h('div', { class: 'setup-node-trait' },
-      svgIcon(traitDesc.icon, 11),
-      ' ',
-      traitDesc.text
-    );
+  // Controller badge
+  const isHuman = r.human;
+  const ctrlClasses = ['roster-ctrl'];
+  if (isHuman) ctrlClasses.push('is-human');
+  else ctrlClasses.push('is-bot');
 
-    const node = h('div', {
-      class: classes.join(' '),
-      dataAction: 'toggleFaction',
-      dataIdx: idx,
-      style: { '--faction-color': r.color, '--faction-base': r.base },
-      mouseenter: () => setCrossHighlight(idx),
-      mouseleave: () => setCrossHighlight(-1),
-    },
-      // Controller toggle — always visible in 7P, only for active factions in 3P
-      (gameMode === 7 || r.enabled)
-        ? h('button', {
-            class: 'setup-node-ctrl',
-            dataAction: 'toggleController',
-            dataIdx: idx,
-            title: r.human ? 'Switch to Bot' : 'Switch to Human',
-          }, r.human ? 'H' : 'B')
-        : null,
+  const ctrlBadge = h('button', {
+    class: ctrlClasses.join(' '),
+    dataAction: 'toggleController',
+    dataIdx: idx,
+    title: isHuman ? 'Switch to Bot' : 'Switch to Human',
+  },
+    svgIcon(isHuman ? 'i-confirm' : 'd-seal', 12, { ariaHidden: true }),
+    isHuman ? 'Human' : 'Bot'
+  );
 
-      // Faction glyph
-      h('div', { class: 'setup-node-glyph' }, svgIcon(r.glyphId, 22)),
+  // Card body — clickable for toggleFaction
+  const cardBody = h('div', {
+    class: 'roster-card-body',
+    dataAction: 'toggleFaction',
+    dataIdx: idx,
+    style: { '--faction-color': r.color, '--faction-base': r.base },
+  },
+    // Glyph
+    h('div', { class: 'roster-glyph' },
+      svgIcon(r.glyphId, 28)
+    ),
+    // Info column
+    h('div', { class: 'roster-info' },
+      h('div', { class: 'roster-name' }, r.name),
+      traitEl
+    )
+  );
 
-      // Faction name
-      h('div', { class: 'setup-node-name' }, r.name),
+  // Full card
+  const card = h('div', {
+    class: classes.join(' '),
+    dataIdx: idx,
+    style: { '--faction-color': r.color, '--faction-base': r.base },
+    mouseenter: () => setCrossHighlight(idx),
+    mouseleave: () => setCrossHighlight(-1),
+  },
+    cardBody,
+    ctrlBadge,
+    // Lock overlay for 3P mode
+    isLocked
+      ? h('div', { class: 'roster-lock-overlay' },
+          svgIcon('i-cancel', 18)
+        )
+      : null
+  );
 
-      // Trait icon + description
-      traitEl,
-
-      // Lock overlay
-      isLocked
-        ? h('div', { class: 'setup-node-lock' },
-            svgIcon('i-cancel', 16)
-          )
-        : null
-    );
-
-    // Position the node at the heptagram coordinates
-    node.style.position = 'absolute';
-    node.style.left = (pos.x - 75) + 'px';
-    node.style.top = (pos.y - 48) + 'px';
-    container.appendChild(node);
-  });
+  return card;
 }
 
 // ─── Build ───
 
 /**
- * Build the heptagram SVG and overlay faction badges.
+ * Build the roster grid from the current roster state.
  */
-export function buildHeptagram() {
-  const mount = document.getElementById('setupHeptagramSVG');
-  if (!mount) return;
-
-  // Render the base heptagram SVG (lines + node circles)
-  mount.innerHTML = paleySVG(-1, 700, 580);
-
-  const geo = getHeptagramGeometry(mount);
-  if (!geo) return;
-
-  // Inject SVG circle hover handlers
-  geo.svg.querySelectorAll('.rt-heptagram-node').forEach(circle => {
-    const idx = parseInt(circle.getAttribute('data-index'), 10);
-    circle.addEventListener('mouseenter', () => setCrossHighlight(idx));
-    circle.addEventListener('mouseleave', () => setCrossHighlight(-1));
+export function buildRoster() {
+  const container = document.getElementById('setupRoster');
+  if (!container) return;
+  container.replaceChildren();
+  FACTIONS.forEach((_, idx) => {
+    container.appendChild(createCard(idx));
   });
-
-  const nodesEl = document.getElementById('setupNodes');
-  if (!nodesEl) return;
-  drawNodes(nodesEl, geo.positions);
 }
 
 // ─── Refresh ───
 
 /**
- * Refresh the setup UI after roster or mode changes.
+ * Refresh roster cards after roster or mode changes.
  */
 export function refreshSetup() {
-  const nodesEl = document.getElementById('setupNodes');
-  if (!nodesEl) return;
-
-  const mount = document.getElementById('setupHeptagramSVG');
-  if (!mount) return;
-  const geo = getHeptagramGeometry(mount);
-  if (!geo) return;
-
-  drawNodes(nodesEl, geo.positions);
+  buildRoster();
 }
 
-// ─── Balance algorithm ───
+// ─── Balance algorithm (kept from original) ───
 
 /**
  * Get the third faction for a balanced 3P triple.
@@ -182,6 +143,5 @@ export function getBalancedThird(a, b) {
   const key = a < b ? a * 7 + b : b * 7 + a;
   const valid = BALANCED_3P[key];
   if (!valid || valid.length === 0) return -1;
-  // Return the first valid third (there should be exactly 1)
   return valid[0];
 }

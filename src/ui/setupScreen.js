@@ -1,7 +1,7 @@
 import { FACTIONS } from '../game/rules/factionData.js';
 import { listArchetypes, getArchetype } from '../game/rules/archetypes.js';
 import '../game/rules/archetypeData/index.js'; // side-effect: populate archetype registry
-import { buildHeptagram } from './setupHeptagram.js';
+import { buildRoster } from './setupHeptagram.js';
 import './setupActions.js'; // side-effect: register action handlers
 
 // ─── Shared mutable state ───
@@ -61,6 +61,6 @@ export function initSetup() {
     human: i === 0,
   }));
 
-  // ---- Build heptagram ----
-  buildHeptagram();
+  // ---- Build roster ----
+  buildRoster();
 }

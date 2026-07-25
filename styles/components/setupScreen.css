@@ -1,7 +1,7 @@
 /* =========================================================================
-   SETUP SCREEN — Faction selection via heptagram layout.
-   Dark stage background with a central heptagram of clickable faction
-   badges and a center control panel.
+   SETUP SCREEN — Faction selection via roster grid.
+   Dark stage background with a two-column layout: faction cards on the
+   left, control panel on the right.
    ========================================================================= */
 
 #setup {
@@ -17,93 +17,149 @@
 }
 
 /* =========================================================================
-   Heptagram container — the main layout structure
+   Main two-column layout
    ========================================================================= */
 
-.setup-heptagram {
-  position: relative;
-  width: min(700px, 100%);
-  max-width: 700px;
-  aspect-ratio: 700 / 580;
-  margin: 0 auto;
-}
-
-/* SVG layer — the background heptagram lines and circles */
-.setup-heptagram-svg {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none; /* let clicks pass through to the interactive overlay */
-}
-
-.setup-heptagram-svg svg {
+.setup-main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--s5);
   width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* Make SVG circles clickable for cross-highlight, but let other events pass */
-.setup-heptagram-svg .rt-heptagram-node {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-/* ── Heptagram SVG line colors (faint, behind controls) ── */
-.setup-heptagram-svg .rt-heptagram-line {
-  stroke: var(--ink-faint);
-  stroke-opacity: 0.2;
-  stroke-width: 1.2;
+  max-width: 1200px;
+  justify-content: center;
 }
 
 /* =========================================================================
-   Faction nodes — interactive badges overlaid on heptagram points
+   Left column — mode toggle + roster grid
    ========================================================================= */
 
-.setup-nodes {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
+.setup-roster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s3);
+  flex: 1;
+  min-width: 0;
 }
 
-.setup-node {
-  width: 150px;
-  padding: var(--s2) var(--s2);
-  border-radius: var(--r);
+/* Game mode toggle (reused from setupControls, positioned at top of roster) */
+.setup-mode-toggle {
+  display: flex;
+  gap: 2px;
+  border-radius: var(--r-pill);
+  border: var(--ink-weight-thin) solid var(--ink-line);
+  overflow: hidden;
+}
+
+.setup-mode-btn {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: var(--s1) var(--s2);
+  border: none;
+  background: var(--board);
+  color: var(--ink-mid);
   cursor: pointer;
-  text-align: center;
-  transition: box-shadow var(--dur-fast) var(--ease-out),
-              opacity var(--dur-fast) var(--ease-out),
-              transform var(--dur-fast) var(--ease-out);
-  /* Ink outline via border (matches border-radius) */
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.setup-mode-btn.active {
+  background: var(--board-hi);
+  color: var(--ink);
+}
+
+.setup-mode-btn:first-child {
+  border-radius: var(--r-pill) 0 0 var(--r-pill);
+}
+
+.setup-mode-btn:last-child {
+  border-radius: 0 var(--r-pill) var(--r-pill) 0;
+}
+
+/* =========================================================================
+   Roster grid — faction cards
+   ========================================================================= */
+
+.setup-roster-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  width: 100%;
+  max-width: 700px;
+}
+
+/* Individual faction card */
+.setup-roster-card {
+  width: 100%;
+  border-radius: var(--r);
   border: var(--ink-weight) solid var(--ink-line);
   background: var(--board);
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  display: flex;
+  flex-direction: row;
 }
 
-.setup-node:hover {
-  transform: scale(1.05);
-}
-
-.setup-node.on {
+/* Enabled state — faction accent glow */
+.setup-roster-card.on {
   background: var(--shadow);
   border-color: var(--faction-color, var(--ink-line));
-  box-shadow: 0 0 12px 2px var(--faction-color, transparent);
+  box-shadow: 0 0 10px 1px var(--faction-color, transparent);
 }
 
-/* Disabled in 3P mode */
-.setup-node.locked {
-  opacity: 0.35;
-  cursor: default;
+/* Disabled — dimmed */
+.setup-roster-card:not(.on) {
+  opacity: 0.55;
+}
+
+/* Locked in 3P mode — cannot be selected */
+.setup-roster-card.locked {
+  opacity: 0.3;
   pointer-events: none;
-  filter: grayscale(0.6);
+  filter: grayscale(0.5);
 }
 
-.setup-node-glyph {
+/* =========================================================================
+   Card body — clickable region
+   ========================================================================= */
+
+.roster-card-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3) var(--s2);
+  cursor: pointer;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+}
+
+.roster-card-body:hover {
+  background: var(--board-hi);
+}
+
+/* Faction glyph */
+.roster-glyph {
   color: var(--faction-color, var(--ink));
-  margin-bottom: var(--s1);
   line-height: 1;
+  flex-shrink: 0;
 }
 
-.setup-node-name {
+/* Name + trait info column */
+.roster-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.roster-name {
   font-family: var(--font-display);
   font-size: var(--fs-xs);
   font-weight: 700;
@@ -111,100 +167,103 @@
   text-transform: uppercase;
   color: var(--ink);
   line-height: 1.2;
-  margin-bottom: var(--s1);
 }
 
-.setup-node-trait {
+.roster-trait {
   font-size: 10px;
   color: var(--ink-mid);
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 3px;
   line-height: 1.1;
-  white-space: nowrap;
 }
 
-.setup-node-trait svg {
+.roster-trait svg {
   flex-shrink: 0;
   color: var(--ink-faint);
 }
 
-/* Controller toggle button (small, top-right of node) */
-.setup-node-ctrl {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: var(--ink-weight-thin) solid var(--ink-line);
-  background: var(--board-hi);
-  color: var(--ink-mid);
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  line-height: 1;
-  padding: 0;
+/* =========================================================================
+   Controller badge — bot / human (right side of card)
+   ========================================================================= */
+
+.roster-ctrl {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 3px;
+  width: 56px;
+  flex-shrink: 0;
+  padding: var(--s1) 0;
+  border: none;
+  border-left: var(--hair) solid var(--crease);
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
               color var(--dur-fast) var(--ease-out);
-  z-index: 1;
+  background: var(--board);
+  color: var(--ink-mid);
+  line-height: 1;
 }
 
-.setup-node-ctrl:hover {
-  background: var(--faction-color, var(--ink));
-  color: var(--ink-line);
+.roster-ctrl:hover {
+  background: var(--board-hi);
 }
 
-/* Lock overlay for disabled factions in 3P mode */
-.setup-node-lock {
+/* Human badge — verdant / warm */
+.roster-ctrl.is-human {
+  color: var(--verdigris);
+  background: color-mix(in srgb, var(--verdigris) 8%, var(--board));
+}
+
+.roster-ctrl.is-human:hover {
+  background: color-mix(in srgb, var(--verdigris) 14%, var(--board));
+}
+
+/* Bot badge — neutral gray */
+.roster-ctrl.is-bot {
+  color: var(--ink-faint);
+  background: color-mix(in srgb, var(--ink-faint) 8%, var(--board));
+}
+
+.roster-ctrl.is-bot:hover {
+  background: color-mix(in srgb, var(--ink-faint) 14%, var(--board));
+}
+
+/* =========================================================================
+   Lock overlay for 3P mode
+   ========================================================================= */
+
+.roster-lock-overlay {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--r);
-  background: color-mix(in srgb, var(--abyss) 40%, transparent);
+  background: color-mix(in srgb, var(--abyss) 50%, transparent);
   color: var(--ink-faint);
   pointer-events: none;
 }
 
 /* =========================================================================
-   Mobile responsive — fall back to stacked layout
+   Mobile responsive — stack vertically
    ========================================================================= */
 
-@media (max-width: 640px) {
-  .setup-heptagram {
-    aspect-ratio: auto;
-    height: auto;
-    min-height: 100vh;
-    display: flex;
+@media (max-width: 900px) {
+  .setup-main {
     flex-direction: column;
     align-items: center;
-    gap: var(--s3);
   }
+}
 
-  .setup-heptagram-svg {
-    display: none; /* hide heptagram lines on mobile */
-  }
-
-  .setup-nodes {
-    position: relative;
-    inset: auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--s2);
-    padding: var(--s4);
-  }
-
-  .setup-node {
-    position: relative !important;
-    left: auto !important;
-    top: auto !important;
-    width: auto;
+@media (max-width: 640px) {
+  #setup {
+    padding: var(--s4) var(--s2);
   }
 }
