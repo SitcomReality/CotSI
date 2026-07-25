@@ -4,18 +4,15 @@
  * Inverts the minimap pixel projection to recover world coordinates, then finds
  * the nearest explored hex and centers the 3D camera on it.
  *
- * NOTE: The pixel-to-world inversion here assumes an axis-aligned projection.
- * If the minimap terrain/overlay layers are changed to apply a rotation
- * (CAMERA_YAW = Math.PI / 6 in cameraState.js), this handler must apply the
- * inverse rotation (-CAMERA_YAW) to the recovered world coordinates before
- * searching for the nearest hex.
- *
- * @see src/render/hexmap3d/scene/cameraState.js CAMERA_YAW
+ * The projection applies a CAMERA_YAW rotation to world coords; the click
+ * handler applies the inverse rotation to recover the original world coords
+ * before searching for the nearest hex.
  */
 
 import { parseKey } from '../../engine/rules/hexGrid.js';
 import { hexCenter } from '../hexmap3d/hexWorldSpace.js';
 import { centerCameraOnHex, getSceneContext } from '../hexmap3d/hexMapRenderer.js';
+import { CAMERA_YAW } from '../hexmap3d/scene/cameraState.js';
 import { PADDING } from './minimapDom.js';
 
 /**
@@ -31,9 +28,15 @@ import { PADDING } from './minimapDom.js';
 export function handleMinimapClick(px, py, scale, offsetX, offsetZ, getExploredFn) {
   if (scale <= 0) return;
 
-  // Invert the projection: pixel → world (x, z)
-  const worldX = px / scale + offsetX - PADDING / scale;
-  const worldZ = py / scale + offsetZ - PADDING / scale;
+  // Invert the projection: pixel → rotated world coords
+  const x_rot = px / scale + offsetX - PADDING / scale;
+  const z_rot = py / scale + offsetZ - PADDING / scale;
+
+  // Undo the camera yaw rotation to recover original world coords
+  const cosYaw = Math.cos(CAMERA_YAW);
+  const sinYaw = Math.sin(CAMERA_YAW);
+  const worldX = x_rot * cosYaw + z_rot * sinYaw;
+  const worldZ = -x_rot * sinYaw + z_rot * cosYaw;
 
   // Find the closest explored hex to this world position
   const G = window.__gameState;

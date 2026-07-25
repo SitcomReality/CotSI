@@ -5,37 +5,48 @@
  * explored-but-not-visible tiles. Caches the terrain bitmap and only redraws
  * when the fog-of-war revision changes.
  *
- * NOTE: This minimap projection is axis-aligned — it does NOT account for the
- * 3D camera's yaw rotation (CAMERA_YAW = Math.PI / 6 in cameraState.js).
- * The 3D view is rotated 30°, so terrain positions on the minimap are offset
- * from what is visible in the 3D viewport. If projection rotation is added,
- * the world-to-pixel mapping here must apply a +CAMERA_YAW rotation to world
- * (x, z) before the scale+offset transform.
- *
- * @see src/render/hexmap3d/scene/cameraState.js CAMERA_YAW
+ * World coordinates are rotated by CAMERA_YAW (π/6) before projection to
+ * minimap pixel space, so the minimap orientation matches the 3D view.
  */
 
 import { parseKey } from '../../engine/rules/hexGrid.js';
 import { hexCenter } from '../hexmap3d/hexWorldSpace.js';
 import { TERRAIN_COLOR } from '../hexmap3d/terrain/terrainMesh.js';
+import { CAMERA_YAW } from '../hexmap3d/scene/cameraState.js';
 import { MINIMAP_SIZE, PADDING, getTerrainCtx } from './minimapDom.js';
 
 // ---- Helpers ----
 
 const HEX_RADIUS = 1.0; // matches hexWorldSpace.HEX_RADIUS
 
+// Pre-compute trig values for the camera yaw rotation
+const COS_YAW = Math.cos(CAMERA_YAW);
+const SIN_YAW = Math.sin(CAMERA_YAW);
+
 /**
- * Compute the bounding box of a set of hex coordinates in world space.
+ * Rotate a world-space (x, z) point by CAMERA_YAW counter-clockwise.
+ * @returns {{ x_rot: number, z_rot: number }}
+ */
+function rotateWorld(x, z) {
+  return {
+    x_rot: x * COS_YAW - z * SIN_YAW,
+    z_rot: x * SIN_YAW + z * COS_YAW,
+  };
+}
+
+/**
+ * Compute the bounding box of a set of hex coordinates in rotated world space.
  * Returns { minX, maxX, minZ, maxZ }.
  */
 function hexBounds(hexes) {
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
   for (const h of hexes) {
     const { x, z } = hexCenter(h.q, h.r);
-    if (x < minX) minX = x;
-    if (x > maxX) maxX = x;
-    if (z < minZ) minZ = z;
-    if (z > maxZ) maxZ = z;
+    const { x_rot, z_rot } = rotateWorld(x, z);
+    if (x_rot < minX) minX = x_rot;
+    if (x_rot > maxX) maxX = x_rot;
+    if (z_rot < minZ) minZ = z_rot;
+    if (z_rot > maxZ) maxZ = z_rot;
   }
   // Account for hex size (corners extend beyond center)
   minX -= HEX_RADIUS;
@@ -118,8 +129,9 @@ export function renderTerrainLayer(G, humanView) {
     if (!tile) continue;
 
     const { x, z } = hexCenter(tile.q, tile.r);
-    const px = (x - offsetX) * scale + PADDING;
-    const py = (z - offsetZ) * scale + PADDING;
+    const { x_rot, z_rot } = rotateWorld(x, z);
+    const px = (x_rot - offsetX) * scale + PADDING;
+    const py = (z_rot - offsetZ) * scale + PADDING;
 
     const isVisible = visibleSet.has(key);
     const color = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || [0.3, 0.3, 0.3];

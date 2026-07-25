@@ -4,31 +4,31 @@
  * Draws bases, champions, mobs, and traders as colored shapes on the overlay canvas.
  * Also draws the 3D camera's orthographic viewport as a rotated rectangle.
  *
- * NOTE: The worldToMinimap projection here is axis-aligned — it does NOT account
- * for the 3D camera's yaw (CAMERA_YAW = Math.PI / 6 in cameraState.js).
- * The drawCameraIndicator() function *does* apply the yaw rotation to the camera
- * frustum corners so the rectangle is drawn correctly rotated on the minimap.
- * However, entity positions (drawn via worldToMinimap) are not rotated, so they
- * appear in axis-aligned position on the minimap rather than matching the 3D view.
- * If projection rotation is added, worldToMinimap must apply +CAMERA_YAW to world
- * (x, z) before the scale+offset transform.
- *
- * @see src/render/hexmap3d/scene/cameraState.js CAMERA_YAW
+ * World coordinates are rotated by CAMERA_YAW (π/6) before projection to
+ * minimap pixel space, matching the terrain layer and the 3D view.
  */
 
 import { coordKey, parseKey } from '../../engine/rules/hexGrid.js';
 import { hexCenter } from '../hexmap3d/hexWorldSpace.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { getSceneContext } from '../hexmap3d/hexMapRenderer.js';
+import { CAMERA_YAW } from '../hexmap3d/scene/cameraState.js';
 import { MINIMAP_SIZE, PADDING, getOverlayCtx } from './minimapDom.js';
+
+// Pre-compute trig values for the camera yaw rotation
+const COS_YAW = Math.cos(CAMERA_YAW);
+const SIN_YAW = Math.sin(CAMERA_YAW);
 
 /**
  * Project a world-space (x, z) to minimap pixel coords.
+ * Applies the camera yaw rotation (CCW) so the minimap matches the 3D view.
  */
 function worldToMinimap(x, z, scale, offsetX, offsetZ) {
+  const x_rot = x * COS_YAW - z * SIN_YAW;
+  const z_rot = x * SIN_YAW + z * COS_YAW;
   return {
-    px: (x - offsetX) * scale + PADDING,
-    py: (z - offsetZ) * scale + PADDING,
+    px: (x_rot - offsetX) * scale + PADDING,
+    py: (z_rot - offsetZ) * scale + PADDING,
   };
 }
 

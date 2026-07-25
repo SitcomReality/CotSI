@@ -100,26 +100,17 @@ The remaining work to make the minimap match the 3D view:
 
 1. ✅ ~~Export the camera yaw~~ — done: `CAMERA_YAW` is exported from `cameraState.js`.
 
-2. **Rotate the minimap projection** in `minimapTerrainLayer.js`,
-   `minimapOverlayLayer.js`, and `minimapClickHandler.js` so the world-to-pixel
-   mapping applies a rotation equal to the camera yaw.
+2. ✅ ~~Rotate the minimap projection~~ — done: all three minimap modules
+   (`minimapTerrainLayer.js`, `minimapOverlayLayer.js`, `minimapClickHandler.js`)
+   apply a `CAMERA_YAW` rotation to world coords before the scale+offset
+   transform; the click handler applies the inverse rotation to recover original
+   world coords.
 
 3. ✅ ~~Fix the camera indicator~~ — done: `drawCameraIndicator()` now draws the
    correct rotated+stretched frustum footprint.
 
-4. **Fix the click inversion** in `minimapClickHandler.js` to undo the rotation
-   when converting pixel coords back to world coords (required once step 2 is
-   done).
-
-The first step would be to verify the correct rotation direction using the
-**Verification Recipe** below, then proceed with the projection rotation.
-
-## Things to Watch For
-
-- The `hexBounds()` function in `minimapTerrainLayer.js` must compute bounds
-  in rotated space to get correct scale/offset for the rotated projection.
-- The click handler must invert the rotation precisely to avoid off-by-one
-  hex targeting.
+4. ✅ ~~Fix the click inversion~~ — done: `handleMinimapClick()` inverts the
+   rotation when converting pixel coords back to world coords.
 
 ---
 
