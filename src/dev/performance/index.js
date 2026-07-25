@@ -8,6 +8,7 @@ export { startMeasure, endMeasure, setMeasurementEnabled, getMeasurementStats, e
 export { getFps, getLastFrameTime, ensureFrameTracking, disposeFrameTracker, onFrame } from './frameTracker.js';
 export { setOverlayEnabled, disposeOverlay, isOverlayEnabled } from './overlay.js';
 export { getSnapshot } from './snapshot.js';
+export { startCapture, stopCapture, getCaptureReport, isCaptureActive } from './captureLogger.js';
 
 // Composite cleanup for backward compatibility
 import { disposeMeasurements } from './measurements.js';

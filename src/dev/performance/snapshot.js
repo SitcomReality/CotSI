@@ -50,14 +50,17 @@ export function getSnapshot() {
   return s;
 }
 
-// ─── Future capture API placeholder ────────────────────────────────────────
-// The following interface is reserved for the comprehensive performance
-// capture feature mentioned in the dev tools roadmap:
+// ─── Continuous capture API ─────────────────────────────────────────────────
+// Re-exported from captureLogger.js. See that module for implementation.
 //
-//   export function startCapture(durationMs) { ... }
-//   export function stopCapture() { ... }
-//   export function getCaptureReport() { ... }
-//
-// startCapture() would collect periodic snapshots and aggregate metrics
-// over an interval. stopCapture() returns a full log. getCaptureReport()
-// returns the last completed report without stopping a running capture.
+//   startCapture({ durationMs, intervalMs, keepTimeline }) — begin a capture
+//   stopCapture() — stop active capture and return report
+//   getCaptureReport() — retrieve last completed report
+//   isCaptureActive() — check if a capture is in progress
+
+export {
+  startCapture,
+  stopCapture,
+  getCaptureReport,
+  isCaptureActive,
+} from './captureLogger.js';

@@ -15,5 +15,9 @@ export {
   ensureFrameTracking,
   setOverlayEnabled,
   getSnapshot,
+  startCapture,
+  stopCapture,
+  getCaptureReport,
+  isCaptureActive,
   disposePerformance,
 } from './performance/index.js';
