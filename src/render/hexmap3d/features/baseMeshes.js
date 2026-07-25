@@ -34,34 +34,34 @@ export function buildBaseMeshes(state, visible) {
     // ---- Tower body ----
     const towerGeo = new THREE.CylinderGeometry(0.22, 0.25, 0.7, 8);
     const tower = new THREE.Mesh(towerGeo, towerMat);
-    tower.position.set(x, surfaceY + 0.50, z);
+    tower.position.set(x, surfaceY + 0.35, z);
     group.add(tower);
 
     // ---- Top cap ----
     const capGeo = new THREE.CylinderGeometry(0.24, 0.2, 0.15, 8);
     const cap = new THREE.Mesh(capGeo, towerMat);
-    cap.position.set(x, surfaceY + 0.90, z);
+    cap.position.set(x, surfaceY + 0.75, z);
     group.add(cap);
 
     // ---- Faction-specific decoration ----
     switch (f.faction) {
       case 0: // CRU — short spikes around the base
-        addSpikes(group, x, surfaceY + 0.30, z, 6, 0.06, 0.10, accentMat);
+        addSpikes(group, x, surfaceY + 0.15, z, 6, 0.06, 0.10, accentMat);
         break;
       case 1: // REV — floating ring above cap
-        addRing(group, x, surfaceY + 1.00, z, 0.28, 0.02, accentMat);
+        addRing(group, x, surfaceY + 0.85, z, 0.28, 0.02, accentMat);
         break;
       case 2: // VER — leafy crown on top
-        addSpikes(group, x, surfaceY + 0.95, z, 8, 0.04, 0.08, accentMat);
+        addSpikes(group, x, surfaceY + 0.80, z, 8, 0.04, 0.08, accentMat);
         break;
       case 3: // ARC — small satellite dots
-        addRingDots(group, x, surfaceY + 0.70, z, 0.32, 4, accentMat);
+        addRingDots(group, x, surfaceY + 0.55, z, 0.32, 4, accentMat);
         break;
       case 4: // HRT — wide round cap (like a hearth)
         {
           const domeGeo = new THREE.SphereGeometry(0.18, 6, 4, 0, Math.PI * 2, 0, Math.PI * 0.5);
           const dome = new THREE.Mesh(domeGeo, accentMat);
-          dome.position.set(x, surfaceY + 0.98, z);
+          dome.position.set(x, surfaceY + 0.83, z);
           group.add(dome);
         }
         break;
@@ -69,7 +69,7 @@ export function buildBaseMeshes(state, visible) {
         {
           const spireGeo = new THREE.ConeGeometry(0.05, 0.15, 6);
           const spire = new THREE.Mesh(spireGeo, accentMat);
-          spire.position.set(x, surfaceY + 1.02, z);
+          spire.position.set(x, surfaceY + 0.87, z);
           group.add(spire);
         }
         break;
@@ -77,7 +77,7 @@ export function buildBaseMeshes(state, visible) {
         {
           const spikeGeo = new THREE.ConeGeometry(0.04, 0.12, 4);
           const spike = new THREE.Mesh(spikeGeo, accentMat);
-          spike.position.set(x, surfaceY + 0.22, z);
+          spike.position.set(x, surfaceY + 0.07, z);
           spike.rotation.x = Math.PI; // point downward
           group.add(spike);
         }

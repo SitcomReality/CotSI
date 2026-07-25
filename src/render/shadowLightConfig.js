@@ -7,25 +7,28 @@ export const shadowLightConfig = {
   enabled: true,
 
   // ---- Shadow map ----
-  shadowMapType: 'PCFSoftShadowMap',
+  shadowMapType: 'VSMShadowMap',
   /** Shadow map resolution per side (2048 or 4096). */
   mapSize: 2048,
   cameraNear: 0.5,
   cameraFar: 100,
   /** Multiplier applied to the map extent when sizing the shadow frustum. */
-  frustumPadding: 2.0,
+  frustumPadding: 0.5,
   /** Depth bias to reduce shadow acne. */
-  bias: -0.0005,
+  bias: -0.00005,
   /** Normal bias for smoother self-shadow avoidance. */
-  normalBias: 0.02,
+  normalBias: 0.005,
   /** PCF blur radius — higher values soften shadow edges. Default 1.0. */
-  radius: 2.0,
+  radius: 1.0,
 
-  // ---- Directional (sun) light ----
+  // ---- Directional (sun) slight ----
   sunColor: 0xfff4e0,
   sunIntensity: 3.0,
   /** Light position in world space (direction is toward origin). */
-  sunPosition: { x: 10, y: 15, z: 5 },
+
+    // x:10, y:15, z:5    = sun in bottom right, shadows point up-left
+    // x:-10, y:15, z:-5  = sun in top left, shadows point down and rightwards
+  sunPosition: { x: -20, y: 10, z: -3 },
 
   // ---- Ambient fill ----
   ambientColor: 0xc8b898,
