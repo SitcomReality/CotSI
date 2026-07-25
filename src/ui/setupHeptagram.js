@@ -51,14 +51,31 @@ function getHeptagramGeometry(mount) {
 export function drawNodes(container, positions) {
   container.replaceChildren();
 
+  // Pre-compute active count and balance info for lock checks in 3P mode
+  const activeIds = roster.filter(r => r.enabled).map(r => r.id);
+  const activeCount = activeIds.length;
+
+  // If exactly 2 active in 3P mode, compute the set of valid third factions
+  const validThirds = (gameMode === 3 && activeCount === 2)
+    ? (() => {
+        const [a, b] = activeIds;
+        const key = a < b ? a * 7 + b : b * 7 + a;
+        return BALANCED_3P[key] || [];
+      })()
+    : null;
+
   positions.forEach((pos) => {
     const idx = pos.i;
     const r = roster[idx];
-    const isEnabled = r.enabled || gameMode === 7;
     const isSelected = r.enabled;
+
+    // In 3P mode, a faction is locked when 2 are already active and
+    // this one cannot form a balanced RPS triple as the third.
+    const isLocked = validThirds !== null && !r.enabled && !validThirds.includes(idx);
+
     const classes = ['setup-node', 'paley-item', 'paley-item--f' + idx];
     if (isSelected) classes.push('on');
-    if (!isEnabled && gameMode === 3) classes.push('locked');
+    if (isLocked) classes.push('locked');
 
     // Build the trait description line with icon
     const traitDesc = TRAIT_DESCS[idx];
@@ -70,19 +87,21 @@ export function drawNodes(container, positions) {
 
     const node = h('div', {
       class: classes.join(' '),
-      dataAction: gameMode === 3 && !isEnabled ? null : 'toggleFaction',
+      dataAction: 'toggleFaction',
       dataIdx: idx,
       style: { '--faction-color': r.color, '--faction-base': r.base },
       mouseenter: () => setCrossHighlight(idx),
       mouseleave: () => setCrossHighlight(-1),
     },
-      // Controller toggle (small, at top-right of node)
-      h('button', {
-        class: 'setup-node-ctrl',
-        dataAction: 'toggleController',
-        dataIdx: idx,
-        title: r.human ? 'Switch to Bot' : 'Switch to Human',
-      }, r.human ? 'H' : 'B'),
+      // Controller toggle — always visible in 7P, only for active factions in 3P
+      (gameMode === 7 || r.enabled)
+        ? h('button', {
+            class: 'setup-node-ctrl',
+            dataAction: 'toggleController',
+            dataIdx: idx,
+            title: r.human ? 'Switch to Bot' : 'Switch to Human',
+          }, r.human ? 'H' : 'B')
+        : null,
 
       // Faction glyph
       h('div', { class: 'setup-node-glyph' }, svgIcon(r.glyphId, 22)),
@@ -93,8 +112,8 @@ export function drawNodes(container, positions) {
       // Trait icon + description
       traitEl,
 
-      // Lock overlay (for 3P mode disabled factions)
-      gameMode === 3 && !isEnabled
+      // Lock overlay
+      isLocked
         ? h('div', { class: 'setup-node-lock' },
             svgIcon('i-cancel', 16)
           )

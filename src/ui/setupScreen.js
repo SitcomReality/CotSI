@@ -12,6 +12,11 @@ export let gameMode = 7;
 /** @type {Array} Faction roster with enabled/human flags */
 export let roster = [];
 
+/** Update game mode from importing modules (ES module bindings are read-only). */
+export function setGameMode(mode) {
+  gameMode = mode;
+}
+
 // ─── Public API ───
 
 /**

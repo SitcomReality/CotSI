@@ -1,44 +1,41 @@
 import { registerAction } from '../shared/actionBus.js';
 import { beats } from '../game/rules/factionData.js';
+import { BALANCED_3P } from './setupConstants.js';
 import { toast } from './hud.js';
-import { refreshSetup, getBalancedThird } from './setupHeptagram.js';
-import { gameMode, roster } from './setupScreen.js';
+import { refreshSetup } from './setupHeptagram.js';
+import { gameMode, roster, setGameMode } from './setupScreen.js';
 
 registerAction('toggleFaction', (el) => {
   const idx = parseInt(el.dataset.idx, 10);
   if (isNaN(idx)) return;
 
-  // In 3-player mode, enforce RPS balance
-  if (gameMode === 3) {
-    const currentEnabled = roster.filter(r => r.enabled).map(r => r.id);
-
-    if (roster[idx].enabled) {
-      // Cannot deselect if only 3 are selected and we're in 3P mode
-      if (currentEnabled.length <= 3) {
-        toast('In 3 Champion mode, select 3 factions and begin.', true);
-        return;
-      }
-      roster[idx].enabled = false;
-    } else {
-      // Adding: if we already have 2, the third is forced
-      if (currentEnabled.length >= 2) {
-        toast('Select 2 factions; the third is chosen for balance.', true);
-        return;
-      }
-      roster[idx].enabled = true;
-
-      // If we now have exactly 2, auto-select the balanced third
-      const nowEnabled = roster.filter(r => r.enabled).map(r => r.id);
-      if (nowEnabled.length === 2) {
-        const third = getBalancedThird(nowEnabled[0], nowEnabled[1]);
-        if (third >= 0) {
-          roster[third].enabled = true;
+  if (gameMode === 7) {
+    // 7P mode: toggle between bot and human (no inactive state)
+    roster[idx].human = !roster[idx].human;
+  } else {
+    // 3P mode: cycle bot → human → inactive → bot
+    if (!roster[idx].enabled) {
+      // Currently inactive — try to activate
+      const activeIds = roster.filter(r => r.enabled).map(r => r.id);
+      if (activeIds.length >= 2) {
+        // Check balance: can this faction be the balanced third?
+        const [a, b] = activeIds;
+        const key = a < b ? a * 7 + b : b * 7 + a;
+        if (!BALANCED_3P[key]?.includes(idx)) {
+          toast('This faction would unbalance the RPS triple.', true);
+          return;
         }
       }
+      // Activate as bot
+      roster[idx].enabled = true;
+      roster[idx].human = false;
+    } else if (!roster[idx].human) {
+      // Currently bot → switch to human
+      roster[idx].human = true;
+    } else {
+      // Currently human → deactivate
+      roster[idx].enabled = false;
     }
-  } else {
-    // 7-player mode: simple toggle
-    roster[idx].enabled = !roster[idx].enabled;
   }
 
   refreshSetup();
@@ -47,6 +44,8 @@ registerAction('toggleFaction', (el) => {
 registerAction('toggleController', (el) => {
   const idx = parseInt(el.dataset.idx, 10);
   if (isNaN(idx)) return;
+  // In 3P mode, only toggle controller for active (in-game) factions
+  if (gameMode === 3 && !roster[idx].enabled) return;
   roster[idx].human = !roster[idx].human;
   refreshSetup();
 });
@@ -62,7 +61,7 @@ registerAction('selectSize', (el) => {
 registerAction('setGameMode', (el) => {
   const mode = parseInt(el.dataset.mode, 10);
   if (mode !== 7 && mode !== 3) return;
-  gameMode = mode;
+  setGameMode(mode);
 
   // Update toggle button state
   document.querySelectorAll('.setup-mode-btn').forEach(b => b.classList.remove('active'));
