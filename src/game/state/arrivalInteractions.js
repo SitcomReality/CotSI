@@ -17,6 +17,7 @@ export function interactOnArrival(state, champ) {
       champ.hp = Math.min(champ.maxHp, champ.hp + heal);
       tile.feature.nextFruitDay = state.day + 4;
       tile.feature.ripe = false;
+      state._unripeTrees.add(coordKey(champ.pos));
       addLogEntry(state, {
         category: LOG_CATEGORY.HEAL,
         subject: championSegment(champ.name, factionMap),

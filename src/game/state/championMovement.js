@@ -6,6 +6,7 @@ import { coordKey, parseKey, neighbors } from '../../engine/rules/hexGrid.js';
 import { isBlockedForMovement } from './entityQueries.js';
 import { refreshVision } from './fogOfWar.js';
 import { interactOnArrival } from './arrivalInteractions.js';
+import { updateSpatialIndex } from './spatialIndex.js';
 
 export function movementRange(state, champ) {
   const start = coordKey(champ.pos);
@@ -49,9 +50,11 @@ export function dailyMoves(state, champ) {
 }
 
 export function moveChampion(state, champ, targetKey, cost) {
+  const oldKey = coordKey(champ.pos);
   champ.pos = parseKey(targetKey);
   champ.moves = Math.max(0, champ.moves - cost);
   champ.lastActionCombat = false;
   interactOnArrival(state, champ);
   refreshVision(state);
+  updateSpatialIndex(state, oldKey, targetKey, champ, 'champion');
 }

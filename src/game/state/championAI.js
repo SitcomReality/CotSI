@@ -1,12 +1,18 @@
-import { coordKey, distance } from '../../engine/rules/hexGrid.js';
+import { coordKey, distance, hexesWithinRadius } from '../../engine/rules/hexGrid.js';
 import { findPath } from '../../engine/rules/pathfinding.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 import { movementRange } from './championMovement.js';
 import { occupiedByChampion, occupiedByMob, getChampion } from './entityQueries.js';
 
 export function botChooseTarget(state, champ){
+  const searchRadius = champ.sight + champ.baseMove * 2 + 5;
+  const searchKeys = hexesWithinRadius(searchRadius)
+    .map(c => coordKey({ q: c.q + champ.pos.q, r: c.r + champ.pos.r }));
+
   const candidates=[];
-  for(const [key,tile] of Object.entries(state.tiles)){
+  for(const key of searchKeys){
+    const tile = state.tiles[key];
+    if(!tile) continue;
     if(!(champ.explored||[]).includes(key)) continue;
     let score=0;
     if(tile.feature?.kind==='tree' && tile.feature.ripe!==false) score += (champ.hp < 60 ? 28 : 10);

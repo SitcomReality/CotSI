@@ -2,11 +2,13 @@
  * fogOfWar.js — Sight, fog-of-war, human view aggregation.
  * Depends on champion data shape and map geometry (distance, parseKey).
  */
-import { distance, parseKey } from '../../engine/rules/hexGrid.js';
+import { hexesWithinRadius, coordKey } from '../../engine/rules/hexGrid.js';
 
 export function visibleKeysFor(state, champ) {
   const sight = champ.sight + (champ.artifact === 'lens' ? 1 : 0);
-  return Object.keys(state.tiles).filter(k => distance(champ.pos, parseKey(k)) <= sight);
+  return hexesWithinRadius(sight)
+    .map(c => coordKey({ q: c.q + champ.pos.q, r: c.r + champ.pos.r }))
+    .filter(k => k in state.tiles);
 }
 
 export function refreshVision(state) {

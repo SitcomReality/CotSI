@@ -6,6 +6,7 @@ import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexG
 import { TERRAIN } from '../rules/terrainTypes.js';
 import { weatherForDay } from '../rules/weatherScript.js';
 import { getChampion, occupiedByChampion, occupiedByMob } from './entityQueries.js';
+import { updateSpatialIndex } from './spatialIndex.js';
 import { beginTurn, isDigEligible } from './turnActions.js';
 import { interactOnArrival } from './arrivalInteractions.js';
 import { addLogEntry } from './gameLog.js';
@@ -127,14 +128,18 @@ function runWorldTurn(state) {
             !occupiedByMob(state, k)
         );
       if (opts.length) {
+        const oldKey = coordKey(mob.pos);
         mob.pos = parseKey(opts[Math.floor(state._rng() * opts.length)]);
+        updateSpatialIndex(state, oldKey, coordKey(mob.pos), mob, 'mob');
       }
     }
   }
   // regrow trees
-  for (const t of Object.values(state.tiles)) {
-    if (t.feature?.kind === 'tree' && t.feature.nextFruitDay && state.day >= t.feature.nextFruitDay) {
+  for (const key of state._unripeTrees) {
+    const t = state.tiles[key];
+    if (t?.feature?.kind === 'tree' && t.feature.nextFruitDay != null && state.day >= t.feature.nextFruitDay) {
       t.feature.ripe = true;
+      state._unripeTrees.delete(key);
     }
   }
   // traders move
@@ -147,7 +152,9 @@ function runWorldTurn(state) {
         ny = tr.pos.r + dy;
       const nk = `${nx},${ny}`;
       if (state.tiles[nk] && TERRAIN[state.tiles[nk].terrain].passable && !occupiedByChampion(state, nk)) {
+        const oldKey = coordKey(tr.pos);
         tr.pos = { q: nx, r: ny };
+        updateSpatialIndex(state, oldKey, coordKey(tr.pos), tr, 'trader');
       }
       if (nk === tr.targetBaseKey) {
         // pick new base

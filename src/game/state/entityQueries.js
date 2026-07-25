@@ -10,14 +10,20 @@ export function getChampion(state, id) {
 }
 
 export function occupiedByChampion(state, key) {
+  const entry = state.spatialIndex?.get(key);
+  if (entry?.type === 'champion') return entry.entity;
   return state.champions.find(c => c.alive && coordKey(c.pos) === key);
 }
 
 export function occupiedByMob(state, key) {
+  const entry = state.spatialIndex?.get(key);
+  if (entry?.type === 'mob') return entry.entity;
   return state.mobs.find(m => m.alive && coordKey(m.pos) === key);
 }
 
 export function occupiedByTrader(state, key) {
+  const entry = state.spatialIndex?.get(key);
+  if (entry?.type === 'trader') return entry.entity;
   return state.traders.find(t => coordKey(t.pos) === key);
 }
 

@@ -9,6 +9,8 @@
 import { addLogEntry } from './gameLog.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
+import { removeFromSpatialIndex } from './spatialIndex.js';
+import { coordKey } from '../../engine/rules/hexGrid.js';
 
 /**
  * Record a champion's death in game state.
@@ -25,6 +27,8 @@ export function recordDeath(state, champ, cause) {
   if (!champ || !champ.id) return;
   // Guard: only track actual champions, not mobs or other entities
   if (!state.champions.includes(champ)) return;
+
+  removeFromSpatialIndex(state, coordKey(champ.pos));
 
   state.deathOrder.push(champ.id);
 

@@ -5,6 +5,8 @@ import { refreshVision } from '../fogOfWar.js';
 import { checkVictory } from '../victoryChecks.js';
 import { recordDeath } from '../deathTracker.js';
 import { recordLedgerEntry } from '../dispatchLedger.js';
+import { removeFromSpatialIndex } from '../spatialIndex.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { FACTIONS } from '../../rules/factionData.js';
 import { deriveOrder } from './combatState.js';
 import { applyFinalBonuses } from './combatScoring.js';
@@ -142,6 +144,15 @@ export function nextCombatRound(state, combat){
 }
 
 export function finalizeCombat(state, attacker, defender, attackerWon){
+  // Remove dead non-champion entities from spatial index
+  // (champion deaths are handled via recordDeath in resolveRoundDamage)
+  if (!attacker.alive && !state.champions.includes(attacker)) {
+    removeFromSpatialIndex(state, coordKey(attacker.pos));
+  }
+  if (!defender.alive && !state.champions.includes(defender)) {
+    removeFromSpatialIndex(state, coordKey(defender.pos));
+  }
+
   const factionMap = buildChampionFactionMap(state.champions);
   attacker.lastActionCombat = true;
   attacker.moves = 0;

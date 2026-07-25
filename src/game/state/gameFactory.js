@@ -16,6 +16,7 @@ import { createChampions } from './championFactory.js';
 import { createMobs, createTraders } from './entityFactory.js';
 import { refreshVision } from './fogOfWar.js';
 import { beginTurn } from './turnActions.js';
+import { rebuildSpatialIndex } from './spatialIndex.js';
 
 export function createGame({
   seed = 'glut-17',
@@ -68,6 +69,7 @@ export function createGame({
   state.activeChampionId = state.currentOrder[0];
   refreshVision(state);
   beginTurn(state, state.activeChampionId);
+  rebuildSpatialIndex(state);
 
   return state;
 }
