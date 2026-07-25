@@ -15,6 +15,7 @@ import { renderMovementHighlights } from '../overlays/movementHighlights.js';
 import { renderInteractionHighlights } from '../overlays/interactionHighlights.js';
 import { getClock } from '../../shared/clockScheduler.js';
 import { shadowLightConfig } from '../shadowLightConfig.js';
+import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 
 // Re‑export symbols needed by external consumers
 export { getSceneContext } from './sceneContext.js';
@@ -75,6 +76,7 @@ export function renderHexMap3D(state, humanView) {
   if (!ctx) return;
 
   const { visible, explored } = humanView;
+  startMeasure('renderHexMap');
 
   // Remove old ground plane if it exists (one-time cleanup from older sessions)
   const oldGround = ctx.scene.getObjectByName('ground');
@@ -147,6 +149,7 @@ export function renderHexMap3D(state, humanView) {
 
   // Push current state & camera to the overlay for the next frame
   setEffectsState(state, ctx.camera);
+  endMeasure('renderHexMap');
 }
 
 /**

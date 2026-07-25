@@ -21,7 +21,7 @@ import { refreshAll } from './refreshAll.js';
 import { finishTurn } from '../game/state/worldSimulation.js';
 import { G } from '../game/state/liveGame.js';
 import { hideBotIndicator } from '../ui/panels/botIndicator.js';
-import { startMeasure, endMeasure } from '../dev/devPerformance.js';
+import { startMeasure, endMeasure, enableAllMeasurements, getSnapshot, getMeasurementStats, getFps } from '../dev/devPerformance.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
 import '../dev/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
 
@@ -82,6 +82,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         hideBotIndicator();
       },
     });
+
+    // Enable dev performance instrumentation
+    enableAllMeasurements();
+
+    // Console access to perf data (type __perf.getSnapshot() in DevTools)
+    window.__perf = { getSnapshot, getMeasurementStats, getFps };
 
     // Delay setup init so beginGame.js is fully evaluated
     // and window.__beginGame exists.

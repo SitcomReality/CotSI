@@ -23,6 +23,7 @@ import { coordKey, parseKey, distance, neighbors, hexesWithinRadius } from '../.
 import { TERRAIN } from './terrainTypes.js';
 import { DEFAULT_THRESHOLDS, DEFAULT_FEATURES } from './terrainTypes.js';
 import { tileToChunk, localCoord, localKey, hexesInChunk } from '../../engine/rules/chunkGrid.js';
+import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 
 // ---------------------------------------------------------------------------
 // Threshold helpers
@@ -285,6 +286,8 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
  * @returns {object} tiles keyed by "q,r"
  */
 export function generateTiles(seedText, radius, biomeDef = null, params = {}) {
+  startMeasure('genTiles');
+
   // Determine which chunks intersect the map radius
   const chunks = new Set();
   for (let q = -radius; q <= radius; q++) {
@@ -305,5 +308,6 @@ export function generateTiles(seedText, radius, biomeDef = null, params = {}) {
     }
   }
 
+  endMeasure('genTiles');
   return tiles;
 }

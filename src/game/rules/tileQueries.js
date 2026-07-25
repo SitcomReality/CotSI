@@ -2,7 +2,7 @@
  * tileQueries.js — Spawn-placement helpers that query the tile map.
  * Uses hex-grid math from engine/rules/hexGrid.js and TERRAIN from terrainTypes.js.
  */
-import { coordKey, parseKey, distance } from '../../engine/rules/hexGrid.js';
+import { coordKey, hexRing, hexesWithinRadius } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from './terrainTypes.js';
 
 /**
@@ -14,15 +14,28 @@ import { TERRAIN } from './terrainTypes.js';
  * @param {boolean} [allowFeatureOverwrite=false] - Allow placing on tiles with features
  * @returns {string}                   - Hex key (falls back to 0,0)
  */
-export function nearestOpenKey(tiles, origin, usedSet, allowFeatureOverwrite=false){
-  const keys = Object.keys(tiles).sort((a,b)=> distance(origin, parseKey(a)) - distance(origin, parseKey(b)));
-  return keys.find(k=>{
-    const t=tiles[k];
-    if(usedSet.has(k) || !TERRAIN[t.terrain].passable) return false;
-    if(!allowFeatureOverwrite && t.feature?.kind==='base') return false;
-    if(!allowFeatureOverwrite && t.feature) return false;
-    return true;
-  }) ?? coordKey({q:0,r:0});
+export function nearestOpenKey(tiles, origin, usedSet, allowFeatureOverwrite = false) {
+  if (!origin) origin = { q: 0, r: 0 };
+  // Check origin first
+  const originKey = coordKey(origin);
+  const originTile = tiles[originKey];
+  if (originTile && TERRAIN[originTile.terrain].passable &&
+      !usedSet.has(originKey) &&
+      (allowFeatureOverwrite || !originTile.feature)) {
+    return originKey;
+  }
+  // Expand outward in rings
+  for (let d = 1; d <= 100; d++) {
+    const ring = hexRing(d);
+    for (const c of ring) {
+      const ck = coordKey({ q: c.q + origin.q, r: c.r + origin.r });
+      const t = tiles[ck];
+      if (!t || !TERRAIN[t.terrain].passable || usedSet.has(ck)) continue;
+      if (!allowFeatureOverwrite && t.feature) continue;
+      return ck;
+    }
+  }
+  return coordKey({ q: 0, r: 0 });
 }
 
 /**
@@ -39,25 +52,45 @@ export function nearestOpenKey(tiles, origin, usedSet, allowFeatureOverwrite=fal
  * @returns {string|null}             - Hex key, or null if none found
  */
 export function nearestOpenMultiRing(tiles, origin, usedSet, minClearRadius = 2) {
-  const keys = Object.keys(tiles).sort(
-    (a, b) => distance(origin, parseKey(a)) - distance(origin, parseKey(b))
-  );
+  if (!origin) origin = { q: 0, r: 0 };
+  // Pre-compute the offset list for the clear radius check (same for every candidate)
+  const clearOffsets = hexesWithinRadius(minClearRadius);
 
-  for (const candidateKey of keys) {
-    const candidate = parseKey(candidateKey);
-    if (!TERRAIN[tiles[candidateKey].terrain].passable) continue;
-
-    // Check all hexes within clear radius are passable and not claimed
+  // Check origin first
+  const originKey = coordKey(origin);
+  const originTile = tiles[originKey];
+  if (originTile && TERRAIN[originTile.terrain].passable && !usedSet.has(originKey) && !originTile.feature) {
     let clear = true;
-    for (const tileKey of Object.keys(tiles)) {
-      if (distance(candidate, parseKey(tileKey)) > minClearRadius) continue;
-      const t = tiles[tileKey];
-      if (!TERRAIN[t.terrain].passable || usedSet.has(tileKey) || t.feature) {
+    for (const off of clearOffsets) {
+      const nk = coordKey({ q: off.q + origin.q, r: off.r + origin.r });
+      const nt = tiles[nk];
+      if (!nt || !TERRAIN[nt.terrain].passable || usedSet.has(nk) || nt.feature) {
         clear = false;
         break;
       }
     }
-    if (clear) return candidateKey;
+    if (clear) return originKey;
   }
-  return null; // No suitable location found
+
+  // Expand outward in rings
+  for (let d = 1; d <= 100; d++) {
+    const ring = hexRing(d);
+    for (const c of ring) {
+      const ck = coordKey({ q: c.q + origin.q, r: c.r + origin.r });
+      const t = tiles[ck];
+      if (!t || !TERRAIN[t.terrain].passable || usedSet.has(ck) || t.feature) continue;
+
+      let clear = true;
+      for (const off of clearOffsets) {
+        const nk = coordKey({ q: off.q + t.q, r: off.r + t.r });
+        const nt = tiles[nk];
+        if (!nt || !TERRAIN[nt.terrain].passable || usedSet.has(nk) || nt.feature) {
+          clear = false;
+          break;
+        }
+      }
+      if (clear) return ck;
+    }
+  }
+  return null;
 }

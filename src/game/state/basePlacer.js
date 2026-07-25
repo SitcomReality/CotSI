@@ -2,7 +2,7 @@
  * basePlacer.js — Tile search for faction base placement with fallback chain.
  * Finds a suitable hex for each faction's base, enforcing inter-base distance.
  */
-import { distance, parseKey } from '../../engine/rules/hexGrid.js';
+import { distance, parseKey, coordKey, hexRing } from '../../engine/rules/hexGrid.js';
 import {
   nearestOpenKey,
   nearestOpenMultiRing,
@@ -21,36 +21,42 @@ const MIN_BASE_DIST = 2;
  * @returns {string} The chosen hex key
  */
 export function placeBase(tiles, target, used, placedBaseKeys) {
-  const sortedKeys = Object.keys(tiles).sort(
-    (a, b) => distance(target, parseKey(a)) - distance(target, parseKey(b))
-  );
+  const minDist = MIN_BASE_DIST;
 
-  // Primary: nearest passable tile meeting inter-base distance
-  let baseKey = sortedKeys.find(k => {
-    const t = tiles[k];
-    if (used.has(k) || !TERRAIN[t.terrain].passable) return false;
-    if (t.feature) return false;
+  // Primary: ring-expanding search from target
+  const checkBase = (tile, key) => {
+    if (!tile || !TERRAIN[tile.terrain].passable || used.has(key) || tile.feature) return false;
     for (const placedKey of placedBaseKeys) {
-      if (distance(parseKey(k), parseKey(placedKey)) < MIN_BASE_DIST) {
-        return false;
-      }
+      if (distance(parseKey(key), parseKey(placedKey)) < minDist) return false;
     }
     return true;
-  }) ?? null;
+  };
 
-  // Fallback 1: nearest open tile ignoring inter-base distance
-  if (!baseKey) {
-    baseKey = sortedKeys.find(k => {
-      const t = tiles[k];
-      return !used.has(k) && TERRAIN[t.terrain].passable && !t.feature;
-    }) ?? null;
+  // Check origin first
+  const originKey = coordKey(target);
+  let tile = tiles[originKey];
+  if (checkBase(tile, originKey)) return originKey;
+
+  for (let d = 1; d <= 100; d++) {
+    const ring = hexRing(d);
+    for (const c of ring) {
+      const ck = coordKey({ q: c.q + target.q, r: c.r + target.r });
+      tile = tiles[ck];
+      if (checkBase(tile, ck)) return ck;
+    }
   }
 
-  // Fallback 2: nearest open tile from origin
-  if (!baseKey) {
-    baseKey = nearestOpenMultiRing(tiles, { q: 0, r: 0 }, used, 1)
-      ?? nearestOpenKey(tiles, { q: 0, r: 0 }, used, true);
+  // Fallback 1: ring-search ignoring inter-base distance
+  for (let d = 1; d <= 100; d++) {
+    const ring = hexRing(d);
+    for (const c of ring) {
+      const ck = coordKey({ q: c.q + target.q, r: c.r + target.r });
+      tile = tiles[ck];
+      if (tile && TERRAIN[tile.terrain].passable && !used.has(ck) && !tile.feature) return ck;
+    }
   }
 
-  return baseKey;
+  // Fallback 2: nearestOpenMultiRing then nearestOpenKey from origin
+  return nearestOpenMultiRing(tiles, { q: 0, r: 0 }, used, 1)
+    ?? nearestOpenKey(tiles, { q: 0, r: 0 }, used, true);
 }

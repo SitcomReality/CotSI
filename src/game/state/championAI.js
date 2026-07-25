@@ -22,13 +22,35 @@ export function botChooseTarget(state, champ){
     if(mob) score += 16;
     const trader = state.traders.find(t=> coordKey(t.pos)===key);
     if(trader) score += 10;
+    // Exploration bonus: prefer unexplored tiles
+    if (!(champ.explored || []).includes(key)) score += 5;
     if(score>0){
       const d = distance(champ.pos, tile);
       candidates.push({key, pos:{q:tile.q,r:tile.r}, score: score/(1+d*0.7)});
     }
   }
   candidates.sort((a,b)=> b.score-a.score);
-  return candidates[0] || null;
+  let target = candidates[0] || null;
+  // Fallback: find closest unexplored hex to move toward
+  if (!target) {
+    let closestKey = null;
+    let closestDist = Infinity;
+    for (const key of searchKeys) {
+      const tile = state.tiles[key];
+      if (!tile || !TERRAIN[tile.terrain].passable) continue;
+      if ((champ.explored || []).includes(key)) continue;
+      const d = distance(champ.pos, tile);
+      if (d < closestDist) {
+        closestDist = d;
+        closestKey = key;
+      }
+    }
+    if (closestKey) {
+      const tile = state.tiles[closestKey];
+      target = { key: closestKey, pos: { q: tile.q, r: tile.r }, score: 1 };
+    }
+  }
+  return target;
 }
 
 export function runBotTurn(state){

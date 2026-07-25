@@ -100,7 +100,8 @@ mesh management. Only rebuild chunks whose contents changed. Add frustum culling
   `createGame` function passes it through. No UI changes needed here.
 
 ### 4b — Profile and optimise
-- Use the existing `dev/devPerformance.js` instrumentation.
+- Extend the existing `dev/devPerformance.js` instrumentation to provide output in a
+  format that the user can easily copy to share with agents.
 - Measure: time to generate all chunks at startup, time per `refreshAll`, time per
   world turn, memory usage.
 - Fix any hotspots that the earlier phases missed. Likely candidates: the rendering
@@ -114,10 +115,11 @@ mesh management. Only rebuild chunks whose contents changed. Add frustum culling
 
 ### 4d — Bot AI adaptation
 - With larger maps, bots need some directionality. A simple "bias toward unexplored
-  or toward nearest enemy" prevents them from wandering in circles.
+  or toward nearest God's Knot, or enemy" prevents them from wandering in circles.
 - This is a design task as much as a performance one. The current `botChooseTarget`
   already radius-limits its search, so bots won't scan the whole map — but they have
-  no global strategy.
+  no global strategy. This is a very simple addition to the current basic bot logic.
+  Bots will maintain very basic, trivial behaviors for testing during dev, for now.
 
 ---
 

@@ -20,6 +20,7 @@ let _overlayEl = null;
 
 const EMA_ALPHA = 0.3;
 const FPS_SAMPLES = 30;
+let _allEnabled = false;
 
 // ─── Public API ────────────────────────────────────────────────────────────
 
@@ -190,6 +191,57 @@ function _updateOverlay() {
     html += `<br>${e.name}: ${e.ema.toFixed(2)}ms`;
   }
   _overlayEl.innerHTML = html;
+}
+
+/**
+ * Get a formatted performance snapshot string suitable for copy-paste.
+ * Includes FPS, last frame time, and all named measurements (avg, EMA, count, total).
+ * @returns {string}
+ */
+export function getSnapshot() {
+  const fps = getFps();
+  const frame = getLastFrameTime();
+  let s = `=== Performance Snapshot ===\n`;
+  s += `FPS: ${fps.toFixed(1)}  Frame: ${frame.toFixed(1)}ms\n\n`;
+
+  const entries = Object.entries(_measurements)
+    .filter(([, m]) => m.enabled && m.count > 0)
+    .map(([name, m]) => ({
+      name,
+      avg: m.total / m.count,
+      ema: m.ema ?? 0,
+      count: m.count,
+      total: m.total,
+    }));
+
+  if (entries.length > 0) {
+    const namePad = Math.max(...entries.map(e => e.name.length)) + 2;
+    for (const e of entries) {
+      const name = e.name.padEnd(namePad);
+      const avgS = `avg=${e.avg.toFixed(2)}ms`.padEnd(14);
+      const emaS = `ema=${e.ema.toFixed(2)}ms`.padEnd(14);
+      const cntS = `count=${e.count}`.padEnd(10);
+      s += `${name}${avgS}${emaS}${cntS}total=${e.total.toFixed(1)}ms\n`;
+    }
+  }
+
+  s += `\n=== End Snapshot ===`;
+  return s;
+}
+
+/**
+ * Enable all currently-registered measurements and start frame tracking.
+ * Idempotent — only registers new measurements on the first call.
+ */
+export function enableAllMeasurements() {
+  if (_allEnabled) return;
+  _allEnabled = true;
+
+  const names = Object.keys(_measurements);
+  for (const name of names) {
+    setMeasurementEnabled(name, true);
+  }
+  ensureFrameTracking();
 }
 
 // ─── Cleanup ───────────────────────────────────────────────────────────────

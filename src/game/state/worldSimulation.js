@@ -15,6 +15,7 @@ import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { checkVictory } from './victoryChecks.js';
 import { recordDeath } from './deathTracker.js';
+import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 
 export function finishTurn(state) {
   const champ = getChampion(state, state.activeChampionId);
@@ -97,6 +98,8 @@ function _runWorldTurn(state) {
 }
 
 function runWorldTurn(state) {
+  startMeasure('worldTurn');
+
   const _factionMap = buildChampionFactionMap(state.champions);
   // mob harass
   for (const mob of state.mobs.filter(m => m.alive)) {
@@ -166,4 +169,5 @@ function runWorldTurn(state) {
       }
     }
   }
+  endMeasure('worldTurn');
 }

@@ -30,7 +30,7 @@
         <!-- Map Radius -->
         <label class="setup-field">
           <span class="setup-label">Map Radius</span>
-          <input id="mapRadius" class="field-input" type="number" min="3" max="99" value="21">
+          <input id="mapRadius" class="field-input" type="number" min="3" max="99" value="30">
         </label>
 
         <!-- Relic Target -->

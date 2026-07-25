@@ -19,6 +19,7 @@ import { beginTurn } from './turnActions.js';
 import { rebuildSpatialIndex } from './spatialIndex.js';
 import { createTileProxy } from './tileAccess.js';
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
+import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 
 export function createGame({
   seed = 'glut-17',
@@ -38,6 +39,7 @@ export function createGame({
   const state = createInitialState({
     seed, radius, biome, mapSettings, biomePalette, tiles: flatTiles, objectives, rng,
   });
+  startMeasure('createGame');
 
   // --- Build chunk storage from flat tiles, then install the Proxy ---
   for (const [, tile] of Object.entries(flatTiles)) {
@@ -99,5 +101,6 @@ export function createGame({
   beginTurn(state, state.activeChampionId);
   rebuildSpatialIndex(state);
 
+  endMeasure('createGame');
   return state;
 }

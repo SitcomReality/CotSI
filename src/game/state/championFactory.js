@@ -9,6 +9,7 @@ import { nearestOpenKey } from '../rules/tileQueries.js';
 import { shuffle } from '../../engine/rules/shuffle.js';
 import { spawnTarget } from './spawnPosition.js';
 import { placeBase } from './basePlacer.js';
+import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 
 /**
  * Place champions on the map with even radial distribution.
@@ -20,6 +21,8 @@ import { placeBase } from './basePlacer.js';
  * @returns {{ champions: Array, used: Set<string>, placedBaseKeys: Set<string> }}
  */
 export function createChampions({ tiles, champions, rand, radius }) {
+  startMeasure('placeChamps');
+
   const used = new Set();
   const placedBaseKeys = new Set();
   const shuffledChamps = shuffle(champions, rand);
@@ -73,5 +76,6 @@ export function createChampions({ tiles, champions, rand, radius }) {
     });
   }
 
+  endMeasure('placeChamps');
   return { champions: championList, used, placedBaseKeys };
 }
