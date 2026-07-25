@@ -16,7 +16,7 @@ import { runBot } from './botTurnRunner.js';
 import { G, currentChamp, isTurnLocked } from '../game/state/liveGame.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { getCombatUI } from '../ui/combat/combatUiState.js';
-import { startMeasure, endMeasure } from '../dev/devPerformance.js';
+import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../dev/devPerformance.js';
 
 /**
  * Check whether any game modal is currently visible.
@@ -32,6 +32,7 @@ export function refreshAll() {
 
   if (!G) {
     console.warn('[refreshAll] G is null/undefined — bailing');
+    clearGameContext();
     endMeasure('refreshAll');
     return;
   }
@@ -39,6 +40,21 @@ export function refreshAll() {
   window.__gameState = G;
 
   const ch = currentChamp();
+
+  // Set profiling context based on current game phase
+  if (G.winnerId) {
+    setGameContext({ phase: 'idle', detail: 'game_over' });
+  } else if (ch && ch.controller === 'human' && !isTurnLocked() && !getCombatUI()) {
+    setGameContext({
+      phase: 'human_turn',
+      championId: ch.id,
+      championName: ch.name,
+      controller: 'human',
+      action: 'idle',
+    });
+  } else if (!ch) {
+    setGameContext({ phase: 'idle', detail: 'no_active_champion' });
+  }
 
   // ── Header (pure DOM update via headerPanel) ──
   refreshHeader(G);

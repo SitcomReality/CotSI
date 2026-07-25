@@ -20,4 +20,7 @@ export {
   getCaptureReport,
   isCaptureActive,
   disposePerformance,
+  setGameContext,
+  getGameContext,
+  clearGameContext,
 } from './performance/index.js';

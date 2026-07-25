@@ -6,6 +6,8 @@ let _refreshAll = null;
 let _toast = null;
 let _startMeasure = null;
 let _endMeasure = null;
+let _setGameContext = null;
+let _clearGameContext = null;
 let _finishAttackerTurn = null;
 
 export function setGameState(g) {
@@ -28,11 +30,13 @@ export function getCombatUI() {
   return _combatUI;
 }
 
-export function setCallbacks(refreshAll, toast, startMeasure, endMeasure) {
+export function setCallbacks(refreshAll, toast, startMeasure, endMeasure, setGameContext, clearGameContext) {
   _refreshAll = refreshAll;
   _toast = toast;
   _startMeasure = startMeasure;
   _endMeasure = endMeasure;
+  _setGameContext = setGameContext;
+  _clearGameContext = clearGameContext;
 }
 
 export function getRefreshAll() {
@@ -44,7 +48,7 @@ export function getToast() {
 }
 
 export function getMeasure() {
-  return _startMeasure ? { start: _startMeasure, end: _endMeasure } : null;
+  return _startMeasure ? { start: _startMeasure, end: _endMeasure, setContext: _setGameContext, clearContext: _clearGameContext } : null;
 }
 
 export function setFinishAttackerTurn(fn) {

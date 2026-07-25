@@ -43,7 +43,15 @@ export async function runCombatFlow() {
   const measure = getMeasure();
   const measureStart = measure ? measure.start : () => {};
   const measureEnd = measure ? measure.end : () => {};
+  const setContext = measure ? measure.setContext : () => {};
+  const clearContext = measure ? measure.clearContext : () => {};
   measureStart('combatFlow');
+
+  // Set profiler context: combat active
+  const combat = getCombatUI();
+  if (combat) {
+    setContext({ phase: 'combat', detail: 'active' });
+  }
 
   while (getCombatUI()) {
     const combat = getCombatUI();
@@ -52,12 +60,12 @@ export async function runCombatFlow() {
     if (isPickingPhase(combat)) {
       const side = combat.awaitingSide;
       const entity = entityFor(combat, side);
-      if (!entity) { measureEnd('combatFlow'); break; } // safety
+      if (!entity) { clearContext(); measureEnd('combatFlow'); break; } // safety
 
       // Non-human (bot or mob - mobs have no controller)
       if (entity.controller !== 'human') {
         await wait(450);
-        if (!getCombatUI()) { measureEnd('combatFlow'); return; } // cancelled (e.g. flee)
+        if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; } // cancelled (e.g. flee)
 
         const history = getOpponentRevealedHistory(combat, side);
         const available = getAvailablePicks(entity);
@@ -86,7 +94,7 @@ export async function runCombatFlow() {
       }
       renderCombat();
       await wait(1200); // extra hold for the eye to register
-      if (!getCombatUI()) { measureEnd('combatFlow'); return; }
+      if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; }
 
       advancePhase(combat);
       continue;
@@ -95,7 +103,7 @@ export async function runCombatFlow() {
     // ---------- ROUND END ----------
     if (combat.phase === 'roundEnd') {
       await handleRoundEnd();
-      if (!getCombatUI()) { measureEnd('combatFlow'); return; } // combat ended (death)
+      if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; } // combat ended (death)
 
       // After round 1: bots auto-flee if continuing would be fatal
       if (combat.round > 1) {
@@ -104,12 +112,14 @@ export async function runCombatFlow() {
           if (shouldBotFlee(combat.defender, combat)) {
             fleeFromCombat(_G, combat, 'defender');
             closeCombat();
+            clearContext();
             measureEnd('combatFlow');
             return;
           }
           if (shouldBotFlee(combat.attacker, combat)) {
             fleeFromCombat(_G, combat, 'attacker');
             closeCombat();
+            clearContext();
             measureEnd('combatFlow');
             return;
           }
@@ -120,10 +130,12 @@ export async function runCombatFlow() {
     }
 
     // Unknown phase - stop
+    clearContext();
     measureEnd('combatFlow');
     break;
   }
 
+  clearContext();
   measureEnd('combatFlow');
 }
 

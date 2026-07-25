@@ -14,7 +14,7 @@ import { FACTIONS } from '../game/rules/factionData.js';
 import { runBotTurn as aiDecide } from '../game/state/championAI.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { showBotIndicator, hideBotIndicator } from '../ui/panels/botIndicator.js';
-import { startMeasure, endMeasure } from '../dev/devPerformance.js';
+import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../dev/devPerformance.js';
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
 import { tileTopY } from '../render/hexmap3d/hexMapRenderer.js';
@@ -39,13 +39,26 @@ export async function runBot() {
 
   try {
     const ch = currentChamp();
-    if (ch) {
-      const fac = FACTIONS[ch.faction];
-      showBotIndicator(ch.name, fac?.color);
+    if (!ch) {
+      setTurnLock(false);
+      endMeasure('runBot');
+      return;
     }
+    const fac = FACTIONS[ch.faction];
+    showBotIndicator(ch.name, fac?.color);
+
+    // Set profiler context: bot deciding
+    setGameContext({
+      phase: 'bot_turn',
+      championId: ch.id,
+      championName: ch.name,
+      controller: 'bot',
+      action: 'deciding',
+    });
 
     const decision = aiDecide(G);
     if (!decision || decision.action === 'end') {
+      clearGameContext();
       _botFinishTurn();
       endMeasure('runBot');
       return;
@@ -55,6 +68,15 @@ export async function runBot() {
       decision.action === 'attackChampion' ||
       decision.action === 'attackMob'
     ) {
+      // Set profiler context: bot attacking
+      setGameContext({
+        phase: 'bot_turn',
+        championId: ch.id,
+        championName: ch.name,
+        controller: 'bot',
+        action: 'attacking',
+      });
+
       const target = decision.target;
       const bothNonHuman =
         ch.controller !== 'human' &&
@@ -62,6 +84,7 @@ export async function runBot() {
 
       if (bothNonHuman) {
         resolveCombatSilently(G, ch, target);
+        clearGameContext();
         _botFinishTurn();
       } else {
         startCombat(ch, target);
@@ -74,10 +97,21 @@ export async function runBot() {
     if (decision.action === 'move') {
       const path = decision.path;
       if (!path || !path.length) {
+        clearGameContext();
         _botFinishTurn();
         endMeasure('runBot');
         return;
       }
+
+      // Set profiler context: bot moving
+      setGameContext({
+        phase: 'bot_turn',
+        championId: ch.id,
+        championName: ch.name,
+        controller: 'bot',
+        action: 'moving',
+        detail: `pathlen=${path.length}`,
+      });
 
       const fac = FACTIONS[ch.faction];
 
@@ -111,11 +145,13 @@ export async function runBot() {
         await getClock().wait(MOVE_DURATION + 30, 'bot');
       }
 
+      clearGameContext();
       _botFinishTurn();
     }
 
     endMeasure('runBot');
   } catch (err) {
+    clearGameContext();
     setTurnLock(false);
     throw err;
   }
@@ -128,6 +164,7 @@ export async function runBot() {
  * if the next champion is also a bot.
  */
 function _botFinishTurn() {
+  clearGameContext();
   finishTurn(G);
   refreshAll();
   hideBotIndicator();

@@ -96,6 +96,15 @@
           <span class="devtools__stat">Frame: <strong id="devPerfFrameTime">—</strong>ms</span>
         </div>
       </div>
+      <div class="devtools__section">
+        <div class="devtools__section-title">Capture</div>
+        <div class="devtools__btn-row">
+          <button class="devtools__btn" data-action="dev:perf:startCapture" id="devPerfCaptureStart">Start Capture</button>
+          <button class="devtools__btn" data-action="dev:perf:stopCapture" id="devPerfCaptureStop" disabled>Stop</button>
+          <button class="devtools__btn" data-action="dev:perf:copyReport" id="devPerfCopyReport">Copy Report</button>
+        </div>
+        <div id="devPerfCaptureStatus" style="font-size:11px;color:var(--text-dim,#888);margin-top:4px;">Idle</div>
+      </div>
     </div>
 
     <!-- Bot Control tab -->

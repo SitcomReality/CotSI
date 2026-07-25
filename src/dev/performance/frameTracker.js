@@ -15,6 +15,10 @@ let _lastFrameTime = 0;
 let _previousTick = 0;
 let _deregisterTick = null;
 
+/** @type {Array<{ id: number, fn: (timestamp: number) => void, cancelled: boolean }>} */
+let _perFrameCallbacks = [];
+let _callbackIdCounter = 1;
+
 const FPS_SAMPLES = 30;
 
 // ─── Public API ────────────────────────────────────────────────────────────
@@ -40,6 +44,15 @@ export function getLastFrameTime() {
 }
 
 /**
+ * Return a copy of the raw frame-timestamp history array.
+ * Used by frameProfiler to read the current rolling FPS sample window.
+ * @returns {number[]}
+ */
+export function getFrameHistory() {
+  return _fpsHistory.slice();
+}
+
+/**
  * Ensure the frame tracker is running. Idempotent.
  */
 export function ensureFrameTracking() {
@@ -59,6 +72,7 @@ export function disposeFrameTracker() {
   _fpsHistory = [];
   _lastFrameTime = 0;
   _previousTick = 0;
+  _perFrameCallbacks = [];
 }
 
 // ─── Frame callback ────────────────────────────────────────────────────────
@@ -72,17 +86,33 @@ function _onFrame(timestamp) {
   if (_fpsHistory.length > FPS_SAMPLES * 2) {
     _fpsHistory = _fpsHistory.slice(-FPS_SAMPLES);
   }
+
+  // Fire internal per-frame callbacks (frameProfiler, etc.) after state update
+  // so they see the latest frameTime / FPS values.
+  for (const cb of _perFrameCallbacks) {
+    if (!cb.cancelled) {
+      try { cb.fn(timestamp); } catch (err) {
+        console.error('[frameTracker] per-frame callback error:', err);
+      }
+    }
+  }
 }
 
 /**
- * Register an external callback to be invoked each frame after tracking updates.
- * Currently unused but available for overlay rendering or other per-frame consumers.
+ * Register a callback to run each frame after the tracker's internal state
+ * has been updated. Callbacks receive the rAF timestamp.
  * @param {(timestamp: number) => void} fn
  * @returns {() => void} deregistration function
  */
 export function onFrame(fn) {
-  // We attach to the tick deregistration chain by wrapping _onFrame.
-  // Since _onFrame is already registered via getClock().onTick, we provide
-  // a separate registration that runs from the overlay module instead.
-  return getClock().onTick(fn);
+  const id = _callbackIdCounter++;
+  _perFrameCallbacks.push({ id, fn, cancelled: false });
+  return function deregister() {
+    for (const cb of _perFrameCallbacks) {
+      if (cb.id === id) {
+        cb.cancelled = true;
+        return;
+      }
+    }
+  };
 }
