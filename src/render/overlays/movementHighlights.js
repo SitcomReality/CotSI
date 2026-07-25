@@ -4,6 +4,7 @@
 import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileTopY } from '../hexmap3d/hexMapRenderer.js';
 import { getDerivedMoveHighlights, getHoveredKey } from './overlayStack.js';
+import { coordKey } from '../../engine/rules/hexGrid.js';
 
 // ---------------------------------------------------------------------------
 // Visual constants
@@ -37,6 +38,10 @@ export function renderMovementHighlights(ctx2d, state, camera, _time) {
   for (const key of allowed) {
     const tile = state.tiles[key];
     if (!tile) continue;
+
+    // Skip hexes occupied by a trader
+    const hasTrader = state.traders?.some(t => coordKey(t.pos) === key);
+    if (hasTrader) continue;
 
     const surfaceY = tileTopY(tile.terrain);
     const hc = hexCenter3D(tile.q, tile.r, surfaceY);
