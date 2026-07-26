@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CotSI — Map Analysis</title>
+  <link rel="stylesheet" href="./analysis/analysis.css">
+</head>
+<body>
+  <div id="analysis-root">
+    <!-- Controls panel -->
+    <div id="controls">
+      <h2>CotSI Map Analysis</h2>
+
+      <div class="control-group">
+        <h3>Seed</h3>
+        <div class="control-row">
+          <input type="text" id="seed-input" value="glut-17" spellcheck="false">
+        </div>
+        <div class="btn-row">
+          <button id="btn-preset-default">glut-17</button>
+          <button id="btn-preset-alt">glut-42</button>
+          <button id="btn-preset-random">Random</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3>Map</h3>
+        <div class="control-row">
+          <label>Radius</label>
+          <input type="number" id="radius-input" value="21" min="7" max="60">
+        </div>
+        <div class="control-row">
+          <label>Biome</label>
+          <select id="biome-select"></select>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3>Map Settings</h3>
+        <div class="control-row">
+          <label>Height Var</label>
+          <input type="range" id="hv-slider" min="0" max="2" step="0.1" value="1">
+          <span class="slider-value" id="hv-value">1</span>
+        </div>
+        <div class="control-row">
+          <label>Wateriness</label>
+          <input type="range" id="wt-slider" min="0" max="2" step="0.1" value="1">
+          <span class="slider-value" id="wt-value">1</span>
+        </div>
+        <div class="control-row">
+          <label>Mountainous</label>
+          <input type="range" id="mt-slider" min="0" max="2" step="0.1" value="1">
+          <span class="slider-value" id="mt-value">1</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <button class="primary" id="btn-generate">Generate Map</button>
+      </div>
+
+      <div class="control-group">
+        <h3>Entity Overlays</h3>
+        <div class="toggle-group">
+          <label><input type="checkbox" id="toggle-champs" checked> Champions</label>
+          <label><input type="checkbox" id="toggle-mobs" checked> Mobs</label>
+          <label><input type="checkbox" id="toggle-traders" checked> Traders</label>
+          <label><input type="checkbox" id="toggle-bases" checked> Bases</label>
+          <label><input type="checkbox" id="toggle-features" checked> Features</label>
+          <label><input type="checkbox" id="toggle-debris"> Debris</label>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3>Multi-Seed Analysis</h3>
+        <div class="control-row">
+          <label>Seed count</label>
+          <input type="number" id="multi-count" value="50" min="2" max="500">
+        </div>
+        <button class="primary" id="btn-multi-generate">Run Multi-Seed</button>
+      </div>
+
+      <div class="control-group">
+        <h3>Export</h3>
+        <div class="btn-row">
+          <button id="btn-export-png">Export PNG</button>
+          <button id="btn-export-json">Export JSON</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map canvas area -->
+    <div id="map-area">
+      <canvas id="map-canvas"></canvas>
+      <div id="loading">Generating...</div>
+    </div>
+
+    <!-- Stats panel -->
+    <div id="stats-panel">Loading...</div>
+  </div>
+
+  <script type="module" src="./analysis/main.js"></script>
+</body>
+</html>

@@ -27,13 +27,14 @@ export function createChampions({ tiles, champions, rand, radius }) {
   const placedBaseKeys = new Set();
   const shuffledChamps = shuffle(champions, rand);
   const N = shuffledChamps.length;
+  const minBaseDist = Math.max(4, Math.floor(radius * 0.15));
 
   const championList = [];
 
   for (let i = 0; i < N; i++) {
     const entry = shuffledChamps[i];
     const target = spawnTarget(i, N, rand, radius);
-    const baseKey = placeBase(tiles, target, used, placedBaseKeys);
+    const baseKey = placeBase(tiles, target, used, placedBaseKeys, minBaseDist);
 
     // Place faction base
     used.add(baseKey);

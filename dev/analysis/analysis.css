@@ -1,0 +1,253 @@
+/* analysis.css — Standalone styles for the headless map analysis page.
+   Completely separate from the game's CSS system (styles/). */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: #d0d0d0;
+  background: #1a1a1f;
+  overflow: hidden;
+}
+
+/* ── Layout ────────────────────────────────────────────────────────────── */
+
+#analysis-root {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  grid-template-rows: 1fr auto;
+  height: 100vh;
+}
+
+#controls {
+  grid-row: 1 / 3;
+  grid-column: 1;
+  background: #222228;
+  border-right: 1px solid #333;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#map-area {
+  grid-row: 1;
+  grid-column: 2;
+  position: relative;
+  overflow: hidden;
+  background: #141418;
+  cursor: grab;
+}
+
+#map-area:active {
+  cursor: grabbing;
+}
+
+#map-area canvas {
+  display: block;
+}
+
+#stats-panel {
+  grid-row: 2;
+  grid-column: 2;
+  background: #1e1e24;
+  border-top: 1px solid #333;
+  padding: 10px 16px;
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+/* ── Controls ──────────────────────────────────────────────────────────── */
+
+#controls h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 2px;
+}
+
+#controls h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-row label {
+  min-width: 80px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.control-row input[type="text"],
+.control-row input[type="number"],
+.control-row select {
+  flex: 1;
+  background: #2a2a32;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.control-row input[type="text"]:focus,
+.control-row input[type="number"]:focus,
+.control-row select:focus {
+  outline: none;
+  border-color: #6a8abf;
+}
+
+.control-row input[type="range"] {
+  flex: 1;
+  accent-color: #6a8abf;
+}
+
+.slider-value {
+  min-width: 32px;
+  text-align: right;
+  font-size: 12px;
+  color: #999;
+  font-family: monospace;
+}
+
+.btn-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+button {
+  background: #3a3a48;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #e0e0e0;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+button:hover {
+  background: #4a4a5a;
+  border-color: #777;
+}
+
+button.primary {
+  background: #4a6a9a;
+  border-color: #6a8abf;
+  color: #fff;
+  font-weight: 600;
+}
+
+button.primary:hover {
+  background: #5a7aaa;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.toggle-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #bbb;
+  cursor: pointer;
+}
+
+.toggle-group input[type="checkbox"] {
+  accent-color: #6a8abf;
+}
+
+/* ── Loading indicator ─────────────────────────────────────────────────── */
+
+#loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: #888;
+  pointer-events: none;
+  display: none;
+}
+
+#loading.visible {
+  display: block;
+}
+
+/* ── Stats panel highlights ────────────────────────────────────────────── */
+
+.stat-section {
+  margin-bottom: 6px;
+}
+
+.stat-section .stat-label {
+  color: #888;
+}
+
+.stat-section .stat-value {
+  color: #c0c8d0;
+}
+
+.stat-bar {
+  display: inline-block;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────── */
+
+#controls::-webkit-scrollbar,
+#stats-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+#controls::-webkit-scrollbar-track,
+#stats-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#controls::-webkit-scrollbar-thumb,
+#stats-panel::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}

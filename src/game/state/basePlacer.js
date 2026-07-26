@@ -9,8 +9,6 @@ import {
 } from '../rules/tileQueries.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 
-const MIN_BASE_DIST = 2;
-
 /**
  * Find a base tile for a champion, searching outward from target.
  *
@@ -18,10 +16,10 @@ const MIN_BASE_DIST = 2;
  * @param {Object} target         - Preferred axial coordinate { q, r }
  * @param {Set}   used           - Set of already-claimed hex keys
  * @param {Set}   placedBaseKeys - Set of faction base hex keys
+ * @param {number} minDist       - Minimum hex distance between bases
  * @returns {string} The chosen hex key
  */
-export function placeBase(tiles, target, used, placedBaseKeys) {
-  const minDist = MIN_BASE_DIST;
+export function placeBase(tiles, target, used, placedBaseKeys, minDist) {
 
   // Primary: ring-expanding search from target
   const checkBase = (tile, key) => {
