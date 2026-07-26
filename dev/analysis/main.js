@@ -4,13 +4,14 @@
  * Wires DOM controls to generation, rendering, stats, and multi-seed analysis.
  */
 import { generateTiles } from '../../src/game/rules/terrainGenerator.js';
-import { makeRng } from '../../src/engine/rules/seededRng.js';
+import { makeRng, stringSeed, seededNoise } from '../../src/engine/rules/seededRng.js';
 import { getArchetype, listArchetypes } from '../../src/game/rules/archetypes.js';
 import '../../src/game/rules/archetypeData/index.js'; // side-effect: populate registry
 import { createChampions } from '../../src/game/state/championFactory.js';
 import { createMobs, createTraders } from '../../src/game/state/entityFactory.js';
 import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
 import { coordKey } from '../../src/engine/rules/hexGrid.js';
+import { NOISE_CHANNEL_ELEVATION, NOISE_CHANNEL_MOISTURE } from '../../src/params/game/worldParams.js';
 import { createCamera, fitCameraToRadius, screenToWorld, renderMap } from './renderer.js';
 import {
   terrainDistribution,
@@ -35,6 +36,9 @@ const DEFAULT_CHAMPIONS = [
 let lastResult = null; // { tiles, champions, mobs, traders, baseKeys, biomeDef }
 let camera = createCamera();
 let canvasEl, ctx;
+let viewMode = 'terrain';
+let cycleIntervalId = null;
+let cycleOn = false;
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
 
@@ -62,6 +66,11 @@ function cacheDom() {
   els.toggleBases = $('toggle-bases');
   els.toggleFeatures = $('toggle-features');
   els.toggleDebris = $('toggle-debris');
+  els.viewMode = $('view-mode');
+  els.btnCycleToggle = $('btn-cycle-toggle');
+  els.btnNextRandom = $('btn-next-random');
+  els.cycleSpeed = $('cycle-speed');
+  els.cycleSpeedValue = $('cycle-speed-value');
   els.multiCount = $('multi-count');
   els.btnMultiGenerate = $('btn-multi-generate');
   els.btnExportPng = $('btn-export-png');
@@ -101,6 +110,14 @@ function generateSingleSeed(seedText) {
   const mapSettings = getMapSettings();
 
   const tiles = generateTiles(seedText, radius, biomeDef, mapSettings);
+  const seed = stringSeed(seedText);
+  // Store raw noise values on each tile for overlay rendering
+  for (const key of Object.keys(tiles)) {
+    const tile = tiles[key];
+    tile.elevation = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_ELEVATION);
+    tile.moisture = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_MOISTURE);
+  }
+
   const rng = makeRng(seedText);
   const rand = () => rng();
 
@@ -137,7 +154,7 @@ function render() {
   const { w, h, dpr } = resizeCanvas();
   const { tiles, champions, mobs, traders } = lastResult;
   const options = getOptions();
-  renderMap(ctx, tiles, { champions, mobs, traders }, camera, options, w, h, dpr);
+  renderMap(ctx, tiles, { champions, mobs, traders }, camera, options, w, h, dpr, viewMode);
 }
 
 function renderAndFit() {
@@ -311,6 +328,49 @@ function setupCanvasInteraction() {
   });
 }
 
+// ─── Random Cycle ─────────────────────────────────────────────────────────────
+
+function pickAndGenerateRandom() {
+  const seedText = 'glut-' + Math.floor(Math.random() * 9999);
+  els.seed.value = seedText;
+  els.loading.classList.add('visible');
+  els.loading.textContent = 'Generating...';
+  // Use setTimeout to let the loading indicator paint
+  setTimeout(() => {
+    try {
+      generateSingleSeed(seedText);
+      renderAndFit();
+      updateStats();
+    } finally {
+      els.loading.classList.remove('visible');
+    }
+  }, 10);
+}
+
+function startCycle() {
+  if (cycleIntervalId) return;
+  cycleOn = true;
+  const intervalMs = parseFloat(els.cycleSpeed.value) * 1000;
+  cycleIntervalId = setInterval(pickAndGenerateRandom, intervalMs);
+  els.btnCycleToggle.textContent = '⏸ Pause';
+  els.btnCycleToggle.classList.add('playing');
+}
+
+function stopCycle() {
+  if (cycleIntervalId) {
+    clearInterval(cycleIntervalId);
+    cycleIntervalId = null;
+  }
+  cycleOn = false;
+  els.btnCycleToggle.textContent = '▶ Play';
+  els.btnCycleToggle.classList.remove('playing');
+}
+
+function restartCycle() {
+  stopCycle();
+  if (cycleOn) startCycle();
+}
+
 // ─── Export ──────────────────────────────────────────────────────────────────
 
 function exportPng() {
@@ -401,6 +461,39 @@ function bindControls() {
   for (const toggle of toggles) {
     if (toggle) toggle.addEventListener('change', render);
   }
+
+  // View mode
+  els.viewMode.addEventListener('change', () => {
+    viewMode = els.viewMode.value;
+    render();
+  });
+
+  // Random cycle
+  els.btnCycleToggle.addEventListener('click', () => {
+    if (cycleOn) {
+      stopCycle();
+    } else {
+      startCycle();
+    }
+  });
+
+  els.cycleSpeed.addEventListener('input', () => {
+    const val = parseFloat(els.cycleSpeed.value);
+    els.cycleSpeedValue.textContent = val.toFixed(1) + 's';
+    if (cycleOn) {
+      // Restart the timer with the new interval
+      if (cycleIntervalId) {
+        clearInterval(cycleIntervalId);
+      }
+      const intervalMs = val * 1000;
+      cycleIntervalId = setInterval(pickAndGenerateRandom, intervalMs);
+    }
+  });
+
+  els.btnNextRandom.addEventListener('click', () => {
+    if (cycleOn) stopCycle();
+    pickAndGenerateRandom();
+  });
 
   // Export
   els.btnExportPng.addEventListener('click', exportPng);

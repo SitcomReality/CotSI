@@ -85,6 +85,40 @@ export function fitCameraToRadius(camera, radius, canvasWidth, canvasHeight) {
   camera.y = 0;
 }
 
+// ─── Noise overlay colors ────────────────────────────────────────────────────
+
+/**
+ * Map a raw elevation value (0–1) to a terrain-height color.
+ * Emphasizes the thresholds used by terrain generation so the user can
+ * see where water, land, and mountains form.
+ */
+function elevationColor(elev) {
+  if (elev < 0.04) return '#1a3050';       // deep ocean
+  if (elev < 0.07) return '#2a5a8a';       // shallow water
+  if (elev < 0.15) return '#4a8a3a';       // low wetland
+  if (elev < 0.30) return '#5a9a4a';       // lowland
+  if (elev < 0.50) return '#6aaa5a';       // midland
+  if (elev < 0.70) return '#8a9a5a';       // highland
+  if (elev < 0.85) return '#9a8a5a';       // foothill
+  if (elev < 0.905) return '#7a7a6a';      // sub-mountain
+  if (elev < 0.95) return '#8a8a7a';       // mountain
+  return '#b0b0a0';                         // peak
+}
+
+/**
+ * Map a raw moisture value (0–1) to a moisture color.
+ * Shows the wetness gradient across the map.
+ */
+function moistureColor(moist) {
+  if (moist < 0.10) return '#c8b050';       // very dry
+  if (moist < 0.20) return '#b8a848';       // arid
+  if (moist < 0.35) return '#8aaa4a';       // dry
+  if (moist < 0.50) return '#6a9a3a';       // moderate
+  if (moist < 0.65) return '#4a8a2a';       // moist
+  if (moist < 0.80) return '#3a7a2a';       // wet
+  return '#2a6a4a';                          // saturated
+}
+
 // ─── Render ──────────────────────────────────────────────────────────────────
 
 /**
@@ -98,8 +132,9 @@ export function fitCameraToRadius(camera, radius, canvasWidth, canvasHeight) {
  * @param {number} canvasWidth
  * @param {number} canvasHeight
  * @param {number} dpr             — device pixel ratio
+ * @param {string} [viewMode]      — 'terrain' | 'elevation' | 'moisture'
  */
-export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, canvasHeight, dpr) {
+export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, canvasHeight, dpr, viewMode) {
   const size = HEX_SIZE * camera.zoom;
   const { champions, mobs, traders } = entities;
 
@@ -152,7 +187,11 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
 
     // Determine fill color
     let fillColor;
-    if (palette && palette[tile.terrain]) {
+    if (viewMode === 'elevation' && tile.elevation !== undefined) {
+      fillColor = elevationColor(tile.elevation);
+    } else if (viewMode === 'moisture' && tile.moisture !== undefined) {
+      fillColor = moistureColor(tile.moisture);
+    } else if (palette && palette[tile.terrain]) {
       const rgb = palette[tile.terrain];
       fillColor = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
     } else {
