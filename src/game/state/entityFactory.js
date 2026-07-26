@@ -21,7 +21,7 @@ import { traderStock } from '../rules/traderStock.js';
 export function createMobs({ tiles, rand, used, radius }) {
   const mobArchetypes = getArchetypesByType('mob');
   const passable = Object.keys(tiles).filter(
-    k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !used.has(k)
+    k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !tiles[k].debris && !used.has(k)
   );
   const mobCount = Math.max(6, radius * 2);
   const mobs = [];
@@ -79,7 +79,7 @@ export function createTraders({ tiles, rand, used, champions }) {
 
   for (let i = 0; i < 3; i++) {
     const key = Object.keys(tiles).find(
-      k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !used.has(k)
+      k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !tiles[k].debris && !used.has(k)
     );
     if (!key) break;
     used.add(key);

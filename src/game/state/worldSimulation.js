@@ -5,7 +5,7 @@
 import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 import { weatherForDay } from '../rules/weatherScript.js';
-import { getChampion, occupiedByChampion, occupiedByMob } from './entityQueries.js';
+import { getChampion, occupiedByChampion, occupiedByMob, occupiedByTrader } from './entityQueries.js';
 import { updateSpatialIndex } from './spatialIndex.js';
 import { beginTurn, isDigEligible } from './turnActions.js';
 import { interactOnArrival } from './arrivalInteractions.js';
@@ -127,8 +127,11 @@ function runWorldTurn(state) {
           k =>
             state.tiles[k] &&
             TERRAIN[state.tiles[k].terrain].passable &&
+            !state.tiles[k].feature &&
+            !state.tiles[k].debris &&
             !occupiedByChampion(state, k) &&
-            !occupiedByMob(state, k)
+            !occupiedByMob(state, k) &&
+            !occupiedByTrader(state, k)
         );
       if (opts.length) {
         const oldKey = coordKey(mob.pos);
@@ -154,7 +157,7 @@ function runWorldTurn(state) {
       let nx = tr.pos.q + dx,
         ny = tr.pos.r + dy;
       const nk = `${nx},${ny}`;
-      if (state.tiles[nk] && TERRAIN[state.tiles[nk].terrain].passable && !occupiedByChampion(state, nk)) {
+      if (state.tiles[nk] && TERRAIN[state.tiles[nk].terrain].passable && !state.tiles[nk].feature && !state.tiles[nk].debris && !occupiedByChampion(state, nk) && !occupiedByMob(state, nk) && !occupiedByTrader(state, nk)) {
         const oldKey = coordKey(tr.pos);
         tr.pos = { q: nx, r: ny };
         updateSpatialIndex(state, oldKey, coordKey(tr.pos), tr, 'trader');

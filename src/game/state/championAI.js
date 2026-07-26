@@ -2,7 +2,7 @@ import { coordKey, distance, hexesWithinRadius } from '../../engine/rules/hexGri
 import { findPath } from '../../engine/rules/pathfinding.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 import { movementRange } from './championMovement.js';
-import { occupiedByChampion, occupiedByMob, getChampion } from './entityQueries.js';
+import { occupiedByChampion, occupiedByMob, occupiedByTrader, getChampion } from './entityQueries.js';
 
 export function botChooseTarget(state, champ){
   const searchRadius = champ.sight + champ.baseMove * 2 + 5;
@@ -17,11 +17,10 @@ export function botChooseTarget(state, champ){
     let score=0;
     if(tile.feature?.kind==='tree' && tile.feature.ripe!==false) score += (champ.hp < 60 ? 28 : 10);
     if(tile.feature?.kind==='knot' && !tile.feature.mined) score += 32;
-    if(tile.feature?.kind==='base' && tile.feature.faction===champ.faction && champ.hp < 55) score += 24;
-    const mob = state.mobs.find(m=> m.alive && coordKey(m.pos)===key);
-    if(mob) score += 16;
-    const trader = state.traders.find(t=> coordKey(t.pos)===key);
-    if(trader) score += 10;
+    // Note: mob/trader hexes are not scorable — champions cannot pathfind
+    // onto them. The bot attacks adjacent mobs directly (see runBotTurn).
+    // Base-hex scoring is also removed: champions cannot occupy base hexes;
+    // they heal by interacting from an adjacent hex at distance 1.
     // Exploration bonus: prefer unexplored tiles
     if (!(champ.explored || []).includes(key)) score += 5;
     if(score>0){
@@ -68,12 +67,16 @@ export function runBotTurn(state){
   const target = botChooseTarget(state, champ);
   if(!target) return {action:'end'};
   const path = findPath(champ.pos.q, champ.pos.r, target.pos.q, target.pos.r, champ.id,
-    (key, isTarget) => {
+    (key, _isTarget) => {
       const tile = state.tiles[key];
       if (!tile || !TERRAIN[tile.terrain].passable) return false;
+      // Champions can never occupy a hex with a base, mob, trader,
+      // or another champion — even as the path target.
+      if (tile.feature?.kind === 'base') return false;
       const occ = occupiedByChampion(state, key);
-      if (occ && occ.id !== champ.id && !isTarget) return false;
-      if (occupiedByMob(state, key) && !isTarget) return false;
+      if (occ && occ.id !== champ.id) return false;
+      if (occupiedByMob(state, key)) return false;
+      if (occupiedByTrader(state, key)) return false;
       return true;
     }
   );
