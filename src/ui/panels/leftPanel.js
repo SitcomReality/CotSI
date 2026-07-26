@@ -2,6 +2,7 @@ import { championVM } from '../viewModels/championViewModel.js';
 import { currentChamp } from '../../game/state/liveGame.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { h } from '../domBuilder.js';
+import { POTENCY_BAR_SCALE } from '../../params/ui/uiParams.js';
 
 /**
  * Enable or disable the End Turn button based on whether a human champion is active.
@@ -85,7 +86,7 @@ export function bindLeftPanel(G) {
         h('div', { class: 'left-potency-row paley-item paley-item--f' + i },
           h('span', { class: 'left-potency-dot', style: { background: fac.color } }),
           h('span', { class: 'left-potency-track' },
-            h('span', { class: 'left-potency-fill', style: { width: Math.min(100, v * 6) + '%', background: fac.color } })
+            h('span', { class: 'left-potency-fill', style: { width: Math.min(100, v * POTENCY_BAR_SCALE) + '%', background: fac.color } })
           ),
           h('span', { class: 'left-potency-num' + (isPrimary ? ' is-primary' : '') }, String(v))
         )

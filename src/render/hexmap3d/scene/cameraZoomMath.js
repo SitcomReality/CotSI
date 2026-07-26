@@ -8,9 +8,7 @@
 
 import { setPanBounds, panCamera } from './cameraPanMath.js';
 
-const DEFAULT_FRUSTUM = 6;
-const MIN_FRUSTUM = 5;
-const ABSOLUTE_MAX_FRUSTUM = 15; // hard ceiling: 3× MIN_FRUSTUM for an intimate close-up view
+import { DEFAULT_FRUSTUM, ZOOM_MIN_FRUSTUM, ZOOM_MAX_FRUSTUM, FIT_MAP_MARGIN, MAX_ZOOM_MARGIN } from '../../../params/render/cameraParams.js';
 
 /**
  * Auto-fit the camera frustum to show the entire map.
@@ -32,21 +30,21 @@ export function fitCameraToMap(state, radius) {
 
   // At the default pitch (~51°), the visible ground-plane extent
   // is frustumSize / sin(pitch). We want the map to fit comfortably.
-  const margin = 1.6;
+  const margin = FIT_MAP_MARGIN;
   const sinPitch = Math.sin(state.pitch);
   const refWorldExtent = mapExtent * margin;
   const referenceFrustum = sinPitch > 0.01 ? refWorldExtent * sinPitch : refWorldExtent;
 
   // Max zoom: generous margin so the user can zoom well out past the fit view.
-  const maxMargin = 3.5;
+  const maxMargin = MAX_ZOOM_MARGIN;
   const maxWorldExtent = mapExtent * maxMargin;
   const maxDesired = sinPitch > 0.01 ? maxWorldExtent * sinPitch : maxWorldExtent;
 
   state.mapRadius = radius;
   state.referenceFrustum = referenceFrustum;
-  state.maxFrustumSize = Math.max(DEFAULT_FRUSTUM, Math.min(ABSOLUTE_MAX_FRUSTUM, maxDesired));
+  state.maxFrustumSize = Math.max(DEFAULT_FRUSTUM, Math.min(ZOOM_MAX_FRUSTUM, maxDesired));
   // Start at the reference (100% = full map view)
-  state.frustumSize = Math.max(DEFAULT_FRUSTUM, Math.min(state.maxFrustumSize, referenceFrustum));
+  state.frustumSize = Math.max(DEFAULT_FRUSTUM, Math.min(state.maxFrustumSize ?? ZOOM_MAX_FRUSTUM, referenceFrustum));
   state.targetX = 0;
   state.targetZ = 0;
   setPanBounds(state, radius);
@@ -59,8 +57,8 @@ export function fitCameraToMap(state, radius) {
  * @param {number} factor - zoom multiplier (>1 zooms out, <1 zooms in)
  */
 export function zoomCamera(state, factor) {
-  const maxFrustum = state.maxFrustumSize ?? ABSOLUTE_MAX_FRUSTUM;
-  state.frustumSize = Math.max(MIN_FRUSTUM, Math.min(maxFrustum, state.frustumSize * factor));
+  const maxFrustum = state.maxFrustumSize ?? ZOOM_MAX_FRUSTUM;
+  state.frustumSize = Math.max(ZOOM_MIN_FRUSTUM, Math.min(maxFrustum, state.frustumSize * factor));
   // Re-clamp camera target: zooming out tightens the zoom-dependent constraint,
   // so the current pan position may need to be pulled back toward startCenter.
   panCamera(state, 0, 0);

@@ -12,13 +12,14 @@ import { svgIcon } from '../svgIcon.js';
 import { showModal } from './modalShell.js';
 import { getClock } from '../../shared/clockScheduler.js';
 import { weatherDisplayEl } from '../weatherDisplay.js';
+import { DISPATCH_REVEAL_MS, DISPATCH_GLYPH_SIZE, DISPATCH_STAT_CARD_ICON_SIZE, DISPATCH_LINE_ICON_SIZE } from '../../params/ui/uiParams.js';
 
 /**
  * Total reveal window (ms). The Acknowledge button unlocks after this, so the
  * dispatch can't be dismissed mid-animation by a misclick. Sections stagger in
  * via CSS: transition-delay = calc(var(--i) * 90ms), each ≤ --dur (250ms).
  */
-const REVEAL_MS = 650;
+const REVEAL_MS = DISPATCH_REVEAL_MS;
 
 // ── Icon lookups ────────────────────────────────────────────────────────────
 
@@ -71,7 +72,7 @@ function statCardEl(iconId, value, label, tone) {
   return h(
     'div',
     { class: cls },
-    svgIcon(iconId, 20, { class: 'dispatch-modal__stat-card-icon' }),
+    svgIcon(iconId, DISPATCH_STAT_CARD_ICON_SIZE, { class: 'dispatch-modal__stat-card-icon' }),
     h('div', { class: 'dispatch-modal__stat-card-value' }, value),
     h('div', { class: 'dispatch-modal__stat-card-label' }, label)
   );
@@ -85,9 +86,9 @@ function effectLineEl(effect, factionGlyphId) {
   // Pick icon: faction uses the champion's glyph, others from EFFECT_ICONS
   let iconEl = null;
   if (effect.category === 'faction') {
-    iconEl = svgIcon(factionGlyphId, 16, { class: 'dispatch-modal__line-icon' });
+    iconEl = svgIcon(factionGlyphId, DISPATCH_LINE_ICON_SIZE, { class: 'dispatch-modal__line-icon' });
   } else if (EFFECT_ICONS[effect.category]) {
-    iconEl = svgIcon(EFFECT_ICONS[effect.category], 16, { class: 'dispatch-modal__line-icon' });
+    iconEl = svgIcon(EFFECT_ICONS[effect.category], DISPATCH_LINE_ICON_SIZE, { class: 'dispatch-modal__line-icon' });
   }
 
   const children = [];
@@ -105,7 +106,7 @@ function ledgerLineEl(entry) {
   const iconId = LEDGER_ICONS[entry.type] || null;
   const children = [];
   if (iconId) {
-    children.push(svgIcon(iconId, 16, { class: 'dispatch-modal__line-icon' }));
+    children.push(svgIcon(iconId, DISPATCH_LINE_ICON_SIZE, { class: 'dispatch-modal__line-icon' }));
   }
   children.push(h('span', { class: 'dispatch-modal__line-text' }, entry.text));
 
@@ -146,7 +147,7 @@ export function openDispatchModal(report) {
 
   // ── Header ──
   headerEl.replaceChildren(
-    h('div', { class: 'dispatch-modal__glyph' }, svgIcon(report.glyphId, 22)),
+    h('div', { class: 'dispatch-modal__glyph' }, svgIcon(report.glyphId, DISPATCH_GLYPH_SIZE)),
     h(
       'div',
       { class: 'dispatch-modal__titleblock' },

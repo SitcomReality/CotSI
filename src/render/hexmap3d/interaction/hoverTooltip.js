@@ -1,3 +1,5 @@
+import { TOOLTIP_CURSOR_OFFSET } from '../../../params/ui/uiParams.js';
+
 let tooltipEl = null;
 
 function getTooltipEl() {
@@ -19,8 +21,8 @@ export function showTooltip(x, y, node) {
   el.replaceChildren(node);
   el.style.display = 'block';
   // Offset so cursor isn't covering text
-  el.style.left = (x + 12) + 'px';
-  el.style.top  = (y + 12) + 'px';
+  el.style.left = (x + TOOLTIP_CURSOR_OFFSET) + 'px';
+  el.style.top  = (y + TOOLTIP_CURSOR_OFFSET) + 'px';
 }
 
 export function hideTooltip() {

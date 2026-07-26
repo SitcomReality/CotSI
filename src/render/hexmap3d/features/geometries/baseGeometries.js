@@ -1,5 +1,10 @@
 // src/render/hexmap3d/features/geometries/baseGeometries.js
 import * as THREE from '../../../../vendor/three.module.js';
+import {
+  BASE_SPIKE,
+  BASE_RING,
+  BASE_RING_DOT,
+} from '../../../../params/render/geometryParams.js';
 
 // =========================================================================
 // Base geometries — small decorations shared across bases
@@ -11,21 +16,21 @@ let baseRingDotGeo = null;
 
 export function getBaseSpikeGeo() {
   if (!baseSpikeGeo) {
-    baseSpikeGeo = new THREE.ConeGeometry(0.06, 0.10, 4);
+    baseSpikeGeo = new THREE.ConeGeometry(BASE_SPIKE.bottomR, BASE_SPIKE.height, BASE_SPIKE.segments);
   }
   return baseSpikeGeo;
 }
 
 export function getBaseRingGeo() {
   if (!baseRingGeo) {
-    baseRingGeo = new THREE.TorusGeometry(0.28, 0.02, 6, 12);
+    baseRingGeo = new THREE.TorusGeometry(BASE_RING.radius, BASE_RING.tube, BASE_RING.radialSegs, BASE_RING.tubularSegs);
   }
   return baseRingGeo;
 }
 
 export function getBaseRingDotGeo() {
   if (!baseRingDotGeo) {
-    baseRingDotGeo = new THREE.SphereGeometry(0.03, 4, 3);
+    baseRingDotGeo = new THREE.SphereGeometry(BASE_RING_DOT.radius, BASE_RING_DOT.wSegs, BASE_RING_DOT.hSegs);
   }
   return baseRingDotGeo;
 }

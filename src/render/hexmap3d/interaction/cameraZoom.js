@@ -1,4 +1,5 @@
 import { zoomCamera } from '../scene/cameraZoomMath.js';
+import { ZOOM_STEP_FACTOR } from '../../../params/render/cameraParams.js';
 
 /**
  * Create a wheel handler for zoom.
@@ -13,7 +14,7 @@ export function createZoomHandler(getCameraState, applyCamera, refreshZoomDispla
     e.preventDefault();
     const state = getCameraState();
     if (!state) return;
-    const factor = e.deltaY > 0 ? 1.1 : 0.9;
+    const factor = e.deltaY > 0 ? ZOOM_STEP_FACTOR : 1 / ZOOM_STEP_FACTOR;
     zoomCamera(state, factor);
     applyCamera();
     refreshZoomDisplay();

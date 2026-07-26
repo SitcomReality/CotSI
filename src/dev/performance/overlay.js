@@ -8,6 +8,7 @@
  * measurements for measurement data.
  */
 
+import { OVERLAY_TOP_N } from '../../params/dev/performanceParams.js';
 import { getFps, getLastFrameTime } from './frameTracker.js';
 import { getRawMeasurements } from './measurements.js';
 
@@ -72,7 +73,7 @@ function _updateOverlay(timestamp) {
     .filter(([, m]) => m.enabled && m.ema !== undefined)
     .map(([name, m]) => ({ name, ema: m.ema }))
     .sort((a, b) => b.ema - a.ema)
-    .slice(0, 5);
+    .slice(0, OVERLAY_TOP_N);
 
   let html = `FPS: ${fps.toFixed(1)}  Frame: ${frame}ms`;
   for (const e of entries) {

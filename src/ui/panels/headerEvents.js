@@ -8,6 +8,7 @@
 import { getClock } from '../../shared/clockScheduler.js';
 import { championVM } from '../viewModels/championViewModel.js';
 import { buildDetailCard, positionDetail } from './headerDetailCard.js';
+import { DETAIL_CLOSE_DELAY_MS } from '../../params/ui/uiParams.js';
 
 /** Guard: prevent duplicate event listener registration on repeated __beginGame calls. */
 let wired = false;
@@ -87,7 +88,7 @@ export function bindHeaderEvents() {
       ) {
         closeDetail();
       }
-    }, 150, 'ui');
+    }, DETAIL_CLOSE_DELAY_MS, 'ui');
   }
 
   champsEl.addEventListener('mouseleave', scheduleClose);

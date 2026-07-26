@@ -14,6 +14,12 @@ import { hexCenter } from '../hexmap3d/hexWorldSpace.js';
 import { TERRAIN_COLOR } from '../hexmap3d/terrain/terrainMesh.js';
 import { CAMERA_YAW } from '../hexmap3d/scene/cameraState.js';
 import { MINIMAP_SIZE, PADDING, getTerrainCtx } from './minimapDom.js';
+import {
+  MINIMAP_HEX_ASPECT_RATIO,
+  MINIMAP_EXPLORED_ALPHA,
+  MINIMAP_MIN_DOT_WIDTH_PX,
+  MINIMAP_MIN_DOT_HEIGHT_PX,
+} from '../../params/render/minimapParams.js';
 
 // ---- Helpers ----
 
@@ -122,7 +128,7 @@ export function renderTerrainLayer(G, humanView) {
 
   // Draw each explored hex as a small colored dot
   const hexW = HEX_RADIUS * scale;
-  const hexH = HEX_RADIUS * 0.75 * scale;
+  const hexH = HEX_RADIUS * MINIMAP_HEX_ASPECT_RATIO * scale;
 
   for (const key of explored) {
     const tile = G.tiles[key];
@@ -136,10 +142,10 @@ export function renderTerrainLayer(G, humanView) {
     const isVisible = visibleSet.has(key);
     const color = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || [0.3, 0.3, 0.3];
 
-    ctx.globalAlpha = isVisible ? 1.0 : 0.3;
+    ctx.globalAlpha = isVisible ? 1.0 : MINIMAP_EXPLORED_ALPHA;
     ctx.fillStyle = rgbToCSS(color);
     ctx.beginPath();
-    ctx.ellipse(px, py, Math.max(hexW, 2), Math.max(hexH, 1.5), 0, 0, Math.PI * 2);
+    ctx.ellipse(px, py, Math.max(hexW, MINIMAP_MIN_DOT_WIDTH_PX), Math.max(hexH, MINIMAP_MIN_DOT_HEIGHT_PX), 0, 0, Math.PI * 2);
     ctx.fill();
   }
 

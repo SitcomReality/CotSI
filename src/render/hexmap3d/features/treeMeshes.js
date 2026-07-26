@@ -8,6 +8,7 @@ import {
   getTreeCanopyTallGeo,
   getTreeCanopyWideGeo,
 } from './geometries/index.js';
+import { TREE_VARIANT_HASH_SEEDS, TREE_FOREST_TALL_THRESHOLD, TREE_VARIANT_THRESHOLDS, TREE_TALL, TREE_WIDE, TREE_ROUND, TREE_DENSITY_SCALE, TREE_TRUNK_Y_FRACTION } from '../../../params/render/geometryParams.js';
 
 /**
  * Determine tree variant from tile data.
@@ -19,12 +20,12 @@ import {
  * @returns {'round'|'tall'|'wide'}
  */
 function treeVariant(terrain, q, r) {
-  const hash = ((q * 7 + r * 13) * 31) % 17;
+  const hash = ((q * TREE_VARIANT_HASH_SEEDS[0] + r * TREE_VARIANT_HASH_SEEDS[1]) * TREE_VARIANT_HASH_SEEDS[2]) % TREE_VARIANT_HASH_SEEDS[3];
   if (terrain === 'forest') {
-    return hash < 10 ? 'tall' : 'round';
+    return hash < TREE_FOREST_TALL_THRESHOLD ? 'tall' : 'round';
   }
-  if (hash < 6) return 'round';
-  if (hash < 11) return 'tall';
+  if (hash < TREE_VARIANT_THRESHOLDS[0]) return 'round';
+  if (hash < TREE_VARIANT_THRESHOLDS[1]) return 'tall';
   return 'wide';
 }
 
@@ -34,12 +35,12 @@ function treeVariant(terrain, q, r) {
 function canopyForVariant(variant) {
   switch (variant) {
     case 'tall':
-      return { geo: getTreeCanopyTallGeo(), heightOffset: 0.65, canopyY: 0.55 };
+      return { geo: getTreeCanopyTallGeo(), heightOffset: TREE_TALL.heightOffset, canopyY: TREE_TALL.canopyY };
     case 'wide':
-      return { geo: getTreeCanopyWideGeo(), heightOffset: 0.55, canopyY: 0.45 };
+      return { geo: getTreeCanopyWideGeo(), heightOffset: TREE_WIDE.heightOffset, canopyY: TREE_WIDE.canopyY };
     case 'round':
     default:
-      return { geo: getTreeCanopyRoundGeo(), heightOffset: 0.50, canopyY: 0.50 };
+      return { geo: getTreeCanopyRoundGeo(), heightOffset: TREE_ROUND.heightOffset, canopyY: TREE_ROUND.canopyY };
   }
 }
 
@@ -49,9 +50,9 @@ function canopyForVariant(variant) {
  */
 function densityScale(density) {
   switch (density) {
-    case 'dense':  return 1.0;
-    case 'medium': return 0.75;
-    case 'sparse': return 0.50;
+    case 'dense':  return TREE_DENSITY_SCALE.dense;
+    case 'medium': return TREE_DENSITY_SCALE.medium;
+    case 'sparse': return TREE_DENSITY_SCALE.sparse;
     default:       return 1.0;
   }
 }
@@ -85,7 +86,7 @@ export function buildTreeMeshes(state, visible) {
     const g = groups[variant];
     if (!g) continue;
 
-    g.trunks.push({ x, y: surfaceY + heightOffset * 0.4 * scale, z, scale });
+    g.trunks.push({ x, y: surfaceY + heightOffset * TREE_TRUNK_Y_FRACTION * scale, z, scale });
     g.canopies.push({ x, y: surfaceY + canopyY * scale, z, scale });
   }
 
@@ -167,7 +168,7 @@ export function buildChunkTreeMeshes(chunkTiles, visible) {
     const g = groups[variant];
     if (!g) continue;
 
-    g.trunks.push({ x, y: surfaceY + heightOffset * 0.4 * scale, z, scale });
+    g.trunks.push({ x, y: surfaceY + heightOffset * TREE_TRUNK_Y_FRACTION * scale, z, scale });
     g.canopies.push({ x, y: surfaceY + canopyY * scale, z, scale });
   }
 

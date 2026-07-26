@@ -14,6 +14,7 @@ import { renderSelectionRing } from '../overlays/selectionRing.js';
 import { renderMovementHighlights } from '../overlays/movementHighlights.js';
 import { renderInteractionHighlights } from '../overlays/interactionHighlights.js';
 import { getClock } from '../../shared/clockScheduler.js';
+import { OVERLAY_Z } from '../../params/ui/uiParams.js';
 import { shadowLightConfig } from '../shadowLightConfig.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 
@@ -48,10 +49,10 @@ export function initHexMap3D(mountElement) {
 
   // Init 2D effects overlay and register layers
   initEffectsOverlay(ctx);
-  registerLayer('fogOverlay', 0, renderFogOverlay);
-  registerLayer('movementHighlights', 5, renderMovementHighlights);
-  registerLayer('interactionHighlights', 7, renderInteractionHighlights);
-  registerLayer('selectionRing', 10, renderSelectionRing);
+  registerLayer('fogOverlay', OVERLAY_Z.terrain, renderFogOverlay);
+  registerLayer('movementHighlights', OVERLAY_Z.highlight, renderMovementHighlights);
+  registerLayer('interactionHighlights', OVERLAY_Z.selection, renderInteractionHighlights);
+  registerLayer('selectionRing', OVERLAY_Z.fog, renderSelectionRing);
 
   // Setup animations (needs game state access)
   setupUnitAnimations(ctx, () => window.__gameState);

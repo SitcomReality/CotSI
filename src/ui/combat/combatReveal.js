@@ -12,6 +12,7 @@ import {
   getFxLayer,
   getCard,
 } from './combatFx.js';
+import { SLOT_FLIP_WAIT_MS, CLASH_PAUSE_MS, COUNT_UP_DURATION_MS } from '../../params/ui/combatUiParams.js';
 
 /**
  * Animate the simultaneous reveal of both sides' picks for a combat exchange.
@@ -56,13 +57,13 @@ export async function animateReveal(reveal) {
   if (slotA) revealSlot(slotA, reveal.first.factionIdx);
   if (slotB) revealSlot(slotB, reveal.second.factionIdx);
 
-  await wait(420); // let flips finish (--dur-slow)
+  await wait(SLOT_FLIP_WAIT_MS); // let flips finish (--dur-slow)
 
   // --- Clash pulse: highlight winning/losing faction tokens ---
   const modalEl = document.getElementById('combatOverlay');
   clashPulse(reveal, modalEl);
 
-  await wait(150);
+  await wait(CLASH_PAUSE_MS);
 
   // --- Count-up the running totals ---
   const leftEl = document.getElementById('csLeft');
@@ -78,8 +79,8 @@ export async function animateReveal(reveal) {
   if (attSide === 'first') {
     // attacker = left, defender = right
     await Promise.all([
-      countUp(leftEl, curLeft, targetAttacker, 500),
-      countUp(rightEl, curRight, targetDefender, 500),
+      countUp(leftEl, curLeft, targetAttacker, COUNT_UP_DURATION_MS),
+      countUp(rightEl, curRight, targetDefender, COUNT_UP_DURATION_MS),
     ]);
     const deltaAtt = targetAttacker - curLeft;
     const deltaDef = targetDefender - curRight;
@@ -92,8 +93,8 @@ export async function animateReveal(reveal) {
   } else {
     // attacker = right, defender = left
     await Promise.all([
-      countUp(leftEl, curLeft, targetDefender, 500),
-      countUp(rightEl, curRight, targetAttacker, 500),
+      countUp(leftEl, curLeft, targetDefender, COUNT_UP_DURATION_MS),
+      countUp(rightEl, curRight, targetAttacker, COUNT_UP_DURATION_MS),
     ]);
     const deltaDef = targetDefender - curLeft;
     const deltaAtt = targetAttacker - curRight;

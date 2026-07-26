@@ -9,6 +9,7 @@
 import { getClock } from '../../../shared/clockScheduler.js';
 import { resetFogMaskCameraHash } from '../../overlays/fogCameraTracker.js';
 import { hexCenter } from '../hexWorldSpace.js';
+import { PAN_ANIMATION_DURATION } from '../../../params/render/cameraParams.js';
 
 /** Currently active camera pan animation stop function, if any. */
 let _panStopFn = null;
@@ -31,7 +32,7 @@ let _panFrameCount = 0;
  * @param {number} [duration=200] - animation duration in milliseconds
  * @returns {void}
  */
-export function animateCenterOnHex(state, applyFn, q, r, duration = 200) {
+export function animateCenterOnHex(state, applyFn, q, r, duration = PAN_ANIMATION_DURATION) {
   // Cancel any in-flight animation and snap to its target first
   if (_panStopFn) {
     _panStopFn();

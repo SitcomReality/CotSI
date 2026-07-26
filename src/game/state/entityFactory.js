@@ -8,6 +8,8 @@ import { TERRAIN } from '../rules/terrainTypes.js';
 import { getArchetypesByType } from '../rules/archetypes.js';
 import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { traderStock } from '../rules/traderStock.js';
+import { MIN_MOB_COUNT, MOB_COUNT_RADIUS_MULTIPLIER, NUM_TRADERS, TRADER_MOVES_PER_DAY, MAX_SPAWN_SEARCH_RINGS, MOB_HP_VARIANCE_FRACTION } from '../../params/game/spawnParams.js';
+import { FACTION_COUNT, MOB_BASE_POTENCY, MOB_OWN_FACTION_POTENCY_BONUS } from '../../params/game/factionParams.js';
 
 /**
  * Create mobs on unclaimed passable tiles.
@@ -23,25 +25,25 @@ export function createMobs({ tiles, rand, used, radius }) {
   const passable = Object.keys(tiles).filter(
     k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !tiles[k].debris && !used.has(k)
   );
-  const mobCount = Math.max(6, radius * 2);
+  const mobCount = Math.max(MIN_MOB_COUNT, radius * MOB_COUNT_RADIUS_MULTIPLIER);
   const mobs = [];
 
   for (let i = 0; i < mobCount; i++) {
     if (!passable.length) break;
     const key = passable.splice(Math.floor(rand() * passable.length), 1)[0];
-    const faction = Math.floor(rand() * 7);
-    const potencies = Array(7)
+    const faction = Math.floor(rand() * FACTION_COUNT);
+    const potencies = Array(FACTION_COUNT)
       .fill(0)
       .map(
         (_, c) =>
-          3 +
-          (c === faction ? 5 : 0) +
-          ([1, 2, 4].includes((c - faction + 7) % 7) ? 1 : 0)
+          MOB_BASE_POTENCY +
+          (c === faction ? MOB_OWN_FACTION_POTENCY_BONUS : 0) +
+          ([1, 2, 4].includes((c - faction + FACTION_COUNT) % FACTION_COUNT) ? 1 : 0)
       );
     // Pick a random mob archetype (occasionally a higher-tier variant)
     const archetype = mobArchetypes[Math.floor(rand() * mobArchetypes.length)];
     const base = archetype.baseStats;
-    const hpRoll = Math.floor(rand() * (base.hp * 0.5));
+    const hpRoll = Math.floor(rand() * (base.hp * MOB_HP_VARIANCE_FRACTION));
     const goldRoll = Math.floor(rand() * (archetype.lootGold[1] - archetype.lootGold[0]));
     const mob = {
       id: `mob-${i}`,
@@ -77,7 +79,7 @@ export function createMobs({ tiles, rand, used, radius }) {
 export function createTraders({ tiles, rand, used, champions }) {
   const traders = [];
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < NUM_TRADERS; i++) {
     const key = Object.keys(tiles).find(
       k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !tiles[k].debris && !used.has(k)
     );
@@ -89,7 +91,7 @@ export function createTraders({ tiles, rand, used, champions }) {
       stock: traderStock(rand),
       targetBaseKey:
         Object.keys(tiles).filter(k => tiles[k].feature?.kind === 'base')[i % champions.length] || key,
-      movesPerDay: 2,
+      movesPerDay: TRADER_MOVES_PER_DAY,
     });
   }
 

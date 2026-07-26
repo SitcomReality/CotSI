@@ -8,6 +8,7 @@ import {
   nearestOpenMultiRing,
 } from '../rules/tileQueries.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
+import { BASE_SEARCH_MAX_RING } from '../../params/game/spawnParams.js';
 
 /**
  * Find a base tile for a champion, searching outward from target.
@@ -35,7 +36,7 @@ export function placeBase(tiles, target, used, placedBaseKeys, minDist) {
   let tile = tiles[originKey];
   if (checkBase(tile, originKey)) return originKey;
 
-  for (let d = 1; d <= 100; d++) {
+  for (let d = 1; d <= BASE_SEARCH_MAX_RING; d++) {
     const ring = hexRing(d);
     for (const c of ring) {
       const ck = coordKey({ q: c.q + target.q, r: c.r + target.r });
@@ -45,7 +46,7 @@ export function placeBase(tiles, target, used, placedBaseKeys, minDist) {
   }
 
   // Fallback 1: ring-search ignoring inter-base distance
-  for (let d = 1; d <= 100; d++) {
+  for (let d = 1; d <= BASE_SEARCH_MAX_RING; d++) {
     const ring = hexRing(d);
     for (const c of ring) {
       const ck = coordKey({ q: c.q + target.q, r: c.r + target.r });

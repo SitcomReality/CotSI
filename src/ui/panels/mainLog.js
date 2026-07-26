@@ -1,5 +1,6 @@
 import { h } from '../domBuilder.js';
 import { iconSpritePath } from '../iconPaths.js';
+import { MAX_LOG_DISPLAY_ENTRIES, LOG_COLUMN_COUNT, LOG_ICON_SIZE } from '../../params/ui/uiParams.js';
 
 /** @type {number} How many log entries we rendered on the previous call. */
 let _prevLogLength = 0;
@@ -23,13 +24,13 @@ let _prevLogLength = 0;
  */
 export function buildMainLogContent(logs) {
   const all = logs || [];
-  const recent = all.slice(0, 20);
+  const recent = all.slice(0, MAX_LOG_DISPLAY_ENTRIES);
 
   if (recent.length === 0) {
     _prevLogLength = 0;
     return h('table', { class: 'main-log' },
       h('tr', { class: 'main-log__row' },
-        h('td', { class: 'main-log__empty', colspan: '5' }, 'Awaiting events...'),
+        h('td', { class: 'main-log__empty', colspan: String(LOG_COLUMN_COUNT) }, 'Awaiting events...'),
       ),
     );
   }
@@ -54,7 +55,7 @@ function buildRow(entry, isNew) {
   // Day markers — full-width
   if (entry.isDayMarker || (entry.grammar && entry.category === 'marker')) {
     return h('tr', { class: 'main-log__row main-log__row--marker' },
-      h('td', { class: 'main-log__marker', colspan: '5' }, entry.plainText),
+      h('td', { class: 'main-log__marker', colspan: String(LOG_COLUMN_COUNT) }, entry.plainText),
     );
   }
 
@@ -65,7 +66,7 @@ function buildRow(entry, isNew) {
 
   // Legacy entries — plain text fallback until they age out
   return h('tr', { class: 'main-log__row main-log__row--system' },
-    h('td', { colspan: '5', style: { color: 'var(--ink-mid)' } }, entry.plainText || ''),
+    h('td', { colspan: String(LOG_COLUMN_COUNT), style: { color: 'var(--ink-mid)' } }, entry.plainText || ''),
   );
 }
 
@@ -141,8 +142,8 @@ function categoryIcon(category) {
 function logIcon(iconId) {
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
-  svg.setAttribute('width', '14');
-  svg.setAttribute('height', '14');
+  svg.setAttribute('width', String(LOG_ICON_SIZE));
+  svg.setAttribute('height', String(LOG_ICON_SIZE));
   svg.setAttribute('aria-hidden', 'true');
   const use = document.createElementNS(ns, 'use');
   use.setAttribute('href', `${iconSpritePath(iconId)}#${iconId}`);

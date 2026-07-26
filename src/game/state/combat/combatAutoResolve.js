@@ -14,8 +14,7 @@ import { getAvailablePicks, recordPick, bothPicksIn, advancePhase } from './comb
 import { processReveal, applyFinalBonuses } from './combatScoring.js';
 import { shouldBotFlee } from './combatBotAI.js';
 import { resolveRoundDamage, nextCombatRound, finalizeCombat, fleeFromCombat } from './combatDamage.js';
-
-const MAX_ROUNDS = 50;
+import { AUTO_RESOLVE_MAX_ROUNDS } from '../../../params/game/combatParams.js';
 
 /**
  * Resolve a combat between two non-human entities instantly, with no UI.
@@ -29,7 +28,7 @@ export function resolveCombatSilently(state, attacker, defender) {
   const combat = createCombatState(state, attacker, defender);
   let rounds = 0;
 
-  while (rounds < MAX_ROUNDS) {
+  while (rounds < AUTO_RESOLVE_MAX_ROUNDS) {
     rounds++;
 
     // ── Exchange 1: first picks, then second (simultaneous reveal) ──
@@ -81,7 +80,7 @@ export function resolveCombatSilently(state, attacker, defender) {
     nextCombatRound(state, combat);
   }
 
-  // Safety cap: 50 rounds with no death — treat as draw (both survive)
+  // Safety cap: AUTO_RESOLVE_MAX_ROUNDS with no death — treat as draw (both survive)
   return { winner: null, loser: null, rounds };
 }
 

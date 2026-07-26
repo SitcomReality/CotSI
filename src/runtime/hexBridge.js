@@ -18,6 +18,7 @@ import { FACTIONS } from '../game/rules/factionData.js';
 import { interactBase } from '../game/state/baseInteraction.js';
 import { handleTeleportClick } from '../dev/devTools.js';
 import { setGameContext } from '../dev/devPerformance.js';
+import { CHAMPION_HEIGHT_OFFSET } from '../params/render/animationParams.js';
 
 /**
  * Called when the user clicks a hex on the map.
@@ -67,12 +68,12 @@ export function onHexClick(key) {
   if (allowed.includes(key)) {
     // Capture world-space origin before the state mutation
     const fromTile = G.tiles[coordKey(ch.pos)];
-    const fromY = fromTile ? tileTopY(fromTile.terrain) + 0.15 : 0.15;
+    const fromY = fromTile ? tileTopY(fromTile.terrain) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
     const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
     moveChampion(G, ch, key, 1);
     // Capture world-space destination after mutation
     const toTile = G.tiles[key];
-    const toY = toTile ? tileTopY(toTile.terrain) + 0.15 : 0.15;
+    const toY = toTile ? tileTopY(toTile.terrain) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
     const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
     setGameContext({
       phase: 'human_turn',

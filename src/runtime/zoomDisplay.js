@@ -7,6 +7,7 @@
  * import from render/ directly.
  */
 import { getSceneContext } from '../render/hexmap3d/hexMapRenderer.js';
+import { DEFAULT_REFERENCE_FRUSTUM } from '../params/render/cameraParams.js';
 
 /**
  * Update the zoom percentage display in the HUD.
@@ -22,7 +23,7 @@ export function refreshZoomDisplay() {
   const pct = cs?.referenceFrustum
     ? Math.round(100 * cs.referenceFrustum / cs.frustumSize)
     : cs
-      ? Math.round(100 * 40 / cs.frustumSize)
+      ? Math.round(100 * DEFAULT_REFERENCE_FRUSTUM / cs.frustumSize)
       : 100;
   zoomEl.textContent = pct + '%';
 }

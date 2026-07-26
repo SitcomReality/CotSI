@@ -24,6 +24,7 @@ import {
   computeInterpolatedPos,
   applyAnimationFrame,
 } from './movementCurves.js';
+import { MOVE_ANIM_DURATION, CHAMPION_HEIGHT_OFFSET, HEAD_BODY_OFFSET } from '../../../params/render/animationParams.js';
 
 // Re-exported so existing callers importing MOVE_DURATION from this module
 // don't need to update their import paths.
@@ -81,10 +82,10 @@ export function getAnimatingIds() {
  * @param {{x:number,y:number,z:number}} fromPos — world-space origin
  * @param {{x:number,y:number,z:number}} toPos   — world-space destination
  * @param {string} factionColorHex               — CSS hex colour for the body
- * @param {number} [duration=250]                — animation duration in ms
+ * @param {number} [duration=MOVE_ANIM_DURATION] — animation duration in ms
  * @param {Function} [onComplete]                — called when animation naturally finishes
  */
-export function queueOrStart(championId, fromPos, toPos, factionColorHex, duration = 250, onComplete = null) {
+export function queueOrStart(championId, fromPos, toPos, factionColorHex, duration = MOVE_ANIM_DURATION, onComplete = null) {
   if (!scene) return;
 
   const existing = activeAnimations.get(championId);

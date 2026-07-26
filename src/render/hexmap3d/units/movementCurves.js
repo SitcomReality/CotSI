@@ -12,11 +12,12 @@
  */
 
 import * as THREE from '../../../vendor/three.module.js';
+import { LIFT_RISE_END, LIFT_DESCENT_START, LIFT_HEIGHT, TILT_PHASE_START, TILT_PHASE_END, TILT_MAX_ANGLE, SWING_START, SWING_END, SWING_TRAVEL_RANGE, SWING_AMPLITUDE, HEAD_BODY_OFFSET } from '../../../params/render/animationParams.js';
 
 // ─── Tunable constants ───────────────────────────────────────────────────────
 
 /** Base duration of a single-hex movement animation in milliseconds. */
-export const MOVE_DURATION = 500;
+export { MOVE_DURATION } from '../../../params/render/animationParams.js';
 
 // ─── Color conversion ────────────────────────────────────────────────────────
 
@@ -41,8 +42,8 @@ export function hexToRgb(hex) {
  * @returns {number}
  */
 export function liftCurve(t) {
-  if (t <= 0.2) return t / 0.2;
-  if (t >= 0.8) return (1 - t) / 0.2;
+  if (t <= LIFT_RISE_END) return t / LIFT_RISE_END;
+  if (t >= LIFT_DESCENT_START) return (1 - t) / LIFT_RISE_END;
   return 1;
 }
 
@@ -53,9 +54,9 @@ export function liftCurve(t) {
  * @returns {number}
  */
 export function tiltCurve(t) {
-  const max = Math.PI / 12; // 15°
-  if (t <= 0.2) return -max * (t / 0.2);
-  if (t >= 0.8) return -max * ((1 - t) / 0.2);
+  const max = TILT_MAX_ANGLE;
+  if (t <= TILT_PHASE_START) return -max * (t / TILT_PHASE_START);
+  if (t >= TILT_PHASE_END) return -max * ((1 - t) / TILT_PHASE_START);
   return -max;
 }
 
@@ -66,9 +67,9 @@ export function tiltCurve(t) {
  * @returns {number}
  */
 export function swingCurve(t) {
-  if (t <= 0.1 || t >= 0.9) return 0;
-  const travelT = (t - 0.1) / 0.7;
-  return Math.sin(travelT * Math.PI * 2) * 0.05;
+  if (t <= SWING_START || t >= SWING_END) return 0;
+  const travelT = (t - SWING_START) / SWING_TRAVEL_RANGE;
+  return Math.sin(travelT * Math.PI * 2) * SWING_AMPLITUDE;
 }
 
 // ─── Position / frame logic ─────────────────────────────────────────────────
@@ -85,7 +86,7 @@ export function computeInterpolatedPos(anim, t) {
   const x = anim.fromX + (anim.toX - anim.fromX) * t;
   const z = anim.fromZ + (anim.toZ - anim.fromZ) * t;
   const baseY = anim.fromY + (anim.toY - anim.fromY) * t;
-  const y = baseY + liftCurve(t) * 0.25;
+  const y = baseY + liftCurve(t) * LIFT_HEIGHT;
   return { x, y, z };
 }
 
@@ -103,7 +104,7 @@ export function applyAnimationFrame(anim, t) {
 
   // Vertical: linear base (respects terrain height difference) + lift arc
   const baseY = anim.fromY + (anim.toY - anim.fromY) * t;
-  const y = baseY + liftCurve(t) * 0.25;
+  const y = baseY + liftCurve(t) * LIFT_HEIGHT;
 
   // Swing: perpendicular to the movement vector on the XZ plane
   const dx = anim.toX - anim.fromX;
@@ -123,7 +124,7 @@ export function applyAnimationFrame(anim, t) {
   anim.body.position.set(x + swingX, y, z + swingZ);
   anim.body.rotation.set(tilt, 0, 0);
 
-  // Head is offset 0.3 world units above the body (matching unitMeshes.js).
-  anim.head.position.set(x + swingX, y + 0.3, z + swingZ);
+  // Head is offset HEAD_BODY_OFFSET world units above the body (matching unitMeshes.js).
+  anim.head.position.set(x + swingX, y + HEAD_BODY_OFFSET, z + swingZ);
   anim.head.rotation.set(tilt, 0, 0);
 }

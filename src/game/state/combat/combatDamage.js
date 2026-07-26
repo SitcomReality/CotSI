@@ -10,6 +10,8 @@ import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { FACTIONS } from '../../rules/factionData.js';
 import { deriveOrder } from './combatState.js';
 import { applyFinalBonuses } from './combatScoring.js';
+import { LOOT_GOLD_BASE, LOOT_GOLD_RANGE } from '../../../params/game/combatParams.js';
+import { FACTION_EVERKNOWN, FACTION_COUNT } from '../../../params/game/factionParams.js';
 
 function moveDamagedBeforeDamager(state, damagedId, damagerId){
   const di = state.globalOrder.indexOf(damagedId);
@@ -159,12 +161,12 @@ export function finalizeCombat(state, attacker, defender, attackerWon){
   if(attackerWon && attacker.alive && !defender.alive){
     attacker.pos = {...defender.pos};
     refreshVision(state);
-    const gold = defender.lootGold || (12 + Math.floor(state._rng()*14));
+    const gold = defender.lootGold || (LOOT_GOLD_BASE + Math.floor(state._rng()*LOOT_GOLD_RANGE));
     attacker.gold += gold;
     attacker.relics += 1;
     recordLedgerEntry(attacker, `+${gold} gold, +1 relic — spoils of ${defender.name}`, 'gain', 'relic');
-    if(attacker.faction===3){
-      const rf = Math.floor(state._rng()*7); attacker.potencies[rf] += 1;
+    if(attacker.faction===FACTION_EVERKNOWN){
+      const rf = Math.floor(state._rng()*FACTION_COUNT); attacker.potencies[rf] += 1;
       recordLedgerEntry(attacker, `+1 ${FACTIONS[rf].name} potency — Everknown`, 'gain', 'potency');
     }
     addLogEntry(state, {

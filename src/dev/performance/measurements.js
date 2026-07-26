@@ -7,6 +7,8 @@
  * Layer: dev/
  */
 
+import { EMA_ALPHA } from '../../params/dev/performanceParams.js';
+
 // ─── State ─────────────────────────────────────────────────────────────────
 
 const _measurements = {}; // name -> { total, count, ema, enabled }
@@ -14,8 +16,6 @@ let _allEnabled = false;
 
 /** Frame-delta snapshot: shallow copy of { total, count } per measurement */
 let _frameStartSnapshot = null;
-
-const EMA_ALPHA = 0.3;
 
 // ─── Public API ────────────────────────────────────────────────────────────
 

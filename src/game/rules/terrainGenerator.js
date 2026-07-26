@@ -24,6 +24,7 @@ import { TERRAIN } from './terrainTypes.js';
 import { DEFAULT_THRESHOLDS, DEFAULT_FEATURES } from './terrainTypes.js';
 import { tileToChunk, localCoord, localKey, hexesInChunk } from '../../engine/rules/chunkGrid.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
+import { NOISE_CHANNEL_ELEVATION, NOISE_CHANNEL_MOISTURE, NOISE_CHANNEL_FEATURES, NOISE_CHANNEL_DEBRIS, NOISE_CHANNEL_DEBRIS_KIND, DEBRIS_SPAWN_THRESHOLD, DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD, MOUNTAIN_PEAK_MIN_NEIGHBORS, WATER_BFS_MAX_DEPTH, OCEAN_EDGE_BUFFER, KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_SCALE, KNOT_AMOUNT_VARIATION_MOD } from '../../params/game/worldParams.js';
 
 // ---------------------------------------------------------------------------
 // Threshold helpers
@@ -92,7 +93,7 @@ function tagMountainType(tile, tileLookup) {
   }
   if (mtCount === 0) {
     tile.mountainType = 'isolated';
-  } else if (mtCount >= 4) {
+  } else if (mtCount >= MOUNTAIN_PEAK_MIN_NEIGHBORS) {
     tile.mountainType = 'peak';
   } else {
     tile.mountainType = 'slope';
@@ -118,7 +119,7 @@ function tagMountainType(tile, tileLookup) {
  */
 function waterTypeForTile(seed, q, r, radius, T, tileLookup) {
   // If this tile itself touches the map edge, it's ocean immediately
-  if (distance({ q: 0, r: 0 }, { q, r }) >= radius - 0.5) {
+  if (distance({ q: 0, r: 0 }, { q, r }) >= radius - OCEAN_EDGE_BUFFER) {
     return 'ocean';
   }
 
@@ -129,7 +130,7 @@ function waterTypeForTile(seed, q, r, radius, T, tileLookup) {
 
   while (queue.length) {
     const cur = queue.shift();
-    if (cur.depth >= 3) continue;
+    if (cur.depth >= WATER_BFS_MAX_DEPTH) continue;
 
     for (const n of neighbors({ q: cur.q, r: cur.r })) {
       const nk = `${n.q},${n.r}`;
@@ -145,7 +146,7 @@ function waterTypeForTile(seed, q, r, radius, T, tileLookup) {
       if (!isWater) continue;
 
       // Check if this water tile touches the map edge
-      if (distance({ q: 0, r: 0 }, { q: n.q, r: n.r }) >= radius - 0.5) {
+      if (distance({ q: 0, r: 0 }, { q: n.q, r: n.r }) >= radius - OCEAN_EDGE_BUFFER) {
         return 'ocean';
       }
 
@@ -161,8 +162,8 @@ function waterTypeForTile(seed, q, r, radius, T, tileLookup) {
  * Used for neighbours that may not have been generated yet.
  */
 function _noiseIsWater(seed, q, r, T) {
-  const elev = seededNoise(seed, q, r, 1) * T.heightMult;
-  const moist = seededNoise(seed, q, r, 2);
+  const elev = seededNoise(seed, q, r, NOISE_CHANNEL_ELEVATION) * T.heightMult;
+  const moist = seededNoise(seed, q, r, NOISE_CHANNEL_MOISTURE);
   return elev < T.waterThreshold && moist > T.waterMinMoisture;
 }
 
@@ -200,8 +201,8 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
 
   // --- Pass 1: Generate base terrain ---
   for (const { q, r } of candidates) {
-    const elevation = seededNoise(seed, q, r, 1) * T.heightMult;
-    const moisture = seededNoise(seed, q, r, 2);
+    const elevation = seededNoise(seed, q, r, NOISE_CHANNEL_ELEVATION) * T.heightMult;
+    const moisture = seededNoise(seed, q, r, NOISE_CHANNEL_MOISTURE);
     const terrain = classifyTerrain(elevation, moisture, T);
     const { lq, lr } = localCoord(chunkQ, chunkR, q, r);
     tileMap.set(localKey(lq, lr), { q, r, terrain, feature: null, mountainType: null, waterType: null, debris: null });
@@ -217,8 +218,8 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
       return tileMap.get(localKey(lq, lr)) || undefined;
     }
     // Out of chunk — compute terrain from noise
-    const elevation = seededNoise(seed, nq, nr, 1) * T.heightMult;
-    const moisture = seededNoise(seed, nq, nr, 2);
+    const elevation = seededNoise(seed, nq, nr, NOISE_CHANNEL_ELEVATION) * T.heightMult;
+    const moisture = seededNoise(seed, nq, nr, NOISE_CHANNEL_MOISTURE);
     const terrain = classifyTerrain(elevation, moisture, T);
     return terrain === 'mountain' ? { terrain: 'mountain', q: nq, r: nr } : undefined;
   };
@@ -239,14 +240,14 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
   // --- Pass 4: Sprinkle features (trees, knots) ---
   for (const [, tile] of tileMap) {
     if (!TERRAIN[tile.terrain].passable) continue;
-    const roll = seededNoise(seed, tile.q, tile.r, 4);
+    const roll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_FEATURES);
     if (roll > T.treeThreshold && !T.treeExclude.includes(tile.terrain)) {
       const density = tile.terrain === 'forest' ? 'dense'
         : tile.terrain === 'plains' ? 'medium'
         : 'sparse';
       tile.feature = { kind: 'tree', nextFruitDay: 1, ripe: true, density };
     } else if (roll < T.knotThreshold) {
-      tile.feature = { kind: 'knot', mined: false, amount: 2 + Math.floor(roll * 100) % 3 };
+      tile.feature = { kind: 'knot', mined: false, amount: KNOT_BASE_AMOUNT + Math.floor(roll * KNOT_AMOUNT_VARIATION_SCALE) % KNOT_AMOUNT_VARIATION_MOD };
     }
   }
 
@@ -254,11 +255,11 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
   for (const [, tile] of tileMap) {
     if (!TERRAIN[tile.terrain].passable) continue;
     if (tile.feature) continue;
-    const debrisRoll = seededNoise(seed, tile.q, tile.r, 5);
-    if (debrisRoll > 0.92) {
-      const kindRoll = seededNoise(seed, tile.q, tile.r, 6);
-      const kind = kindRoll < 0.4 ? 'tuft'
-        : kindRoll < 0.7 ? 'rock'
+    const debrisRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS);
+    if (debrisRoll > DEBRIS_SPAWN_THRESHOLD) {
+      const kindRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS_KIND);
+      const kind = kindRoll < DEBRIS_TUFT_THRESHOLD ? 'tuft'
+        : kindRoll < DEBRIS_ROCK_THRESHOLD ? 'rock'
         : 'flower';
       tile.debris = { kind };
     }

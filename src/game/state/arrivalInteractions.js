@@ -7,15 +7,17 @@ import { addLogEntry } from './gameLog.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
+import { FRUIT_HEAL_VERDANT, FRUIT_HEAL_STANDARD, FRUIT_REGROWTH_DAYS, KNOT_DEFAULT_AMOUNT } from '../../params/game/economyParams.js';
+import { FACTION_VERDANT } from '../../params/game/factionParams.js';
 
 export function interactOnArrival(state, champ) {
   const factionMap = buildChampionFactionMap(state.champions);
   const tile = state.tiles[coordKey(champ.pos)];
   if (tile.feature?.kind === 'tree' && tile.feature.ripe !== false) {
     if (!tile.feature.nextFruitDay || state.day >= tile.feature.nextFruitDay) {
-      const heal = champ.faction === 2 ? 34 : 18;
+      const heal = champ.faction === FACTION_VERDANT ? FRUIT_HEAL_VERDANT : FRUIT_HEAL_STANDARD;
       champ.hp = Math.min(champ.maxHp, champ.hp + heal);
-      tile.feature.nextFruitDay = state.day + 4;
+      tile.feature.nextFruitDay = state.day + FRUIT_REGROWTH_DAYS;
       tile.feature.ripe = false;
       state._unripeTrees.add(coordKey(champ.pos));
       addLogEntry(state, {
@@ -29,7 +31,7 @@ export function interactOnArrival(state, champ) {
     }
   }
   if (tile.feature?.kind === 'knot' && !tile.feature.mined) {
-    const amt = tile.feature.amount || 2;
+    const amt = tile.feature.amount || KNOT_DEFAULT_AMOUNT;
     champ.knot += amt;
     tile.feature.mined = true;
     addLogEntry(state, {

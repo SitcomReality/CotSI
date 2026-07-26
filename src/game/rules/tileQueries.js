@@ -4,6 +4,7 @@
  */
 import { coordKey, hexRing, hexesWithinRadius } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from './terrainTypes.js';
+import { MAX_SPAWN_SEARCH_RINGS } from '../../params/game/spawnParams.js';
 
 /**
  * Find the closest passable, unclaimed hex to `origin`.
@@ -25,7 +26,7 @@ export function nearestOpenKey(tiles, origin, usedSet, allowFeatureOverwrite = f
     return originKey;
   }
   // Expand outward in rings
-  for (let d = 1; d <= 100; d++) {
+  for (let d = 1; d <= MAX_SPAWN_SEARCH_RINGS; d++) {
     const ring = hexRing(d);
     for (const c of ring) {
       const ck = coordKey({ q: c.q + origin.q, r: c.r + origin.r });
@@ -73,7 +74,7 @@ export function nearestOpenMultiRing(tiles, origin, usedSet, minClearRadius = 2)
   }
 
   // Expand outward in rings
-  for (let d = 1; d <= 100; d++) {
+  for (let d = 1; d <= MAX_SPAWN_SEARCH_RINGS; d++) {
     const ring = hexRing(d);
     for (const c of ring) {
       const ck = coordKey({ q: c.q + origin.q, r: c.r + origin.r });

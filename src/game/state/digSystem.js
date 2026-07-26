@@ -10,12 +10,14 @@ import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment, factionAccentVar } from '../rules/logHelpers.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { G } from './liveGame.js';
+import { DIG_RELIC_CHANCE, DIG_POTENCY_CHANCE, DIG_GOLD_BASE, DIG_GOLD_RANDOM, DIG_GOLD_DAY_DIVISOR } from '../../params/game/economyParams.js';
+import { FACTION_EVERKNOWN, FACTION_COUNT } from '../../params/game/factionParams.js';
 
 export function resolvePendingDig(state, ch) {
   ch.pendingDig = false;
   const roll = state._rng();
   const factionMap = buildChampionFactionMap(state.champions);
-  if (roll < 0.075) {
+  if (roll < DIG_RELIC_CHANCE) {
     ch.relics++;
     addLogEntry(state, {
       category: LOG_CATEGORY.ECONOMY,
@@ -39,13 +41,13 @@ export function resolvePendingDig(state, ch) {
       };
     }
     // Archive racial
-    if (ch.faction === 3) {
-      const rf = Math.floor(state._rng() * 7);
+    if (ch.faction === FACTION_EVERKNOWN) {
+      const rf = Math.floor(state._rng() * FACTION_COUNT);
       ch.potencies[rf]++;
       recordLedgerEntry(ch, `+1 ${FACTIONS[rf].name} potency — Everknown`, 'gain', 'potency');
     }
-  } else if (roll < 0.33) {
-    const f = Math.floor(state._rng() * 7);
+  } else if (roll < DIG_POTENCY_CHANCE) {
+    const f = Math.floor(state._rng() * FACTION_COUNT);
     ch.potencies[f]++;
     addLogEntry(state, {
       category: LOG_CATEGORY.ECONOMY,
@@ -56,7 +58,7 @@ export function resolvePendingDig(state, ch) {
     });
     recordLedgerEntry(ch, `+1 ${FACTIONS[f].name} potency — night dig`, 'gain', 'potency');
   } else {
-    const gold = 7 + Math.floor(state._rng() * 12) + Math.floor(state.day / 7);
+    const gold = DIG_GOLD_BASE + Math.floor(state._rng() * DIG_GOLD_RANDOM) + Math.floor(state.day / DIG_GOLD_DAY_DIVISOR);
     ch.gold += gold;
     addLogEntry(state, {
       category: LOG_CATEGORY.ECONOMY,

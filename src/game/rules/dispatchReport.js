@@ -9,10 +9,12 @@
 import { FACTIONS, ARTIFACTS } from './factionData.js';
 import { TERRAIN } from './terrainTypes.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
+import { DAYS_PER_WEEK } from '../../params/game/worldParams.js';
+import { HOLLOW_HP_GROUP_SIZE, HOLLOW_WEEK_BLOCK } from '../../params/game/combatParams.js';
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 
-const weekOf = (day) => Math.floor((day - 1) / 7) + 1;
+const weekOf = (day) => Math.floor((day - 1) / DAYS_PER_WEEK) + 1;
 
 // ── Effect contributors ─────────────────────────────────────────────────────
 // Each contributor(state, champ, effects) pushes { source, text, tone, category } lines
@@ -132,7 +134,7 @@ function factionEffects(state, champ, effects) {
     case 6: {
       // Mirrors finalScoreBonus in game/state/combat/combatScoring.js
       const missing = champ.maxHp - champ.hp;
-      const bonus = Math.ceil(missing / 10) * Math.ceil(week / 3);
+      const bonus = Math.ceil(missing / HOLLOW_HP_GROUP_SIZE) * Math.ceil(week / HOLLOW_WEEK_BLOCK);
       effects.push({
         source: 'Faction',
         text: `Vaunted Nothing: your wounds add ${signed(bonus)} to your final combat score.`,

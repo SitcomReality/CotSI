@@ -7,6 +7,7 @@ import { isBlockedForMovement } from './entityQueries.js';
 import { refreshVision } from './fogOfWar.js';
 import { interactOnArrival } from './arrivalInteractions.js';
 import { updateSpatialIndex } from './spatialIndex.js';
+import { SPUR_MOVE_BONUS, VERDANT_MOVE_BONUS, MIN_DAILY_MOVES } from '../../params/game/championParams.js';
 
 export function movementRange(state, champ) {
   const start = coordKey(champ.pos);
@@ -44,9 +45,9 @@ export function adjacentPassable(state, champ) {
 }
 
 export function dailyMoves(state, champ) {
-  const artifactMove = champ.artifact === 'spur' ? 1 : 0;
-  const verdantMove = champ.faction === 2 ? 1 : 0;
-  return Math.max(1, Math.floor((champ.baseMove + artifactMove + verdantMove) * state.weather.dayLength));
+  const artifactMove = champ.artifact === 'spur' ? SPUR_MOVE_BONUS : 0;
+  const verdantMove = champ.faction === 2 ? VERDANT_MOVE_BONUS : 0;
+  return Math.max(MIN_DAILY_MOVES, Math.floor((champ.baseMove + artifactMove + verdantMove) * state.weather.dayLength));
 }
 
 export function moveChampion(state, champ, targetKey, cost) {

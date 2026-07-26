@@ -6,7 +6,7 @@
  * and zoom (adjust frustum size) are allowed. No tilt or rotation.
  */
 
-const DEFAULT_FRUSTUM = 6; // vertical world units visible at zoom=1
+import { DEFAULT_FRUSTUM, CAMERA_PITCH, CAMERA_YAW, CAMERA_DISTANCE } from '../../../params/render/cameraParams.js';
 
 /**
  * Camera yaw: horizontal rotation of the orthographic camera around the Y axis.
@@ -16,7 +16,7 @@ const DEFAULT_FRUSTUM = 6; // vertical world units visible at zoom=1
  * with the 3D view. See `drawCameraIndicator()` in `minimapOverlayLayer.js` for
  * the canonical usage.
  */
-export const CAMERA_YAW = Math.PI / 6; // 30°
+export { CAMERA_YAW } from '../../../params/render/cameraParams.js';
 
 /**
  * Create a fresh camera state object with default values.
@@ -29,9 +29,9 @@ export function createCameraState(aspect) {
     targetX: 0,
     targetZ: 0,
     aspect,
-    pitch: Math.PI / 3.5,  // ~51°
+    pitch: CAMERA_PITCH,
     yaw: CAMERA_YAW,       // ~30° (south-west looking north-east)
-    distance: 50,           // camera distance from target (along look vector)
+    distance: CAMERA_DISTANCE,
     mapRadius: null,        // set by fitCameraToMap
     maxFrustumSize: null,   // set by fitCameraToMap — zoom upper bound
     referenceFrustum: null, // set by fitCameraToMap — anchors zoom percentage

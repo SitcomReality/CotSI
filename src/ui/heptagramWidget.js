@@ -1,5 +1,6 @@
 import { FACTIONS, beats } from '../game/rules/factionData.js';
 import { paleySVG } from './paleySVG.js';
+import { HEPTAGRAM_SELECTED_RADIUS, HEPTAGRAM_RADIUS, HEPTAGRAM_SELECTED_STROKE, HEPTAGRAM_STROKE } from '../params/ui/uiParams.js';
 
 let selected = -1;
 let mountId = 'paleyMount';
@@ -34,8 +35,8 @@ export function setHeptagramHighlight(factionIdx) {
   svg.querySelectorAll('circle').forEach(c => {
     const idx = parseInt(c.getAttribute('data-index'));
     const isSel = idx === factionIdx;
-    c.setAttribute('r', isSel ? 17 : 14);
-    c.setAttribute('stroke-width', isSel ? 2.5 : 1.6);
+    c.setAttribute('r', isSel ? HEPTAGRAM_SELECTED_RADIUS : HEPTAGRAM_RADIUS);
+    c.setAttribute('stroke-width', isSel ? HEPTAGRAM_SELECTED_STROKE : HEPTAGRAM_STROKE);
   });
 }
 

@@ -18,6 +18,7 @@ import { recordLedgerEntry, drainLedger } from './dispatchLedger.js';
 import { processReverie } from './factionAbilities.js';
 import { resolvePendingDig } from './digSystem.js';
 import { processFirstTurnDraft } from './artifactDraft.js';
+import { ARTIFACT_LEDGER_GOLD, ARTIFACT_BANDAGE_HEAL } from '../../params/game/economyParams.js';
 
 export function beginTurn(state, champId) {
   const ch = getChampion(state, champId);
@@ -26,11 +27,11 @@ export function beginTurn(state, champId) {
   ch.lastActionCombat = false;
   // Artifact passives
   if (ch.artifact === 'ledger') {
-    ch.gold += 2;
+    ch.gold += ARTIFACT_LEDGER_GOLD;
     recordLedgerEntry(ch, "+2 gold — Beggar-Saint's Ledger", 'gain', 'gold');
   }
   if (ch.artifact === 'bandage') {
-    const healed = Math.min(ch.maxHp, ch.hp + 2) - ch.hp;
+    const healed = Math.min(ch.maxHp, ch.hp + ARTIFACT_BANDAGE_HEAL) - ch.hp;
     ch.hp += healed;
     if (healed > 0) recordLedgerEntry(ch, `+${healed} HP — Patient Bandage`, 'gain', 'hp');
   }

@@ -3,6 +3,7 @@
 // that are behind the camera or off-screen.
 
 import { worldToScreen } from './screenProjection.js';
+import { OFFSCREEN_CULL_MARGIN_PX } from '../../params/render/overlayParams.js';
 
 /**
  * Project a world-space corner array to screen points, filtering out nulls
@@ -27,7 +28,7 @@ export function projectCorners(corners, camera, canvas) {
 export function isOffScreen(pts, cssW, cssH) {
   // Use generous margin so that hexes just outside the viewport are still
   // drawn (avoids pop-in during panning). Blur will bleed anyway.
-  const margin = 100;
+  const margin = OFFSCREEN_CULL_MARGIN_PX;
   let allLeft = true, allRight = true, allTop = true, allBottom = true;
   for (const p of pts) {
     if (p.x > -margin) allLeft = false;

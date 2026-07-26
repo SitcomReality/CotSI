@@ -1,4 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
+import { PAN_EPSILON } from '../../../params/render/cameraParams.js';
 
 /**
  * Convert screen‑space pointer deltas (dx pixels right, dy pixels down)
@@ -14,8 +15,8 @@ export function screenToWorldPan(dx, dy, camera) {
   const up    = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
   right.y = 0;
   up.y    = 0;
-  if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-  if (up.lengthSq()    < 0.001) up.set(0, 0, 1);
+  if (right.lengthSq() < PAN_EPSILON) right.set(1, 0, 0);
+  if (up.lengthSq()    < PAN_EPSILON) up.set(0, 0, 1);
   right.normalize();
   up.normalize();
   // Flip horizontal sign for “push” style (right drag → left pan)

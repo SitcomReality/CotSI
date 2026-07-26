@@ -14,6 +14,14 @@ import { FACTIONS } from '../../game/rules/factionData.js';
 import { getSceneContext } from '../hexmap3d/hexMapRenderer.js';
 import { CAMERA_YAW } from '../hexmap3d/scene/cameraState.js';
 import { MINIMAP_SIZE, PADDING, getOverlayCtx } from './minimapDom.js';
+import {
+  MINIMAP_BASE_MARKER_SIZE,
+  MINIMAP_CHAMPION_DOT_RADIUS,
+  MINIMAP_MOB_DOT_RADIUS,
+  MINIMAP_TRADER_DOT_RADIUS,
+  MINIMAP_INDICATOR_LINE_WIDTH,
+  CAMERA_STRETCH_EPSILON,
+} from '../../params/render/minimapParams.js';
 
 // Pre-compute trig values for the camera yaw rotation
 const COS_YAW = Math.cos(CAMERA_YAW);
@@ -60,7 +68,7 @@ export function renderOverlayLayer(G, humanView, scale, offsetX, offsetZ) {
     const { x, z } = hexCenter(p.q, p.r);
     const { px, py } = worldToMinimap(x, z, scale, offsetX, offsetZ);
     ctx.fillStyle = factionColorCSS(tile.feature.faction);
-    ctx.fillRect(px - 3, py - 3, 6, 6);
+    ctx.fillRect(px - MINIMAP_BASE_MARKER_SIZE, py - MINIMAP_BASE_MARKER_SIZE, MINIMAP_BASE_MARKER_SIZE * 2, MINIMAP_BASE_MARKER_SIZE * 2);
   }
 
   // Draw champions (visible only)
@@ -72,7 +80,7 @@ export function renderOverlayLayer(G, humanView, scale, offsetX, offsetZ) {
     const { px, py } = worldToMinimap(x, z, scale, offsetX, offsetZ);
     ctx.fillStyle = factionColorCSS(champ.faction);
     ctx.beginPath();
-    ctx.ellipse(px, py, 3, 3, 0, 0, Math.PI * 2);
+    ctx.ellipse(px, py, MINIMAP_CHAMPION_DOT_RADIUS, MINIMAP_CHAMPION_DOT_RADIUS, 0, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -86,7 +94,7 @@ export function renderOverlayLayer(G, humanView, scale, offsetX, offsetZ) {
       const { px, py } = worldToMinimap(x, z, scale, offsetX, offsetZ);
       ctx.fillStyle = 'rgba(120, 100, 80, 0.8)';
       ctx.beginPath();
-      ctx.ellipse(px, py, 2, 2, 0, 0, Math.PI * 2);
+      ctx.ellipse(px, py, MINIMAP_MOB_DOT_RADIUS, MINIMAP_MOB_DOT_RADIUS, 0, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -100,7 +108,7 @@ export function renderOverlayLayer(G, humanView, scale, offsetX, offsetZ) {
       const { px, py } = worldToMinimap(x, z, scale, offsetX, offsetZ);
       ctx.fillStyle = 'rgba(74, 191, 154, 0.9)';
       ctx.beginPath();
-      ctx.ellipse(px, py, 2, 2, 0, 0, Math.PI * 2);
+      ctx.ellipse(px, py, MINIMAP_TRADER_DOT_RADIUS, MINIMAP_TRADER_DOT_RADIUS, 0, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -141,7 +149,7 @@ function drawCameraIndicator(scale, offsetX, offsetZ) {
   const sinPitch = Math.sin(pitch);
   const cosYaw = Math.cos(yaw);
   const sinYaw = Math.sin(yaw);
-  const stretch = sinPitch > 0.01 ? 1 / sinPitch : 1;
+  const stretch = sinPitch > CAMERA_STRETCH_EPSILON ? 1 / sinPitch : 1;
 
   // Four camera-space corners: (+halfW, +halfH), (+halfW, -halfH),
   // (-halfW, -halfH), (-halfW, +halfH)
@@ -157,7 +165,7 @@ function drawCameraIndicator(scale, offsetX, offsetZ) {
   ];
 
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-  ctx.lineWidth = 1;
+  ctx.lineWidth = MINIMAP_INDICATOR_LINE_WIDTH;
   ctx.beginPath();
   const first = worldToMinimap(corners[0].x, corners[0].z, scale, offsetX, offsetZ);
   ctx.moveTo(first.px, first.py);

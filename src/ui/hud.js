@@ -1,6 +1,7 @@
 import { FACTIONS } from '../game/rules/factionData.js';
 import { h } from './domBuilder.js';
 import { getClock } from '../shared/clockScheduler.js';
+import { TOAST_DURATION_MS, END_TURN_PULSE_MS } from '../params/ui/uiParams.js';
 
 /** Show a brief toast notification. Pass bad=true for error styling. */
 export function toast(msg, bad) {
@@ -16,7 +17,7 @@ export function toast(msg, bad) {
   getClock().setTimeout(() => {
     t.classList.remove('show');
     t.classList.remove('toast--bad');
-  }, 1800, 'ui');
+  }, TOAST_DURATION_MS, 'ui');
 }
 
 /** Brief visual pulse on the End Turn button (in the left champion card). */
@@ -24,7 +25,7 @@ export function pulseEnd() {
   const b = document.querySelector('.left-endturn-btn');
   if (!b) return;
   b.classList.add('is-pulsing');
-  getClock().setTimeout(() => b.classList.remove('is-pulsing'), 160, 'ui');
+  getClock().setTimeout(() => b.classList.remove('is-pulsing'), END_TURN_PULSE_MS, 'ui');
 }
 
 /** Display the victory modal. */

@@ -9,6 +9,7 @@
  * hex-distance from center regardless of angle.
  */
 import { cubeRound } from '../../engine/rules/hexGrid.js';
+import { SPAWN_RING_FRACTION, MIN_SPAWN_RING, SPAWN_JITTER_FRACTION, MIN_SPAWN_JITTER, SPAWN_EDGE_MARGIN, ANGULAR_JITTER_FRACTION } from '../../params/game/spawnParams.js';
 
 /**
  * Compute a target hex coordinate for a champion's base, radially distributed.
@@ -20,14 +21,14 @@ import { cubeRound } from '../../engine/rules/hexGrid.js';
  * @returns {{ q: number, r: number }} Target axial coordinate
  */
 export function spawnTarget(i, N, rand, radius) {
-  const basesRing = Math.max(2, Math.floor(radius * 0.58));
-  const basesJitter = Math.max(1, Math.floor(radius * 0.10));
+  const basesRing = Math.max(MIN_SPAWN_RING, Math.floor(radius * SPAWN_RING_FRACTION));
+  const basesJitter = Math.max(MIN_SPAWN_JITTER, Math.floor(radius * SPAWN_JITTER_FRACTION));
   const wedgeSize = (2 * Math.PI) / N;
 
-  const ring = Math.max(2, Math.min(radius - 3,
+  const ring = Math.max(MIN_SPAWN_RING, Math.min(radius - SPAWN_EDGE_MARGIN,
     basesRing + Math.floor((rand() - 0.5) * 2 * basesJitter)));
 
-  const angle = (i / N) * 2 * Math.PI + (rand() - 0.5) * wedgeSize * 0.3;
+  const angle = (i / N) * 2 * Math.PI + (rand() - 0.5) * wedgeSize * ANGULAR_JITTER_FRACTION;
 
   // Convert polar (ring, angle) to a position in world space, then invert
   // through the hex projection to get fractional axial coords, then snap

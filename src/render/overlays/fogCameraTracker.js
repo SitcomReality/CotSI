@@ -2,6 +2,8 @@
 // Tracks camera position changes to determine whether cached fog masks need
 // regeneration. Exposes a reset for use after camera animations finish.
 
+import { CAMERA_HASH_PRECISION } from '../../params/render/overlayParams.js';
+
 let _lastCamTargetX = null;
 let _lastCamTargetZ = null;
 let _lastCamFrustum = null;
@@ -15,9 +17,9 @@ export function cameraHasChanged(camera) {
   const frustum = camera.top - camera.bottom; // orthographic vertical extent
 
   // Hash the camera state into a rough comparison key
-  const keyX = Math.round(pos.x * 10);
-  const keyZ = Math.round(pos.z * 10);
-  const keyF = Math.round(frustum * 10);
+  const keyX = Math.round(pos.x * CAMERA_HASH_PRECISION);
+  const keyZ = Math.round(pos.z * CAMERA_HASH_PRECISION);
+  const keyF = Math.round(frustum * CAMERA_HASH_PRECISION);
 
   if (keyX !== _lastCamTargetX || keyZ !== _lastCamTargetZ || keyF !== _lastCamFrustum) {
     _lastCamTargetX = keyX;

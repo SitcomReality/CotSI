@@ -10,7 +10,7 @@
  * (0,0) rather than straddling a chunk boundary.
  */
 
-export const CHUNK_SIZE = 24;
+import { CHUNK_SIZE, TILE_TO_CHUNK_OFFSET } from '../../params/engine/chunkParams.js';
 
 /**
  * Map a tile's axial coordinate to its containing chunk.
@@ -20,8 +20,8 @@ export const CHUNK_SIZE = 24;
  */
 export function tileToChunk(q, r) {
   return {
-    cq: Math.floor(q / CHUNK_SIZE + 0.5),
-    cr: Math.floor(r / CHUNK_SIZE + 0.5),
+    cq: Math.floor(q / CHUNK_SIZE + TILE_TO_CHUNK_OFFSET),
+    cr: Math.floor(r / CHUNK_SIZE + TILE_TO_CHUNK_OFFSET),
   };
 }
 

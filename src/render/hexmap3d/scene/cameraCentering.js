@@ -8,8 +8,7 @@
 import { hexCenter } from '../hexWorldSpace.js';
 import { fitCameraToMap } from './cameraZoomMath.js';
 
-const MIN_FRUSTUM = 5;
-const ABSOLUTE_MAX_FRUSTUM = 15;
+import { ZOOM_MIN_FRUSTUM, ZOOM_MAX_FRUSTUM, SIGHT_ZOOM_MARGIN, DEFAULT_REFERENCE_FRUSTUM } from '../../../params/render/cameraParams.js';
 
 /**
  * Center the camera on a hex tile and reset to the fit-to-map zoom level.
@@ -38,14 +37,14 @@ export function centerOnHexWithSightZoom(state, q, r, sight) {
   // World extent of the sight radius (diameter in world units)
   const sightExtent = Math.sqrt(3) * sight * 2;
   const sinPitch = Math.sin(state.pitch);
-  const margin = 1.4; // a bit tighter than full-map margin
+  const margin = SIGHT_ZOOM_MARGIN;
   const desiredWorld = sightExtent * margin;
   const desiredFrustum = sinPitch > 0.01
     ? desiredWorld * sinPitch
     : desiredWorld;
 
-  state.frustumSize = Math.max(MIN_FRUSTUM, Math.min(
-    state.maxFrustumSize ?? ABSOLUTE_MAX_FRUSTUM,
+  state.frustumSize = Math.max(ZOOM_MIN_FRUSTUM, Math.min(
+    state.maxFrustumSize ?? ZOOM_MAX_FRUSTUM,
     desiredFrustum
   ));
   state.targetX = hexCenter(q, r).x;
@@ -57,17 +56,17 @@ export function centerOnHexWithSightZoom(state, q, r, sight) {
  * Zoom percentage is map-relative: 400% = 4× closer than the full-map view.
  * Clamped within the current min/max frustum bounds.
  * Uses `state.referenceFrustum` (set by fitCameraToMap) as the 100% anchor;
- * falls back to hardcoded 40 when no reference is available.
+ * falls back to DEFAULT_REFERENCE_FRUSTUM when no reference is available.
  * @param {object} state - camera state
  * @param {number} q - hex column coordinate
  * @param {number} r - hex row coordinate
  * @param {number} zoomPercent - desired zoom level (e.g. 400 for 400%)
  */
 export function centerOnHexWithFixedZoom(state, q, r, zoomPercent) {
-  const ref = state.referenceFrustum ?? 40;
+  const ref = state.referenceFrustum ?? DEFAULT_REFERENCE_FRUSTUM;
   const desiredFrustum = (100 * ref) / zoomPercent;
-  state.frustumSize = Math.max(MIN_FRUSTUM, Math.min(
-    state.maxFrustumSize ?? ABSOLUTE_MAX_FRUSTUM,
+  state.frustumSize = Math.max(ZOOM_MIN_FRUSTUM, Math.min(
+    state.maxFrustumSize ?? ZOOM_MAX_FRUSTUM,
     desiredFrustum
   ));
   state.targetX = hexCenter(q, r).x;

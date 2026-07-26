@@ -5,20 +5,16 @@ import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileTopY } from '../hexmap3d/hexMapRenderer.js';
 import { getDerivedMoveHighlights, getHoveredKey } from './overlayStack.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
+import { MOVE_ALLOWED_WIDTH, MOVE_HOVER_WIDTH, HIGHLIGHT_RADIUS_FRAC, HIGHLIGHT_Y_OFFSET } from '../../params/render/overlayParams.js';
 
 // ---------------------------------------------------------------------------
 // Visual constants
 // ---------------------------------------------------------------------------
 const ALLOWED_FILL   = 'rgba(255, 232, 128, 0.35)';
 const ALLOWED_STROKE = '#ffe880';
-const ALLOWED_WIDTH  = 2;
 
 const HOVER_FILL     = 'rgba(232, 228, 220, 0.55)';
 const HOVER_STROKE   = '#e8e4dc';
-const HOVER_WIDTH    = 3;
-
-// Slightly smaller than the tile radius to fit inside hex borders
-const HIGHLIGHT_RADIUS = 0.92;
 
 // ---------------------------------------------------------------------------
 // Render entry point
@@ -47,12 +43,12 @@ export function renderMovementHighlights(ctx2d, state, camera, _time) {
     const hc = hexCenter3D(tile.q, tile.r, surfaceY);
 
     // Project all 6 corners of the hex (slightly above surface)
-    const corners = hexCornersXZ(hc.x, hc.z, HIGHLIGHT_RADIUS);
+    const corners = hexCornersXZ(hc.x, hc.z, HIGHLIGHT_RADIUS_FRAC);
     const screenPoints = [];
     let behindCamera = false;
 
     for (const c of corners) {
-      const s = worldToScreen(c.x, surfaceY + 0.06, c.z, camera, canvas);
+      const s = worldToScreen(c.x, surfaceY + HIGHLIGHT_Y_OFFSET, c.z, camera, canvas);
       if (!s) {
         behindCamera = true;
         break;
@@ -65,7 +61,7 @@ export function renderMovementHighlights(ctx2d, state, camera, _time) {
     const isHovered = key === hoveredKey;
     const fill   = isHovered ? HOVER_FILL   : ALLOWED_FILL;
     const stroke = isHovered ? HOVER_STROKE : ALLOWED_STROKE;
-    const width  = isHovered ? HOVER_WIDTH  : ALLOWED_WIDTH;
+    const width  = isHovered ? MOVE_HOVER_WIDTH  : MOVE_ALLOWED_WIDTH;
 
     ctx2d.beginPath();
     ctx2d.moveTo(screenPoints[0].x, screenPoints[0].y);

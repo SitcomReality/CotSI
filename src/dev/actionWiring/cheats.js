@@ -4,6 +4,7 @@
  * Layer: dev/ — wires cheats, runtime, and shared.
  */
 
+import { CHEAT_COMBAT_DAMAGE_DEFAULT } from '../../params/dev/cheatParams.js';
 import { registerAction } from '../../shared/actionBus.js';
 import { cheatGold10, cheatHp50, cheatHpFull, cheatRelic1, cheatKnot5, cheatPotencyAll } from '../cheats/resources.js';
 import { cheatFillMoves, cheatTeleport } from '../cheats/movement.js';
@@ -28,7 +29,7 @@ export function registerCheatActions() {
 
   registerAction('dev:cheat:combatDamage', () => {
     const input = document.getElementById('devCombatDmgInput');
-    const amount = input ? parseInt(input.value, 10) : 20;
+    const amount = input ? parseInt(input.value, 10) : CHEAT_COMBAT_DAMAGE_DEFAULT;
     cheatCombatDamage(amount);
   });
 

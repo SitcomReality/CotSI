@@ -8,15 +8,16 @@
  * Layer: dev/ — depends on stats.js and the FrameEntry type.
  */
 
+import { TARGET_FPS, FRAME_GOOD_MARGIN_MS, FRAME_BAD_THRESHOLD_MS, FRAME_HITCH_THRESHOLD_MS, FRAME_MAJOR_HITCH_THRESHOLD_MS, CLUSTER_SKIP_TOLERANCE, CLUSTER_MIN_SIZE, WORST_FRAMES_COUNT, SPAN_FILTER_MIN_MS, MEM_WARN_NEAR_LIMIT_RATIO, MEM_WARN_HIGH_AVG_RATIO, ALLOC_RATE_WARN_MB, JS_OVERHEAD_WARN_RATIO, JS_OVERHEAD_HIGH_WARN_RATIO, UNACCOUNTED_FRAME_WARN_PCT, VARIANCE_WARN_MIN_CALLS, VARIANCE_WARN_RATIO_MULTIPLIER } from '../../params/dev/performanceParams.js';
 import { computeStats, percentile } from './stats.js';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const TARGET_FRAME_MS = 1000 / 60; // 16.67
-const GOOD_THRESHOLD = TARGET_FRAME_MS + 2;   // ~18.7ms — still basically 60fps
-const BAD_THRESHOLD = 33.3;                    // missed 30fps
-const HITCH_THRESHOLD = 50;                    // noticeable hitch
-const MAJOR_HITCH_THRESHOLD = 100;             // freeze territory
+const TARGET_FRAME_MS = 1000 / TARGET_FPS; // 16.67
+const GOOD_THRESHOLD = TARGET_FRAME_MS + FRAME_GOOD_MARGIN_MS;   // ~18.7ms — still basically 60fps
+const BAD_THRESHOLD = FRAME_BAD_THRESHOLD_MS;                    // missed 30fps
+const HITCH_THRESHOLD = FRAME_HITCH_THRESHOLD_MS;                    // noticeable hitch
+const MAJOR_HITCH_THRESHOLD = FRAME_MAJOR_HITCH_THRESHOLD_MS;             // freeze territory
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -92,10 +93,10 @@ function _buildSlowClusters(frames) {
       current.skipCount = 0;
     } else if (current) {
       current.skipCount++;
-      // Tolerate up to 2 non-slow frames between slow ones
-      if (current.skipCount > 2) {
-        // Flush if the cluster has at least 2 slow frames
-        if (current.entries.length >= 2) {
+      // Tolerate up to CLUSTER_SKIP_TOLERANCE non-slow frames between slow ones
+      if (current.skipCount > CLUSTER_SKIP_TOLERANCE) {
+        // Flush if the cluster has at least CLUSTER_MIN_SIZE slow frames
+        if (current.entries.length >= CLUSTER_MIN_SIZE) {
           clusters.push(current);
         }
         current = null;
@@ -104,7 +105,7 @@ function _buildSlowClusters(frames) {
   }
 
   // Flush trailing cluster
-  if (current && current.entries.length >= 2) {
+  if (current && current.entries.length >= CLUSTER_MIN_SIZE) {
     clusters.push(current);
   }
 
@@ -133,7 +134,7 @@ function _buildSlowClusters(frames) {
  * @param {number} [n=5]
  * @returns {Array<{ frameIndex: number, frameTime: number, context: string, spans: Array<{ name: string, ms: number, count: number }> }>}
  */
-function _buildWorstFrames(frames, n = 5) {
+function _buildWorstFrames(frames, n = WORST_FRAMES_COUNT) {
   const indexed = frames
     .map((entry, i) => ({ index: i, entry }))
     .filter(({ entry }) => entry.frameTime > 0)
@@ -143,7 +144,7 @@ function _buildWorstFrames(frames, n = 5) {
   return indexed.map(({ index, entry }) => {
     // Collect non-trivial spans for this frame
     const spans = (entry.spans || [])
-      .filter(s => s.ms > 0.1)
+      .filter(s => s.ms > SPAN_FILTER_MIN_MS)
       .sort((a, b) => b.ms - a.ms);
     return {
       frameIndex: index,
@@ -634,15 +635,15 @@ export function buildReport(frames, interval, longTasks = []) {
     warnings.push(`Found ${slowClusters.length} slow-frame clusters (${thBad + thHitch + thMajor} frames >${_r1(BAD_THRESHOLD)}ms)`);
   }
 
-  if (memStats && memStats.limitMB != null && memStats.maxHeap > memStats.limitMB * 0.9) {
+  if (memStats && memStats.limitMB != null && memStats.maxHeap > memStats.limitMB * MEM_WARN_NEAR_LIMIT_RATIO) {
     warnings.push(`Memory heap near limit: ${_r1(memStats.maxHeap)}MB / ${_r1(memStats.limitMB)}MB`);
   }
-  if (memStats && memStats.limitMB != null && memStats.avgHeap > memStats.limitMB * 0.8) {
+  if (memStats && memStats.limitMB != null && memStats.avgHeap > memStats.limitMB * MEM_WARN_HIGH_AVG_RATIO) {
     warnings.push(`Sustained high memory: avg ${_r1(memStats.avgHeap)}MB / ${_r1(memStats.limitMB)}MB`);
   }
 
   // Allocation-rate warning (only when heap delta data is available)
-  if (heapDeltaStats && Math.abs(heapDeltaStats.avgMB) > 1) {
+  if (heapDeltaStats && Math.abs(heapDeltaStats.avgMB) > ALLOC_RATE_WARN_MB) {
     warnings.push(
       `High allocation rate: avg ${_r2(heapDeltaStats.avgMB)}MB/frame ` +
       `(max ${_r2(heapDeltaStats.maxMB)}MB) — likely GC contributor`
@@ -650,14 +651,14 @@ export function buildReport(frames, interval, longTasks = []) {
   }
 
   // JS overhead warning — invisible work inside the tick
-  if (jsOverhead && jsOverhead.invisibleRatio > 0.5) {
+  if (jsOverhead && jsOverhead.invisibleRatio > JS_OVERHEAD_WARN_RATIO) {
     const pct = _r1(jsOverhead.invisibleRatio * 100);
     warnings.push(
       `${pct}% of JS tick time is invisible to instrumentation ` +
       `— likely GC or untimed code paths`
     );
   }
-  if (jsOverhead && jsOverhead.invisibleRatio > 0.7 && thHitch > 0) {
+  if (jsOverhead && jsOverhead.invisibleRatio > JS_OVERHEAD_HIGH_WARN_RATIO && thHitch > 0) {
     const pct = _r1(jsOverhead.invisibleRatio * 100);
     warnings.push(
       `${pct}% JS overhead + ${thHitch} hitches with Long Task API ` +
@@ -666,7 +667,7 @@ export function buildReport(frames, interval, longTasks = []) {
     );
   }
 
-  if (timeBudget.pctUnaccounted > 70 && ftValues.length > 0 && thHitch > 0) {
+  if (timeBudget.pctUnaccounted > UNACCOUNTED_FRAME_WARN_PCT && ftValues.length > 0 && thHitch > 0) {
     warnings.push(
       `${_r1(timeBudget.pctUnaccounted)}% of frame time is unmeasured ` +
       `(${thHitch + thMajor} hitches >${_r1(HITCH_THRESHOLD)}ms with little measured work)`
@@ -685,7 +686,7 @@ export function buildReport(frames, interval, longTasks = []) {
   // Flag spans whose max call time is more than 5x their average (≥5 calls),
   // which suggests intermittent bottlenecks rather than steady load.
   for (const [name, s] of Object.entries(spanStats)) {
-    if (s.frameCallCount >= 5 && s.avgCall > 0 && s.max > s.avgCall * 5) {
+    if (s.frameCallCount >= VARIANCE_WARN_MIN_CALLS && s.avgCall > 0 && s.max > s.avgCall * VARIANCE_WARN_RATIO_MULTIPLIER) {
       const ratio = (s.max / s.avgCall).toFixed(1);
       warnings.push(
         `${name}: max=${_r1(s.max)}ms is ${ratio}x the average of ${_r2(s.avgCall)}ms ` +
@@ -836,7 +837,7 @@ function _formatReport(report) {
   }
 
   // ── Worst Frames Drill-Down ──
-  const worstFrames = _buildWorstFrames(report.timeline, 5);
+  const worstFrames = _buildWorstFrames(report.timeline, WORST_FRAMES_COUNT);
   s += `\n─── Worst 5 Frames by frameTime ───\n`;
   if (worstFrames.length > 0) {
     for (const wf of worstFrames) {

@@ -3,6 +3,8 @@ import { h } from './domBuilder.js';
 import { svgIcon } from './svgIcon.js';
 import { BALANCED_3P, TRAIT_DESCS } from './setupConstants.js';
 import { gameMode, roster } from './setupScreen.js';
+import { FACTION_COUNT } from '../params/game/factionParams.js';
+import { TRAIT_ICON_SIZE, CTRL_BADGE_ICON_SIZE, ROSTER_GLYPH_SIZE, LOCK_OVERLAY_ICON_SIZE } from '../params/ui/uiParams.js';
 
 // ─── Cross-highlight (lazy import to avoid circular deps) ───
 
@@ -37,7 +39,7 @@ function createCard(idx) {
   const validThirds = (gameMode === 3 && activeCount === 2)
     ? (() => {
         const [a, b] = activeIds;
-        const key = a < b ? a * 7 + b : b * 7 + a;
+        const key = a < b ? a * FACTION_COUNT + b : b * FACTION_COUNT + a;
         return BALANCED_3P[key] || [];
       })()
     : null;
@@ -51,7 +53,7 @@ function createCard(idx) {
   // Trait description
   const traitDesc = TRAIT_DESCS[idx];
   const traitEl = h('div', { class: 'roster-trait' },
-    svgIcon(traitDesc.icon, 11),
+    svgIcon(traitDesc.icon, TRAIT_ICON_SIZE),
     traitDesc.text
   );
 
@@ -67,7 +69,7 @@ function createCard(idx) {
     dataIdx: idx,
     title: isHuman ? 'Switch to Bot' : 'Switch to Human',
   },
-    svgIcon(isHuman ? 'i-confirm' : 'd-seal', 12, { ariaHidden: true }),
+    svgIcon(isHuman ? 'i-confirm' : 'd-seal', CTRL_BADGE_ICON_SIZE, { ariaHidden: true }),
     isHuman ? 'Human' : 'Bot'
   );
 
@@ -80,7 +82,7 @@ function createCard(idx) {
   },
     // Glyph
     h('div', { class: 'roster-glyph' },
-      svgIcon(r.glyphId, 28)
+      svgIcon(r.glyphId, ROSTER_GLYPH_SIZE)
     ),
     // Info column
     h('div', { class: 'roster-info' },
@@ -102,7 +104,7 @@ function createCard(idx) {
     // Lock overlay for 3P mode
     isLocked
       ? h('div', { class: 'roster-lock-overlay' },
-          svgIcon('i-cancel', 18)
+          svgIcon('i-cancel', LOCK_OVERLAY_ICON_SIZE)
         )
       : null
   );
@@ -140,7 +142,7 @@ export function refreshSetup() {
  * Returns the faction ID, or -1 if not determined yet / invalid.
  */
 export function getBalancedThird(a, b) {
-  const key = a < b ? a * 7 + b : b * 7 + a;
+  const key = a < b ? a * FACTION_COUNT + b : b * FACTION_COUNT + a;
   const valid = BALANCED_3P[key];
   if (!valid || valid.length === 0) return -1;
   return valid[0];

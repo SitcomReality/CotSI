@@ -16,6 +16,7 @@ import { recordLedgerEntry } from './dispatchLedger.js';
 import { checkVictory } from './victoryChecks.js';
 import { recordDeath } from './deathTracker.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
+import { MOB_HARASS_CHANCE, MOB_HARASS_DMG_BASE, MOB_HARASS_DMG_RANGE, MOB_WANDER_CHANCE } from '../../params/game/worldParams.js';
 
 export function finishTurn(state) {
   const champ = getChampion(state, state.activeChampionId);
@@ -104,8 +105,8 @@ function runWorldTurn(state) {
   // mob harass
   for (const mob of state.mobs.filter(m => m.alive)) {
     const adj = state.champions.find(c => c.alive && c.faction !== 2 && distance(c.pos, mob.pos) === 1);
-    if (adj && state._rng() < 0.55) {
-      const dmg = 4 + Math.floor(state._rng() * 5);
+    if (adj && state._rng() < MOB_HARASS_CHANCE) {
+      const dmg = MOB_HARASS_DMG_BASE + Math.floor(state._rng() * MOB_HARASS_DMG_RANGE);
       adj.hp -= dmg;
       addLogEntry(state, {
         category: LOG_CATEGORY.COMBAT,
@@ -119,7 +120,7 @@ function runWorldTurn(state) {
         adj.alive = false;
         recordDeath(state, adj, 'was erased by marginalia');
       }
-    } else if (mob.aggressive && state._rng() < 0.45) {
+    } else if (mob.aggressive && state._rng() < MOB_WANDER_CHANCE) {
       // wander
       const opts = neighbors(mob.pos)
         .map(coordKey)

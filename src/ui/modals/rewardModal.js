@@ -9,6 +9,7 @@ import { registerAction, clearGameReward } from '../../shared/actionBus.js';
 import { showModal, hideModal } from './modalShell.js';
 import { h } from '../domBuilder.js';
 import { svgIcon } from '../svgIcon.js';
+import { REWARD_BADGE_ICON_SIZE, REWARD_EFFECT_ICON_SIZE, REWARD_CHOICE_ICON_SIZE } from '../../params/ui/uiParams.js';
 
 let pendingChoice = null;
 let _selectionCleanup = null;
@@ -52,7 +53,7 @@ export function fillRewardModal({ title, type, bodyLines, rewards }) {
   if (type && TYPE_META[type]) {
     const meta = TYPE_META[type];
     badgeEl.appendChild(h('span', { class: 'reward-type-badge' },
-      svgIcon(meta.icon, 14, { ariaHidden: true }),
+      svgIcon(meta.icon, REWARD_BADGE_ICON_SIZE, { ariaHidden: true }),
       meta.label
     ));
   }
@@ -108,7 +109,7 @@ export function openArtifactChoiceModal(reward, onChoice) {
   const rt = reward.type || 'artifact';
   const meta = TYPE_META[rt] || TYPE_META.artifact;
   badgeEl.appendChild(h('span', { class: 'reward-type-badge' },
-    svgIcon(meta.icon, 14, { ariaHidden: true }),
+    svgIcon(meta.icon, REWARD_BADGE_ICON_SIZE, { ariaHidden: true }),
     meta.label
   ));
 
@@ -152,7 +153,7 @@ function _renderEffectRow(effect) {
     return h('div', { class: 'reward-effect' }, effect);
   }
   return h('div', { class: 'reward-effect' },
-    svgIcon(effect.icon, 18, { ariaHidden: true }),
+    svgIcon(effect.icon, REWARD_EFFECT_ICON_SIZE, { ariaHidden: true }),
     h('span', { class: 'reward-effect__label' }, effect.label)
   );
 }
@@ -171,7 +172,7 @@ function _buildChoiceCard(choice, idx) {
   const rt = choice.type || 'artifact';
   const meta = TYPE_META[rt] || TYPE_META.artifact;
   card.appendChild(h('span', { class: 'reward-choice-type' },
-    svgIcon(meta.icon, 12, { ariaHidden: true }),
+    svgIcon(meta.icon, REWARD_CHOICE_ICON_SIZE, { ariaHidden: true }),
     meta.label
   ));
 

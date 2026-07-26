@@ -3,6 +3,7 @@ import { listArchetypes, getArchetype } from '../game/rules/archetypes.js';
 import '../game/rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { buildRoster } from './setupHeptagram.js';
 import './setupActions.js'; // side-effect: register action handlers
+import { DEFAULT_MAP_RADIUS, DEFAULT_RELIC_TARGET, DEFAULT_HV, DEFAULT_WT, DEFAULT_MT } from '../params/ui/setupParams.js';
 
 // ─── Shared mutable state ───
 

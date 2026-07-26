@@ -13,9 +13,7 @@ import { blurMaskInPlace } from './fogBlur.js';
 import { ensureCanvases, getVisibleMaskCanvas, getExploredMaskCanvas } from './fogMaskCache.js';
 import { cameraHasChanged, resetFogMaskCameraHash } from './fogCameraTracker.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
-
-// Soft-edge blur radius in CSS pixels. Tunable aesthetic constant.
-const MASK_BLUR = 12;
+import { FOG_BLUR_RADIUS } from '../../params/render/overlayParams.js';
 
 // Fog revision tracking for cache invalidation
 let _lastFogRevision = -1;
@@ -98,8 +96,8 @@ export function generateFogMasks(state, camera, overlayCanvas, visible, explored
   }
 
   // Apply blur to both masks for soft edges.
-  blurMaskInPlace(getVisibleMaskCanvas(), MASK_BLUR);
-  blurMaskInPlace(getExploredMaskCanvas(), MASK_BLUR);
+  blurMaskInPlace(getVisibleMaskCanvas(), FOG_BLUR_RADIUS);
+  blurMaskInPlace(getExploredMaskCanvas(), FOG_BLUR_RADIUS);
 
   endMeasure('fogMaskGen');
   return {

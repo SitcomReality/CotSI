@@ -1,6 +1,7 @@
 import { h } from '../domBuilder.js';
 import { buildMainLogContent } from './mainLog.js';
 import { buildLogHistoryText } from './logPanel.js';
+import { LOG_TEXTAREA_ROWS } from '../../params/ui/uiParams.js';
 
 /**
  * Bind the right-panel log area, showing the rich log by default.
@@ -26,7 +27,7 @@ export function bindRightPanel(G) {
   const textArea = h('textarea', {
     class: 'log-overflow__text',
     readonly: 'true',
-    rows: '12',
+    rows: String(LOG_TEXTAREA_ROWS),
     style: { display: 'none' },
   }, buildLogHistoryText(logs));
 

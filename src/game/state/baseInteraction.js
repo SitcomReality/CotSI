@@ -9,6 +9,8 @@ import { FACTIONS } from '../rules/factionData.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment, factionAccentVar } from '../rules/logHelpers.js';
 import { toast } from '../../ui/hud.js';
+import { SANCTUARY_HEAL_FRACTION, POTENCY_COST_DISCOUNTED, POTENCY_COST_STANDARD } from '../../params/game/economyParams.js';
+import { FACTION_DISCOUNT } from '../../params/game/factionParams.js';
 
 /**
  * Handle interacting with a base (sanctuary or potency purchase).
@@ -20,7 +22,7 @@ export function interactBase(ch, tile) {
 
   if (tile.feature.faction === ch.faction) {
     // Sanctuary — heal 50% max HP
-    const healed = Math.ceil(ch.maxHp * 0.5);
+    const healed = Math.ceil(ch.maxHp * SANCTUARY_HEAL_FRACTION);
     ch.hp = Math.min(ch.maxHp, ch.hp + healed);
     ch.moves = 0;
     addLogEntry(G, {
@@ -33,7 +35,7 @@ export function interactBase(ch, tile) {
     recordLedgerEntry(ch, `+${healed} HP — sanctuary`, 'gain', 'hp');
   } else {
     // Buy faction potency
-    const cost = ch.faction === 4 ? 14 : 18;
+    const cost = ch.faction === FACTION_DISCOUNT ? POTENCY_COST_DISCOUNTED : POTENCY_COST_STANDARD;
     if (ch.gold >= cost) {
       ch.gold -= cost;
       ch.potencies[tile.feature.faction]++;

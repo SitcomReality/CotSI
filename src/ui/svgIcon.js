@@ -12,6 +12,7 @@
  * so any consumer can call this — no import.meta.url gymnastics.
  */
 import { iconSpritePath } from './iconPaths.js';
+import { DEFAULT_ICON_SIZE } from '../params/ui/uiParams.js';
 
 /**
  * @param {string} id  symbol id, e.g. 'g-crucible' or 'i-move'
@@ -19,7 +20,7 @@ import { iconSpritePath } from './iconPaths.js';
  * @param {object} [extra]  optional attributes: class, ariaHidden, style, etc.
  * @returns {SVGSVGElement}
  */
-export function svgIcon(id, size = 14, extra = {}) {
+export function svgIcon(id, size = DEFAULT_ICON_SIZE, extra = {}) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', String(size));
   svg.setAttribute('height', String(size));

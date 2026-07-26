@@ -1,14 +1,16 @@
 import { FACTIONS, potencyWithPrimary, beats } from '../../rules/factionData.js';
 import { scorePower } from '../../rules/paleyScoring.js';
 import { sideOf } from './combatState.js';
+import { ARTIFACT_MARGIN_BONUS, HOLLOW_HP_GROUP_SIZE, HOLLOW_WEEK_BLOCK } from '../../../params/game/combatParams.js';
+import { DAYS_PER_WEEK } from '../../../params/game/worldParams.js';
 
 function finalScoreBonus(state, champ){
   let bonus = state.weather.score[champ.faction] || 0;
-  if(champ.artifact==='margin') bonus += 2;
+  if(champ.artifact==='margin') bonus += ARTIFACT_MARGIN_BONUS;
   if(champ.faction===6){
     const missing = champ.maxHp - champ.hp;
-    const week = Math.floor((state.day-1)/7)+1;
-    bonus += Math.ceil(missing/10) * Math.ceil(week/3);
+    const week = Math.floor((state.day-1)/DAYS_PER_WEEK)+1;
+    bonus += Math.ceil(missing/HOLLOW_HP_GROUP_SIZE) * Math.ceil(week/HOLLOW_WEEK_BLOCK);
   }
   return bonus;
 }

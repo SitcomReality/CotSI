@@ -3,6 +3,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileTopY } from '../terrain/terrainMesh.js';
 import { getMountainGeo } from './geometries/index.js';
+import { MOUNTAIN_HASH_SEEDS, MOUNTAIN_PEAK_SCALE, MOUNTAIN_PEAK_SCALE_RANGE, MOUNTAIN_SLOPE_SCALE, MOUNTAIN_SLOPE_SCALE_RANGE, MOUNTAIN_NORMAL_SCALE, MOUNTAIN_NORMAL_SCALE_RANGE, MOUNTAIN_SNOW_RING_RADIUS, MOUNTAIN_SNOW_RING_HEIGHT, MOUNTAIN_PEAK_HEIGHT, MOUNTAIN_ROCK_COLOR, MOUNTAIN_SNOW_COLOR } from '../../../params/render/geometryParams.js';
 
 /**
  * Collect mountain instance data from visible tiles and return InstancedMeshes.
@@ -31,7 +32,7 @@ export function buildMountainMeshes(state, visible) {
 
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
-    const hash = ((tile.q * 13 + tile.r * 7) * 19) % 100;
+    const hash = ((tile.q * MOUNTAIN_HASH_SEEDS[0] + tile.r * MOUNTAIN_HASH_SEEDS[1]) * MOUNTAIN_HASH_SEEDS[2]) % MOUNTAIN_HASH_SEEDS[3];
     const rotY = 0; // no rotation — base hex corners align with tile edges
 
     const mt = tile.mountainType;
@@ -40,21 +41,21 @@ export function buildMountainMeshes(state, visible) {
       // Tall — center of a mountain group
       peakInstances.push({
         x, y: surfaceY, z,
-        scaleY: 1.3 + (hash % 15) / 100,
+        scaleY: MOUNTAIN_PEAK_SCALE + (hash % MOUNTAIN_PEAK_SCALE_RANGE) / 100,
         rotY,
       });
     } else if (mt === 'slope') {
       // Short — foothills at the group edge
       slopeInstances.push({
         x, y: surfaceY, z,
-        scaleY: 0.7 + (hash % 15) / 100,
+        scaleY: MOUNTAIN_SLOPE_SCALE + (hash % MOUNTAIN_SLOPE_SCALE_RANGE) / 100,
         rotY,
       });
     } else {
       // Isolated or un-tagged — medium height
       normalInstances.push({
         x, y: surfaceY, z,
-        scaleY: 0.9 + (hash % 25) / 100,
+        scaleY: MOUNTAIN_NORMAL_SCALE + (hash % MOUNTAIN_NORMAL_SCALE_RANGE) / 100,
         rotY,
       });
     }
@@ -134,17 +135,17 @@ export function buildChunkMountainMeshes(chunkTiles, visible) {
 
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
-    const hash = ((tile.q * 13 + tile.r * 7) * 19) % 100;
+    const hash = ((tile.q * MOUNTAIN_HASH_SEEDS[0] + tile.r * MOUNTAIN_HASH_SEEDS[1]) * MOUNTAIN_HASH_SEEDS[2]) % MOUNTAIN_HASH_SEEDS[3];
     const rotY = 0;
 
     const mt = tile.mountainType;
 
     if (mt === 'peak') {
-      peakInstances.push({ x, y: surfaceY, z, scaleY: 1.3 + (hash % 15) / 100, rotY });
+      peakInstances.push({ x, y: surfaceY, z, scaleY: MOUNTAIN_PEAK_SCALE + (hash % MOUNTAIN_PEAK_SCALE_RANGE) / 100, rotY });
     } else if (mt === 'slope') {
-      slopeInstances.push({ x, y: surfaceY, z, scaleY: 0.7 + (hash % 15) / 100, rotY });
+      slopeInstances.push({ x, y: surfaceY, z, scaleY: MOUNTAIN_SLOPE_SCALE + (hash % MOUNTAIN_SLOPE_SCALE_RANGE) / 100, rotY });
     } else {
-      normalInstances.push({ x, y: surfaceY, z, scaleY: 0.9 + (hash % 25) / 100, rotY });
+      normalInstances.push({ x, y: surfaceY, z, scaleY: MOUNTAIN_NORMAL_SCALE + (hash % MOUNTAIN_NORMAL_SCALE_RANGE) / 100, rotY });
     }
   }
 

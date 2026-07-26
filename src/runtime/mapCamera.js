@@ -5,6 +5,7 @@
  * on the same champion on every turn-started refresh.
  */
 import { centerOnHexWithFixedZoom, animateCenterOnHex, getSceneContext, setCameraStartCenter, hexCenter } from '../render/hexmap3d/hexMapRenderer.js';
+import { CAMERA_CHAMPION_ZOOM_PERCENT } from '../params/render/cameraParams.js';
 
 /** Track which champion we last centered the camera on (by id). */
 let lastCenteredChampionId = null;
@@ -17,7 +18,7 @@ let lastCenteredChampionId = null;
  * @param {number} r - Hex row
  * @param {number} [zoomPercent=400] - Zoom level as percentage
  */
-export function focusCameraOnHex(q, r, zoomPercent = 1200) {
+export function focusCameraOnHex(q, r, zoomPercent = CAMERA_CHAMPION_ZOOM_PERCENT) {
   const ctx = getSceneContext();
   if (!ctx) return;
   const state = ctx.getCameraState();

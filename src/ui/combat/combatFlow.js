@@ -24,6 +24,7 @@ import { closeCombat } from './combatLifecycle.js';
 import { wait } from './combatFx.js';
 import { animateReveal } from './combatReveal.js';
 import { handleRoundEnd } from './combatRoundEnd.js';
+import { BOT_PICK_DELAY_MS, ROUND_END_HOLD_MS } from '../../params/ui/combatUiParams.js';
 
 // ---- helpers ----
 
@@ -64,7 +65,7 @@ export async function runCombatFlow() {
 
       // Non-human (bot or mob - mobs have no controller)
       if (entity.controller !== 'human') {
-        await wait(450);
+        await wait(BOT_PICK_DELAY_MS);
         if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; } // cancelled (e.g. flee)
 
         const history = getOpponentRevealedHistory(combat, side);
@@ -93,7 +94,7 @@ export async function runCombatFlow() {
         await animateReveal(reveal);
       }
       renderCombat();
-      await wait(1200); // extra hold for the eye to register
+      await wait(ROUND_END_HOLD_MS); // extra hold for the eye to register
       if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; }
 
       advancePhase(combat);

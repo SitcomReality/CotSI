@@ -3,9 +3,10 @@ import { findPath } from '../../engine/rules/pathfinding.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 import { movementRange } from './championMovement.js';
 import { occupiedByChampion, occupiedByMob, occupiedByTrader, getChampion } from './entityQueries.js';
+import { BOT_SEARCH_MOVE_MULTIPLIER, BOT_SEARCH_PADDING, BOT_TREE_HP_THRESHOLD, BOT_TREE_SCORE_INJURED, BOT_TREE_SCORE_HEALTHY, BOT_KNOT_SCORE, BOT_EXPLORE_BONUS, BOT_DISTANCE_DECAY, BOT_ATTACK_CHAMPION_HP_THRESHOLD, BOT_ATTACK_CHAMPION_CHANCE, BOT_ATTACK_MOB_HP_THRESHOLD, BOT_ATTACK_MOB_CHANCE } from '../../params/game/aiParams.js';
 
 export function botChooseTarget(state, champ){
-  const searchRadius = champ.sight + champ.baseMove * 2 + 5;
+  const searchRadius = champ.sight + champ.baseMove * BOT_SEARCH_MOVE_MULTIPLIER + BOT_SEARCH_PADDING;
   const searchKeys = hexesWithinRadius(searchRadius)
     .map(c => coordKey({ q: c.q + champ.pos.q, r: c.r + champ.pos.r }));
 
@@ -15,17 +16,17 @@ export function botChooseTarget(state, champ){
     if(!tile) continue;
     if(!(champ.explored||[]).includes(key)) continue;
     let score=0;
-    if(tile.feature?.kind==='tree' && tile.feature.ripe!==false) score += (champ.hp < 60 ? 28 : 10);
-    if(tile.feature?.kind==='knot' && !tile.feature.mined) score += 32;
+    if(tile.feature?.kind==='tree' && tile.feature.ripe!==false) score += (champ.hp < BOT_TREE_HP_THRESHOLD ? BOT_TREE_SCORE_INJURED : BOT_TREE_SCORE_HEALTHY);
+    if(tile.feature?.kind==='knot' && !tile.feature.mined) score += BOT_KNOT_SCORE;
     // Note: mob/trader hexes are not scorable — champions cannot pathfind
     // onto them. The bot attacks adjacent mobs directly (see runBotTurn).
     // Base-hex scoring is also removed: champions cannot occupy base hexes;
     // they heal by interacting from an adjacent hex at distance 1.
     // Exploration bonus: prefer unexplored tiles
-    if (!(champ.explored || []).includes(key)) score += 5;
+    if (!(champ.explored || []).includes(key)) score += BOT_EXPLORE_BONUS;
     if(score>0){
       const d = distance(champ.pos, tile);
-      candidates.push({key, pos:{q:tile.q,r:tile.r}, score: score/(1+d*0.7)});
+      candidates.push({key, pos:{q:tile.q,r:tile.r}, score: score/(1+d*BOT_DISTANCE_DECAY)});
     }
   }
   candidates.sort((a,b)=> b.score-a.score);
@@ -57,11 +58,11 @@ export function runBotTurn(state){
   if(!champ || !champ.alive || champ.controller!=='bot') return false;
   // adjacent attack?
   const adjEnemies = state.champions.filter(c=> c.alive && c.id!==champ.id && distance(c.pos, champ.pos)===1);
-  if(adjEnemies.length && champ.hp>35 && state._rng()>0.55){
+  if(adjEnemies.length && champ.hp>BOT_ATTACK_CHAMPION_HP_THRESHOLD && state._rng()>BOT_ATTACK_CHAMPION_CHANCE){
     return {action:'attackChampion', target: adjEnemies[0]};
   }
   const adjMobs = state.mobs.filter(m=> m.alive && distance(m.pos, champ.pos)===1);
-  if(adjMobs.length && champ.hp>28 && state._rng()>0.4){
+  if(adjMobs.length && champ.hp>BOT_ATTACK_MOB_HP_THRESHOLD && state._rng()>BOT_ATTACK_MOB_CHANCE){
     return {action:'attackMob', target: adjMobs[0]};
   }
   const target = botChooseTarget(state, champ);

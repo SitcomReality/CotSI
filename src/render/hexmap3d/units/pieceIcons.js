@@ -12,6 +12,12 @@
  */
 
 import * as THREE from '../../../vendor/three.module.js';
+import {
+  PIECE_CAP_BG_COLOR,
+  PIECE_ICON_COLOR,
+  PIECE_TEX_SIZE,
+  PIECE_BG_RADIUS_OFFSET,
+} from '../../../params/render/geometryParams.js';
 
 // ─── Icon SVG definitions ───────────────────────────────────────────────────
 // These mirror the <symbol> entries in assets/icons/pieces.svg.
@@ -78,13 +84,13 @@ const ICON_SVG = {
 // ─── Visual constants ───────────────────────────────────────────────────────
 
 /** Background fill colour for piece cap — warm parchment matching the UI aesthetic. */
-const CAP_BG = '#f0e8d0';
+const CAP_BG = PIECE_CAP_BG_COLOR;
 
 /** Icon stroke colour — dark manuscript brown. */
-const ICON_COLOR = '#3a2a1a';
+const ICON_COLOR = PIECE_ICON_COLOR;
 
 /** Texture size in pixels (square).  128 is enough for GPU-friendly mipmapping. */
-const TEX_SIZE = 128;
+const TEX_SIZE = PIECE_TEX_SIZE;
 
 // ─── Texture cache ──────────────────────────────────────────────────────────
 
@@ -175,7 +181,7 @@ function _buildTexture(iconId, svgContent) {
   // Circular background (drawn immediately — always visible even before icon loads)
   const cx = TEX_SIZE / 2;
   const cy = TEX_SIZE / 2;
-  const r = cx - 2;
+  const r = cx - PIECE_BG_RADIUS_OFFSET;
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fillStyle = CAP_BG;

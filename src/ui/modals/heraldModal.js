@@ -11,8 +11,9 @@ import { svgIcon } from '../svgIcon.js';
 import { showModal } from './modalShell.js';
 import { getClock } from '../../shared/clockScheduler.js';
 import { weatherDisplayEl } from '../weatherDisplay.js';
+import { HERALD_REVEAL_MS } from '../../params/ui/uiParams.js';
 
-const REVEAL_MS = 650;
+const REVEAL_MS = HERALD_REVEAL_MS;
 
 /** Ordinal suffix for a positive integer (1 → "st", 2 → "nd", 3 → "rd", else "th"). */
 function ordinalSuffix(n) {

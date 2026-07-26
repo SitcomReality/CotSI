@@ -8,6 +8,7 @@
 
 import { h } from '../domBuilder.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
+import { DETAIL_CARD_MIN_WIDTH } from '../../params/ui/uiParams.js';
 
 /**
  * Build the detail dropdown DOM fragment using championVM() + h().
@@ -58,7 +59,7 @@ export function positionDetail(headerEl, detailEl, slot) {
   const sr = slot.getBoundingClientRect();
   const hr = headerEl.getBoundingClientRect();
   let left = sr.left - hr.left;
-  if (left + 180 > hr.width) left = hr.width - 180;
+  if (left + DETAIL_CARD_MIN_WIDTH > hr.width) left = hr.width - DETAIL_CARD_MIN_WIDTH;
   if (left < 0) left = 0;
   detailEl.style.left = left + 'px';
   detailEl.style.top = hr.height + 'px';

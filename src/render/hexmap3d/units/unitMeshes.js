@@ -3,6 +3,13 @@ import { FACTIONS } from '../../../game/rules/factionData.js';
 import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileTopY } from '../terrain/terrainMesh.js';
+import {
+  CHAMPION_BODY_Y_OFFSET,
+  CHAMPION_HEAD_Y_OFFSET,
+  PIECE_BODY_Y_OFFSET,
+  PIECE_CAP_Y_OFFSET,
+  MOB_COLOR_DARKEN,
+} from '../../../params/render/geometryParams.js';
 
 import {
   getChampionBodyGeo,
@@ -61,24 +68,24 @@ export function buildUnitMeshes(state, visible) {
 
       const fac = FACTIONS[champ.faction];
       const color = fac ? hexToRgb(fac.base) : [0.5, 0.4, 0.3];
-      championBodyInstances.push({ x, y: surfaceY + 0.15, z, color });
-      championHeadInstances.push({ x, y: surfaceY + 0.45, z, color: [1, 1, 1] });
+      championBodyInstances.push({ x, y: surfaceY + CHAMPION_BODY_Y_OFFSET, z, color });
+      championHeadInstances.push({ x, y: surfaceY + CHAMPION_HEAD_Y_OFFSET, z, color: [1, 1, 1] });
     } else if (mob) {
       const fac = FACTIONS[mob.faction];
-      const color = fac ? hexToRgb(fac.base).map(c => c * 0.7) : [0.3, 0.25, 0.2];
+      const color = fac ? hexToRgb(fac.base).map(c => c * MOB_COLOR_DARKEN) : [0.3, 0.25, 0.2];
       const shapeKey = mob.archetypeName || 'default';
       if (!mobInstancesByShape.has(shapeKey)) {
         mobInstancesByShape.set(shapeKey, []);
       }
       mobInstancesByShape.get(shapeKey).push({
         x,
-        y: surfaceY + 0.05,       // body centre (body height 0.10)
+        y: surfaceY + PIECE_BODY_Y_OFFSET,       // body centre (body height 0.10)
         z,
         scale: mob.visualScale || 1.0,
         color,
       });
     } else if (trader) {
-      traderInstances.push({ x, y: surfaceY + 0.05, z, scale: 1.0, color: [0.29, 0.75, 0.6] });
+      traderInstances.push({ x, y: surfaceY + PIECE_BODY_Y_OFFSET, z, scale: 1.0, color: [0.29, 0.75, 0.6] });
     }
   }
 
@@ -172,7 +179,7 @@ function _buildPiecePair(instances, iconId, label, results) {
   const capIm = new THREE.InstancedMesh(getPieceCapGeo(), capMat, count);
 
   // Cap Y is body centre + body half-height + cap half-height + tiny spacer
-  const capYOffset = 0.05 + 0.0125 + 0.002; // 0.0645 above body centre (0.050 + 0.0125 + 0.002)
+  const capYOffset = PIECE_CAP_Y_OFFSET; // 0.0645 above body centre (0.050 + 0.0125 + 0.002)
 
   instances.forEach((inst, i) => {
     dummy.position.set(inst.x, inst.y + capYOffset, inst.z);

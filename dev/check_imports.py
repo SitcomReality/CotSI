@@ -126,6 +126,9 @@ def main():
                 missing_files.append(f'{relpath}: "{spec}" → {target} not found')
                 return None
             target_layer = layer_of(target)
+            # params/ is a leaf layer — importable from anywhere, no boundary check.
+            if target.startswith('src/params/'):
+                return target
             allowed = ALLOWED.get(importer_layer)
             if (allowed is not None and target.startswith('src/')
                     and '/vendor/' not in target

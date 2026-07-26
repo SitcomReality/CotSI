@@ -7,6 +7,7 @@
  * Layer: dev/ — imports performance/ and shared.
  */
 
+import { PERF_POLL_INTERVAL_MS } from '../../params/dev/performanceParams.js';
 import { getFps, getLastFrameTime, ensureFrameTracking } from '../performance/index.js';
 import { getMeasurementStats, setMeasurementEnabled } from '../performance/index.js';
 import { getClock } from '../../shared/clockScheduler.js';
@@ -41,7 +42,7 @@ export function refreshPerfStats() {
 
 export function startPerfPolling() {
   if (_perfIntervalId) return;
-  _perfIntervalId = getClock().setInterval(refreshPerfStats, 500, 'ui');
+  _perfIntervalId = getClock().setInterval(refreshPerfStats, PERF_POLL_INTERVAL_MS, 'ui');
 }
 
 export function stopPerfPolling() {

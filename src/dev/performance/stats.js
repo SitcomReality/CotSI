@@ -7,6 +7,8 @@
  * Layer: dev/ — leaf utility.
  */
 
+import { EMA_ALPHA } from '../../params/dev/performanceParams.js';
+
 /**
  * Compute the p-th percentile from a sorted array (ascending).
  * Uses linear interpolation between adjacent values.
@@ -68,7 +70,7 @@ export function bucketFrameTimes(frameTimes) {
  * @param {number} [alpha=0.3] — smoothing factor
  * @returns {number}
  */
-export function computeEma(prevEma, value, alpha = 0.3) {
+export function computeEma(prevEma, value, alpha = EMA_ALPHA) {
   if (prevEma == null) return value;
   return prevEma * (1 - alpha) + value * alpha;
 }

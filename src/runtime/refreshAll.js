@@ -18,6 +18,7 @@ import { getClock } from '../shared/clockScheduler.js';
 import { getCombatUI } from '../ui/combat/combatUiState.js';
 import { getAnimatingIds } from '../render/hexmap3d/units/index.js';
 import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../dev/devPerformance.js';
+import { BOT_AUTO_DELAY_MS } from '../params/ui/uiParams.js';
 
 /**
  * Check whether any game modal is currently visible.
@@ -124,7 +125,7 @@ export function refreshAll() {
       endMeasure('refreshAll');
       return;
     }
-    const taskId = getClock().setTimeout(runBot, 100, 'bot');
+    const taskId = getClock().setTimeout(runBot, BOT_AUTO_DELAY_MS, 'bot');
     // Expose task ID for dev tools Stop button (avoids circular import)
     if (window.__devTools) {
       window.__devTools._pendingBotTaskId = taskId;

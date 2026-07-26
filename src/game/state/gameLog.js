@@ -9,6 +9,7 @@
  */
 
 import { createLogEntry, LOG_CATEGORY } from '../rules/logGrammar.js';
+import { MAX_LOG_ENTRIES } from '../../params/game/worldParams.js';
 
 /**
  * Add a log entry to game state.
@@ -38,7 +39,7 @@ export function addLog(state, entry) {
     structured = entry;
   }
 
-  state.logs = [structured, ...state.logs].slice(0, 100);
+  state.logs = [structured, ...state.logs].slice(0, MAX_LOG_ENTRIES);
 }
 
 /**

@@ -1,5 +1,6 @@
 import { FACTIONS, potencyWithPrimary } from '../../game/rules/factionData.js';
 import { sideOf, entityFor } from '../../game/state/combat/index.js';
+import { CHAMPION_MAX_HP } from '../../params/game/championParams.js';
 
 /**
  * Pure view-model transformer for combat state.
@@ -134,7 +135,7 @@ function combatantVM(combat, side, ent, exchanges, phase, activeSide, lastReveal
     factionColor: fac.color,
     hp: ent.hp,
     maxHp: ent.maxHp,
-    hpPct: Math.min(100, Math.max(0, Math.round((ent.hp / ent.maxHp) * 100))),
+    hpPct: Math.min(CHAMPION_MAX_HP, Math.max(0, Math.round((ent.hp / ent.maxHp) * 100))),
     roleLabel: side === 'first' ? 'First' : 'Second',
     isAttacker: side === attackerSide,
     pots: pots.map((val, idx) => ({

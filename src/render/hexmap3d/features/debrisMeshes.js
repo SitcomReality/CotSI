@@ -7,6 +7,7 @@ import {
   getDebrisRockGeo,
   getDebrisFlowerGeo,
 } from './featureGeometries.js';
+import { DEBRIS_HASH_SEEDS, DEBRIS_ANGLE_STEP, DEBRIS_OFFSET_MIN, DEBRIS_OFFSET_RANGE, DEBRIS_Y_OFFSET, DEBRIS_ROTATION_SEED, DEBRIS_SCALE_BASE, DEBRIS_SCALE_RANGE, DEBRIS_TUFT, DEBRIS_ROCK_RADIUS, DEBRIS_FLOWER_RADIUS } from '../../../params/render/geometryParams.js';
 
 /**
  * Build InstancedMeshes for environmental debris (grass tufts, rocks, flowers)
@@ -29,11 +30,11 @@ export function buildDebrisMeshes(state, visible) {
 
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
-    const hash = ((tile.q * 17 + tile.r * 11) * 13) % 100;
+    const hash = ((tile.q * DEBRIS_HASH_SEEDS[0] + tile.r * DEBRIS_HASH_SEEDS[1]) * DEBRIS_HASH_SEEDS[2]) % DEBRIS_HASH_SEEDS[3];
 
     // Random position offset within the hex so debris isn't perfectly centered
-    const angle = (hash * 0.618) % (Math.PI * 2);
-    const dist = 0.15 + (hash % 30) / 200; // 0.15–0.30 from center
+    const angle = (hash * DEBRIS_ANGLE_STEP) % (Math.PI * 2);
+    const dist = DEBRIS_OFFSET_MIN + (hash % DEBRIS_OFFSET_RANGE[0]) / DEBRIS_OFFSET_RANGE[1]; // 0.15–0.30 from center
     const ox = Math.cos(angle) * dist;
     const oz = Math.sin(angle) * dist;
 
@@ -41,10 +42,10 @@ export function buildDebrisMeshes(state, visible) {
     if (g) {
       g.push({
         x: x + ox,
-        y: surfaceY + 0.03,
+        y: surfaceY + DEBRIS_Y_OFFSET,
         z: z + oz,
-        rotY: (hash * 0.723) % (Math.PI * 2),
-        scale: 0.8 + (hash % 20) / 100,
+        rotY: (hash * DEBRIS_ROTATION_SEED) % (Math.PI * 2),
+        scale: DEBRIS_SCALE_BASE + (hash % DEBRIS_SCALE_RANGE[0]) / DEBRIS_SCALE_RANGE[1],
       });
     }
   }
@@ -104,19 +105,19 @@ export function buildChunkDebrisMeshes(chunkTiles, visible) {
 
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
-    const hash = ((tile.q * 17 + tile.r * 11) * 13) % 100;
+    const hash = ((tile.q * DEBRIS_HASH_SEEDS[0] + tile.r * DEBRIS_HASH_SEEDS[1]) * DEBRIS_HASH_SEEDS[2]) % DEBRIS_HASH_SEEDS[3];
 
-    const angle = (hash * 0.618) % (Math.PI * 2);
-    const dist = 0.15 + (hash % 30) / 200;
+    const angle = (hash * DEBRIS_ANGLE_STEP) % (Math.PI * 2);
+    const dist = DEBRIS_OFFSET_MIN + (hash % DEBRIS_OFFSET_RANGE[0]) / DEBRIS_OFFSET_RANGE[1];
     const ox = Math.cos(angle) * dist;
     const oz = Math.sin(angle) * dist;
 
     const g = groups[tile.debris.kind];
     if (g) {
       g.push({
-        x: x + ox, y: surfaceY + 0.03, z: z + oz,
-        rotY: (hash * 0.723) % (Math.PI * 2),
-        scale: 0.8 + (hash % 20) / 100,
+        x: x + ox, y: surfaceY + DEBRIS_Y_OFFSET, z: z + oz,
+        rotY: (hash * DEBRIS_ROTATION_SEED) % (Math.PI * 2),
+        scale: DEBRIS_SCALE_BASE + (hash % DEBRIS_SCALE_RANGE[0]) / DEBRIS_SCALE_RANGE[1],
       });
     }
   }

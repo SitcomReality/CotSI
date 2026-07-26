@@ -1,4 +1,5 @@
 import { beats } from '../game/rules/factionData.js';
+import { FACTION_COUNT } from '../params/game/factionParams.js';
 
 /**
  * Precomputed balanced triples for 3P mode: index = (a*7 + b) → c[]
@@ -7,13 +8,13 @@ import { beats } from '../game/rules/factionData.js';
  */
 export const BALANCED_3P = (() => {
   const map = {};
-  for (let a = 0; a < 7; a++) {
-    for (let b = 0; b < 7; b++) {
+  for (let a = 0; a < FACTION_COUNT; a++) {
+    for (let b = 0; b < FACTION_COUNT; b++) {
       if (b === a) continue;
-      const key = a < b ? a * 7 + b : b * 7 + a;
+      const key = a < b ? a * FACTION_COUNT + b : b * FACTION_COUNT + a;
       if (map[key] !== undefined) continue;
       const valid = [];
-      for (let c = 0; c < 7; c++) {
+      for (let c = 0; c < FACTION_COUNT; c++) {
         if (c === a || c === b) continue;
         const winsA = (beats(a, b) ? 1 : 0) + (beats(a, c) ? 1 : 0);
         const winsB = (beats(b, a) ? 1 : 0) + (beats(b, c) ? 1 : 0);

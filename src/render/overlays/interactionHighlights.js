@@ -12,26 +12,23 @@ import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileTopY } from '../hexmap3d/hexMapRenderer.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
 import { getInteractionHighlights, getHoveredKey } from './overlayStack.js';
-
-// ---------------------------------------------------------------------------
-// Visual constants
-// ---------------------------------------------------------------------------
-const HIGHLIGHT_RADIUS = 0.92;
-
-// Teeth (combat / neutral indicator)
-const TEETH_PER_EDGE = 1;          // one tooth per hex edge = 6 teeth total
-const TEETH_BASE_WIDTH_FRAC = 0.08; // half-base width as fraction of hex radius
-const TEETH_BASE_HEIGHT   = 0.12;   // base tooth height in hex-radius units
-const TEETH_EXTRA         = 0.14;   // oscillation amplitude
-const TEETH_SPEED         = 0.003;
-
-// Trade indicator — pulsing ring
-const RING_BASE_RADIUS_FRAC = 0.60; // ring radius as fraction of hex radius
-const RING_LINE_WIDTH_FRAC  = 0.08; // ring stroke width as fraction of hex radius
-const RING_PULSE_SPEED      = 0.003;
-
-// Hover-faded rendering
-const HOVER_ALPHA = 0.30;
+import {
+  HIGHLIGHT_RADIUS_FRAC,
+  TEETH_PER_EDGE,
+  TEETH_BASE_WIDTH_FRAC,
+  TEETH_BASE_HEIGHT,
+  TEETH_EXTRA,
+  TEETH_SPEED,
+  RING_BASE_RADIUS_FRAC,
+  RING_LINE_WIDTH_FRAC,
+  RING_PULSE_SPEED,
+  RING_PULSE_AMPLITUDE,
+  RING_BACKING_OFFSET_PX,
+  RING_BACKING_WIDTH_OFFSET_PX,
+  HOVER_ALPHA,
+  HIGHLIGHT_Y_OFFSET,
+  TRADE_RING_ALPHA,
+} from '../../params/render/overlayParams.js';
 
 // Semantic colors
 const COMBAT_MOB_COLOR  = '#d46a4a';
@@ -102,8 +99,8 @@ function drawPulsingRing(ctx, center, corners, time, alphaMod) {
   );
   if (refDist < 1) return;
 
-  // Gentle breathing: radius oscillates ±10 %
-  const pulse = Math.sin(time * RING_PULSE_SPEED) * 0.10;
+  // Gentle breathing: radius oscillates ±RING_PULSE_AMPLITUDE * 100%
+  const pulse = Math.sin(time * RING_PULSE_SPEED) * RING_PULSE_AMPLITUDE;
   const ringRadius = refDist * (RING_BASE_RADIUS_FRAC + pulse);
   const lineWidth = refDist * RING_LINE_WIDTH_FRAC;
 
@@ -111,9 +108,9 @@ function drawPulsingRing(ctx, center, corners, time, alphaMod) {
 
   // Dark backing for visibility on light terrain
   ctx.beginPath();
-  ctx.arc(center.x, center.y, ringRadius + 2, 0, Math.PI * 2);
+  ctx.arc(center.x, center.y, ringRadius + RING_BACKING_OFFSET_PX, 0, Math.PI * 2);
   ctx.strokeStyle = 'rgba(20, 20, 30, 0.4)';
-  ctx.lineWidth = lineWidth + 4;
+  ctx.lineWidth = lineWidth + RING_BACKING_WIDTH_OFFSET_PX;
   ctx.stroke();
 
   // Teal ring
@@ -131,14 +128,14 @@ function drawPulsingRing(ctx, center, corners, time, alphaMod) {
 // ---------------------------------------------------------------------------
 function projectHex(q, r, surfaceY, camera, canvas) {
   const hc = hexCenter3D(q, r, surfaceY);
-  const corners3d = hexCornersXZ(hc.x, hc.z, HIGHLIGHT_RADIUS);
+  const corners3d = hexCornersXZ(hc.x, hc.z, HIGHLIGHT_RADIUS_FRAC);
 
-  const center = worldToScreen(hc.x, surfaceY + 0.06, hc.z, camera, canvas);
+  const center = worldToScreen(hc.x, surfaceY + HIGHLIGHT_Y_OFFSET, hc.z, camera, canvas);
   if (!center) return null;
 
   const corners = [];
   for (const c of corners3d) {
-    const s = worldToScreen(c.x, surfaceY + 0.06, c.z, camera, canvas);
+    const s = worldToScreen(c.x, surfaceY + HIGHLIGHT_Y_OFFSET, c.z, camera, canvas);
     if (!s) return null;
     corners.push(s);
   }
@@ -185,7 +182,7 @@ export function renderInteractionHighlights(ctx2d, state, camera, time) {
       }
 
       case 'trader': {
-        drawPulsingRing(ctx2d, center, corners, time, 0.85);
+        drawPulsingRing(ctx2d, center, corners, time, TRADE_RING_ALPHA);
         break;
       }
 

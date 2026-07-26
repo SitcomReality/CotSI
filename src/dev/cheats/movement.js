@@ -4,6 +4,7 @@
  * Layer: dev/ — imports game/state, engine.
  */
 
+import { CHEAT_FILL_MOVES_AMOUNT } from '../../params/dev/cheatParams.js';
 import { G, currentChamp } from '../../game/state/liveGame.js';
 import { moveChampion } from '../../game/state/championMovement.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
@@ -13,7 +14,7 @@ import { devState } from './state.js';
 export function cheatFillMoves() {
   const ch = currentChamp();
   if (!ch) return;
-  ch.moves = 50;
+  ch.moves = CHEAT_FILL_MOVES_AMOUNT;
   toast('Moves set to 50');
 }
 

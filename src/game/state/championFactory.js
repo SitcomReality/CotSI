@@ -10,6 +10,8 @@ import { shuffle } from '../../engine/rules/shuffle.js';
 import { spawnTarget } from './spawnPosition.js';
 import { placeBase } from './basePlacer.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
+import { CHAMPION_STARTING_HP, CHAMPION_MAX_HP, CHAMPION_BASE_MOVE, CHAMPION_SIGHT_RANGE, CHAMPION_STARTING_GOLD, MIN_BASE_DISTANCE_FLOOR, MIN_BASE_DISTANCE_RADIUS_FRACTION } from '../../params/game/championParams.js';
+import { FACTION_COUNT, DEFAULT_POTENCY, OWN_FACTION_POTENCY } from '../../params/game/factionParams.js';
 
 /**
  * Place champions on the map with even radial distribution.
@@ -27,7 +29,7 @@ export function createChampions({ tiles, champions, rand, radius }) {
   const placedBaseKeys = new Set();
   const shuffledChamps = shuffle(champions, rand);
   const N = shuffledChamps.length;
-  const minBaseDist = Math.max(4, Math.floor(radius * 0.15));
+  const minBaseDist = Math.max(MIN_BASE_DISTANCE_FLOOR, Math.floor(radius * MIN_BASE_DISTANCE_RADIUS_FRACTION));
 
   const championList = [];
 
@@ -47,20 +49,20 @@ export function createChampions({ tiles, champions, rand, radius }) {
     used.add(startKey);
     const start = parseKey(startKey);
 
-    const potencies = Array(7).fill(1);
-    potencies[entry.faction] = 3;
+    const potencies = Array(FACTION_COUNT).fill(DEFAULT_POTENCY);
+    potencies[entry.faction] = OWN_FACTION_POTENCY;
     championList.push({
       id: `champ-${entry.faction}-${i}`,
       name: `${FACTIONS[entry.faction].name} Champion`,
       faction: entry.faction,
       controller: entry.controller,
       pos: start,
-      hp: 100,
-      maxHp: 100,
-      baseMove: 5,
+      hp: CHAMPION_STARTING_HP,
+      maxHp: CHAMPION_MAX_HP,
+      baseMove: CHAMPION_BASE_MOVE,
       moves: 0,
-      sight: 2,
-      gold: 24,
+      sight: CHAMPION_SIGHT_RANGE,
+      gold: CHAMPION_STARTING_GOLD,
       knot: 0,
       relics: 0,
       potencies,

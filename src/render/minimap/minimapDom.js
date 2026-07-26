@@ -6,8 +6,9 @@
  */
 
 // ---- Constants ----
-export const MINIMAP_SIZE = 200; // CSS pixels (square)
-export const PADDING = 4;        // padding inside the minimap border
+import { MINIMAP_SIZE, MINIMAP_PADDING, MINIMAP_MARGIN_PX, MINIMAP_BORDER_RADIUS_PX } from '../../params/render/minimapParams.js';
+export { MINIMAP_SIZE };
+export const PADDING = MINIMAP_PADDING;
 
 // ---- Module-level state ----
 let minimapEl = null;
@@ -35,12 +36,12 @@ export function initMinimap(mountEl, onClick) {
   minimapEl.className = 'minimap-wrap';
   minimapEl.style.cssText = `
     position: absolute;
-    bottom: 12px;
-    right: 12px;
+    bottom: ${MINIMAP_MARGIN_PX}px;
+    right: ${MINIMAP_MARGIN_PX}px;
     width: ${MINIMAP_SIZE}px;
     height: ${MINIMAP_SIZE}px;
     border: 1px solid rgba(120, 100, 80, 0.6);
-    border-radius: 4px;
+    border-radius: ${MINIMAP_BORDER_RADIUS_PX}px;
     overflow: hidden;
     background: #080602;
     z-index: 5;

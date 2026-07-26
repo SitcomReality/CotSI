@@ -1,4 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
+import { PICK_TOLERANCE_FRACTION } from '../../../params/render/terrainParams.js';
 
 // World-space hex radius — must match terrain.js
 const HEX_RADIUS = 1.0;
@@ -61,7 +62,7 @@ export function pickHex(clientX, clientY, camera, terrainMeshes, canvas) {
   const distSq = dx * dx + dz * dz;
   // Accept if within a reasonable tolerance of the hex center
   // (radius tolerance is generous — ~90% of hex radius)
-  if (distSq > HEX_RADIUS * HEX_RADIUS * 0.9) {
+  if (distSq > HEX_RADIUS * HEX_RADIUS * PICK_TOLERANCE_FRACTION) {
     return null;
   }
 

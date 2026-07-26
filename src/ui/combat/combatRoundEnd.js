@@ -25,6 +25,7 @@ import {
   getFxLayer,
   getCard,
 } from './combatFx.js';
+import { ROUND_END_HOLD_MS } from '../../params/ui/combatUiParams.js';
 
 export async function handleRoundEnd() {
   const combat = getCombatUI();
@@ -97,7 +98,7 @@ export async function handleRoundEnd() {
     renderCombat();
   }
 
-  await wait(1200);
+  await wait(ROUND_END_HOLD_MS);
   if (!getCombatUI()) return;
 
   nextCombatRound(_G, combat); // re-derives first/second from updated G.globalOrder

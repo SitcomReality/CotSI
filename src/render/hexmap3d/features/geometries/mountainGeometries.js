@@ -1,5 +1,12 @@
 // src/render/hexmap3d/features/geometries/mountainGeometries.js
 import * as THREE from '../../../../vendor/three.module.js';
+import {
+  MOUNTAIN_SNOW_RING_RADIUS,
+  MOUNTAIN_SNOW_RING_HEIGHT,
+  MOUNTAIN_PEAK_HEIGHT,
+  MOUNTAIN_ROCK_COLOR,
+  MOUNTAIN_SNOW_COLOR,
+} from '../../../../params/render/geometryParams.js';
 
 // =========================================================================
 // Mountain geometry — hexagonal pyramid with vertex colors (snowy peak)
@@ -8,14 +15,11 @@ import * as THREE from '../../../../vendor/three.module.js';
 // All mountains share this exact same base geometry, so adjacent hex
 // edges align perfectly — no gaps between neighboring mountains.
 //
-// 3 rings: base (y=0, R=1.0, rock), snow line (y=0.8, R=0.45, snow),
-//          peak (y=1.2, R=0, snow)
+// 3 rings: base (y=0, R=1.0, rock), snow line (y=MOUNTAIN_SNOW_RING_HEIGHT, R=MOUNTAIN_SNOW_RING_RADIUS, snow),
+//          peak (y=MOUNTAIN_PEAK_HEIGHT, R=0, snow)
 // 12 lower-triangles (rock→snow gradient) + 6 upper-triangles (all snow)
 // Non-indexed, 54 vertices total.
 // =========================================================================
-
-const ROCK = [0.55, 0.52, 0.42];
-const SNOW = [0.92, 0.94, 0.98];
 
 let mountainGeo = null;
 
@@ -27,13 +31,13 @@ export function getMountainGeo() {
 }
 
 function buildMountainHexPyramid() {
-  // Precompute base ring (R=1.0, y=0) and snow ring (R=0.45, y=0.8)
+  // Precompute base ring (R=1.0, y=0) and snow ring (R=MOUNTAIN_SNOW_RING_RADIUS, y=MOUNTAIN_SNOW_RING_HEIGHT)
   const baseVerts = [];
   const snowVerts = [];
   for (let i = 0; i < 6; i++) {
     const angle = (Math.PI / 3) * i - Math.PI / 6;
     baseVerts.push({ x: Math.cos(angle), z: Math.sin(angle) });
-    snowVerts.push({ x: 0.45 * Math.cos(angle), z: 0.45 * Math.sin(angle) });
+    snowVerts.push({ x: MOUNTAIN_SNOW_RING_RADIUS * Math.cos(angle), z: MOUNTAIN_SNOW_RING_RADIUS * Math.sin(angle) });
   }
 
   // Non-indexed: 54 vertices = (6 quads * 2 tri * 3 verts) + (6 tri * 3 verts)
@@ -51,14 +55,14 @@ function buildMountainHexPyramid() {
     const s1 = snowVerts[(i + 1) % 6];
 
     // Triangle 1: b0, s1, b1  — 2 rock + 1 snow (CCW from outside)
-    writeVert(positions, colors, vi++, b0.x, 0, b0.z, ROCK);
-    writeVert(positions, colors, vi++, s1.x, 0.8, s1.z, SNOW);
-    writeVert(positions, colors, vi++, b1.x, 0, b1.z, ROCK);
+    writeVert(positions, colors, vi++, b0.x, 0, b0.z, MOUNTAIN_ROCK_COLOR);
+    writeVert(positions, colors, vi++, s1.x, MOUNTAIN_SNOW_RING_HEIGHT, s1.z, MOUNTAIN_SNOW_COLOR);
+    writeVert(positions, colors, vi++, b1.x, 0, b1.z, MOUNTAIN_ROCK_COLOR);
 
     // Triangle 2: b0, s0, s1  — 1 rock + 2 snow (CCW from outside)
-    writeVert(positions, colors, vi++, b0.x, 0, b0.z, ROCK);
-    writeVert(positions, colors, vi++, s0.x, 0.8, s0.z, SNOW);
-    writeVert(positions, colors, vi++, s1.x, 0.8, s1.z, SNOW);
+    writeVert(positions, colors, vi++, b0.x, 0, b0.z, MOUNTAIN_ROCK_COLOR);
+    writeVert(positions, colors, vi++, s0.x, MOUNTAIN_SNOW_RING_HEIGHT, s0.z, MOUNTAIN_SNOW_COLOR);
+    writeVert(positions, colors, vi++, s1.x, MOUNTAIN_SNOW_RING_HEIGHT, s1.z, MOUNTAIN_SNOW_COLOR);
   }
 
   // --- Upper tier: 6 triangles connecting snow ring to peak ---
@@ -66,9 +70,9 @@ function buildMountainHexPyramid() {
     const s0 = snowVerts[i];
     const s1 = snowVerts[(i + 1) % 6];
 
-    writeVert(positions, colors, vi++, s0.x, 0.8, s0.z, SNOW);
-    writeVert(positions, colors, vi++, 0, 1.2, 0, SNOW);
-    writeVert(positions, colors, vi++, s1.x, 0.8, s1.z, SNOW);
+    writeVert(positions, colors, vi++, s0.x, MOUNTAIN_SNOW_RING_HEIGHT, s0.z, MOUNTAIN_SNOW_COLOR);
+    writeVert(positions, colors, vi++, 0, MOUNTAIN_PEAK_HEIGHT, 0, MOUNTAIN_SNOW_COLOR);
+    writeVert(positions, colors, vi++, s1.x, MOUNTAIN_SNOW_RING_HEIGHT, s1.z, MOUNTAIN_SNOW_COLOR);
   }
 
   const geo = new THREE.BufferGeometry();

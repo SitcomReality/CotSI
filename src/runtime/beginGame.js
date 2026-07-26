@@ -9,6 +9,7 @@ import {
 import { bindHeaderEvents } from '../ui/panels/headerPanel.js';
 import { refreshAll } from './refreshAll.js';
 import { initHeptagramWidget } from '../ui/heptagramWidget.js';
+import { SETUP_DEFER_MS } from '../params/ui/uiParams.js';
 
 /** Guard: prevent duplicate window resize listener registration. */
 let resizeWired = false;
@@ -53,7 +54,7 @@ export function __beginGame(config) {
     bindHeaderEvents();
     initHeptagramWidget('paleyMount');
     refreshAll();
-  }, 50);
+  }, SETUP_DEFER_MS);
 }
 
 window.__beginGame = __beginGame;

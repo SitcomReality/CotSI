@@ -1,4 +1,18 @@
 import * as THREE from '../../../vendor/three.module.js';
+import {
+  CHAMPION_BODY,
+  CHAMPION_HEAD,
+  PIECE_BODY,
+  PIECE_CAP,
+  MOB_BEAR,
+  MOB_LEOPARD,
+  MOB_SNAIL,
+  MOB_TAPIR,
+  MOB_MUSHROOM,
+  MOB_GOOSE,
+  MOB_SCORPION,
+  MOB_DEFAULT,
+} from '../../../params/render/geometryParams.js';
 
 // =========================================================================
 // Champion geometries
@@ -8,7 +22,7 @@ let championBodyGeo = null;
 
 export function getChampionBodyGeo() {
   if (!championBodyGeo) {
-    championBodyGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.5, 8);
+    championBodyGeo = new THREE.CylinderGeometry(CHAMPION_BODY.bottomR, CHAMPION_BODY.topR, CHAMPION_BODY.height, CHAMPION_BODY.segments);
   }
   return championBodyGeo;
 }
@@ -17,7 +31,7 @@ let championHeadGeo = null;
 
 export function getChampionHeadGeo() {
   if (!championHeadGeo) {
-    championHeadGeo = new THREE.SphereGeometry(0.1, 8, 6);
+    championHeadGeo = new THREE.SphereGeometry(CHAMPION_HEAD.radius, CHAMPION_HEAD.wSegs, CHAMPION_HEAD.hSegs);
   }
   return championHeadGeo;
 }
@@ -45,7 +59,7 @@ let pieceCapGeo = null;
 /** Thin uniform-radius cylinder — the "coin" body whose rim shows faction colour. */
 export function getPieceBodyGeo() {
   if (!pieceBodyGeo) {
-    pieceBodyGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.10, 16);
+    pieceBodyGeo = new THREE.CylinderGeometry(PIECE_BODY.radiusX, PIECE_BODY.radiusY, PIECE_BODY.height, PIECE_BODY.segments);
   }
   return pieceBodyGeo;
 }
@@ -53,7 +67,7 @@ export function getPieceBodyGeo() {
 /** Ultra-thin disc sitting on top of the body, carrying the icon CanvasTexture. */
 export function getPieceCapGeo() {
   if (!pieceCapGeo) {
-    pieceCapGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.025, 24);
+    pieceCapGeo = new THREE.CylinderGeometry(PIECE_CAP.radiusX, PIECE_CAP.radiusY, PIECE_CAP.height, PIECE_CAP.segments);
   }
   return pieceCapGeo;
 }
@@ -66,37 +80,37 @@ const mobGeoCache = {};
 
 /** Bear — wide, chunky body */
 function buildBearGeo() {
-  return new THREE.CylinderGeometry(0.16, 0.18, 0.28, 6);
+  return new THREE.CylinderGeometry(MOB_BEAR.radius, MOB_BEAR.height, MOB_BEAR.bodyWidth, MOB_BEAR.segments);
 }
 
 /** Leopard — tall, slender, feline */
 function buildLeopardGeo() {
-  return new THREE.CylinderGeometry(0.07, 0.10, 0.50, 6);
+  return new THREE.CylinderGeometry(MOB_LEOPARD.radius, MOB_LEOPARD.height, MOB_LEOPARD.bodyLength, MOB_LEOPARD.segments);
 }
 
 /** Snail — domed shell */
 function buildSnailGeo() {
-  return new THREE.SphereGeometry(0.16, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.55);
+  return new THREE.SphereGeometry(MOB_SNAIL.radius, MOB_SNAIL.wSegs, MOB_SNAIL.hSegs, MOB_SNAIL.phiStart, MOB_SNAIL.phiLength, 0, Math.PI * 0.55);
 }
 
 /** Tapir — tapered, pear-like */
 function buildTapirGeo() {
-  return new THREE.CylinderGeometry(0.08, 0.18, 0.42, 7);
+  return new THREE.CylinderGeometry(MOB_TAPIR.radius, MOB_TAPIR.height, MOB_TAPIR.bodyLength, MOB_TAPIR.segments);
 }
 
 /** Mushroom — wide flat cap */
 function buildMushroomGeo() {
-  return new THREE.ConeGeometry(0.20, 0.14, 8);
+  return new THREE.ConeGeometry(MOB_MUSHROOM.capRadius, MOB_MUSHROOM.stemRadius, MOB_MUSHROOM.segments);
 }
 
 /** Goose — narrow pointed wedge */
 function buildGooseGeo() {
-  return new THREE.ConeGeometry(0.07, 0.50, 4);
+  return new THREE.ConeGeometry(MOB_GOOSE.radius, MOB_GOOSE.height, MOB_GOOSE.segments);
 }
 
 /** Scorpion — faceted, aggressive diamond */
 function buildScorpionGeo() {
-  return new THREE.OctahedronGeometry(0.14, 0);
+  return new THREE.OctahedronGeometry(MOB_SCORPION.radius, MOB_SCORPION.detail);
 }
 
 /**
@@ -128,7 +142,7 @@ export function getMobGeo(archetypeShape) {
       mobGeoCache[key] = builder();
     } else {
       // Fallback for unknown shapes
-      mobGeoCache[key] = new THREE.CylinderGeometry(0.1, 0.14, 0.4, 8);
+      mobGeoCache[key] = new THREE.CylinderGeometry(MOB_DEFAULT.radius, MOB_DEFAULT.topR, MOB_DEFAULT.height, MOB_DEFAULT.segments);
     }
   }
   return mobGeoCache[key];

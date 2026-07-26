@@ -1,3 +1,5 @@
+import { PITCH_EPSILON, FALLBACK_MARGIN_FRACTION, PAN_MARGIN_CLAMP } from '../../../params/render/cameraParams.js';
+
 /**
  * Pure pan and pan-bounds logic for the orthographic camera.
  *
@@ -81,21 +83,21 @@ export function setPanBounds(state, radius) {
     const halfW = (state.maxFrustumSize * state.aspect) / 2;
     const halfH = state.maxFrustumSize / 2;
     const sinPitch = Math.sin(state.pitch);
-    const stretch = sinPitch > 0.01 ? 1 / sinPitch : 1;
+    const stretch = sinPitch > PITCH_EPSILON ? 1 / sinPitch : 1;
     const absCos = Math.abs(Math.cos(state.yaw));
     const absSin = Math.abs(Math.sin(state.yaw));
     marginX = halfW * absCos + halfH * absSin * stretch;
     marginZ = halfW * absSin + halfH * absCos * stretch;
   } else {
     // Fallback: 20% heuristic margin
-    const fallback = Math.sqrt(3) * radius * 0.2;
+    const fallback = Math.sqrt(3) * radius * FALLBACK_MARGIN_FRACTION;
     marginX = fallback;
     marginZ = fallback;
   }
 
   // Clamp margins so they don't exceed the map itself
-  marginX = Math.min(marginX, mapHalfW * 0.9);
-  marginZ = Math.min(marginZ, mapHalfH * 0.9);
+  marginX = Math.min(marginX, mapHalfW * PAN_MARGIN_CLAMP);
+  marginZ = Math.min(marginZ, mapHalfH * PAN_MARGIN_CLAMP);
 
   state.panBounds = {
     minX: -mapHalfW + marginX,

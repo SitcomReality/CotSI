@@ -3,9 +3,10 @@
  * Depends on champion data shape and map geometry (distance, parseKey).
  */
 import { hexesWithinRadius, coordKey } from '../../engine/rules/hexGrid.js';
+import { ARTIFACT_SIGHT_BONUS } from '../../params/game/championParams.js';
 
 export function visibleKeysFor(state, champ) {
-  const sight = champ.sight + (champ.artifact === 'lens' ? 1 : 0);
+  const sight = champ.sight + (champ.artifact === 'lens' ? ARTIFACT_SIGHT_BONUS : 0);
   return hexesWithinRadius(sight)
     .map(c => coordKey({ q: c.q + champ.pos.q, r: c.r + champ.pos.r }))
     .filter(k => k in state.tiles);

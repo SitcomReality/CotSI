@@ -6,6 +6,7 @@
  * Layer: dev/ — depends on clockScheduler.
  */
 
+import { FPS_SAMPLE_WINDOW, FPS_HISTORY_MAX } from '../../params/dev/performanceParams.js';
 import { getClock } from '../../shared/clockScheduler.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
@@ -19,7 +20,7 @@ let _deregisterTick = null;
 let _perFrameCallbacks = [];
 let _callbackIdCounter = 1;
 
-const FPS_SAMPLES = 30;
+const FPS_SAMPLES = FPS_SAMPLE_WINDOW;
 
 // ─── Public API ────────────────────────────────────────────────────────────
 
@@ -83,7 +84,7 @@ function _onFrame(timestamp) {
   }
   _previousTick = timestamp;
   _fpsHistory.push(timestamp);
-  if (_fpsHistory.length > FPS_SAMPLES * 2) {
+  if (_fpsHistory.length > FPS_HISTORY_MAX) {
     _fpsHistory = _fpsHistory.slice(-FPS_SAMPLES);
   }
 

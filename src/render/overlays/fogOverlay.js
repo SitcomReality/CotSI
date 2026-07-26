@@ -6,6 +6,7 @@
 
 import { generateFogMasks } from './fogMaskGenerator.js';
 import { getDerivedHumanView } from './overlayStack.js';
+import { FOG_BLUR_RADIUS, EXPLORED_PUNCH_ALPHA } from '../../params/render/overlayParams.js';
 
 // ---------------------------------------------------------------------------
 // Tunable constants
@@ -13,17 +14,6 @@ import { getDerivedHumanView } from './overlayStack.js';
 
 // Opaque fog colour for unexplored / off-map regions
 const FOG_BASE = 'rgba(8, 6, 2, 1.0)';
-
-// Alpha used when punching the explored (but not visible) mask.
-// 0.0 = fully transparent (same as visible), 1.0 = no punch at all.
-// Values around 0.70 leave enough fog to indicate "you've been here" while
-// still letting terrain faintly show through.
-const EXPLORED_PUNCH_ALPHA = 0.70;
-
-// Blur radius shared with fogMaskGen — kept here for discoverability.
-// (The actual blur is applied inside fogMaskGen; this constant is for
-//  documentation / tuning reference.)
-const BLUR_RADIUS = 12;
 
 // ---------------------------------------------------------------------------
 // Public API

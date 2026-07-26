@@ -3,6 +3,7 @@ import { createCameraState, applyCameraState } from './cameraState.js';
 import { createRenderer } from './rendererSetup.js';
 import { addLights } from './lightSetup.js';
 import { startMeasure, endMeasure } from '../../../dev/devPerformance.js';
+import { INITIAL_FRUSTUM, CAMERA_NEAR, CAMERA_FAR, GROUND_PLANE_SIZE, GROUND_PLANE_Y } from '../../../params/render/cameraParams.js';
 
 /**
  * Initialize the Three.js scene, renderer, camera, and lights.
@@ -29,7 +30,7 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
   const aspect = initWidth / Math.max(initHeight, 1);
   const camState = createCameraState(aspect);
 
-  const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.1, 200);
+  const camera = new THREE.OrthographicCamera(-INITIAL_FRUSTUM, INITIAL_FRUSTUM, INITIAL_FRUSTUM, -INITIAL_FRUSTUM, CAMERA_NEAR, CAMERA_FAR);
   applyCameraState(camera, camState);
 
   // Store camera on canvas for picking access
@@ -54,12 +55,12 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
   const lights = addLights(scene, { shadows });
 
   // --- Ground plane (temporary, removed in Phase 2) ---
-  const groundGeo = new THREE.PlaneGeometry(60, 60);
+  const groundGeo = new THREE.PlaneGeometry(GROUND_PLANE_SIZE, GROUND_PLANE_SIZE);
   const groundMat = new THREE.MeshLambertMaterial({ color: 0xd4b87a });
   const ground = new THREE.Mesh(groundGeo, groundMat);
   ground.name = 'ground';
   ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -0.2;
+  ground.position.y = GROUND_PLANE_Y;
   scene.add(ground);
 
   // --- Animation loop (clock-owned) ---

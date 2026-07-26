@@ -4,10 +4,11 @@
  * Layer: dev/ — imports ui/combat.
  */
 
+import { CHEAT_COMBAT_DAMAGE_DEFAULT, CHEAT_COMBAT_WIN_ATTACKER_SCORE, CHEAT_COMBAT_WIN_DEFENDER_SCORE } from '../../params/dev/cheatParams.js';
 import { getCombatUI } from '../../ui/combat/combatUiState.js';
 import { toast } from '../../ui/hud.js';
 
-export function cheatCombatDamage(amount = 20) {
+export function cheatCombatDamage(amount = CHEAT_COMBAT_DAMAGE_DEFAULT) {
   const combat = getCombatUI();
   if (!combat) {
     toast('No active combat', true);
@@ -28,8 +29,8 @@ export function cheatCombatWin() {
     return;
   }
   // Set massively high score for attacker, zero for defender
-  combat.roundScores.attacker = 9999;
-  combat.roundScores.defender = 0;
+  combat.roundScores.attacker = CHEAT_COMBAT_WIN_ATTACKER_SCORE;
+  combat.roundScores.defender = CHEAT_COMBAT_WIN_DEFENDER_SCORE;
   combat.phase = 'roundEnd';
   combat.awaitingSide = null;
   toast('Combat instant win set');

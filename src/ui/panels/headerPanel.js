@@ -14,6 +14,7 @@ import { championVM } from '../viewModels/championViewModel.js';
 import { h } from '../domBuilder.js';
 import { championStates } from './headerStates.js';
 import { bindHeaderEvents } from './headerEvents.js';
+import { DAYS_PER_WEEK } from '../../params/game/worldParams.js';
 
 export { bindHeaderEvents };
 
@@ -27,7 +28,7 @@ export function refreshHeader(G) {
   if (!G) return;
 
   // ── World info (day, week, weather) ──
-  const week = Math.floor((G.day - 1) / 7) + 1;
+  const week = Math.floor((G.day - 1) / DAYS_PER_WEEK) + 1;
   const headerWorldEl = document.querySelector('#gameHeader .header-panel__world');
   if (headerWorldEl) {
     headerWorldEl.replaceChildren();

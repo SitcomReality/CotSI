@@ -8,11 +8,12 @@ import { getSceneContext, zoomCamera, resetCamera, animateCenterOnHex } from '..
 import { refreshZoomDisplay } from './zoomDisplay.js';
 import { currentChamp } from '../game/state/liveGame.js';
 import { registerAction } from '../shared/actionBus.js';
+import { ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR } from '../params/render/cameraParams.js';
 
 registerAction('zoomIn', () => {
   const ctx = getSceneContext();
   if (!ctx) return;
-  zoomCamera(ctx.getCameraState(), 0.8);
+  zoomCamera(ctx.getCameraState(), ZOOM_IN_FACTOR);
   ctx.applyCamera();
   refreshZoomDisplay();
 });
@@ -20,7 +21,7 @@ registerAction('zoomIn', () => {
 registerAction('zoomOut', () => {
   const ctx = getSceneContext();
   if (!ctx) return;
-  zoomCamera(ctx.getCameraState(), 1.25);
+  zoomCamera(ctx.getCameraState(), ZOOM_OUT_FACTOR);
   ctx.applyCamera();
   refreshZoomDisplay();
 });

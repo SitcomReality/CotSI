@@ -8,6 +8,7 @@
  * Layer: dev/ — depends on frameTracker, measurements, gameContext.
  */
 
+import { TARGET_FPS, CAPTURE_MAX_FRAMES, BUFFER_TRIM_TOLERANCE } from '../../params/dev/performanceParams.js';
 import { getFps, getLastFrameTime, getFrameHistory, onFrame as registerFrameCallback, ensureFrameTracking } from './frameTracker.js';
 import { getRawMeasurements, startFrameSnapshot, endFrameDeltas, startMeasure, endMeasure } from './measurements.js';
 import { getGameContext } from './gameContext.js';
@@ -30,18 +31,18 @@ let _startTime = 0;
 /** @type {{ usedJSHeapSize: number, totalJSHeapSize: number, jsHeapSizeLimit: number }|null} Previous frame's memory snapshot, for heap delta computation */
 let _prevMemory = null;
 
-/** @type {number} TARGET frame time for 60fps */
-const TARGET_FRAME_MS = 1000 / 60; // 16.67
+/** @type {number} TARGET frame time for TARGET_FPS fps */
+const TARGET_FRAME_MS = 1000 / TARGET_FPS; // 16.67
 
 // ─── Public API ────────────────────────────────────────────────────────────
 
 /**
  * Start recording per-frame data.
  * The recording is stored in a ring buffer and can be retrieved via stopRecording().
- * @param {number} [maxFrames=18000] — max frames to keep (5 min @ 60fps). Pass -1 for unlimited.
+ * @param {number} [maxFrames=CAPTURE_MAX_FRAMES] — max frames to keep (5 min @ 60fps). Pass -1 for unlimited.
  * @returns {{ started: boolean, message: string }}
  */
-export function startRecording(maxFrames = 18000) {
+export function startRecording(maxFrames = CAPTURE_MAX_FRAMES) {
   if (_deregister) {
     return { started: false, message: 'Recording is already active. Call stopRecording() first.' };
   }
@@ -209,7 +210,7 @@ function _recordFrame(timestamp) {
 
   // Trim to maxFrames periodically to avoid O(n) splice on every frame.
   // The +100 tolerance means at most 100 O(n) shifts per capture session.
-  if (_maxFrames > 0 && _buffer.length > _maxFrames + 100) {
+  if (_maxFrames > 0 && _buffer.length > _maxFrames + BUFFER_TRIM_TOLERANCE) {
     _buffer.splice(0, _buffer.length - _maxFrames);
   }
 }

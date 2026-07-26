@@ -1,5 +1,6 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { shadowLightConfig, SHADOW_MAP_TYPES } from '../../shadowLightConfig.js';
+import { MAX_PIXEL_RATIO, CLEAR_COLOR } from '../../../params/render/cameraParams.js';
 
 /**
  * Create and configure the WebGLRenderer.
@@ -11,8 +12,8 @@ import { shadowLightConfig, SHADOW_MAP_TYPES } from '../../shadowLightConfig.js'
  */
 export function createRenderer(mountElement, { shadows = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.round(Math.min(window.devicePixelRatio, 2)));
-  renderer.setClearColor(0x5c5242); // dark parchment (contrast with terrain colors)
+  renderer.setPixelRatio(Math.round(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO)));
+  renderer.setClearColor(CLEAR_COLOR); // dark parchment (contrast with terrain colors)
 
   if (shadows && shadowLightConfig.enabled) {
     renderer.shadowMap.enabled = true;

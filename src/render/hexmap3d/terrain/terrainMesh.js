@@ -1,19 +1,11 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { terrainMaterial } from '../scene/materials.js';
 import { HEX_RADIUS, hexCenter, hexCornersXZ } from '../hexWorldSpace.js';
+import { HEX_THICKNESS, SIDE_DARKEN_FACTOR, LAKE_COLOR_MODULATION, TERRAIN_ELEVATION } from '../../../params/render/terrainParams.js';
 
 // Elevation per terrain type (world units)
-export const ELEVATION = {
-  plains:   0.0,
-  forest:   0.08,
-  desert:   0.03,
-  marsh:   -0.05,
-  mountain: 0.6,
-  water:    -0.15,
-};
-
-// Hex thickness (the "board game piece" edge height)
-export const HEX_THICKNESS = 1.25;
+export const ELEVATION = TERRAIN_ELEVATION;
+export { HEX_THICKNESS };
 
 /**
  * Top surface Y of a tile of given terrain type.
@@ -35,7 +27,7 @@ export const TERRAIN_COLOR = {
 };
 
 // Darken factor for side faces
-const SIDE_DARKEN = 0.5;
+const SIDE_DARKEN = SIDE_DARKEN_FACTOR;
 
 /**
  * Build a single merged BufferGeometry for all visible + explored hex tiles.
@@ -71,7 +63,7 @@ export function buildTerrainMesh(state, visible, explored) {
 
     // Lakes get a darker, greener water color to distinguish from ocean
     const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')
-      ? [baseColor[0] * 0.7, baseColor[1] * 0.85, baseColor[2] * 0.9]
+      ? [baseColor[0] * LAKE_COLOR_MODULATION.r, baseColor[1] * LAKE_COLOR_MODULATION.g, baseColor[2] * LAKE_COLOR_MODULATION.b]
       : baseColor;
     const sideColor = resolvedColor.map(c => c * SIDE_DARKEN);
 
@@ -154,7 +146,7 @@ export function buildChunkTerrainMesh(chunkTiles, state, visible, explored) {
     const baseColor = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
 
     const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')
-      ? [baseColor[0] * 0.7, baseColor[1] * 0.85, baseColor[2] * 0.9]
+      ? [baseColor[0] * LAKE_COLOR_MODULATION.r, baseColor[1] * LAKE_COLOR_MODULATION.g, baseColor[2] * LAKE_COLOR_MODULATION.b]
       : baseColor;
     const sideColor = resolvedColor.map(c => c * SIDE_DARKEN);
 

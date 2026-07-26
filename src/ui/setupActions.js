@@ -4,6 +4,7 @@ import { BALANCED_3P } from './setupConstants.js';
 import { toast } from './hud.js';
 import { refreshSetup } from './setupHeptagram.js';
 import { gameMode, roster, setGameMode } from './setupScreen.js';
+import { SEED_RANDOM_MAX, DEFAULT_MAP_RADIUS, DEFAULT_RELIC_TARGET } from '../params/ui/setupParams.js';
 
 registerAction('toggleFaction', (el) => {
   const idx = parseInt(el.dataset.idx, 10);
@@ -53,7 +54,7 @@ registerAction('toggleController', (el) => {
 registerAction('randomizeSeed', () => {
   const seedInput = document.getElementById('seedInput');
   if (seedInput) {
-    seedInput.value = 'glut-' + Math.floor(Math.random() * 9999);
+    seedInput.value = 'glut-' + Math.floor(Math.random() * SEED_RANDOM_MAX);
   }
 });
 
@@ -103,21 +104,21 @@ registerAction('beginGame', () => {
   const mapRadiusEl = document.getElementById('mapRadius');
   const radius = mapRadiusEl?.value
     ? parseInt(mapRadiusEl.value, 10)
-    : 21;
-  const relicTarget = parseInt(document.getElementById('relicTarget')?.value || '25', 10);
+    : DEFAULT_MAP_RADIUS;
+  const relicTarget = parseInt(document.getElementById('relicTarget')?.value || String(DEFAULT_RELIC_TARGET), 10);
   const lastStanding = document.getElementById('optLast')?.checked ?? true;
 
   const biomeSelect = document.getElementById('biomeSelect');
   const biome = biomeSelect ? biomeSelect.value : 'biome_default';
 
-  const hv = parseFloat(document.getElementById('hvSlider')?.value || '1.0');
-  const wt = parseFloat(document.getElementById('wtSlider')?.value || '1.0');
-  const mt = parseFloat(document.getElementById('mtSlider')?.value || '1.0');
+  const hv = parseFloat(document.getElementById('hvSlider')?.value || String(DEFAULT_HV));
+  const wt = parseFloat(document.getElementById('wtSlider')?.value || String(DEFAULT_WT));
+  const mt = parseFloat(document.getElementById('mtSlider')?.value || String(DEFAULT_MT));
   const mapSettings = { heightVariation: hv, wateriness: wt, mountainousness: mt };
 
   if (window.__beginGame) {
     window.__beginGame({
-      seed: document.getElementById('seedInput')?.value || 'glut-' + Math.floor(Math.random() * 999),
+      seed: document.getElementById('seedInput')?.value || 'glut-' + Math.floor(Math.random() * SEED_RANDOM_MAX),
       radius,
       champions: chosen.map(c => ({
         faction: c.id,

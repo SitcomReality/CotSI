@@ -4,6 +4,7 @@ import { FACTIONS } from '../../game/rules/factionData.js';
 import { setCrossHighlight } from '../heptagramWidget.js';
 import { h } from '../domBuilder.js';
 import { svgIcon } from '../svgIcon.js';
+import { TOKEN_GLYPH_SIZE } from '../../params/ui/combatUiParams.js';
 
 // ─── Order-pulse state ────────────────────────────────────────────────────
 let _previousOrderKey = null;
@@ -139,7 +140,7 @@ function buildToken(pot, isActivePicker, phase) {
 
   return h('div', props,
     h('div', { class: 'ctok__val' }, String(pot.val)),
-    h('div', { class: 'ctok__glyph' }, svgIcon(FACTIONS[pot.idx].glyphId, 14)),
+    h('div', { class: 'ctok__glyph' }, svgIcon(FACTIONS[pot.idx].glyphId, TOKEN_GLYPH_SIZE)),
   );
 }
 

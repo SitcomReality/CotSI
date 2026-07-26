@@ -18,6 +18,8 @@ import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../d
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
 import { tileTopY } from '../render/hexmap3d/hexMapRenderer.js';
+import { CHAMPION_HEIGHT_OFFSET } from '../params/render/animationParams.js';
+import { ANIMATION_CUSHION_MS } from '../params/ui/uiParams.js';
 
 /**
  * Execute one bot champion's decision (move, attack, or end).
@@ -122,14 +124,14 @@ export async function runBot() {
 
         // World-space origin before the state mutation
         const fromTile = G.tiles[coordKey(ch.pos)];
-        const fromY = fromTile ? tileTopY(fromTile.terrain) + 0.15 : 0.15;
+        const fromY = fromTile ? tileTopY(fromTile.terrain) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
         const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
 
         moveChampion(G, ch, key, 1);
 
         // World-space destination after mutation
         const toTile = G.tiles[key];
-        const toY = toTile ? tileTopY(toTile.terrain) + 0.15 : 0.15;
+        const toY = toTile ? tileTopY(toTile.terrain) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
         const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
 
         // Start the animation BEFORE refreshAll so isAnimating is true when
@@ -142,7 +144,7 @@ export async function runBot() {
 
         // Wait for the animation to complete before stepping to the next hex.
         // +30ms cushion so the champion visibly "lands" before the next lift.
-        await getClock().wait(MOVE_DURATION + 30, 'bot');
+        await getClock().wait(MOVE_DURATION + ANIMATION_CUSHION_MS, 'bot');
       }
 
       clearGameContext();

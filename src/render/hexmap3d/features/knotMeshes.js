@@ -3,6 +3,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileTopY } from '../terrain/terrainMesh.js';
 import { getKnotGeo } from './geometries/index.js';
+import { KNOT_RADIUS, KNOT_Y_OFFSET, KNOT_EMISSIVE_INTENSITY } from '../../../params/render/geometryParams.js';
 
 /**
  * Collect knot instance data from visible tiles and return InstancedMeshes.
@@ -19,7 +20,7 @@ export function buildKnotMeshes(state, visible) {
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     instances.push({
-      x, y: surfaceY + 0.30, z,
+      x, y: surfaceY + KNOT_Y_OFFSET, z,
       scale: 1.0,
     });
   }
@@ -29,7 +30,7 @@ export function buildKnotMeshes(state, visible) {
   const mat = new THREE.MeshLambertMaterial({
     color: 0x7c3fb1,
     emissive: 0xb79aff,
-    emissiveIntensity: 0.4,
+    emissiveIntensity: KNOT_EMISSIVE_INTENSITY,
     flatShading: true,
   });
   const mesh = new THREE.InstancedMesh(getKnotGeo(), mat, instances.length);
@@ -61,7 +62,7 @@ export function buildChunkKnotMeshes(chunkTiles, visible) {
     if (!tile.feature || tile.feature.kind !== 'knot' || tile.feature.mined) continue;
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
-    instances.push({ x, y: surfaceY + 0.30, z, scale: 1.0 });
+    instances.push({ x, y: surfaceY + KNOT_Y_OFFSET, z, scale: 1.0 });
   }
 
   if (instances.length === 0) return [];
@@ -69,7 +70,7 @@ export function buildChunkKnotMeshes(chunkTiles, visible) {
   const mat = new THREE.MeshLambertMaterial({
     color: 0x7c3fb1,
     emissive: 0xb79aff,
-    emissiveIntensity: 0.4,
+    emissiveIntensity: KNOT_EMISSIVE_INTENSITY,
     flatShading: true,
   });
   const mesh = new THREE.InstancedMesh(getKnotGeo(), mat, instances.length);

@@ -14,6 +14,7 @@
 
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { getClock } from '../../shared/clockScheduler.js';
+import { CLASH_PULSE_MS, COUNT_UP_DURATION_MS, FLOAT_TEXT_CLEANUP_MS, HP_DRAIN_TRANSITION_MS } from '../../params/ui/combatUiParams.js';
 
 // ─── Promise timer (clock-controlled) ───────────────────────────────────
 /**
@@ -93,7 +94,7 @@ export function clashPulse(reveal, modalEl) {
     }
     if (scoreLeft) scoreLeft.classList.remove('score-tick');
     if (scoreRight) scoreRight.classList.remove('score-tick');
-  }, 800, 'combat');
+  }, CLASH_PULSE_MS, 'combat');
 }
 
 // ─── Count-up — rAF score ticker ──────────────────────────────────────────
@@ -106,7 +107,7 @@ export function clashPulse(reveal, modalEl) {
  * @param {number} [ms=500]  — duration in ms
  * @returns {Promise} resolves when the count-up finishes
  */
-export function countUp(el, from, to, ms = 500) {
+export function countUp(el, from, to, ms = COUNT_UP_DURATION_MS) {
   return new Promise((resolve) => {
     if (!el) return resolve();
     const start = performance.now();
@@ -162,7 +163,7 @@ export function floatText(parentEl, anchorEl, text, kind = 'damage') {
   // Fallback cleanup in case animationend doesn't fire
   getClock().setTimeout(() => {
     if (span.parentNode) span.parentNode.removeChild(span);
-  }, 1000, 'combat');
+  }, FLOAT_TEXT_CLEANUP_MS, 'combat');
 
   return span;
 }
@@ -228,7 +229,7 @@ export function drainHp(side, newHpPct) {
     const pct = Math.min(100, Math.max(0, Math.round(newHpPct)));
     hpFill.style.width = `${pct}%`;
 
-    getClock().setTimeout(resolve, 420, 'combat'); // --dur-slow
+    getClock().setTimeout(resolve, HP_DRAIN_TRANSITION_MS, 'combat'); // --dur-slow
   });
 }
 
