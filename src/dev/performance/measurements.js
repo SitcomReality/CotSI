@@ -12,6 +12,9 @@
 const _measurements = {}; // name -> { total, count, ema, enabled }
 let _allEnabled = false;
 
+/** Frame-delta snapshot: shallow copy of { total, count } per measurement */
+let _frameStartSnapshot = null;
+
 const EMA_ALPHA = 0.3;
 
 // ─── Public API ────────────────────────────────────────────────────────────
@@ -104,6 +107,43 @@ export function enableAllMeasurements() {
 }
 
 /**
+ * Snapshot current measurement totals as the baseline for the current frame.
+ * Call once per frame before any measurement deltas are computed.
+ */
+export function startFrameSnapshot() {
+  _frameStartSnapshot = {};
+  for (const [name, m] of Object.entries(_measurements)) {
+    if (m.enabled && m._startTime === undefined) {
+      _frameStartSnapshot[name] = { total: m.total, count: m.count };
+    }
+  }
+}
+
+/**
+ * Compute per-frame deltas since the last call to startFrameSnapshot().
+ * Returns a map of { name: { deltaMs, deltaCount } } for measurements
+ * that advanced during the frame. Resets the snapshot for the next frame.
+ * @returns {Object<string, { deltaMs: number, deltaCount: number }>}
+ */
+export function endFrameDeltas() {
+  if (!_frameStartSnapshot) return {};
+
+  const deltas = {};
+  for (const [name, baseline] of Object.entries(_frameStartSnapshot)) {
+    const m = _measurements[name];
+    if (!m) continue;
+    const deltaMs = m.total - baseline.total;
+    const deltaCount = m.count - baseline.count;
+    if (deltaMs > 0 || deltaCount > 0) {
+      deltas[name] = { deltaMs, deltaCount };
+    }
+  }
+
+  _frameStartSnapshot = null;
+  return deltas;
+}
+
+/**
  * Dispose all measurement state.
  */
 export function disposeMeasurements() {
@@ -111,6 +151,7 @@ export function disposeMeasurements() {
     delete _measurements[key];
   }
   _allEnabled = false;
+  _frameStartSnapshot = null;
 }
 
 /**

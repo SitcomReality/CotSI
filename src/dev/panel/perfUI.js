@@ -25,7 +25,7 @@ export function refreshPerfStats() {
   if (frameEl) frameEl.textContent = getLastFrameTime().toFixed(1);
 
   // Update measurement displays
-  const names = ['refreshAll', 'mapRefresh', 'runBot', 'combatFlow'];
+  const names = ['refreshAll', 'mapRefresh', 'runBot', 'combatFlow', 'render3d', 'overlays', 'animMove'];
   for (const name of names) {
     const id = 'devPerf' + name.charAt(0).toUpperCase() + name.slice(1);
     const el = document.getElementById(id);

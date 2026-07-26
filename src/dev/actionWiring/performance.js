@@ -37,6 +37,24 @@ export function registerPerfActions() {
     if (cb) setMeasurementEnabled('combatFlow', cb.checked);
   });
 
+  registerAction('dev:perf:toggle:render3d', (el) => {
+    const cb = el.querySelector('input[type="checkbox"]');
+    if (cb) setMeasurementEnabled('render3d', cb.checked);
+  });
+  registerAction('dev:perf:toggle:overlays', (el) => {
+    const cb = el.querySelector('input[type="checkbox"]');
+    const on = cb ? cb.checked : false;
+    setMeasurementEnabled('overlays', on);
+    setMeasurementEnabled('overlay:fogOverlay', on);
+    setMeasurementEnabled('overlay:movementHighlights', on);
+    setMeasurementEnabled('overlay:interactionHighlights', on);
+    setMeasurementEnabled('overlay:selectionRing', on);
+  });
+  registerAction('dev:perf:toggle:animMove', (el) => {
+    const cb = el.querySelector('input[type="checkbox"]');
+    if (cb) setMeasurementEnabled('animMove', cb.checked);
+  });
+
   // Capture controls
   registerAction('dev:perf:startCapture', () => {
     if (isCaptureActive()) return;

@@ -21,8 +21,12 @@
 
 // ─── State ─────────────────────────────────────────────────────────────────
 
-/** @type {GameContext|null} */
-let _currentContext = null;
+/** @type {GameContext} */
+let _currentContext = { phase: 'unknown', detail: 'initial' };
+
+function _defaultContext() {
+  return { phase: 'unknown', detail: 'default' };
+}
 
 // ─── Public API ────────────────────────────────────────────────────────────
 
@@ -36,16 +40,17 @@ export function setGameContext(ctx) {
 }
 
 /**
- * Get a snapshot of the current game context.
- * @returns {GameContext|null}
+ * Get a snapshot of the current game context. Never returns null.
+ * @returns {GameContext}
  */
 export function getGameContext() {
-  return _currentContext;
+  return _currentContext || _defaultContext();
 }
 
 /**
- * Clear the current game context.
+ * Clear the current game context. Sets to a known 'unknown' phase
+ * rather than null, so profiler frames always have a label.
  */
 export function clearGameContext() {
-  _currentContext = null;
+  _currentContext = { phase: 'unknown', detail: 'cleared' };
 }

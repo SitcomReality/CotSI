@@ -26,6 +26,12 @@ let _pollCount = 0;
 /** @type {import('./reportBuilder.js').CaptureReport|null} */
 let _lastReport = null;
 
+/** @type {PerformanceObserver|null} Long Task API observer */
+let _longTaskObserver = null;
+
+/** @type {Array<{ startTime: number, duration: number, name: string }>} */
+let _longTasks = [];
+
 // ─── Public API ────────────────────────────────────────────────────────────
 
 /**
@@ -46,9 +52,38 @@ export function startCapture({ durationMs, intervalMs, keepTimeline } = {}) {
   }
 
   _startTime = performance.now();
+  _longTasks = [];
+
+  // ── Long Task API observer ──
+  // Detects browser main-thread stalls >50ms (GC, layout, paint, etc.)
+  // Only register if the browser supports the entry type — avoids console warnings.
+  if (
+    typeof PerformanceObserver !== 'undefined' &&
+    PerformanceObserver.supportedEntryTypes &&
+    PerformanceObserver.supportedEntryTypes.includes('longtask')
+  ) {
+    try {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          _longTasks.push({
+            startTime: entry.startTime,
+            duration: entry.duration,
+            name: entry.name || 'unknown',
+          });
+        }
+      });
+      observer.observe({ type: 'longtask', buffered: true });
+      _longTaskObserver = observer;
+    } catch (e) {
+      // Observation failed — skip silently
+      _longTaskObserver = null;
+    }
+  }
 
   const result = startRecording();
   if (!result.started) {
+    // Disconnect observer if recording failed
+    _disconnectLongTaskObserver();
     return result;
   }
 
@@ -97,6 +132,13 @@ export function isCaptureActive() {
 
 // ─── Internal ──────────────────────────────────────────────────────────────
 
+function _disconnectLongTaskObserver() {
+  if (_longTaskObserver) {
+    try { _longTaskObserver.disconnect(); } catch (e) { /* ignore */ }
+    _longTaskObserver = null;
+  }
+}
+
 function _finishCapture() {
   // Clear auto-stop
   if (_autoStopId != null) {
@@ -110,7 +152,15 @@ function _finishCapture() {
   const durationMs = end - _startTime;
   const pollCount = frames.length;
 
+  // Disconnect Long Task observer
+  _disconnectLongTaskObserver();
+
   // Build report
   const interval = { start: _startTime, end, durationMs, pollCount };
-  _lastReport = buildReport(frames, interval);
+  _lastReport = buildReport(frames, interval, _longTasks);
+  _longTasks = [];
+
+  // Log the formatted report (one line per section) so the console
+  // shows the concise summary rather than the full object dump.
+  console.log(_lastReport.formatted);
 }

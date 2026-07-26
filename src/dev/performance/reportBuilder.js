@@ -3,12 +3,202 @@
  *
  * Takes a set of per-frame entries recorded by frameProfiler and produces
  * a rich CaptureReport with overall stats, per-context breakdown, spike
- * correlation, time-budget analysis, and formatted output.
+ * clustering, time-budget analysis, and formatted output.
  *
  * Layer: dev/ — depends on stats.js and the FrameEntry type.
  */
 
-import { computeStats, bucketFrameTimes } from './stats.js';
+import { computeStats, percentile } from './stats.js';
+
+// ─── Constants ──────────────────────────────────────────────────────────────
+
+const TARGET_FRAME_MS = 1000 / 60; // 16.67
+const GOOD_THRESHOLD = TARGET_FRAME_MS + 2;   // ~18.7ms — still basically 60fps
+const BAD_THRESHOLD = 33.3;                    // missed 30fps
+const HITCH_THRESHOLD = 50;                    // noticeable hitch
+const MAJOR_HITCH_THRESHOLD = 100;             // freeze territory
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Categorize a frame time into a human label.
+ */
+function _categorize(ms) {
+  if (ms <= GOOD_THRESHOLD) return 'good';
+  if (ms <= BAD_THRESHOLD) return 'missed60';
+  if (ms <= HITCH_THRESHOLD) return 'bad';
+  if (ms <= MAJOR_HITCH_THRESHOLD) return 'hitch';
+  return 'majorHitch';
+}
+
+/**
+ * Round to 1-decimal string for display, 2 decimals for tiny timings.
+ */
+function _r1(v) { return v.toFixed(1); }
+function _r2(v) { return v.toFixed(2); }
+
+/**
+ * Build a context label from a FrameEntry's context field.
+ */
+function _contextLabel(entry) {
+  const ctx = entry.context;
+  if (!ctx) return 'unknown';
+  let label = ctx.phase;
+  if (ctx.championName) label += ` ${ctx.championName}`;
+  if (ctx.action) label += ` (${ctx.action})`;
+  if (ctx.detail && ctx.detail !== 'default') label += ` [${ctx.detail}]`;
+  return label;
+}
+
+/**
+ * Compute 1%-low and 0.1%-low FPS from a sorted frame-time array.
+ * 1% low = 1 / (p99 frame time in seconds)
+ * 0.1% low = 1 / (p99.9 frame time in seconds)
+ */
+function _computeLowFps(sortedFt) {
+  if (sortedFt.length < 2) return { p1Low: 0, p01Low: 0 };
+  const p99 = percentile(sortedFt, 99);
+  const p999 = percentile(sortedFt, 99.9);
+  return {
+    p1Low: p99 > 0 ? 1000 / p99 : 0,
+    p01Low: p999 > 0 ? 1000 / p999 : 0,
+  };
+}
+
+// ─── Slow-frame clustering ──────────────────────────────────────────────────
+
+/**
+ * Group adjacent slow frames into clusters. A cluster tolerates up to 2
+ * consecutive non-slow frames before breaking.
+ *
+ * @param {FrameEntry[]} frames
+ * @returns {Array<{ startIndex: number, endIndex: number, count: number,
+ *   worstMs: number, worstEntry: FrameEntry, context: string,
+ *   entries: FrameEntry[] }>}
+ */
+function _buildSlowClusters(frames) {
+  const clusters = [];
+  let current = null;
+
+  for (let i = 0; i < frames.length; i++) {
+    const entry = frames[i];
+    const isSlow = entry.frameTime > BAD_THRESHOLD;
+
+    if (isSlow) {
+      if (!current) {
+        current = { startIndex: i, entries: [], skipCount: 0 };
+      }
+      current.entries.push(entry);
+      current.skipCount = 0;
+    } else if (current) {
+      current.skipCount++;
+      // Tolerate up to 2 non-slow frames between slow ones
+      if (current.skipCount > 2) {
+        // Flush if the cluster has at least 2 slow frames
+        if (current.entries.length >= 2) {
+          clusters.push(current);
+        }
+        current = null;
+      }
+    }
+  }
+
+  // Flush trailing cluster
+  if (current && current.entries.length >= 2) {
+    clusters.push(current);
+  }
+
+  // Convert to summary form
+  return clusters.map(c => {
+    const worst = c.entries.reduce((a, b) => a.frameTime > b.frameTime ? a : b);
+    return {
+      startIndex: c.startIndex,
+      endIndex: c.entries[c.entries.length - 1].timestamp,
+      count: c.entries.length,
+      worstMs: worst.frameTime,
+      worstEntry: worst,
+      context: _contextLabel(worst),
+      entries: c.entries,
+    };
+  });
+}
+
+// ─── Per-interval span aggregation ──────────────────────────────────────────
+
+/**
+ * Aggregate per-frame span data across the timeline.
+ * Uses the new `spans` array on each frame entry.
+ */
+function _aggregateSpans(frames) {
+  const spanByName = {};
+
+  for (const entry of frames) {
+    if (!entry.spans) continue;
+    for (const span of entry.spans) {
+      if (!spanByName[span.name]) {
+        spanByName[span.name] = { totalMs: 0, totalCount: 0, callCount: 0, durations: [] };
+      }
+      const acc = spanByName[span.name];
+      acc.totalMs += span.ms;
+      acc.totalCount += span.count;
+      acc.callCount++;
+      acc.durations.push(span.ms);
+    }
+  }
+
+  const results = {};
+  for (const [name, acc] of Object.entries(spanByName)) {
+    const stats = computeStats(acc.durations);
+    results[name] = {
+      totalMs: acc.totalMs,
+      totalCount: acc.totalCount,
+      frameCallCount: acc.callCount,
+      avgCall: acc.callCount > 0 ? acc.totalMs / acc.callCount : 0,
+      min: stats ? stats.min : 0,
+      max: stats ? stats.max : 0,
+      median: stats ? stats.median : 0,
+      p95: stats ? stats.p95 : 0,
+    };
+  }
+
+  return results;
+}
+
+// ─── Time budget (from spans) ───────────────────────────────────────────────
+
+function _computeTimeBudgetFromSpans(frames, avgFrameMs) {
+  const spanAgg = _aggregateSpans(frames);
+  const items = [];
+  let totalMeasured = 0;
+
+  for (const [name, s] of Object.entries(spanAgg)) {
+    totalMeasured += s.totalMs;
+    const perFrameMs = frames.length > 0 ? s.totalMs / frames.length : 0;
+    const pctOfFrame = avgFrameMs > 0 ? (perFrameMs / avgFrameMs) * 100 : 0;
+    items.push({
+      name,
+      totalMs: s.totalMs,
+      perFrameMs,
+      pctOfFrame,
+      callCount: s.frameCallCount,
+      avgCall: s.avgCall,
+      maxCall: s.max,
+    });
+  }
+
+  items.sort((a, b) => b.perFrameMs - a.perFrameMs);
+
+  const perFrameMeasured = frames.length > 0 ? totalMeasured / frames.length : 0;
+  const perFrameUnaccounted = Math.max(0, avgFrameMs - perFrameMeasured);
+
+  return {
+    items,
+    totalMeasuredMs: totalMeasured,
+    perFrameMeasuredMs: perFrameMeasured,
+    perFrameUnaccountedMs: perFrameUnaccounted,
+    pctUnaccounted: avgFrameMs > 0 ? (perFrameUnaccounted / avgFrameMs) * 100 : 0,
+  };
+}
 
 // ─── Report builder ────────────────────────────────────────────────────────
 
@@ -17,19 +207,29 @@ import { computeStats, bucketFrameTimes } from './stats.js';
  *
  * @param {FrameEntry[]} frames — ordered array of per-frame entries
  * @param {{ start: number, end: number, durationMs: number, pollCount: number }} interval
+ * @param {Array<{ startTime: number, duration: number, name: string }>} [longTasks]
  * @returns {CaptureReport}
  */
-export function buildReport(frames, interval) {
+export function buildReport(frames, interval, longTasks = []) {
   const timeline = frames;
   const { start, end, durationMs, pollCount } = interval;
+  const frameCount = timeline.length;
 
   // ── 1. Overall frame stats ──────────────────────────────────────────────
-
   const ftValues = timeline.map(e => e.frameTime).filter(v => v > 0);
   const fpsValues = timeline.map(e => e.fps).filter(v => v > 0);
   const fpsStats = computeStats(fpsValues);
   const ftStats = computeStats(ftValues);
-  const ftBuckets = ftStats ? bucketFrameTimes(ftValues) : null;
+
+  // Better bucket categories
+  const ftBuckets = { good: 0, missed60: 0, bad: 0, hitch: 0, majorHitch: 0 };
+  for (const v of ftValues) {
+    ftBuckets[_categorize(v)]++;
+  }
+
+  // 1% low / 0.1% low FPS
+  const sortedFt = [...ftValues].sort((a, b) => a - b);
+  const lowFps = _computeLowFps(sortedFt);
 
   // ── 2. Memory stats ─────────────────────────────────────────────────────
   let memStats = null;
@@ -49,36 +249,29 @@ export function buildReport(frames, interval) {
     };
   }
 
-  // ── 3. Long frames & spike warnings (with context) ──────────────────────
-  let th16 = 0, th33 = 0, th50 = 0;
-  const warnings = [];
+  // ── 3. Slow-frame clusters ─────────────────────────────────────────────
+  const slowClusters = _buildSlowClusters(timeline);
 
-  for (const entry of timeline) {
-    const ft = entry.frameTime;
-    if (ft <= 0) continue;
-
-    const ctx = entry.context;
-    const ctxSuffix = ctx
-      ? ` — ${ctx.phase}${ctx.championName ? ': ' + ctx.championName : ''}${ctx.action ? ' (' + ctx.action + ')' : ''}`
-      : '';
-
-    if (ft > 50) {
-      th50++;
-      warnings.push(`Frame time >50ms at t=${entry.timestamp.toFixed(0)}ms (${ft.toFixed(1)}ms)${ctxSuffix}`);
-    } else if (ft > 33) {
-      th33++;
-      warnings.push(`Frame time >33ms at t=${entry.timestamp.toFixed(0)}ms (${ft.toFixed(1)}ms)${ctxSuffix}`);
-    } else if (ft > 16) {
-      th16++;
-    }
+  // Individual spike entries (for the report data, not the formatted output)
+  let thGood = 0, thMissed = 0, thBad = 0, thHitch = 0, thMajor = 0;
+  for (const v of ftValues) {
+    const cat = _categorize(v);
+    if (cat === 'good') thGood++;
+    else if (cat === 'missed60') thMissed++;
+    else if (cat === 'bad') thBad++;
+    else if (cat === 'hitch') thHitch++;
+    else if (cat === 'majorHitch') thMajor++;
   }
 
-  const longFrames = { total: th16 + th33 + th50, threshold16: th16, threshold33: th33, threshold50: th50 };
+  const longFrames = {
+    good: thGood, missed60: thMissed, bad: thBad,
+    hitch: thHitch, majorHitch: thMajor,
+    totalSlow: thBad + thHitch + thMajor,
+    totalMissed: thMissed + thBad + thHitch + thMajor,
+  };
 
   // ── 4. Per-context breakdown ────────────────────────────────────────────
-  /** @type {Object<string, number[]>} */
   const frameTimesByPhase = {};
-  /** @type {Object<string, { count: number, framesGt33: number, framesGt50: number }>} */
   const contextMeta = {};
 
   for (const entry of timeline) {
@@ -91,7 +284,7 @@ export function buildReport(frames, interval) {
     frameTimesByPhase[phase].push(entry.frameTime);
     contextMeta[phase].count++;
     if (entry.frameTime > 50) contextMeta[phase].framesGt50++;
-    else if (entry.frameTime > 33) contextMeta[phase].framesGt33++;
+    else if (entry.frameTime > BAD_THRESHOLD) contextMeta[phase].framesGt33++;
   }
 
   const contextBreakdown = {};
@@ -107,7 +300,10 @@ export function buildReport(frames, interval) {
     }
   }
 
-  // ── 5. Per-measurement stats across the timeline ────────────────────────
+  // ── 5. Per-measurement span stats ───────────────────────────────────────
+  const spanStats = _aggregateSpans(timeline);
+
+  // Also keep the old cumulative measurement snapshots for compatibility
   const measByName = {};
   for (const entry of timeline) {
     for (const [name, m] of Object.entries(entry.measurements)) {
@@ -151,44 +347,85 @@ export function buildReport(frames, interval) {
     };
   }
 
-  // ── 6. Time budget analysis ─────────────────────────────────────────────
-  // Compute how much of frame time each measurement accounts for.
-  // Uses per-frame measurement snapshots: find the first and last entry
-  // that contain each measurement and compute delta total.
-  const timeBudget = _computeTimeBudget(timeline, ftStats);
+  // ── 6. Time budget (from per-frame spans) ───────────────────────────────
+  const avgFrameMs = ftStats ? ftStats.avg : 0;
+  const timeBudget = _computeTimeBudgetFromSpans(timeline, avgFrameMs);
 
-  // ── 7. Additional warnings ──────────────────────────────────────────────
+  // ── 7. Long tasks ───────────────────────────────────────────────────────
+  const longTaskSummary = longTasks.length > 0 ? {
+    count: longTasks.length,
+    totalDuration: longTasks.reduce((s, t) => s + t.duration, 0),
+    tasks: longTasks,
+  } : null;
 
-  // Memory warnings
+  // ── 8. Warnings (condensed) ─────────────────────────────────────────────
+  const warnings = [];
+
+  if (ftStats && ftStats.avg > HITCH_THRESHOLD) {
+    warnings.push(`Average frame time ${_r1(ftStats.avg)}ms exceeds ${HITCH_THRESHOLD}ms (sub-20fps)`);
+  } else if (ftStats && ftStats.avg > BAD_THRESHOLD) {
+    warnings.push(`Average frame time ${_r1(ftStats.avg)}ms exceeds ${_r1(BAD_THRESHOLD)}ms (sub-30fps)`);
+  } else if (ftStats && ftStats.avg > TARGET_FRAME_MS) {
+    warnings.push(`Average frame time ${_r1(ftStats.avg)}ms exceeds ${_r1(TARGET_FRAME_MS)}ms (sub-60fps)`);
+  }
+
+  if (slowClusters.length > 0) {
+    warnings.push(`Found ${slowClusters.length} slow-frame clusters (${thBad + thHitch + thMajor} frames >${_r1(BAD_THRESHOLD)}ms)`);
+  }
+
   if (memStats && memStats.limitMB != null && memStats.maxHeap > memStats.limitMB * 0.9) {
-    warnings.push(`Memory heap near limit: ${memStats.maxHeap.toFixed(1)}MB / ${memStats.limitMB.toFixed(1)}MB`);
+    warnings.push(`Memory heap near limit: ${_r1(memStats.maxHeap)}MB / ${_r1(memStats.limitMB)}MB`);
   }
   if (memStats && memStats.limitMB != null && memStats.avgHeap > memStats.limitMB * 0.8) {
-    warnings.push(`Sustained high memory: avg ${memStats.avgHeap.toFixed(1)}MB / ${memStats.limitMB.toFixed(1)}MB`);
+    warnings.push(`Sustained high memory: avg ${_r1(memStats.avgHeap)}MB / ${_r1(memStats.limitMB)}MB`);
   }
 
-  // Frame time warnings
-  if (ftStats && ftStats.avg > 33) {
-    warnings.push(`Average frame time ${ftStats.avg.toFixed(1)}ms exceeds 33ms (sub-30fps)`);
-  } else if (ftStats && ftStats.avg > 16) {
-    warnings.push(`Average frame time ${ftStats.avg.toFixed(1)}ms exceeds 16ms (sub-60fps)`);
+  if (timeBudget.pctUnaccounted > 70 && ftValues.length > 0 && thHitch > 0) {
+    warnings.push(
+      `${_r1(timeBudget.pctUnaccounted)}% of frame time is unmeasured ` +
+      `(${thHitch + thMajor} hitches >${_r1(HITCH_THRESHOLD)}ms with little measured work)`
+    );
   }
 
-  // ── 8. Assemble report ──────────────────────────────────────────────────
+  // Build a simplified per-context slow-frame summary
+  const ctxSlowSummary = {};
+  for (const [phase, meta] of Object.entries(contextMeta)) {
+    const slowCount = meta.framesGt33 + meta.framesGt50;
+    if (slowCount > 0) {
+      ctxSlowSummary[phase] = {
+        slow: slowCount,
+        hitches: meta.framesGt50,
+        worst: frameTimesByPhase[phase].length > 0
+          ? Math.max(...frameTimesByPhase[phase]) : 0,
+      };
+    }
+  }
+
+  // ── 9. Assemble report ──────────────────────────────────────────────────
 
   const report = {
     interval: { start, end, durationMs, pollCount },
     summary: {
-      fps: fpsStats,
+      fps: fpsStats ? { ...fpsStats, low1Pct: lowFps.p1Low, low01Pct: lowFps.p01Low } : null,
       frameTime: ftStats ? { ...ftStats, buckets: ftBuckets } : null,
       memory: memStats,
       longFrames,
     },
     measurements,
+    spanStats,
     contextBreakdown,
+    ctxSlowSummary,
+    slowClusters: slowClusters.map(c => ({
+      startTs: c.startIndex,
+      endTs: c.endIndex,
+      count: c.count,
+      worstMs: c.worstMs,
+      context: c.context,
+    })),
     timeBudget,
+    longTasks: longTaskSummary,
     warnings,
-    timeline,
+    timeline, // kept for programmatic use; not printed
     formatted: '',
   };
 
@@ -197,169 +434,110 @@ export function buildReport(frames, interval) {
   return report;
 }
 
-// ─── Time budget computation ───────────────────────────────────────────────
-
-function _computeTimeBudget(timeline, ftStats) {
-  if (ftStats == null) return null;
-
-  // For each measurement, compute delta total between first and last
-  // snapshot that contain it. This tells us the cumulative measured time
-  // during this capture window.
-  const firstTotals = {};
-  const lastTotals = {};
-  const firstNames = new Set();
-  const lastNames = new Set();
-
-  // First pass: find first snapshot for each measurement
-  for (const entry of timeline) {
-    for (const name of Object.keys(entry.measurements)) {
-      if (!firstNames.has(name)) {
-        firstNames.add(name);
-        firstTotals[name] = entry.measurements[name].total;
-      }
-    }
-    if (firstNames.size >= Object.keys(firstTotals).length) break;
-  }
-
-  // Last pass: find last snapshot for each measurement
-  for (let i = timeline.length - 1; i >= 0; i--) {
-    const entry = timeline[i];
-    for (const name of Object.keys(entry.measurements)) {
-      if (!lastNames.has(name)) {
-        lastNames.add(name);
-        lastTotals[name] = entry.measurements[name].total;
-      }
-    }
-    if (lastNames.size >= Object.keys(lastTotals).length) break;
-  }
-
-  const items = [];
-  let totalMeasured = 0;
-
-  for (const name of Object.keys(firstTotals)) {
-    const firstT = firstTotals[name];
-    const lastT = lastTotals[name];
-    if (lastT != null && lastT > firstT) {
-      const delta = lastT - firstT;
-      totalMeasured += delta;
-      const lastEntry = timeline[timeline.length - 1];
-      const avgPct = ftStats.avg > 0 ? (delta / timeline.length / ftStats.avg) * 100 : 0;
-      items.push({ name, totalMs: delta, perFrameMs: delta / timeline.length, pctOfFrame: avgPct });
-    }
-  }
-
-  // Sort by per-frame cost descending
-  items.sort((a, b) => b.perFrameMs - a.perFrameMs);
-
-  const avgFrameMs = ftStats.avg;
-  const perFrameMeasured = timeline.length > 0 ? totalMeasured / timeline.length : 0;
-  const perFrameUnaccounted = Math.max(0, avgFrameMs - perFrameMeasured);
-
-  return {
-    items,
-    totalMeasuredMs: totalMeasured,
-    perFrameMeasuredMs: perFrameMeasured,
-    perFrameUnaccountedMs: perFrameUnaccounted,
-    pctUnaccounted: avgFrameMs > 0 ? (perFrameUnaccounted / avgFrameMs) * 100 : 0,
-  };
-}
-
 // ─── Formatted report ──────────────────────────────────────────────────────
 
 /**
- * Build the formatted string version of a report.
+ * Build the formatted string version of a report — summary-first, no raw timeline.
  * @param {CaptureReport} report
  * @returns {string}
  */
 function _formatReport(report) {
-  const { interval, summary, measurements, contextBreakdown, timeBudget, warnings } = report;
+  const { interval, summary, spanStats, contextBreakdown, ctxSlowSummary,
+    slowClusters, timeBudget, longTasks, warnings } = report;
 
   let s = `=== Performance Capture Report ===\n`;
-  s += `Duration: ${(interval.durationMs / 1000).toFixed(1)}s  Frames: ${interval.pollCount}\n\n`;
+  s += `Duration: ${_r1(interval.durationMs / 1000)}s  Frames: ${interval.pollCount}\n`;
 
-  // FPS
-  if (summary.fps) {
-    const f = summary.fps;
-    s += `FPS:      avg=${f.avg.toFixed(1)}  min=${f.min.toFixed(1)}  max=${f.max.toFixed(1)}  `;
-    s += `p95=${f.p95.toFixed(1)}  p99=${f.p99.toFixed(1)}\n`;
-  }
-
-  // Frame time
+  // ── Summary ──
+  s += `\n─── Summary ───\n`;
   if (summary.frameTime) {
     const ft = summary.frameTime;
-    s += `Frame:    avg=${ft.avg.toFixed(1)}ms  min=${ft.min.toFixed(1)}ms  max=${ft.max.toFixed(1)}ms  `;
-    s += `p95=${ft.p95.toFixed(1)}ms  p99=${ft.p99.toFixed(1)}ms\n`;
+    s += `Frame:  median=${_r1(ft.median)}ms  avg=${_r1(ft.avg)}ms  `;
+    s += `p95=${_r1(ft.p95)}ms  p99=${_r1(ft.p99)}ms  max=${_r1(ft.max)}ms\n`;
 
     const b = ft.buckets;
-    s += `Buckets:  ≤8ms:${b.under8}  ≤16ms:${b.under16}  ≤33ms:${b.under33}  ≤50ms:${b.under50}  >50ms:${b.over50}\n`;
+    s += `        good≤${_r1(GOOD_THRESHOLD)}ms:${b.good}  `;
+    s += `missed:${b.missed60}  bad>${_r1(BAD_THRESHOLD)}ms:${b.bad}  `;
+    s += `hitch>${_r1(HITCH_THRESHOLD)}ms:${b.hitch}  major>${_r1(MAJOR_HITCH_THRESHOLD)}ms:${b.majorHitch}\n`;
   }
 
-  // Memory
+  if (summary.fps) {
+    const f = summary.fps;
+    s += `FPS:    avg=${_r1(f.avg)}  min=${_r1(f.min)}  `;
+    if (f.low1Pct > 0) s += `1% low=${_r1(f.low1Pct)}  `;
+    if (f.low01Pct > 0) s += `0.1% low=${_r1(f.low01Pct)}  `;
+    s += `max=${_r1(f.max)}\n`;
+  }
+
   if (summary.memory) {
     const m = summary.memory;
-    s += `Memory:   heap=${m.avgHeap.toFixed(1)}MB  min=${m.minHeap.toFixed(1)}MB  max=${m.maxHeap.toFixed(1)}MB`;
-    if (m.limitMB != null) s += `  limit=${m.limitMB.toFixed(1)}MB`;
+    s += `Memory: avg=${_r1(m.avgHeap)}MB  max=${_r1(m.maxHeap)}MB`;
+    if (m.limitMB != null) s += `  limit=${_r1(m.limitMB)}MB`;
     s += '\n';
   }
 
-  s += '\n';
-
-  // Time budget
-  if (timeBudget && timeBudget.items.length > 0) {
-    s += `─── Time Budget ───\n`;
-    for (const item of timeBudget.items) {
-      const costMs = `cost=${item.perFrameMs.toFixed(2)}ms`.padEnd(16);
-      const pct = `${item.pctOfFrame.toFixed(1)}%`.padEnd(8);
-      s += `  ${item.name.padEnd(16)} ${costMs} ${pct} of frame\n`;
-    }
-    s += `  ${'unaccounted'.padEnd(16)} cost=${timeBudget.perFrameUnaccountedMs.toFixed(2)}ms  ${timeBudget.pctUnaccounted.toFixed(1)}% of frame\n`;
-    s += '\n';
-  }
-
-  // Measurements
-  const mNames = Object.keys(measurements).sort();
-  if (mNames.length > 0) {
-    const namePad = Math.max(...mNames.map(n => n.length), 10) + 1;
-    s += `─── Measurements ───\n`;
-    for (const name of mNames) {
-      const m = measurements[name];
-      const pad = name.padEnd(namePad);
-      const avgS = `avg=${m.avg.toFixed(2)}ms`.padEnd(14);
-      const minS = `min=${m.min.toFixed(2)}ms`.padEnd(12);
-      const maxS = `max=${m.max.toFixed(2)}ms`.padEnd(12);
-      const p95S = `p95=${m.p95.toFixed(2)}ms`.padEnd(12);
-      const cntS = `n=${m.count}`.padEnd(8);
-      let trendS = '';
-      if (m.trendPct != null) {
-        const sign = m.trendPct >= 0 ? '+' : '';
-        trendS = `trend=${sign}${m.trendPct.toFixed(1)}%`;
-      }
-      s += `${pad}${avgS}${minS}${maxS}${p95S}${cntS}${trendS}\n`;
-    }
-    s += '\n';
-  }
-
-  // Context breakdown
-  const ctxNames = Object.keys(contextBreakdown).sort();
+  // ── Slow frames by context ──
+  const ctxNames = Object.keys(ctxSlowSummary).sort();
   if (ctxNames.length > 0) {
-    s += `─── Context Breakdown ───\n`;
-    const phasePad = Math.max(...ctxNames.map(n => n.length), 8) + 1;
+    s += `\n─── Slow Frames by Context ───\n`;
     for (const phase of ctxNames) {
-      const ctx = contextBreakdown[phase];
-      const pad = phase.padEnd(phasePad);
-      const framesS = `frames=${ctx.frames}`.padEnd(10);
-      const avgS = `avg=${ctx.avg.toFixed(1)}ms`.padEnd(12);
-      const maxS = `max=${ctx.max.toFixed(1)}ms`.padEnd(12);
-      const gt33 = ctx.framesGt33 > 0 ? ` >33ms:${ctx.framesGt33}` : '';
-      const gt50 = ctx.framesGt50 > 0 ? ` >50ms:${ctx.framesGt50}` : '';
-      s += `  ${pad}${framesS}${avgS}${maxS}${gt33}${gt50}\n`;
+      const cs = ctxSlowSummary[phase];
+      s += `  ${phase.padEnd(14)} ${cs.slow} slow, ${cs.hitches} hitches, worst=${_r1(cs.worst)}ms\n`;
+    }
+  }
+
+  // ── Slow clusters ──
+  if (slowClusters.length > 0) {
+    s += `\n─── Slow Clusters (${slowClusters.length}) ───\n`;
+    for (let i = 0; i < slowClusters.length; i++) {
+      const c = slowClusters[i];
+      s += `  Cluster ${i + 1}: ${c.count} frames >${_r1(BAD_THRESHOLD)}ms, worst=${_r1(c.worstMs)}ms\n`;
+      s += `    context: ${c.context}\n`;
     }
     s += '\n';
   }
 
-  // Warnings
+  // ── Measured spans (from per-frame deltas) ──
+  const spanNames = Object.keys(spanStats).sort();
+  if (spanNames.length > 0) {
+    const namePad = Math.max(...spanNames.map(n => n.length), 10) + 1;
+    s += `─── Measured Spans ───\n`;
+    for (const name of spanNames) {
+      const sp = spanStats[name];
+      const pad = name.padEnd(namePad);
+      const callsS = `calls=${sp.frameCallCount}`.padEnd(12);
+      const totalS = `total=${_r2(sp.totalMs)}ms`.padEnd(14);
+      const avgS = `avg=${_r2(sp.avgCall)}ms`.padEnd(12);
+      const maxS = `max=${_r2(sp.max)}ms`.padEnd(12);
+      s += `  ${pad}${callsS}${totalS}${avgS}${maxS}\n`;
+    }
+  }
+
+  // ── Time budget ──
+  if (timeBudget && timeBudget.items.length > 0) {
+    s += `\n─── Time Budget ───\n`;
+    for (const item of timeBudget.items) {
+      const costMs = `cost=${_r2(item.perFrameMs)}ms`.padEnd(16);
+      const pct = `${_r1(item.pctOfFrame)}%`.padEnd(8);
+      s += `  ${item.name.padEnd(16)} ${costMs} ${pct} of frame`;
+      if (item.avgCall > 0) s += `  avg=${_r2(item.avgCall)}ms/call`;
+      s += '\n';
+    }
+    s += `  ${'unaccounted'.padEnd(16)} cost=${_r2(timeBudget.perFrameUnaccountedMs)}ms  ${_r1(timeBudget.pctUnaccounted)}% of frame\n`;
+  }
+
+  // ── Long tasks ──
+  if (longTasks) {
+    s += `\n─── Long Tasks (${longTasks.count}) ───\n`;
+    s += `  Total duration: ${_r1(longTasks.totalDuration)}ms\n`;
+    for (const t of longTasks.tasks) {
+      s += `  - ${t.name}: ${_r1(t.duration)}ms at t=${_r1(t.startTime)}\n`;
+    }
+  }
+
+  // ── Warnings ──
   if (warnings.length > 0) {
-    s += `─── Warnings (${warnings.length}) ───\n`;
+    s += `\n─── Warnings (${warnings.length}) ───\n`;
     for (const w of warnings) {
       s += `  - ${w}\n`;
     }
@@ -378,8 +556,12 @@ function _formatReport(report) {
  * @property {{ start: number, end: number, durationMs: number, pollCount: number }} interval
  * @property {{ fps: object|null, frameTime: object|null, memory: object|null, longFrames: object }} summary
  * @property {Object<string, object>} measurements
+ * @property {Object<string, object>} spanStats
  * @property {Object<string, { frames: number, min: number, max: number, avg: number, median: number, p95: number, p99: number, framesGt33: number, framesGt50: number }>} contextBreakdown
+ * @property {Object<string, { slow: number, hitches: number, worst: number }>} ctxSlowSummary
+ * @property {Array<{ startTs: number, endTs: number, count: number, worstMs: number, context: string }>} slowClusters
  * @property {{ items: Array<{ name: string, totalMs: number, perFrameMs: number, pctOfFrame: number }>, totalMeasuredMs: number, perFrameMeasuredMs: number, perFrameUnaccountedMs: number, pctUnaccounted: number }|null} timeBudget
+ * @property {{ count: number, totalDuration: number, tasks: Array<{ startTime: number, duration: number, name: string }> }|null} longTasks
  * @property {string[]} warnings
  * @property {FrameEntry[]} timeline
  * @property {string} formatted

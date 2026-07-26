@@ -44,7 +44,15 @@ export function refreshAll() {
   // Set profiling context based on current game phase
   if (G.winnerId) {
     setGameContext({ phase: 'idle', detail: 'game_over' });
-  } else if (ch && ch.controller === 'human' && !isTurnLocked() && !getCombatUI()) {
+  } else if (getCombatUI()) {
+    setGameContext({
+      phase: 'combat',
+      championId: ch ? ch.id : undefined,
+      championName: ch ? ch.name : undefined,
+      controller: ch ? ch.controller : undefined,
+      action: 'in_progress',
+    });
+  } else if (ch && ch.controller === 'human' && !isTurnLocked()) {
     setGameContext({
       phase: 'human_turn',
       championId: ch.id,
@@ -52,8 +60,21 @@ export function refreshAll() {
       controller: 'human',
       action: 'idle',
     });
+  } else if (ch && ch.controller === 'bot') {
+    setGameContext({
+      phase: 'bot_turn',
+      championId: ch.id,
+      championName: ch.name,
+      controller: 'bot',
+      action: isTurnLocked() ? 'locked' : 'pending',
+    });
+  } else if (isTurnLocked()) {
+    setGameContext({ phase: 'transition', detail: 'turn_locked' });
   } else if (!ch) {
     setGameContext({ phase: 'idle', detail: 'no_active_champion' });
+  } else {
+    // Catch-all for any uncovered state
+    setGameContext({ phase: ch ? ch.controller + '_turn' : 'unknown', detail: 'fallback' });
   }
 
   // ── Header (pure DOM update via headerPanel) ──

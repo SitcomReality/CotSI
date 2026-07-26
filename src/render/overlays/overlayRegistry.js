@@ -4,6 +4,7 @@
 
 import { getClock } from '../../shared/clockScheduler.js';
 import { getOverlayCanvas, getCtx2d } from './overlayCanvas.js';
+import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 
 let renderLayers = [];   // ordered array of { name, priority, render(ctx2d, state, camera, time) }
 
@@ -33,7 +34,9 @@ export function renderFrame(state, camera, time) {
     overlay.height / (window.devicePixelRatio || 1),
   );
   for (const layer of renderLayers) {
+    startMeasure('overlay:' + layer.name);
     layer.render(ctx2d, state, camera, time);
+    endMeasure('overlay:' + layer.name);
   }
 }
 
@@ -42,5 +45,7 @@ export function renderFrame(state, camera, time) {
 getClock().onTick((time) => {
   const overlay = getOverlayCanvas();
   if (!overlay || !overlay._state || !overlay._camera) return;
+  startMeasure('overlays');
   renderFrame(overlay._state, overlay._camera, time);
+  endMeasure('overlays');
 });

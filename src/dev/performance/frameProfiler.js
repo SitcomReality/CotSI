@@ -9,7 +9,7 @@
  */
 
 import { getFps, getLastFrameTime, getFrameHistory, onFrame as registerFrameCallback, ensureFrameTracking } from './frameTracker.js';
-import { getRawMeasurements } from './measurements.js';
+import { getRawMeasurements, startFrameSnapshot, endFrameDeltas } from './measurements.js';
 import { getGameContext } from './gameContext.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
@@ -25,6 +25,9 @@ let _deregister = null;
 
 /** @type {number} Start timestamp (performance.now) */
 let _startTime = 0;
+
+/** @type {number} TARGET frame time for 60fps */
+const TARGET_FRAME_MS = 1000 / 60; // 16.67
 
 // ─── Public API ────────────────────────────────────────────────────────────
 
@@ -43,11 +46,11 @@ export function startRecording(maxFrames = 18000) {
   _maxFrames = maxFrames;
   _startTime = performance.now();
   ensureFrameTracking();
-  _deregister = registerFrameCallback(_recordFrame);
 
-  // Immediately capture the first frame so there's data even for short captures.
-  // This mirrors the old polling approach's _poll() on startCapture().
-  _recordFrame(performance.now());
+  // Initialize frame-delta snapshot so the first frame records from a clean baseline
+  startFrameSnapshot();
+
+  _deregister = registerFrameCallback(_recordFrame);
 
   return { started: true, message: `Frame recording started (maxFrames=${maxFrames})` };
 }
@@ -94,9 +97,31 @@ export function getRecordingStart() {
 function _recordFrame(timestamp) {
   if (!_buffer) return;
 
-  // Frame data (fast — already computed by frameTracker)
+  // ── Compute per-frame measurement deltas ──
+  // endFrameDeltas() returns measurements that completed between the
+  // previous startFrameSnapshot() call and now — i.e., work done
+  // during the previous frame interval.
+  const spanDeltas = endFrameDeltas();
+
+  // Convert deltas to a flat span array for this frame
+  const spans = [];
+  let jsWorkMs = 0;
+  for (const [name, d] of Object.entries(spanDeltas)) {
+    spans.push({ name, ms: d.deltaMs, count: d.deltaCount });
+    jsWorkMs += d.deltaMs;
+  }
+
+  // Seed the next frame's baseline
+  startFrameSnapshot();
+
+  // ── Frame data (fast — already computed by frameTracker) ──
   const frameTime = getLastFrameTime();
   const fps = getFps();
+
+  // Compute how many vsyncs were likely missed
+  const missedVsyncs = frameTime > 0
+    ? Math.max(0, Math.round(frameTime / TARGET_FRAME_MS) - 1)
+    : 0;
 
   // Game context snapshot
   const ctx = getGameContext();
@@ -125,7 +150,15 @@ function _recordFrame(timestamp) {
     };
   }
 
-  const entry = { timestamp, frameTime, fps, context: ctx, measurements: measSnapshot, memory };
+  const entry = {
+    timestamp, frameTime, fps,
+    context: ctx,
+    spans: spans.length > 0 ? spans : undefined,
+    jsWorkMs: jsWorkMs > 0 ? jsWorkMs : undefined,
+    missedVsyncs: missedVsyncs > 0 ? missedVsyncs : undefined,
+    measurements: measSnapshot,
+    memory,
+  };
 
   _buffer.push(entry);
 
@@ -137,11 +170,21 @@ function _recordFrame(timestamp) {
 }
 
 /**
+ * @typedef {Object} FrameSpan
+ * @property {string} name — measurement name
+ * @property {number} ms — total ms accumulated in this span during the frame
+ * @property {number} count — number of times the span was measured
+ */
+
+/**
  * @typedef {Object} FrameEntry
  * @property {number} timestamp
  * @property {number} frameTime
  * @property {number} fps
- * @property {import('./gameContext.js').GameContext|null} context
+ * @property {import('./gameContext.js').GameContext} context
+ * @property {FrameSpan[]} [spans] — per-frame measurement deltas (only if non-empty)
+ * @property {number} [jsWorkMs] — sum of all measured span time in this frame
+ * @property {number} [missedVsyncs] — estimated vsyncs skipped
  * @property {Object<string, { ema: number, avg: number, count: number, total: number }>} measurements
  * @property {{ usedJSHeapSize: number, totalJSHeapSize: number, jsHeapSizeLimit: number }|null} memory
  */

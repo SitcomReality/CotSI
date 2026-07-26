@@ -2,6 +2,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { createCameraState, applyCameraState } from './cameraState.js';
 import { createRenderer } from './rendererSetup.js';
 import { addLights } from './lightSetup.js';
+import { startMeasure, endMeasure } from '../../../dev/devPerformance.js';
 
 /**
  * Initialize the Three.js scene, renderer, camera, and lights.
@@ -64,7 +65,9 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
   // --- Animation loop (clock-owned) ---
   if (clock) {
     clock.onTick(() => {
+      startMeasure('render3d');
       renderer.render(scene, camera);
+      endMeasure('render3d');
     });
   }
 

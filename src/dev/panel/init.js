@@ -62,6 +62,15 @@ export async function initDevTools() {
   // Enable refreshAll measurement by default
   setMeasurementEnabled('refreshAll', true);
 
+  // Enable render loop measurements by default
+  setMeasurementEnabled('render3d', true);
+  setMeasurementEnabled('overlays', true);
+  setMeasurementEnabled('overlay:fogOverlay', true);
+  setMeasurementEnabled('overlay:movementHighlights', true);
+  setMeasurementEnabled('overlay:interactionHighlights', true);
+  setMeasurementEnabled('overlay:selectionRing', true);
+  setMeasurementEnabled('animMove', true);
+
   console.log('[devTools] Dev tools initialized. Press ` to toggle.');
 }
 

@@ -87,6 +87,27 @@
             </label>
             <span class="devtools__perf-val" id="devPerfCombatFlow">—</span>
           </div>
+          <div class="devtools__measurement">
+            <label class="devtools__label" data-action="dev:perf:toggle:render3d">
+              <input type="checkbox" checked />
+              render3d
+            </label>
+            <span class="devtools__perf-val" id="devPerfRender3d">—</span>
+          </div>
+          <div class="devtools__measurement">
+            <label class="devtools__label" data-action="dev:perf:toggle:overlays">
+              <input type="checkbox" checked />
+              overlays
+            </label>
+            <span class="devtools__perf-val" id="devPerfOverlays">—</span>
+          </div>
+          <div class="devtools__measurement">
+            <label class="devtools__label" data-action="dev:perf:toggle:animMove">
+              <input type="checkbox" checked />
+              animMove
+            </label>
+            <span class="devtools__perf-val" id="devPerfAnimMove">—</span>
+          </div>
         </div>
       </div>
       <div class="devtools__section">

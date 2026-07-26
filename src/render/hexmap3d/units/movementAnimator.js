@@ -18,6 +18,7 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { getClock } from '../../../shared/clockScheduler.js';
 import { getChampionBodyGeo, getChampionHeadGeo } from './unitGeometries.js';
+import { startMeasure, endMeasure } from '../../../dev/devPerformance.js';
 import {
   hexToRgb,
   computeInterpolatedPos,
@@ -153,6 +154,7 @@ export function queueOrStart(championId, fromPos, toPos, factionColorHex, durati
   };
 
   anim.stopFn = getClock().onTick((timestamp) => {
+    startMeasure('animMove');
     const elapsed = timestamp - startTime;
     const t = Math.max(0, Math.min(elapsed / duration, 1));
 
@@ -170,6 +172,7 @@ export function queueOrStart(championId, fromPos, toPos, factionColorHex, durati
       completedAnimations.add(anim);
       if (anim.onComplete) anim.onComplete();
     }
+    endMeasure('animMove');
   });
 
   activeAnimations.set(championId, anim);
