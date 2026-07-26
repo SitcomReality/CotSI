@@ -197,24 +197,185 @@ function _aggregateSpans(frames) {
   return results;
 }
 
+// ─── Exclusive span time computation ───────────────────────────────────────
+
+/**
+ * Detect parent-child nesting among spans and compute exclusive (self) time
+ * for each. Uses two strategies:
+ *
+ * 1. Naming convention: if span "foo" and span "foo:bar" share the same
+ *    frameCallCount, "foo:bar" is a child of "foo".
+ * 2. Known-parents table: explicit relationships not covered by naming
+ *    (e.g., refreshAll → mapRefresh).
+ *
+ * @param {Object<string, { totalMs: number, frameCallCount: number }>} spanStats
+ * @returns {Object<string, { exclusiveMs: number, childNames: string[] }>}
+ */
+function _computeExclusiveSpanTimes(spanStats) {
+  // Known parent-child relationships not covered by naming convention
+  const _KNOWN_PARENTS = {
+    'refreshAll': ['mapRefresh', 'dom:header', 'dom:leftPanel', 'dom:rightPanel'],
+    'mapRefresh': ['renderHexMap'],
+    'renderHexMap': ['mesh:chunks', 'mesh:units'],
+  };
+
+  // Initialise every span as its own exclusive leaf
+  /** @type {Object<string, { childNames: string[], exclusiveMs: number }>} */
+  const exclusive = {};
+  for (const name of Object.keys(spanStats)) {
+    exclusive[name] = { childNames: [], exclusiveMs: spanStats[name].totalMs };
+  }
+
+  // Phase 1: naming convention — 'overlays' / 'overlay:fogOverlay'
+  for (const [name, s] of Object.entries(spanStats)) {
+    const prefix = name + ':';
+    if (name.includes(':')) continue; // children never become parents via naming
+
+    for (const [childName, cs] of Object.entries(spanStats)) {
+      if (
+        childName !== name &&
+        childName.startsWith(prefix) &&
+        s.frameCallCount === cs.frameCallCount
+      ) {
+        exclusive[name].childNames.push(childName);
+      }
+    }
+  }
+
+  // Phase 2: known-parents table
+  for (const [parent, children] of Object.entries(_KNOWN_PARENTS)) {
+    if (!spanStats[parent]) continue;
+    for (const child of children) {
+      if (
+        spanStats[child] &&
+        !exclusive[parent].childNames.includes(child)
+      ) {
+        exclusive[parent].childNames.push(child);
+      }
+    }
+  }
+
+  // Compute exclusive times bottom-up (children before parents).
+  // A depth-first post-order walk ensures that when we subtract a child's
+  // inclusive total, the child's own children have already been subtracted.
+  const visited = new Set();
+
+  function computeExclusive(name) {
+    if (visited.has(name)) return exclusive[name].exclusiveMs;
+    if (exclusive[name].childNames.length === 0) return exclusive[name].exclusiveMs;
+
+    visited.add(name);
+    let childrenTotal = 0;
+    for (const cname of exclusive[name].childNames) {
+      if (!spanStats[cname]) continue;
+      const childExcl = computeExclusive(cname);
+      // The child's inclusive total is what the parent includes.
+      // We use the parent's raw total minus children's raw totals so that
+      // children who are themselves parents have already had their own
+      // children subtracted.
+      childrenTotal += spanStats[cname].totalMs;
+    }
+    exclusive[name].exclusiveMs = Math.max(0, spanStats[name].totalMs - childrenTotal);
+    return exclusive[name].exclusiveMs;
+  }
+
+  for (const name of Object.keys(exclusive)) {
+    computeExclusive(name);
+  }
+
+  return exclusive;
+}
+
+// ─── JS invisible-overhead computation ─────────────────────────────────────
+
+/**
+ * Compute the proportion of JS tick time that is not accounted for by any
+ * named measurement. Uses frameJs (total tick time) vs the sum of exclusive
+ * times of every other per-frame measurement.
+ *
+ * @param {Object<string, { totalMs: number, frameCallCount: number }>} spanStats
+ * @param {Object<string, { exclusiveMs: number }>} exclusiveTimes
+ * @returns {{ frameJsTotalMs: number, frameJsCalls: number,
+ *   frameJsAvgPerFrame: number, measuredAvgPerFrame: number,
+ *   invisibleAvgPerFrame: number, invisibleRatio: number }|null}
+ */
+function _computeJsOverhead(spanStats, exclusiveTimes) {
+  const frameJs = spanStats['frameJs'];
+  if (!frameJs || frameJs.frameCallCount === 0) return null;
+
+  const tickCallCount = frameJs.frameCallCount;
+  let totalMeasured = 0;
+
+  // Sum exclusive times of all spans that run on every tick (same call count
+  // as frameJs). This avoids double-counting and only includes work that
+  // happens inside the tick.
+  for (const [name, s] of Object.entries(spanStats)) {
+    if (name === 'frameJs') continue;
+    if (s.frameCallCount === tickCallCount) {
+      const excl = exclusiveTimes[name];
+      if (excl) totalMeasured += excl.exclusiveMs;
+    }
+  }
+
+  // recordFrame is meta-overhead that lands inside the tick but after frameJs
+  // is captured — don't count it in measured work.
+  if (exclusiveTimes['recordFrame']) {
+    totalMeasured -= exclusiveTimes['recordFrame'].exclusiveMs;
+  }
+
+  const frameJsAvg = frameJs.totalMs / frameJs.frameCallCount;
+  const measuredAvg = totalMeasured / tickCallCount;
+  const invisibleAvg = Math.max(0, frameJsAvg - measuredAvg);
+  const invisibleRatio = frameJsAvg > 0 ? invisibleAvg / frameJsAvg : 0;
+
+  return {
+    frameJsTotalMs: frameJs.totalMs,
+    frameJsCalls: frameJs.frameCallCount,
+    frameJsAvgPerFrame: frameJsAvg,
+    measuredAvgPerFrame: measuredAvg,
+    invisibleAvgPerFrame: invisibleAvg,
+    invisibleRatio,
+  };
+}
+
 // ─── Time budget (from spans) ───────────────────────────────────────────────
 
+/**
+ * Compute per-frame time budget from per-frame measurement deltas.
+ * Uses exclusive (self) times to avoid double-counting nested spans.
+ *
+ * @param {FrameEntry[]} frames
+ * @param {number} avgFrameMs
+ * @returns {{ items: Array<{ name: string, totalMs: number, exclusiveMs: number,
+ *   perFrameMs: number, pctOfFrame: number, callCount: number,
+ *   avgCall: number, maxCall: number }>, hasNesting: boolean,
+ *   totalMeasuredMs: number, perFrameMeasuredMs: number,
+ *   perFrameUnaccountedMs: number, pctUnaccounted: number }}
+ */
 function _computeTimeBudgetFromSpans(frames, avgFrameMs) {
   const spanAgg = _aggregateSpans(frames);
+  const exclusiveTimes = _computeExclusiveSpanTimes(spanAgg);
+
   const items = [];
   let totalMeasured = 0;
+  let hasNesting = false;
 
   // Exclude meta-spans that overlap with per-frame measurements
   // or are profiler overhead rather than game work.
   const _metaSpans = ['frameJs', 'recordFrame', 'frame:tick'];
   for (const [name, s] of Object.entries(spanAgg)) {
     if (_metaSpans.includes(name)) continue;
-    totalMeasured += s.totalMs;
-    const perFrameMs = frames.length > 0 ? s.totalMs / frames.length : 0;
+    const excl = exclusiveTimes[name];
+    if (!excl) continue;
+
+    if (excl.childNames.length > 0) hasNesting = true;
+    totalMeasured += excl.exclusiveMs;
+    const perFrameMs = frames.length > 0 ? excl.exclusiveMs / frames.length : 0;
     const pctOfFrame = avgFrameMs > 0 ? (perFrameMs / avgFrameMs) * 100 : 0;
     items.push({
       name,
       totalMs: s.totalMs,
+      exclusiveMs: excl.exclusiveMs,
       perFrameMs,
       pctOfFrame,
       callCount: s.frameCallCount,
@@ -230,6 +391,7 @@ function _computeTimeBudgetFromSpans(frames, avgFrameMs) {
 
   return {
     items,
+    hasNesting,
     totalMeasuredMs: totalMeasured,
     perFrameMeasuredMs: perFrameMeasured,
     perFrameUnaccountedMs: perFrameUnaccounted,
@@ -325,6 +487,24 @@ export function buildReport(frames, interval, longTasks = []) {
     };
   }
 
+  // ── 2b. Heap delta (allocation rate) stats ─────────────────────────────
+  let heapDeltaStats = null;
+  const heapDeltas = timeline
+    .map(e => e.heapDelta)
+    .filter(v => v != null && Number.isFinite(v));
+  if (heapDeltas.length > 0) {
+    const deltaBytes = computeStats(heapDeltas);
+    if (deltaBytes) {
+      heapDeltaStats = {
+        avgBytes: deltaBytes.avg,
+        maxBytes: deltaBytes.max,
+        minBytes: deltaBytes.min,
+        avgMB: deltaBytes.avg / (1024 * 1024),
+        maxMB: deltaBytes.max / (1024 * 1024),
+      };
+    }
+  }
+
   // ── 3. Slow-frame clusters ─────────────────────────────────────────────
   const slowClusters = _buildSlowClusters(timeline);
 
@@ -378,6 +558,8 @@ export function buildReport(frames, interval, longTasks = []) {
 
   // ── 5. Per-measurement span stats ───────────────────────────────────────
   const spanStats = _aggregateSpans(timeline);
+  const exclusiveTimes = _computeExclusiveSpanTimes(spanStats);
+  const jsOverhead = _computeJsOverhead(spanStats, exclusiveTimes);
 
   // Also keep the old cumulative measurement snapshots for compatibility
   const measByName = {};
@@ -459,6 +641,31 @@ export function buildReport(frames, interval, longTasks = []) {
     warnings.push(`Sustained high memory: avg ${_r1(memStats.avgHeap)}MB / ${_r1(memStats.limitMB)}MB`);
   }
 
+  // Allocation-rate warning (only when heap delta data is available)
+  if (heapDeltaStats && Math.abs(heapDeltaStats.avgMB) > 1) {
+    warnings.push(
+      `High allocation rate: avg ${_r2(heapDeltaStats.avgMB)}MB/frame ` +
+      `(max ${_r2(heapDeltaStats.maxMB)}MB) — likely GC contributor`
+    );
+  }
+
+  // JS overhead warning — invisible work inside the tick
+  if (jsOverhead && jsOverhead.invisibleRatio > 0.5) {
+    const pct = _r1(jsOverhead.invisibleRatio * 100);
+    warnings.push(
+      `${pct}% of JS tick time is invisible to instrumentation ` +
+      `— likely GC or untimed code paths`
+    );
+  }
+  if (jsOverhead && jsOverhead.invisibleRatio > 0.7 && thHitch > 0) {
+    const pct = _r1(jsOverhead.invisibleRatio * 100);
+    warnings.push(
+      `${pct}% JS overhead + ${thHitch} hitches with Long Task API ` +
+      `${longTaskObserverActive ? 'active' : 'unavailable'} — ` +
+      `GC is the most likely common cause`
+    );
+  }
+
   if (timeBudget.pctUnaccounted > 70 && ftValues.length > 0 && thHitch > 0) {
     warnings.push(
       `${_r1(timeBudget.pctUnaccounted)}% of frame time is unmeasured ` +
@@ -538,6 +745,8 @@ export function buildReport(frames, interval, longTasks = []) {
     timeBudget,
     phaseBudget,
     worstSpan: worstSpanEntry,
+    jsOverhead,
+    heapDeltaStats,
     longTasks: longTaskSummary,
     warnings,
     timeline, // kept for programmatic use; not printed
@@ -558,7 +767,8 @@ export function buildReport(frames, interval, longTasks = []) {
  */
 function _formatReport(report) {
   const { interval, summary, spanStats, contextBreakdown, ctxSlowSummary,
-    slowClusters, timeBudget, phaseBudget, worstSpan, longTasks, warnings } = report;
+    slowClusters, timeBudget, phaseBudget, worstSpan, longTasks, warnings,
+    jsOverhead, heapDeltaStats } = report;
 
   let s = `=== Performance Capture Report ===\n`;
   s += `Duration: ${_r1(interval.durationMs / 1000)}s  Frames: ${interval.pollCount}\n`;
@@ -588,7 +798,15 @@ function _formatReport(report) {
     const m = summary.memory;
     s += `Memory: avg=${_r1(m.avgHeap)}MB  max=${_r1(m.maxHeap)}MB`;
     if (m.limitMB != null) s += `  limit=${_r1(m.limitMB)}MB`;
+    if (heapDeltaStats) {
+      s += `  alloc=${_r2(heapDeltaStats.avgMB)}MB/frame`;
+    }
     s += '\n';
+  }
+
+  // JS invisible-overhead line
+  if (jsOverhead) {
+    s += `JS ovh: avg=${_r2(jsOverhead.invisibleAvgPerFrame)}ms/frame (${_r1(jsOverhead.invisibleRatio * 100)}% untimed)\n`;
   }
 
   // Surface the span with the worst max value as a one-liner
@@ -649,7 +867,10 @@ function _formatReport(report) {
 
   // ── Time budget ──
   if (timeBudget && timeBudget.items.length > 0) {
-    s += `\n─── Time Budget ───\n`;
+    s += `\n─── Time Budget${timeBudget.hasNesting ? ' (exclusive times)' : ''} ───\n`;
+    if (timeBudget.hasNesting) {
+      s += `  (nested spans shown as self-time — children subtracted from parents)\n`;
+    }
     for (const item of timeBudget.items) {
       const costMs = `cost=${_r2(item.perFrameMs)}ms`.padEnd(16);
       const pct = `${_r1(item.pctOfFrame)}%`.padEnd(8);
@@ -706,7 +927,9 @@ function _formatReport(report) {
  * @property {Object<string, { frames: number, min: number, max: number, avg: number, median: number, p95: number, p99: number, framesGt33: number, framesGt50: number }>} contextBreakdown
  * @property {Object<string, { slow: number, hitches: number, worst: number }>} ctxSlowSummary
  * @property {Array<{ startTs: number, endTs: number, count: number, worstMs: number, context: string }>} slowClusters
- * @property {{ items: Array<{ name: string, totalMs: number, perFrameMs: number, pctOfFrame: number }>, totalMeasuredMs: number, perFrameMeasuredMs: number, perFrameUnaccountedMs: number, pctUnaccounted: number }|null} timeBudget
+ * @property {{ items: Array<{ name: string, totalMs: number, exclusiveMs: number, perFrameMs: number, pctOfFrame: number, callCount: number, avgCall: number, maxCall: number }>, hasNesting: boolean, totalMeasuredMs: number, perFrameMeasuredMs: number, perFrameUnaccountedMs: number, pctUnaccounted: number }|null} timeBudget
+ * @property {{ frameJsTotalMs: number, frameJsCalls: number, frameJsAvgPerFrame: number, measuredAvgPerFrame: number, invisibleAvgPerFrame: number, invisibleRatio: number }|null} jsOverhead
+ * @property {{ avgBytes: number, maxBytes: number, minBytes: number, avgMB: number, maxMB: number }|null} heapDeltaStats
  * @property {{ count: number, totalDuration: number, tasks: Array<{ startTime: number, duration: number, name: string }> }|null} longTasks
  * @property {string[]} warnings
  * @property {FrameEntry[]} timeline

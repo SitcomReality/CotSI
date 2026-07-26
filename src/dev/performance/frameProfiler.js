@@ -27,6 +27,9 @@ let _deregister = null;
 /** @type {number} Start timestamp (performance.now) */
 let _startTime = 0;
 
+/** @type {{ usedJSHeapSize: number, totalJSHeapSize: number, jsHeapSizeLimit: number }|null} Previous frame's memory snapshot, for heap delta computation */
+let _prevMemory = null;
+
 /** @type {number} TARGET frame time for 60fps */
 const TARGET_FRAME_MS = 1000 / 60; // 16.67
 
@@ -46,6 +49,7 @@ export function startRecording(maxFrames = 18000) {
   _buffer = [];
   _maxFrames = maxFrames;
   _startTime = performance.now();
+  _prevMemory = null;
   ensureFrameTracking();
 
   // Initialize frame-delta snapshot so the first frame records from a clean baseline
@@ -178,6 +182,15 @@ function _recordFrame(timestamp) {
     };
   }
 
+  // Compute heap delta (inter-frame allocation rate) as a GC-pressure proxy
+  let heapDelta = null;
+  if (memory) {
+    if (_prevMemory !== null) {
+      heapDelta = memory.usedJSHeapSize - _prevMemory;
+    }
+    _prevMemory = memory.usedJSHeapSize;
+  }
+
   // Profile the profiler's own cost
   spans.push({ name: 'recordFrame', ms: performance.now() - _startTime, count: 1 });
 
@@ -189,6 +202,7 @@ function _recordFrame(timestamp) {
     missedVsyncs: missedVsyncs > 0 ? missedVsyncs : undefined,
     measurements: measSnapshot,
     memory,
+    heapDelta,
   };
 
   _buffer.push(entry);
@@ -218,4 +232,5 @@ function _recordFrame(timestamp) {
  * @property {number} [missedVsyncs] — estimated vsyncs skipped
  * @property {Object<string, { ema: number, avg: number, count: number, total: number }>} measurements
  * @property {{ usedJSHeapSize: number, totalJSHeapSize: number, jsHeapSizeLimit: number }|null} memory
+ * @property {number|null} heapDelta — inter-frame usedJSHeapSize delta (bytes), or null if unavailable
  */
