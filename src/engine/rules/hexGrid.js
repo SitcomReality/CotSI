@@ -23,6 +23,30 @@ export function hexesWithinRadius(radius) {
   return out;
 }
 
+/**
+ * Round fractional axial coordinates to the nearest valid hex via cube rounding.
+ * Standard Red Blob Games algorithm — accounts for the 60° axial axis angle.
+ *
+ * @param {number} qf - Fractional q
+ * @param {number} rf - Fractional r
+ * @returns {{ q: number, r: number }} Nearest valid hex
+ */
+export function cubeRound(qf, rf) {
+  const sf = -qf - rf;
+  let q = Math.round(qf);
+  let r = Math.round(rf);
+  let s = Math.round(sf);
+  const qd = Math.abs(q - qf);
+  const rd = Math.abs(r - rf);
+  const sd = Math.abs(s - sf);
+  if (qd > rd && qd > sd) {
+    q = -r - s;
+  } else if (rd > sd) {
+    r = -q - s;
+  }
+  return { q, r };
+}
+
 export function hexRing(radius) {
   if (radius === 0) return [{ q: 0, r: 0 }];
   const results = []; let coord = { q: -radius, r: radius };

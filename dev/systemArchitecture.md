@@ -57,10 +57,17 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | File | Purpose |
 |------|---------|
 | `chunkGrid.js` | Chunk coordinate math (CHUNK_SIZE=24) for spatial partitioning |
-| `hexGrid.js` | Hex math: neighbors, distance, coordinates, ring queries |
+| `hexGrid.js` | Hex math: neighbors, distance, coordinates, ring queries, cubeRound |
 | `pathfinding.js` | A\* pathfinding on hex grid |
 | `seededRng.js` | Deterministic PRNG with seed |
 | `shuffle.js` | Fisher-Yates shuffle |
+
+> **⚠️ Hex Axial Coordinate Convention — (q, r) is NOT Cartesian.** The axial q and r axes are 60° apart, not orthogonal. This is a frequent source of bugs:
+> - Never use `Math.cos`/`Math.sin`/`Math.atan2` directly on q/r to produce or modify hex coordinates — use `cubeRound()` or world-space roundtrip instead.
+> - Never compute movement steps by applying Cartesian deltas (dx, dy) to q/r — use `neighbors()` to get valid axial directions.
+> - Always use `distance()` for hex-distance checks — never Euclidean formulas on q/r.
+> - To generate hex coordinates from polar (angle, radius): convert to world space first, invert through the `hexCenter()` projection to get fractional axial, then apply `cubeRound()`.
+> - `cubeRound()` is in this module; `neighbors()` and `distance()` are also here.
 
 ### `src/game/rules/` — Pure game-specific logic
 

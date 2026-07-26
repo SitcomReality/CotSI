@@ -152,14 +152,20 @@ function runWorldTurn(state) {
   for (const tr of state.traders) {
     for (let s = 0; s < tr.movesPerDay; s++) {
       const target = state.tiles[tr.targetBaseKey] || tr.pos;
-      const dx = Math.sign(target.q - tr.pos.q);
-      const dy = Math.sign(target.r - tr.pos.r);
-      let nx = tr.pos.q + dx,
-        ny = tr.pos.r + dy;
-      const nk = `${nx},${ny}`;
-      if (state.tiles[nk] && TERRAIN[state.tiles[nk].terrain].passable && !state.tiles[nk].feature && !state.tiles[nk].debris && !occupiedByChampion(state, nk) && !occupiedByMob(state, nk) && !occupiedByTrader(state, nk)) {
+      // Pick the hex neighbor that moves closest to the target.
+      // Using neighbors() ensures we only step in valid axial directions,
+      // unlike the old Cartesian dx/dy which could produce illegal (+1,+1).
+      const nbrs = neighbors(tr.pos);
+      let bestNbr = null;
+      let bestDist = Infinity;
+      for (const nbr of nbrs) {
+        const d = distance(nbr, target);
+        if (d < bestDist) { bestDist = d; bestNbr = nbr; }
+      }
+      const nk = bestNbr ? coordKey(bestNbr) : '';
+      if (bestNbr && state.tiles[nk] && TERRAIN[state.tiles[nk].terrain].passable && !state.tiles[nk].feature && !state.tiles[nk].debris && !occupiedByChampion(state, nk) && !occupiedByMob(state, nk) && !occupiedByTrader(state, nk)) {
         const oldKey = coordKey(tr.pos);
-        tr.pos = { q: nx, r: ny };
+        tr.pos = { q: bestNbr.q, r: bestNbr.r };
         updateSpatialIndex(state, oldKey, coordKey(tr.pos), tr, 'trader');
       }
       if (nk === tr.targetBaseKey) {
