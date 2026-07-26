@@ -9,7 +9,7 @@
  * hex-distance from center regardless of angle.
  */
 import { cubeRound } from '../../engine/rules/hexGrid.js';
-import { SPAWN_RING_FRACTION, MIN_SPAWN_RING, SPAWN_JITTER_FRACTION, MIN_SPAWN_JITTER, SPAWN_EDGE_MARGIN, ANGULAR_JITTER_FRACTION } from '../../params/game/spawnParams.js';
+import { SPAWN_RING_FRACTION, SPAWN_RING_REFERENCE_RADIUS, SPAWN_RING_RADIUS_SCALE, SPAWN_RING_FRACTION_MAX, MIN_SPAWN_RING, SPAWN_JITTER_FRACTION, MIN_SPAWN_JITTER, SPAWN_EDGE_MARGIN, SPAWN_EDGE_MARGIN_FRACTION, ANGULAR_JITTER_FRACTION } from '../../params/game/spawnParams.js';
 
 /**
  * Compute a target hex coordinate for a champion's base, radially distributed.
@@ -21,11 +21,16 @@ import { SPAWN_RING_FRACTION, MIN_SPAWN_RING, SPAWN_JITTER_FRACTION, MIN_SPAWN_J
  * @returns {{ q: number, r: number }} Target axial coordinate
  */
 export function spawnTarget(i, N, rand, radius) {
-  const basesRing = Math.max(MIN_SPAWN_RING, Math.floor(radius * SPAWN_RING_FRACTION));
+  const edgeMargin = Math.max(SPAWN_EDGE_MARGIN, Math.floor(radius * SPAWN_EDGE_MARGIN_FRACTION));
+  const ringFraction = Math.min(
+    SPAWN_RING_FRACTION + Math.max(0, radius - SPAWN_RING_REFERENCE_RADIUS) * SPAWN_RING_RADIUS_SCALE,
+    SPAWN_RING_FRACTION_MAX
+  );
+  const basesRing = Math.max(MIN_SPAWN_RING, Math.floor(radius * ringFraction));
   const basesJitter = Math.max(MIN_SPAWN_JITTER, Math.floor(radius * SPAWN_JITTER_FRACTION));
   const wedgeSize = (2 * Math.PI) / N;
 
-  const ring = Math.max(MIN_SPAWN_RING, Math.min(radius - SPAWN_EDGE_MARGIN,
+  const ring = Math.max(MIN_SPAWN_RING, Math.min(radius - edgeMargin,
     basesRing + Math.floor((rand() - 0.5) * 2 * basesJitter)));
 
   const angle = (i / N) * 2 * Math.PI + (rand() - 0.5) * wedgeSize * ANGULAR_JITTER_FRACTION;
