@@ -16,6 +16,7 @@ import { runBot } from './botTurnRunner.js';
 import { G, currentChamp, isTurnLocked } from '../game/state/liveGame.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { getCombatUI } from '../ui/combat/combatUiState.js';
+import { getAnimatingIds } from '../render/hexmap3d/units/index.js';
 import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../dev/devPerformance.js';
 
 /**
@@ -58,7 +59,7 @@ export function refreshAll() {
       championId: ch.id,
       championName: ch.name,
       controller: 'human',
-      action: 'idle',
+      action: getAnimatingIds().size > 0 ? 'moving' : 'idle',
     });
   } else if (ch && ch.controller === 'bot') {
     setGameContext({

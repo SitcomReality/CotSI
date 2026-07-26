@@ -17,6 +17,7 @@ import { pulseEnd } from '../ui/hud.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { interactBase } from '../game/state/baseInteraction.js';
 import { handleTeleportClick } from '../dev/devTools.js';
+import { setGameContext } from '../dev/devPerformance.js';
 
 /**
  * Called when the user clicks a hex on the map.
@@ -73,6 +74,12 @@ export function onHexClick(key) {
     const toTile = G.tiles[key];
     const toY = toTile ? tileTopY(toTile.terrain) + 0.15 : 0.15;
     const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
+    setGameContext({
+      phase: 'human_turn',
+      championId: ch.id,
+      championName: ch.name,
+      action: 'moving',
+    });
     const fac = FACTIONS[ch.faction];
     if (fac) {
       queueMovement(ch.id, fromWorld, toWorld, fac.base, MOVE_DURATION);

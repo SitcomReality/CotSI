@@ -74,6 +74,24 @@ export async function initDevTools() {
   // Enable map refresh measurement by default (captures hex-tile rebuild cost)
   setMeasurementEnabled('mapRefresh', true);
 
+  // Enable 3D renderer internals (explains what inside render3d spikes)
+  setMeasurementEnabled('renderHexMap', true);
+  setMeasurementEnabled('mesh:chunks', true);
+  setMeasurementEnabled('mesh:units', true);
+
+  // Enable turn-processing measurements (catches bot deliberation cost)
+  setMeasurementEnabled('runBot', true);
+  setMeasurementEnabled('worldTurn', true);
+
+  // Enable DOM refresh sub-measurements
+  setMeasurementEnabled('dom:header', true);
+  setMeasurementEnabled('dom:leftPanel', true);
+  setMeasurementEnabled('dom:rightPanel', true);
+
+  // Enable input handling measurements
+  setMeasurementEnabled('input:hover', true);
+  setMeasurementEnabled('input:pan', true);
+
   console.log('[devTools] Dev tools initialized. Press ` to toggle.');
 }
 

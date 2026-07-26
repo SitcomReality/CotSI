@@ -123,6 +123,39 @@ function _buildSlowClusters(frames) {
   });
 }
 
+// ─── Worst-frame drill-down ─────────────────────────────────────────────────
+
+/**
+ * Find the N worst frames by frameTime and return their span breakdown.
+ * Used in the formatted report to show what caused the biggest spikes.
+ *
+ * @param {import('./frameProfiler.js').FrameEntry[]} frames
+ * @param {number} [n=5]
+ * @returns {Array<{ frameIndex: number, frameTime: number, context: string, spans: Array<{ name: string, ms: number, count: number }> }>}
+ */
+function _buildWorstFrames(frames, n = 5) {
+  const indexed = frames
+    .map((entry, i) => ({ index: i, entry }))
+    .filter(({ entry }) => entry.frameTime > 0)
+    .sort((a, b) => b.entry.frameTime - a.entry.frameTime)
+    .slice(0, n);
+
+  return indexed.map(({ index, entry }) => {
+    // Collect non-trivial spans for this frame
+    const spans = (entry.spans || [])
+      .filter(s => s.ms > 0.1)
+      .sort((a, b) => b.ms - a.ms);
+    return {
+      frameIndex: index,
+      frameTime: entry.frameTime,
+      context: entry.context
+        ? `${entry.context.phase || 'unknown'}${entry.context.championName ? ' ' + entry.context.championName : ''}${entry.context.action ? ' (' + entry.context.action + ')' : ''}`
+        : 'unknown',
+      spans,
+    };
+  });
+}
+
 // ─── Per-interval span aggregation ──────────────────────────────────────────
 
 /**
@@ -582,6 +615,20 @@ function _formatReport(report) {
       s += `    context: ${c.context}\n`;
     }
     s += '\n';
+  }
+
+  // ── Worst Frames Drill-Down ──
+  const worstFrames = _buildWorstFrames(report.timeline, 5);
+  s += `\n─── Worst 5 Frames by frameTime ───\n`;
+  if (worstFrames.length > 0) {
+    for (const wf of worstFrames) {
+      s += `  Frame #${wf.frameIndex}: ${_r1(wf.frameTime)}ms  context: ${wf.context}\n`;
+      for (const sp of wf.spans) {
+        s += `    ${sp.name.padEnd(14)} ${_r2(sp.ms).padStart(7)}ms  (${sp.count} calls)\n`;
+      }
+    }
+  } else {
+    s += `  (none — no frame time data)\n`;
   }
 
   // ── Measured spans (from per-frame deltas) ──
