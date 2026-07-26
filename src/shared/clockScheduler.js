@@ -26,6 +26,9 @@ export function createClock() {
   let _frameCallbacks = [];
   let _frameCallbackIdCounter = 1;
 
+  /** @type {((phase: 'start'|'end', ctx?: any) => any)|null} */
+  let _frameMarker = null;
+
   const _groups = createGroups();
 
   // ── Internal helpers ────────────────────────────────────────────────
@@ -41,6 +44,9 @@ export function createClock() {
     }
     const realDelta = timestamp - _lastTime;
     _lastTime = timestamp;
+
+    // Notify marker that frame work is starting (e.g. start a measurement)
+    const markerCtx = _frameMarker ? _frameMarker('start') : null;
 
     // ── Advance group virtual clocks and fire due timers ──
     if (!_masterPaused) {
@@ -72,6 +78,9 @@ export function createClock() {
         }
       }
     }
+
+    // Notify marker that frame work is done
+    if (_frameMarker) _frameMarker('end', markerCtx);
   }
 
   // ── Public API ──────────────────────────────────────────────────────
@@ -132,6 +141,18 @@ export function createClock() {
           }
         }
       };
+    },
+
+    /**
+     * Register a start/end marker callback for the frame tick.
+     * Called with phase='start' at the top of _tick (after delta computation)
+     * and phase='end' after all work completes. The return value from the
+     * 'start' call is passed as the second argument to the 'end' call.
+     * Pass null to clear. Only one marker can be set at a time.
+     * @param {((phase: 'start'|'end', ctx?: any) => any)|null} fn
+     */
+    setFrameMarker(fn) {
+      _frameMarker = fn;
     },
 
     /**
@@ -239,6 +260,7 @@ export function createClock() {
       }
       _timeoutTasks = [];
       _frameCallbacks = [];
+      _frameMarker = null;
       _lastTime = 0;
       _masterPaused = false;
       for (const key of Object.keys(_groups)) {

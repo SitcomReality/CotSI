@@ -22,6 +22,7 @@ import { finishTurn } from '../game/state/worldSimulation.js';
 import { G } from '../game/state/liveGame.js';
 import { hideBotIndicator } from '../ui/panels/botIndicator.js';
 import { startMeasure, endMeasure, enableAllMeasurements, getSnapshot, getMeasurementStats, getFps, startCapture, stopCapture, getCaptureReport, isCaptureActive, setGameContext, getGameContext, clearGameContext } from '../dev/devPerformance.js';
+import { getClock } from '../shared/clockScheduler.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
 import '../dev/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
 
@@ -87,6 +88,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Enable dev performance instrumentation
     enableAllMeasurements();
+
+    // Measure total JS time per frame via the clock's frame marker hook
+    getClock().setFrameMarker((phase) => {
+      if (phase === 'start') startMeasure('frameJs');
+      else endMeasure('frameJs');
+    });
 
     // Console access to perf data (type __perf.getSnapshot() in DevTools)
     window.__perf = { getSnapshot, getMeasurementStats, getFps, startCapture, stopCapture, getCaptureReport, isCaptureActive, setGameContext, getGameContext, clearGameContext };

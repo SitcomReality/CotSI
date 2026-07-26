@@ -71,6 +71,9 @@ export async function initDevTools() {
   setMeasurementEnabled('overlay:selectionRing', true);
   setMeasurementEnabled('animMove', true);
 
+  // Enable map refresh measurement by default (captures hex-tile rebuild cost)
+  setMeasurementEnabled('mapRefresh', true);
+
   console.log('[devTools] Dev tools initialized. Press ` to toggle.');
 }
 

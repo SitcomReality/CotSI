@@ -527,12 +527,14 @@ function _formatReport(report) {
   }
 
   // ── Long tasks ──
-  if (longTasks) {
-    s += `\n─── Long Tasks (${longTasks.count}) ───\n`;
+  s += `\n─── Long Tasks ───\n`;
+  if (longTasks && longTasks.count > 0) {
     s += `  Total duration: ${_r1(longTasks.totalDuration)}ms\n`;
     for (const t of longTasks.tasks) {
       s += `  - ${t.name}: ${_r1(t.duration)}ms at t=${_r1(t.startTime)}\n`;
     }
+  } else {
+    s += `  none detected\n`;
   }
 
   // ── Warnings ──
