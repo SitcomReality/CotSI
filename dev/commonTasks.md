@@ -42,14 +42,4 @@ Toggle with the backtick key (`` ` ``). Three tabs:
 - **Speed:** `getClock().setSpeed('combat', 2.0)` (1.0 = normal)
 - **Granular:** `getClock().pauseGroup('bot')` freezes only bot turns
 
-## Decide Where New Code Goes
-
-1. Pure function, no side effects?
-   - Reusable in any game? → `engine/rules/`
-   - Game-specific? → `game/rules/`
-2. Mutable game state? → `game/state/`
-3. Wires multiple layers together? → `runtime/`
-4. Draws to canvas/WebGL? → `render/`
-5. Touches DOM or handles input? → `ui/`
-6. Generic infrastructure, imports nothing local? → `shared/`
-7. None of the above? Split it — it's doing two jobs.
+See `dev/systemArchitecture.md` → Decision Guide (§5).

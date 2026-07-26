@@ -48,7 +48,7 @@ New round begins using the same `combat.first`/`second` assignments (reflecting 
 
 ## Biome System
 
-Biomes are data-driven archetypes defined in `src/game/rules/archetypeData.js` (type: `'biome'`). Each defines:
+Biomes are data-driven archetypes defined in `src/game/rules/archetypeData/biomes.js` (type: `'biome'`). Each defines:
 
 - **`terrainThresholds`** — noise cutoffs per terrain type (`{ minElevation, maxElevation, minMoisture, maxMoisture }`)
 - **`featureFrequencies`** — noise thresholds for features (trees, knots)

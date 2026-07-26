@@ -12,10 +12,11 @@ CotSI is a browser-based, single-player hex-crawl strategy game, early in develo
 
 **The User Can Help:** If there's ambiguity or confusion, ask questions. If there are complicated bugs, add console logs or debug features and the user will report results to help narrow it down.
 
-**Performance:** Always try to be mindful of performance impacts and consider what performance optimizations can be incorporated. 
-    * The camera perspective (tilt & rotation) will never change, the view can only be zoomed and panned.
+**Performance:** Always try to be mindful of performance impacts and consider what performance optimizations can be incorporated. `src/dev/performance/captureLogger.js` is used during in-game testing to gather detailed frame time data per system.
 
 **Early Development:** Many features aren't fully implemented (eg. trading) and lots of systems are still using limited placeholder values (eg. map sizes will eventually be much larger with more diverse biomes and features to emphasize exploration).
+
+**Reference:** Start with `dev/systemArchitecture.md` for the complete file tree, layer architecture, and decision guide.
 
 ---
 
@@ -29,7 +30,7 @@ CotSI is a browser-based, single-player hex-crawl strategy game, early in develo
 | `src/runtime/` | Cross-layer orchestration (startup, turns, refresh) | everything |
 | `src/render/` | Three.js + Canvas2D (reads state, never mutates) | `shared/`, `engine/`; state via args |
 | `src/ui/` | DOM: panels, modals, widgets, view-models | `shared/`, `ui/`; dispatches via actionBus |
-| `src/shared/` | Leaf infrastructure (`actionBus.js`, `clockScheduler.js`) | nothing local |
+| `src/shared/` | Leaf infrastructure (`actionBus.js`, `clockScheduler.js`, `speedGroup.js`, `timerQueue.js`) | nothing local |
 | `src/vendor/` | Third-party Three.js builds | do not edit |
 
 **Hard rules:**
@@ -69,7 +70,8 @@ window.__gameState; // same object as G
 
 | Document | Covers |
 |----------|--------|
-| `dev/srcConventions.md` | Architecture principles, layer rules, naming, decision guide |
+| `dev/systemArchitecture.md` | Full system architecture: principles, file tree, decision guide, boundary debt |
+| `dev/namingConventions.md` | File naming, banned words, code identifier conventions, interaction pattern |
 | `dev/cssConventions.md` | CSS structure, naming, spacing scale, barrel pattern |
 | `dev/aestheticConventions.md` | Visual design system (aspirational, evolving) |
 | `dev/clockScheduler.md` | Clock API reference — all timer/scheduling patterns |
