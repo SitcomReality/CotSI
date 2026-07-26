@@ -3,7 +3,7 @@
  * Orchestrates spawn positioning, base tile placement, and entity
  * construction for all champion factions.
  */
-import { FACTIONS } from '../rules/factionData.js';
+import { FACTIONS, PALEY_CYCLES } from '../rules/factionData.js';
 import { parseKey } from '../../engine/rules/hexGrid.js';
 import { nearestOpenKey } from '../rules/tileQueries.js';
 import { shuffle } from '../../engine/rules/shuffle.js';
@@ -27,15 +27,31 @@ export function createChampions({ tiles, champions, rand, radius }) {
 
   const used = new Set();
   const placedBaseKeys = new Set();
-  const shuffledChamps = shuffle(champions, rand);
-  const N = shuffledChamps.length;
+  const N = champions.length;
   const minBaseDist = Math.max(MIN_BASE_DISTANCE_FLOOR, Math.floor(radius * MIN_BASE_DISTANCE_RADIUS_FRACTION));
+
+  // When all 7 factions are present, pick a random Paley cycle to determine
+  // angular positions. Each faction's clockwise neighbour on the map is then
+  // either a faction it beats (CW cycle) or one that beats it (CCW cycle),
+  // chosen 50/50.  Fall back to shuffle-index angles for partial games.
+  let angIdx = null;
+  if (N === FACTION_COUNT) {
+    const cycle = PALEY_CYCLES[Math.floor(rand() * PALEY_CYCLES.length)];
+    const rot = Math.floor(rand() * 7);
+    angIdx = new Array(7);
+    for (let j = 0; j < 7; j++) {
+      angIdx[cycle[(j + rot) % 7]] = j;
+    }
+  }
+
+  // Shuffle for base-placement order variety — does not affect angular positions
+  const shuffledChamps = shuffle([...champions], rand);
 
   const championList = [];
 
   for (let i = 0; i < N; i++) {
     const entry = shuffledChamps[i];
-    const target = spawnTarget(i, N, rand, radius);
+    const target = spawnTarget(angIdx ? angIdx[entry.faction] : i, N, rand, radius);
     const baseKey = placeBase(tiles, target, used, placedBaseKeys, minBaseDist);
 
     // Place faction base
