@@ -8,7 +8,7 @@
  * Layer: dev/ — depends on frameTracker, measurements, gameContext.
  */
 
-import { getFps, getLastFrameTime, getFrameHistory, onFrame as registerFrameCallback } from './frameTracker.js';
+import { getFps, getLastFrameTime, getFrameHistory, onFrame as registerFrameCallback, ensureFrameTracking } from './frameTracker.js';
 import { getRawMeasurements } from './measurements.js';
 import { getGameContext } from './gameContext.js';
 
@@ -42,6 +42,7 @@ export function startRecording(maxFrames = 18000) {
   _buffer = [];
   _maxFrames = maxFrames;
   _startTime = performance.now();
+  ensureFrameTracking();
   _deregister = registerFrameCallback(_recordFrame);
 
   // Immediately capture the first frame so there's data even for short captures.
