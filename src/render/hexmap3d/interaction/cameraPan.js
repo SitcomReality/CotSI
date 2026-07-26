@@ -1,6 +1,7 @@
 import { panCamera } from '../scene/cameraPanMath.js';
 import { screenToWorldPan } from './panMath.js';
 import { hideTooltip } from './hoverTooltip.js';
+import { startMeasure, endMeasure } from '../../../dev/devPerformance.js';
 /**
  * Create pan handlers for shift+drag and middle-button drag.
  *
@@ -22,22 +23,27 @@ export function createPanHandlers(canvas, getCameraState, applyCamera, shared) {
   }
 
   function onPointerMove(e) {
-    if (!shared.isPanning) return;
-    const state = getCameraState();
-    if (!state) return;
+    startMeasure('input:pan');
+    try {
+      if (!shared.isPanning) return;
+      const state = getCameraState();
+      if (!state) return;
 
-    const dx = e.clientX - shared.lastPointerX;
-    const dy = e.clientY - shared.lastPointerY;
-    shared.lastPointerX = e.clientX;
-    shared.lastPointerY = e.clientY;
+      const dx = e.clientX - shared.lastPointerX;
+      const dy = e.clientY - shared.lastPointerY;
+      shared.lastPointerX = e.clientX;
+      shared.lastPointerY = e.clientY;
 
-    const worldPerPixel = state.frustumSize / canvas.clientHeight;
-    const camera = canvas.__camera;
-    if (!camera) return;
-    const worldDelta = screenToWorldPan(dx, dy, camera);
-    panCamera(state, worldDelta.x * worldPerPixel, worldDelta.z * worldPerPixel);
-    applyCamera();
-    hideTooltip();
+      const worldPerPixel = state.frustumSize / canvas.clientHeight;
+      const camera = canvas.__camera;
+      if (!camera) return;
+      const worldDelta = screenToWorldPan(dx, dy, camera);
+      panCamera(state, worldDelta.x * worldPerPixel, worldDelta.z * worldPerPixel);
+      applyCamera();
+      hideTooltip();
+    } finally {
+      endMeasure('input:pan');
+    }
   }
 
   function onPointerUp(e) {

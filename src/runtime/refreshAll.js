@@ -78,11 +78,18 @@ export function refreshAll() {
   }
 
   // ── Header (pure DOM update via headerPanel) ──
+  startMeasure('dom:header');
   refreshHeader(G);
+  endMeasure('dom:header');
 
   // Panels
+  startMeasure('dom:leftPanel');
   bindLeftPanel(G);
+  endMeasure('dom:leftPanel');
+
+  startMeasure('dom:rightPanel');
   bindRightPanel(G);
+  endMeasure('dom:rightPanel');
 
   // ── Map (3D replacement) ──
   refreshMap();

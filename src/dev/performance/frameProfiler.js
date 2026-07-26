@@ -9,8 +9,9 @@
  */
 
 import { getFps, getLastFrameTime, getFrameHistory, onFrame as registerFrameCallback, ensureFrameTracking } from './frameTracker.js';
-import { getRawMeasurements, startFrameSnapshot, endFrameDeltas } from './measurements.js';
+import { getRawMeasurements, startFrameSnapshot, endFrameDeltas, startMeasure, endMeasure } from './measurements.js';
 import { getGameContext } from './gameContext.js';
+import { getClock } from '../../shared/clockScheduler.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 
@@ -50,6 +51,17 @@ export function startRecording(maxFrames = 18000) {
   // Initialize frame-delta snapshot so the first frame records from a clean baseline
   startFrameSnapshot();
 
+  // Register a frame marker that wraps the entire clock tick (timeout dispatch,
+  // frame callbacks, clock advancement) so we can measure overhead between
+  // the named per-frame spans.
+  getClock().setFrameMarker((phase) => {
+    if (phase === 'start') {
+      startMeasure('frame:tick');
+    } else {
+      endMeasure('frame:tick');
+    }
+  });
+
   _deregister = registerFrameCallback(_recordFrame);
 
   return { started: true, message: `Frame recording started (maxFrames=${maxFrames})` };
@@ -64,6 +76,10 @@ export function stopRecording() {
     _deregister();
     _deregister = null;
   }
+
+  // Unregister the tick-level frame marker
+  getClock().setFrameMarker(null);
+
   const result = _buffer || [];
   _buffer = null;
   _maxFrames = null;
@@ -97,6 +113,9 @@ export function getRecordingStart() {
 function _recordFrame(timestamp) {
   if (!_buffer) return;
 
+  // Profile the profiler's own cost
+  const _startTime = performance.now();
+
   // ── Compute per-frame measurement deltas ──
   // endFrameDeltas() returns measurements that completed between the
   // previous startFrameSnapshot() call and now — i.e., work done
@@ -113,6 +132,15 @@ function _recordFrame(timestamp) {
 
   // Seed the next frame's baseline
   startFrameSnapshot();
+
+  // Measure total JS execution time from tick start to now
+  // This captures all JS work in the tick, including untimed code paths
+  // that are invisible to the measurement system.
+  const tickStart = getClock().getFrameTickStart();
+  if (tickStart > 0) {
+    const jsElapsed = performance.now() - tickStart;
+    spans.push({ name: 'frameJs', ms: jsElapsed, count: 1 });
+  }
 
   // ── Frame data (fast — already computed by frameTracker) ──
   const frameTime = getLastFrameTime();
@@ -149,6 +177,9 @@ function _recordFrame(timestamp) {
       jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
     };
   }
+
+  // Profile the profiler's own cost
+  spans.push({ name: 'recordFrame', ms: performance.now() - _startTime, count: 1 });
 
   const entry = {
     timestamp, frameTime, fps,

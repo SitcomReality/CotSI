@@ -29,6 +29,9 @@ let _lastReport = null;
 /** @type {PerformanceObserver|null} Long Task API observer */
 let _longTaskObserver = null;
 
+/** @type {boolean} Whether the Long Task observer was successfully registered */
+let _longTaskObserverActive = false;
+
 /** @type {Array<{ startTime: number, duration: number, name: string }>} */
 let _longTasks = [];
 
@@ -53,6 +56,7 @@ export function startCapture({ durationMs, intervalMs, keepTimeline } = {}) {
 
   _startTime = performance.now();
   _longTasks = [];
+  _longTaskObserverActive = false;
 
   // ── Long Task API observer ──
   // Detects browser main-thread stalls >50ms (GC, layout, paint, etc.)
@@ -74,6 +78,7 @@ export function startCapture({ durationMs, intervalMs, keepTimeline } = {}) {
       });
       observer.observe({ type: 'longtask', buffered: true });
       _longTaskObserver = observer;
+      _longTaskObserverActive = true;
     } catch (e) {
       // Observation failed — skip silently
       _longTaskObserver = null;
@@ -156,7 +161,7 @@ function _finishCapture() {
   _disconnectLongTaskObserver();
 
   // Build report
-  const interval = { start: _startTime, end, durationMs, pollCount };
+  const interval = { start: _startTime, end, durationMs, pollCount, longTaskObserverActive: _longTaskObserverActive };
   _lastReport = buildReport(frames, interval, _longTasks);
   _longTasks = [];
 

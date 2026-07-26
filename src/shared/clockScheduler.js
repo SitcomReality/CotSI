@@ -29,6 +29,9 @@ export function createClock() {
   /** @type {((phase: 'start'|'end', ctx?: any) => any)|null} */
   let _frameMarker = null;
 
+  /** @type {number} Timestamp (performance.now()) at the start of the current tick */
+  let _frameTickStart = 0;
+
   const _groups = createGroups();
 
   // ── Internal helpers ────────────────────────────────────────────────
@@ -44,6 +47,9 @@ export function createClock() {
     }
     const realDelta = timestamp - _lastTime;
     _lastTime = timestamp;
+
+    // Record JS tick start time before any work begins
+    _frameTickStart = performance.now();
 
     // Notify marker that frame work is starting (e.g. start a measurement)
     const markerCtx = _frameMarker ? _frameMarker('start') : null;
@@ -236,6 +242,15 @@ export function createClock() {
     },
 
     /**
+     * Get the tick-start timestamp for the current frame. Used by the
+     * performance profiler to compute total JS time per frame tick.
+     * @returns {number} performance.now() value from the top of _tick, or 0
+     */
+    getFrameTickStart() {
+      return _frameTickStart;
+    },
+
+    /**
      * Check if the clock is paused. If a group is specified, checks if
      * either the master pause or that specific group is paused.
      */
@@ -261,6 +276,7 @@ export function createClock() {
       _timeoutTasks = [];
       _frameCallbacks = [];
       _frameMarker = null;
+      _frameTickStart = 0;
       _lastTime = 0;
       _masterPaused = false;
       for (const key of Object.keys(_groups)) {

@@ -101,6 +101,7 @@ export function renderHexMap3D(state, humanView) {
   // Build new chunks, rebuild dirty chunks, and rebuild chunks whose
   // explored tile count has grown (exploration expands on vision refresh,
   // which does NOT dirty the affected chunks).
+  startMeasure('mesh:chunks');
   for (const [ck, chunk] of state.chunks) {
     const entry = getChunkEntry(ck);
     const chunkTiles = [...chunk.tiles.values()];
@@ -133,6 +134,7 @@ export function renderHexMap3D(state, humanView) {
       }
     }
   }
+  endMeasure('mesh:chunks');
 
   // ── Unit meshes (global, rebuilt each frame — cheap for ~20 units) ──
 
@@ -140,12 +142,14 @@ export function renderHexMap3D(state, humanView) {
   cleanupCompleted();
 
   // Dispose old unit meshes
+  startMeasure('mesh:units');
   for (const um of unitMeshes) sceneCtx.disposeMesh(um);
   unitMeshes = [];
 
   // Build unit figurines
   unitMeshes = buildUnitMeshes(state, visible);
   for (const um of unitMeshes) ctx.scene.add(um);
+  endMeasure('mesh:units');
 
   // Push current state & camera to the overlay for the next frame
   setEffectsState(state, ctx.camera);

@@ -1,6 +1,7 @@
 import { pickHex } from './hexPicking.js';
 import { showTooltip, hideTooltip } from './hoverTooltip.js';
 import { setHoveredKey } from '../../overlays/overlayStack.js';
+import { startMeasure, endMeasure } from '../../../dev/devPerformance.js';
 
 /**
  * Create a pointer-move handler that shows/hides a hex tooltip.
@@ -20,34 +21,39 @@ export function createHoverHandler(canvas, getTerrainMesh, getTooltipContent, sh
   let cachedNode = null;
 
   return function onPointerMove(e) {
-    if (shared.isPanning) {
-      hideTooltip();
-      hoveredKey = null;
-      cachedNode = null;
-      return;
-    }
-
-    if (!getTerrainMesh || !getTooltipContent) return;
-
-    const terrain = getTerrainMesh();
-    const camera = canvas.__camera;
-    const key = terrain && camera ? pickHex(e.clientX, e.clientY, camera, terrain, canvas) : null;
-
-    if (key !== hoveredKey) {
-      // Hex changed: rebuild tooltip content
-      hoveredKey = key;
-      setHoveredKey(key);   // notify highlight layers
-      cachedNode = null;
-      if (key !== null) {
-        cachedNode = getTooltipContent(key);
+    startMeasure('input:hover');
+    try {
+      if (shared.isPanning) {
+        hideTooltip();
+        hoveredKey = null;
+        cachedNode = null;
+        return;
       }
-    }
 
-    // Show/hide and position based on current state
-    if (hoveredKey !== null && cachedNode) {
-      showTooltip(e.clientX, e.clientY, cachedNode);
-    } else {
-      hideTooltip();
+      if (!getTerrainMesh || !getTooltipContent) return;
+
+      const terrain = getTerrainMesh();
+      const camera = canvas.__camera;
+      const key = terrain && camera ? pickHex(e.clientX, e.clientY, camera, terrain, canvas) : null;
+
+      if (key !== hoveredKey) {
+        // Hex changed: rebuild tooltip content
+        hoveredKey = key;
+        setHoveredKey(key);   // notify highlight layers
+        cachedNode = null;
+        if (key !== null) {
+          cachedNode = getTooltipContent(key);
+        }
+      }
+
+      // Show/hide and position based on current state
+      if (hoveredKey !== null && cachedNode) {
+        showTooltip(e.clientX, e.clientY, cachedNode);
+      } else {
+        hideTooltip();
+      }
+    } finally {
+      endMeasure('input:hover');
     }
   };
 }

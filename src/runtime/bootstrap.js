@@ -89,12 +89,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Enable dev performance instrumentation
     enableAllMeasurements();
 
-    // Measure total JS time per frame via the clock's frame marker hook
-    getClock().setFrameMarker((phase) => {
-      if (phase === 'start') startMeasure('frameJs');
-      else endMeasure('frameJs');
-    });
-
     // Console access to perf data (type __perf.getSnapshot() in DevTools)
     window.__perf = { getSnapshot, getMeasurementStats, getFps, startCapture, stopCapture, getCaptureReport, isCaptureActive, setGameContext, getGameContext, clearGameContext };
 

@@ -171,7 +171,11 @@ function _computeTimeBudgetFromSpans(frames, avgFrameMs) {
   const items = [];
   let totalMeasured = 0;
 
+  // Exclude meta-spans that overlap with per-frame measurements
+  // or are profiler overhead rather than game work.
+  const _metaSpans = ['frameJs', 'recordFrame', 'frame:tick'];
   for (const [name, s] of Object.entries(spanAgg)) {
+    if (_metaSpans.includes(name)) continue;
     totalMeasured += s.totalMs;
     const perFrameMs = frames.length > 0 ? s.totalMs / frames.length : 0;
     const pctOfFrame = avgFrameMs > 0 ? (perFrameMs / avgFrameMs) * 100 : 0;
@@ -200,6 +204,45 @@ function _computeTimeBudgetFromSpans(frames, avgFrameMs) {
   };
 }
 
+// ─── Per-phase time budget ───────────────────────────────────────────────
+
+/**
+ * Compute time budget broken down by game phase (context.phase).
+ * Groups frames by phase, then computes the per-phase budget the same
+ * way _computeTimeBudgetFromSpans works for the aggregate.
+ *
+ * @param {FrameEntry[]} frames
+ * @returns {Array<{ phase: string, frameCount: number, avgFrameMs: number,
+ *   pctUnaccounted: number, perFrameUnaccountedMs: number }>}
+ */
+function _computeTimeBudgetByPhase(frames) {
+  const byPhase = {};
+  for (const entry of frames) {
+    const phase = entry.context?.phase || 'unknown';
+    if (!byPhase[phase]) byPhase[phase] = [];
+    byPhase[phase].push(entry);
+  }
+
+  const results = [];
+  for (const [phase, phaseFrames] of Object.entries(byPhase)) {
+    const ftValues = phaseFrames.map(e => e.frameTime).filter(v => v > 0);
+    if (ftValues.length === 0) continue;
+    const avgMs = ftValues.reduce((s, v) => s + v, 0) / ftValues.length;
+    const budget = _computeTimeBudgetFromSpans(phaseFrames, avgMs);
+    results.push({
+      phase,
+      frameCount: phaseFrames.length,
+      avgFrameMs: avgMs,
+      pctUnaccounted: budget.pctUnaccounted,
+      perFrameUnaccountedMs: budget.perFrameUnaccountedMs,
+    });
+  }
+
+  // Sort by unaccounted percentage descending
+  results.sort((a, b) => b.pctUnaccounted - a.pctUnaccounted);
+  return results;
+}
+
 // ─── Report builder ────────────────────────────────────────────────────────
 
 /**
@@ -212,7 +255,7 @@ function _computeTimeBudgetFromSpans(frames, avgFrameMs) {
  */
 export function buildReport(frames, interval, longTasks = []) {
   const timeline = frames;
-  const { start, end, durationMs, pollCount } = interval;
+  const { start, end, durationMs, pollCount, longTaskObserverActive } = interval;
   const frameCount = timeline.length;
 
   // ── 1. Overall frame stats ──────────────────────────────────────────────
@@ -351,6 +394,9 @@ export function buildReport(frames, interval, longTasks = []) {
   const avgFrameMs = ftStats ? ftStats.avg : 0;
   const timeBudget = _computeTimeBudgetFromSpans(timeline, avgFrameMs);
 
+  // ── 6b. Per-phase time budget ───────────────────────────────────────────
+  const phaseBudget = _computeTimeBudgetByPhase(timeline);
+
   // ── 7. Long tasks ───────────────────────────────────────────────────────
   const longTaskSummary = longTasks.length > 0 ? {
     count: longTasks.length,
@@ -386,6 +432,40 @@ export function buildReport(frames, interval, longTasks = []) {
       `(${thHitch + thMajor} hitches >${_r1(HITCH_THRESHOLD)}ms with little measured work)`
     );
   }
+
+  // Warn when Long Task API was unavailable but hitches occurred
+  if (thHitch > 0 && !longTaskObserverActive) {
+    warnings.push(
+      `Long Task API unavailable — hitches >50ms may be GC, layout, or paint events ` +
+      `invisible to JS instrumentation`
+    );
+  }
+
+  // ── Variance-ratio warnings ──
+  // Flag spans whose max call time is more than 5x their average (≥5 calls),
+  // which suggests intermittent bottlenecks rather than steady load.
+  for (const [name, s] of Object.entries(spanStats)) {
+    if (s.frameCallCount >= 5 && s.avgCall > 0 && s.max > s.avgCall * 5) {
+      const ratio = (s.max / s.avgCall).toFixed(1);
+      warnings.push(
+        `${name}: max=${_r1(s.max)}ms is ${ratio}x the average of ${_r2(s.avgCall)}ms ` +
+        `(possible intermittent bottleneck)`
+      );
+    }
+  }
+
+  // Find the span with the worst max value for surfacing in the summary
+  const worstSpanEntry = (() => {
+    let worstName = null;
+    let worstMax = 0;
+    for (const [name, s] of Object.entries(spanStats)) {
+      if (s.max > worstMax) {
+        worstMax = s.max;
+        worstName = name;
+      }
+    }
+    return worstName ? { name: worstName, max: worstMax } : null;
+  })();
 
   // Build a simplified per-context slow-frame summary
   const ctxSlowSummary = {};
@@ -423,6 +503,8 @@ export function buildReport(frames, interval, longTasks = []) {
       context: c.context,
     })),
     timeBudget,
+    phaseBudget,
+    worstSpan: worstSpanEntry,
     longTasks: longTaskSummary,
     warnings,
     timeline, // kept for programmatic use; not printed
@@ -443,7 +525,7 @@ export function buildReport(frames, interval, longTasks = []) {
  */
 function _formatReport(report) {
   const { interval, summary, spanStats, contextBreakdown, ctxSlowSummary,
-    slowClusters, timeBudget, longTasks, warnings } = report;
+    slowClusters, timeBudget, phaseBudget, worstSpan, longTasks, warnings } = report;
 
   let s = `=== Performance Capture Report ===\n`;
   s += `Duration: ${_r1(interval.durationMs / 1000)}s  Frames: ${interval.pollCount}\n`;
@@ -474,6 +556,11 @@ function _formatReport(report) {
     s += `Memory: avg=${_r1(m.avgHeap)}MB  max=${_r1(m.maxHeap)}MB`;
     if (m.limitMB != null) s += `  limit=${_r1(m.limitMB)}MB`;
     s += '\n';
+  }
+
+  // Surface the span with the worst max value as a one-liner
+  if (worstSpan) {
+    s += `Worst span: ${worstSpan.name} (max=${_r1(worstSpan.max)}ms)\n`;
   }
 
   // ── Slow frames by context ──
@@ -524,6 +611,16 @@ function _formatReport(report) {
       s += '\n';
     }
     s += `  ${'unaccounted'.padEnd(16)} cost=${_r2(timeBudget.perFrameUnaccountedMs)}ms  ${_r1(timeBudget.pctUnaccounted)}% of frame\n`;
+  }
+
+  // ── Per-phase time budget ──
+  if (phaseBudget && phaseBudget.length > 1) {
+    s += `\n─── Per-Phase Time Budget ───\n`;
+    for (const pb of phaseBudget) {
+      s += `  ${pb.phase.padEnd(14)} avg=${_r1(pb.avgFrameMs)}ms  `;
+      s += `unaccounted=${_r1(pb.pctUnaccounted)}%  `;
+      s += `(${pb.frameCount} frames)\n`;
+    }
   }
 
   // ── Long tasks ──
