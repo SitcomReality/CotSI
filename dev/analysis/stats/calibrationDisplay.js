@@ -6,6 +6,7 @@
  */
 import { NOISE_CONFIG, NOISE_FIELDS } from '../generation/noiseConfig.js';
 import { normalizeField } from '../generation/quantileLUT.js';
+import { poolHistograms, buildQuantileLUT } from '../generation/quantileLUT.js';
 import { percentileFromHistogram } from '../generation/histograms.js';
 
 // ---------------------------------------------------------------------------
@@ -160,4 +161,92 @@ export function formatQuantileReport(result, sourceDesc) {
  */
 export function formatCalibrationAll(freqReport, histReport, lutReport) {
   return freqReport + '\n' + histReport + '\n' + lutReport;
+}
+
+// ---------------------------------------------------------------------------
+// Multi-Seed Calibration Report (concise — no per-seed detail)
+// ---------------------------------------------------------------------------
+
+/**
+ * Format pooled calibration results from a multi-seed run.
+ * Produces a compact report with ensemble statistics only.
+ *
+ * @param {object|null} calibResults  - calibrationResults from runMultiSeed()
+ *   { histograms: { elev, moist, temp, slope }, seedCount, radius }
+ * @param {object[]|null} freqResults - Output from verifyFrequency(), or null
+ * @returns {string}
+ */
+export function formatMultiCalibrationReport(calibResults, freqResults) {
+  const parts = [];
+
+  // ── Section 1: Frequency Verification ───────────────────────────
+  if (freqResults && freqResults.length) {
+    parts.push(formatFrequencyReport(freqResults));
+  }
+
+  // ── Section 2: Pooled Histogram Percentiles ─────────────────────
+  if (calibResults) {
+    const { histograms, seedCount, radius } = calibResults;
+    const fields = [
+      { key: 'elev',  label: 'Elevation',    list: histograms.elev },
+      { key: 'moist', label: 'Moisture',     list: histograms.moist },
+      { key: 'temp',  label: 'Temperature',  list: histograms.temp },
+      { key: 'slope', label: 'Slope',        list: histograms.slope },
+    ];
+
+    parts.push(`=== Pooled Histograms (${seedCount} seeds × r=${radius}) ===`);
+    parts.push('');
+
+    for (const f of fields) {
+      if (!f.list || f.list.length === 0) continue;
+
+      // Pool all per-seed histograms for this field
+      const pooled = poolHistograms(f.list);
+      const p10 = percentileFromHistogram(pooled, 0.10);
+      const p25 = percentileFromHistogram(pooled, 0.25);
+      const p50 = percentileFromHistogram(pooled, 0.50);
+      const p75 = percentileFromHistogram(pooled, 0.75);
+      const p90 = percentileFromHistogram(pooled, 0.90);
+      const p99 = percentileFromHistogram(pooled, 0.99);
+
+      parts.push(
+        `${f.label.padEnd(14)} p10=${p10.toFixed(3)}  p25=${p25.toFixed(3)}  ` +
+        `p50=${p50.toFixed(3)}  p75=${p75.toFixed(3)}  p90=${p90.toFixed(3)}  p99=${p99.toFixed(3)}`
+      );
+    }
+    parts.push('');
+  }
+
+  return parts.join('\n');
+}
+
+/**
+ * Build quantile LUTs from pooled multi-seed histograms and format.
+ *
+ * @param {object} calibResults - calibrationResults from runMultiSeed()
+ * @returns {{ luts: object, report: string }}
+ */
+export function buildAndFormatLUTs(calibResults) {
+  const { histograms, seedCount, radius } = calibResults;
+
+  const luts = {};
+  const fields = [
+    { key: 'elevation',    histKey: 'elev' },
+    { key: 'moisture',     histKey: 'moist' },
+    { key: 'temperature',  histKey: 'temp' },
+    { key: 'slope',        histKey: 'slope' },
+  ];
+
+  for (const f of fields) {
+    const list = histograms[f.histKey];
+    if (list && list.length > 0) {
+      luts[f.key] = buildQuantileLUT(poolHistograms(list));
+    }
+  }
+
+  const sourceDesc = `${seedCount} seeds × r=${radius}`;
+  return {
+    luts,
+    report: formatQuantileReport(luts, sourceDesc),
+  };
 }

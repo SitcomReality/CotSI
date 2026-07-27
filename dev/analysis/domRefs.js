@@ -53,11 +53,15 @@ export function cacheDom() {
   els.btnExportPng = $('btn-export-png');
   els.btnExportJson = $('btn-export-json');
 
-  // Calibration buttons
-  els.btnFreqVerify = $('btn-freq-verify');
-  els.btnCollectHists = $('btn-collect-hists');
-  els.btnBuildLuts = $('btn-build-luts');
-  els.btnCalibrateAll = $('btn-calibrate-all');
+  // Calibration checkboxes
+  els.calibFreq = $('calib-freq');
+  els.calibHist = $('calib-hist');
+  els.calibLut   = $('calib-lut');
+
+  // Multi-seed output checkboxes
+  els.multiTerrain   = $('multi-terrain');
+  els.multiTraders   = $('multi-traders');
+  els.multiChampions = $('multi-champions');
   els.statsPanel = $('stats-panel');
   els.multiBiomeCheck = $('multi-biome-check');
   els.legend = $('legend');

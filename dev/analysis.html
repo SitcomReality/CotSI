@@ -99,14 +99,20 @@
           <input type="number" id="multi-count" value="50" min="2" max="500">
         </div>
         <button class="primary" id="btn-multi-generate">Run Multi-Seed</button>
+        <div class="toggle-group" id="multi-output-toggles">
+          <label><input type="checkbox" id="multi-terrain" checked> Terrain distribution</label>
+          <label><input type="checkbox" id="multi-traders" checked> Trader heatmap</label>
+          <label><input type="checkbox" id="multi-champions"> Champion heatmap</label>
+        </div>
       </div>
 
       <div class="control-group">
-        <h3>Calibration (Phase 0)</h3>
-        <button class="primary" id="btn-freq-verify">Frequency Verification</button>
-        <button id="btn-collect-hists">Collect Histograms</button>
-        <button id="btn-build-luts">Build Quantile LUTs</button>
-        <button id="btn-calibrate-all">Run All</button>
+        <h3>Calibration</h3>
+        <div class="toggle-group" id="calib-toggles">
+          <label><input type="checkbox" id="calib-freq" checked> Frequency Verification</label>
+          <label><input type="checkbox" id="calib-hist"> Histogram Collection</label>
+          <label><input type="checkbox" id="calib-lut"> Quantile LUTs</label>
+        </div>
       </div>
 
       <div class="control-group">

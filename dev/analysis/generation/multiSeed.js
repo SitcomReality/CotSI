@@ -7,6 +7,7 @@
  */
 import { generateSingleSeed, DEFAULT_CHAMPIONS } from './generate.js';
 import { coordKey } from '../../../src/engine/rules/hexGrid.js';
+import { collectHistograms } from './histograms.js';
 import {
   terrainDistribution,
   featureCounts,
@@ -81,12 +82,20 @@ function buildChampionHeatmap(perSeedStats) {
  * @param {object}   params.mapSettings - { heightVariation, wateriness, mountainousness }
  * @param {boolean}  params.multiBiome - Whether to use multi-biome generation
  * @param {function} params.onProgress - Called with (current, total) after each seed
- * @returns {Promise<object>} { perSeedStats, aggregate, traderHeatmap, championHeatmap }
+ * @param {boolean}  [params.collectCalibration] - If true, collect histogram data per seed
+ * @param {object}   [params.noiseConfig]        - Required when collectCalibration is true
+ * @returns {Promise<object>} { perSeedStats, aggregate, traderHeatmap, championHeatmap, calibrationResults? }
  */
-export async function runMultiSeed({ baseSeed, count, radius, biomeDef, mapSettings, multiBiome = false, onProgress }) {
+export async function runMultiSeed({ baseSeed, count, radius, biomeDef, mapSettings, multiBiome = false, onProgress, collectCalibration = false, noiseConfig = null }) {
   const perSeedStats = [];
   const terrainDistributions = [];
   const allChampionPositions = [];
+
+  // ── Optional: calibration histogram arrays ──────────────────────
+  let calibHists = null;
+  if (collectCalibration && noiseConfig) {
+    calibHists = { elev: [], moist: [], temp: [], slope: [] };
+  }
 
   for (let i = 0; i < count; i++) {
     const seedText = `${baseSeed}-${i}`;
@@ -103,6 +112,15 @@ export async function runMultiSeed({ baseSeed, count, radius, biomeDef, mapSetti
     perSeedStats.push(stats);
     terrainDistributions.push(stats.terrain);
 
+    // Collect calibration histogram for this seed
+    if (calibHists) {
+      const h = collectHistograms(seedText, radius, noiseConfig);
+      calibHists.elev.push(h.elevHist);
+      calibHists.moist.push(h.moistHist);
+      calibHists.temp.push(h.tempHist);
+      calibHists.slope.push(h.slopeHist);
+    }
+
     if (onProgress) onProgress(i + 1, count);
 
     // Yield to the browser every 10 seeds to keep UI responsive
@@ -118,10 +136,21 @@ export async function runMultiSeed({ baseSeed, count, radius, biomeDef, mapSetti
     baseSeed,
   };
 
+  // ── Build calibration results from pooled histograms ────────────
+  let calibrationResults = null;
+  if (calibHists) {
+    calibrationResults = {
+      histograms: calibHists,  // { elev: U32Array[], moist: ..., temp: ..., slope: ... }
+      seedCount: count,
+      radius,
+    };
+  }
+
   return {
     perSeedStats,
     aggregate,
     traderHeatmap: buildTraderHeatmap(perSeedStats),
     championHeatmap: buildChampionHeatmap(perSeedStats),
+    calibrationResults,
   };
 }

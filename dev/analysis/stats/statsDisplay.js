@@ -90,30 +90,56 @@ export function updateStats() {
 /**
  * Format multi-seed aggregate results as a text block.
  *
- * @param {{ aggregate, traderHeatmap }} result — the output of runMultiSeed()
+ * @param {{ aggregate, traderHeatmap, championHeatmap }} result — the output of runMultiSeed()
+ * @param {object} [opts]  - Toggle flags
+ * @param {boolean} [opts.showTerrain=true]
+ * @param {boolean} [opts.showTraders=true]
+ * @param {boolean} [opts.showChampions=false]
  */
-export function formatMultiStats(result) {
-  const { aggregate, traderHeatmap } = result;
+export function formatMultiStats(result, opts = {}) {
+  const { showTerrain = true, showTraders = true, showChampions = false } = opts;
+  const { aggregate, traderHeatmap, championHeatmap } = result;
   const lines = [];
 
   lines.push(`=== Multi-Seed Report ===`);
   lines.push(`Seeds: ${aggregate.seedCount}  |  Radius: ${aggregate.radius}  |  Base seed: ${aggregate.baseSeed}`);
   lines.push('');
 
-  lines.push('Terrain distribution (mean % +/- stddev):');
-  for (const [t, d] of Object.entries(aggregate.terrain)) {
-    const label = (TERRAIN[t]?.label || t).padEnd(12);
-    lines.push(`  ${label} ${d.mean.padStart(5)}%  +/-${d.stddev.padStart(5)}  (min ${d.min}%, max ${d.max}%)`);
+  if (showTerrain) {
+    lines.push('Terrain distribution (mean % +/- stddev):');
+    for (const [t, d] of Object.entries(aggregate.terrain)) {
+      const label = (TERRAIN[t]?.label || t).padEnd(12);
+      lines.push(`  ${label} ${d.mean.padStart(5)}%  +/-${d.stddev.padStart(5)}  (min ${d.min}%, max ${d.max}%)`);
+    }
+    lines.push('');
   }
 
-  lines.push('');
-  lines.push('Trader position heatmap (top 15 hexes by seed count):');
-  const sorted = [...traderHeatmap.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 15);
-  for (const [key, count] of sorted) {
-    const pct = ((count / aggregate.seedCount) * 100).toFixed(1);
-    lines.push(`  ${key.padStart(8)}  ${count}/${aggregate.seedCount}  (${pct}%)`);
+  if (showTraders && traderHeatmap && traderHeatmap.size > 0) {
+    lines.push('Trader position heatmap (top 15 hexes by seed count):');
+    const sorted = [...traderHeatmap.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15);
+    for (const [key, count] of sorted) {
+      const pct = ((count / aggregate.seedCount) * 100).toFixed(1);
+      lines.push(`  ${key.padStart(8)}  ${count}/${aggregate.seedCount}  (${pct}%)`);
+    }
+    lines.push('');
+  }
+
+  if (showChampions && championHeatmap && championHeatmap.size > 0) {
+    lines.push('Champion spawn heatmap (top 15 hexes by seed count):');
+    const sorted = [...championHeatmap.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15);
+    for (const [key, count] of sorted) {
+      const pct = ((count / aggregate.seedCount) * 100).toFixed(1);
+      lines.push(`  ${key.padStart(8)}  ${count}/${aggregate.seedCount}  (${pct}%)`);
+    }
+    lines.push('');
+  }
+
+  if (!showTerrain && !showTraders && !showChampions) {
+    lines.push('(All output sections disabled.)');
   }
 
   return lines.join('\n');

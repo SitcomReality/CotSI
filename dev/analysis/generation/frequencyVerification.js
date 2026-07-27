@@ -10,49 +10,53 @@
 import { hexFbm2D, hexToWorld } from '../../../src/engine/rules/noise.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import { hexesWithinRadius } from '../../../src/engine/rules/hexGrid.js';
+import { NOISE_CONFIG } from './noiseConfig.js';
 
 // ---------------------------------------------------------------------------
-// Field registry — matches overview §4.1 table
+// Field registry — reads from noiseConfig.js (single source of truth).
+// Targets are design goals for Phase 0 calibration verification.
 // ---------------------------------------------------------------------------
 
-const FIELDS_TO_VERIFY = [
-  {
-    label: 'CONTINENT',
-    seedOffset: 0x4E9D3A7F,
-    config: { octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.0008 },
-    target: '2-4 landmasses on radius-50',
-  },
-  {
-    label: 'ELEVATION_DETAIL',
-    seedOffset: 0x7B2C1E8D,
-    config: { octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020 },
-    target: '~10-hex local relief',
-  },
-  {
-    label: 'RIDGE',
-    seedOffset: 0x3F5A9B2C,
-    config: { octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008 },
-    target: '~25-hex mountain chains',
-  },
-  {
-    label: 'MOISTURE',
-    seedOffset: 0x8C6E4F1A,
-    config: { octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006 },
-    target: 'broad wet/dry bands',
-  },
-  {
-    label: 'TEMP_VARIATION',
-    seedOffset: 0x2D7B8E3F,
-    config: { octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08 },
-    target: 'local temp noise',
-  },
-  {
-    label: 'REGION',
-    seedOffset: 0x5A1C9D6E,
-    config: { octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.0015 },
-    target: '4-6 biome regions on radius-50',
-  },
-];
+function seedOffsetFor(fieldKey) {
+  const map = {
+    CONTINENT:       NOISE_CONFIG.SEED_CONTINENT,
+    ELEVATION_DETAIL: NOISE_CONFIG.SEED_DETAIL,
+    RIDGE:           NOISE_CONFIG.SEED_RIDGE,
+    MOISTURE:        NOISE_CONFIG.SEED_MOISTURE,
+    TEMP_VARIATION:  NOISE_CONFIG.SEED_TEMP,
+    REGION:          NOISE_CONFIG.SEED_REGION_M,
+  };
+  return map[fieldKey] ?? 0;
+}
+
+const FIELD_LABELS = {
+  CONTINENT:        'Continent mask',
+  ELEVATION_DETAIL:  'Elevation detail',
+  RIDGE:            'Ridge noise',
+  MOISTURE:         'Moisture',
+  TEMP_VARIATION:   'Temperature variation',
+  REGION:           'Region bias',
+};
+
+const FIELD_TARGETS = {
+  CONTINENT:        '2-4 landmasses on radius-50',
+  ELEVATION_DETAIL:  '~10-hex local relief',
+  RIDGE:            '~25-hex mountain chains',
+  MOISTURE:         'broad wet/dry bands',
+  TEMP_VARIATION:   'local temp noise',
+  REGION:           '4-6 biome regions on radius-50',
+};
+
+const FIELDS_TO_VERIFY = (() => {
+  const keys = ['CONTINENT', 'ELEVATION_DETAIL', 'RIDGE', 'MOISTURE', 'TEMP_VARIATION', 'REGION'];
+  return keys.map(k => ({
+    label: FIELD_LABELS[k],
+    key: k,
+    seedOffset: seedOffsetFor(k),
+    config: { ...NOISE_CONFIG[k] },
+    target: FIELD_TARGETS[k],
+  }));
+})();
 
 // ---------------------------------------------------------------------------
 // Verify a single noise field
