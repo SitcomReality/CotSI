@@ -33,6 +33,7 @@ Details in `phaseA_progress.md`.
 1. Noise Config & Seed Offsets (`worldParams.js`) — **Done.**
 2. `ice` terrain type added — **Done.**
 3. `sampleBaseFields` migration to `terrainGenerator.js` — **Done.**
+4. `selectBiome()` + `BIOME_PRIORITY_ORDER` — **Done.**
 
 ## Phase B
 

@@ -91,3 +91,41 @@ sampleBaseFields(baseSeed, q, r, noiseConfig, radius)
 python3 dev/check_imports.py
 # OK — all imports resolve, all named exports verified (235 files checked)
 ```
+
+---
+
+## A4. `selectBiome()` — Natural Biome Selection
+
+**Done.** Added data-driven biome selection to `src/game/rules/terrainGenerator.js`.
+
+### Changes
+
+| File | Change |
+|------|--------|
+| `src/game/rules/terrainGenerator.js` | Added `BIOME_PRIORITY_ORDER`, `SUPERNATURAL_BIOMES`, `selectBiome` export |
+
+### Function details
+
+```js
+selectBiome(elevation, moisture, temperature, regionBiasM, regionBiasT)
+  → biome archetype ID string
+```
+
+- **`BIOME_PRIORITY_ORDER`**: `['biome_arid', 'biome_lush', 'biome_default']` — natural biomes in specificity order, `biome_default` last as catch-all.
+- **`SUPERNATURAL_BIOMES`**: Empty for now (commented out) — populated in Phase G when Brass Grave and Unfinished Lands archetypes are fully defined.
+- **Regional bias**: Applies ±5% jitter per axis via `0.10 * (regionBias - 0.5)`, so biome boundaries follow the low-frequency wobble of `NOISE_REGION` fields.
+- **`!R` guard**: Biomes without `climateRange` (none have it yet — A6 adds it) are skipped in the loop, falling through to `biome_default`. This means `selectBiome` currently always returns `'biome_default'` — correct transitional behavior.
+- **Pure function**: No state, no side effects, deterministic from inputs.
+
+### Key decisions
+
+- **`SUPERNATURAL_BIOMES` included now** even though it's empty — the constant is consumed by `applySupernaturalOverrides` (A8) and defining it now avoids an A4-to-A8 series of small constant additions. The list stays commented until Phase G when actual supernatural archetype content lands.
+- **No `validateBiomeLists()` startup assertion yet** — it reads `origin` field from biome defs, which doesn't exist until A6. Added in A6 with the biome archetype updates.
+- **Additive change** — same pattern as A3. Existing `generateChunkTiles` still uses the old `biomeForRoll()` + `BIOME_DISTRIBUTION` table. The new `selectBiome` is consumed by A7 when `generateChunkTiles` is rewritten.
+
+### Verification
+
+```bash
+python3 dev/check_imports.py
+# OK — all imports resolve, all named exports verified (235 files checked)
+```
