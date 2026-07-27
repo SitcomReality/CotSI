@@ -123,10 +123,12 @@ mesh management. Only rebuild chunks whose contents changed. Add frustum culling
 
 ---
 
-## Phase 5: Infinite World
+## Phase 5: Infinite World -- not to be implemented. Kept as reference.
 
-**Goal:** The map has no fixed boundary. Chunks are generated on demand as entities
+**Hypothetical Goal:** The map has no fixed boundary. Chunks are generated on demand as entities
 move, and evicted when all entities have left the area.
+
+This has been kept as a reference in case we find any of the below features useful. The current game design (the actual goal/purpose of the game) isn't mechanically or conceptually compatible with truly infinite maps.
 
 ### 5a — Chunk manager (load / generate / evict)
 - New module: `src/game/state/chunkManager.js`
@@ -164,8 +166,7 @@ Phases are ordered by dependency:
 - **Phase 3** — depends on Phase 2 (needs chunks to exist before rendering them).
 - **Phase 4** — depends on Phases 1-3 (can't scale up until algorithms and rendering
   can handle it).
-- **Phase 5** — depends on Phase 4 (streaming is pointless without a large-enough map
-  to justify it).
+- **Phase 5** — depends on a completely different game design, probably.
 
 Each phase produces a working, playable game. No phase leaves the game in a broken
 state. This means we can ship (or test) after any phase, and we can pause between
@@ -182,6 +183,7 @@ phases to work on other features.
   maps up to R=200.
 - **Don't implement LOD in phase 3.** InstancedMesh + frustum culling handles R=100
   comfortably. Add LOD only if profiling shows it's needed.
+- **NO ACTUAL INFINITY!** The game map might be massive, but the fundamental design of "there's 6 other players to interact with" probably precludes infinite maps. Maybe there'll be maps so large that games are played over extended time periods, but players have to find each other probably.
 
 ---
 

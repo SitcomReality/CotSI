@@ -25,7 +25,7 @@ The critical fix from the original design: river moisture boost runs **before** 
 
 **Out of scope:**
 - River rendering (meshes, water shaders) — data only, rendering deferred
-- Cross-chunk river tracing for infinite maps (traces truncate at generation boundary)
+- Cross-chunk river tracing (traces truncate at generation boundary — on finite maps, global post-pass handles full trace)
 - River width variation, meandering, or tributary joining
 
 ---
@@ -46,7 +46,7 @@ The critical fix from the original design: river moisture boost runs **before** 
 // River source selection
 export const RIVER_SOURCE_MIN_ELEV    = 0.75;  // calibrated percentile
 export const RIVER_SOURCE_MIN_MOIST   = 0.55;
-export const RIVER_SOURCE_FRACTION    = 0.003; // sources per tile (scales with map area)
+export const RIVER_SOURCE_FRACTION    = 0.0001; // sources per tile; total river coverage ≈ fraction × avg river length
 
 // River tracing
 export const RIVER_MAX_LENGTH         = 200;
@@ -235,9 +235,13 @@ export function generateTiles(seedText, radius, biomeDef, params) {
 
 For per-chunk generation (`generateChunkTiles`), river tracing is deferred to the `generateTiles` wrapper because rivers cross chunk boundaries. Per-chunk generation doesn't know about tiles in other chunks. This is the same approach as the current code's `generateTiles` wrapper — it assembles all chunks and then runs global post-processing.
 
-### 4.8 Infinite Map Limitation
+### 4.8 Finite Map Generation
 
-For infinite/chunked maps (future chunk-infra roadmap), rivers are traced only within the currently generated region. Rivers that would extend beyond the generated boundary are truncated. This is a known limitation — full river tracing across an infinite world requires global river path storage, deferred to the chunk-infra roadmap (Phase 5 of that plan).
+On finite maps (the target for this redesign), the full world is generated upfront in `generateTiles`. Rivers are traced across all assembled chunks in a global post-pass — no truncation at chunk boundaries, no cross-chunk coordination issues. The water-type BFS for ocean/lake determination also runs globally on the complete map.
+
+### 4.9 River Termination at Local Minima (Known Limitation)
+
+Rivers trace downhill until they hit water, a local minimum, or `RIVER_MAX_LENGTH`. A river that dead-ends in a basin without water terminates in the middle of land. Without sink filling, this produces dead-end rivers rather than lakes. Realistic (endorheic basins exist) but may look odd for single-hex basins. Future enhancement: create a small lake at the river's terminus if the basin is enclosed.
 
 ---
 

@@ -40,25 +40,22 @@ Phase A uses a single FBM field for elevation, producing "popcorn noise" — iso
 
 ### 4.1 Elevation Composite with Per-Phase Normalization
 
-The composite formula from the overview:
+The multiplicative composite formula from the overview:
 
 ```js
-elevation = clamp01(
-  continent * 0.60 +
-  detail    * 0.25 +
-  ridges    * 0.15 * continent
-)
+rawElev = continent × (detail × wD + ridges × wR)
+elevation = clamp01(rawElev)
 ```
 
-In Phase B, ridges = 0 (using regular FBM placeholder until Phase F). The raw sum `continent*0.60 + detail*0.25` maxes at 0.85, which makes `mountainThreshold: 0.905` unreachable. **Normalize:**
+In Phase B, ridges = 0 (regular FBM placeholder until Phase F) and wD = 0.50. The product `continent × (detail × 0.50)` ranges [0, 0.50], so normalize:
 
 ```js
-// Phase B normalization (ridges not yet implemented):
-const raw = continent * 0.60 + detail * 0.25;
-const elevation = clamp01(raw / 0.85);  // normalize to [0, 1]
+// Phase B normalization (ridges not yet implemented, wD = 0.50):
+const rawElev = continent * (detail * 0.50 + ridges * 0.50);
+const elevation = clamp01(rawElev * 2.0);  // normalize [0, 0.5] → [0, 1]
 ```
 
-This means the calibration from Phase 0 produced thresholds against the *normalized* output. When Phase F adds the ridge layer, the normalization constant changes to `/(0.60 + 0.25 + 0.15)` and thresholds are recalibrated. Each phase doc states its normalization formula explicitly.
+This means the calibration from Phase 0 produced thresholds against the *normalized* output. When Phase F adds the ridge layer, weights shift to wD = 0.30, wR = 0.70 (ridged FBM has a different amplitude profile) and the normalization constant is recalibrated. Each phase doc states its normalization formula explicitly.
 
 ### 4.2 Noise Configuration (`worldParams.js`)
 
@@ -84,23 +81,25 @@ export const NOISE_RIDGE = {
 export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const NC = noiseConfig;
 
-  // 3-layer elevation composite
+  // Multiplicative elevation composite: continent × (detail × wD + ridges × wR)
   const continent = hexFbm2D(q, r, baseSeed + NC.SEED_CONTINENT, NC.CONTINENT);
   const detail    = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL,    NC.ELEVATION_DETAIL);
   const ridges    = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,     NC.RIDGE);
-  const rawElev   = continent * 0.60 + detail * 0.25 + ridges * 0.15 * continent;
-  // Phase B normalization (ridges placeholder):
-  const elevation = clamp01(rawElev / 0.85);
+  const rawElev   = continent * (detail * 0.50 + ridges * 0.50);
+  // Phase B normalization (ridges placeholder, wD = 0.50):
+  const elevation = clamp01(rawElev * 2.0);
 
-  // Moisture, temperature, region bias — unchanged from Phase A
+  // Moisture, temperature, region bias — updated per overview formulas
   const baseMoisture  = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.MOISTURE);
-  const distFromCenter = distance({ q, r }, { q: 0, r: 0 });
-  const latitudeTerm  = radius > 0 ? 1.0 - (distFromCenter / radius) : 0.5;
+  const { y }         = hexToWorld(q, r);
+  const worldRadiusY  = radius * 1.73;  // calibrate in Phase 0
+  const latitudeTerm  = 1.0 - (Math.abs(y) / worldRadiusY);
   const tempVariation = hexFbm2D(q, r, baseSeed + NC.SEED_TEMP, NC.TEMP_VARIATION);
+  const RULES         = DEFAULT_TERRAIN_RULES;
   const temperature   = clamp01(
-    latitudeTerm  * 0.50 +
-    tempVariation * 0.15 -
-    elevation     * 0.40
+    0.5 + 0.35 * (latitudeTerm - 0.5)
+        + 0.10 * (tempVariation - 0.5)
+        - 0.30 * (elevation - RULES.waterMaxElevation)
   );
   const regionBiasM = hexFbm2D(q, r, baseSeed + NC.SEED_REGION_M, NC.REGION);
   const regionBiasT = hexFbm2D(q, r, baseSeed + NC.SEED_REGION_T, NC.REGION);
@@ -118,25 +117,27 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
 ### 4.4 Slope Computation
 
-Requires elevations for all hexes in the chunk plus the border ring. Computed after all base fields are sampled:
+Slope measures topographic steepness, not high-frequency noise roughness. Computing neighbor deltas from the full FBM elevation (which includes detail octaves down to ~5-hex wavelength) makes slope dominated by the finest octave — `plateauSlopeMin` and `hillSlopeMin` become knobs on `NOISE_ELEVATION_DETAIL`'s top octave rather than actual steepness.
+
+**Fix: compute slope from low-passed elevation** (continent + ridge layers only, excluding detail):
 
 ```js
-function computeSlope(q, r, elevationAt) {
-  const center = elevationAt(q, r);
+function computeSlope(q, r, elevationAt, lowPassElevationAt) {
+  const center = lowPassElevationAt(q, r);
   let totalDiff = 0;
   const nbrs = neighbors({ q, r });
   for (const n of nbrs) {
-    totalDiff += Math.abs(elevationAt(n.q, n.r) - center);
+    totalDiff += Math.abs(lowPassElevationAt(n.q, n.r) - center);
   }
   return clamp01(totalDiff / (6 * SLOPE_NORMALIZATION));
 }
 ```
 
-`SLOPE_NORMALIZATION` is the Phase 0 calibration constant — the 95th-percentile neighbor delta. Stored in `worldParams.js`.
+`SLOPE_NORMALIZATION` is the 95th-percentile of `totalDiff / 6` across multiple seeds — using the **aggregate statistic** (mean of 6 deltas), not the 95th-percentile of individual neighbor deltas (which sits much higher). Phase 0 documents the derivation. Using the right statistic ensures slope values span [0, 1] instead of clustering near 0.
 
 ### 4.5 Border Ring Implementation
 
-When generating a chunk, sample `sampleBaseFields` for the chunk's hexes PLUS a ring of width `MAX_LOOKUP_RADIUS` (currently 2) around the chunk boundary.
+When generating a chunk, sample `sampleBaseFields` for the chunk's hexes PLUS a ring of width `MAX_LOOKUP_RADIUS` (currently 3 — the chained sum: slope ±1 + water proximity ±2) around the chunk boundary.
 
 ```js
 function hexesInExpandedChunk(cq, cr, ringWidth) {

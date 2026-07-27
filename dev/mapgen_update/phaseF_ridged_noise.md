@@ -2,6 +2,7 @@
 
 **Depends on:** Phase B (3-layer elevation composite), Phase 0 (calibration values)  
 **Can run in parallel with:** Phases C, D, E  
+**Note:** This phase is not truly optional. Thresholding a near-Gaussian additive field at the 95th percentile yields small round blobs, not ranges. Mountain aesthetics and the `mountainType: 'range'` tag are load-bearing on ridged noise.  
 **Deliverable:** Sharp mountain ridges instead of rounded hills. Natural-looking mountain ranges with jagged crests.
 
 ---

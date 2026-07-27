@@ -29,6 +29,8 @@ This phase establishes the infrastructure to measure what the noise actually out
 - Domain warping or other noise transforms
 - Changing the composite formula (that happens in Phase A/B; recalibration follows)
 
+**Calibration is re-runnable.** Phases B (multi-scale elevation) and F (ridged noise) change the elevation distribution. Phase 0 produces the calibration tooling; the tooling is re-invoked at the end of each phase that alters the distribution shape. The dependency graph in the overview shows this as a single Phase 0 block, but in practice the calibration script is run after B and F to re-derive thresholds against the current composite.
+
 ---
 
 ## 3. Pre-requisites
@@ -143,7 +145,13 @@ function percentileFromHistogram(hist, p) {
 }
 ```
 
-### 4.4 Target Distribution Budgets
+### 4.4 Quantile Normalization (Recommended)
+
+Rather than thresholding raw FBM values against magic-number constants, fit a quantile transform (CDF) for each continuous field from an ensemble of seeds. With a quantile LUT per field, every threshold **is** a percentile — readable, stable across distribution changes, and requiring only LUT regeneration (not threshold re-derivation) when layers are added. If quantile normalization is deferred, all constants must be recalibrated after each distribution-changing phase (B, F).
+
+**Ensemble calibration with per-seed variety:** Calibrate against an *ensemble* of seeds to get fixed constants, then add an explicit per-seed roll (e.g., `seaLevelOffset`, `continentality`) so not every map has identical water/mountain percentages.
+
+### 4.5 Target Distribution Budgets
 
 Define what percentage of tiles should be each terrain type on a "reference" map (radius 21, default seed, no biome override):
 
@@ -251,7 +259,37 @@ export function runSnapshotTests(noiseConfig) {
 
 `check_analysis_imports.py` already imports and validates the analysis tool's module graph. After this phase, it should also call `runSnapshotTests()` so a broken amplitude change fails CI.
 
-### 4.8 Analysis Page UI
+### 4.8 Chunk-Seam Test
+
+Verify the invariant from Design Principle 4: a hex generated as a core tile of chunk A produces identical values when the same hex is generated as a ring tile of chunk B.
+
+```js
+export function runSeamTest(seedText, radius, noiseConfig) {
+  // Generate two adjacent chunks (e.g., chunk (0,0) and chunk (1,0))
+  // Compare all hexes in the overlap region (core of A ∩ ring of B, and vice versa)
+  // Assert identical elevation, moisture, temperature, biomeId, terrain for every shared hex
+}
+```
+
+This test catches regressions where a global pass (rivers, water BFS, epicenter) or per-chunk state leaks into what should be a pure function of `(seed, q, r)`. On finite maps, global passes run after all chunks are assembled, so the chunk-level invariant holds for the base fields and terrain classification (before global post-processing).
+
+### 4.9 Climate-Coverage Test
+
+Verify that the natural `BIOME_PRIORITY_ORDER` fully covers the climate cube. Any gap in coverage falls through to `biome_default` — this test makes those gaps visible:
+
+```js
+export function runClimateCoverageTest(seeds, radius, noiseConfig) {
+  // For each seed, generate the full map
+  // For each tile, compute the (elevation, moisture, temperature) climate coordinate
+  // Report: for each biome, what fraction of tiles it covers
+  // Report: tiles that fell through to biome_default, and their climate coordinates
+  // This exposes "cold+dry falls to default" gaps before playtesting
+}
+```
+
+The test doesn't enforce a specific distribution — it reports coverage so the designer can see gaps. The coverage report feeds into biome definition work in Phase A and Phase G.
+
+### 4.10 Analysis Page UI
 
 Add a "Distributions" tab/section to `dev/analysis.html` that:
 - Calls `collectHistograms` for the current seed/radius
@@ -267,12 +305,14 @@ This gives a visual debug tool for seeing where thresholds sit relative to actua
 
 | File | Change | Summary |
 |------|--------|---------|
-| `dev/analysis/generation/histograms.js` | **new** | `collectHistograms`, `percentileFromHistogram`, `calibrateThresholds`, `calibrateSlopeNormalization` |
+| `dev/analysis/generation/histograms.js` | **new** | `collectHistograms`, `percentileFromHistogram`, `calibrateThresholds`, `calibrateSlopeNormalization`, `buildQuantileLUT` |
 | `dev/analysis/generation/snapshotTest.js` | **new** | `runSnapshotTests` — distribution invariant checks |
+| `dev/analysis/generation/seamTest.js` | **new** | `runSeamTest` — chunk-seam invariant verification |
+| `dev/analysis/generation/climateCoverage.js` | **new** | `runClimateCoverageTest` — biome climate-cube coverage report |
 | `dev/analysis/generation/generate.js` | edit | Export convenience wrappers that call the histogram module |
 | `dev/analysis/analysis.js` | edit | Wire histogram collection into the analysis page |
 | `dev/analysis/index.html` | edit | Add distributions tab/section |
-| `dev/check_analysis_imports.py` | edit | Call `runSnapshotTests()` after import validation |
+| `dev/check_analysis_imports.py` | edit | Call `runSnapshotTests()`, `runSeamTest()`, `runClimateCoverageTest()` after import validation |
 | `src/params/game/worldParams.js` | edit | Add calibrated threshold constants with comments documenting their percentile derivation |
 
 ---
@@ -282,8 +322,10 @@ This gives a visual debug tool for seeing where thresholds sit relative to actua
 - The analysis page shows histograms of elevation, moisture, temperature, and slope for any seed/radius.
 - Threshold lines on the histograms show where each terrain cutoff sits.
 - Running the analysis tool across 5 seeds at radius 21 produces a calibration report: a JSON file (`dev/mapgen_update/calibration_v1.json`) with the derived thresholds.
-- `check_analysis_imports.py` fails if a snapshot distribution invariant is violated.
+- `check_analysis_imports.py` fails if a snapshot distribution invariant, chunk-seam invariant, or climate-cube coverage anomaly is detected.
 - Every threshold constant in `worldParams.js` has a comment citing its percentile derivation (e.g., `// 90th percentile of pooled elevation histogram, 5 seeds × 3 radii`).
+- Chunk-seam test verifies that adjacent chunks produce identical values at shared hexes.
+- Climate-coverage test reports which climate zones fall through to `biome_default`, making coverage gaps visible before playtesting.
 
 ---
 

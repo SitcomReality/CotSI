@@ -24,8 +24,6 @@ Tune noise parameters, terrain thresholds, and feature densities based on playte
 - Rain shadow algorithm (properly designed or permanently deferred)
 
 **Out of scope:**
-- Infinite-map temperature model (chunk-infra roadmap)
-- Cross-chunk river tracing (chunk-infra roadmap)
 - Player terraforming / world modification
 - Ecotone blending (smoothstep biome transitions) — tracked as future enhancement
 
@@ -174,6 +172,19 @@ function applySupernaturalOverrides(tiles, fieldMap, baseSeed, noiseConfig) {
   //      epicenterRadius:    base region size in hexes
   //      epicenterVariation: how much the boundary varies (0-1)
   //      epicenterThreshold: Phase A threshold (kept for backward compat)
+  //
+  // 3b. Apply fieldModifiers within the epicenter region: the biome's
+  //     elevationOffset, moistureMultiplier, and temperatureOffset alter
+  //     the local physical fields before re-running classifyTerrain.
+  //     This makes supernatural biomes more than palette swaps.
+  //
+  // 3c. Apply terrainMap: after classifyTerrain returns a standard
+  //     terrain type, map through the biome's terrainMap to produce
+  //     biome-specific terrain (e.g. plains → 'brass').
+  //
+  // 3d. Floating islands: fieldModifiers.elevationOffset can push
+  //     tiles above floatingIslandThreshold locally, producing floating
+  //     fragments tied to the event rather than global noise peaks.
 
   // 4. If regions overlap, the first-assigned biome wins (deterministic).
 }
@@ -317,8 +328,6 @@ These items remain deferred after Phase G:
 | Item | Reason | Future phase |
 |------|--------|-------------|
 | Ecotone blending (smooth biome transitions) | Requires smoothstep at boundaries, nontrivial to implement without breaking deterministic classification | Post-G enhancement |
-| Cross-chunk rivers for infinite maps | Requires global river path storage | Chunk-infra Phase 5 |
-| Temperature latitude for infinite maps | Current formula needs map radius | Chunk-infra Phase 5 |
 | Player terraforming | Requires modification overlay on deterministic base | TBD (not in current roadmap) |
 | River tributaries and meandering | Complex; current simple trace is adequate for v1 | Post-G enhancement |
 | Endorheic lake formation at river termini | Nice-to-have realism feature | Post-G enhancement |

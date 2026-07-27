@@ -29,12 +29,12 @@
 - [ ] Add noise config: `NOISE_CONTINENT`, `NOISE_PHASE_A_ELEVATION`, `NOISE_MOISTURE`, `NOISE_TEMP_VARIATION`, `NOISE_REGION`, `NOISE_EPICENTER`
 - [ ] Add seed offsets including `SEED_EPICENTER`
 - [ ] Implement `sampleBaseFields` (single-field elevation, temperature from latitude+lapse, two region bias fields)
-- [ ] Implement `selectBiome()` — iterates `BIOME_PRIORITY_ORDER`, checks `climateRange`, skips supernatural biomes
-- [ ] Implement `applySupernaturalOverrides()` — epicenter noise places supernatural biomes (Phase A: simple threshold)
-- [ ] Rewrite `classifyTerrain` to use elevation + moisture + temperature + tree line + biome `terrainRules`
+- [ ] Implement `selectBiome()` — iterates `BIOME_PRIORITY_ORDER` (natural biomes only), checks `climateRange` — no supernatural entries to skip
+- [ ] Implement `applySupernaturalOverrides()` — epicenter noise places supernatural biomes from `SUPERNATURAL_BIOMES` (Phase A: simple threshold)
+- [ ] Rewrite `classifyTerrain` to use elevation + moisture + temperature + tree line + snow line + frozen water + biome `terrainRules`
 - [ ] Remove `BIOME_DISTRIBUTION` and `biomeForRoll`
-- [ ] Add `origin`, `climateRange`, `terrainRules` to biome archetypes; remove `moistureBias`
-- [ ] Add supernatural biome placeholders (Brass Grave) with `origin: 'supernatural'` and `epicenterThreshold`
+- [ ] Add `origin`, `climateRange`, `terrainRules`, `terrainMap` to biome archetypes; remove `moistureBias`
+- [ ] Add supernatural biome placeholders (Brass Grave) with `origin: 'supernatural'`, `epicenterThreshold`, `terrainMap`, and `fieldModifiers`
 - [ ] Restructure `generateChunkTiles`: sample → selectBiome → supernatural override → classify → tag → features → debris
 - [ ] Update `gameFactory.js` to match new API
 - [ ] Store continuous `elevation`, `temperature`, `moisture` on tiles
@@ -135,7 +135,9 @@
 - [ ] Tune composite weights and terrain thresholds against target budgets
 - [ ] Tune feature spawn rates after density modulation
 - [ ] Epicenter region growth: replace thresholded noise with distance-based growth
-- [ ] Tune epicenter frequency and per-biome region sizes
+- [ ] Apply fieldModifiers within epicenter regions (elevationOffset, moistureMultiplier, temperatureOffset)
+- [ ] Apply terrainMap after classifyTerrain to produce biome-specific terrain types
+- [ ] Tune epicenter frequency and per-biome region sizes + floating island production via elevationOffset
 - [ ] Add beach terrain type
 - [ ] Add tundra/cold-steppe biomes (fill cold+dry climate gap)
 - [ ] Biome topological smoothing (optional)

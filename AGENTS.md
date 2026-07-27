@@ -4,7 +4,7 @@
 
 ## Project
 
-CotSI is a browser-based, single-player hex-crawl strategy game, early in development. Seven faction champions move, fight, trade, and dig for relics on a procedurally generated hex map. Combat uses a 7-node Paley tournament (each power beats 3, loses to 3).
+CotSI is a browser-based hex-crawl strategy game, early in development. Seven faction champions move, fight, trade, and dig for relics on a procedurally generated hex map. Combat uses a 7-node Paley tournament (each power beats 3, loses to 3).
 
 **Stack:** Vanilla JS (ES modules) + plain CSS. No framework, no bundler, no build step. Three.js for 3D rendering (`src/vendor/`). Served as static files from any HTTP server (ES modules require an origin — opening `index.html` from disk fails).
 
@@ -14,7 +14,7 @@ CotSI is a browser-based, single-player hex-crawl strategy game, early in develo
 
 **Performance:** Always try to be mindful of performance impacts and consider what performance optimizations can be incorporated. `src/dev/performance/captureLogger.js` is used during in-game testing to gather detailed frame time data per system.
 
-**Early Development:** Many features aren't fully implemented (eg. trading) and lots of systems are still using limited placeholder values (eg. map sizes will eventually be much larger with more diverse biomes and features to emphasize exploration).
+**Early Development:** Many features aren't fully implemented (eg. trading) and lots of systems are still using limited placeholder values (eg. there will be larger maps with more biomes and features to emphasize exploration).
 
 **Reference:** Start with `dev/systemArchitecture.md` for the complete file tree, layer architecture, and decision guide.
 
