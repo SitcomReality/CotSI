@@ -1,9 +1,44 @@
 /**
  * colorMaps.js — Color mapping functions for noise overlay views.
  *
+ * Single source of truth for elevation and moisture color stops.
+ * The exported arrays drive both the canvas rendering and the legend.
+ * If you change a color here, the legend updates automatically.
+ *
  * Maps elevation and moisture values (0–1) to display colors
  * for the analysis page's overlay rendering modes.
  */
+
+// ─── Elevation color stops (ascending by max) ──────────────────────────────
+
+/** @type {{ max: number, color: string, label: string }[]} */
+export const ELEVATION_COLOR_STOPS = [
+  { max: 0.04,   color: '#0a1a3a', label: 'Deep ocean' },
+  { max: 0.07,   color: '#1a4a8a', label: 'Shallow water' },
+  { max: 0.12,   color: '#3a8a8a', label: 'Shore / beach' },
+  { max: 0.25,   color: '#4a9a4a', label: 'Lowland' },
+  { max: 0.45,   color: '#7aaa4a', label: 'Midland' },
+  { max: 0.65,   color: '#fae06f', label: 'Highland' },
+  { max: 0.80,   color: '#ec9748', label: 'Foothill' },
+  { max: 0.905,  color: '#db532e', label: 'Sub-mountain' },
+  { max: 0.95,   color: '#c4301c', label: 'Mountain' },
+  { max: 1.0,    color: '#570000', label: 'Peak' },
+];
+
+// ─── Moisture color stops (ascending by max) ───────────────────────────────
+
+/** @type {{ max: number, color: string, label: string }[]} */
+export const MOISTURE_COLOR_STOPS = [
+  { max: 0.10,   color: '#683333', label: 'Very dry' },
+  { max: 0.20,   color: '#b14c1d', label: 'Arid' },
+  { max: 0.35,   color: '#d38900', label: 'Dry' },
+  { max: 0.50,   color: '#fbff01', label: 'Moderate' },
+  { max: 0.65,   color: '#25d41f', label: 'Moist' },
+  { max: 0.80,   color: '#20c8d4', label: 'Wet' },
+  { max: 1.0,    color: '#004a8f', label: 'Saturated' },
+];
+
+// ─── Lookup helpers ────────────────────────────────────────────────────────
 
 /**
  * Map a raw elevation value (0–1) to a terrain-height color.
@@ -11,16 +46,11 @@
  * see where water, land, and mountains form.
  */
 export function elevationColor(elev) {
-  if (elev < 0.04) return '#0a1a3a';       // deep ocean — very dark navy
-  if (elev < 0.07) return '#1a4a8a';       // shallow water — blue
-  if (elev < 0.12) return '#3a8a8a';       // shore / beach — teal transition
-  if (elev < 0.25) return '#4a9a4a';       // lowland — green
-  if (elev < 0.45) return '#7aaa4a';       // midland — yellow-green
-  if (elev < 0.65) return '#fae06f';       // highland — yellow
-  if (elev < 0.80) return '#ec9748';       // foothill — orange
-  if (elev < 0.905) return '#db532e';      // sub-mountain — red-orange
-  if (elev < 0.95) return '#c4301c';       // mountain — deep red
-  return '#570000';                         // peak — bright warm red
+  for (const stop of ELEVATION_COLOR_STOPS) {
+    if (elev < stop.max) return stop.color;
+  }
+  // Safety net (should not be reached with normal 0–1 input)
+  return ELEVATION_COLOR_STOPS[ELEVATION_COLOR_STOPS.length - 1].color;
 }
 
 /**
@@ -28,11 +58,9 @@ export function elevationColor(elev) {
  * Shows the wetness gradient across the map.
  */
 export function moistureColor(moist) {
-  if (moist < 0.10) return '#c8b050';       // very dry
-  if (moist < 0.20) return '#b8a848';       // arid
-  if (moist < 0.35) return '#8aaa4a';       // dry
-  if (moist < 0.50) return '#6a9a3a';       // moderate
-  if (moist < 0.65) return '#4a8a2a';       // moist
-  if (moist < 0.80) return '#3a7a2a';       // wet
-  return '#2a6a4a';                          // saturated
+  for (const stop of MOISTURE_COLOR_STOPS) {
+    if (moist < stop.max) return stop.color;
+  }
+  // Safety net (should not be reached with normal 0–1 input)
+  return MOISTURE_COLOR_STOPS[MOISTURE_COLOR_STOPS.length - 1].color;
 }

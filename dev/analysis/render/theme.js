@@ -1,8 +1,14 @@
 /**
  * theme.js — Rendering constants for the analysis page.
  *
- * Single source of truth for all colors, sizes, and stroke widths
- * used by the map renderer. Edit here to tweak the visual palette
+ * This file holds visual constants for **entity markers, feature markers,
+ * debris markers, biome overlay colors, and viewport culling margin**.
+ *
+ * It is NOT the source for elevation or moisture color maps — those live
+ * in `colorMaps.js` (alongside the legend stops). Edit there to change
+ * the overlay gradient palette.
+ *
+ * Edit here to tweak marker sizes, entity colors, and biome region tints
  * without digging through rendering code.
  */
 

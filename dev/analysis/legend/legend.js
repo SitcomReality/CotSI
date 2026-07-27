@@ -3,44 +3,22 @@
  *
  * Renders elevation-gradation, moisture-gradation, or biome-palette
  * legend into the sidebar legend element.
+ *
+ * Elevation and moisture color stops are imported from colorMaps.js —
+ * the single source of truth. If you update a color there, the legend
+ * changes with it automatically.
  */
 import { S } from '../state.js';
 import { els } from '../domRefs.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
 import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
+import { ELEVATION_COLOR_STOPS, MOISTURE_COLOR_STOPS } from '../render/colorMaps.js';
 
-// ─── Elevation legend stops ───────────────────────────────────────────────────
-
-export const ELEVATION_STOPS = [
-  { max: '0.04', color: '#0a1a3a', label: 'Deep ocean' },
-  { max: '0.07', color: '#1a4a8a', label: 'Shallow water' },
-  { max: '0.12', color: '#3a8a8a', label: 'Shore / beach' },
-  { max: '0.25', color: '#4a9a4a', label: 'Lowland' },
-  { max: '0.45', color: '#7aaa4a', label: 'Midland' },
-  { max: '0.65', color: '#b8a030', label: 'Highland' },
-  { max: '0.80', color: '#d48030', label: 'Foothill' },
-  { max: '0.905', color: '#c05030', label: 'Sub-mountain' },
-  { max: '0.95', color: '#a03030', label: 'Mountain' },
-  { max: '1.0', color: '#e06040', label: 'Peak' },
-];
-
-// ─── Moisture legend stops ────────────────────────────────────────────────────
-
-export const MOISTURE_STOPS = [
-  { max: '0.10', color: '#c8b050', label: 'Very dry' },
-  { max: '0.20', color: '#b8a848', label: 'Arid' },
-  { max: '0.35', color: '#8aaa4a', label: 'Dry' },
-  { max: '0.50', color: '#6a9a3a', label: 'Moderate' },
-  { max: '0.65', color: '#4a8a2a', label: 'Moist' },
-  { max: '0.80', color: '#3a7a2a', label: 'Wet' },
-  { max: '1.0', color: '#2a6a4a', label: 'Saturated' },
-];
-
-// ─── Terrain display order ────────────────────────────────────────────────────
+// ─── Terrain display order ────────────────────────────────────────────────
 
 export const TERRAIN_ORDER = ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'mountain', 'peak', 'floatingIsland', 'water'];
 
-// ─── Update legend ────────────────────────────────────────────────────────────
+// ─── Update legend ────────────────────────────────────────────────────────
 
 /**
  * Update the legend DOM element for the given view mode.
@@ -56,36 +34,10 @@ export function updateLegend(mode) {
   }
 
   if (mode === 'elevation') {
-    const stops = ELEVATION_STOPS;
-    const gradientColors = stops.map(s => s.color).join(', ');
-    els.legend.innerHTML = `
-      <div class="legend-gradient">
-        <div class="legend-gradient-bar" style="background: linear-gradient(to top, ${gradientColors});"></div>
-        <div class="legend-gradient-stops">
-          ${stops.slice().reverse().map(s => `
-            <div class="legend-gradient-stop">
-              <span class="stop-swatch" style="background:${s.color}"></span>
-              <span class="stop-label"><= ${s.max} — ${s.label}</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>`;
+    els.legend.innerHTML = buildGradientLegend(ELEVATION_COLOR_STOPS);
 
   } else if (mode === 'moisture') {
-    const stops = MOISTURE_STOPS;
-    const gradientColors = stops.map(s => s.color).join(', ');
-    els.legend.innerHTML = `
-      <div class="legend-gradient">
-        <div class="legend-gradient-bar" style="background: linear-gradient(to top, ${gradientColors});"></div>
-        <div class="legend-gradient-stops">
-          ${stops.slice().reverse().map(s => `
-            <div class="legend-gradient-stop">
-              <span class="stop-swatch" style="background:${s.color}"></span>
-              <span class="stop-label"><= ${s.max} — ${s.label}</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>`;
+    els.legend.innerHTML = buildGradientLegend(MOISTURE_COLOR_STOPS);
 
   } else {
     // Terrain / biome mode — show palette swatches
@@ -144,4 +96,28 @@ export function updateLegend(mode) {
         </div>`;
     }
   }
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+/**
+ * Build HTML for a continuous gradient legend with labeled stops.
+ *
+ * @param {{ max: number, color: string, label: string }[]} stops
+ * @returns {string}
+ */
+function buildGradientLegend(stops) {
+  const gradientColors = stops.map(s => s.color).join(', ');
+  return `
+    <div class="legend-gradient">
+      <div class="legend-gradient-bar" style="background: linear-gradient(to top, ${gradientColors});"></div>
+      <div class="legend-gradient-stops">
+        ${stops.slice().reverse().map(s => `
+          <div class="legend-gradient-stop">
+            <span class="stop-swatch" style="background:${s.color}"></span>
+            <span class="stop-label"><= ${s.max} — ${s.label}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
 }
