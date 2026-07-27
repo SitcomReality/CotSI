@@ -106,17 +106,25 @@ export const EPICENTER_GRID = {
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_TERRAIN_RULES = {
-  waterMaxElevation:        0.12,  // p12 target — confirm from calibration_v1.json
+  // Elevation thresholds — calibrated from FBM distribution (calibration_v1.json)
+  waterMaxElevation:        0.32,  // p12
+  mountainThreshold:        0.68,  // p90
+  peakThreshold:            0.74,  // p97
+  floatingIslandThreshold:  0.82,  // p99.5
+  marshMaxElevation:        0.42,  // p35
+  hillElevationMin:         0.52,  // p55 (Phase B — not wired yet)
+
+  // Moisture thresholds — calibrated from moisture distribution
+  forestMinMoisture:        0.58,  // p72
+  denseForestMinMoisture:   0.64,  // p85
+  desertMaxMoisture:        0.34,  // p20
+  marshMinMoisture:         0.52,  // p58
+
+  // Temperature
+  freezeTempMax:            0.40,  // p15
+
+  // Not calibrated (keep hand-tuned)
   waterMinMoisture:         0.50,
-  floatingIslandThreshold:  0.985, // p99.5 target — confirm from calibration_v1.json
-  peakThreshold:            0.96,  // p97 target — confirm from calibration_v1.json
-  mountainThreshold:        0.905, // p90 target — confirm from calibration_v1.json
   treeLineMax:              0.85,
   snowLineMax:              0.15,
-  freezeTempMax:            0.10,
-  denseForestMinMoisture:   0.85,
-  forestMinMoisture:        0.72,
-  desertMaxMoisture:        0.20,
-  marshMinMoisture:         0.58,
-  marshMaxElevation:        0.35,
 };

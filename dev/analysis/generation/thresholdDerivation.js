@@ -272,20 +272,22 @@ export function calibratePipeline({ seeds, radii, noiseConfig }) {
 /**
  * Create a JSON-serializable calibration export object.
  *
- * The returned object can be JSON.stringify'd and saved as calibration_v1.json.
+ * By default, quantile LUTs are excluded to keep the file compact (~50 lines
+ * of thresholds + meta). Pass { includeLUTs: true } for the full dump.
  *
  * @param {object} calibrationResult - Output from calibratePipeline()
+ * @param {object} [opts]
+ * @param {boolean} [opts.includeLUTs=false] - Include the 4×256-entry LUT arrays
  * @returns {object} JSON-safe calibration document
  */
-export function exportCalibrationV1(calibrationResult) {
+export function exportCalibrationV1(calibrationResult, { includeLUTs = false } = {}) {
   const { quantileLUTs, thresholds, slopeNormalization, meta } = calibrationResult;
 
-  return {
+  const doc = {
     $schema: 'dev/mapgen_update/calibration_v1.schema.json',
     title: 'Phase 0 Calibration — Terrain Generation Redesign',
-    description: 'Quantile LUTs and percentile thresholds derived from pooled histogram data. Thresholds remain valid through Phases B and F provided the LUTs are regenerated after each distribution change.',
+    description: 'Percentile thresholds derived from pooled histogram data. Thresholds remain valid through Phases B and F provided the LUTs are regenerated after each distribution change.',
 
-    quantileLUTs,
     thresholds,
     slopeNormalization: {
       value: slopeNormalization,
@@ -299,6 +301,13 @@ export function exportCalibrationV1(calibrationResult) {
       includedThresholds: Object.keys(thresholds),
     },
   };
+
+  if (includeLUTs) {
+    doc.quantileLUTs = quantileLUTs;
+    doc.description += ' Includes quantile LUTs.';
+  }
+
+  return doc;
 }
 
 // ---------------------------------------------------------------------------

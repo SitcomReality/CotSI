@@ -60,6 +60,7 @@ export function cacheDom() {
   els.btnRunTests = $('btn-run-tests');
   els.btnDeriveThresholds = $('btn-derive-thresholds');
   els.btnDownloadCalib = $('btn-download-calib');
+  els.btnDownloadLuts  = $('btn-download-luts');
 
   // Multi-seed output checkboxes
   els.multiTerrain   = $('multi-terrain');

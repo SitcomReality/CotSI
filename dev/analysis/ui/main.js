@@ -231,6 +231,7 @@ async function deriveThresholds() {
   els.loading.textContent = 'Deriving thresholds...';
   els.btnDeriveThresholds.disabled = true;
   els.btnDownloadCalib.disabled = true;
+  els.btnDownloadLuts.disabled = true;
 
   try {
     // Yield to let the loading indicator render
@@ -252,6 +253,7 @@ async function deriveThresholds() {
     // Display the report
     els.statsPanel.textContent = formatCalibrationReport(result);
     els.btnDownloadCalib.disabled = false;
+    els.btnDownloadLuts.disabled = false;
   } catch (err) {
     els.statsPanel.textContent = `Threshold derivation error: ${err.message}\n${err.stack || ''}`;
   } finally {
@@ -262,12 +264,26 @@ async function deriveThresholds() {
 
 function downloadCalibrationV1() {
   if (!_lastCalibration) return;
-  const calibDoc = exportCalibrationV1(_lastCalibration);
+  // Compact: thresholds + meta only (no LUT arrays)
+  const calibDoc = exportCalibrationV1(_lastCalibration, { includeLUTs: false });
   const blob = new Blob([JSON.stringify(calibDoc, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = 'calibration_v1.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadCalibrationLUTs() {
+  if (!_lastCalibration) return;
+  // Full: includes 4×256-entry quantile LUT arrays
+  const calibDoc = exportCalibrationV1(_lastCalibration, { includeLUTs: true });
+  const blob = new Blob([JSON.stringify(calibDoc, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'calibration_v1_luts.json';
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -365,6 +381,9 @@ function bindControls() {
   }
   if (els.btnDownloadCalib) {
     els.btnDownloadCalib.addEventListener('click', downloadCalibrationV1);
+  }
+  if (els.btnDownloadLuts) {
+    els.btnDownloadLuts.addEventListener('click', downloadCalibrationLUTs);
   }
 }
 
