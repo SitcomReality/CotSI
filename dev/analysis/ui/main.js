@@ -6,7 +6,7 @@
  */
 import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
-import { generateSingleSeed, enrichWithNoise } from '../generation/generate.js';
+import { generateSingleSeed } from '../generation/generate.js';
 import { renderAndFit } from '../render/orchestrate.js';
 import { updateLegend } from '../legend/legend.js';
 import { updateStats, formatMultiStats } from '../stats/statsDisplay.js';
@@ -69,7 +69,6 @@ function loadAndDisplay(seedText) {
       const mapSettings = getMapSettings();
       const genOptions = getGenerationOptions();
       const result = generateSingleSeed(seedText, radius, biomeDef, mapSettings, genOptions);
-      enrichWithNoise(result.tiles, seedText);
       S.lastResult = result;
 
       renderAndFit();
@@ -152,7 +151,6 @@ async function doMultiSeedGenerate() {
     // ── 3. Display the last seed's map ───────────────────────────
     const lastSeedText = `${baseSeed}-${count - 1}`;
     const displayResult = generateSingleSeed(lastSeedText, radius, biomeDef, mapSettings, genOptions);
-    enrichWithNoise(displayResult.tiles, lastSeedText);
     S.lastResult = displayResult;
     renderAndFit();
     updateStats();

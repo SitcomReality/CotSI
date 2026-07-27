@@ -17,12 +17,6 @@ export const MOB_WANDER_CHANCE = 0.45;
 /** Maximum number of log entries retained in state. */
 export const MAX_LOG_ENTRIES = 100;
 
-/** Noise channel index for elevation sampling. */
-export const NOISE_CHANNEL_ELEVATION = 1;
-/** Noise channel index for moisture sampling. */
-export const NOISE_CHANNEL_MOISTURE = 2;
-/** Noise channel index for biome region assignment (multi-biome). */
-export const NOISE_CHANNEL_BIOME = 3;
 /** Noise channel index for feature sprinkling. */
 export const NOISE_CHANNEL_FEATURES = 4;
 /** Noise channel index for debris spawn roll. */
@@ -42,12 +36,6 @@ export const WATER_BFS_MAX_DEPTH = 3;
 /** Ocean edge-detection epsilon buffer. */
 export const OCEAN_EDGE_BUFFER = 0.5;
 
-/** Elevation threshold for floating-island terrain (above mountain). */
-export const FLOATING_ISLAND_THRESHOLD = 0.985;
-/** Elevation threshold for peak terrain (snow-capped mountain variant). */
-export const PEAK_THRESHOLD = 0.96;
-/** Minimum noise value for a tile to be classified as denseForest. */
-export const DENSE_FOREST_MIN_MOISTURE = 0.85;
 /** Base knot amount before variation. */
 export const KNOT_BASE_AMOUNT = 2;
 /** Scale factor for knot-amount variation formula. */
@@ -56,17 +44,11 @@ export const KNOT_AMOUNT_VARIATION_SCALE = 100;
 export const KNOT_AMOUNT_VARIATION_MOD = 3;
 
 // ---------------------------------------------------------------------------
-// FBM noise configuration
+// Noise configuration
 // ---------------------------------------------------------------------------
-
-/** Elevation field: large-scale features with moderate detail. */
-export const NOISE_ELEVATION = { octaves: 5, lacunarity: 2.0, gain: 0.5, frequency: 0.004 };
 
 /** Moisture field: medium-scale. Frequency 0.006 confirmed by Phase 0 calibration. */
 export const NOISE_MOISTURE = { octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006 };
-
-/** Biome regions: very large-scale, only 2 octaves for soft transitions. */
-export const NOISE_BIOME = { octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.002 };
 
 // ---------------------------------------------------------------------------
 // Phase A noise configuration
@@ -75,7 +57,7 @@ export const NOISE_BIOME = { octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 
 /**
  * Phase A elevation: single additive FBM field.
  * Frequencies confirmed by Phase 0 calibration (see dev/analysis/generation/noiseConfig.js).
- * Replaces old NOISE_ELEVATION — used by the new sampleBaseFields pipeline.
+ * Used by the sampleBaseFields pipeline in terrainGenerator.js.
  */
 export const NOISE_PHASE_A_ELEVATION = {
   octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020,
@@ -86,13 +68,13 @@ export const NOISE_TEMP_VARIATION = {
   octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08,
 };
 
-/** Region bias: large-scale, 3 octaves for soft regional transitions (replaces NOISE_BIOME in new pipeline). */
+/** Region bias: large-scale, 3 octaves for soft regional transitions. */
 export const NOISE_REGION = {
   octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.003,
 };
 
 // ---------------------------------------------------------------------------
-// Seed offsets (Phase A pipeline) — replaces NOISE_CHANNEL_* indices
+// Seed offsets (Phase A pipeline)
 // ---------------------------------------------------------------------------
 
 export const SEED_MOISTURE    = 0x8C6E4F1A;

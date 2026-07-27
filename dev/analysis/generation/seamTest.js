@@ -2,23 +2,37 @@
  * seamTest.js — Chunk-seam invariant verification.
  *
  * Verifies that terrain generation is a pure function of (seed, q, r):
- * every tile's raw elevation and moisture match what a direct FBM sample
- * would produce at the same global coordinate. This catches regressions
- * where per-chunk state or global-pass residue leaks into base field values.
+ * every tile's elevationField, moisture, and temperature match what
+ * sampleBaseFields() would produce at the same global coordinate.
+ * This catches regressions where per-chunk state or global-pass residue
+ * leaks into the continuous field values.
  *
- * The test generates a full map via generateTiles (which assembles chunks),
- * then recomputes rawElev and rawMoist for each tile via direct FBM calls
- * and asserts they match the stored values.
+ * The test generates a full map via generateSingleSeed (which assembles
+ * chunks), then recomputes fields for each tile via direct sampleBaseFields
+ * calls and asserts they match the stored values.
  *
  * Pure: no DOM, no state, no side effects beyond console.assert.
  */
 import { generateSingleSeed } from './generate.js';
-import { hexFbm2D } from '../../../src/engine/rules/noise.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
+import { sampleBaseFields } from '../../../src/game/rules/terrainGenerator.js';
 import {
-  NOISE_ELEVATION,
-  NOISE_MOISTURE,
+  NOISE_PHASE_A_ELEVATION, NOISE_MOISTURE, NOISE_TEMP_VARIATION, NOISE_REGION,
+  SEED_ELEVATION, SEED_MOISTURE, SEED_TEMP, SEED_REGION_M, SEED_REGION_T,
 } from '../../../src/params/game/worldParams.js';
+
+/** Noise config matching the module-level NOISE_CONFIG in terrainGenerator.js. */
+const TEST_NOISE_CONFIG = {
+  PHASE_A_ELEVATION: NOISE_PHASE_A_ELEVATION,
+  MOISTURE: NOISE_MOISTURE,
+  TEMP_VARIATION: NOISE_TEMP_VARIATION,
+  REGION: NOISE_REGION,
+  SEED_ELEVATION,
+  SEED_MOISTURE,
+  SEED_TEMP,
+  SEED_REGION_M,
+  SEED_REGION_T,
+};
 
 /** Test seed and radius. */
 const TEST_SEED = 'glut-17';
@@ -27,8 +41,9 @@ const TEST_RADIUS = 21;
 /**
  * Run the chunk-seam invariant test.
  *
- * Generates a map and verifies that every tile's raw elevation and moisture
- * match what a direct FBM call would produce for the same (seed, q, r).
+ * Generates a map and verifies that every tile's elevationField, moisture,
+ * and temperature match what a direct sampleBaseFields call would produce
+ * for the same (seed, q, r).
  *
  * @returns {{ passed: boolean, failures: object[] }}
  *   Each failure: { q, r, field, stored, recomputed }
@@ -43,7 +58,7 @@ export function runSeamTest() {
       mountainousness: 1.0,
     });
     const tiles = result.tiles;
-    const seed = stringSeed(TEST_SEED);
+    const baseSeed = stringSeed(TEST_SEED);
 
     const tileEntries = Object.values(tiles);
     if (tileEntries.length === 0) {
@@ -54,25 +69,28 @@ export function runSeamTest() {
     }
 
     for (const tile of tileEntries) {
-      const { q, r, rawElev, rawMoist } = tile;
+      const { q, r, elevationField, moisture, temperature } = tile;
 
-      // Recompute raw elevation directly
-      const recomputedElev = hexFbm2D(q, r, seed, NOISE_ELEVATION);
-
-      // Recompute raw moisture directly
-      const recomputedMoist = hexFbm2D(q, r, seed + 999, NOISE_MOISTURE);
+      // Recompute fields directly via sampleBaseFields
+      const fields = sampleBaseFields(baseSeed, q, r, TEST_NOISE_CONFIG, TEST_RADIUS);
 
       // Compare (allow tiny floating-point drift)
-      if (Math.abs(rawElev - recomputedElev) > 1e-12) {
+      if (Math.abs(elevationField - fields.elevation) > 1e-12) {
         failures.push({
-          q, r, field: 'rawElev',
-          stored: rawElev, recomputed: recomputedElev,
+          q, r, field: 'elevationField',
+          stored: elevationField, recomputed: fields.elevation,
         });
       }
-      if (Math.abs(rawMoist - recomputedMoist) > 1e-12) {
+      if (Math.abs(moisture - fields.baseMoisture) > 1e-12) {
         failures.push({
-          q, r, field: 'rawMoist',
-          stored: rawMoist, recomputed: recomputedMoist,
+          q, r, field: 'moisture',
+          stored: moisture, recomputed: fields.baseMoisture,
+        });
+      }
+      if (Math.abs(temperature - fields.temperature) > 1e-12) {
+        failures.push({
+          q, r, field: 'temperature',
+          stored: temperature, recomputed: fields.temperature,
         });
       }
 
@@ -103,11 +121,11 @@ export function formatSeamReport({ passed, failures }) {
   lines.push('=== Chunk-Seam Invariant Test ===');
   lines.push(`Status: ${passed ? 'PASSED' : 'FAILED'}`);
   lines.push(`Seed: ${TEST_SEED}  |  Radius: ${TEST_RADIUS}`);
-  lines.push(`Invariant: rawElev & rawMoist are pure functions of (seed, q, r)`);
+  lines.push('Invariant: elevationField, moisture & temperature are pure functions of (seed, q, r)');
   lines.push('');
 
   if (passed) {
-    lines.push('All tiles verified — direct FBM values match stored values.');
+    lines.push('All tiles verified — sampleBaseFields values match stored fields.');
   } else {
     lines.push(`${failures.length} mismatch(es) found (showing first 10):`);
     for (const f of failures) {

@@ -150,42 +150,6 @@ defineArchetype('biome_lush', {
   supportsFloatingIslands: false,
 });
 
-defineArchetype('biome_brass_grave', {
-  type: 'biome',
-  id: 'biome_brass_grave',
-  name: 'Brass Grave',
-  origin: 'supernatural',
-
-  epicenter: {
-    radius:       12,
-    radiusNoise:  0.30,
-    noiseScale:   0.04,
-  },
-
-  fieldModifiers: {
-    elevationOffset:    -0.05,
-    moistureMultiplier:  0.50,
-    temperatureOffset:  -0.15,
-  },
-
-  terrainRules: {
-    mountainThreshold:  0.85,
-    forestMinMoisture:  0.92,
-    desertMaxMoisture:  0.45,
-    waterMaxElevation:  0.06,
-  },
-
-  features: [
-    { kind: 'knot', threshold: 0.08, compare: 'lt' },
-  ],
-
-  palette: {
-    // Dark metallic palette deferred to Phase G — falls back to biome_default
-  },
-  terrainTags: ['plains', 'desert', 'mountain', 'peak', 'water'],
-  weatherAffinity: ['arid'],
-});
-
 defineArchetype('biome_arid', {
   type: 'biome',
   id: 'biome_arid',
@@ -233,42 +197,6 @@ defineArchetype('biome_arid', {
     plains: 0.05,
   },
   supportsFloatingIslands: false,
-});
-
-defineArchetype('biome_brass_grave', {
-  type: 'biome',
-  id: 'biome_brass_grave',
-  name: 'Brass Grave',
-  origin: 'supernatural',
-
-  epicenter: {
-    radius:       12,
-    radiusNoise:  0.30,
-    noiseScale:   0.04,
-  },
-
-  fieldModifiers: {
-    elevationOffset:    -0.05,
-    moistureMultiplier:  0.50,
-    temperatureOffset:  -0.15,
-  },
-
-  terrainRules: {
-    mountainThreshold:  0.85,
-    forestMinMoisture:  0.92,
-    desertMaxMoisture:  0.45,
-    waterMaxElevation:  0.06,
-  },
-
-  features: [
-    { kind: 'knot', threshold: 0.08, compare: 'lt' },
-  ],
-
-  palette: {
-    // Dark metallic palette deferred to Phase G — falls back to biome_default
-  },
-  terrainTags: ['plains', 'desert', 'mountain', 'peak', 'water'],
-  weatherAffinity: ['arid'],
 });
 
 

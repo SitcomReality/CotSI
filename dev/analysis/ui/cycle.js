@@ -6,7 +6,7 @@
  */
 import { S } from '../state.js';
 import { els } from '../domRefs.js';
-import { generateSingleSeed, enrichWithNoise } from '../generation/generate.js';
+import { generateSingleSeed } from '../generation/generate.js';
 import { renderAndFit } from '../render/orchestrate.js';
 import { updateStats } from '../stats/statsDisplay.js';
 import { updateLegend } from '../legend/legend.js';
@@ -29,7 +29,6 @@ function doGenerate(seedText) {
     mountainousness: parseFloat(els.mtSlider.value),
   };
   const result = generateSingleSeed(seedText, radius, biomeDef, mapSettings, { multiBiome });
-  enrichWithNoise(result.tiles, seedText);
   S.lastResult = result;
 }
 
