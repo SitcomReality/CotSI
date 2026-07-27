@@ -174,7 +174,50 @@ export function selectBiome(elevation, moisture, temperature, regionBiasM, regio
 }
 
 // ---------------------------------------------------------------------------
-// Threshold helpers
+// Phase A: classifyTerrain (climate-aware, uses biomeDef.terrainRules)
+// ---------------------------------------------------------------------------
+
+/**
+ * Determine terrain type from elevation, moisture, temperature, and biome rules.
+ *
+ * Temperature gates: cold water → ice, cold peaks → snow-capped peak.
+ * Tree line prevents forests above treeLineMax.
+ * Uses DEFAULT_TERRAIN_RULES merged with biome-specific terrainRules.
+ *
+ * @param {number} elevation   - [0, 1] elevation field
+ * @param {number} moisture    - [0, 1] moisture field
+ * @param {number} temperature - [0, 1] temperature field
+ * @param {object} [biomeDef]  - Biome archetype def (read for terrainRules)
+ * @returns {string} terrain type
+ */
+export function classifyTerrain(elevation, moisture, temperature, biomeDef) {
+  const R = { ...DEFAULT_TERRAIN_RULES, ...biomeDef?.terrainRules };
+
+  // Water: elevation-driven; frozen at low temperature
+  if (elevation < R.waterMaxElevation) {
+    if (temperature < R.freezeTempMax) return 'ice';
+    if (moisture > R.waterMinMoisture) return 'water';
+  }
+
+  // Snow-capped peaks: high elevation + cold
+  if (elevation > R.peakThreshold && temperature < R.snowLineMax) return 'peak';
+
+  if (elevation > R.floatingIslandThreshold) return 'floatingIsland';
+  if (elevation > R.peakThreshold)          return 'peak';
+  if (elevation > R.mountainThreshold)      return 'mountain';
+
+  const belowTreeLine = elevation < R.treeLineMax;
+
+  if (belowTreeLine && moisture > R.denseForestMinMoisture) return 'denseForest';
+  if (belowTreeLine && moisture > R.forestMinMoisture)      return 'forest';
+  if (moisture < R.desertMaxMoisture)                       return 'desert';
+  if (moisture > R.marshMinMoisture && elevation < R.marshMaxElevation) return 'marsh';
+
+  return 'plains';
+}
+
+// ---------------------------------------------------------------------------
+// Threshold helpers (legacy — consumed by old generateChunkTiles pipeline)
 // ---------------------------------------------------------------------------
 
 function resolveThresholds(biomeDef, params) {
@@ -221,7 +264,7 @@ function resolveElevation(terrain, T) {
 /**
  * Determine terrain type from elevation, moisture, and biome properties.
  */
-function classifyTerrain(elevation, moisture, T) {
+function _classifyTerrainLegacy(elevation, moisture, T) {
   if (T.supportsFloatingIslands && elevation > T.floatingIslandThreshold) {
     return 'floatingIsland';
   }
@@ -403,7 +446,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     const rawMoist = hexFbm2D(q, r, seed + 999, NOISE_MOISTURE);
     const elevation = rawElev * T.heightMult;
     const moisture = clamp01(rawMoist + T.moistureBias);
-    const terrain = classifyTerrain(elevation, moisture, T);
+    const terrain = _classifyTerrainLegacy(elevation, moisture, T);
 
     const { lq, lr } = localCoord(chunkQ, chunkR, q, r);
     const elev = resolveElevation(terrain, T);
@@ -426,7 +469,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     // Out of chunk — approximate terrain from fallback thresholds + FBM
     const elevation = hexFbm2D(nq, nr, seed, NOISE_ELEVATION) * fallbackT.heightMult;
     const moisture = clamp01(hexFbm2D(nq, nr, seed + 999, NOISE_MOISTURE) + fallbackT.moistureBias);
-    const terrain = classifyTerrain(elevation, moisture, fallbackT);
+    const terrain = _classifyTerrainLegacy(elevation, moisture, fallbackT);
     if (terrain === 'mountain' || terrain === 'peak') {
       return { terrain, q: nq, r: nr };
     }

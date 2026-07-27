@@ -129,3 +129,86 @@ selectBiome(elevation, moisture, temperature, regionBiasM, regionBiasT)
 python3 dev/check_imports.py
 # OK — all imports resolve, all named exports verified (235 files checked)
 ```
+
+---
+
+## A5. `classifyTerrain` Rewrite (Climate-Aware)
+
+**Done.** Replaced the old private `classifyTerrain(elevation, moisture, T)` with a new exported `classifyTerrain(elevation, moisture, temperature, biomeDef)` in `src/game/rules/terrainGenerator.js`.
+
+### Changes
+
+| File | Change |
+|------|--------|
+| `src/game/rules/terrainGenerator.js` | Renamed old `classifyTerrain` → `_classifyTerrainLegacy`; updated its 2 callers in `generateChunkTiles`; added new exported `classifyTerrain` |
+
+### New function details
+
+```js
+classifyTerrain(elevation, moisture, temperature, biomeDef)
+  → terrain type string
+```
+
+- **Signature** takes `temperature` (used by ice/snow gates) and `biomeDef` (read for `terrainRules`), unlike the old function which took a pre-resolved thresholds object `T`.
+- **`DEFAULT_TERRAIN_RULES` + `biomeDef.terrainRules` shallow merge** — every biome inherits defaults and can override selectively.
+- **Temperature gates:** if `elevation < waterMaxElevation` AND `temperature < freezeTempMax` → `'ice'`. If `elevation > peakThreshold` AND `temperature < snowLineMax` → `'peak'` (snow-capped).
+- **Tree line:** `forest` and `denseForest` require `elevation < treeLineMax` (0.85).
+- **Flow order:** water/ice → snow-capped peak → floatingIsland → peak → mountain → forests (tree line gated) → desert → marsh → plains fallthrough.
+- **No floating-island opt-in gate** (unlike old function's `supportsFloatingIslands`). The biome's `terrainRules` can override `floatingIslandThreshold` instead.
+
+### Coexistence with old pipeline
+
+The old `_classifyTerrainLegacy` and the old `resolveThresholds` (`biomeDef?.terrainThresholds`) are still used by `generateChunkTiles`. After A6 renames `terrainThresholds` → `terrainRules` in biome defs, `resolveThresholds` falls through to `DEFAULT_THRESHOLDS` (which is identical to what `biome_default` used). biome_lush and biome_arid temporarily lose their custom threshold overrides — acceptable because the old pipeline is replaced in A7.
+
+### Key decisions
+
+- **Different function name for the old one** (`_classifyTerrainLegacy`) rather than naming the new one differently — keeps the final `classifyTerrain` name on the production function from the start.
+- **No `supportsFloatingIslands` check** — biomes control floating islands via `terrainRules.floatingIslandThreshold` override instead. If a biome doesn't want them, set threshold to 2.0 (so never triggers).
+- **Ice returns before water** — the temperature gate is checked first, so a cold water tile becomes `'ice'`, not `'water'`. This avoids a downstream step having to overwrite `'water'` → `'ice'`.
+
+### Verification
+
+```bash
+python3 dev/check_imports.py
+# OK — all imports resolve, all named exports verified (235 files checked)
+```
+
+---
+
+## A6. Biome Archetype Updates (`origin`, `climateRange`, `terrainRules`)
+
+**Done.** Updated all three natural biomes with the new flat structure required by Phase A. Removed `moistureBias` and the unused `buildDefaultThresholds()` helper.
+
+### Changes
+
+| Biome | Origin | climateRange | terrainRules (flat) | Removed |
+|-------|--------|-------------|---------------------|---------|
+| `biome_default` | `'natural'` | — (no climateRange — catch-all) | `{}` (inherits all from `DEFAULT_TERRAIN_RULES`) | `terrainThresholds`, `moistureBias: 0` |
+| `biome_lush` | `'natural'` | `{ minMoisture: 0.62, minTemperature: 0.25 }` | `forestMinMoisture: 0.55, denseForestMinMoisture: 0.80, desertMaxMoisture: 0.08, marshMinMoisture: 0.50, marshMaxElevation: 0.40, mountainThreshold: 0.920` | `terrainThresholds`, `moistureBias: 0.05` |
+| `biome_arid` | `'natural'` | `{ maxMoisture: 0.22, minTemperature: 0.65 }` | `mountainThreshold: 0.890, waterMaxElevation: 0.04, waterMinMoisture: 0.70, forestMinMoisture: 0.85, desertMaxMoisture: 0.35, marshMinMoisture: 0.75, marshMaxElevation: 0.20` | `terrainThresholds`, `moistureBias: -0.08` |
+
+### File changed
+
+| File | Change |
+|------|--------|
+| `src/game/rules/archetypeData/biomes.js` | Added `origin`, `climateRange`, flat `terrainRules` to all biomes; removed `moistureBias` from all biomes; removed `buildDefaultThresholds()` |
+
+### How it works
+
+- **`origin: 'natural'`** marks these as climate-driven biomes. `'supernatural'` (coming in Phase A8/G) means epicenter-only placement.
+- **`climateRange`** defines the climate cube volume a biome claims. `selectBiome` iterates `BIOME_PRIORITY_ORDER` and returns the first biome whose `climateRange` constraints all match.
+- **`terrainRules`** are flat keys (e.g. `forestMinMoisture: 0.55`) merged into `DEFAULT_TERRAIN_RULES`. The new `classifyTerrain` reads these. Values match the spec §4.6 table.
+- **`moistureBias` removed** — the biome is chosen because the climate already matches, not because the biome modifies the climate.
+
+### Impact on old pipeline
+
+`resolveThresholds()` reads `biomeDef?.terrainThresholds || DEFAULT_THRESHOLDS`. After the rename:
+- `biome_default.terrainRules` → `terrainThresholds` not found → falls back to `DEFAULT_THRESHOLDS` — which matches `buildDefaultThresholds()` exactly. No behavioral change.
+- `biome_lush` / `biome_arid` → lose their custom thresholds until A7. Acceptable — the old pipeline is in transition.
+
+### Verification
+
+```bash
+python3 dev/check_imports.py
+# OK — all imports resolve, all named exports verified (235 files checked)
+```

@@ -4,10 +4,8 @@
  * Each biome defines:
  *   type:                   'biome'
  *   name:                   Display name shown in setup UI
- *   terrainThresholds:      Noise cutoffs for assigning terrain types.
- *                           Each key is a terrain type; values are { minElevation, maxElevation,
- *                           minMoisture, maxMoisture } — a tile must satisfy ALL specified
- *                           conditions to be assigned that terrain.
+ *   terrainRules:           Flat noise thresholds (e.g. forestMinMoisture, mountainThreshold).
+ *                           Merged on top of DEFAULT_TERRAIN_RULES; override selectively.
  *   features:               Ordered list of feature spawn rules (replaces featureFrequencies).
  *                           Each entry: { kind, threshold, compare, terrainExclude? }.
  *                           First matching rule on the noise roll wins.
@@ -20,7 +18,8 @@
  *   weatherAffinity:       Weather types this biome is most associated with
  *   terrainElevation:      (optional) Per-terrain height overrides (Y offset).
  *                          Falls back to TERRAIN_ELEVATION defaults.
- *   moistureBias:          (optional) Additive offset to raw moisture noise [0,1], clamped.
+ *   origin:                'natural' | 'supernatural' — how this biome is placed.
+ *   climateRange:          (natural only) Climate constraints for biome selection.
  *   supportsFloatingIslands: (optional) Whether this biome can contain floating-island terrain.
  */
 
@@ -30,9 +29,12 @@ defineArchetype('biome_default', {
   type: 'biome',
   id: 'biome_default',
   name: 'Default Manuscript',
+  origin: 'natural',
 
-  terrainThresholds: {
-    ...buildDefaultThresholds(),
+  // No climateRange — catch-all (last in priority, always matches)
+
+  terrainRules: {
+    // Inherits all DEFAULT_TERRAIN_RULES; override only if needed
   },
 
   // Features ordered by priority — first match wins.
@@ -58,9 +60,7 @@ defineArchetype('biome_default', {
   terrainTags: ['plains', 'forest', 'desert', 'marsh', 'mountain', 'peak', 'floatingIsland', 'water'],
   weatherAffinity: ['temperate', 'rainy'],
 
-  // Extended biome fields (default to current behaviour)
   terrainElevation: null,
-  moistureBias: 0,
   supportsFloatingIslands: false,
 });
 
@@ -68,14 +68,20 @@ defineArchetype('biome_lush', {
   type: 'biome',
   id: 'biome_lush',
   name: 'Lush Woodland',
+  origin: 'natural',
 
-  terrainThresholds: {
-    mountain: { minElevation: 0.920 },
-    water: { maxElevation: 0.05, minMoisture: 0.4 },
-    forest: { minMoisture: 0.55 },
-    desert: { maxMoisture: 0.08 },
-    marsh: { minMoisture: 0.50, maxElevation: 0.40 },
-    denseForest: { minMoisture: 0.80 },
+  climateRange: {
+    minMoisture: 0.62,
+    minTemperature: 0.25,
+  },
+
+  terrainRules: {
+    forestMinMoisture: 0.55,
+    denseForestMinMoisture: 0.80,
+    desertMaxMoisture: 0.08,
+    marshMinMoisture: 0.50,
+    marshMaxElevation: 0.40,
+    mountainThreshold: 0.920,
   },
 
   // Lush: abundant fruit trees + decorative trees + bushes on low-moisture tiles
@@ -105,7 +111,6 @@ defineArchetype('biome_lush', {
     denseForest: 0.25,
     marsh: -0.08,
   },
-  moistureBias: 0.05,
   supportsFloatingIslands: false,
 });
 
@@ -113,13 +118,21 @@ defineArchetype('biome_arid', {
   type: 'biome',
   id: 'biome_arid',
   name: 'Sere Wastes',
+  origin: 'natural',
 
-  terrainThresholds: {
-    mountain: { minElevation: 0.890 },  // more mountains
-    water: { maxElevation: 0.04, minMoisture: 0.7 },  // very rare water
-    forest: { minMoisture: 0.85 },  // rare forest
-    desert: { maxMoisture: 0.35 },  // very common desert
-    marsh: { minMoisture: 0.75, maxElevation: 0.20 },
+  climateRange: {
+    maxMoisture: 0.22,
+    minTemperature: 0.65,
+  },
+
+  terrainRules: {
+    mountainThreshold: 0.890,
+    waterMaxElevation: 0.04,
+    waterMinMoisture: 0.70,
+    forestMinMoisture: 0.85,
+    desertMaxMoisture: 0.35,
+    marshMinMoisture: 0.75,
+    marshMaxElevation: 0.20,
   },
 
   // Arid: sparse everything — rare fruit trees, very rare decorative trees
@@ -147,21 +160,7 @@ defineArchetype('biome_arid', {
     mountain: 0.75,
     plains: 0.05,
   },
-  moistureBias: -0.08,
   supportsFloatingIslands: false,
 });
 
-/**
- * Build default terrain thresholds matching original global defaults.
- * Extracted here so future new biomes can `...buildDefaultThresholds()`
- * and override selectively.
- */
-function buildDefaultThresholds() {
-  return {
-    mountain: { minElevation: 0.905 },
-    water: { maxElevation: 0.07, minMoisture: 0.5 },
-    forest: { minMoisture: 0.72 },
-    desert: { maxMoisture: 0.20 },
-    marsh: { minMoisture: 0.58, maxElevation: 0.35 },
-  };
-}
+

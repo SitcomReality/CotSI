@@ -34,6 +34,8 @@ Details in `phaseA_progress.md`.
 2. `ice` terrain type added — **Done.**
 3. `sampleBaseFields` migration to `terrainGenerator.js` — **Done.**
 4. `selectBiome()` + `BIOME_PRIORITY_ORDER` — **Done.**
+5. `classifyTerrain` rewrite (climate-aware, temperature/ice gates) — **Done.**
+6. Biome archetype updates (`origin`, `climateRange`, `terrainRules`, remove `moistureBias`) — **Done.**
 
 ## Phase B
 
