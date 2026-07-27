@@ -1,0 +1,35 @@
+BIOMES:
+
+Unfinished Lands: where reality was being rewritten by a god that died in the divine war.
+* Strange mobs - featureless things that were never completed and phantoms made of unrealized ideas.
+* Changes can happen when nobody is looking.
+* Archive combat penalty, Reverie combat bonus 
+* Weather can be randomly different to the global weather, including a unique weather condition (or two) that only occurs in this biome
+
+ 
+Brass Grave: a piece of a divine war machine embedded in the world
+* Conceptually/thematically, this would be a piece of something from a cosmic scale, like a fragment of a war machine that was the size of the whole planet.
+* Much of the terrain in the biome is unique to this biome: brass (and maybe others?)
+* Also unique features, such as whatever greebles a divine construct might have had? Like a wire protruding from the ground (which would be like the size of a faction base, because it's a cosmic scale wire)
+* Unique mob/s: remnants of the war machine's consciousness wander its dead skin
+* Verdant combat penalty on brass terrain
+
+
+Weeping Marsh: a land soaked in the tears of a mourning god
+* The weather here always has rain
+
+
+Painforest: rainforest imbued with the echoes of a dying god's screams
+* Unique flora mobs and some flora that's normally neutral or good can turn into a hostile mob.
+* 
+* Crucible and Verdant combat bonus
+
+
+
+
+
+FEATURES:
+
+* God finger sticking out of the ground?
+* God eyelash
+

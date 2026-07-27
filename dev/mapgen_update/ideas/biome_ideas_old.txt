@@ -8,6 +8,8 @@ A vast desert created where a dead god fell from the heavens.
     Nomads harvest “godglass,” crystallized fragments of divine energy.
 
 Tone: Ancient, immense, unknowable.
+
+
 2. The Ashen Crown
 
 A volcanic mountain range formed around the site where several gods fought.
@@ -18,6 +20,8 @@ A volcanic mountain range formed around the site where several gods fought.
     Dragons, fire spirits, and war refugees compete for the habitable valleys.
 
 Tone: Violent fertility and dangerous abundance.
+
+
 3. The Weeping Wilds
 
 A once-holy forest saturated with the blood or tears of a dead nature deity.
@@ -28,6 +32,8 @@ A once-holy forest saturated with the blood or tears of a dead nature deity.
     The forest heals wounds, but may also “correct” things it considers unnatural.
 
 Tone: Beautiful, mournful, and unsettling.
+
+
 4. The Hollow Heaven
 
 A region where the barrier between the mortal world and the divine realm was torn open.
@@ -38,6 +44,8 @@ A region where the barrier between the mortal world and the divine realm was tor
     Spirits descend like weather patterns.
 
 Tone: Surreal, cosmic, and unstable.
+
+
 5. The Sainted Marsh
 
 A drowned battlefield where countless holy warriors died.
@@ -48,6 +56,8 @@ A drowned battlefield where countless holy warriors died.
     Drinking the water grants visions—but also lets the dead notice you.
 
 Tone: Sacred horror and tragic repetition.
+
+
 6. The Choir Canyons
 
 A vast canyon system carved by the final scream of a slain god.
@@ -58,6 +68,8 @@ A vast canyon system carved by the final scream of a slain god.
     Communities use the canyon’s acoustics to communicate over enormous distances.
 
 Tone: Musical, eerie, and ancient.
+
+
 7. The Blightlands
 
 A former breadbasket poisoned by a god of plague, war, or corruption.
@@ -68,6 +80,8 @@ A former breadbasket poisoned by a god of plague, war, or corruption.
     Some settlements deliberately cultivate the blight because it is the only thing that grows.
 
 Tone: Survival, adaptation, and moral compromise.
+
+
 8. The Shattered Sea
 
 An ocean broken apart when a divine weapon struck the world.
@@ -78,6 +92,8 @@ An ocean broken apart when a divine weapon struck the world.
     Ancient ships remain suspended in midair where the sea used to be.
 
 Tone: Exploration, disaster, and lost civilizations.
+
+
 9. The Brass Graveyard
 
 A plain covered in the bodies of divine constructs and war machines.
@@ -88,6 +104,8 @@ A plain covered in the bodies of divine constructs and war machines.
     Some machines still follow orders issued thousands of years ago.
 
 Tone: Mythic ruins with an industrial edge.
+
+
 10. The Bleached Vale
 
 A valley where a god of light died.
@@ -98,6 +116,8 @@ A valley where a god of light died.
     At noon, anything exposed to the sunlight may become transparent or lose its reflection.
 
 Tone: Quiet, sterile, and uncanny.
+
+
 11. The Thorned Paradise
 
 A surviving fragment of a divine garden, now grown wild.
@@ -108,6 +128,8 @@ A surviving fragment of a divine garden, now grown wild.
     The garden’s guardian creatures believe the war never ended.
 
 Tone: Temptation and corrupted perfection.
+
+
 12. The Pilgrim Roads
 
 Not one biome, but a network of roads created by generations of refugees and survivors.
@@ -118,6 +140,8 @@ Not one biome, but a network of roads created by generations of refugees and sur
     Certain roads only appear during eclipses or holy days.
 
 Tone: Civilization struggling to reconnect.
+
+
 13. The Dreaming Tundra
 
 A frozen region where a sleeping or dying god lies beneath the ice.
@@ -128,6 +152,8 @@ A frozen region where a sleeping or dying god lies beneath the ice.
     If the god wakes, the entire biome may become something else.
 
 Tone: Isolation, mystery, and impending catastrophe.
+
+
 14. The Red Orchard
 
 A fertile valley fed by divine blood.
@@ -138,6 +164,8 @@ A fertile valley fed by divine blood.
     Eating certain fruit lets someone temporarily speak with the dead—or become one of them.
 
 Tone: Intimate, gothic, and bittersweet.
+
+
 15. The Unfinished Lands
 
 Places where reality was being rewritten by a god when the war ended.
@@ -159,3 +187,59 @@ A useful way to make the world feel cohesive is to give each biome three layers:
 For example:
 
     A fertile forest became soaked in a dead nature god’s blood. Its trees grew enormous and semi-sentient, so local villagers now negotiate with the forest before building anything.
+
+
+
+
+
+-----
+
+
+Scarred & Corpse-Linked Biomes
+
+    Godfall Craters
+    Impact basins where deities hit the ground. Gravity feels wrong, stone hums with dying prayers, and crystalized ichor grows like dangerous coral. Good for high-risk salvage and “what did this god mean?” lore.
+
+    The Ossuary Steppes
+    Plains of bleached, continent-scale bone and calcified divine anatomy. Wind moans through rib-canyons; marrow lakes ferment strange life. Nomads carve shrines into vertebrae the size of hills.
+
+    Ichor Fens
+    Wetlands flooded by god-blood that never fully dried. Water is metallic and luminous; reeds grow in the shape of holy symbols; anything that drinks too deep mutates or receives unwanted visions.
+
+    Halo Burn
+    Where a sun-god or light-bringer died. Perpetual noon, glassed sand, shadows that move on their own because they remember being cast by something greater. Night is a rare, precious resource.
+
+Twisted Holy Ground
+
+    Broken Choirwoods
+    Forests whose trees were once temple columns or sacred groves. Bark is inscribed with half-erased commandments; wind through the leaves still tries to finish hymns. Some groves enforce old vows on anyone who enters.
+
+    The Litany Deserts
+    Sand made of powdered scripture and shattered idols. Storms carry audible fragments of dead languages. Oases form around buried relics that still leak a little grace—or a little curse.
+
+    Schism Peaks
+    Mountain ranges split by god-duels. One face frozen in eternal winter (dead frost deity), the opposite face volcanic and angry (dead fire/forge deity). Passes are literal fault-lines of conflicting domains.
+
+    Censor-Fogs
+    Lowlands smothered in incense-thick mist from a slain god of secrets or law. Truth and lies behave oddly; maps disagree; names sometimes stop working.
+
+Aftermath & Absence
+
+    The Quiet Sea
+    An ocean that went still when its patron died. No tides, no storms—only glassy water and the wrecks of pilgrim fleets frozen mid-voyage. Something vast and faithful still swims in the dark, waiting for orders that will never come.
+
+    Ashen Communion Fields
+    Farmland buried under the ash of burned heavens. Crops grow pale and half-spiritual; harvest festivals double as funerals. Soil is fertile but dreams of the dead leak into anyone who sleeps on it.
+
+    Rift-Tundra
+    Tundra cracked open to show the underside of creation—raw firmament, cooling divine machinery, constellations you can walk out onto if you’re foolish enough. Cold that feels like judgment.
+
+    The Orphaned Wilds
+    Nature that lost its gods of hunt, harvest, and beast. Ecology is unbalanced and angry: predator and prey roles glitch, seasons stutter, and old druidic circles are either dead or feral.
+
+Faction / Gameplay Hooks You Can Attach
+
+    Pilgrim scars — roads worn by people dragging relics between biomes.
+    Domain weather — local laws of physics still obey a dead god’s portfolio (fire doesn’t burn in one valley; debts become literal chains in another).
+    Grace-rot / curse-bloom — places where leftover divinity is decaying into monsters, miracles, or both.
+    Claimant cults — mortals and demigods trying to “inherit” a biome and become the new small god of it.
