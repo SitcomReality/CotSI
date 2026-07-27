@@ -17,6 +17,13 @@ export function makeRng(seedStr){
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   }
 }
+export function hash32(v) {
+  v = v | 0;
+  v = Math.imul(v ^ (v >>> 16), 0x85ebca6b);
+  v = Math.imul(v ^ (v >>> 13), 0xc2b2ae35);
+  return (v ^ (v >>> 16)) >>> 0;
+}
+
 export function seededNoise(seed, q, r, salt=0){
   let x = seed + Math.imul(q + 101, 374761393) + Math.imul(r - 47, 668265263) + Math.imul(salt + 13, 362437);
   x = Math.imul(x ^ (x >>> 13), 1274126177);

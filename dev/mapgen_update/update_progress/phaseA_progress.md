@@ -279,3 +279,65 @@ python3 dev/check_imports.py
 python3 dev/check_analysis_imports.py
 # OK — all analysis imports resolve, all named exports verified (30 files checked)
 ```
+
+---
+
+## A8. Epicenter System (Supernatural Biome Placement)
+
+**Done.** Implemented the jittered-grid epicenter system for supernatural biome placement.
+Added `biome_brass_grave` as the first supernatural biome.
+
+### Changes
+
+| File | Change |
+|------|--------|
+| `src/engine/rules/seededRng.js` | Added `hash32(n)` export — splitmix 32-bit hash finalizer for numeric inputs |
+| `src/params/game/worldParams.js` | Added `EPICENTER_GRID` constant (`cellSize: 45`, `jitterAmplitude: 0.40`) |
+| `src/game/rules/archetypeData/biomes.js` | Added `biome_brass_grave` archetype: `origin: 'supernatural'`, `epicenter` block, `fieldModifiers`, shifted `terrainRules` |
+| `src/game/rules/terrainGenerator.js` | Added `hashSeedOffset`, `seededJitter`, `hashBiomeIndex`, `applySupernaturalOverrides`; populated `SUPERNATURAL_BIOMES` with `'biome_brass_grave'`; uncommented Pass 1b |
+
+### Epicenter system design
+
+The system places supernatural biomes via deterministic grid seeds rather than climate matching:
+
+1. **Grid placement:** Epicenter seeds are placed on a jittered grid (`cellSize: 45`, `jitterAmplitude: 0.40`). Each grid cell gets one seed at a deterministically jittered position — a pure function of `(baseSeed, gridQ, gridR)`.
+2. **Biome assignment:** Each cell's seed is assigned to a supernatural biome by `hashBiomeIndex(baseSeed, cellQ, cellR, SUPERNATURAL_BIOMES.length)`. With one biome (brass_grave), all seeds use it.
+3. **Region growth:** Noise-modulated radial falloff from each seed. Radius noise uses a per-biome seed offset (`hashSeedOffset(biomeId, 'epicenterRadius')`) so each supernatural biome gets independent radius variation.
+4. **Field modifiers:** On match, `fieldModifiers` are applied to `tile.elevationField`, `tile.moisture`, and `tile.temperature` before calling `classifyTerrain` with the supernatural biome's `terrainRules`. The tile's `biomeId`, `terrain`, and 3D `elevation` are all overwritten.
+5. **First-match wins:** Tiles are checked against all epicenter seeds; the first match within the effective radius claims the tile. The `break` prevents overlapping supernatural biomes from reclassifying a tile twice.
+
+### `hash32` utility
+
+Added to `src/engine/rules/seededRng.js` as a pure leaf utility. Implements the splitmix finalizer pattern — a well-known 32-bit hash for numeric inputs. Used by `seededJitter` (two hashes per grid cell) and `hashBiomeIndex` (one hash per cell). No overlap with `stringSeed` (FNV1a for strings).
+
+### `biome_brass_grave` archetype
+
+| Field | Value | Purpose |
+|-------|-------|---------|
+| `origin` | `'supernatural'` | Never selected by climate — placed only by epicenter |
+| `epicenter.radius` | `12` | Base region radius in hexes |
+| `epicenter.radiusNoise` | `0.30` | FBM noise modulates radius for irregular boundaries |
+| `epicenter.noiseScale` | `0.04` | Frequency of radius-modulation noise |
+| `fieldModifiers.elevationOffset` | `-0.05` | Slightly lower terrain |
+| `fieldModifiers.moistureMultiplier` | `0.50` | Halves moisture → much drier |
+| `fieldModifiers.temperatureOffset` | `-0.15` | Colder climate |
+| `terrainRules.mountainThreshold` | `0.85` | More mountains (lower threshold) |
+| `terrainRules.forestMinMoisture` | `0.92` | Very rare forests |
+| `terrainRules.desertMaxMoisture` | `0.45` | Large barren areas |
+| `terrainRules.waterMaxElevation` | `0.06` | Less water |
+
+No `terrainMap` — custom terrain names (brassPlains, etc.) deferred to Phase G. Standard terrain types are used with shifted thresholds for a distinct feel. The palette is empty (falls back to `biome_default` colours); dark metallic palette deferred to Phase G.
+
+### Chunk-locality
+
+The `applySupernaturalOverrides` function regenerates epicenter seeds for the grid cells whose epicenters could affect the current chunk. Grid range is `radius / cellSize + maxEpicenterRadius / cellSize + 1`. Seeds outside the map radius are filtered out. The function operates on the chunk's `tileMap` in-place and is a pure function of `(baseSeed, radius)` — no global state, no inter-chunk coordination.
+
+### When skipped
+
+Pass 1b is guarded by `if (!biomeDef)` — when `generateChunkTiles` is called in single-biome mode, supernatural overrides are skipped. The epicenter pass only runs in multi-biome mode (the normal game path).
+
+### Verification
+
+```bash
+python3 dev/check_imports.py
+# OK — all imports resolve, all named exports verified (235 files checked)

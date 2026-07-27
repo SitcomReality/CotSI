@@ -107,6 +107,17 @@ export const SEED_DEBRIS_KIND = 0x4C7E2F9A;
 export const SEED_ELEVATION = 0x7B2C1E8D;
 
 // ---------------------------------------------------------------------------
+// Epicenter grid (supernatural biome placement)
+// Cell size determines epicenter seed density. Each cell gets one seed at a
+// deterministically jittered position. Coverage tuning deferred to Phase G.
+// ---------------------------------------------------------------------------
+
+export const EPICENTER_GRID = {
+  cellSize:          45,    // hex units between grid cell centres
+  jitterAmplitude:   0.40,  // fraction of cell size for position jitter
+};
+
+// ---------------------------------------------------------------------------
 // Default terrain rules — consumed by the new classifyTerrain in Phase A.
 // Elevation percentile-based thresholds populated from calibration_v1.json
 // (run "Derive Thresholds" in the analysis tool → download calibration_v1.json).
