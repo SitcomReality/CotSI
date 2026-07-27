@@ -20,6 +20,7 @@ export const TERRAIN = {
   peak:          { fill:'#b0b8c8', ink:'#e0e8f0', label:'High peak',       passable:false, movementCost:Infinity, mark:'▲' },
   floatingIsland:{ fill:'#c0d8e8', ink:'#e0f0ff', label:'Floating isle',   passable:false, movementCost:Infinity, mark:'⌂' },
   water:         { fill:'#5f9ac1', ink:'#a0d0e8', label:'Broken water',    passable:false, movementCost:Infinity, mark:'~' },
+  ice:           { fill:'#b8d8f0', ink:'#e0f0ff', label:'Frozen surface',  passable:false, movementCost:Infinity, mark:'❄' },
 };
 
 // Default thresholds used when no biome is supplied (backward-compatible)

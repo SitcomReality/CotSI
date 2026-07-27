@@ -27,6 +27,7 @@ export const TERRAIN_ELEVATION = {
   peak: 1.0,
   floatingIsland: 2.5,
   water: -0.15,
+  ice: -0.12,
 };
 
 /**

@@ -15,7 +15,7 @@
  * shared edge without communication.
  */
 import { seededNoise, stringSeed } from '../../engine/rules/seededRng.js';
-import { hexFbm2D } from '../../engine/rules/noise.js';
+import { hexFbm2D, hexToWorld } from '../../engine/rules/noise.js';
 import { coordKey, distance, neighbors } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from './terrainTypes.js';
 import { DEFAULT_THRESHOLDS, DEFAULT_FEATURES } from './terrainTypes.js';
@@ -29,6 +29,9 @@ import {
   FLOATING_ISLAND_THRESHOLD, PEAK_THRESHOLD, DENSE_FOREST_MIN_MOISTURE,
   NOISE_ELEVATION, NOISE_MOISTURE, NOISE_BIOME,
   KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_SCALE, KNOT_AMOUNT_VARIATION_MOD,
+  NOISE_PHASE_A_ELEVATION, NOISE_TEMP_VARIATION, NOISE_REGION,
+  SEED_ELEVATION, SEED_MOISTURE, SEED_TEMP, SEED_REGION_M, SEED_REGION_T,
+  DEFAULT_TERRAIN_RULES,
 } from '../../params/game/worldParams.js';
 import { TERRAIN_ELEVATION } from '../../params/render/terrainParams.js';
 
@@ -50,6 +53,62 @@ function biomeForRoll(roll) {
     if (roll < entry.limit) return entry.id;
   }
   return 'biome_default';
+}
+
+// ---------------------------------------------------------------------------
+// Phase A: sampleBaseFields
+// ---------------------------------------------------------------------------
+
+/**
+ * Sample base physical fields at a global hex coordinate.
+ *
+ * Phase A elevation: single additive FBM (worldShape stub = 1.0).
+ * Ridge layer sampled but weight is 0 until Phase B.
+ *
+ * @param {number} baseSeed    - Integer seed from stringSeed(seedText)
+ * @param {number} q           - Global hex q coordinate
+ * @param {number} r           - Global hex r coordinate
+ * @param {object} noiseConfig - { PHASE_A_ELEVATION, MOISTURE, TEMP_VARIATION, REGION,
+ *                                SEED_ELEVATION, SEED_MOISTURE, SEED_TEMP,
+ *                                SEED_REGION_M, SEED_REGION_T }
+ * @param {number} radius      - Map radius in hexes
+ * @returns {{ elevation, rawLayers, baseMoisture, temperature, regionBiasM, regionBiasT }}
+ */
+export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
+  const NC = noiseConfig;
+
+  // Elevation: single additive field (worldShape applied in Phase B)
+  const detail  = hexFbm2D(q, r, baseSeed + NC.SEED_ELEVATION, NC.PHASE_A_ELEVATION);
+  const ridges  = 0;  // Phase A: ridge weight = 0. Full composite in Phase B.
+  const elevation = clamp01(detail);
+
+  // Moisture: raw FBM, no water adjustment yet (Phase C)
+  const baseMoisture = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.MOISTURE);
+
+  // Temperature: world-space Y latitude + lapse rate + local variation
+  const { y } = hexToWorld(q, r);
+  const worldRadiusY  = radius * 1.7320508;
+  const latitudeTerm  = 1.0 - (Math.abs(y) / worldRadiusY);
+  const tempVariation = hexFbm2D(q, r, baseSeed + NC.SEED_TEMP, NC.TEMP_VARIATION);
+  const RULES = DEFAULT_TERRAIN_RULES;
+  const temperature = clamp01(
+    0.5 + 0.35 * (latitudeTerm - 0.5)
+        + 0.10 * (tempVariation - 0.5)
+        - 0.30 * (elevation - RULES.waterMaxElevation)
+  );
+
+  // Region bias: two independent low-frequency fields
+  const regionBiasM = hexFbm2D(q, r, baseSeed + NC.SEED_REGION_M, NC.REGION);
+  const regionBiasT = hexFbm2D(q, r, baseSeed + NC.SEED_REGION_T, NC.REGION);
+
+  return {
+    elevation,
+    rawLayers: { detail, ridges },
+    baseMoisture,
+    temperature,
+    regionBiasM,
+    regionBiasT,
+  };
 }
 
 // ---------------------------------------------------------------------------

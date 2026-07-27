@@ -62,8 +62,68 @@ export const KNOT_AMOUNT_VARIATION_MOD = 3;
 /** Elevation field: large-scale features with moderate detail. */
 export const NOISE_ELEVATION = { octaves: 5, lacunarity: 2.0, gain: 0.5, frequency: 0.004 };
 
-/** Moisture field: medium-scale, somewhat finer than elevation. */
-export const NOISE_MOISTURE = { octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.005 };
+/** Moisture field: medium-scale. Frequency 0.006 confirmed by Phase 0 calibration. */
+export const NOISE_MOISTURE = { octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006 };
 
 /** Biome regions: very large-scale, only 2 octaves for soft transitions. */
 export const NOISE_BIOME = { octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.002 };
+
+// ---------------------------------------------------------------------------
+// Phase A noise configuration
+// ---------------------------------------------------------------------------
+
+/**
+ * Phase A elevation: single additive FBM field.
+ * Frequencies confirmed by Phase 0 calibration (see dev/analysis/generation/noiseConfig.js).
+ * Replaces old NOISE_ELEVATION — used by the new sampleBaseFields pipeline.
+ */
+export const NOISE_PHASE_A_ELEVATION = {
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020,
+};
+
+/** Temperature variation: very high frequency for local microclimate jitter. */
+export const NOISE_TEMP_VARIATION = {
+  octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08,
+};
+
+/** Region bias: large-scale, 3 octaves for soft regional transitions (replaces NOISE_BIOME in new pipeline). */
+export const NOISE_REGION = {
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.003,
+};
+
+// ---------------------------------------------------------------------------
+// Seed offsets (Phase A pipeline) — replaces NOISE_CHANNEL_* indices
+// ---------------------------------------------------------------------------
+
+export const SEED_MOISTURE    = 0x8C6E4F1A;
+export const SEED_TEMP        = 0x2D7B8E3F;
+export const SEED_REGION_M    = 0x5A1C9D6E;
+export const SEED_REGION_T    = 0x9F3E7B4A;
+export const SEED_FEATURES    = 0x1E4A7C9D;
+export const SEED_DEBRIS      = 0xD8F3A5B1;
+export const SEED_DEBRIS_KIND = 0x4C7E2F9A;
+
+/** Seed offset for elevation noise (Phase A single-field FBM). Same as noiseConfig.js SEED_DETAIL. */
+export const SEED_ELEVATION = 0x7B2C1E8D;
+
+// ---------------------------------------------------------------------------
+// Default terrain rules — consumed by the new classifyTerrain in Phase A.
+// Elevation percentile-based thresholds populated from calibration_v1.json
+// (run "Derive Thresholds" in the analysis tool → download calibration_v1.json).
+// ---------------------------------------------------------------------------
+
+export const DEFAULT_TERRAIN_RULES = {
+  waterMaxElevation:        0.12,  // p12 target — confirm from calibration_v1.json
+  waterMinMoisture:         0.50,
+  floatingIslandThreshold:  0.985, // p99.5 target — confirm from calibration_v1.json
+  peakThreshold:            0.96,  // p97 target — confirm from calibration_v1.json
+  mountainThreshold:        0.905, // p90 target — confirm from calibration_v1.json
+  treeLineMax:              0.85,
+  snowLineMax:              0.15,
+  freezeTempMax:            0.10,
+  denseForestMinMoisture:   0.85,
+  forestMinMoisture:        0.72,
+  desertMaxMoisture:        0.20,
+  marshMinMoisture:         0.58,
+  marshMaxElevation:        0.35,
+};

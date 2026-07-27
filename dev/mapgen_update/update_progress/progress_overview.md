@@ -11,13 +11,13 @@ Details in `phase0_progress.md`.
 3. Quantile LUT builder — **Done.**
 4. Calibration UI — **Done.**
 5. Calibrate quantile LUTs — Pooled data collected from old multiplicative composite (now removed). **Invalidated**
-6. Derive threshold percentiles — **Not started.** Need to map pooled percentile data to DEFAULT_TERRAIN_RULES values.
-7. Snapshot tests — **Done.** `dev/analysis/generation/snapshotTest.js`
-8. Seam test — **Done.** `dev/analysis/generation/seamTest.js`
-9. Climate coverage test — **Done.** `dev/analysis/generation/climateCoverage.js`
-10. Wire tests into analysis page — **Done.** "Run Tests" button runs all three; browser-based
-11. Distributions tab in analysis page — **Done.** Canvas2D histogram charts with threshold lines
-12. Output calibration_v1.json — **Not started.**
+6. Derive threshold percentiles — **Done.** `dev/analysis/generation/thresholdDerivation.js` — runs N seeds × M radii, maps target percentiles to raw values. See Phase 0 progress for full details.
+7. Snapshot tests — **Done.**
+8. Seam test — **Done.**
+9. Climate coverage test — **Done.**
+10. Wire tests into analysis page — **Done.**
+11. Distributions tab in analysis page — **Done.**
+12. Output calibration_v1.json — **Done.**
 13. Re-run Phase 0 calibration after Phase B/F composite changes — **Deferred** (Phase B dependency).
 
 **Key findings for future phases:**
@@ -27,6 +27,12 @@ Details in `phase0_progress.md`.
 - Quantile LUTs from the old multiplicative composite are invalidated. Re-run calibration after Phase B with the additive composite.
 
 ## Phase A
+
+Details in `phaseA_progress.md`.
+
+1. Noise Config & Seed Offsets (`worldParams.js`) — **Done.**
+2. `ice` terrain type added — **Done.**
+3. `sampleBaseFields` migration to `terrainGenerator.js` — **Done.**
 
 ## Phase B
 

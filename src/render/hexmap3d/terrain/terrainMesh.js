@@ -39,6 +39,7 @@ export const TERRAIN_COLOR = {
   peak:          [0.690, 0.729, 0.784],  // #b0b8c8 — pale snowy rock
   floatingIsland:[0.753, 0.847, 0.910],  // #c0d8e8 — pale cyan-white
   water:         [0.373, 0.604, 0.757],  // #5f9ac1 — bright cyan-blue
+  ice:           [0.649, 0.820, 0.957],  // #a6d1f4 — pale ice blue
 };
 
 // Darken factor for side faces
