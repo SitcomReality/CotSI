@@ -40,9 +40,10 @@ def strip_comments(text):
 
 
 def walk_analysis_js():
-    for name in sorted(os.listdir(ANALYSIS)):
-        if name.endswith('.js'):
-            yield os.path.join('dev', 'analysis', name).replace(os.sep, '/')
+    for dirpath, _dirnames, filenames in os.walk(ANALYSIS):
+        for name in sorted(filenames):
+            if name.endswith('.js'):
+                yield os.path.join('dev', 'analysis', os.path.relpath(dirpath, ANALYSIS), name).replace(os.sep, '/')
 
 
 def resolve(importer_rel, spec):

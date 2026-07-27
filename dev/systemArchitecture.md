@@ -452,19 +452,22 @@ Some pre-existing cross-layer imports remain from before the layer migration. Th
 
 | File | Purpose |
 |------|---------|
-| `main.js` | UI controller: wires DOM controls to all subsystems |
 | `state.js` | Shared mutable state (camera, view mode, cycle state) |
 | `domRefs.js` | DOM element cache (`els` object) |
-| `generation.js` | Pure map generation pipeline (terrain + entities) |
-| `renderer.js` | Canvas2D hex-map renderer (terrain, entities, zoom/pan) |
-| `render.js` | Render orchestration: clears, draws, posts to canvas |
-| `canvas.js` | Canvas setup, resize, and mouse-drag interaction |
-| `stats.js` | Pure statistic functions (terrain distribution, entity stats) |
-| `statsDisplay.js` | Updates the stats panel DOM from analysis results |
-| `legend.js` | Legend rendering: colour swatches and entity keys |
-| `cycle.js` | Random-seed cycling (play/stop/speed controls) |
-| `multiSeed.js` | Batch multi-seed analysis with aggregated heatmaps |
-| `export.js` | PNG and JSON export of the current map view |
+| `ui/main.js` | Entry point / UI controller: wires DOM controls to all subsystems |
+| `ui/canvas.js` | Canvas setup, resize, and mouse-drag interaction |
+| `ui/cycle.js` | Random-seed cycling (play/stop/speed controls) |
+| `ui/export.js` | PNG and JSON export of the current map view |
+| `generation/generate.js` | Pure map generation pipeline (terrain + entities) |
+| `generation/multiSeed.js` | Batch multi-seed analysis with aggregated heatmaps |
+| `render/camera.js` | Camera model: zoom, pan, screen/world transforms |
+| `render/hexMath.js` | Hex geometry: axial-to-pixel, hex path drawing |
+| `render/colorMaps.js` | Elevation and moisture color mapping |
+| `render/renderMap.js` | Canvas2D hex-map renderer (terrain, entities, overlays) |
+| `render/orchestrate.js` | Render orchestration: canvas sizing, options, delegate draw |
+| `stats/stats.js` | Pure statistic functions (terrain distribution, entity stats) |
+| `stats/statsDisplay.js` | Formats and updates the stats panel DOM |
+| `legend/legend.js` | Legend rendering: colour swatches and entity keys |
 | `styles/index.css` | Barrel: imports all analysis page stylesheets |
 | `styles/reset.css` | Global reset and base element styles |
 | `styles/layout.css` | Page grid and major panel positioning |

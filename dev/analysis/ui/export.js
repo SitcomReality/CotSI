@@ -3,14 +3,13 @@
  *
  * Exports the current map view as a PNG image or as a JSON data file.
  */
-import { S } from './state.js';
+import { S } from '../state.js';
 
 /**
  * Export the current canvas contents as a PNG file download.
  */
 export function exportPng() {
   if (!S.canvasEl) return;
-  // Render at current resolution
   S.canvasEl.toBlob((blob) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

@@ -4,8 +4,8 @@
  * All functions take tile/entity data and return structured statistics.
  * No DOM, no rendering, no side effects.
  */
-import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
-import { coordKey, distance } from '../../src/engine/rules/hexGrid.js';
+import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
+import { coordKey, distance } from '../../../src/engine/rules/hexGrid.js';
 
 // ─── Biome distribution ──────────────────────────────────────────────────────
 

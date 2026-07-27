@@ -1,13 +1,14 @@
 /**
- * render.js — UI render orchestration for the analysis page.
+ * orchestrate.js — Render orchestration for the analysis page.
  *
  * Coordinates canvas sizing, camera fitting, and delegate rendering.
- * Reads UI toggle state from `els` and renders through `renderer.js`.
+ * Reads UI toggle state from `els` and renders through the render pipeline.
  */
-import { S } from './state.js';
-import { els } from './domRefs.js';
-import { getArchetype } from '../../src/game/rules/archetypes.js';
-import { renderMap, fitCameraToRadius } from './renderer.js';
+import { S } from '../state.js';
+import { els } from '../domRefs.js';
+import { getArchetype } from '../../../src/game/rules/archetypes.js';
+import { renderMap } from './renderMap.js';
+import { fitCameraToRadius } from './camera.js';
 
 // ─── Toggle options ─────────────────────────────────────────────────────────
 
@@ -20,7 +21,6 @@ function getOptions() {
 
   if (result) {
     if (result.multiBiome) {
-      // Multi-biome: collect palettes for each unique biomeId found on tiles
       const seen = new Set();
       for (const key of Object.keys(result.tiles)) {
         const bid = result.tiles[key].biomeId;
@@ -31,7 +31,6 @@ function getOptions() {
         }
       }
     } else {
-      // Single-biome: use the biomeDef's palette
       if (result.biomeDef?.palette) {
         palettes[result.biomeDef.id || 'biome_default'] = result.biomeDef.palette;
       }

@@ -5,8 +5,8 @@
  * and collects aggregate statistics. Uses setTimeout-based yielding to
  * keep the UI responsive during long batches.
  */
-import { generateSingleSeed, DEFAULT_CHAMPIONS } from './generation.js';
-import { coordKey } from '../../src/engine/rules/hexGrid.js';
+import { generateSingleSeed, DEFAULT_CHAMPIONS } from './generate.js';
+import { coordKey } from '../../../src/engine/rules/hexGrid.js';
 import {
   terrainDistribution,
   featureCounts,
@@ -17,7 +17,7 @@ import {
   traderAnalysis,
   traderRingHistogram,
   aggregateTerrainDistributions,
-} from './stats.js';
+} from '../stats/stats.js';
 
 /**
  * Collect all statistics for a single seed result.
@@ -38,7 +38,7 @@ function collectSeedStats(result) {
 
 /**
  * Aggregate trader positions across all seeds into a heatmap.
- * Returns a Map of "q,r" → count of seeds where a trader appeared there.
+ * Returns a Map of "q,r" -> count of seeds where a trader appeared there.
  */
 function buildTraderHeatmap(perSeedStats) {
   const heatmap = new Map();

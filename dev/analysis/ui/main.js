@@ -4,18 +4,18 @@
  * Entry point for the analysis tool. Wires DOM controls to generation,
  * rendering, stats, and multi-seed analysis modules.
  */
-import { S } from './state.js';
-import { els, cacheDom } from './domRefs.js';
-import { generateSingleSeed, enrichWithNoise } from './generation.js';
-import { renderAndFit } from './render.js';
-import { updateLegend } from './legend.js';
-import { updateStats, formatMultiStats } from './statsDisplay.js';
+import { S } from '../state.js';
+import { els, cacheDom } from '../domRefs.js';
+import { generateSingleSeed, enrichWithNoise } from '../generation/generate.js';
+import { renderAndFit } from '../render/orchestrate.js';
+import { updateLegend } from '../legend/legend.js';
+import { updateStats, formatMultiStats } from '../stats/statsDisplay.js';
 import { setupCanvasInteraction } from './canvas.js';
 import { pickAndGenerateRandom, startCycle, stopCycle } from './cycle.js';
 import { exportPng, exportJson } from './export.js';
-import { getArchetype, listArchetypes } from '../../src/game/rules/archetypes.js';
-import '../../src/game/rules/archetypeData/index.js'; // side-effect: populate registry
-import { runMultiSeed } from './multiSeed.js';
+import { getArchetype, listArchetypes } from '../../../src/game/rules/archetypes.js';
+import '../../../src/game/rules/archetypeData/index.js'; // side-effect: populate registry
+import { runMultiSeed } from '../generation/multiSeed.js';
 
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
@@ -41,7 +41,6 @@ function loadAndDisplay(seedText) {
   els.loading.classList.add('visible');
   els.loading.textContent = 'Generating...';
 
-  // Use setTimeout to let the loading indicator paint
   setTimeout(() => {
     try {
       const radius = parseInt(els.radius.value, 10) || 21;
@@ -185,7 +184,6 @@ function bindControls() {
     const val = parseFloat(els.cycleSpeed.value);
     els.cycleSpeedValue.textContent = val.toFixed(1) + 's';
     if (S.cycleOn) {
-      // Restart the timer with the new interval
       if (S.cycleIntervalId) {
         clearInterval(S.cycleIntervalId);
       }

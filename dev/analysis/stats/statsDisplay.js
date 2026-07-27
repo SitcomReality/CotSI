@@ -4,9 +4,9 @@
  * Generates structured text reports for the current single-seed map
  * and for multi-seed aggregate results.
  */
-import { S } from './state.js';
-import { els } from './domRefs.js';
-import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
+import { S } from '../state.js';
+import { els } from '../domRefs.js';
+import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
 import {
   biomeDistribution,
   terrainDistribution,
@@ -100,10 +100,10 @@ export function formatMultiStats(result) {
   lines.push(`Seeds: ${aggregate.seedCount}  |  Radius: ${aggregate.radius}  |  Base seed: ${aggregate.baseSeed}`);
   lines.push('');
 
-  lines.push('Terrain distribution (mean % ± stddev):');
+  lines.push('Terrain distribution (mean % +/- stddev):');
   for (const [t, d] of Object.entries(aggregate.terrain)) {
     const label = (TERRAIN[t]?.label || t).padEnd(12);
-    lines.push(`  ${label} ${d.mean.padStart(5)}%  ±${d.stddev.padStart(5)}  (min ${d.min}%, max ${d.max}%)`);
+    lines.push(`  ${label} ${d.mean.padStart(5)}%  +/-${d.stddev.padStart(5)}  (min ${d.min}%, max ${d.max}%)`);
   }
 
   lines.push('');

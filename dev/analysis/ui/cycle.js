@@ -4,13 +4,13 @@
  * Generates a random seed at regular intervals and updates the display.
  * Managed via play/pause controls and a speed slider.
  */
-import { S } from './state.js';
-import { els } from './domRefs.js';
-import { generateSingleSeed, enrichWithNoise } from './generation.js';
-import { renderAndFit } from './render.js';
-import { updateStats } from './statsDisplay.js';
-import { updateLegend } from './legend.js';
-import { getArchetype } from '../../src/game/rules/archetypes.js';
+import { S } from '../state.js';
+import { els } from '../domRefs.js';
+import { generateSingleSeed, enrichWithNoise } from '../generation/generate.js';
+import { renderAndFit } from '../render/orchestrate.js';
+import { updateStats } from '../stats/statsDisplay.js';
+import { updateLegend } from '../legend/legend.js';
+import { getArchetype } from '../../../src/game/rules/archetypes.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -43,7 +43,6 @@ export function pickAndGenerateRandom() {
   els.seed.value = seedText;
   els.loading.classList.add('visible');
   els.loading.textContent = 'Generating...';
-  // Use setTimeout to let the loading indicator paint
   setTimeout(() => {
     try {
       doGenerate(seedText);

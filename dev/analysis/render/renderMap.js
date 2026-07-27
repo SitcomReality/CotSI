@@ -1,125 +1,15 @@
 /**
- * renderer.js — Canvas2D hex-map renderer for the analysis page.
+ * renderMap.js — Full map renderer for the analysis page.
  *
- * Draws terrain hexagons with entity overlays. Supports zoom and pan.
- * Pure rendering — no game state, no DOM, no Three.js.
+ * Draws terrain hexagons with entity overlays (champions, mobs,
+ * traders, bases, features, debris). Supports view modes for
+ * elevation, moisture, biome, and terrain.
  */
-import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
-import { FACTIONS } from '../../src/game/rules/factionData.js';
-import { coordKey } from '../../src/engine/rules/hexGrid.js';
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const SQRT3 = Math.sqrt(3);
-const HEX_SIZE = 8; // base hex size in pixels (before zoom)
-
-// ─── Hex math ────────────────────────────────────────────────────────────────
-
-/**
- * Convert axial hex coords to pixel position (pointy-top layout).
- */
-function hexToPixel(q, r, size) {
-  return {
-    x: size * (SQRT3 * q + SQRT3 / 2 * r),
-    y: size * (3 / 2 * r),
-  };
-}
-
-/**
- * Draw a single hexagon path on the context.
- * Caller is responsible for fill() / stroke().
- */
-function drawHexPath(ctx, cx, cy, size) {
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 180) * (60 * i - 30);
-    const px = cx + size * Math.cos(angle);
-    const py = cy + size * Math.sin(angle);
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  }
-  ctx.closePath();
-}
-
-// ─── Camera ──────────────────────────────────────────────────────────────────
-
-export function createCamera() {
-  return {
-    x: 0,
-    y: 0,
-    zoom: 1,
-  };
-}
-
-export function screenToWorld(camera, sx, sy, canvasWidth, canvasHeight) {
-  return {
-    x: (sx - canvasWidth / 2) / camera.zoom - camera.x,
-    y: (sy - canvasHeight / 2) / camera.zoom - camera.y,
-  };
-}
-
-export function worldToScreen(camera, wx, wy, canvasWidth, canvasHeight) {
-  return {
-    x: (wx + camera.x) * camera.zoom + canvasWidth / 2,
-    y: (wy + camera.y) * camera.zoom + canvasHeight / 2,
-  };
-}
-
-/**
- * Fit the camera to show all hexes within the given radius,
- * centered at origin, with a small padding.
- */
-export function fitCameraToRadius(camera, radius, canvasWidth, canvasHeight) {
-  const corner = hexToPixel(radius, radius, HEX_SIZE);
-  const mapWidth = Math.abs(corner.x) * 2 + HEX_SIZE * SQRT3;
-  const mapHeight = Math.abs(corner.y) * 2 + HEX_SIZE * 1.5;
-
-  const pad = 24;
-  const availW = canvasWidth - pad * 2;
-  const availH = canvasHeight - pad * 2;
-
-  const zoomX = availW / mapWidth;
-  const zoomY = availH / mapHeight;
-  camera.zoom = Math.min(zoomX, zoomY, 4); // cap zoom at 4x
-  camera.x = 0;
-  camera.y = 0;
-}
-
-// ─── Noise overlay colors ────────────────────────────────────────────────────
-
-/**
- * Map a raw elevation value (0–1) to a terrain-height color.
- * Emphasizes the thresholds used by terrain generation so the user can
- * see where water, land, and mountains form.
- */
-function elevationColor(elev) {
-  if (elev < 0.04) return '#0a1a3a';       // deep ocean — very dark navy
-  if (elev < 0.07) return '#1a4a8a';       // shallow water — blue
-  if (elev < 0.12) return '#3a8a8a';       // shore / beach — teal transition
-  if (elev < 0.25) return '#4a9a4a';       // lowland — green
-  if (elev < 0.45) return '#7aaa4a';       // midland — yellow-green
-  if (elev < 0.65) return '#b8a030';       // highland — yellow
-  if (elev < 0.80) return '#d48030';       // foothill — orange
-  if (elev < 0.905) return '#c05030';      // sub-mountain — red-orange
-  if (elev < 0.95) return '#a03030';       // mountain — deep red
-  return '#e06040';                         // peak — bright warm red
-}
-
-/**
- * Map a raw moisture value (0–1) to a moisture color.
- * Shows the wetness gradient across the map.
- */
-function moistureColor(moist) {
-  if (moist < 0.10) return '#c8b050';       // very dry
-  if (moist < 0.20) return '#b8a848';       // arid
-  if (moist < 0.35) return '#8aaa4a';       // dry
-  if (moist < 0.50) return '#6a9a3a';       // moderate
-  if (moist < 0.65) return '#4a8a2a';       // moist
-  if (moist < 0.80) return '#3a7a2a';       // wet
-  return '#2a6a4a';                          // saturated
-}
-
-// ─── Render ──────────────────────────────────────────────────────────────────
+import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
+import { FACTIONS } from '../../../src/game/rules/factionData.js';
+import { coordKey } from '../../../src/engine/rules/hexGrid.js';
+import { elevationColor, moistureColor } from './colorMaps.js';
+import { hexToPixel, drawHexPath, HEX_SIZE } from './hexMath.js';
 
 /**
  * Render the full map: terrain hexes + entity markers.
@@ -192,14 +82,12 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
     } else if (viewMode === 'moisture' && tile.moisture !== undefined) {
       fillColor = moistureColor(tile.moisture);
     } else if (viewMode === 'biome') {
-      // Show biome regions via simple hue mapping
       const bid = tile.biomeId || 'biome_default';
       if (bid === 'biome_default') fillColor = '#6a9a4a';
       else if (bid === 'biome_lush') fillColor = '#3a7a2a';
       else if (bid === 'biome_arid') fillColor = '#c8a050';
       else fillColor = '#888';
     } else {
-      // Terrain mode: use per-tile biome palette if available
       const bid = tile.biomeId;
       const tilePalette = bid ? palettes[bid] : null;
       if (tilePalette && tilePalette[tile.terrain]) {
@@ -295,7 +183,6 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
           ctx.beginPath();
           ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
           ctx.fill();
-          // Small + marker
           ctx.strokeStyle = '#60c040';
           ctx.lineWidth = 0.8;
           ctx.beginPath();

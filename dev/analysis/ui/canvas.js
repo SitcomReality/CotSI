@@ -4,10 +4,10 @@
  * Binds mouse events to the map canvas area for panning (click-drag)
  * and zooming (scroll wheel toward cursor).
  */
-import { S } from './state.js';
-import { els } from './domRefs.js';
-import { resizeCanvas, render } from './render.js';
-import { screenToWorld } from './renderer.js';
+import { S } from '../state.js';
+import { els } from '../domRefs.js';
+import { resizeCanvas, render } from '../render/orchestrate.js';
+import { screenToWorld } from '../render/camera.js';
 
 /**
  * Set up zoom (wheel) and pan (drag) interaction on the map canvas area.

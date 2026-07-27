@@ -4,10 +4,10 @@
  * Renders elevation-gradation, moisture-gradation, or biome-palette
  * legend into the sidebar legend element.
  */
-import { S } from './state.js';
-import { els } from './domRefs.js';
-import { getArchetype } from '../../src/game/rules/archetypes.js';
-import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
+import { S } from '../state.js';
+import { els } from '../domRefs.js';
+import { getArchetype } from '../../../src/game/rules/archetypes.js';
+import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
 
 // ─── Elevation legend stops ───────────────────────────────────────────────────
 
@@ -65,7 +65,7 @@ export function updateLegend(mode) {
           ${stops.slice().reverse().map(s => `
             <div class="legend-gradient-stop">
               <span class="stop-swatch" style="background:${s.color}"></span>
-              <span class="stop-label">≤ ${s.max} — ${s.label}</span>
+              <span class="stop-label"><= ${s.max} — ${s.label}</span>
             </div>
           `).join('')}
         </div>
@@ -81,7 +81,7 @@ export function updateLegend(mode) {
           ${stops.slice().reverse().map(s => `
             <div class="legend-gradient-stop">
               <span class="stop-swatch" style="background:${s.color}"></span>
-              <span class="stop-label">≤ ${s.max} — ${s.label}</span>
+              <span class="stop-label"><= ${s.max} — ${s.label}</span>
             </div>
           `).join('')}
         </div>

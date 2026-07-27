@@ -1,19 +1,19 @@
 /**
- * generation.js — Pure map generation pipeline for the analysis page.
+ * generate.js — Pure map generation pipeline for the analysis page.
  *
  * No DOM access, no mutable state. Every function takes its inputs as
  * parameters and returns a result object.
  */
-import { generateTiles } from '../../src/game/rules/terrainGenerator.js';
-import { makeRng, stringSeed, seededNoise } from '../../src/engine/rules/seededRng.js';
-import { createChampions } from '../../src/game/state/championFactory.js';
-import { createMobs, createTraders } from '../../src/game/state/entityFactory.js';
-import { getArchetype } from '../../src/game/rules/archetypes.js';
+import { generateTiles } from '../../../src/game/rules/terrainGenerator.js';
+import { makeRng, stringSeed, seededNoise } from '../../../src/engine/rules/seededRng.js';
+import { createChampions } from '../../../src/game/state/championFactory.js';
+import { createMobs, createTraders } from '../../../src/game/state/entityFactory.js';
+import { getArchetype } from '../../../src/game/rules/archetypes.js';
 import {
   NOISE_CHANNEL_ELEVATION,
   NOISE_CHANNEL_MOISTURE,
   NOISE_CHANNEL_BIOME,
-} from '../../src/params/game/worldParams.js';
+} from '../../../src/params/game/worldParams.js';
 
 /**
  * Default champion config: one per faction, in faction order.
@@ -53,7 +53,7 @@ export function buildBiomeLookup(seedText) {
 /**
  * Generate terrain, champions, mobs, and traders for a single seed.
  *
- * Mirrors the pipeline in gameFactory.js: tiles → champs → mobs → traders.
+ * Mirrors the pipeline in gameFactory.js: tiles -> champs -> mobs -> traders.
  * Does NOT enrich tiles with noise data (use `enrichWithNoise` for that).
  *
  * @param {string}  seedText    - Seed string
