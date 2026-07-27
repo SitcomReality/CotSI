@@ -6,6 +6,7 @@
  */
 import { S } from './state.js';
 import { els } from './domRefs.js';
+import { getArchetype } from '../../src/game/rules/archetypes.js';
 import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
 
 // ─── Elevation legend stops ───────────────────────────────────────────────────
@@ -37,7 +38,7 @@ export const MOISTURE_STOPS = [
 
 // ─── Terrain display order ────────────────────────────────────────────────────
 
-export const TERRAIN_ORDER = ['plains', 'forest', 'desert', 'marsh', 'mountain', 'water'];
+export const TERRAIN_ORDER = ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'mountain', 'peak', 'floatingIsland', 'water'];
 
 // ─── Update legend ────────────────────────────────────────────────────────────
 
@@ -87,26 +88,60 @@ export function updateLegend(mode) {
       </div>`;
 
   } else {
-    // Terrain mode — show biome-palette swatches
-    const palette = S.lastResult.biomeDef?.palette || null;
-    const biomeName = S.lastResult.biomeDef?.name || 'Default';
-    els.legend.innerHTML = `
-      <div style="margin-bottom:4px;font-size:11px;color:#888;">Biome: ${biomeName}</div>
-      <div class="legend-swatches">
-        ${TERRAIN_ORDER.map(t => {
-          let color;
-          if (palette && palette[t]) {
-            const rgb = palette[t];
-            color = `rgb(${rgb[0]*255|0},${rgb[1]*255|0},${rgb[2]*255|0})`;
-          } else {
-            color = TERRAIN[t]?.fill || '#444';
-          }
-          const label = TERRAIN[t]?.label || t;
-          return `<div class="legend-item">
-            <span class="legend-swatch" style="background:${color}"></span>
-            <span>${label}</span>
-          </div>`;
-        }).join('')}
-      </div>`;
+    // Terrain / biome mode — show palette swatches
+    const result = S.lastResult;
+    const multiBiome = result.multiBiome;
+
+    if (multiBiome) {
+      // Multi-biome: show each biome's palette
+      const biomeIds = result.biomeIds || [];
+      const parts = [];
+      for (const bid of biomeIds) {
+        const def = getArchetype(bid);
+        const biomeName = def?.name || bid;
+        const palette = def?.palette || null;
+        parts.push(`
+          <div style="margin-bottom:6px;font-size:11px;color:#888;">Biome: ${biomeName}</div>
+          <div class="legend-swatches" style="margin-bottom:8px;">
+            ${TERRAIN_ORDER.map(t => {
+              let color;
+              if (palette && palette[t]) {
+                const rgb = palette[t];
+                color = `rgb(${rgb[0]*255|0},${rgb[1]*255|0},${rgb[2]*255|0})`;
+              } else {
+                color = TERRAIN[t]?.fill || '#444';
+              }
+              const label = TERRAIN[t]?.label || t;
+              return `<div class="legend-item">
+                <span class="legend-swatch" style="background:${color}"></span>
+                <span>${label}</span>
+              </div>`;
+            }).join('')}
+          </div>`);
+      }
+      els.legend.innerHTML = parts.join('');
+    } else {
+      // Single-biome: show just that biome's palette
+      const palette = result.biomeDef?.palette || null;
+      const biomeName = result.biomeDef?.name || 'Default';
+      els.legend.innerHTML = `
+        <div style="margin-bottom:4px;font-size:11px;color:#888;">Biome: ${biomeName}</div>
+        <div class="legend-swatches">
+          ${TERRAIN_ORDER.map(t => {
+            let color;
+            if (palette && palette[t]) {
+              const rgb = palette[t];
+              color = `rgb(${rgb[0]*255|0},${rgb[1]*255|0},${rgb[2]*255|0})`;
+            } else {
+              color = TERRAIN[t]?.fill || '#444';
+            }
+            const label = TERRAIN[t]?.label || t;
+            return `<div class="legend-item">
+              <span class="legend-swatch" style="background:${color}"></span>
+              <span>${label}</span>
+            </div>`;
+          }).join('')}
+        </div>`;
+    }
   }
 }

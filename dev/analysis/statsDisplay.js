@@ -8,6 +8,7 @@ import { S } from './state.js';
 import { els } from './domRefs.js';
 import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
 import {
+  biomeDistribution,
   terrainDistribution,
   featureCounts,
   debrisCounts,
@@ -25,8 +26,9 @@ import {
 export function formatStats() {
   if (!S.lastResult) return 'No map generated yet.';
 
-  const { tiles, champions, mobs, traders, baseKeys, radius, seed, biomeDef } = S.lastResult;
+  const { tiles, champions, mobs, traders, baseKeys, radius, seed, biomeDef, multiBiome, biomeIds } = S.lastResult;
 
+  const bioDist = biomeDistribution(tiles);
   const terrainStats = terrainDistribution(tiles);
   const featCounts = featureCounts(tiles);
   const debCounts = debrisCounts(tiles);
@@ -36,9 +38,18 @@ export function formatStats() {
   const traderPositions = traderAnalysis(tiles, traders, baseKeys);
 
   const lines = [];
-  lines.push(`Seed: ${seed}  |  Radius: ${radius}  |  Biome: ${biomeDef?.name || 'default'}`);
+  lines.push(`Seed: ${seed}  |  Radius: ${radius}  |  Biome: ${biomeDef?.name || 'default'}  |  Multi: ${multiBiome ? 'yes' : 'no'}`);
   lines.push(`Tiles: ${terrainStats.total}`);
   lines.push('');
+
+  // Biome distribution (multi-biome)
+  if (multiBiome && biomeIds && biomeIds.length > 1) {
+    lines.push('Biomes:');
+    for (const [bid, d] of Object.entries(bioDist.dist)) {
+      lines.push(`  ${bid.padEnd(16)} ${String(d.count).padStart(5)}  ${String(d.pct).padStart(5)}%`);
+    }
+    lines.push('');
+  }
 
   // Terrain distribution
   lines.push('Terrain:');
@@ -49,7 +60,7 @@ export function formatStats() {
   }
 
   lines.push('');
-  lines.push(`Features:  trees=${featCounts.trees}  knots=${featCounts.knots}  bases=${featCounts.bases}`);
+  lines.push(`Features:  trees=${featCounts.trees}  fruit=${featCounts.fruitTrees}  large=${featCounts.largeTrees}  knots=${featCounts.knots}  bases=${featCounts.bases}  bushes=${featCounts.bushes}  vines=${featCounts.vines}`);
   lines.push(`Debris:    tufts=${debCounts.tufts}  rocks=${debCounts.rocks}  flowers=${debCounts.flowers}`);
   lines.push(`Mountains: total=${mtStats.total}  peaks=${mtStats.peaks}  slopes=${mtStats.slopes}  isolated=${mtStats.isolated}`);
   lines.push(`Water:     total=${wtStats.total}  lakes=${wtStats.lakes}  oceans=${wtStats.oceans}`);

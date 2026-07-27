@@ -27,6 +27,12 @@ function getMapSettings() {
   };
 }
 
+function getGenerationOptions() {
+  return {
+    multiBiome: els.multiBiomeCheck.checked,
+  };
+}
+
 /**
  * Generate a map from the given seed, store it in state, and update
  * all display panels. Shows the loading indicator during generation.
@@ -42,7 +48,8 @@ function loadAndDisplay(seedText) {
       const biomeId = els.biome.value;
       const biomeDef = getArchetype(biomeId) || getArchetype('biome_default');
       const mapSettings = getMapSettings();
-      const result = generateSingleSeed(seedText, radius, biomeDef, mapSettings);
+      const genOptions = getGenerationOptions();
+      const result = generateSingleSeed(seedText, radius, biomeDef, mapSettings, genOptions);
       enrichWithNoise(result.tiles, seedText);
       S.lastResult = result;
 
@@ -77,6 +84,7 @@ async function doMultiSeedGenerate() {
   const biomeId = els.biome.value;
   const biomeDef = getArchetype(biomeId) || getArchetype('biome_default');
   const mapSettings = getMapSettings();
+  const genOptions = getGenerationOptions();
 
   els.loading.classList.add('visible');
   els.loading.textContent = `Generating 0 / ${count}...`;
@@ -89,6 +97,7 @@ async function doMultiSeedGenerate() {
       radius,
       biomeDef,
       mapSettings,
+      multiBiome: genOptions.multiBiome,
       onProgress: (current, total) => {
         els.loading.textContent = `Generating ${current} / ${total}...`;
       },
@@ -96,7 +105,7 @@ async function doMultiSeedGenerate() {
 
     // Generate the last seed for the map display
     const lastSeedText = `${baseSeed}-${count - 1}`;
-    const displayResult = generateSingleSeed(lastSeedText, radius, biomeDef, mapSettings);
+    const displayResult = generateSingleSeed(lastSeedText, radius, biomeDef, mapSettings, genOptions);
     enrichWithNoise(displayResult.tiles, lastSeedText);
     S.lastResult = displayResult;
     renderAndFit();
@@ -155,6 +164,12 @@ function bindControls() {
     S.viewMode = els.viewMode.value;
     renderAndFit();
     updateLegend(S.viewMode);
+  });
+
+  // Multi-biome toggle: regenerate and re-render
+  els.multiBiomeCheck.addEventListener('change', () => {
+    const seedText = els.seed.value || 'glut-17';
+    loadAndDisplay(seedText);
   });
 
   // Random cycle

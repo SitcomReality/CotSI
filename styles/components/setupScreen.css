@@ -215,7 +215,7 @@
   background: var(--board-hi);
 }
 
-/* Human badge — verdant / warm */
+/* Human badge — green tint */
 .roster-ctrl.is-human {
   color: var(--verdigris);
   background: color-mix(in srgb, var(--verdigris) 8%, var(--board));

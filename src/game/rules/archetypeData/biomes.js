@@ -64,10 +64,10 @@ defineArchetype('biome_default', {
   supportsFloatingIslands: false,
 });
 
-defineArchetype('biome_verdant', {
+defineArchetype('biome_lush', {
   type: 'biome',
-  id: 'biome_verdant',
-  name: 'Verdant Weald',
+  id: 'biome_lush',
+  name: 'Lush Woodland',
 
   terrainThresholds: {
     mountain: { minElevation: 0.920 },
@@ -78,7 +78,7 @@ defineArchetype('biome_verdant', {
     denseForest: { minMoisture: 0.80 },
   },
 
-  // Verdant: abundant fruit trees + decorative trees + bushes on low-moisture tiles
+  // Lush: abundant fruit trees + decorative trees + bushes on low-moisture tiles
   features: [
     { kind: 'fruitTree', threshold: 0.930, compare: 'gt', terrainExclude: ['desert'] },
     { kind: 'tree',      threshold: 0.860, compare: 'gt', terrainExclude: ['desert'] },

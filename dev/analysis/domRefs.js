@@ -53,6 +53,7 @@ export function cacheDom() {
   els.btnExportPng = $('btn-export-png');
   els.btnExportJson = $('btn-export-json');
   els.statsPanel = $('stats-panel');
+  els.multiBiomeCheck = $('multi-biome-check');
   els.legend = $('legend');
   els.loading = $('loading');
   els.mapArea = $('map-area');

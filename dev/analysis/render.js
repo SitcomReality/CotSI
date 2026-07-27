@@ -6,14 +6,38 @@
  */
 import { S } from './state.js';
 import { els } from './domRefs.js';
+import { getArchetype } from '../../src/game/rules/archetypes.js';
 import { renderMap, fitCameraToRadius } from './renderer.js';
 
 // ─── Toggle options ─────────────────────────────────────────────────────────
 
 /**
- * Read entity toggle state + biome palette from the DOM and state.
+ * Read entity toggle state + build palette map from the last result.
  */
 function getOptions() {
+  const result = S.lastResult;
+  const palettes = {};
+
+  if (result) {
+    if (result.multiBiome) {
+      // Multi-biome: collect palettes for each unique biomeId found on tiles
+      const seen = new Set();
+      for (const key of Object.keys(result.tiles)) {
+        const bid = result.tiles[key].biomeId;
+        if (bid && !seen.has(bid)) {
+          seen.add(bid);
+          const def = getArchetype(bid);
+          if (def && def.palette) palettes[bid] = def.palette;
+        }
+      }
+    } else {
+      // Single-biome: use the biomeDef's palette
+      if (result.biomeDef?.palette) {
+        palettes[result.biomeDef.id || 'biome_default'] = result.biomeDef.palette;
+      }
+    }
+  }
+
   return {
     showChampions: els.toggleChamps.checked,
     showMobs: els.toggleMobs.checked,
@@ -21,7 +45,7 @@ function getOptions() {
     showBases: els.toggleBases.checked,
     showFeatures: els.toggleFeatures.checked,
     showDebris: els.toggleDebris.checked,
-    palette: S.lastResult?.biomeDef?.palette || null,
+    palettes,
   };
 }
 

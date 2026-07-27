@@ -8,9 +8,11 @@ import { generateTiles } from '../../src/game/rules/terrainGenerator.js';
 import { makeRng, stringSeed, seededNoise } from '../../src/engine/rules/seededRng.js';
 import { createChampions } from '../../src/game/state/championFactory.js';
 import { createMobs, createTraders } from '../../src/game/state/entityFactory.js';
+import { getArchetype } from '../../src/game/rules/archetypes.js';
 import {
   NOISE_CHANNEL_ELEVATION,
   NOISE_CHANNEL_MOISTURE,
+  NOISE_CHANNEL_BIOME,
 } from '../../src/params/game/worldParams.js';
 
 /**
@@ -22,6 +24,32 @@ export const DEFAULT_CHAMPIONS = [
   { faction: 3 }, { faction: 4 }, { faction: 5 }, { faction: 6 },
 ];
 
+/** Simple threshold-based biome distribution for noise roll [0, 1). */
+const BIOME_DISTRIBUTION = [
+  { limit: 0.40, id: 'biome_default' },
+  { limit: 0.70, id: 'biome_lush' },
+  { limit: 1.00, id: 'biome_arid' },
+];
+
+/**
+ * Build a biomeLookup callback for multi-biome generation.
+ *
+ * @param {string} seedText - Seed string for deterministic noise
+ * @returns {(chunkQ: number, chunkR: number) => object|null}
+ */
+export function buildBiomeLookup(seedText) {
+  const seedInt = stringSeed(seedText);
+  return (chunkQ, chunkR) => {
+    const roll = seededNoise(seedInt, chunkQ, chunkR, NOISE_CHANNEL_BIOME);
+    for (const entry of BIOME_DISTRIBUTION) {
+      if (roll < entry.limit) {
+        return getArchetype(entry.id) || getArchetype('biome_default');
+      }
+    }
+    return getArchetype('biome_default');
+  };
+}
+
 /**
  * Generate terrain, champions, mobs, and traders for a single seed.
  *
@@ -32,10 +60,12 @@ export const DEFAULT_CHAMPIONS = [
  * @param {number}  radius      - Map radius in hexes
  * @param {object}  biomeDef    - Resolved biome archetype definition
  * @param {object}  mapSettings - { heightVariation, wateriness, mountainousness }
- * @returns {{ tiles, champions, mobs, traders, baseKeys, biomeDef, radius, seed }}
+ * @param {object}  [options]   - { multiBiome: boolean }
+ * @returns {{ tiles, champions, mobs, traders, baseKeys, biomeDef, radius, seed, multiBiome, biomeIds }}
  */
-export function generateSingleSeed(seedText, radius, biomeDef, mapSettings) {
-  const tiles = generateTiles(seedText, radius, biomeDef, mapSettings);
+export function generateSingleSeed(seedText, radius, biomeDef, mapSettings, { multiBiome = false } = {}) {
+  const biomeLookup = multiBiome ? buildBiomeLookup(seedText) : null;
+  const tiles = generateTiles(seedText, radius, multiBiome ? null : biomeDef, mapSettings, biomeLookup);
   const rng = makeRng(seedText);
   const rand = () => rng();
 
@@ -51,7 +81,18 @@ export function generateSingleSeed(seedText, radius, biomeDef, mapSettings) {
   const mobs = createMobs({ tiles, rand, used, radius });
   const traders = createTraders({ tiles, rand, used, champions });
 
-  return { tiles, champions, mobs, traders, baseKeys, biomeDef, radius, seed: seedText };
+  // Collect unique biome IDs from tiles
+  const biomeIds = new Set();
+  for (const key of Object.keys(tiles)) {
+    if (tiles[key].biomeId) biomeIds.add(tiles[key].biomeId);
+  }
+
+  return {
+    tiles, champions, mobs, traders, baseKeys,
+    biomeDef, radius, seed: seedText,
+    multiBiome,
+    biomeIds: [...biomeIds],
+  };
 }
 
 /**

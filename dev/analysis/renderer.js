@@ -128,11 +128,11 @@ function moistureColor(moist) {
  * @param {object} tiles           — flat tile map keyed by "q,r"
  * @param {object} entities        — { champions, mobs, traders }
  * @param {object} camera          — { x, y, zoom }
- * @param {object} options         — toggle flags and palette
+ * @param {object} options         — toggle flags and palettes map
  * @param {number} canvasWidth
  * @param {number} canvasHeight
  * @param {number} dpr             — device pixel ratio
- * @param {string} [viewMode]      — 'terrain' | 'elevation' | 'moisture'
+ * @param {string} [viewMode]      — 'terrain' | 'biome' | 'elevation' | 'moisture'
  */
 export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, canvasHeight, dpr, viewMode) {
   const size = HEX_SIZE * camera.zoom;
@@ -175,7 +175,7 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
   }
 
   // Draw terrain hexes
-  const palette = options.palette || null;
+  const palettes = options.palettes || {};
   const tileKeys = Object.keys(tiles);
 
   for (const key of tileKeys) {
@@ -191,11 +191,23 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
       fillColor = elevationColor(tile.elevation);
     } else if (viewMode === 'moisture' && tile.moisture !== undefined) {
       fillColor = moistureColor(tile.moisture);
-    } else if (palette && palette[tile.terrain]) {
-      const rgb = palette[tile.terrain];
-      fillColor = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    } else if (viewMode === 'biome') {
+      // Show biome regions via simple hue mapping
+      const bid = tile.biomeId || 'biome_default';
+      if (bid === 'biome_default') fillColor = '#6a9a4a';
+      else if (bid === 'biome_lush') fillColor = '#3a7a2a';
+      else if (bid === 'biome_arid') fillColor = '#c8a050';
+      else fillColor = '#888';
     } else {
-      fillColor = TERRAIN[tile.terrain]?.fill || '#444';
+      // Terrain mode: use per-tile biome palette if available
+      const bid = tile.biomeId;
+      const tilePalette = bid ? palettes[bid] : null;
+      if (tilePalette && tilePalette[tile.terrain]) {
+        const rgb = tilePalette[tile.terrain];
+        fillColor = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+      } else {
+        fillColor = TERRAIN[tile.terrain]?.fill || '#444';
+      }
     }
 
     drawHexPath(ctx, p.x, p.y, HEX_SIZE * 0.95);
@@ -264,23 +276,64 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
     }
   }
 
-  // Features: trees and knots (if toggled)
+  // Features: trees, fruit trees, large trees, knots, bushes, vines (if toggled)
   if (options.showFeatures) {
     for (const key of tileKeys) {
       const tile = tiles[key];
       if (!tile.feature) continue;
       const p = hexToPixel(tile.q, tile.r, HEX_SIZE);
 
-      if (tile.feature.kind === 'tree') {
-        ctx.fillStyle = '#2d5a1e';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (tile.feature.kind === 'knot') {
-        ctx.fillStyle = '#c8a832';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
-        ctx.fill();
+      switch (tile.feature.kind) {
+        case 'tree':
+          ctx.fillStyle = '#2d5a1e';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 'fruitTree':
+          ctx.fillStyle = '#3a8a2a';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+          // Small + marker
+          ctx.strokeStyle = '#60c040';
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(p.x - 1.2, p.y);
+          ctx.lineTo(p.x + 1.2, p.y);
+          ctx.moveTo(p.x, p.y - 1.2);
+          ctx.lineTo(p.x, p.y + 1.2);
+          ctx.stroke();
+          break;
+        case 'largeTree':
+          ctx.fillStyle = '#1d4a0e';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 'knot':
+          ctx.fillStyle = '#c8a832';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 'bush':
+          ctx.fillStyle = '#5a8a3a';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 'vine':
+          ctx.fillStyle = '#4a7a2a';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#6aaa4a';
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.0, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
       }
     }
   }

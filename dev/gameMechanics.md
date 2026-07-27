@@ -70,7 +70,7 @@ Setup screen "Advanced" sliders passed as `mapSettings` to `generateTiles()`:
 
 The **default** setup option is "Multi-biome (mixed world)". A noise channel (`NOISE_CHANNEL_BIOME`) sampled at each chunk's center assigns the biome. Currently weighted as:
 - `[0, 0.40)` → `biome_default`
-- `[0.40, 0.70)` → `biome_verdant`
+- `[0.40, 0.70)` → `biome_lush`
 - `[0.70, 1.00)` → `biome_arid`
 
 ### Biome Fields

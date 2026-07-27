@@ -28,7 +28,7 @@ import { NOISE_CHANNEL_BIOME } from '../../params/game/worldParams.js';
 /** Simple threshold-based biome distribution for noise roll [0, 1). */
 const BIOME_DISTRIBUTION = [
   { limit: 0.40, id: 'biome_default' },
-  { limit: 0.70, id: 'biome_verdant' },
+  { limit: 0.70, id: 'biome_lush' },
   { limit: 1.00, id: 'biome_arid' },
 ];
 

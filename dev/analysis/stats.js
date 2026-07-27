@@ -7,6 +7,26 @@
 import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
 import { coordKey, distance } from '../../src/engine/rules/hexGrid.js';
 
+// ─── Biome distribution ──────────────────────────────────────────────────────
+
+export function biomeDistribution(tiles) {
+  const counts = {};
+  let total = 0;
+
+  for (const key of Object.keys(tiles)) {
+    const bid = tiles[key].biomeId || 'unknown';
+    counts[bid] = (counts[bid] || 0) + 1;
+    total++;
+  }
+
+  const dist = {};
+  for (const [bid, count] of Object.entries(counts)) {
+    dist[bid] = { count, pct: total > 0 ? (count / total * 100).toFixed(1) : '0.0' };
+  }
+
+  return { dist, total };
+}
+
 // ─── Terrain ─────────────────────────────────────────────────────────────────
 
 export function terrainDistribution(tiles) {
@@ -31,18 +51,28 @@ export function terrainDistribution(tiles) {
 
 export function featureCounts(tiles) {
   let trees = 0;
+  let fruitTrees = 0;
+  let largeTrees = 0;
   let knots = 0;
   let bases = 0;
+  let bushes = 0;
+  let vines = 0;
 
   for (const key of Object.keys(tiles)) {
     const f = tiles[key].feature;
     if (!f) continue;
-    if (f.kind === 'tree') trees++;
-    else if (f.kind === 'knot') knots++;
-    else if (f.kind === 'base') bases++;
+    switch (f.kind) {
+      case 'tree': trees++; break;
+      case 'fruitTree': fruitTrees++; break;
+      case 'largeTree': largeTrees++; break;
+      case 'knot': knots++; break;
+      case 'base': bases++; break;
+      case 'bush': bushes++; break;
+      case 'vine': vines++; break;
+    }
   }
 
-  return { trees, knots, bases };
+  return { trees, fruitTrees, largeTrees, knots, bases, bushes, vines };
 }
 
 export function debrisCounts(tiles) {
