@@ -16,13 +16,13 @@ After this phase, biome selection is a data-driven lookup using three climate ax
 ## 2. Scope
 
 **In scope:**
-- Add `NOISE_CONTINENT` field to `worldParams.js` (single-field elevation for now — multi-layer composite comes in Phase B)
+- Add noise config fields to `worldParams.js` (single-field elevation for now — multi-layer composite comes in Phase B)
 - Replace single `NOISE_ELEVATION` usage with a simple elevation field (continents only, or a single blended field calibrated to span [0, 1])
 - Add temperature derivation (latitude + lapse rate) to the shared sampler
 - Add data-driven `selectBiome(elevation, moisture, temperature, regionBiasM, regionBiasT)` that reads from archetype `climateRange`
-- Add epicenter noise field (`NOISE_EPICENTER`) and `applySupernaturalOverrides()` for supernatural biome placement
-- Add `origin: 'natural' | 'supernatural'` to biome archetypes
-- Rewrite `classifyTerrain` to use all three climate axes + tree line
+- **Add jittered-grid epicenter system** for supernatural biome placement: grid seed placement, noise-modulated radial falloff, `fieldModifiers` application, `terrainMap` application — fully functional from Phase A, no placeholder
+- Add `origin: 'natural' | 'supernatural'` and `epicenter` config block to biome archetypes
+- Rewrite `classifyTerrain` to use all three climate axes + tree line + temperature gates (snow line, frozen water/ice)
 - Remove `BIOME_DISTRIBUTION` table and `biomeForRoll`
 - Repurpose `NOISE_BIOME` as `NOISE_REGION` (two independent bias fields)
 - Add `climateRange` to existing biome archetypes
@@ -30,6 +30,7 @@ After this phase, biome selection is a data-driven lookup using three climate ax
 - Update `generateChunkTiles` to use the new pipeline
 - Update analysis tool to match
 - Per-phase elevation weight normalization (see §4.2)
+- Add `ice` terrain type to `terrainTypes.js` (returned by `classifyTerrain` when water tiles are below `freezeTempMax`)
 
 **Out of scope:**
 - Slope computation (Phase B)
@@ -37,7 +38,6 @@ After this phase, biome selection is a data-driven lookup using three climate ax
 - Continent × detail composite (Phase B)
 - Water-adjusted moisture (Phase C)
 - Rivers (Phase D)
-- Epicenter region growth algorithm (uses simple thresholded noise; organic shapes deferred to Phase G)
 
 ---
 
@@ -81,9 +81,6 @@ export const NOISE_TEMP_VARIATION = {
 export const NOISE_REGION = {
   octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.0015  // TBD from Phase 0
 };
-export const NOISE_EPICENTER = {
-  octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.0010  // TBD from Phase 0; target ~1-3 event regions
-};
 
 // Seed offsets
 export const SEED_CONTINENT   = 0;
@@ -91,7 +88,6 @@ export const SEED_MOISTURE    = 300;
 export const SEED_TEMP        = 400;
 export const SEED_REGION_M    = 500;
 export const SEED_REGION_T    = 600;
-export const SEED_EPICENTER   = 650;
 export const SEED_FEATURES    = 700;
 export const SEED_DEBRIS      = 800;
 export const SEED_DEBRIS_KIND = 900;
@@ -221,43 +217,92 @@ function selectBiome(elevation, moisture, temperature, regionBiasM, regionBiasT)
 }
 
 /**
- * Place supernatural biomes via epicenter noise.
- * Called after selectBiome — overwrites biomeId on hexes within event regions.
- * Phase A uses simple thresholded noise; Phase G adds distance-based region growth.
+ * Place supernatural biomes via jittered-grid epicenter seeds.
+ * Pure function of (seed, q, r) — chunk-local, no global BFS.
+ * Applies fieldModifiers and terrainMap from Phase A onward.
  */
-function applySupernaturalOverrides(tiles, fieldMap, baseSeed, noiseConfig) {
-  for (const [key, tile] of tiles) {
-    const epicenterVal = hexFbm2D(
-      tile.q, tile.r,
-      baseSeed + noiseConfig.SEED_EPICENTER,
-      noiseConfig.EPICENTER
-    );
+function applySupernaturalOverrides(tiles, fieldMap, baseSeed, gridConfig, mapRadius) {
+  // 1. Place epicenter seeds on jittered grid
+  const seeds = [];
+  const gridRange = Math.ceil(mapRadius / gridConfig.cellSize) + 1;
 
-    // Check each registered supernatural biome in SUPERNATURAL_BIOMES
-    for (const biomeId of SUPERNATURAL_BIOMES) {
-      const def = getArchetype(biomeId);
-      if (!def || def.origin !== 'supernatural') continue;
+  for (let gridR = -gridRange; gridR <= gridRange; gridR++) {
+    for (let gridQ = -gridRange; gridQ <= gridRange; gridQ++) {
+      const jitter = seededJitter(baseSeed, gridQ, gridR, gridConfig.cellSize,
+                                   gridConfig.jitterAmplitude);
+      const seedQ = Math.round(gridQ * gridConfig.cellSize + jitter.q);
+      const seedR = Math.round(gridR * gridConfig.cellSize + jitter.r);
 
-      // Phase A placeholder: simple threshold check.
-      // Phase G replaces with distance-based region growth.
-      const threshold = def.epicenterThreshold ?? 0.85;
-      if (epicenterVal > threshold) {
-        tile.biomeId = biomeId;
-        break;  // first matching supernatural biome wins
+      if (hexDistance(seedQ, seedR, 0, 0) > mapRadius) continue;
+
+      const biomeIndex = hashBiomeIndex(baseSeed, gridQ, gridR, SUPERNATURAL_BIOMES.length);
+      const biomeId = SUPERNATURAL_BIOMES[biomeIndex];
+
+      seeds.push({ q: seedQ, r: seedR, biomeId, biomeDef: getArchetype(biomeId) });
+    }
+  }
+
+  // 2. For each tile, check if within any epicenter region
+  for (const [, tile] of tiles) {
+    for (const seed of seeds) {
+      const ep = seed.biomeDef?.epicenter;
+      if (!ep) continue;
+
+      const dist = hexDistance(tile.q, tile.r, seed.q, seed.r);
+      const radiusNoise = hexFbm2D(tile.q, tile.r,
+        baseSeed + hashSeedOffset(seed.biomeId, 'epicenterRadius'),
+        { frequency: ep.noiseScale, octaves: 2, gain: 0.5, lacunarity: 2.0 }
+      );
+      const effectiveRadius = ep.radius * (1.0 + (radiusNoise - 0.5) * 2 * ep.radiusNoise);
+
+      if (dist < effectiveRadius) {
+        // Apply fieldModifiers
+        const mods = seed.biomeDef.fieldModifiers || {};
+        const modElev = clamp01((tile.elevation + (mods.elevationOffset || 0))
+                                * (mods.elevationMultiplier ?? 1));
+        const modMoist = clamp01(tile.moisture * (mods.moistureMultiplier ?? 1));
+        const modTemp  = clamp01(tile.temperature + (mods.temperatureOffset || 0));
+
+        tile.biomeId = seed.biomeId;
+        tile.terrain = classifyTerrain(modElev, modMoist, modTemp, 0, seed.biomeDef);
+
+        // Apply terrainMap
+        const mapped = seed.biomeDef.terrainMap?.[tile.terrain];
+        if (mapped) tile.terrain = mapped;
+
+        break;
       }
     }
   }
+}
+
+// Helper: jittered position within grid cell
+function seededJitter(baseSeed, cellQ, cellR, cellSize, amplitude) {
+  const hashQ = hash32(baseSeed ^ 0x4A1E_BEAD ^ (cellQ * 0x9E37_79B9) ^ (cellR * 0x7F4A_7C2D));
+  const hashR = hash32(baseSeed ^ 0x3C8D_6E2F ^ (cellQ * 0x2B1F_5A8D) ^ (cellR * 0x6E3D_1F9C));
+  const range = cellSize * amplitude;
+  return {
+    q: ((hashQ / 0xFFFFFFFF) - 0.5) * range,
+    r: ((hashR / 0xFFFFFFFF) - 0.5) * range,
+  };
+}
+
+function hashBiomeIndex(baseSeed, cellQ, cellR, count) {
+  const hash = hash32(baseSeed ^ 0x9D6E_1F3A ^ (cellQ * 0x4B8D_7C2E) ^ (cellR * 0x3F2A_5E1C));
+  return Math.abs(hash) % count;
 }
 ```
 
 **Key properties:**
 - No hardcoded climate thresholds — all climate constraints live in each archetype's `climateRange`.
 - `BIOME_PRIORITY_ORDER` contains only natural biomes. Adding a natural biome requires: define `climateRange`, add to `BIOME_PRIORITY_ORDER` before `biome_default`. No pipeline code changes.
-- `SUPERNATURAL_BIOMES` is a separate list for epicenter-placed biomes. Adding a supernatural biome requires: define archetype with `origin: 'supernatural'` and no `climateRange`, add to `SUPERNATURAL_BIOMES`, set `epicenterThreshold`. No pipeline code changes.
+- `SUPERNATURAL_BIOMES` is a separate list for epicenter-placed biomes. Adding a supernatural biome requires: define archetype with `origin: 'supernatural'` and `epicenter` config block, add to `SUPERNATURAL_BIOMES`. No pipeline code changes.
 - A startup assertion (`validateBiomeLists()`) verifies that every natural biome appears in `BIOME_PRIORITY_ORDER` exactly once and every entry is a natural biome, and that `SUPERNATURAL_BIOMES` contains only supernatural biomes.
 - `biome_default` is the catch-all natural biome — last in `BIOME_PRIORITY_ORDER`, always matches.
 - Supernatural biomes are in `SUPERNATURAL_BIOMES` only — never in `BIOME_PRIORITY_ORDER`.
 - Regional bias uses two **independent** fields (`regionBiasM`, `regionBiasT`), so a region can independently bias toward wetter *or* drier, hotter *or* colder.
+- **Chunk-local:** To determine if tile `(q, r)` is in an epicenter, only grid cells within `maxEpicenterRadius / cellSize + 1` need to be checked — a small, bounded neighbor lookup.
+- **fieldModifiers and terrainMap applied from Phase A onward** — supernatural biomes alter the local environment immediately, not as a Phase G enhancement.
 
 ### 4.5 Updated `classifyTerrain`
 
@@ -393,8 +438,14 @@ defineArchetype('biome_brass_grave', {
   name: 'Brass Grave',
   origin: 'supernatural',
 
-  // No climateRange — placed by epicenter pass, never by climate.
-  epicenterThreshold: 0.88,  // TBD from Phase 0 / Phase G tuning
+  // No climateRange — placed by jittered-grid epicenter, never by climate.
+
+  // Epicenter placement on jittered grid (deterministic, chunk-local)
+  epicenter: {
+    radius:       12,    // base region radius in hexes (tuned in Phase G)
+    radiusNoise:  0.30,  // how much FBM noise modulates the radius (0-1)
+    noiseScale:   0.04,  // frequency of the radius-modulation noise
+  },
 
   terrainRules: {
     mountainThreshold: 0.85,
@@ -434,7 +485,7 @@ defineArchetype('biome_brass_grave', {
 
 **Climate space coverage:** The `BIOME_PRIORITY_ORDER` list, combined with the catch-all `biome_default`, ensures full natural-biome coverage. Cold+dry tiles (t < 0.20, m < 0.22) currently fall through to `biome_default` — a known gap explicitly visible because no biome claims that range. A tundra biome can be added later in Phase G.
 
-Supernatural biomes (Brass Grave, Unfinished Lands, etc.) are placed by the epicenter pass and override the climate-derived biome on affected hexes. They cover a percentage of the map determined by `NOISE_EPICENTER` frequency and per-biome `epicenterThreshold`.
+Supernatural biomes (Brass Grave, Unfinished Lands, etc.) are placed by the jittered-grid epicenter pass and override the climate-derived biome on affected hexes. They cover a percentage of the map determined by `EPICENTER_GRID.cellSize` and per-biome `epicenter.radius`.
 
 ### 4.7 `generateChunkTiles` Restructure
 
@@ -483,21 +534,12 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef, p
     });
   }
 
-  // Pass 1b: Supernatural biome override (epicenter pass)
-  // Runs after natural biome selection — overwrites biomeId for hexes
-  // within epicenter regions of supernatural biomes.
+  // Pass 1b: Supernatural biome override (jittered-grid epicenter pass)
+  // Runs after natural biome selection — overwrites biomeId and reclassifies
+  // terrain with fieldModifiers and terrainMap for hexes within epicenter regions.
   if (!biomeDef) {
-    applySupernaturalOverrides(tileMap, fieldMap, seed, NOISE_CONFIG);
-    // Re-resolve biomeDef and reclassify terrain for any hexes whose
-    // biomeId was overwritten.
-    for (const [, tile] of tileMap) {
-      const def = getArchetype(tile.biomeId);
-      if (def && def.origin === 'supernatural') {
-        tile.terrain = classifyTerrain(
-          tile.elevation, tile.moisture, tile.temperature, def
-        );
-      }
-    }
+    // applySupernaturalOverrides handles fieldModifiers and terrainMap internally
+    applySupernaturalOverrides(tileMap, fieldMap, seed, EPICENTER_GRID, radius);
   }
 
   // Pass 2: Mountain type tagging (unchanged from current, but uses real data)
@@ -546,6 +588,5 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef, p
 - **Single elevation field produces popcorn mountains.** Without the continent mask and slope discrimination (Phase B), mountain placement is noise-blob rather than range-based. This is expected and acceptable — Phase B fixes it.
 - **Water still uses moisture gate.** In this phase, water requires both elevation < threshold AND moisture > threshold. The elevation-only water determination (oceans always water, lakes are moisture-gated) comes in Phase C. For now, "dry ocean basins" can still occur at low elevation + low moisture.
 - **Cold+dry climate yields `biome_default`.** The explicit gap in `climateRange` coverage is a known limitation — tundra/snow biomes added in Phase G.
-- **Supernatural biome placement uses simple threshold.** The epicenter pass in Phase A uses raw FBM thresholding, which can produce scattered speckles rather than contiguous regions. Phase G replaces this with distance-based region growth for organic shapes.
 - **`fallbackT` removed.** The new border-ring approach eliminates the need for cross-chunk neighbor approximations. But in Phase A, the border ring infrastructure from Phase B isn't built yet. For this phase, cross-chunk lookups for mountain/water tagging can use `sampleBaseFields` directly — it's deterministic and works at any global coordinate.
-- **Chunk boundary consistency.** Since `sampleBaseFields` is a pure function of `(seed, q, r)`, two chunks that sample the same global coordinate produce identical base fields. The biome selection and terrain classification are also pure functions of those fields, so chunk seams are guaranteed consistent. This was already true in the current code — nothing about this property changes.
+- **Chunk boundary consistency.** Since `sampleBaseFields` is a pure function of `(seed, q, r)`, two chunks that sample the same global coordinate produce identical base fields. The jittered-grid epicenter pass is also a pure function — chunk-seam consistent from Phase A.

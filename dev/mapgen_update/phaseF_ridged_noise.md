@@ -143,7 +143,7 @@ const elevation = clamp01(rawElev / 0.85);  // max with ridges=0
 
 With ridged FBM producing values in [0, 1], the ridges term is now active. The maximum of the composite is `0.60 + 0.25 + 0.15 = 1.0` (when continent=1, detail=1, ridges=1). But ridged noise's mean is lower than regular FBM (it concentrates near ridges), so the effective range may still be below 1.0.
 
-**Recalibrate:** Run Phase 0 calibration against the new composite to get the actual 99th-percentile elevation. Set the normalization constant to that value:
+**Recalibrate:** Run Phase 0 calibration against the new composite to regenerate quantile LUTs. Thresholds remain stable percentiles. The normalization constant for the per-phase composite adjusts to the new 99th-percentile raw elevation:
 
 ```js
 // After Phase 0 recalibration with ridged FBM:
@@ -178,7 +178,7 @@ The `offset` parameter (0.9) is lower than the default 1.0 — this shifts the r
 
 - Mountain ranges have sharp ridge crests rather than rounded bumps.
 - Ridge lines are visible in the analysis tool's elevation overlay as narrow, high-value bands surrounded by steep drop-offs.
-- Elevation distribution recalibrated: thresholds from Phase 0 updated to match the new composite shape.
+- Elevation distribution recalibrated: quantile LUTs regenerated from Phase 0. Thresholds remain stable percentiles.
 - No regression in terrain type distributions (snapshot tests pass after recalibration).
 
 ---

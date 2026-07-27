@@ -32,7 +32,7 @@ Phase A uses a single FBM field for elevation, producing "popcorn noise" — iso
 ## 3. Pre-requisites
 
 - Phase A complete: `sampleBaseFields` exists, `classifyTerrain` uses `DEFAULT_TERRAIN_RULES`.
-- Phase 0 calibration values for the 3-layer composite (run calibration against the new formula before setting thresholds).
+- Phase 0 calibration values for the 3-layer composite. Since thresholds are percentiles (quantile-normalized), only the quantile LUTs need regeneration — thresholds remain stable. Run Phase 0 calibration against the new composite formula, regenerate LUTs, verify snapshot tests still pass.
 
 ---
 
@@ -364,6 +364,6 @@ function _provisionalTerrainForRing(q, r, fieldMap) {
 ## 7. Risks & Edge Cases
 
 - **Border ring adds ~40% more `sampleBaseFields` calls per chunk.** For a 24×24 chunk (576 tiles), border ring width 2 adds `(24+4)² - 24² = 784 - 576 = 208` extra samples (36% overhead). FBM is cheap — this is acceptable for a generation pass that runs once at startup.
-- **Per-phase normalization changes thresholds.** Re-run Phase 0 calibration after implementing the composite. The previous Phase A calibration was against a single field; the 3-layer composite has a different distribution shape.
+- **Per-phase normalization changes the raw FBM distribution.** Re-run Phase 0 calibration after implementing the composite — regenerate quantile LUTs. The previous Phase A calibration was against a single field; the 3-layer composite has a different distribution shape. Thresholds are stable percentiles.
 - **Slope at chunk corners.** Corner hexes have neighbors in up to 3 different chunks. With the border ring, all 6 neighbors are available locally. Without the border ring, corners would need cross-chunk lookups. The ring eliminates this entirely for radius-1 slope computation.
 - **`plateauSlopeMin` and `hillSlopeMin` both live near the top of the slope distribution.** The raw neighbor delta from FBM fields is on the order of hundredths. Without the `SLOPE_NORMALIZATION` calibration, both thresholds would sit near the ceiling of observed slope values, making "all high ground is plateau" or "all high ground is mountain." Phase 0 calibration addresses this.

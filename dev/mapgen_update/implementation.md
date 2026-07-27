@@ -5,43 +5,51 @@
 
 ---
 
-## Phase 0: Calibration Infrastructure
+## Phase 0: Calibration Infrastructure + Quantile Normalization
 
-**Goal:** Histogram tooling, percentile-calibrated thresholds, snapshot tests.
+**Goal:** Histogram tooling, quantile CDF LUTs for all continuous fields, percentile-based thresholds, snapshot tests.
 
 - [ ] Frequency verification — run all noise fields, document `hexToWorld` rescaling relationship
 - [ ] `dev/analysis/generation/histograms.js` — `collectHistograms`, `percentileFromHistogram`
-- [ ] Calibrate thresholds across 5+ seeds × 3 radii (7, 21, 50)
+- [ ] `dev/analysis/generation/quantileLUT.js` — `buildQuantileLUT`, `normalizeField` (256-entry LUTs with linear interpolation)
+- [ ] Calibrate quantile LUTs across 5+ seeds × 3 radii (7, 21, 50)
 - [ ] Calibrate `SLOPE_NORMALIZATION` from measured elevation deltas
+- [ ] Calibrate `EPICENTER_GRID.cellSize` for target supernatural biome coverage (3–10%)
 - [ ] Derive target distribution budgets (% water, mountain, forest, etc.)
 - [ ] `dev/analysis/generation/snapshotTest.js` — distribution invariant checks
+- [ ] `dev/analysis/generation/seamTest.js` — chunk-seam invariant verification
+- [ ] `dev/analysis/generation/climateCoverage.js` — biome climate-cube coverage report
 - [ ] Wire snapshots into `dev/check_analysis_imports.py`
-- [ ] Distributions tab in `dev/analysis.html` (histogram bars + threshold lines)
-- [ ] Output `dev/mapgen_update/calibration_v1.json` with derived thresholds
-- [ ] Run `python3 dev/check_analysis_imports.py` — must pass (includes snapshots)
+- [ ] Distributions tab in `dev/analysis.html` (histogram bars + threshold lines + quantile LUT preview)
+- [ ] Output `dev/mapgen_update/calibration_v1.json` with quantile LUTs and derived percentile thresholds
+- [ ] Run `python3 dev/check_analysis_imports.py` — must pass (includes snapshots, seam test, climate coverage)
 
 ---
 
-## Phase A: Climate-Driven Classification + Supernatural Biomes
+## Phase A: Climate-Driven Classification + Jittered-Grid Supernatural Biomes
 
-**Goal:** Replace independent biome noise with climate-driven selection + epicenter pass for supernatural biomes.
+**Goal:** Replace independent biome noise with climate-driven selection + jittered-grid epicenter for supernatural biomes. Full epicenter system: grid placement, noise-modulated radial falloff, fieldModifiers, terrainMap — no placeholder.
 
-- [ ] Add noise config: `NOISE_CONTINENT`, `NOISE_PHASE_A_ELEVATION`, `NOISE_MOISTURE`, `NOISE_TEMP_VARIATION`, `NOISE_REGION`, `NOISE_EPICENTER`
-- [ ] Add seed offsets including `SEED_EPICENTER`
+- [ ] Add noise config: `NOISE_CONTINENT`, `NOISE_PHASE_A_ELEVATION`, `NOISE_MOISTURE`, `NOISE_TEMP_VARIATION`, `NOISE_REGION`
+- [ ] Add `EPICENTER_GRID` config (`cellSize`, `jitterAmplitude`)
+- [ ] Add seed offsets (excluding `SEED_EPICENTER` — not needed for grid-based epicenter)
 - [ ] Implement `sampleBaseFields` (single-field elevation, temperature from latitude+lapse, two region bias fields)
-- [ ] Implement `selectBiome()` — iterates `BIOME_PRIORITY_ORDER` (natural biomes only), checks `climateRange` — no supernatural entries to skip
-- [ ] Implement `applySupernaturalOverrides()` — epicenter noise places supernatural biomes from `SUPERNATURAL_BIOMES` (Phase A: simple threshold)
-- [ ] Rewrite `classifyTerrain` to use elevation + moisture + temperature + tree line + snow line + frozen water + biome `terrainRules`
+- [ ] Implement quantile normalization: apply CDF LUTs from Phase 0 after sampling
+- [ ] Implement `selectBiome()` — iterates `BIOME_PRIORITY_ORDER` (natural biomes only), checks `climateRange`
+- [ ] Implement `applySupernaturalOverrides()` — jittered-grid seed placement, noise-modulated radial falloff, fieldModifiers, terrainMap
+- [ ] Implement helper functions: `seededJitter`, `hashBiomeIndex`, `hashSeedOffset`
+- [ ] Rewrite `classifyTerrain` to use elevation + moisture + temperature + tree line + snow line + frozen water/ice + biome `terrainRules`
+- [ ] Add `ice` terrain type to `terrainTypes.js`
 - [ ] Remove `BIOME_DISTRIBUTION` and `biomeForRoll`
 - [ ] Add `origin`, `climateRange`, `terrainRules`, `terrainMap` to biome archetypes; remove `moistureBias`
-- [ ] Add supernatural biome placeholders (Brass Grave) with `origin: 'supernatural'`, `epicenterThreshold`, `terrainMap`, and `fieldModifiers`
-- [ ] Restructure `generateChunkTiles`: sample → selectBiome → supernatural override → classify → tag → features → debris
+- [ ] Add supernatural biome placeholders (Brass Grave) with `origin: 'supernatural'`, `epicenter`, `terrainMap`, and `fieldModifiers`
+- [ ] Restructure `generateChunkTiles`: sample → quantile normalize → selectBiome → supernatural override → classify → tag → features → debris
 - [ ] Update `gameFactory.js` to match new API
 - [ ] Store continuous `elevation`, `temperature`, `moisture` on tiles
 - [ ] Update analysis tool (`dev/analysis/generation/generate.js`)
 - [ ] Run `python3 dev/check_imports.py` — must pass
 - [ ] Run `python3 dev/check_analysis_imports.py` — must pass
-- [ ] User playtest — verify biome boundaries follow climate, supernatural regions appear
+- [ ] User playtest — verify biome boundaries follow climate, supernatural regions appear as organic contiguous zones
 
 ---
 
@@ -134,10 +142,9 @@
 - [ ] Tune frequencies for radius 7, 21, 50 maps
 - [ ] Tune composite weights and terrain thresholds against target budgets
 - [ ] Tune feature spawn rates after density modulation
-- [ ] Epicenter region growth: replace thresholded noise with distance-based growth
-- [ ] Apply fieldModifiers within epicenter regions (elevationOffset, moistureMultiplier, temperatureOffset)
-- [ ] Apply terrainMap after classifyTerrain to produce biome-specific terrain types
-- [ ] Tune epicenter frequency and per-biome region sizes + floating island production via elevationOffset
+- [ ] Tune `EPICENTER_GRID.cellSize` for target seed density (1-3 active regions per supernatural biome)
+- [ ] Tune per-biome `epicenter.radius`, `radiusNoise`, `noiseScale` for organic region shapes
+- [ ] Tune per-biome `fieldModifiers` — verify floating island production via elevationOffset within epicenter regions
 - [ ] Add beach terrain type
 - [ ] Add tundra/cold-steppe biomes (fill cold+dry climate gap)
 - [ ] Biome topological smoothing (optional)
@@ -153,4 +160,4 @@
 - Each phase checkmark = code written, import checks pass, snapshot tests pass, ready for user testing.
 - "User playtest" items are verification steps — the user tests and reports.
 - Phases are ordered by dependency. Phase C and F can run in parallel after Phase B.
-- Phase 0 calibration must be re-run after any change that affects noise output distributions (composite formula changes, frequency changes, new noise layers).
+- Phase 0 calibration must be re-run after any change that affects noise output distributions (composite formula changes, frequency changes, new noise layers). With quantile normalization, recalibration means regenerating CDF lookup tables — thresholds remain stable percentiles.

@@ -1,15 +1,15 @@
-# Phase 0: Calibration Infrastructure
+# Phase 0: Calibration Infrastructure + Quantile Normalization
 
 **Depends on:** None (this is the first phase to implement)  
-**Deliverable:** Histogram tooling in the analysis page, percentile-calibrated thresholds, and snapshot tests that catch amplitude regressions. Every absolute threshold in subsequent phases is derived from measured distributions.
+**Deliverable:** Histogram tooling, quantile CDF lookup tables for all continuous fields, percentile-based thresholds, and snapshot tests that catch amplitude regressions. Every threshold in subsequent phases is a true percentile — stable across distribution changes when noise layers are added or modified.
 
 ---
 
 ## 1. Objective
 
-Every absolute threshold in the terrain generation pipeline (`waterMaxElevation: 0.07`, `mountainThreshold: 0.905`, `peakThreshold: 0.96`, `floatingIslandThreshold: 0.985`, `plateauSlopeMin: 0.08`, `hillSlopeMin: 0.10`, `SLOPE_NORMALIZATION: 0.3`) is a magic number with no stated relationship to the actual noise output distributions. The elevation composite in the original design (`continent*0.60 + detail*0.25 + ridges*0.15*continent`) concentrates around ~0.46 and virtually never reaches 0.90 — meaning `mountainThreshold: 0.905` produces almost no mountains, and `peak`/`floatingIsland` terrain types are dead.
+Every absolute threshold in the terrain generation pipeline is a magic number with no stated relationship to the actual noise output distributions. Worse, the elevation composite changes in Phases B and F — every threshold derived in Phase 0 would be invalidated. The solution is two-part: (1) measure distributions with histogram tooling, and (2) normalize all continuous fields through quantile CDF lookup tables so thresholds become stable percentiles.
 
-This phase establishes the infrastructure to measure what the noise actually outputs, derive thresholds from percentiles of those distributions, and snapshot-test those distributions so regressions are caught immediately.
+After this phase, all continuous fields (elevation, moisture, temperature, slope) are uniform on [0, 1] after quantile normalization. Thresholds like `mountainThreshold: 0.90` literally mean "top 10% of tiles." When Phases B or F change the elevation distribution, only the LUTs need regeneration — thresholds and archetype `climateRange` values remain correct.
 
 ---
 
@@ -18,10 +18,12 @@ This phase establishes the infrastructure to measure what the noise actually out
 **In scope:**
 - Add histogram collection to the analysis tool (`dev/analysis/`)
 - Measure elevation, moisture, temperature, and slope distributions across multiple seeds and map sizes (radius 7, 21, 50)
+- **Build quantile CDF lookup tables** (256-entry LUTs) for each continuous field from an ensemble of seeds
 - Derive target distribution budgets (% water, % mountain, % forest, etc.)
-- Set thresholds as percentiles of measured distributions
+- Set thresholds as percentiles — stable across distribution changes; only LUTs need regeneration after Phases B/F
 - Calibrate the `SLOPE_NORMALIZATION` constant from measured elevation deltas
 - Verify frequency-to-wavelength relationships (`continent` at 0.0008 on radius-50)
+- Calibrate epicenter grid cell size for target supernatural biome coverage (3–10%)
 - Snapshot test the target distributions so regressions are caught by `check_analysis_imports.py`
 
 **Out of scope:**
@@ -55,7 +57,7 @@ All frequency values in the design docs are **target values pending verification
 | `MOISTURE` | broad wet/dry bands | 0.006 | TBD |
 | `TEMP_VARIATION` | local temp noise | 0.08 | TBD |
 | `REGION` | 4-6 biome regions | 0.0015 | TBD |
-| `EPICENTER` | 1-3 event regions | 0.0010 | TBD |
+| — | — | — | — |
 
 If the observed effective frequencies differ from the targets, either correct the config values or document the `hexToWorld` rescaling factor. **All phase docs quote config frequencies that are TBD until this verification is complete.**
 
@@ -145,11 +147,56 @@ function percentileFromHistogram(hist, p) {
 }
 ```
 
-### 4.4 Quantile Normalization (Recommended)
+### 4.4 Quantile Normalization (Core Infrastructure)
 
-Rather than thresholding raw FBM values against magic-number constants, fit a quantile transform (CDF) for each continuous field from an ensemble of seeds. With a quantile LUT per field, every threshold **is** a percentile — readable, stable across distribution changes, and requiring only LUT regeneration (not threshold re-derivation) when layers are added. If quantile normalization is deferred, all constants must be recalibrated after each distribution-changing phase (B, F).
+Raw FBM values are not uniform — they cluster around 0.5, and the distribution changes when noise layers are added. Thresholding raw values against constants like `mountainThreshold: 0.905` is fragile: it breaks every time the composite formula changes.
 
-**Ensemble calibration with per-seed variety:** Calibrate against an *ensemble* of seeds to get fixed constants, then add an explicit per-seed roll (e.g., `seaLevelOffset`, `continentality`) so not every map has identical water/mountain percentages.
+**Quantile normalization** solves this: build a CDF lookup table per continuous field from an ensemble of seeds, then map every raw FBM value through the LUT to its percentile. After normalization, the field is uniform on [0, 1] and every threshold **is** a true percentile.
+
+```js
+/**
+ * Build a quantile lookup table from raw-field histograms across an ensemble.
+ * Returns a 256-entry LUT mapping rawValue → percentile.
+ * Linear interpolation between bins for values between entries.
+ */
+function buildQuantileLUT(histograms, binCount = 256) {
+  // Pool histograms across all seeds/radii to get the ensemble CDF
+  const pooled = poolHistograms(histograms);
+  const total = pooled.reduce((a, b) => a + b, 0);
+
+  const lut = new Float32Array(binCount);
+  let cumulative = 0;
+  let binIdx = 0;
+  for (let i = 0; i < binCount; i++) {
+    // Map bin i (representing value i/binCount) to its cumulative percentile
+    while (binIdx < pooled.length && binIdx / pooled.length <= i / binCount) {
+      cumulative += pooled[binIdx];
+      binIdx++;
+    }
+    lut[i] = cumulative / total;
+  }
+  // Ensure last entry is exactly 1.0
+  lut[binCount - 1] = 1.0;
+  return lut;
+}
+
+function normalizeField(rawValue, lut) {
+  const bin = Math.min(lut.length - 1, Math.floor(rawValue * lut.length));
+  // Linear interpolation
+  const t = rawValue * lut.length - bin;
+  const lo = lut[bin];
+  const hi = bin < lut.length - 1 ? lut[bin + 1] : 1.0;
+  return lo + (hi - lo) * t;
+}
+```
+
+**Why this is non-optional:**
+- Phase B adds the detail layer → elevation distribution shifts. Without quantile normalization, every threshold must be manually re-derived.
+- Phase F swaps to ridged FBM → distribution shifts again. Same re-derivation burden.
+- Archetype `climateRange` values would silently drift — a biome that matches 15% of tiles in Phase A might match 5% after Phase B.
+- With quantile LUTs, Phases B and F only require LUT regeneration. Thresholds and climate ranges remain correct.
+
+**Per-seed variety** is applied to raw FBM values *before* the LUT — e.g., `rawElev + seaLevelOffset` with `seaLevelOffset` drawn from the world seed. This shifts the raw distribution so the LUT maps it to a different percentile range, producing variety across seeds.
 
 ### 4.5 Target Distribution Budgets
 
@@ -168,45 +215,62 @@ Define what percentage of tiles should be each terrain type on a "reference" map
 | Desert   | 8-15%  | `desertMaxMoisture` |
 | Marsh    | 3-8%   | `marshMinMoisture`, `marshMaxElevation` |
 | Plains   | remainder | default fallthrough |
-| **Supernatural biome** | 3-10% | `NOISE_EPICENTER` frequency + threshold |
+| **Supernatural biome** | 3-10% | `EPICENTER_GRID.cellSize` + per-biome `epicenter.radius` |
+| Ice      | 0-5%   | `freezeTempMax` × water coverage near cold latitudes |
 
 These are starting targets, not final aesthetic values — Phase G tunes them.
 
-The supernatural biome row is for epicenter-placed biomes like Brass Grave. During Phase 0, the epicenter noise alone determines placement (simple threshold). Phase G replaces this with distance-based region growth for organic shapes — the Phase 0 budget establishes the coverage floor.
+The supernatural biome row is for epicenter-placed biomes like Brass Grave. With the jittered-grid approach, coverage is controlled by grid cell size and per-biome epicenter radius — Phase 0 calibrates the grid cell size for the target coverage range; per-biome radii are tuned in Phase G.
 
-### 4.5 Threshold Derivation
+### 4.6 Threshold Derivation
 
-Run the full pipeline (elevation composite, moisture, temperature, slope) over N seeds × 3 map sizes, compute histograms, then set thresholds:
+Run the full pipeline (elevation composite, moisture, temperature, slope) over N seeds × 3 map sizes, compute quantile LUTs, then set threshold percentiles:
 
 ```js
-function calibrateThresholds(seeds, radii, noiseConfig) {
-  const allElev = [];
-  const allSlope = [];
+function calibratePipeline(seeds, radii, noiseConfig) {
+  const allElev  = [];
   const allMoist = [];
+  const allTemp  = [];
+  const allSlope = [];
 
   for (const seed of seeds) {
     for (const radius of radii) {
-      const { elevHist, moistHist, slopeHist } =
+      const { elevHist, moistHist, tempHist, slopeHist, slopeDeltas } =
         collectHistograms(seed, radius, {}, noiseConfig);
-      // Pool histograms across seeds/radii
-      mergeHistograms(allElev, elevHist);
-      mergeHistograms(allMoist, moistHist);
-      mergeHistograms(allSlope, slopeHist);
+      allElev.push(elevHist);
+      allMoist.push(moistHist);
+      allTemp.push(tempHist);
+      allSlope.push(slopeHist);
     }
   }
 
+  // Build quantile LUTs (256-entry per field)
+  const elevLUT  = buildQuantileLUT(allElev);
+  const moistLUT = buildQuantileLUT(allMoist);
+  const tempLUT  = buildQuantileLUT(allTemp);
+  const slopeLUT = buildQuantileLUT(allSlope);
+
+  // Thresholds are percentiles — directly meaningful, stable across distribution changes
   return {
-    waterMaxElevation:    percentileFromHistogram(allElev, 0.12),  // bottom 12%
-    mountainThreshold:    percentileFromHistogram(allElev, 0.90),  // top 10%
-    peakThreshold:        percentileFromHistogram(allElev, 0.97),  // top 3%
-    floatingIslandThreshold: percentileFromHistogram(allElev, 0.995), // top 0.5%
-    hillElevationMin:     percentileFromHistogram(allElev, 0.55),
-    // ... etc.
+    quantileLUTs: {
+      elevation:  { lut: Array.from(elevLUT),  version: 1 },
+      moisture:   { lut: Array.from(moistLUT), version: 1 },
+      temperature:{ lut: Array.from(tempLUT),  version: 1 },
+      slope:      { lut: Array.from(slopeLUT), version: 1 },
+    },
+    thresholds: {
+      waterMaxElevation:         0.12,  // 12th percentile → ~12% water
+      mountainThreshold:         0.90,  // top 10%
+      peakThreshold:             0.97,  // top 3%
+      floatingIslandThreshold:   0.995, // top 0.5%
+      hillElevationMin:          0.55,
+      // ... etc.
+    },
   };
 }
 ```
 
-### 4.6 Slope Normalization Calibration
+### 4.7 Slope Normalization Calibration
 
 The `SLOPE_NORMALIZATION` constant divides the sum of 6 neighbor deltas. Set it to the 95th-percentile of observed per-tile average delta:
 
@@ -219,7 +283,7 @@ function calibrateSlopeNormalization(seeds, radii, noiseConfig) {
 }
 ```
 
-### 4.7 Snapshot Tests
+### 4.8 Snapshot Tests
 
 Add a test module `dev/analysis/generation/snapshotTest.js`:
 
@@ -259,7 +323,7 @@ export function runSnapshotTests(noiseConfig) {
 
 `check_analysis_imports.py` already imports and validates the analysis tool's module graph. After this phase, it should also call `runSnapshotTests()` so a broken amplitude change fails CI.
 
-### 4.8 Chunk-Seam Test
+### 4.9 Chunk-Seam Test
 
 Verify the invariant from Design Principle 4: a hex generated as a core tile of chunk A produces identical values when the same hex is generated as a ring tile of chunk B.
 
@@ -273,7 +337,7 @@ export function runSeamTest(seedText, radius, noiseConfig) {
 
 This test catches regressions where a global pass (rivers, water BFS, epicenter) or per-chunk state leaks into what should be a pure function of `(seed, q, r)`. On finite maps, global passes run after all chunks are assembled, so the chunk-level invariant holds for the base fields and terrain classification (before global post-processing).
 
-### 4.9 Climate-Coverage Test
+### 4.10 Climate-Coverage Test
 
 Verify that the natural `BIOME_PRIORITY_ORDER` fully covers the climate cube. Any gap in coverage falls through to `biome_default` — this test makes those gaps visible:
 
@@ -289,7 +353,7 @@ export function runClimateCoverageTest(seeds, radius, noiseConfig) {
 
 The test doesn't enforce a specific distribution — it reports coverage so the designer can see gaps. The coverage report feeds into biome definition work in Phase A and Phase G.
 
-### 4.10 Analysis Page UI
+### 4.11 Analysis Page UI
 
 Add a "Distributions" tab/section to `dev/analysis.html` that:
 - Calls `collectHistograms` for the current seed/radius
@@ -305,7 +369,9 @@ This gives a visual debug tool for seeing where thresholds sit relative to actua
 
 | File | Change | Summary |
 |------|--------|---------|
-| `dev/analysis/generation/histograms.js` | **new** | `collectHistograms`, `percentileFromHistogram`, `calibrateThresholds`, `calibrateSlopeNormalization`, `buildQuantileLUT` |
+| `dev/analysis/generation/histograms.js` | **new** | `collectHistograms`, `percentileFromHistogram`, `buildQuantileLUT`, `calibratePipeline`, `calibrateSlopeNormalization` |
+| `dev/analysis/generation/quantileLUT.js` | **new** | `normalizeField` — applies a quantile LUT to a raw value with linear interpolation |
+| `dev/analysis/generation/snapshotTest.js` | **new** | `runSnapshotTests` — distribution invariant checks |
 | `dev/analysis/generation/snapshotTest.js` | **new** | `runSnapshotTests` — distribution invariant checks |
 | `dev/analysis/generation/seamTest.js` | **new** | `runSeamTest` — chunk-seam invariant verification |
 | `dev/analysis/generation/climateCoverage.js` | **new** | `runClimateCoverageTest` — biome climate-cube coverage report |
@@ -321,9 +387,13 @@ This gives a visual debug tool for seeing where thresholds sit relative to actua
 
 - The analysis page shows histograms of elevation, moisture, temperature, and slope for any seed/radius.
 - Threshold lines on the histograms show where each terrain cutoff sits.
-- Running the analysis tool across 5 seeds at radius 21 produces a calibration report: a JSON file (`dev/mapgen_update/calibration_v1.json`) with the derived thresholds.
+- Running the analysis tool across 5+ seeds at radius 21 produces a calibration file (`dev/mapgen_update/calibration_v1.json`) containing:
+  - Quantile LUTs (256-entry arrays) for elevation, moisture, temperature, and slope
+  - Derived percentile thresholds for `DEFAULT_TERRAIN_RULES`
+  - `SLOPE_NORMALIZATION` constant
+  - Epicenter grid cell size calibration (for 3–10% supernatural coverage target)
 - `check_analysis_imports.py` fails if a snapshot distribution invariant, chunk-seam invariant, or climate-cube coverage anomaly is detected.
-- Every threshold constant in `worldParams.js` has a comment citing its percentile derivation (e.g., `// 90th percentile of pooled elevation histogram, 5 seeds × 3 radii`).
+- Every threshold constant in `worldParams.js` is a percentile with a comment citing its derivation (e.g., `// 90th percentile of pooled elevation histogram, 5 seeds × 3 radii`).
 - Chunk-seam test verifies that adjacent chunks produce identical values at shared hexes.
 - Climate-coverage test reports which climate zones fall through to `biome_default`, making coverage gaps visible before playtesting.
 
