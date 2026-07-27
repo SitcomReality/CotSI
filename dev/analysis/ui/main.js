@@ -26,6 +26,11 @@ import {
   buildAndFormatLUTs,
 } from '../stats/calibrationDisplay.js';
 
+// ── Test imports ────────────────────────────────────────────────────────────
+import { runSnapshotTests, formatSnapshotReport } from '../generation/snapshotTest.js';
+import { runSeamTest, formatSeamReport } from '../generation/seamTest.js';
+import { runClimateCoverageTest, formatClimateCoverageReport } from '../generation/climateCoverage.js';
+
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
 function getMapSettings() {
@@ -176,6 +181,42 @@ async function doMultiSeedGenerate() {
   }
 }
 
+// ─── Test runner ──────────────────────────────────────────────────────────────
+
+async function runAllTests() {
+  els.loading.classList.add('visible');
+  els.loading.textContent = 'Running tests...';
+  els.btnRunTests.disabled = true;
+
+  const parts = [];
+
+  try {
+    // Yield to let the loading indicator render
+    await new Promise(r => setTimeout(r, 0));
+
+    // Snapshot tests
+    const snapshotResult = runSnapshotTests();
+    parts.push(formatSnapshotReport(snapshotResult));
+    parts.push('');
+
+    // Seam test
+    const seamResult = runSeamTest();
+    parts.push(formatSeamReport(seamResult));
+    parts.push('');
+
+    // Climate coverage report
+    const climateResult = runClimateCoverageTest();
+    parts.push(formatClimateCoverageReport(climateResult));
+  } catch (err) {
+    parts.push(`Test runner error: ${err.message}`);
+  } finally {
+    els.loading.classList.remove('visible');
+    els.btnRunTests.disabled = false;
+  }
+
+  els.statsPanel.textContent = parts.join('\n');
+}
+
 // ─── Bind controls ────────────────────────────────────────────────────────────
 
 function bindControls() {
@@ -257,6 +298,11 @@ function bindControls() {
   // Export
   els.btnExportPng.addEventListener('click', exportPng);
   els.btnExportJson.addEventListener('click', exportJson);
+
+  // Run tests
+  if (els.btnRunTests) {
+    els.btnRunTests.addEventListener('click', runAllTests);
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────

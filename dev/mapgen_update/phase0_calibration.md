@@ -338,7 +338,7 @@ export function runSnapshotTests(noiseConfig) {
 }
 ```
 
-`check_analysis_imports.py` already imports and validates the analysis tool's module graph. After this phase, it should also call `runSnapshotTests()` so a broken amplitude change fails CI.
+`check_analysis_imports.py` already imports and validates the analysis tool's module graph. Test execution is browser-based via the "Run Tests" button in the Calibration section — this avoids adding a Node.js dependency for headless test running. Import validation (`check_analysis_imports.py`) still catches missing files and broken exports.
 
 ### 4.9 Chunk-Seam Test
 

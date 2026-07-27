@@ -8,6 +8,7 @@ import { S } from '../state.js';
 import { els } from '../domRefs.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
 import { renderMap } from './renderMap.js';
+import { renderDistributions } from './renderDistributions.js';
 import { fitCameraToRadius } from './camera.js';
 
 // ─── Toggle options ─────────────────────────────────────────────────────────
@@ -71,8 +72,16 @@ export function resizeCanvas() {
  * Render the current map at the current canvas size.
  */
 export function render() {
-  if (!S.lastResult || !S.ctx) return;
+  if (!S.ctx) return;
   const { w, h, dpr } = resizeCanvas();
+
+  // Distributions view renders histograms — no map data needed
+  if (S.viewMode === 'distributions') {
+    renderDistributions(S.ctx, w, h, dpr);
+    return;
+  }
+
+  if (!S.lastResult) return;
   const { tiles, champions, mobs, traders } = S.lastResult;
   const options = getOptions();
   renderMap(S.ctx, tiles, { champions, mobs, traders }, S.camera, options, w, h, dpr, S.viewMode);
@@ -82,8 +91,15 @@ export function render() {
  * Fit camera to the map radius, then render.
  */
 export function renderAndFit() {
-  if (!S.lastResult) return;
   const { w, h, dpr } = resizeCanvas();
+
+  // Distributions view doesn't use camera — render directly
+  if (S.viewMode === 'distributions') {
+    renderDistributions(S.ctx, w, h, dpr);
+    return;
+  }
+
+  if (!S.lastResult) return;
   fitCameraToRadius(S.camera, S.lastResult.radius, w, h);
   render();
 }

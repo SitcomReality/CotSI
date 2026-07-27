@@ -57,6 +57,7 @@ export function cacheDom() {
   els.calibFreq = $('calib-freq');
   els.calibHist = $('calib-hist');
   els.calibLut   = $('calib-lut');
+  els.btnRunTests = $('btn-run-tests');
 
   // Multi-seed output checkboxes
   els.multiTerrain   = $('multi-terrain');
