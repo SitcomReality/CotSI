@@ -6,6 +6,6 @@
  *   - spawn-placement helpers → ./tileQueries.js
  *   - terrain generation      → ./terrainGenerator.js
  */
-export { TERRAIN, DEFAULT_THRESHOLDS, DEFAULT_FEATURES } from './terrainTypes.js';
+export { TERRAIN, DEFAULT_FEATURES } from './terrainTypes.js';
 export { nearestOpenKey, nearestOpenMultiRing } from './tileQueries.js';
 export { generateTiles } from './terrainGenerator.js';

@@ -341,3 +341,60 @@ Pass 1b is guarded by `if (!biomeDef)` — when `generateChunkTiles` is called i
 ```bash
 python3 dev/check_imports.py
 # OK — all imports resolve, all named exports verified (235 files checked)
+```
+
+---
+
+## A10. Post-Review Refinements (2026-07-27)
+
+After a full architecture review of the completed Phase A, seven refinements were applied. Details in `progress_overview.md` §Phase A → Post-review refinements.
+
+### A10a. Fix `_noiseIsWater` radius bug
+
+`_noiseIsWater` was hardcoded to pass `radius=9999` to `sampleBaseFields`. This inflated the latitude term to ≈1.0 everywhere, making `classifyTerrain` never return `'ice'` in the water-type BFS — cold polar water tiles could be misclassified as non-water, breaking lake/ocean determination.
+
+**Fix:** Added `radius` parameter to `_noiseIsWater(seed, q, r, radius, noiseConfig)`. The single call site in `waterTypeForTile` now passes the real map radius.
+
+### A10b. Add `biome_savanna`
+
+Natural biomes covered only `biome_arid` (m≤0.22, t≥0.65) and `biome_lush` (m≥0.62, t≥0.25), leaving a large climate gap at `{ m: 0.22–0.62, t: > 0.60 }` — all falling to `biome_default`.
+
+**Fix:** Added `biome_savanna` ("Sunscorched Savanna") with `climateRange: { minMoisture: 0.22, maxMoisture: 0.60, minTemperature: 0.60 }`. Inserted in `BIOME_PRIORITY_ORDER` between `biome_arid` and `biome_lush`. Uses transitional terrain rules (moderate forest/desert thresholds) and warm golden palette distinct from both neighboring biomes.
+
+### A10c. Supernatural field write-back
+
+`applySupernaturalOverrides` computed modified field values (`modElev`, `modMoist`, `modTemp`) as locals for `classifyTerrain` but never persisted them to the tile object. Downstream phases (C moisture adjustment, D river sources, E feature density) would see un-modified climate values on supernatural tiles.
+
+**Fix:** Added 3 lines writing `modElev` → `tile.elevationField`, `modMoist` → `tile.moisture`, `modTemp` → `tile.temperature` after modification and before `classifyTerrain`.
+
+### A10d. Remove dead `DEFAULT_THRESHOLDS`
+
+`DEFAULT_THRESHOLDS` in `terrainTypes.js` was consumed by the old `resolveThresholds()` function, removed in A7. Still exported and barrel-re-exported from `terrainGeneration.js`, but no imports existed.
+
+**Fix:** Removed from `terrainTypes.js` (8 lines) and from `terrainGeneration.js` barrel export.
+
+### A10e. `classifyTerrain` future-proofing
+
+Phase B adds a `slope` parameter for mountain/plateau/hill discrimination — a breaking signature change to an exported function called in 4 places.
+
+**Fix:** Added optional `slope = 0` parameter to `classifyTerrain`. All 4 call sites continue to pass 4 args — the default handles the missing parameter. Phase B can pass real slope values without touching call sites.
+
+### A10f. Document Phase C pass reorder
+
+Phase C splits the current single-pass generation into multi-pass (sample → provisional water → adjust moisture → selectBiome → classifyTerrain). This was documented in the Phase C spec but not noted in the generating function.
+
+**Fix:** Added JSDoc note in `generateChunkTiles` describing the planned Phase C pass split.
+
+### A10g. `biome_brass_grave` placeholder palette
+
+Brass Grave had an empty `palette: {}` — all tiles fell back to `biome_default` colours, making epicenter regions invisible during testing.
+
+**Fix:** Added warm-metallic palette entries for all 6 terrain types (plains, desert, mountain, peak, water, ice). Also added `'ice'` to `terrainTags` since the `temperatureOffset: -0.15` can produce frozen water tiles.
+
+### Verification
+
+```bash
+python3 dev/check_imports.py
+# OK — all imports resolve, all named exports verified (235 files checked)
+python3 dev/check_analysis_imports.py
+# OK — all analysis imports resolve, all named exports verified (30 files checked)

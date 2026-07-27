@@ -108,7 +108,8 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
 /** Natural biomes — climate-driven, in specificity order. biome_default is last (catch-all). */
 const BIOME_PRIORITY_ORDER = [
-  'biome_arid',    // hot + dry (more specific)
+  'biome_arid',    // hot + dry (most specific)
+  'biome_savanna', // hot transitional — between arid and lush
   'biome_lush',    // wet + warm
   'biome_default', // catch-all — last, always matches
 ];
@@ -179,9 +180,10 @@ export function selectBiome(elevation, moisture, temperature, regionBiasM, regio
  * @param {number} moisture    - [0, 1] moisture field
  * @param {number} temperature - [0, 1] temperature field
  * @param {object} [biomeDef]  - Biome archetype def (read for terrainRules)
+ * @param {number} [slope=0]   - Slope [0, 1] (unused until Phase B; reserved for mountain/plateau/hill discrimination)
  * @returns {string} terrain type
  */
-export function classifyTerrain(elevation, moisture, temperature, biomeDef) {
+export function classifyTerrain(elevation, moisture, temperature, biomeDef, slope = 0) {
   const R = { ...DEFAULT_TERRAIN_RULES, ...biomeDef?.terrainRules };
 
   // Water: elevation-driven; frozen at low temperature
@@ -330,6 +332,10 @@ function applySupernaturalOverrides(tileMap, baseSeed, radius) {
                                  * (mods.moistureMultiplier ?? 1));
         const modTemp  = clamp01(tile.temperature + (mods.temperatureOffset || 0));
 
+        tile.elevationField = modElev;
+        tile.moisture      = modMoist;
+        tile.temperature   = modTemp;
+
         tile.biomeId = s.biomeId;
         tile.terrain = classifyTerrain(modElev, modMoist, modTemp, s.biomeDef);
         tile.elevation = resolveElevation(tile.terrain, s.biomeDef);
@@ -387,7 +393,7 @@ function waterTypeForTile(seed, q, r, radius, noiseConfig, tileLookup) {
       const existing = tileLookup(n.q, n.r);
       const isWater = existing
         ? existing.terrain === 'water'
-        : _noiseIsWater(seed, n.q, n.r, noiseConfig);
+        : _noiseIsWater(seed, n.q, n.r, radius, noiseConfig);
 
       if (!isWater) continue;
 
@@ -402,8 +408,8 @@ function waterTypeForTile(seed, q, r, radius, noiseConfig, tileLookup) {
   return 'lake';
 }
 
-function _noiseIsWater(seed, q, r, noiseConfig) {
-  const fields = sampleBaseFields(seed, q, r, noiseConfig, 9999);
+function _noiseIsWater(seed, q, r, radius, noiseConfig) {
+  const fields = sampleBaseFields(seed, q, r, noiseConfig, radius);
   const biomeDef = getArchetype('biome_default');
   const terrain = classifyTerrain(fields.elevation, fields.baseMoisture, fields.temperature, biomeDef);
   return terrain === 'water' || terrain === 'ice';
@@ -469,6 +475,10 @@ function spawnFeature(roll, terrain, features) {
  * → classifyTerrain(). Tile fields include continuous elevation, moisture,
  * and temperature for downstream use (water adjustment in Phase C, slope
  * in Phase B).
+ *
+ * Phase C will split Pass 1 into sequential passes:
+ *   sample → provisional water → adjust moisture → selectBiome → classifyTerrain,
+ * so coastal/river moisture boosts affect biome selection and terrain output.
  *
  * @param {string}   seedText  - Seed string for reproducible generation
  * @param {number}   chunkQ    - Chunk q coordinate

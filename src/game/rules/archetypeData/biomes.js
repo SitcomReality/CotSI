@@ -94,10 +94,60 @@ defineArchetype('biome_brass_grave', {
   ],
 
   palette: {
-    // Dark metallic palette deferred to Phase G — falls back to biome_default
+    plains:   [0.710, 0.630, 0.420],  // warm brass
+    desert:   [0.780, 0.650, 0.380],  // bleached brass
+    mountain: [0.580, 0.450, 0.320],  // dark oxidized brass
+    peak:     [0.750, 0.680, 0.550],  // pale brass highlight
+    water:    [0.350, 0.450, 0.500],  // murky metallic blue
+    ice:      [0.600, 0.680, 0.720],  // cold brass-teal
   },
-  terrainTags: ['plains', 'desert', 'mountain', 'peak', 'water'],
+  terrainTags: ['plains', 'desert', 'mountain', 'peak', 'water', 'ice'],
   weatherAffinity: ['arid'],
+});
+
+defineArchetype('biome_savanna', {
+  type: 'biome',
+  id: 'biome_savanna',
+  name: 'Sunscorched Savanna',
+  origin: 'natural',
+
+  climateRange: {
+    minMoisture: 0.22,
+    maxMoisture: 0.60,
+    minTemperature: 0.60,
+  },
+
+  terrainRules: {
+    mountainThreshold: 0.900,
+    forestMinMoisture: 0.76,
+    denseForestMinMoisture: 0.88,
+    desertMaxMoisture: 0.12,
+    marshMinMoisture: 0.62,
+    marshMaxElevation: 0.30,
+    waterMaxElevation: 0.08,
+  },
+
+  // Savanna: sparse trees, rare fruit trees, scattered knots
+  features: [
+    { kind: 'tree',      threshold: 0.945, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'fruitTree', threshold: 0.980, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'knot',      threshold: 0.038, compare: 'lt' },
+  ],
+
+  palette: {
+    plains:      [0.620, 0.580, 0.310],  // sun-bleached grass
+    forest:      [0.420, 0.480, 0.220],  // dry woodland
+    denseForest: [0.320, 0.380, 0.160],  // dark thicket
+    desert:      [0.840, 0.700, 0.400],  // warm sand
+    marsh:       [0.560, 0.540, 0.360],  // dry reed
+    mountain:    [0.580, 0.500, 0.400],  // warm rock
+    peak:        [0.700, 0.660, 0.580],  // dusty peak
+    water:       [0.340, 0.560, 0.700],  // warm blue
+  },
+  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'mountain', 'peak', 'water'],
+  weatherAffinity: ['arid', 'temperate'],
+  terrainElevation: { mountain: 0.70, plains: 0.05 },
+  supportsFloatingIslands: false,
 });
 
 defineArchetype('biome_lush', {

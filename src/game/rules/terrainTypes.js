@@ -23,15 +23,6 @@ export const TERRAIN = {
   ice:           { fill:'#b8d8f0', ink:'#e0f0ff', label:'Frozen surface',  passable:false, movementCost:Infinity, mark:'❄' },
 };
 
-// Default thresholds used when no biome is supplied (backward-compatible)
-export const DEFAULT_THRESHOLDS = {
-  mountain: { minElevation: 0.905 },
-  water: { maxElevation: 0.07, minMoisture: 0.5 },
-  forest: { minMoisture: 0.72 },
-  desert: { maxMoisture: 0.20 },
-  marsh: { minMoisture: 0.58, maxElevation: 0.35 },
-};
-
 export const DEFAULT_FEATURES = [
   { kind: 'fruitTree', threshold: 0.970, compare: 'gt', terrainExclude: ['desert'] },
   { kind: 'tree',      threshold: 0.935, compare: 'gt', terrainExclude: ['desert'] },
