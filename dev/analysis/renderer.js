@@ -93,16 +93,16 @@ export function fitCameraToRadius(camera, radius, canvasWidth, canvasHeight) {
  * see where water, land, and mountains form.
  */
 function elevationColor(elev) {
-  if (elev < 0.04) return '#1a3050';       // deep ocean
-  if (elev < 0.07) return '#2a5a8a';       // shallow water
-  if (elev < 0.15) return '#4a8a3a';       // low wetland
-  if (elev < 0.30) return '#5a9a4a';       // lowland
-  if (elev < 0.50) return '#6aaa5a';       // midland
-  if (elev < 0.70) return '#8a9a5a';       // highland
-  if (elev < 0.85) return '#9a8a5a';       // foothill
-  if (elev < 0.905) return '#7a7a6a';      // sub-mountain
-  if (elev < 0.95) return '#8a8a7a';       // mountain
-  return '#b0b0a0';                         // peak
+  if (elev < 0.04) return '#0a1a3a';       // deep ocean — very dark navy
+  if (elev < 0.07) return '#1a4a8a';       // shallow water — blue
+  if (elev < 0.12) return '#3a8a8a';       // shore / beach — teal transition
+  if (elev < 0.25) return '#4a9a4a';       // lowland — green
+  if (elev < 0.45) return '#7aaa4a';       // midland — yellow-green
+  if (elev < 0.65) return '#b8a030';       // highland — yellow
+  if (elev < 0.80) return '#d48030';       // foothill — orange
+  if (elev < 0.905) return '#c05030';      // sub-mountain — red-orange
+  if (elev < 0.95) return '#a03030';       // mountain — deep red
+  return '#e06040';                         // peak — bright warm red
 }
 
 /**

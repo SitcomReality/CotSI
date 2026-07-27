@@ -20,7 +20,7 @@ html, body {
 
 #analysis-root {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 320px 1fr 260px;
   grid-template-rows: 1fr auto;
   height: 100vh;
 }
@@ -56,7 +56,7 @@ html, body {
 
 #stats-panel {
   grid-row: 2;
-  grid-column: 2;
+  grid-column: 2 / 4;
   background: #1e1e24;
   border-top: 1px solid #333;
   padding: 10px 16px;
@@ -252,7 +252,225 @@ button:disabled {
   border-radius: 3px;
 }
 
-/* ── Random Cycle controls ─────────────────────────────────────────── */
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+
+#sidebar {
+  grid-row: 1;
+  grid-column: 3;
+  background: #222228;
+  border-left: 1px solid #333;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#sidebar h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Legend ──────────────────────────────────────────────────────────── */
+
+#legend {
+  font-size: 12px;
+  color: #999;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Continuous gradient bar (elevation / moisture) */
+.legend-gradient {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.legend-gradient-bar {
+  width: 100%;
+  height: 180px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  position: relative;
+}
+
+.legend-gradient-stops {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.legend-gradient-stop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #aaa;
+}
+
+.legend-gradient-stop .stop-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  border: 1px solid #555;
+  flex-shrink: 0;
+}
+
+.legend-gradient-stop .stop-label {
+  white-space: nowrap;
+}
+
+/* Discrete swatches (terrain) */
+.legend-swatches {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #c0c0c0;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid #555;
+  flex-shrink: 0;
+}
+
+/* ── Entity key (swatches in toggle labels) ─────────────────────────── */
+
+#entity-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#entity-toggles label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #bbb;
+  cursor: pointer;
+}
+
+#entity-toggles input[type="checkbox"] {
+  accent-color: #6a8abf;
+}
+
+.entity-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Champion marker */
+.entity-key[data-entity="champion"]::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #6a8abf;
+  border: 2px solid #fff;
+}
+
+/* Mob marker */
+.entity-key[data-entity="mob"]::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8B6914;
+}
+
+/* Trader marker */
+.entity-key[data-entity="trader"]::after {
+  content: '';
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #20b2aa;
+}
+
+/* Base marker */
+.entity-key[data-entity="base"]::after {
+  content: '';
+  display: block;
+  width: 9px;
+  height: 9px;
+  background: #6a8abf;
+  border: 1.5px solid #fff;
+}
+
+/* Feature marker (two dots) */
+.entity-key[data-entity="feature"] {
+  gap: 2px;
+}
+.entity-key[data-entity="feature"]::before,
+.entity-key[data-entity="feature"]::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.entity-key[data-entity="feature"]::before {
+  background: #2d5a1e;
+}
+.entity-key[data-entity="feature"]::after {
+  background: #c8a832;
+}
+
+/* Debris marker (3-color gradient strip) */
+.entity-key[data-entity="debris"]::after {
+  content: '';
+  display: block;
+  width: 14px;
+  height: 8px;
+  border-radius: 2px;
+  border: 1px solid #555;
+  background: linear-gradient(90deg, #5a7a3a 33%, #777 33% 66%, #c878a0 66%);
+}
+
+/* ── Sidebar scrollbar ──────────────────────────────────────────────── */
+
+#sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+#sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#sidebar::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
+
+/* ── Random Cycle controls (from earlier) ────────────────────────────── */
 
 #btn-cycle-toggle.active {
   background: #6a4a3a;

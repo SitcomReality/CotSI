@@ -85,18 +85,6 @@
       </div>
 
       <div class="control-group">
-        <h3>Entity Overlays</h3>
-        <div class="toggle-group">
-          <label><input type="checkbox" id="toggle-champs" checked> Champions</label>
-          <label><input type="checkbox" id="toggle-mobs" checked> Mobs</label>
-          <label><input type="checkbox" id="toggle-traders" checked> Traders</label>
-          <label><input type="checkbox" id="toggle-bases" checked> Bases</label>
-          <label><input type="checkbox" id="toggle-features" checked> Features</label>
-          <label><input type="checkbox" id="toggle-debris"> Debris</label>
-        </div>
-      </div>
-
-      <div class="control-group">
         <h3>Multi-Seed Analysis</h3>
         <div class="control-row">
           <label>Seed count</label>
@@ -118,6 +106,49 @@
     <div id="map-area">
       <canvas id="map-canvas"></canvas>
       <div id="loading">Generating...</div>
+    </div>
+
+    <!-- Right sidebar: legend + entity toggles -->
+    <div id="sidebar">
+      <div class="sidebar-section">
+        <h3>Legend</h3>
+        <div id="legend">Generate a map to see the legend.</div>
+      </div>
+      <div class="sidebar-section">
+        <h3>Entity Overlays</h3>
+        <div class="toggle-group" id="entity-toggles">
+          <label class="toggle-with-key">
+            <input type="checkbox" id="toggle-champs" checked>
+            <span class="entity-key" data-entity="champion"></span>
+            Champions
+          </label>
+          <label class="toggle-with-key">
+            <input type="checkbox" id="toggle-mobs" checked>
+            <span class="entity-key" data-entity="mob"></span>
+            Mobs
+          </label>
+          <label class="toggle-with-key">
+            <input type="checkbox" id="toggle-traders" checked>
+            <span class="entity-key" data-entity="trader"></span>
+            Traders
+          </label>
+          <label class="toggle-with-key">
+            <input type="checkbox" id="toggle-bases" checked>
+            <span class="entity-key" data-entity="base"></span>
+            Bases
+          </label>
+          <label class="toggle-with-key">
+            <input type="checkbox" id="toggle-features" checked>
+            <span class="entity-key" data-entity="feature"></span>
+            Features
+          </label>
+          <label class="toggle-with-key">
+            <input type="checkbox" id="toggle-debris">
+            <span class="entity-key" data-entity="debris"></span>
+            Debris
+          </label>
+        </div>
+      </div>
     </div>
 
     <!-- Stats panel -->

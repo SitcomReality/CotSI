@@ -76,6 +76,7 @@ function cacheDom() {
   els.btnExportPng = $('btn-export-png');
   els.btnExportJson = $('btn-export-json');
   els.statsPanel = $('stats-panel');
+  els.legend = $('legend');
   els.loading = $('loading');
   els.mapArea = $('map-area');
   canvasEl = $('map-canvas');
@@ -215,6 +216,101 @@ function updateStats() {
   els.statsPanel.textContent = formatStats();
 }
 
+// ─── Legend ────────────────────────────────────────────────────────────────
+
+const ELEVATION_STOPS = [
+  { max: '0.04', color: '#0a1a3a', label: 'Deep ocean' },
+  { max: '0.07', color: '#1a4a8a', label: 'Shallow water' },
+  { max: '0.12', color: '#3a8a8a', label: 'Shore / beach' },
+  { max: '0.25', color: '#4a9a4a', label: 'Lowland' },
+  { max: '0.45', color: '#7aaa4a', label: 'Midland' },
+  { max: '0.65', color: '#b8a030', label: 'Highland' },
+  { max: '0.80', color: '#d48030', label: 'Foothill' },
+  { max: '0.905', color: '#c05030', label: 'Sub-mountain' },
+  { max: '0.95', color: '#a03030', label: 'Mountain' },
+  { max: '1.0', color: '#e06040', label: 'Peak' },
+];
+
+const MOISTURE_STOPS = [
+  { max: '0.10', color: '#c8b050', label: 'Very dry' },
+  { max: '0.20', color: '#b8a848', label: 'Arid' },
+  { max: '0.35', color: '#8aaa4a', label: 'Dry' },
+  { max: '0.50', color: '#6a9a3a', label: 'Moderate' },
+  { max: '0.65', color: '#4a8a2a', label: 'Moist' },
+  { max: '0.80', color: '#3a7a2a', label: 'Wet' },
+  { max: '1.0', color: '#2a6a4a', label: 'Saturated' },
+];
+
+const TERRAIN_ORDER = ['plains', 'forest', 'desert', 'marsh', 'mountain', 'water'];
+
+function updateLegend(mode) {
+  if (!els.legend) return;
+
+  if (!lastResult) {
+    els.legend.textContent = 'Generate a map to see the legend.';
+    return;
+  }
+
+  if (mode === 'elevation') {
+    const stops = ELEVATION_STOPS;
+    const gradientColors = stops.map(s => s.color).join(', ');
+    const html = `
+      <div class="legend-gradient">
+        <div class="legend-gradient-bar" style="background: linear-gradient(to top, ${gradientColors});"></div>
+        <div class="legend-gradient-stops">
+          ${stops.slice().reverse().map(s => `
+            <div class="legend-gradient-stop">
+              <span class="stop-swatch" style="background:${s.color}"></span>
+              <span class="stop-label">≤ ${s.max} — ${s.label}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    els.legend.innerHTML = html;
+
+  } else if (mode === 'moisture') {
+    const stops = MOISTURE_STOPS;
+    const gradientColors = stops.map(s => s.color).join(', ');
+    const html = `
+      <div class="legend-gradient">
+        <div class="legend-gradient-bar" style="background: linear-gradient(to top, ${gradientColors});"></div>
+        <div class="legend-gradient-stops">
+          ${stops.slice().reverse().map(s => `
+            <div class="legend-gradient-stop">
+              <span class="stop-swatch" style="background:${s.color}"></span>
+              <span class="stop-label">≤ ${s.max} — ${s.label}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    els.legend.innerHTML = html;
+
+  } else {
+    // Terrain mode — show biome-palette swatches
+    const palette = lastResult.biomeDef?.palette || null;
+    const biomeName = lastResult.biomeDef?.name || 'Default';
+    const html = `
+      <div style="margin-bottom:4px;font-size:11px;color:#888;">Biome: ${biomeName}</div>
+      <div class="legend-swatches">
+        ${TERRAIN_ORDER.map(t => {
+          let color;
+          if (palette && palette[t]) {
+            const rgb = palette[t];
+            color = `rgb(${rgb[0]*255|0},${rgb[1]*255|0},${rgb[2]*255|0})`;
+          } else {
+            color = TERRAIN[t]?.fill || '#444';
+          }
+          const label = TERRAIN[t]?.label || t;
+          return `<div class="legend-item">
+            <span class="legend-swatch" style="background:${color}"></span>
+            <span>${label}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    els.legend.innerHTML = html;
+  }
+}
+
 // ─── Multi-seed ──────────────────────────────────────────────────────────────
 
 function formatMultiStats(result) {
@@ -273,6 +369,7 @@ async function doMultiSeedGenerate() {
     generateSingleSeed(lastSeedText);
     renderAndFit();
     updateStats();
+    updateLegend(viewMode);
 
     // Show multi-seed report inline
     els.statsPanel.textContent += '\n\n' + formatMultiStats(result);
@@ -341,6 +438,7 @@ function pickAndGenerateRandom() {
       generateSingleSeed(seedText);
       renderAndFit();
       updateStats();
+      updateLegend(viewMode);
     } finally {
       els.loading.classList.remove('visible');
     }
@@ -442,6 +540,7 @@ function bindControls() {
         generateSingleSeed(seedText);
         renderAndFit();
         updateStats();
+        updateLegend(viewMode);
       } finally {
         els.loading.classList.remove('visible');
       }
@@ -466,6 +565,7 @@ function bindControls() {
   els.viewMode.addEventListener('change', () => {
     viewMode = els.viewMode.value;
     render();
+    updateLegend(viewMode);
   });
 
   // Random cycle
@@ -511,6 +611,7 @@ function init() {
   generateSingleSeed('glut-17');
   renderAndFit();
   updateStats();
+  updateLegend(viewMode);
 }
 
 // Wait for DOM
