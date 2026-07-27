@@ -176,22 +176,31 @@ This is the "fertile river valley" effect — real terrain changes, not just a c
 
 ### 4.5 Updated Generation Pass Order
 
+The pass order within `generateChunkTiles` (per-chunk generation) does **not** include river tracing — rivers cross chunk boundaries and are handled by the `generateTiles` wrapper after all chunks are assembled.
+
+**`generateChunkTiles` pass order (per-chunk):**
 ```
 Pass 1: sampleBaseFields for core + border ring
 Pass 2: classify provisional water (elevation-based)
 Pass 3: adjust moisture (coastal boost)
-Pass 4: [NEW] select river sources + trace rivers
-Pass 5: [NEW] apply river moisture boost
-Pass 6: selectBiome + classifyTerrain (with boosted moisture)
-Pass 7: slope computation
-Pass 8: mountain type tagging
-Pass 9: water type tagging
-Pass 10: set isRiver flag on tiles
-Pass 11: features
-Pass 12: debris
+Pass 4: selectBiome + applySupernaturalOverrides + classifyTerrain
+Pass 5: slope computation
+Pass 6: mountain type tagging
+Pass 7: water type tagging
+Pass 8: features
+Pass 9: debris
 ```
 
-Rivers run between moisture adjustment and terrain classification — this is the critical reordering from the original design.
+**`generateTiles` wrapper (global post-processing, runs after all chunks):**
+```
+Post-pass 1: [NEW] select river sources (from all assembled tiles)
+Post-pass 2: [NEW] trace rivers downhill (using global fieldMap)
+Post-pass 3: [NEW] apply river moisture boost to affected tiles
+Post-pass 4: re-classify terrain for river-affected tiles (fertile valleys)
+Post-pass 5: set isRiver flags on river-path tiles
+```
+
+Rivers run after moisture adjustment and before final terrain classification in the global pass — this is the critical reordering from the original design. The river moisture boost produces real terrain changes (more forest, less desert along river paths) rather than just cosmetic `isRiver` tags.
 
 ### 4.6 River Data on Tiles
 

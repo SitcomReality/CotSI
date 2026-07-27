@@ -41,14 +41,21 @@ None. This phase works against the *projected* pipeline — it measures noise fi
 
 ### 4.1 Frequency Verification
 
-The original `design.md` claims:
-- Continent at 0.0008 → "2-4 major landmasses" on radius-50 (~7,651 tiles)
-- Detail at 0.015 → "~10-15 hex" local relief
-- Region at 0.0015 → "4-6 regions" on radius-50
+All frequency values in the design docs are **target values pending verification.** `hexFbm2D(q, r, seed, opts)` converts hex coords to world-space via `hexToWorld(q, r)`, which scales `y` by 0.866. The actual world-space distance between adjacent hexes is ~1.0 unit in x and ~1.73 in y (a flattened hex). At frequency 0.0008, the wavelength is 1/0.0008 = 1250 world-space units. A radius-50 map spans ~100 world-space units — that's 0.08 cycles, not "2-4 landmasses."
 
-But `hexFbm2D(q, r, seed, opts)` converts hex coords to world-space via `hexToWorld(q, r)`, which scales `y` by 0.866. The actual world-space distance between adjacent hexes is ~1.0 unit in x and ~1.73 in y (a flattened hex). At frequency 0.0008, the wavelength is 1/0.0008 = 1250 world-space units. A radius-50 map spans ~100 world-space units — that's 0.08 cycles, not "2-4 landmasses."
+**First calibration task:** Run `hexFbm2D` across a radius-50 map for each noise field and count zero-crossings of `(value - 0.5)`. Verify the actual effective frequencies against the target descriptions:
 
-**First calibration task:** Run `hexFbm2D` across a radius-50 map and count the zero-crossings of `(value - 0.5)`. If the claimed 2-4 landmasses is the actual observed result, then `hexFbm2D` must be rescaling coordinates internally (or the frequency numbers in the config are wrong). Document the actual relationship.
+| Field | Target effective scale (radius-50) | Config frequency | Verdict after hexToWorld? |
+|-------|-----------------------------------|------------------|---------------------------|
+| `CONTINENT` | 2-4 landmasses | 0.0008 | TBD |
+| `ELEVATION_DETAIL` | ~10-hex local relief | 0.020 | TBD |
+| `RIDGE` | ~25-hex mountain chains | 0.008 | TBD |
+| `MOISTURE` | broad wet/dry bands | 0.006 | TBD |
+| `TEMP_VARIATION` | local temp noise | 0.08 | TBD |
+| `REGION` | 4-6 biome regions | 0.0015 | TBD |
+| `EPICENTER` | 1-3 event regions | 0.0010 | TBD |
+
+If the observed effective frequencies differ from the targets, either correct the config values or document the `hexToWorld` rescaling factor. **All phase docs quote config frequencies that are TBD until this verification is complete.**
 
 ### 4.2 Analysis Tool: Histogram Collection
 
@@ -153,8 +160,11 @@ Define what percentage of tiles should be each terrain type on a "reference" map
 | Desert   | 8-15%  | `desertMaxMoisture` |
 | Marsh    | 3-8%   | `marshMinMoisture`, `marshMaxElevation` |
 | Plains   | remainder | default fallthrough |
+| **Supernatural biome** | 3-10% | `NOISE_EPICENTER` frequency + threshold |
 
 These are starting targets, not final aesthetic values — Phase G tunes them.
+
+The supernatural biome row is for epicenter-placed biomes like Brass Grave. During Phase 0, the epicenter noise alone determines placement (simple threshold). Phase G replaces this with distance-based region growth for organic shapes — the Phase 0 budget establishes the coverage floor.
 
 ### 4.5 Threshold Derivation
 

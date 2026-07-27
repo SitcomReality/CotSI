@@ -69,14 +69,14 @@ export const NOISE_CONTINENT = {
   octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.0008  // TBD from Phase 0
 };
 export const NOISE_ELEVATION_DETAIL = {
-  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020   // ~10-hex scale (separated from ridge)
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020   // TBD from Phase 0; target ~10-hex scale
 };
 export const NOISE_RIDGE = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008   // ~25-hex scale (regular FBM placeholder)
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008   // TBD from Phase 0; target ~25-hex scale (regular FBM placeholder)
 };
 ```
 
-**Frequency separation:** Detail at 0.020 and ridge at 0.008 are separated by 2.5× — distinct spatial scales rather than the original 20% separation that caused interference.
+**Frequency separation:** Target detail at ~10-hex and ridge at ~25-hex scale are separated by ~2.5× — distinct spatial scales rather than the original 20% separation that caused interference. Exact values determined by Phase 0 frequency verification.
 
 ### 4.3 Updated `sampleBaseFields`
 

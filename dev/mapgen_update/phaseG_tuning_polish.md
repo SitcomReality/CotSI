@@ -140,6 +140,58 @@ defineArchetype('biome_cold_steppe', {
 
 These fill the climate space gap identified in both reviews (cold+dry → `biome_default` currently). Add to `BIOME_PRIORITY_ORDER` before `biome_default`.
 
+### 5.2b Supernatural Biome Tuning (epicenter pass)
+
+Replace the Phase A placeholder epicenter algorithm (simple thresholded FBM) with distance-based region growth for organic, contiguous event regions.
+
+**Epicenter region growth algorithm:**
+
+```js
+function applySupernaturalOverrides(tiles, fieldMap, baseSeed, noiseConfig) {
+  // Phase A: simple threshold on NOISE_EPICENTER.
+  // Phase G: select epicenter seed points, grow regions outward using
+  // noise-modulated distance.
+
+  // 1. Identify epicenter seed points: tiles where epicenter noise
+  //    exceeds a high threshold (e.g. > 0.95).
+  const seeds = [];
+  for (const [key, tile] of tiles) {
+    const val = hexFbm2D(tile.q, tile.r, baseSeed + SEED_EPICENTER, NOISE_EPICENTER);
+    if (val > 0.95) {
+      seeds.push({ q: tile.q, r: tile.r });
+    }
+  }
+
+  // 2. For each seed, assign it to a supernatural biome (deterministic
+  //    shuffle through registered supernatural biomes).
+
+  // 3. Grow each region outward: BFS from seed, assigning tiles within
+  //    a noise-modulated distance. The distance threshold = baseRadius +
+  //    epicenterNoise * radiusVariation. This produces irregular,
+  //    organic region shapes.
+  //
+  //    Each supernatural biome defines:
+  //      epicenterRadius:    base region size in hexes
+  //      epicenterVariation: how much the boundary varies (0-1)
+  //      epicenterThreshold: Phase A threshold (kept for backward compat)
+
+  // 4. If regions overlap, the first-assigned biome wins (deterministic).
+}
+```
+
+**Per-biome tuning targets:**
+- Epicenter frequency: 1-3 event regions on radius-21 maps
+- Region size: 5-15% of map area per supernatural biome
+- Region shape: organic (noise-modulated growth), not circular or speckled
+- Distribution: snapshot test verifies supernatural coverage in [3%, 15%] range
+
+**Tuning process:**
+1. Run epicenter noise across 10 seeds at radius 21
+2. Verify 1-3 seed points per map
+3. Adjust `NOISE_EPICENTER.frequency` until target seed count is hit
+4. Implement distance-based growth, tune per-biome `epicenterRadius` and `epicenterVariation`
+5. Snapshot test supernatural biome coverage percentage
+
 ### 5.3 Domain Warping (if needed)
 
 If blob/camouflage artifacts persist after tuning, apply domain warping to the elevation coordinates:
@@ -270,6 +322,7 @@ These items remain deferred after Phase G:
 | Player terraforming | Requires modification overlay on deterministic base | TBD (not in current roadmap) |
 | River tributaries and meandering | Complex; current simple trace is adequate for v1 | Post-G enhancement |
 | Endorheic lake formation at river termini | Nice-to-have realism feature | Post-G enhancement |
+| Supernatural biome gameplay mechanics | Terrain types, features, mobs, weather overrides — design-dependent, not gen-dependent | Design phase (not gen roadmap) |
 
 ---
 
@@ -278,11 +331,11 @@ These items remain deferred after Phase G:
 | File | Change | Summary |
 |------|--------|---------|
 | `src/params/game/worldParams.js` | edit | Tuned frequencies, composite weights, thresholds; new terrain rule entries for beach |
-| `src/game/rules/terrainGenerator.js` | edit | Beach classification, biome smoothing, rain shadow (optional), domain warping (optional) |
+| `src/game/rules/terrainGenerator.js` | edit | Beach classification, biome smoothing, rain shadow (optional), domain warping (optional), epicenter region growth |
 | `src/game/rules/terrainTypes.js` | edit | Add `beach` (and optionally `tundra`, `scrubland`) |
-| `src/game/rules/archetypeData/biomes.js` | edit | New biome definitions (tundra, cold steppe); updated feature thresholds |
+| `src/game/rules/archetypeData/biomes.js` | edit | New biome definitions (tundra, cold steppe); updated feature thresholds; epicenter params on supernatural biomes |
 | `src/engine/rules/noise.js` | edit | Domain warping helper (optional) |
-| `dev/analysis/generation/snapshotTest.js` | edit | Tightened snapshot ranges |
+| `dev/analysis/generation/snapshotTest.js` | edit | Tightened snapshot ranges, supernatural coverage check |
 
 ---
 
@@ -292,5 +345,6 @@ These items remain deferred after Phase G:
 - No dead terrain types: `peak` and `floatingIsland` appear at appropriate frequencies.
 - Beach hexes provide a natural water/land transition.
 - Biome coverage is complete: no climate zone falls through to `biome_default` without an explicit decision.
-- Snapshot tests pass at tightened tolerance ranges.
+- Supernatural biomes appear as organic, contiguous event regions (distance-based growth, not speckled FBM thresholding). 1-3 event regions on radius-21 maps.
+- Snapshot tests pass at tightened tolerance ranges, including supernatural biome coverage check.
 - Rain shadow either implemented and visible in moisture maps, or explicitly documented as permanently deferred with rationale.

@@ -20,6 +20,8 @@ After this phase, biome selection is a data-driven lookup using three climate ax
 - Replace single `NOISE_ELEVATION` usage with a simple elevation field (continents only, or a single blended field calibrated to span [0, 1])
 - Add temperature derivation (latitude + lapse rate) to the shared sampler
 - Add data-driven `selectBiome(elevation, moisture, temperature, regionBiasM, regionBiasT)` that reads from archetype `climateRange`
+- Add epicenter noise field (`NOISE_EPICENTER`) and `applySupernaturalOverrides()` for supernatural biome placement
+- Add `origin: 'natural' | 'supernatural'` to biome archetypes
 - Rewrite `classifyTerrain` to use all three climate axes + tree line
 - Remove `BIOME_DISTRIBUTION` table and `biomeForRoll`
 - Repurpose `NOISE_BIOME` as `NOISE_REGION` (two independent bias fields)
@@ -35,6 +37,7 @@ After this phase, biome selection is a data-driven lookup using three climate ax
 - Continent × detail composite (Phase B)
 - Water-adjusted moisture (Phase C)
 - Rivers (Phase D)
+- Epicenter region growth algorithm (uses simple thresholded noise; organic shapes deferred to Phase G)
 
 ---
 
@@ -66,17 +69,20 @@ export const NOISE_CONTINENT = {
 // visible landmass shapes at the target map sizes. The 3-layer composite
 // (continent × detail + ridges) replaces this in Phase B.
 export const NOISE_PHASE_A_ELEVATION = {
-  octaves: 5, lacunarity: 2.0, gain: 0.5, frequency: 0.006
+  octaves: 5, lacunarity: 2.0, gain: 0.5, frequency: 0.006   // TBD from Phase 0
 };
 
 export const NOISE_MOISTURE = {
-  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006   // TBD from Phase 0
 };
 export const NOISE_TEMP_VARIATION = {
-  octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08
+  octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08    // TBD from Phase 0
 };
 export const NOISE_REGION = {
-  octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.0015
+  octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.0015  // TBD from Phase 0
+};
+export const NOISE_EPICENTER = {
+  octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.0010  // TBD from Phase 0; target ~1-3 event regions
 };
 
 // Seed offsets
@@ -85,6 +91,7 @@ export const SEED_MOISTURE    = 300;
 export const SEED_TEMP        = 400;
 export const SEED_REGION_M    = 500;
 export const SEED_REGION_T    = 600;
+export const SEED_EPICENTER   = 650;
 export const SEED_FEATURES    = 700;
 export const SEED_DEBRIS      = 800;
 export const SEED_DEBRIS_KIND = 900;
@@ -155,13 +162,22 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
 **Key correction:** Latitude uses `distance({q, r}, {q:0, r:0})` — the hex distance from the map center — not `Math.abs(r)`. This produces circular climate zones instead of straight bands parallel to one hex axis.
 
-### 4.4 Data-Driven `selectBiome`
+### 4.4 Data-Driven `selectBiome` + Supernatural Override
 
 ```js
+// Priority order: supernatural biomes first (skipped by selectBiome since
+// they have no climateRange), then natural biomes by specificity, then catch-all.
 const BIOME_PRIORITY_ORDER = [
+  // Supernatural — placed by epicenter pass, skipped by selectBiome
+  'biome_unfinished_lands',  // no climateRange → origin: 'supernatural'
+  'biome_brass_grave',       // no climateRange → origin: 'supernatural'
+
+  // Natural — climate-driven, in specificity order
   'biome_arid',    // hot + dry (more specific)
   'biome_lush',    // wet + warm
-  'biome_default', // catch-all (no climateRange → always matches)
+
+  // Catch-all — last, no climateRange → always matches if nothing above did
+  'biome_default',
 ];
 
 function selectBiome(elevation, moisture, temperature, regionBiasM, regionBiasT) {
@@ -172,7 +188,11 @@ function selectBiome(elevation, moisture, temperature, regionBiasM, regionBiasT)
     const def = getArchetype(biomeId);
     if (!def) continue;
     const R = def.climateRange;
-    if (!R) return biomeId;  // no constraints = catch-all
+
+    // Biomes with no climateRange are not climate-placed.
+    // Supernatural biomes: placed by epicenter pass, never match here.
+    // biome_default: returned as final fallback at end of function.
+    if (!R) continue;
 
     // All specified constraints must be satisfied
     if (R.minElevation   !== undefined && elevation   < R.minElevation)   continue;
@@ -187,12 +207,43 @@ function selectBiome(elevation, moisture, temperature, regionBiasM, regionBiasT)
 
   return 'biome_default';
 }
+
+/**
+ * Place supernatural biomes via epicenter noise.
+ * Called after selectBiome — overwrites biomeId on hexes within event regions.
+ * Phase A uses simple thresholded noise; Phase G adds distance-based region growth.
+ */
+function applySupernaturalOverrides(tiles, fieldMap, baseSeed, noiseConfig) {
+  for (const [key, tile] of tiles) {
+    const epicenterVal = hexFbm2D(
+      tile.q, tile.r,
+      baseSeed + noiseConfig.SEED_EPICENTER,
+      noiseConfig.EPICENTER
+    );
+
+    // Check each registered supernatural biome in order
+    for (const biomeId of BIOME_PRIORITY_ORDER) {
+      const def = getArchetype(biomeId);
+      if (!def || def.origin !== 'supernatural') continue;
+
+      // Phase A placeholder: simple threshold check.
+      // Phase G replaces with distance-based region growth.
+      const threshold = def.epicenterThreshold ?? 0.85;
+      if (epicenterVal > threshold) {
+        tile.biomeId = biomeId;
+        break;  // first matching supernatural biome wins
+      }
+    }
+  }
+}
 ```
 
 **Key properties:**
-- No hardcoded thresholds — all climate constraints live in the archetype's `climateRange`.
-- Adding a biome requires adding it to `BIOME_PRIORITY_ORDER` and defining its `climateRange`. No code changes.
-- `biome_default` has no `climateRange` — it's the catch-all. Every tile maps to some biome.
+- No hardcoded climate thresholds — all climate constraints live in each archetype's `climateRange`.
+- Adding a natural biome requires: define `climateRange`, add to `BIOME_PRIORITY_ORDER` before `biome_default`. No pipeline code changes.
+- Adding a supernatural biome requires: define archetype with `origin: 'supernatural'` and no `climateRange`, add to `BIOME_PRIORITY_ORDER` before natural biomes, set `epicenterThreshold`. Epicenter pass reads `origin` and `epicenterThreshold` — no pipeline code changes after Phase A.
+- `biome_default` has no `climateRange` — skipped during iteration, returned as final fallback.
+- Supernatural biomes have no `climateRange` — skipped by `selectBiome`, placed by `applySupernaturalOverrides`.
 - Regional bias uses two **independent** fields (`regionBiasM`, `regionBiasT`), so a region can independently bias toward wetter *or* drier, hotter *or* colder.
 
 ### 4.5 Updated `classifyTerrain`
@@ -231,15 +282,16 @@ function classifyTerrain(elevation, moisture, temperature, biomeDef) {
 
 ### 4.6 Biome Archetype Updates (`biomes.js`)
 
-Each biome gains a `climateRange` and `terrainRules`. The `moistureBias` field is **removed** — the biome is chosen because the climate already matches, not because the biome modifies the climate.
+Each biome gains `origin`, `climateRange` (natural biomes only), and `terrainRules`. The `moistureBias` field is **removed** — the biome is chosen because the climate already matches, not because the biome modifies the climate.
 
 ```js
 defineArchetype('biome_default', {
   type: 'biome',
   id: 'biome_default',
   name: 'Default Manuscript',
+  origin: 'natural',
 
-  // No climateRange — catch-all (always matches)
+  // No climateRange — catch-all (last in priority, returned as fallback)
 
   terrainRules: {
     // Inherits all DEFAULT_TERRAIN_RULES; override only if needed
@@ -257,6 +309,7 @@ defineArchetype('biome_lush', {
   type: 'biome',
   id: 'biome_lush',
   name: 'Lush Woodland',
+  origin: 'natural',
 
   climateRange: {
     minMoisture: 0.62,
@@ -284,6 +337,7 @@ defineArchetype('biome_arid', {
   type: 'biome',
   id: 'biome_arid',
   name: 'Sere Wastes',
+  origin: 'natural',
 
   climateRange: {
     maxMoisture: 0.22,
@@ -307,9 +361,38 @@ defineArchetype('biome_arid', {
   terrainElevation: { mountain: 0.75, plains: 0.05 },
   supportsFloatingIslands: false,
 });
+
+// Supernatural biome placeholder (defined here for Phase A pipeline;
+// actual content — features, palette, terrain rules — filled in during
+// Phase G tuning when the biome's gameplay design is complete.)
+defineArchetype('biome_brass_grave', {
+  type: 'biome',
+  id: 'biome_brass_grave',
+  name: 'Brass Grave',
+  origin: 'supernatural',
+
+  // No climateRange — placed by epicenter pass, never by climate.
+  epicenterThreshold: 0.88,  // TBD from Phase 0 / Phase G tuning
+
+  terrainRules: {
+    mountainThreshold: 0.85,
+    forestMinMoisture: 0.90,
+    desertMaxMoisture: 0.50,
+    waterMaxElevation: 0.05,
+  },
+
+  features: [ /* TBD — divine wires, brass shards, etc. */ ],
+  palette: { plains: { fill: '#b5a06a', ink: '#d4c898' } },
+  terrainTags: ['brass'],
+  weatherAffinity: ['arid', 'static'],
+  terrainElevation: { brass: 0.10 },
+  supportsFloatingIslands: true,
+});
 ```
 
-**Climate space coverage:** The `BIOME_PRIORITY_ORDER` list, combined with the catch-all `biome_default`, ensures full coverage. Cold+dry tiles (t < 0.20, m < 0.22) currently fall through to `biome_default` — a known gap explicitly visible because no biome claims that range. A tundra biome can be added later in Phase G by inserting it into the priority order with a `climateRange` covering cold+dry.
+**Climate space coverage:** The `BIOME_PRIORITY_ORDER` list, combined with the catch-all `biome_default`, ensures full natural-biome coverage. Cold+dry tiles (t < 0.20, m < 0.22) currently fall through to `biome_default` — a known gap explicitly visible because no biome claims that range. A tundra biome can be added later in Phase G.
+
+Supernatural biomes (Brass Grave, Unfinished Lands, etc.) are placed by the epicenter pass and override the climate-derived biome on affected hexes. They cover a percentage of the map determined by `NOISE_EPICENTER` frequency and per-biome `epicenterThreshold`.
 
 ### 4.7 `generateChunkTiles` Restructure
 
@@ -358,6 +441,23 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef, p
     });
   }
 
+  // Pass 1b: Supernatural biome override (epicenter pass)
+  // Runs after natural biome selection — overwrites biomeId for hexes
+  // within epicenter regions of supernatural biomes.
+  if (!biomeDef) {
+    applySupernaturalOverrides(tileMap, fieldMap, seed, NOISE_CONFIG);
+    // Re-resolve biomeDef and reclassify terrain for any hexes whose
+    // biomeId was overwritten.
+    for (const [, tile] of tileMap) {
+      const def = getArchetype(tile.biomeId);
+      if (def && def.origin === 'supernatural') {
+        tile.terrain = classifyTerrain(
+          tile.elevation, tile.moisture, tile.temperature, def
+        );
+      }
+    }
+  }
+
   // Pass 2: Mountain type tagging (unchanged from current, but uses real data)
   // Pass 3: Water type tagging (unchanged)
   // Pass 4: Features (unchanged)
@@ -387,12 +487,14 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef, p
 
 ## 6. Deliverable
 
-- Multi-biome maps where biome boundaries are continuous and follow climate: lush near wet+warm regions, arid near hot+dry regions, default elsewhere.
+- Multi-biome maps where natural biome boundaries are continuous and follow climate: lush near wet+warm regions, arid near hot+dry regions, default elsewhere.
+- Supernatural biomes (Brass Grave, Unfinished Lands) appear as distinct event regions placed by epicenter noise, overriding the climate-derived biome.
 - No more "forest in the desert" artifacts — terrain types respect their biome's `terrainRules` and the global `DEFAULT_TERRAIN_RULES`.
 - Mountains stop at the tree line — no forests on peaks (unless biome overrides `treeLineMax`).
 - Temperature varies with latitude (circular climate zones) and elevation (lapse rate).
-- Single-biome mode unchanged — all hexes use the selected biome, no climate-based selection.
-- Analysis tool shows the new fields (`temperature`, continuous `elevation`, `moisture`).
+- Mountain placement uses single-field FBM: popcorn/blobby mountains expected. Range structure (continent mask) comes in Phase B.
+- Single-biome mode unchanged — all hexes use the selected biome, no climate-based selection, no epicenter override.
+- Analysis tool shows the new fields (`temperature`, continuous `elevation`, `moisture`) and epicenter regions.
 - Calibration values from Phase 0 produce the target terrain distributions.
 
 ---
@@ -402,5 +504,6 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef, p
 - **Single elevation field produces popcorn mountains.** Without the continent mask and slope discrimination (Phase B), mountain placement is noise-blob rather than range-based. This is expected and acceptable — Phase B fixes it.
 - **Water still uses moisture gate.** In this phase, water requires both elevation < threshold AND moisture > threshold. The elevation-only water determination (oceans always water, lakes are moisture-gated) comes in Phase C. For now, "dry ocean basins" can still occur at low elevation + low moisture.
 - **Cold+dry climate yields `biome_default`.** The explicit gap in `climateRange` coverage is a known limitation — tundra/snow biomes added in Phase G.
+- **Supernatural biome placement uses simple threshold.** The epicenter pass in Phase A uses raw FBM thresholding, which can produce scattered speckles rather than contiguous regions. Phase G replaces this with distance-based region growth for organic shapes.
 - **`fallbackT` removed.** The new border-ring approach eliminates the need for cross-chunk neighbor approximations. But in Phase A, the border ring infrastructure from Phase B isn't built yet. For this phase, cross-chunk lookups for mountain/water tagging can use `sampleBaseFields` directly — it's deterministic and works at any global coordinate.
 - **Chunk boundary consistency.** Since `sampleBaseFields` is a pure function of `(seed, q, r)`, two chunks that sample the same global coordinate produce identical base fields. The biome selection and terrain classification are also pure functions of those fields, so chunk seams are guaranteed consistent. This was already true in the current code — nothing about this property changes.
