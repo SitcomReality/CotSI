@@ -1,0 +1,429 @@
+/**
+ * thresholdDerivation.js — Threshold derivation from pooled histogram data.
+ *
+ * Runs the calibration pipeline over N seeds × M map sizes, pools histograms,
+ * builds quantile LUTs, and derives percentile-based terrain thresholds.
+ *
+ * Pure: no DOM, no state, no side effects.
+ */
+import { stringSeed } from '../../../src/engine/rules/seededRng.js';
+import { hexesWithinRadius, neighbors, coordKey } from '../../../src/engine/rules/hexGrid.js';
+import { sampleBaseFields, collectHistograms, percentileFromHistogram } from './histograms.js';
+import { poolHistograms, buildQuantileLUT } from './quantileLUT.js';
+import { NOISE_CONFIG } from './noiseConfig.js';
+
+// ---------------------------------------------------------------------------
+// Slope delta collection (for SLOPE_NORMALIZATION calibration)
+// ---------------------------------------------------------------------------
+
+/**
+ * Collect raw per-tile average neighbor elevation deltas.
+ *
+ * Unlike collectHistograms which bins slope values, this returns the raw
+ * unbounded deltas for computing the 95th percentile (SLOPE_NORMALIZATION).
+ *
+ * @param {string} seedText     - Seed string
+ * @param {number} radius       - Map radius in hexes
+ * @param {object} noiseConfig  - Noise config (same shape as sampleBaseFields)
+ * @returns {Float64Array} Per-tile average neighbor elevation deltas
+ */
+export function collectRawSlopeDeltas(seedText, radius, noiseConfig) {
+  const seed = stringSeed(seedText);
+  const tiles = hexesWithinRadius(radius);
+
+  // Sample all fields
+  const samples = tiles.map(({ q, r }) =>
+    sampleBaseFields(seed, q, r, noiseConfig, radius)
+  );
+
+  // Build elevation lookup
+  const elevationMap = new Map();
+  for (let i = 0; i < tiles.length; i++) {
+    elevationMap.set(coordKey(tiles[i]), samples[i].elevation);
+  }
+
+  // Collect raw average neighbor deltas
+  const deltas = new Float64Array(tiles.length);
+  for (let i = 0; i < tiles.length; i++) {
+    let totalDiff = 0;
+    let neighborCount = 0;
+    for (const n of neighbors(tiles[i])) {
+      const nElev = elevationMap.get(coordKey(n));
+      if (nElev !== undefined) {
+        totalDiff += Math.abs(nElev - samples[i].elevation);
+        neighborCount++;
+      }
+    }
+    deltas[i] = neighborCount > 0 ? totalDiff / neighborCount : 0;
+  }
+
+  return deltas;
+}
+
+// ---------------------------------------------------------------------------
+// Percentile from sorted value array
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute the value at a given percentile from a sorted array of numbers.
+ *
+ * @param {Float64Array|number[]} sortedValues - Sorted ascending
+ * @param {number}               p             - Percentile [0, 1]
+ * @returns {number} The value at the given percentile
+ */
+export function percentileFromValues(sortedValues, p) {
+  if (sortedValues.length === 0) return 0;
+  const idx = Math.floor((sortedValues.length - 1) * p);
+  return sortedValues[idx];
+}
+
+// ---------------------------------------------------------------------------
+// Threshold derivation
+// ---------------------------------------------------------------------------
+
+/**
+ * Default seed generator: creates an array of seed texts from a base seed.
+ *
+ * @param {string} baseSeed - Base seed text (e.g. 'glut-17')
+ * @param {number} count    - Number of seeds to generate
+ * @returns {string[]}
+ */
+export function generateSeeds(baseSeed, count) {
+  const seeds = [];
+  for (let i = 0; i < count; i++) {
+    seeds.push(`${baseSeed}-${i}`);
+  }
+  return seeds;
+}
+
+/**
+ * Run the full calibration pipeline.
+ *
+ * For each (seed, radius) combination, collects histograms and raw slope
+ * deltas. Pools all histograms per field, builds 256-entry quantile LUTs,
+ * and derives percentile-based threshold values.
+ *
+ * Threshold percentiles are taken from the Phase 0 target budget table (§4.5):
+ *
+ *   Field       | Threshold               | Target percentile
+ *   ------------|-------------------------|------------------
+ *   Elevation   | waterMaxElevation       | p12  (12th %ile)
+ *   Elevation   | mountainThreshold       | p90  (top 10%)
+ *   Elevation   | peakThreshold           | p97  (top 3%)
+ *   Elevation   | floatingIslandThreshold | p99.5 (top 0.5%)
+ *   Elevation   | hillElevationMin        | p55
+ *   Elevation   | marshMaxElevation       | p35
+ *   Moisture    | forestMinMoisture       | p72
+ *   Moisture    | denseForestMinMoisture  | p85
+ *   Moisture    | desertMaxMoisture       | p20
+ *   Moisture    | marshMinMoisture        | p58
+ *   Temperature | freezeTempMax           | p15 (placeholder for ice)
+ *
+ * @param {object}   opts
+ * @param {string[]} opts.seeds      - Array of seed texts to sample
+ * @param {number[]} opts.radii      - Array of map radii to sample
+ * @param {object}   opts.noiseConfig- Noise config (defaults to NOISE_CONFIG)
+ * @returns {object} { quantileLUTs, thresholds, slopeNormalization, meta }
+ */
+export function calibratePipeline({ seeds, radii, noiseConfig }) {
+  const NC = noiseConfig || NOISE_CONFIG;
+
+  // Per-field histogram collections across all (seed, radius) combos
+  const allElev  = [];
+  const allMoist = [];
+  const allTemp  = [];
+  const allSlope = [];
+
+  // Raw slope deltas across all combos
+  const allDeltas = [];
+
+  for (const seedText of seeds) {
+    for (const radius of radii) {
+      const hists = collectHistograms(seedText, radius, NC);
+      allElev.push(hists.elevHist);
+      allMoist.push(hists.moistHist);
+      allTemp.push(hists.tempHist);
+      allSlope.push(hists.slopeHist);
+
+      // Collect raw slope deltas for SLOPE_NORMALIZATION
+      const deltas = collectRawSlopeDeltas(seedText, radius, NC);
+      for (let i = 0; i < deltas.length; i++) {
+        allDeltas.push(deltas[i]);
+      }
+    }
+  }
+
+  // ── Pool histograms per field ──────────────────────────────────────
+  const pooledElev  = poolHistograms(allElev);
+  const pooledMoist = poolHistograms(allMoist);
+  const pooledTemp  = poolHistograms(allTemp);
+  const pooledSlope = poolHistograms(allSlope);
+
+  // ── Build quantile LUTs (256-entry) ────────────────────────────────
+  const elevLUT  = buildQuantileLUT(pooledElev);
+  const moistLUT = buildQuantileLUT(pooledMoist);
+  const tempLUT  = buildQuantileLUT(pooledTemp);
+  const slopeLUT = buildQuantileLUT(pooledSlope);
+
+  // ── Derive thresholds from pooled histograms ───────────────────────
+  const thresholds = {
+    // Elevation-derived
+    waterMaxElevation: {
+      value: percentileFromHistogram(pooledElev, 0.12),
+      targetPercentile: 12,
+      field: 'elevation',
+      description: '12th percentile — ~12% water coverage',
+    },
+    mountainThreshold: {
+      value: percentileFromHistogram(pooledElev, 0.90),
+      targetPercentile: 90,
+      field: 'elevation',
+      description: '90th percentile — top 10% elevation',
+    },
+    peakThreshold: {
+      value: percentileFromHistogram(pooledElev, 0.97),
+      targetPercentile: 97,
+      field: 'elevation',
+      description: '97th percentile — top 3% elevation',
+    },
+    floatingIslandThreshold: {
+      value: percentileFromHistogram(pooledElev, 0.995),
+      targetPercentile: 99.5,
+      field: 'elevation',
+      description: '99.5th percentile — top 0.5% elevation',
+    },
+    hillElevationMin: {
+      value: percentileFromHistogram(pooledElev, 0.55),
+      targetPercentile: 55,
+      field: 'elevation',
+      description: '55th percentile — hill starting elevation',
+    },
+    marshMaxElevation: {
+      value: percentileFromHistogram(pooledElev, 0.35),
+      targetPercentile: 35,
+      field: 'elevation',
+      description: '35th percentile — max elevation for marsh',
+    },
+
+    // Moisture-derived
+    forestMinMoisture: {
+      value: percentileFromHistogram(pooledMoist, 0.72),
+      targetPercentile: 72,
+      field: 'moisture',
+      description: '72nd percentile — forest minimum moisture',
+    },
+    denseForestMinMoisture: {
+      value: percentileFromHistogram(pooledMoist, 0.85),
+      targetPercentile: 85,
+      field: 'moisture',
+      description: '85th percentile — dense forest minimum moisture',
+    },
+    desertMaxMoisture: {
+      value: percentileFromHistogram(pooledMoist, 0.20),
+      targetPercentile: 20,
+      field: 'moisture',
+      description: '20th percentile — desert maximum moisture',
+    },
+    marshMinMoisture: {
+      value: percentileFromHistogram(pooledMoist, 0.58),
+      targetPercentile: 58,
+      field: 'moisture',
+      description: '58th percentile — marsh minimum moisture',
+    },
+
+    // Temperature-derived (placeholder for Phase A ice terrain)
+    freezeTempMax: {
+      value: percentileFromHistogram(pooledTemp, 0.15),
+      targetPercentile: 15,
+      field: 'temperature',
+      description: '15th percentile — freeze threshold (placeholder)',
+    },
+  };
+
+  // ── Slope normalization ────────────────────────────────────────────
+  allDeltas.sort((a, b) => a - b);
+  const slopeNormalization = percentileFromValues(allDeltas, 0.95);
+
+  // ── Assemble result ────────────────────────────────────────────────
+  return {
+    quantileLUTs: {
+      elevation:  Array.from(elevLUT),
+      moisture:   Array.from(moistLUT),
+      temperature: Array.from(tempLUT),
+      slope:      Array.from(slopeLUT),
+    },
+    thresholds,
+    slopeNormalization,
+    meta: {
+      seedCount: seeds.length,
+      radii,
+      fieldsSampled: ['elevation', 'moisture', 'temperature', 'slope'],
+      noiseConfigFingerprint: fingerprintNoiseConfig(NC),
+      dateGenerated: new Date().toISOString(),
+      version: 1,
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Export serialization
+// ---------------------------------------------------------------------------
+
+/**
+ * Create a JSON-serializable calibration export object.
+ *
+ * The returned object can be JSON.stringify'd and saved as calibration_v1.json.
+ *
+ * @param {object} calibrationResult - Output from calibratePipeline()
+ * @returns {object} JSON-safe calibration document
+ */
+export function exportCalibrationV1(calibrationResult) {
+  const { quantileLUTs, thresholds, slopeNormalization, meta } = calibrationResult;
+
+  return {
+    $schema: 'dev/mapgen_update/calibration_v1.schema.json',
+    title: 'Phase 0 Calibration — Terrain Generation Redesign',
+    description: 'Quantile LUTs and percentile thresholds derived from pooled histogram data. Thresholds remain valid through Phases B and F provided the LUTs are regenerated after each distribution change.',
+
+    quantileLUTs,
+    thresholds,
+    slopeNormalization: {
+      value: slopeNormalization,
+      method: '95th percentile of per-tile average neighbor elevation deltas',
+      description: 'Default divisor for slope computation: sum of 6 neighbor elevation deltas / this value → normalized slope [0, 1]',
+    },
+
+    meta: {
+      ...meta,
+      thresholdCount: Object.keys(thresholds).length,
+      includedThresholds: Object.keys(thresholds),
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Formatting for UI display
+// ---------------------------------------------------------------------------
+
+/**
+ * Format calibration pipeline results as a text report for the stats panel.
+ *
+ * @param {object} result - Output from calibratePipeline()
+ * @returns {string}
+ */
+export function formatCalibrationReport(result) {
+  const { quantileLUTs, thresholds, slopeNormalization, meta } = result;
+  const lines = [];
+
+  lines.push('=== Threshold Derivation ===');
+  lines.push(`  ${meta.seedCount} seeds × radii [${meta.radii.join(', ')}]`);
+  lines.push('');
+
+  // ── Thresholds ────────────────────────────────────────────────────
+  lines.push('Derived Thresholds (raw values at target percentiles):');
+  lines.push('');
+
+  const entries = [
+    { label: 'waterMaxElevation',      key: 'waterMaxElevation',      color: '#5f9ac1' },
+    { label: 'mountainThreshold',       key: 'mountainThreshold',       color: '#877c6a' },
+    { label: 'peakThreshold',           key: 'peakThreshold',           color: '#b0b8c8' },
+    { label: 'floatingIslandThreshold', key: 'floatingIslandThreshold', color: '#c0d8e8' },
+    { label: 'hillElevationMin',        key: 'hillElevationMin',        color: '#aaa' },
+    { label: 'marshMaxElevation',       key: 'marshMaxElevation',       color: '#819967' },
+    { label: 'forestMinMoisture',       key: 'forestMinMoisture',       color: '#4b8e41' },
+    { label: 'denseForestMinMoisture',  key: 'denseForestMinMoisture',  color: '#2d6b23' },
+    { label: 'desertMaxMoisture',       key: 'desertMaxMoisture',       color: '#d6b15b' },
+    { label: 'marshMinMoisture',        key: 'marshMinMoisture',        color: '#819967' },
+    { label: 'freezeTempMax',           key: 'freezeTempMax',           color: '#7ec8e3' },
+  ];
+
+  for (const e of entries) {
+    const t = thresholds[e.key];
+    if (!t) continue;
+    lines.push(
+      `  ${e.label.padEnd(28)} ${t.value.toFixed(4)}  (p${t.targetPercentile}, ${t.field})`
+    );
+  }
+
+  lines.push('');
+  lines.push(`Slope normalization:  ${slopeNormalization.toFixed(4)}  (95th percentile of per-tile avg deltas)`);
+  lines.push('');
+
+  // ── LUT sanity checks ─────────────────────────────────────────────
+  lines.push('Quantile LUT sanity (raw → normalized):');
+  const lutChecks = [
+    { key: 'elevation',    label: 'Elevation' },
+    { key: 'moisture',     label: 'Moisture' },
+    { key: 'temperature',  label: 'Temperature' },
+    { key: 'slope',        label: 'Slope' },
+  ];
+
+  for (const lc of lutChecks) {
+    const lut = quantileLUTs[lc.key];
+    if (!lut) continue;
+    // Rebuild Float32Array for normalizeField
+    const lutArray = new Float32Array(lut);
+    const { normalizeField } = requireLUTNormalizer();
+    const check10 = normalizeField(0.10, lutArray).toFixed(4);
+    const check50 = normalizeField(0.50, lutArray).toFixed(4);
+    const check90 = normalizeField(0.90, lutArray).toFixed(4);
+    lines.push(`  ${lc.label.padEnd(14)} raw:0.10→${check10}  0.50→${check50}  0.90→${check90}`);
+  }
+
+  lines.push('');
+  lines.push('---');
+  lines.push('Thresholds are raw values at the target percentile of the pooled');
+  lines.push('distribution. They remain stable when Phases B/F change the composite.');
+  lines.push('Only the quantile LUTs need regeneration after those phases.');
+  lines.push('');
+
+  return lines.join('\n');
+}
+
+/**
+ * Inline require for normalizeField to avoid circular dependency issues.
+ * Returns { normalizeField } from quantileLUT.js.
+ */
+function requireLUTNormalizer() {
+  // Dynamic import isn't available, but we can inline the normalizer
+  // since it's a pure function.
+  return {
+    normalizeField(rawValue, lut) {
+      const clamped = rawValue < 0 ? 0 : rawValue > 1 ? 1 : rawValue;
+      const lutIndex = clamped * (lut.length - 1);
+      const loIdx = Math.floor(lutIndex);
+      const hiIdx = Math.min(loIdx + 1, lut.length - 1);
+      const frac = lutIndex - loIdx;
+      return lut[loIdx] + (lut[hiIdx] - lut[loIdx]) * frac;
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Utility
+// ---------------------------------------------------------------------------
+
+/**
+ * Create a compact hash/fingerprint of the noise config for tracking.
+ *
+ * @param {object} nc - Noise config object
+ * @returns {string} Short hex fingerprint
+ */
+function fingerprintNoiseConfig(nc) {
+  let s = '';
+  for (const [key, val] of Object.entries(nc)) {
+    if (typeof val === 'object' && val !== null) {
+      s += `${key}:${val.frequency}/${val.octaves}/${val.lacunarity}/${val.gain}|`;
+    } else if (typeof val === 'number') {
+      s += `${key}:${val.toString(16)}|`;
+    }
+  }
+  // Simple hash
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    hash = ((hash << 5) - hash) + c;
+    hash |= 0;
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}

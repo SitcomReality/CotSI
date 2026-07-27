@@ -58,6 +58,8 @@ export function cacheDom() {
   els.calibHist = $('calib-hist');
   els.calibLut   = $('calib-lut');
   els.btnRunTests = $('btn-run-tests');
+  els.btnDeriveThresholds = $('btn-derive-thresholds');
+  els.btnDownloadCalib = $('btn-download-calib');
 
   // Multi-seed output checkboxes
   els.multiTerrain   = $('multi-terrain');

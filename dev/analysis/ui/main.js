@@ -25,6 +25,12 @@ import {
   formatFrequencyReport,
   buildAndFormatLUTs,
 } from '../stats/calibrationDisplay.js';
+import {
+  calibratePipeline,
+  exportCalibrationV1,
+  formatCalibrationReport,
+  generateSeeds,
+} from '../generation/thresholdDerivation.js';
 
 // ── Test imports ────────────────────────────────────────────────────────────
 import { runSnapshotTests, formatSnapshotReport } from '../generation/snapshotTest.js';
@@ -74,6 +80,9 @@ function loadAndDisplay(seedText) {
     }
   }, 10);
 }
+
+// ── Threshold derivation state ─────────────────────────────────────────
+let _lastCalibration = null;
 
 // ─── Biome select ─────────────────────────────────────────────────────────────
 
@@ -217,6 +226,54 @@ async function runAllTests() {
   els.statsPanel.textContent = parts.join('\n');
 }
 
+// ─── Threshold derivation ─────────────────────────────────────────────────────
+
+async function deriveThresholds() {
+  els.loading.classList.add('visible');
+  els.loading.textContent = 'Deriving thresholds...';
+  els.btnDeriveThresholds.disabled = true;
+  els.btnDownloadCalib.disabled = true;
+
+  try {
+    // Yield to let the loading indicator render
+    await new Promise(r => setTimeout(r, 0));
+
+    const baseSeed = els.seed.value || 'glut-17';
+    const count = parseInt(els.multiCount.value, 10) || 50;
+    const radius = parseInt(els.radius.value, 10) || 21;
+    const seeds = generateSeeds(baseSeed, count);
+
+    const result = calibratePipeline({
+      seeds,
+      radii: [radius],
+      noiseConfig: NOISE_CONFIG,
+    });
+
+    _lastCalibration = result;
+
+    // Display the report
+    els.statsPanel.textContent = formatCalibrationReport(result);
+    els.btnDownloadCalib.disabled = false;
+  } catch (err) {
+    els.statsPanel.textContent = `Threshold derivation error: ${err.message}\n${err.stack || ''}`;
+  } finally {
+    els.loading.classList.remove('visible');
+    els.btnDeriveThresholds.disabled = false;
+  }
+}
+
+function downloadCalibrationV1() {
+  if (!_lastCalibration) return;
+  const calibDoc = exportCalibrationV1(_lastCalibration);
+  const blob = new Blob([JSON.stringify(calibDoc, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'calibration_v1.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── Bind controls ────────────────────────────────────────────────────────────
 
 function bindControls() {
@@ -302,6 +359,14 @@ function bindControls() {
   // Run tests
   if (els.btnRunTests) {
     els.btnRunTests.addEventListener('click', runAllTests);
+  }
+
+  // Threshold derivation
+  if (els.btnDeriveThresholds) {
+    els.btnDeriveThresholds.addEventListener('click', deriveThresholds);
+  }
+  if (els.btnDownloadCalib) {
+    els.btnDownloadCalib.addEventListener('click', downloadCalibrationV1);
   }
 }
 

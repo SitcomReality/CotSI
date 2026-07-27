@@ -16,7 +16,9 @@
 — Pooled data collected from old multiplicative composite (now removed). 
 **Invalidated** — the continent mask was the root cause of elevation compression. New additive composite (`detail + ridges`) will produce a healthier distribution. Re-run calibration after Phase B implementation.
 ## Step 6. Derive threshold percentiles 
-— **Not started.** Need to map pooled percentile data to DEFAULT_TERRAIN_RULES values.
+— `dev/analysis/generation/thresholdDerivation.js`. 
+**Done.** `calibratePipeline()` runs N seeds × M radii, pools histograms, builds 256-entry quantile LUTs, and maps target percentiles from §4.5 budget table to raw values. Thresholds derived: waterMaxElevation(p12), mountainThreshold(p90), peakThreshold(p97), floatingIslandThreshold(p99.5), hillElevationMin(p55), marshMaxElevation(p35), forestMinMoisture(p72), denseForestMinMoisture(p85), desertMaxMoisture(p20), marshMinMoisture(p58), freezeTempMax(p15). Also computes SLOPE_NORMALIZATION from the 95th percentile of raw per-tile neighbor elevation deltas. 
+Runs on the Phase A provisional composite (detail-only, no ridges, no worldShape). Re-derivation after Phase B/F is tracked in Step 13. Access via "Calibration → Derive Thresholds" button in the analysis page. Default: 50 seeds × r=21.
 ## Step 7. Snapshot tests 
 — `dev/analysis/generation/snapshotTest.js`. 
 **Done.** Distribution invariant checks against 3 fixed seeds at r=21. Wide tolerance ranges (water 6–20%, mountain 3–15%, peak 0–5%, floatingIsland 0–2%) catch amplitude regressions. Access via "Run Tests" button.
@@ -33,6 +35,8 @@
 — `dev/analysis/render/renderDistributions.js` + edits to `analysis.html` and `render/orchestrate.js`. 
 **Done.** "Distributions (histograms)" view mode renders 4 panels (elevation, moisture, temperature, slope) with 50-bin bar charts and overlaid threshold lines. Uses Canvas2D.
 ## Step 12. Output calibration_v1.json 
-— **Not started.**
+— `dev/analysis/generation/thresholdDerivation.js` (exportCalibrationV1) + UI button. 
+**Done.** "Download calibration_v1.json" button in Calibration section serializes the full calibration result: 256-entry LUTs (4 fields), percentile-derived thresholds (11 entries with metadata), slope normalization constant, and meta (seed count, radii, noise config fingerprint, date). Uses Blob download — no server needed.
+Run defaults: 50 seeds × r=21 on the Phase A provisional composite. Re-run with different parameters by changing the seed count and radius controls before clicking "Derive Thresholds".
 ## Step 13. Re-run Phase 0 calibration after Phase B/F composite changes 
 — **Deferred** (Phase B dependency).

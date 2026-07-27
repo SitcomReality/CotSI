@@ -8,6 +8,9 @@
  * The provisional sampleBaseFields lives here during Phase 0 and moves to
  * terrainGenerator.js in Phase A when the pipeline is rebuilt.
  *
+ * Threshold derivation and slope normalization live in thresholdDerivation.js,
+ * which consumes the histograms and percentiles exported here.
+ *
  * Pure: no DOM, no state, no side effects.
  */
 import { hexFbm2D, hexToWorld } from '../../../src/engine/rules/noise.js';
