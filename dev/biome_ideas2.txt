@@ -1,0 +1,48 @@
+Scarred & Corpse-Linked Biomes
+
+    Godfall Craters
+    Impact basins where deities hit the ground. Gravity feels wrong, stone hums with dying prayers, and crystalized ichor grows like dangerous coral. Good for high-risk salvage and “what did this god mean?” lore.
+
+    The Ossuary Steppes
+    Plains of bleached, continent-scale bone and calcified divine anatomy. Wind moans through rib-canyons; marrow lakes ferment strange life. Nomads carve shrines into vertebrae the size of hills.
+
+    Ichor Fens
+    Wetlands flooded by god-blood that never fully dried. Water is metallic and luminous; reeds grow in the shape of holy symbols; anything that drinks too deep mutates or receives unwanted visions.
+
+    Halo Burn
+    Where a sun-god or light-bringer died. Perpetual noon, glassed sand, shadows that move on their own because they remember being cast by something greater. Night is a rare, precious resource.
+
+Twisted Holy Ground
+
+    Broken Choirwoods
+    Forests whose trees were once temple columns or sacred groves. Bark is inscribed with half-erased commandments; wind through the leaves still tries to finish hymns. Some groves enforce old vows on anyone who enters.
+
+    The Litany Deserts
+    Sand made of powdered scripture and shattered idols. Storms carry audible fragments of dead languages. Oases form around buried relics that still leak a little grace—or a little curse.
+
+    Schism Peaks
+    Mountain ranges split by god-duels. One face frozen in eternal winter (dead frost deity), the opposite face volcanic and angry (dead fire/forge deity). Passes are literal fault-lines of conflicting domains.
+
+    Censor-Fogs
+    Lowlands smothered in incense-thick mist from a slain god of secrets or law. Truth and lies behave oddly; maps disagree; names sometimes stop working.
+
+Aftermath & Absence
+
+    The Quiet Sea
+    An ocean that went still when its patron died. No tides, no storms—only glassy water and the wrecks of pilgrim fleets frozen mid-voyage. Something vast and faithful still swims in the dark, waiting for orders that will never come.
+
+    Ashen Communion Fields
+    Farmland buried under the ash of burned heavens. Crops grow pale and half-spiritual; harvest festivals double as funerals. Soil is fertile but dreams of the dead leak into anyone who sleeps on it.
+
+    Rift-Tundra
+    Tundra cracked open to show the underside of creation—raw firmament, cooling divine machinery, constellations you can walk out onto if you’re foolish enough. Cold that feels like judgment.
+
+    The Orphaned Wilds
+    Nature that lost its gods of hunt, harvest, and beast. Ecology is unbalanced and angry: predator and prey roles glitch, seasons stutter, and old druidic circles are either dead or feral.
+
+Faction / Gameplay Hooks You Can Attach
+
+    Pilgrim scars — roads worn by people dragging relics between biomes.
+    Domain weather — local laws of physics still obey a dead god’s portfolio (fire doesn’t burn in one valley; debts become literal chains in another).
+    Grace-rot / curse-bloom — places where leftover divinity is decaying into monsters, miracles, or both.
+    Claimant cults — mortals and demigods trying to “inherit” a biome and become the new small god of it.

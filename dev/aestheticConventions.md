@@ -52,8 +52,6 @@ The interface is exactly two visual layers. They have different jobs and differe
 
 ## 3. The Ink Outline Convention
 
-**This replaces the old `:has()` outline-on-interaction system, which created kaleidoscope confusion (especially in the header and heptagram, where square outlines around circular elements fought the visual rhythm).**
-
 ### Core rule
 
 Every element on the **Puppet layer** has a **permanent, built-in ink outline** — a bold, dark stroke that defines its silhouette, like a comic-book inker's line. This is part of the element's structural rendering, not an interaction state.
@@ -88,8 +86,6 @@ The heptagram already does this mostly right — **colored line strokes** show r
 
 ### The header champion bar
 
-Currently a kaleidoscope problem when hovering because every faction's `:has()` triggers across all `.paley-item` elements in the header. Fix:
-
 - Header champions do **not** carry the `.paley-item` class at all
 - Each header champion gets: a **left-edge accent bar** in its faction base color, a **faction-color dot**, and text
 - Current champion: gold dot indicator below
@@ -99,11 +95,7 @@ Currently a kaleidoscope problem when hovering because every faction's `:has()` 
 
 ## 4. Color Architecture
 
-### The fundamental shift
-
-In v3, the 7 faction colors spanned the full spectrum (red, purple, green, blue, yellow, pink, gray). This consumed every available hue and left the pigment/semantic palette with nothing but leftovers.
-
-**New architecture: Factions occupy a tight warm/muted band. The full spectrum belongs to the pigment palette.**
+**Factions occupy a tight warm/muted band. The full spectrum belongs to the pigment palette.**
 
 ### Why this works
 
@@ -150,7 +142,7 @@ CSS variable naming:
 ```css
 --f-cru:        #6e2e22;  /* base */
 --f-cru-accent: #b84530;  /* accent */
---f-cru-glow:   #e87a6a;  /* glow / pale highlight (kept from v3 for glow effects) */
+--f-cru-glow:   #e87a6a;  /* glow / pale highlight */
 
 --f-rev:        #5a3a5a;
 --f-rev-accent: #8a5aaa;
@@ -176,8 +168,6 @@ CSS variable naming:
 --f-hol-accent: #5a5a7a;
 --f-hol-glow:   #a0a8c0;
 ```
-
-The `factionData.js` `color` / `glow` / `pale` fields should continue to map to `--f-N`, `--f-N-glow`, and `--f-N-accent` respectively.
 
 ### 4.3 Pigment Palette — Full Spectrum, Max Saturation
 
@@ -222,7 +212,7 @@ Because factions now have a **base** and an **accent**, champion UI can use both
 
 ## 5. Typography
 
-Complete replacement of the v3 font stack (previously Cinzel, EB Garamond, UnifrakturCook). The new stack balances bold cartoon readability with a dark-carnival flavor.
+The font stack balances bold cartoon readability with a dark-carnival flavor.
 
 ### Font stack
 
@@ -364,24 +354,12 @@ The sprite sheets at `assets/icons/{factions,actions,equip,terrain,resource,deco
 
 ---
 
-## 10. How State Is Now Applied (Replacing the Old Outline System)
+## 10. State Applied Through Glow + Icon
 
-### Before (v3 — broken)
-
-```css
-/* v3: CSS outline on EVERYTHING — causes kaleidoscope clashes */
-.paley-item:hover {
-  outline: 2px solid var(--gold);  /* clashes with borders, square on circles */
-}
-html:has(.paley-item--f0:hover) :is(.paley-item--f1, .paley-item--f2, ...) {
-  outline-color: var(--st-ally);  /* triggers across header, heptagram, etc. = chaos */
-}
-```
-
-### After (v4 — glow + icon)
+State is shown through **backlight glow** (`box-shadow`) and optional icon changes — never through CSS `outline`.
 
 ```css
-/* v4: Backlight glow + icon change — no outline clashes */
+/* Backlight glow + icon change */
 .entity.ally {
   box-shadow: 0 0 12px 2px var(--st-ally);
   /* optional: ::before shield icon */
@@ -403,7 +381,7 @@ html:has(.paley-item--f0:hover) :is(.paley-item--f1, .paley-item--f2, ...) {
 }
 ```
 
-### Header champion state (no more outlines or `:has()` on header items)
+### Header champion state
 
 ```css
 .header__champion.current {
@@ -421,7 +399,7 @@ html:has(.paley-item--f0:hover) :is(.paley-item--f1, .paley-item--f2, ...) {
 }
 ```
 
-### Heptagram state (stays mostly right — colored line strokes, no node outlines)
+### Heptagram state
 
 ```css
 /* Heptagram nodes: permanent ink stroke, no interaction outline */
@@ -455,7 +433,7 @@ The three-dimensional map follows the same artistic rules as the 2D UI: **low-po
 
 ### Miniature scale (cartoon proportions, not realistic)
 
-Same as v3 — stylized piece scale, not real-world fidelity. A champion and a mountain are both "game pieces on a stage" and can share similar heights.
+Stylized piece scale, not real-world fidelity. A champion and a mountain are both "game pieces on a stage" and can share similar heights.
 
 ---
 
@@ -540,59 +518,9 @@ Stop and reconsider if you see any of these:
 
 ---
 
-## 16. Old-to-New Variable Name Migration
-
-When implementing this redesign, rename CSS custom properties as follows:
-
-### Chrome renames
-
-| Old name | New name | Reason |
-|----------|----------|--------|
-| `--vellum` | `--abyss` | "Vellum" evokes medieval manuscripts — wrong metaphor |
-| `--vellum-2` | `--shadow` | "Shadow" is the theater darkness |
-| `--parchment` | `--board` | "Parchment" is ancient paper — wrong metaphor |
-| `--ivory` | `--board-hi` | "Ivory" evokes pale bone — wrong for dark theme |
-| `--ink` | `--ink` | Keep — ink is timeless |
-| `--ink-soft` | `--ink-mid` | More descriptive: it's mid-weight ink |
-| `--ink-faint` | `--ink-faint` | Keep — still means what it says |
-| `--rule` | `--crease` | "Crease" fits the paper-theater metaphor |
-| `--rule-strong` | `--crease-bold` | Consistency with crease naming |
-| `--parchment-glass` | `--board-glass` | Consistent with board naming |
-
-### Faction renames
-
-| Old name | New name | Notes |
-|----------|----------|-------|
-| `--f0` through `--f6` | `--f-cru` through `--f-hol` | Short faction names more readable than indices |
-| `--f0-glow` / `--f0-pale` | `--f-cru-glow` / `--f-cru-accent` | "Accent" replaces "pale" — more descriptive |
-
-### State renames
-
-| Old name | New name | Notes |
-|----------|----------|-------|
-| `--st-hostile` | `--st-hostile` | Keep — value changes to `--cinnabar` |
-| `--st-ally` | `--st-ally` | Keep — value changes to `--verdigris` |
-| `--st-neutral` | `--st-neutral` | Keep |
-| `--st-selected` | `--st-selected` | Keep — value points to `--gold` |
-| `--st-reveal` | `--st-reveal` | Keep |
-| `--st-move` | `--st-move` | Keep |
-| `--st-danger` | `--st-danger` | Keep |
-| `--st-fog-seen` | `--st-fog-seen` | Keep |
-
-### New variables
-
-| New name | Value | Purpose |
-|----------|-------|---------|
-| `--ink-line` | `#121418` | Ink outline color for Puppet elements |
-| `--ink-weight` | `3px` | Standard ink outline width |
-| `--ink-weight-thin` | `1.5px` | Thin ink outline (small elements, glyph strokes) |
-| `--ink-weight-bold` | `5px` | Bold ink outline (emphasis) |
-| `--shadow-glow` | `0 0 12px var(--gold)` | Selection glow shadow |
-| `--shadow-state` | `0 0 16px 2px` | State glow shadow (color set by each state var) |
-
 ---
 
-## 17. Visual Reference — What It Should Feel Like
+## 16. Visual Reference — What It Should Feel Like
 
 - **Puppet layer:** A cross between a boldly-inked comic book (Scott Pilgrim, The Umbrella Academy), a late-90s Cartoon Network show with teeth (Courage the Cowardly Dog, Cow and Chicken), and a hand-painted wooden board game piece
 - **Proscenium layer:** Dark theater velvet. The stage frame. A pop-up book cover in deep shadow.
