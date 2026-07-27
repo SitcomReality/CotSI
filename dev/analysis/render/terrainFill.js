@@ -18,6 +18,8 @@ import { BIOME_COLORS } from './theme.js';
  * @returns {string} CSS color string
  */
 export function resolveFillColor(tile, viewMode, palettes) {
+  if (viewMode === 'blank') return '#000';
+
   if (viewMode === 'elevation' && tile.elevation !== undefined) {
     return elevationColor(tile.elevation);
   }
@@ -34,12 +36,12 @@ export function resolveFillColor(tile, viewMode, palettes) {
     return BIOME_COLORS.fallback;
   }
 
-  // Default terrain view
+  // Terrain view — use biome palette colours (scaled to 0–255) or TERRAIN fallback
   const bid = tile.biomeId;
   const tilePalette = bid ? palettes[bid] : null;
   if (tilePalette && tilePalette[tile.terrain]) {
     const rgb = tilePalette[tile.terrain];
-    return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    return `rgb(${rgb[0]*255|0},${rgb[1]*255|0},${rgb[2]*255|0})`;
   }
 
   return TERRAIN[tile.terrain]?.fill || '#444';
