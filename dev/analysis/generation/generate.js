@@ -5,15 +5,12 @@
  * parameters and returns a result object.
  */
 import { generateTiles } from '../../../src/game/rules/terrainGenerator.js';
-import { makeRng, stringSeed, seededNoise } from '../../../src/engine/rules/seededRng.js';
+import { makeRng, stringSeed } from '../../../src/engine/rules/seededRng.js';
+import { hexFbm2D } from '../../../src/engine/rules/noise.js';
 import { createChampions } from '../../../src/game/state/championFactory.js';
 import { createMobs, createTraders } from '../../../src/game/state/entityFactory.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
-import {
-  NOISE_CHANNEL_ELEVATION,
-  NOISE_CHANNEL_MOISTURE,
-  NOISE_CHANNEL_BIOME,
-} from '../../../src/params/game/worldParams.js';
+import { NOISE_ELEVATION, NOISE_MOISTURE } from '../../../src/params/game/worldParams.js';
 
 /**
  * Default champion config: one per faction, in faction order.
@@ -24,32 +21,6 @@ export const DEFAULT_CHAMPIONS = [
   { faction: 3 }, { faction: 4 }, { faction: 5 }, { faction: 6 },
 ];
 
-/** Simple threshold-based biome distribution for noise roll [0, 1). */
-const BIOME_DISTRIBUTION = [
-  { limit: 0.40, id: 'biome_default' },
-  { limit: 0.70, id: 'biome_lush' },
-  { limit: 1.00, id: 'biome_arid' },
-];
-
-/**
- * Build a biomeLookup callback for multi-biome generation.
- *
- * @param {string} seedText - Seed string for deterministic noise
- * @returns {(chunkQ: number, chunkR: number) => object|null}
- */
-export function buildBiomeLookup(seedText) {
-  const seedInt = stringSeed(seedText);
-  return (chunkQ, chunkR) => {
-    const roll = seededNoise(seedInt, chunkQ, chunkR, NOISE_CHANNEL_BIOME);
-    for (const entry of BIOME_DISTRIBUTION) {
-      if (roll < entry.limit) {
-        return getArchetype(entry.id) || getArchetype('biome_default');
-      }
-    }
-    return getArchetype('biome_default');
-  };
-}
-
 /**
  * Generate terrain, champions, mobs, and traders for a single seed.
  *
@@ -58,14 +29,12 @@ export function buildBiomeLookup(seedText) {
  *
  * @param {string}  seedText    - Seed string
  * @param {number}  radius      - Map radius in hexes
- * @param {object}  biomeDef    - Resolved biome archetype definition
+ * @param {object}  biomeDef    - Resolved biome archetype definition (null for multi-biome)
  * @param {object}  mapSettings - { heightVariation, wateriness, mountainousness }
- * @param {object}  [options]   - { multiBiome: boolean }
- * @returns {{ tiles, champions, mobs, traders, baseKeys, biomeDef, radius, seed, multiBiome, biomeIds }}
+ * @returns {{ tiles, champions, mobs, traders, baseKeys, biomeDef, radius, seed, biomeIds }}
  */
-export function generateSingleSeed(seedText, radius, biomeDef, mapSettings, { multiBiome = false } = {}) {
-  const biomeLookup = multiBiome ? buildBiomeLookup(seedText) : null;
-  const tiles = generateTiles(seedText, radius, multiBiome ? null : biomeDef, mapSettings, biomeLookup);
+export function generateSingleSeed(seedText, radius, biomeDef, mapSettings) {
+  const tiles = generateTiles(seedText, radius, biomeDef, mapSettings);
   const rng = makeRng(seedText);
   const rand = () => rng();
 
@@ -90,13 +59,13 @@ export function generateSingleSeed(seedText, radius, biomeDef, mapSettings, { mu
   return {
     tiles, champions, mobs, traders, baseKeys,
     biomeDef, radius, seed: seedText,
-    multiBiome,
     biomeIds: [...biomeIds],
   };
 }
 
 /**
  * Enrich tiles with raw noise values (elevation, moisture) for overlay rendering.
+ * Matches the FBM noise used in terrainGenerator.js.
  * Mutates tile objects in place.
  *
  * @param {object} tiles    - Flat tile map keyed by "q,r"
@@ -106,7 +75,7 @@ export function enrichWithNoise(tiles, seedText) {
   const seed = stringSeed(seedText);
   for (const key of Object.keys(tiles)) {
     const tile = tiles[key];
-    tile.elevation = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_ELEVATION);
-    tile.moisture = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_MOISTURE);
+    tile.elevation = hexFbm2D(tile.q, tile.r, seed, NOISE_ELEVATION);
+    tile.moisture = hexFbm2D(tile.q, tile.r, seed + 999, NOISE_MOISTURE);
   }
 }

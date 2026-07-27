@@ -6,10 +6,10 @@
  * This is the only module that wires together the sub-factories;
  * it imports from game/state, game/rules, and engine/rules.
  *
- * Multi-biome mode: pass biome = 'multi_biome' to enable per-chunk
- * biome assignment via NOISE_CHANNEL_BIOME.
+ * Multi-biome mode: pass biome = 'multi_biome' to enable per-hex
+ * biome assignment via FBM noise in terrainGenerator.js.
  */
-import { makeRng, stringSeed, seededNoise } from '../../engine/rules/seededRng.js';
+import { makeRng, stringSeed } from '../../engine/rules/seededRng.js';
 import { generateTiles } from '../rules/terrainGenerator.js';
 import { getArchetype } from '../rules/archetypes.js';
 import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
@@ -23,14 +23,6 @@ import { rebuildSpatialIndex } from './spatialIndex.js';
 import { createTileProxy } from './tileAccess.js';
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
-import { NOISE_CHANNEL_BIOME } from '../../params/game/worldParams.js';
-
-/** Simple threshold-based biome distribution for noise roll [0, 1). */
-const BIOME_DISTRIBUTION = [
-  { limit: 0.40, id: 'biome_default' },
-  { limit: 0.70, id: 'biome_lush' },
-  { limit: 1.00, id: 'biome_arid' },
-];
 
 export function createGame({
   seed = 'glut-17',
@@ -45,29 +37,12 @@ export function createGame({
   // For single-biome mode, resolve once
   const singleBiomeDef = isMultiBiome ? null : (getArchetype(biome) || getArchetype('biome_default'));
 
-  // Build biome lookup for multi-biome mode
-  let biomeLookup = null;
-
-  if (isMultiBiome) {
-    // Seed the noise lookup so it's deterministic
-    const seedInt = stringSeed(seed);
-    biomeLookup = (chunkQ, chunkR) => {
-      const roll = seededNoise(seedInt, chunkQ, chunkR, NOISE_CHANNEL_BIOME);
-      for (const entry of BIOME_DISTRIBUTION) {
-        if (roll < entry.limit) {
-          return getArchetype(entry.id) || getArchetype('biome_default');
-        }
-      }
-      return getArchetype('biome_default');
-    };
-  }
-
-  // Generate flat tiles — pass biomeLookup for multi-biome, or a single biomeDef otherwise
+  // Generate flat tiles — biomeDef=null for multi-biome (per-hex assignment
+  // inside the generator), or a single biomeDef for single-biome mode
   const flatTiles = generateTiles(
     seed, radius,
     isMultiBiome ? null : singleBiomeDef,
     mapSettings,
-    isMultiBiome ? biomeLookup : null,
   );
 
   const rng = makeRng(seed);
@@ -102,7 +77,7 @@ export function createGame({
     const ck = chunkKey(cq, cr);
     let chunk = state.chunks.get(ck);
     if (!chunk) {
-      // Inherit biomeId from the first tile (all tiles in a chunk share a biome)
+      // Inherit biomeId from the first tile
       chunk = { tiles: new Map(), dirty: false, generated: true, biomeId: tile.biomeId || null };
       state.chunks.set(ck, chunk);
     }

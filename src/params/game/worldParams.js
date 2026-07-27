@@ -54,3 +54,16 @@ export const KNOT_BASE_AMOUNT = 2;
 export const KNOT_AMOUNT_VARIATION_SCALE = 100;
 /** Modulo bound for knot-amount variation. */
 export const KNOT_AMOUNT_VARIATION_MOD = 3;
+
+// ---------------------------------------------------------------------------
+// FBM noise configuration
+// ---------------------------------------------------------------------------
+
+/** Elevation field: large-scale features with moderate detail. */
+export const NOISE_ELEVATION = { octaves: 5, lacunarity: 2.0, gain: 0.5, frequency: 0.004 };
+
+/** Moisture field: medium-scale, somewhat finer than elevation. */
+export const NOISE_MOISTURE = { octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.005 };
+
+/** Biome regions: very large-scale, only 2 octaves for soft transitions. */
+export const NOISE_BIOME = { octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.002 };
