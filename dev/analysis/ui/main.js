@@ -17,6 +17,18 @@ import { getArchetype, listArchetypes } from '../../../src/game/rules/archetypes
 import '../../../src/game/rules/archetypeData/index.js'; // side-effect: populate registry
 import { runMultiSeed } from '../generation/multiSeed.js';
 
+// ── Calibration imports ─────────────────────────────────────────────────────
+import { verifyFrequency } from '../generation/frequencyVerification.js';
+import { collectHistograms } from '../generation/histograms.js';
+import { poolHistograms, buildQuantileLUT } from '../generation/quantileLUT.js';
+import { NOISE_CONFIG } from '../generation/noiseConfig.js';
+import {
+  formatFrequencyReport,
+  formatHistogramReport,
+  formatQuantileReport,
+  formatCalibrationAll,
+} from '../stats/calibrationDisplay.js';
+
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
 function getMapSettings() {
@@ -196,6 +208,110 @@ function bindControls() {
     if (S.cycleOn) stopCycle();
     pickAndGenerateRandom();
   });
+
+  // ── Calibration ──────────────────────────────────────────────────────────────
+
+  function doFreqVerify() {
+    const seedText = els.seed.value || 'glut-17';
+    els.statsPanel.textContent = 'Running frequency verification (radius 50)...';
+    try {
+      const results = verifyFrequency(seedText, 50);
+      els.statsPanel.textContent = formatFrequencyReport(results);
+    } catch (err) {
+      els.statsPanel.textContent = `Frequency verification failed:\n${err.message}\n${err.stack}`;
+    }
+  }
+
+  function doCollectHistograms() {
+    const seedText = els.seed.value || 'glut-17';
+    const radius = parseInt(els.radius.value, 10) || 21;
+    els.statsPanel.textContent = `Collecting histograms for ${seedText} at radius ${radius}...`;
+    try {
+      const hists = collectHistograms(seedText, radius, NOISE_CONFIG);
+      els.statsPanel.textContent = formatHistogramReport(hists, seedText, radius);
+    } catch (err) {
+      els.statsPanel.textContent = `Histogram collection failed:\n${err.message}\n${err.stack}`;
+    }
+  }
+
+  function doBuildLuts() {
+    const seedText = els.seed.value || 'glut-17';
+    const radius = parseInt(els.radius.value, 10) || 21;
+
+    // Run 3 seeds at current radius to get ensemble data
+    const seedTexts = [seedText, `${seedText}-alt`, `${seedText}-test`];
+    els.statsPanel.textContent = `Building quantile LUTs across ${seedTexts.length} seeds at radius ${radius}...`;
+
+    try {
+      const allElev  = [];
+      const allMoist = [];
+      const allTemp  = [];
+      const allSlope = [];
+
+      for (const st of seedTexts) {
+        const h = collectHistograms(st, radius, NOISE_CONFIG);
+        allElev.push(h.elevHist);
+        allMoist.push(h.moistHist);
+        allTemp.push(h.tempHist);
+        allSlope.push(h.slopeHist);
+      }
+
+      const result = {
+        elevation:    buildQuantileLUT(poolHistograms(allElev)),
+        moisture:     buildQuantileLUT(poolHistograms(allMoist)),
+        temperature:  buildQuantileLUT(poolHistograms(allTemp)),
+        slope:        buildQuantileLUT(poolHistograms(allSlope)),
+      };
+
+      const sourceDesc = `${seedTexts.length} seeds × r=${radius}`;
+      els.statsPanel.textContent = formatQuantileReport(result, sourceDesc);
+    } catch (err) {
+      els.statsPanel.textContent = `Quantile LUT build failed:\n${err.message}\n${err.stack}`;
+    }
+  }
+
+  function doCalibrateAll() {
+    const seedText = els.seed.value || 'glut-17';
+    const radius = parseInt(els.radius.value, 10) || 21;
+    els.statsPanel.textContent = 'Running full calibration...';
+
+    try {
+      // 1. Frequency verification (radius=50 for wide extent)
+      const freqRes = verifyFrequency(seedText, 50);
+      const freqStr = formatFrequencyReport(freqRes);
+
+      // 2. Histograms for the current seed/radius
+      const hists = collectHistograms(seedText, radius, NOISE_CONFIG);
+      const histStr = formatHistogramReport(hists, seedText, radius);
+
+      // 3. Quantile LUTs (pooled across 3 seeds)
+      const seedTexts = [seedText, `${seedText}-alt`, `${seedText}-test`];
+      const allElev = [], allMoist = [], allTemp = [], allSlope = [];
+      for (const st of seedTexts) {
+        const h = collectHistograms(st, radius, NOISE_CONFIG);
+        allElev.push(h.elevHist);
+        allMoist.push(h.moistHist);
+        allTemp.push(h.tempHist);
+        allSlope.push(h.slopeHist);
+      }
+      const lutResult = {
+        elevation:   buildQuantileLUT(poolHistograms(allElev)),
+        moisture:    buildQuantileLUT(poolHistograms(allMoist)),
+        temperature: buildQuantileLUT(poolHistograms(allTemp)),
+        slope:       buildQuantileLUT(poolHistograms(allSlope)),
+      };
+      const lutStr = formatQuantileReport(lutResult, `${seedTexts.length} seeds × r=${radius}`);
+
+      els.statsPanel.textContent = formatCalibrationAll(freqStr, histStr, lutStr);
+    } catch (err) {
+      els.statsPanel.textContent = `Calibration run failed:\n${err.message}\n${err.stack}`;
+    }
+  }
+
+  els.btnFreqVerify.addEventListener('click', doFreqVerify);
+  els.btnCollectHists.addEventListener('click', doCollectHistograms);
+  els.btnBuildLuts.addEventListener('click', doBuildLuts);
+  els.btnCalibrateAll.addEventListener('click', doCalibrateAll);
 
   // Export
   els.btnExportPng.addEventListener('click', exportPng);

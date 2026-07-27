@@ -852,11 +852,12 @@ Single-biome mode (setup screen selects one archetype) remains supported. When `
 
 ---
 
-## 16. References
+## 16. Implementation Progress Tracking
 
-- `dev/mapgen_update/design.md` — Original monolithic spec (superseded by this document)
-- `dev/mapgen_update/design_observations.md` — Review 1: structural critique
-- `dev/mapgen_update/design_thoughts.md` — Review 2: calibration and design-logic critique
+Completed steps should be noted in `update_progress/progress_overview.md` with any detailed progress notes needed recorded in individual progress tracking files for each phase.
+
+## 17. References
+
 - `phase0_calibration.md` through `phaseG_tuning_polish.md` — Individual phase specs
 - `src/engine/rules/noise.js` — Simplex 2D + FBM implementation
 - `src/game/rules/archetypes.js` — Archetype registry

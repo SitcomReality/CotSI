@@ -9,9 +9,9 @@
 
 **Goal:** Histogram tooling, quantile CDF LUTs for all continuous fields, percentile-based thresholds, snapshot tests.
 
-- [ ] Frequency verification — run all noise fields, document `hexToWorld` rescaling relationship
-- [ ] `dev/analysis/generation/histograms.js` — `collectHistograms`, `percentileFromHistogram`
-- [ ] `dev/analysis/generation/quantileLUT.js` — `buildQuantileLUT`, `normalizeField` (256-entry LUTs with linear interpolation)
+- [x] Frequency verification — `dev/analysis/generation/frequencyVerification.js` — `verifyFrequency`, `formatFrequencyReport`, `checkWavelength`
+- [x] `dev/analysis/generation/histograms.js` — provisional `sampleBaseFields`, `collectHistograms`, `percentileFromHistogram`
+- [x] `dev/analysis/generation/quantileLUT.js` — `poolHistograms`, `buildQuantileLUT`, `normalizeField` (256-entry LUTs with linear interpolation)
 - [ ] Calibrate quantile LUTs across 5+ seeds × 3 radii (7, 21, 50)
 - [ ] Calibrate `SLOPE_NORMALIZATION` from measured elevation deltas
 - [ ] Calibrate `EPICENTER_GRID.cellSize` for target supernatural biome coverage (3–10%)

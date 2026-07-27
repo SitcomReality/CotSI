@@ -52,6 +52,12 @@ export function cacheDom() {
   els.btnMultiGenerate = $('btn-multi-generate');
   els.btnExportPng = $('btn-export-png');
   els.btnExportJson = $('btn-export-json');
+
+  // Calibration buttons
+  els.btnFreqVerify = $('btn-freq-verify');
+  els.btnCollectHists = $('btn-collect-hists');
+  els.btnBuildLuts = $('btn-build-luts');
+  els.btnCalibrateAll = $('btn-calibrate-all');
   els.statsPanel = $('stats-panel');
   els.multiBiomeCheck = $('multi-biome-check');
   els.legend = $('legend');
