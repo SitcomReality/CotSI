@@ -6,6 +6,9 @@
  * infrastructure, and a backward-compatible generateTiles wrapper that
  * assembles all chunks into a flat map.
  *
+ * Multi-biome mode: pass biomeLookup(chunkQ, chunkR) to assign different
+ * biomes to different chunks via NOISE_CHANNEL_BIOME sampling.
+ *
  * The global BFS passes (contiguous-land enforcement, mountain flood-fill
  * grouping, water flood-fill clustering) have been removed in favour of
  * noise-based local alternatives:
@@ -24,7 +27,15 @@ import { TERRAIN } from './terrainTypes.js';
 import { DEFAULT_THRESHOLDS, DEFAULT_FEATURES } from './terrainTypes.js';
 import { tileToChunk, localCoord, localKey, hexesInChunk } from '../../engine/rules/chunkGrid.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
-import { NOISE_CHANNEL_ELEVATION, NOISE_CHANNEL_MOISTURE, NOISE_CHANNEL_FEATURES, NOISE_CHANNEL_DEBRIS, NOISE_CHANNEL_DEBRIS_KIND, DEBRIS_SPAWN_THRESHOLD, DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD, MOUNTAIN_PEAK_MIN_NEIGHBORS, WATER_BFS_MAX_DEPTH, OCEAN_EDGE_BUFFER, KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_SCALE, KNOT_AMOUNT_VARIATION_MOD } from '../../params/game/worldParams.js';
+import {
+  NOISE_CHANNEL_ELEVATION, NOISE_CHANNEL_MOISTURE, NOISE_CHANNEL_BIOME,
+  NOISE_CHANNEL_FEATURES, NOISE_CHANNEL_DEBRIS, NOISE_CHANNEL_DEBRIS_KIND,
+  DEBRIS_SPAWN_THRESHOLD, DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD,
+  MOUNTAIN_PEAK_MIN_NEIGHBORS, WATER_BFS_MAX_DEPTH, OCEAN_EDGE_BUFFER,
+  FLOATING_ISLAND_THRESHOLD, PEAK_THRESHOLD, DENSE_FOREST_MIN_MOISTURE,
+  KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_SCALE, KNOT_AMOUNT_VARIATION_MOD,
+} from '../../params/game/worldParams.js';
+import { TERRAIN_ELEVATION } from '../../params/render/terrainParams.js';
 
 // ---------------------------------------------------------------------------
 // Threshold helpers
@@ -32,7 +43,9 @@ import { NOISE_CHANNEL_ELEVATION, NOISE_CHANNEL_MOISTURE, NOISE_CHANNEL_FEATURES
 
 function resolveThresholds(biomeDef, params) {
   const thresholds = biomeDef?.terrainThresholds || DEFAULT_THRESHOLDS;
-  const features = biomeDef?.featureFrequencies || DEFAULT_FEATURES;
+  const features = biomeDef?.features || DEFAULT_FEATURES;
+  const moistureBias = biomeDef?.moistureBias ?? 0;
+  const terrainElevation = biomeDef?.terrainElevation || null;
 
   const heightMult = params.heightVariation ?? 1.0;
   const waterMult = params.wateriness ?? 1.0;
@@ -50,26 +63,54 @@ function resolveThresholds(biomeDef, params) {
   const marshMinMoisture = thresholds.marsh?.minMoisture ?? 0.58;
   const marshMaxElevation = thresholds.marsh?.maxElevation ?? 0.35;
 
-  const treeThreshold = features.tree?.threshold ?? 0.935;
-  const treeExclude = features.tree?.exclude ?? ['desert'];
-  const knotThreshold = features.knot?.threshold ?? 0.038;
+  // New terrain thresholds
+  const denseForestMinMoisture = thresholds.denseForest?.minMoisture ?? DENSE_FOREST_MIN_MOISTURE;
 
   return {
     heightMult, mtThreshold, waterThreshold, waterMinMoisture,
     forestMinMoisture, desertMaxMoisture, marshMinMoisture, marshMaxElevation,
-    treeThreshold, treeExclude, knotThreshold,
+    denseForestMinMoisture,
+    features, moistureBias, terrainElevation,
+    supportsFloatingIslands: !!biomeDef?.supportsFloatingIslands,
+    floatingIslandThreshold: FLOATING_ISLAND_THRESHOLD / Math.max(0.1, mountainMult),
+    peakThreshold: PEAK_THRESHOLD / Math.max(0.1, mountainMult),
   };
 }
 
 /**
- * Determine terrain type from elevation and moisture.
+ * Resolve per-tile terrain elevation from biome terrainElevation overrides
+ * or the global TERRAIN_ELEVATION default.
+ */
+function resolveElevation(terrain, T) {
+  if (T.terrainElevation && T.terrainElevation[terrain] !== undefined) {
+    return T.terrainElevation[terrain];
+  }
+  return TERRAIN_ELEVATION[terrain] || 0;
+}
+
+/**
+ * Determine terrain type from elevation, moisture, and biome properties.
  */
 function classifyTerrain(elevation, moisture, T) {
+  // Floating island — extreme elevation, biome-gated
+  if (T.supportsFloatingIslands && elevation > T.floatingIslandThreshold) {
+    return 'floatingIsland';
+  }
+  // Peak — above mountain threshold
+  if (elevation > T.peakThreshold) return 'peak';
+  // Mountain
   if (elevation > T.mtThreshold) return 'mountain';
+  // Water
   if (elevation < T.waterThreshold && moisture > T.waterMinMoisture) return 'water';
+  // Dense forest (jungle/rainforest) — very high moisture
+  if (moisture > T.denseForestMinMoisture) return 'denseForest';
+  // Forest
   if (moisture > T.forestMinMoisture) return 'forest';
+  // Desert
   if (moisture < T.desertMaxMoisture) return 'desert';
+  // Marsh — high moisture + low elevation
   if (moisture > T.marshMinMoisture && elevation < T.marshMaxElevation) return 'marsh';
+  // Default
   return 'plains';
 }
 
@@ -78,10 +119,10 @@ function classifyTerrain(elevation, moisture, T) {
 // ---------------------------------------------------------------------------
 
 /**
- * Tag a mountain tile as 'peak', 'slope', or 'isolated' based purely on
+ * Tag a mountain or peak tile as 'peak', 'slope', or 'isolated' based purely on
  * local neighbor count within the tile set. No flood-fill needed.
  *
- * @param {object} tile - The mountain tile to tag (mutated in place)
+ * @param {object} tile - The mountain/peak tile to tag (mutated in place)
  * @param {object} tileLookup - Function (q, r) => tile or undefined
  */
 function tagMountainType(tile, tileLookup) {
@@ -89,7 +130,9 @@ function tagMountainType(tile, tileLookup) {
   let mtCount = 0;
   for (const n of nbrs) {
     const nTile = tileLookup(n.q, n.r);
-    if (nTile && nTile.terrain === 'mountain') mtCount++;
+    if (nTile && (nTile.terrain === 'mountain' || nTile.terrain === 'peak' || nTile.terrain === 'floatingIsland')) {
+      mtCount++;
+    }
   }
   if (mtCount === 0) {
     tile.mountainType = 'isolated';
@@ -104,26 +147,11 @@ function tagMountainType(tile, tileLookup) {
 // Local water type tagging (bounded BFS to depth 3)
 // ---------------------------------------------------------------------------
 
-/**
- * Determine whether a water tile is 'lake' or 'ocean' using a bounded BFS
- * to depth 3. A water tile that is connected (within 3 steps) to the map
- * edge is ocean; otherwise lake.
- *
- * @param {number} seed  - Integer seed for noise sampling
- * @param {number} q     - Global tile q
- * @param {number} r     - Global tile r
- * @param {number} radius - Map radius (for edge detection)
- * @param {object} T     - Resolved thresholds
- * @param {function} tileLookup - (q, r) => tile or undefined for existing tiles
- * @returns {'lake'|'ocean'}
- */
 function waterTypeForTile(seed, q, r, radius, T, tileLookup) {
-  // If this tile itself touches the map edge, it's ocean immediately
   if (distance({ q: 0, r: 0 }, { q, r }) >= radius - OCEAN_EDGE_BUFFER) {
     return 'ocean';
   }
 
-  // Bounded BFS: check water-connected tiles within depth 3 for edge contact
   const seen = new Set();
   const queue = [{ q, r, depth: 0 }];
   seen.add(`${q},${r}`);
@@ -137,7 +165,6 @@ function waterTypeForTile(seed, q, r, radius, T, tileLookup) {
       if (seen.has(nk)) continue;
       seen.add(nk);
 
-      // Check if this neighbor exists in the tile set
       const existing = tileLookup(n.q, n.r);
       const isWater = existing
         ? existing.terrain === 'water'
@@ -145,7 +172,6 @@ function waterTypeForTile(seed, q, r, radius, T, tileLookup) {
 
       if (!isWater) continue;
 
-      // Check if this water tile touches the map edge
       if (distance({ q: 0, r: 0 }, { q: n.q, r: n.r }) >= radius - OCEAN_EDGE_BUFFER) {
         return 'ocean';
       }
@@ -157,14 +183,67 @@ function waterTypeForTile(seed, q, r, radius, T, tileLookup) {
   return 'lake';
 }
 
-/**
- * Check whether a tile at (q, r) would be water based purely on noise.
- * Used for neighbours that may not have been generated yet.
- */
 function _noiseIsWater(seed, q, r, T) {
   const elev = seededNoise(seed, q, r, NOISE_CHANNEL_ELEVATION) * T.heightMult;
-  const moist = seededNoise(seed, q, r, NOISE_CHANNEL_MOISTURE);
+  const moist = seededNoise(seed, q, r, NOISE_CHANNEL_MOISTURE) + T.moistureBias;
   return elev < T.waterThreshold && moist > T.waterMinMoisture;
+}
+
+// ---------------------------------------------------------------------------
+// Feature spawn helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Determine which feature (if any) to spawn on a given tile based on the
+ * biome's ordered features list. First matching rule wins.
+ *
+ * @param {number} roll  - Feature noise roll [0, 1)
+ * @param {string} terrain - Tile terrain type
+ * @param {object[]} features - Ordered array of feature spawn rules from the biome def
+ * @returns {object|null} Feature descriptor, or null
+ */
+function spawnFeature(roll, terrain, features) {
+  for (const rule of features) {
+    // Check terrain exclusion
+    if (rule.terrainExclude && rule.terrainExclude.includes(terrain)) continue;
+
+    // Check noise threshold
+    let matched = false;
+    if (rule.compare === 'gt' && roll > rule.threshold) matched = true;
+    else if (rule.compare === 'lt' && roll < rule.threshold) matched = true;
+
+    if (!matched) continue;
+
+    // Build feature descriptor based on kind
+    switch (rule.kind) {
+      case 'tree':
+      case 'largeTree': {
+        const density = terrain === 'forest' || terrain === 'denseForest' ? 'dense'
+          : terrain === 'plains' ? 'medium'
+          : 'sparse';
+        return { kind: rule.kind, density };
+      }
+      case 'fruitTree': {
+        const density = terrain === 'forest' || terrain === 'denseForest' ? 'dense'
+          : terrain === 'plains' ? 'medium'
+          : 'sparse';
+        return { kind: 'fruitTree', nextFruitDay: 1, ripe: true, density };
+      }
+      case 'knot':
+        return {
+          kind: 'knot', mined: false,
+          amount: KNOT_BASE_AMOUNT + Math.floor(roll * KNOT_AMOUNT_VARIATION_SCALE) % KNOT_AMOUNT_VARIATION_MOD,
+        };
+      case 'bush':
+        return { kind: 'bush' };
+      case 'vine':
+        return { kind: 'vine' };
+      default:
+        return { kind: rule.kind };
+    }
+  }
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -175,21 +254,28 @@ function _noiseIsWater(seed, q, r, T) {
  * Generate tiles for a single chunk. Tiles within the chunk that fall
  * outside the map radius are excluded.
  *
- * The returned Map is keyed by local coords ("lq,lr"), each value is a
- * full tile object with global { q, r, terrain, feature, mountainType,
- * waterType, debris }.
+ * Supports multi-biome via biomeLookup(chunkQ, chunkR) — when provided,
+ * each chunk independently resolves its biome. When null, the single
+ * biomeDef is used for all tiles.
  *
- * @param {string}  seedText    - Seed string for reproducible generation
- * @param {number}  chunkQ      - Chunk q coordinate
- * @param {number}  chunkR      - Chunk r coordinate
- * @param {number}  radius      - Hex map radius (center 0,0)
- * @param {object}  [biomeDef]  - Resolved biome archetype def, or null
- * @param {object}  [params]    - Map parameter multipliers
- * @returns {Map<string, object>} localKey → tile data
+ * @param {string}   seedText     - Seed string for reproducible generation
+ * @param {number}   chunkQ       - Chunk q coordinate
+ * @param {number}   chunkR       - Chunk r coordinate
+ * @param {number}   radius       - Hex map radius (center 0,0)
+ * @param {object}   [biomeDef]   - Resolved biome archetype def, or null for defaults
+ * @param {object}   [params]     - Map parameter multipliers
+ * @param {function} [biomeLookup]- (chunkQ, chunkR) => biomeDef for multi-biome mode
+ * @returns {{ tileMap: Map<string, object>, biomeId: string|null }}
  */
-export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = null, params = {}) {
+export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = null, params = {}, biomeLookup = null) {
   const seed = stringSeed(seedText);
-  const T = resolveThresholds(biomeDef, params);
+
+  // Resolve the biome for this chunk (multi-biome or single)
+  const resolvedBiomeDef = biomeLookup
+    ? (biomeLookup(chunkQ, chunkR) || biomeDef)
+    : biomeDef;
+
+  const T = resolveThresholds(resolvedBiomeDef, params);
 
   const tileMap = new Map();
 
@@ -202,15 +288,19 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
   // --- Pass 1: Generate base terrain ---
   for (const { q, r } of candidates) {
     const elevation = seededNoise(seed, q, r, NOISE_CHANNEL_ELEVATION) * T.heightMult;
-    const moisture = seededNoise(seed, q, r, NOISE_CHANNEL_MOISTURE);
+    const moisture = clamp01(seededNoise(seed, q, r, NOISE_CHANNEL_MOISTURE) + T.moistureBias);
     const terrain = classifyTerrain(elevation, moisture, T);
     const { lq, lr } = localCoord(chunkQ, chunkR, q, r);
-    tileMap.set(localKey(lq, lr), { q, r, terrain, feature: null, mountainType: null, waterType: null, debris: null });
+    const elev = resolveElevation(terrain, T);
+    tileMap.set(localKey(lq, lr), {
+      q, r, terrain, feature: null,
+      mountainType: null, waterType: null, debris: null,
+      elevation: elev,
+      biomeId: resolvedBiomeDef?.id || null,
+    });
   }
 
   // --- Pass 2: Local mountain type tagging ---
-  // Build a lookup function that checks the current chunk first, then
-  // falls back to noise for out-of-chunk neighbors (for boundary correctness).
   const tileLookup = (nq, nr) => {
     const { cq, cr } = tileToChunk(nq, nr);
     if (cq === chunkQ && cr === chunkR) {
@@ -219,13 +309,16 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
     // Out of chunk — compute terrain from noise
     const elevation = seededNoise(seed, nq, nr, NOISE_CHANNEL_ELEVATION) * T.heightMult;
-    const moisture = seededNoise(seed, nq, nr, NOISE_CHANNEL_MOISTURE);
+    const moisture = clamp01(seededNoise(seed, nq, nr, NOISE_CHANNEL_MOISTURE) + T.moistureBias);
     const terrain = classifyTerrain(elevation, moisture, T);
-    return terrain === 'mountain' ? { terrain: 'mountain', q: nq, r: nr } : undefined;
+    if (terrain === 'mountain' || terrain === 'peak') {
+      return { terrain, q: nq, r: nr };
+    }
+    return undefined;
   };
 
   for (const [, tile] of tileMap) {
-    if (tile.terrain === 'mountain') {
+    if (tile.terrain === 'mountain' || tile.terrain === 'peak') {
       tagMountainType(tile, tileLookup);
     }
   }
@@ -237,17 +330,13 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
   }
 
-  // --- Pass 4: Sprinkle features (trees, knots) ---
+  // --- Pass 4: Sprinkle features (flora + resources from biome features list) ---
   for (const [, tile] of tileMap) {
     if (!TERRAIN[tile.terrain].passable) continue;
     const roll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_FEATURES);
-    if (roll > T.treeThreshold && !T.treeExclude.includes(tile.terrain)) {
-      const density = tile.terrain === 'forest' ? 'dense'
-        : tile.terrain === 'plains' ? 'medium'
-        : 'sparse';
-      tile.feature = { kind: 'tree', nextFruitDay: 1, ripe: true, density };
-    } else if (roll < T.knotThreshold) {
-      tile.feature = { kind: 'knot', mined: false, amount: KNOT_BASE_AMOUNT + Math.floor(roll * KNOT_AMOUNT_VARIATION_SCALE) % KNOT_AMOUNT_VARIATION_MOD };
+    const feature = spawnFeature(roll, tile.terrain, T.features);
+    if (feature) {
+      tile.feature = feature;
     }
   }
 
@@ -265,7 +354,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
   }
 
-  return tileMap;
+  return { tileMap, biomeId: resolvedBiomeDef?.id || null };
 }
 
 // ---------------------------------------------------------------------------
@@ -277,16 +366,14 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
  * Delegates to generateChunkTiles for each chunk in range and assembles
  * the results into a single flat object keyed by "q,r".
  *
- * This is the backward-compatible entry point used by gameFactory.js and
- * any code that hasn't been migrated to chunk-aware accessors yet.
- *
- * @param {string}  seedText     - Seed string for reproducible generation
- * @param {number}  radius       - Hex map radius (center 0,0)
- * @param {object}  [biomeDef]   - Resolved biome archetype definition, or null for defaults
- * @param {object}  [params]     - Map parameter multipliers
+ * @param {string}   seedText      - Seed string for reproducible generation
+ * @param {number}   radius        - Hex map radius (center 0,0)
+ * @param {object}   [biomeDef]    - Resolved biome archetype definition, or null for defaults
+ * @param {object}   [params]      - Map parameter multipliers
+ * @param {function} [biomeLookup] - (chunkQ, chunkR) => biomeDef for multi-biome mode
  * @returns {object} tiles keyed by "q,r"
  */
-export function generateTiles(seedText, radius, biomeDef = null, params = {}) {
+export function generateTiles(seedText, radius, biomeDef = null, params = {}, biomeLookup = null) {
   startMeasure('genTiles');
 
   // Determine which chunks intersect the map radius
@@ -303,12 +390,20 @@ export function generateTiles(seedText, radius, biomeDef = null, params = {}) {
   const tiles = {};
   for (const ck of chunks) {
     const [cq, cr] = ck.split(',').map(Number);
-    const chunkTiles = generateChunkTiles(seedText, cq, cr, radius, biomeDef, params);
-    for (const [, tile] of chunkTiles) {
+    const { tileMap } = generateChunkTiles(seedText, cq, cr, radius, biomeDef, params, biomeLookup);
+    for (const [, tile] of tileMap) {
       tiles[coordKey(tile)] = tile;
     }
   }
 
   endMeasure('genTiles');
   return tiles;
+}
+
+// ---------------------------------------------------------------------------
+// Utility
+// ---------------------------------------------------------------------------
+
+function clamp01(v) {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
 }

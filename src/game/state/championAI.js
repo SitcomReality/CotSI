@@ -16,7 +16,7 @@ export function botChooseTarget(state, champ){
     if(!tile) continue;
     if(!(champ.explored||[]).includes(key)) continue;
     let score=0;
-    if(tile.feature?.kind==='tree' && tile.feature.ripe!==false) score += (champ.hp < BOT_TREE_HP_THRESHOLD ? BOT_TREE_SCORE_INJURED : BOT_TREE_SCORE_HEALTHY);
+    if(tile.feature?.kind==='fruitTree' && tile.feature.ripe!==false) score += (champ.hp < BOT_TREE_HP_THRESHOLD ? BOT_TREE_SCORE_INJURED : BOT_TREE_SCORE_HEALTHY);
     if(tile.feature?.kind==='knot' && !tile.feature.mined) score += BOT_KNOT_SCORE;
     // Note: mob/trader hexes are not scorable — champions cannot pathfind
     // onto them. The bot attacks adjacent mobs directly (see runBotTurn).

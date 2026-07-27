@@ -75,19 +75,23 @@ export function buildTreeMeshes(state, visible) {
 
   for (const key of visible) {
     const tile = state.tiles[key];
-    if (!tile || !tile.feature || tile.feature.kind !== 'tree') continue;
+    if (!tile || !tile.feature) continue;
+    const kind = tile.feature.kind;
+    if (kind !== 'tree' && kind !== 'fruitTree' && kind !== 'largeTree') continue;
 
     const variant = treeVariant(tile.terrain, tile.q, tile.r);
     const { heightOffset, canopyY } = canopyForVariant(variant);
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
-    const scale = densityScale(tile.feature.density);
+
+    // largeTree gets a forced large scale regardless of density
+    const baseScale = kind === 'largeTree' ? 1.8 : densityScale(tile.feature.density);
 
     const g = groups[variant];
     if (!g) continue;
 
-    g.trunks.push({ x, y: surfaceY + heightOffset * TREE_TRUNK_Y_FRACTION * scale, z, scale });
-    g.canopies.push({ x, y: surfaceY + canopyY * scale, z, scale });
+    g.trunks.push({ x, y: surfaceY + heightOffset * TREE_TRUNK_Y_FRACTION * baseScale, z, scale: baseScale });
+    g.canopies.push({ x, y: surfaceY + canopyY * baseScale, z, scale: baseScale });
   }
 
   const results = [];
@@ -157,19 +161,22 @@ export function buildChunkTreeMeshes(chunkTiles, visible) {
   for (const tile of chunkTiles) {
     const key = `${tile.q},${tile.r}`;
     if (!visible.has(key)) continue;
-    if (!tile.feature || tile.feature.kind !== 'tree') continue;
+    if (!tile.feature) continue;
+    const kind = tile.feature.kind;
+    if (kind !== 'tree' && kind !== 'fruitTree' && kind !== 'largeTree') continue;
 
     const variant = treeVariant(tile.terrain, tile.q, tile.r);
     const { heightOffset, canopyY } = canopyForVariant(variant);
     const surfaceY = tileTopY(tile.terrain);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
-    const scale = densityScale(tile.feature.density);
+
+    const baseScale = kind === 'largeTree' ? 1.8 : densityScale(tile.feature.density);
 
     const g = groups[variant];
     if (!g) continue;
 
-    g.trunks.push({ x, y: surfaceY + heightOffset * TREE_TRUNK_Y_FRACTION * scale, z, scale });
-    g.canopies.push({ x, y: surfaceY + canopyY * scale, z, scale });
+    g.trunks.push({ x, y: surfaceY + heightOffset * TREE_TRUNK_Y_FRACTION * baseScale, z, scale: baseScale });
+    g.canopies.push({ x, y: surfaceY + canopyY * baseScale, z, scale: baseScale });
   }
 
   const results = [];

@@ -157,8 +157,14 @@ function terrainEffects(state, champ, effects) {
       f.faction === champ.faction
         ? ` Your faction's base — sanctuary is at hand.`
         : ` A ${FACTIONS[f.faction].name} base — potency may be bought here.`;
-  } else if (f?.kind === 'tree') {
+  } else if (f?.kind === 'fruitTree') {
     text += f.ripe === false ? ' The fruit here is spent.' : ' Manuscript fruit hangs here.';
+  } else if (f?.kind === 'tree' || f?.kind === 'largeTree') {
+    text += ` A ${f.kind === 'largeTree' ? 'massive ' : ''}tree stands here.`;
+  } else if (f?.kind === 'bush') {
+    text += ` Dense underbrush crowds the hex.`;
+  } else if (f?.kind === 'vine') {
+    text += ` Thick vines carpet the ground.`;
   } else if (f?.kind === 'knot' && !f.mined) {
     text += ` An unmined God's Knot glimmers.`;
   }

@@ -5,8 +5,11 @@
  *
  * This is the only module that wires together the sub-factories;
  * it imports from game/state, game/rules, and engine/rules.
+ *
+ * Multi-biome mode: pass biome = 'multi_biome' to enable per-chunk
+ * biome assignment via NOISE_CHANNEL_BIOME.
  */
-import { makeRng } from '../../engine/rules/seededRng.js';
+import { makeRng, stringSeed, seededNoise } from '../../engine/rules/seededRng.js';
 import { generateTiles } from '../rules/terrainGenerator.js';
 import { getArchetype } from '../rules/archetypes.js';
 import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
@@ -20,24 +23,76 @@ import { rebuildSpatialIndex } from './spatialIndex.js';
 import { createTileProxy } from './tileAccess.js';
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
+import { NOISE_CHANNEL_BIOME } from '../../params/game/worldParams.js';
+
+/** Simple threshold-based biome distribution for noise roll [0, 1). */
+const BIOME_DISTRIBUTION = [
+  { limit: 0.40, id: 'biome_default' },
+  { limit: 0.70, id: 'biome_verdant' },
+  { limit: 1.00, id: 'biome_arid' },
+];
 
 export function createGame({
   seed = 'glut-17',
   radius = 7,
   champions = [],
   objectives = { relicRace: true, relicTarget: 7, lastStanding: true },
-  biome = 'biome_default',
+  biome = 'multi_biome',
   mapSettings = {},
 }) {
-  const biomeDef = getArchetype(biome) || getArchetype('biome_default');
-  const biomePalette = biomeDef?.palette || null;
-  const flatTiles = generateTiles(seed, radius, biomeDef, mapSettings);
+  const isMultiBiome = biome === 'multi_biome';
+
+  // For single-biome mode, resolve once
+  const singleBiomeDef = isMultiBiome ? null : (getArchetype(biome) || getArchetype('biome_default'));
+
+  // Build biome lookup for multi-biome mode
+  let biomeLookup = null;
+
+  if (isMultiBiome) {
+    // Seed the noise lookup so it's deterministic
+    const seedInt = stringSeed(seed);
+    biomeLookup = (chunkQ, chunkR) => {
+      const roll = seededNoise(seedInt, chunkQ, chunkR, NOISE_CHANNEL_BIOME);
+      for (const entry of BIOME_DISTRIBUTION) {
+        if (roll < entry.limit) {
+          return getArchetype(entry.id) || getArchetype('biome_default');
+        }
+      }
+      return getArchetype('biome_default');
+    };
+  }
+
+  // Generate flat tiles — pass biomeLookup for multi-biome, or a single biomeDef otherwise
+  const flatTiles = generateTiles(
+    seed, radius,
+    isMultiBiome ? null : singleBiomeDef,
+    mapSettings,
+    isMultiBiome ? biomeLookup : null,
+  );
+
   const rng = makeRng(seed);
   const rand = () => rng();
 
+  // Build biomePalettes: a Map of biomeId → palette for all biomes on this map
+  const biomePalettes = new Map();
+  for (const [, tile] of Object.entries(flatTiles)) {
+    if (tile.biomeId && !biomePalettes.has(tile.biomeId)) {
+      const def = getArchetype(tile.biomeId);
+      if (def && def.palette) {
+        biomePalettes.set(tile.biomeId, def.palette);
+      }
+    }
+  }
+  // Fallback: if no tile has a biomeId (single-biome mode), use the resolved biomeDef
+  if (biomePalettes.size === 0 && singleBiomeDef?.palette) {
+    biomePalettes.set(biome, singleBiomeDef.palette);
+  }
+
   // --- Build the bare state skeleton ---
   const state = createInitialState({
-    seed, radius, biome, mapSettings, biomePalette, tiles: flatTiles, objectives, rng,
+    seed, radius, biome, mapSettings,
+    biomePalettes,
+    tiles: flatTiles, objectives, rng,
   });
   startMeasure('createGame');
 
@@ -47,7 +102,8 @@ export function createGame({
     const ck = chunkKey(cq, cr);
     let chunk = state.chunks.get(ck);
     if (!chunk) {
-      chunk = { tiles: new Map(), dirty: false, generated: true };
+      // Inherit biomeId from the first tile (all tiles in a chunk share a biome)
+      chunk = { tiles: new Map(), dirty: false, generated: true, biomeId: tile.biomeId || null };
       state.chunks.set(ck, chunk);
     }
     const { lq, lr } = localCoord(cq, cr, tile.q, tile.r);

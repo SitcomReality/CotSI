@@ -15,15 +15,30 @@ export function tileTopY(terrain) {
   return (ELEVATION[terrain] || 0) + HEX_THICKNESS;
 }
 
+/**
+ * Resolve the elevation for a tile, preferring the per-tile value set
+ * during generation (which accounts for biome terrainElevation overrides).
+ * Falls back to the global ELEVATION table.
+ */
+function resolveElev(tile, elevTable) {
+  if (tile.elevation !== undefined && tile.elevation !== null) {
+    return tile.elevation;
+  }
+  return elevTable[tile.terrain] || 0;
+}
+
 // Terrain fill colors (mapped to vertex colors)
 // These are RGB tuples for vertex color attributes
 export const TERRAIN_COLOR = {
-  plains:   [0.455, 0.678, 0.365],  // #74ad5d — vibrant meadow green
-  forest:   [0.294, 0.557, 0.255],  // #4b8e41 — deep vivid forest
-  desert:   [0.839, 0.694, 0.357],  // #d6b15b — warm golden sand
-  marsh:    [0.506, 0.600, 0.404],  // #819967 — murky vibrant marsh
-  mountain: [0.529, 0.486, 0.416],  // #877c6a — rocky warm gray
-  water:    [0.373, 0.604, 0.757],  // #5f9ac1 — bright cyan-blue
+  plains:        [0.455, 0.678, 0.365],  // #74ad5d — vibrant meadow green
+  forest:        [0.294, 0.557, 0.255],  // #4b8e41 — deep vivid forest
+  denseForest:   [0.176, 0.420, 0.137],  // #2d6b23 — dark rich green
+  desert:        [0.839, 0.694, 0.357],  // #d6b15b — warm golden sand
+  marsh:         [0.506, 0.600, 0.404],  // #819967 — murky vibrant marsh
+  mountain:      [0.529, 0.486, 0.416],  // #877c6a — rocky warm gray
+  peak:          [0.690, 0.729, 0.784],  // #b0b8c8 — pale snowy rock
+  floatingIsland:[0.753, 0.847, 0.910],  // #c0d8e8 — pale cyan-white
+  water:         [0.373, 0.604, 0.757],  // #5f9ac1 — bright cyan-blue
 };
 
 // Darken factor for side faces
@@ -54,12 +69,11 @@ export function buildTerrainMesh(state, visible, explored) {
 
   let vi = 0; // vertex index (in floats, so vi/3 = vertex count)
 
-  // Resolve colors — biome palette overrides the default TERRAIN_COLOR
-  const palette = state.biomePalette || {};
-
   for (const tile of activeTiles) {
-    const elev = ELEVATION[tile.terrain] || 0;
-    const baseColor = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
+    // Resolve biome palette per tile (multi-biome compatibility)
+    const pal = (tile.biomeId && state.biomePalettes?.get(tile.biomeId)) || {};
+    const elev = resolveElev(tile, ELEVATION);
+    const baseColor = pal[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
 
     // Lakes get a darker, greener water color to distinguish from ocean
     const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')
@@ -120,7 +134,7 @@ export function buildTerrainMesh(state, visible, explored) {
  * Only tiles present in `explored` are rendered.
  *
  * @param {object[]} chunkTiles - Array of tile objects belonging to this chunk
- * @param {object}   state      - Game state (for biomePalette)
+ * @param {object}   state      - Game state (for biomePalettes lookup per tile)
  * @param {Set}      visible    - Set of hex keys currently visible
  * @param {Set}      explored   - Set of hex keys ever explored
  * @returns {THREE.Mesh|null} Mesh, or null if no tiles to render
@@ -139,10 +153,12 @@ export function buildChunkTerrainMesh(chunkTiles, state, visible, explored) {
   const colors = new Float32Array(tileCount * vertsPerHex * 3);
 
   let vi = 0;
-  const palette = state.biomePalette || {};
+  // Resolve biome palette once for this chunk (all tiles share the same biome)
+  const firstTile = activeTiles[0];
+  const palette = (firstTile?.biomeId && state.biomePalettes?.get(firstTile.biomeId)) || {};
 
   for (const tile of activeTiles) {
-    const elev = ELEVATION[tile.terrain] || 0;
+    const elev = resolveElev(tile, ELEVATION);
     const baseColor = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
 
     const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')

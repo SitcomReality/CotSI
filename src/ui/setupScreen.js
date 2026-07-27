@@ -30,13 +30,19 @@ export function initSetup() {
   // ---- Biome dropdown ----
   const biomeSelect = document.getElementById('biomeSelect');
   if (biomeSelect) {
+    // "Multi-biome" is the default selection — generates a world with varied biomes
+    const multiOpt = document.createElement('option');
+    multiOpt.value = 'multi_biome';
+    multiOpt.textContent = 'Multi-biome (mixed world)';
+    multiOpt.selected = true;
+    biomeSelect.appendChild(multiOpt);
+
     const biomeKeys = listArchetypes('biome');
     biomeKeys.forEach(key => {
       const def = getArchetype(key);
       const opt = document.createElement('option');
       opt.value = key;
       opt.textContent = def.name;
-      if (key === 'biome_default') opt.selected = true;
       biomeSelect.appendChild(opt);
     });
   }

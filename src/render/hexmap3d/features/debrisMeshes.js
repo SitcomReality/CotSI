@@ -22,8 +22,11 @@ export function buildDebrisMeshes(state, visible) {
     tuft:   [],
     rock:   [],
     flower: [],
+    bush:   [],
+    vine:   [],
   };
 
+  // Pass 1: Environmental debris (tuft/rock/flower)
   for (const key of visible) {
     const tile = state.tiles[key];
     if (!tile || !tile.debris) continue;
@@ -32,20 +35,44 @@ export function buildDebrisMeshes(state, visible) {
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     const hash = ((tile.q * DEBRIS_HASH_SEEDS[0] + tile.r * DEBRIS_HASH_SEEDS[1]) * DEBRIS_HASH_SEEDS[2]) % DEBRIS_HASH_SEEDS[3];
 
-    // Random position offset within the hex so debris isn't perfectly centered
     const angle = (hash * DEBRIS_ANGLE_STEP) % (Math.PI * 2);
-    const dist = DEBRIS_OFFSET_MIN + (hash % DEBRIS_OFFSET_RANGE[0]) / DEBRIS_OFFSET_RANGE[1]; // 0.15–0.30 from center
+    const dist = DEBRIS_OFFSET_MIN + (hash % DEBRIS_OFFSET_RANGE[0]) / DEBRIS_OFFSET_RANGE[1];
     const ox = Math.cos(angle) * dist;
     const oz = Math.sin(angle) * dist;
 
     const g = groups[tile.debris.kind];
     if (g) {
       g.push({
-        x: x + ox,
-        y: surfaceY + DEBRIS_Y_OFFSET,
-        z: z + oz,
+        x: x + ox, y: surfaceY + DEBRIS_Y_OFFSET, z: z + oz,
         rotY: (hash * DEBRIS_ROTATION_SEED) % (Math.PI * 2),
         scale: DEBRIS_SCALE_BASE + (hash % DEBRIS_SCALE_RANGE[0]) / DEBRIS_SCALE_RANGE[1],
+      });
+    }
+  }
+
+  // Pass 2: Flora features (bush/vine from biome flora rules)
+  for (const key of visible) {
+    const tile = state.tiles[key];
+    if (!tile || !tile.feature) continue;
+    const kind = tile.feature.kind;
+    if (kind !== 'bush' && kind !== 'vine') continue;
+
+    const surfaceY = tileTopY(tile.terrain);
+    const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
+    const hash = ((tile.q * DEBRIS_HASH_SEEDS[0] + tile.r * DEBRIS_HASH_SEEDS[1]) * DEBRIS_HASH_SEEDS[2]) % DEBRIS_HASH_SEEDS[3];
+
+    const angle = (hash * DEBRIS_ANGLE_STEP) % (Math.PI * 2);
+    const dist = DEBRIS_OFFSET_MIN + (hash % DEBRIS_OFFSET_RANGE[0]) / DEBRIS_OFFSET_RANGE[1];
+    const ox = Math.cos(angle) * dist;
+    const oz = Math.sin(angle) * dist;
+
+    const g = groups[kind];
+    if (g) {
+      g.push({
+        x: x + ox, y: surfaceY + DEBRIS_Y_OFFSET, z: z + oz,
+        rotY: (hash * DEBRIS_ROTATION_SEED) % (Math.PI * 2),
+        // Bush slightly larger, vine slightly smaller than default debris
+        scale: (kind === 'bush' ? 1.5 : 0.8) * (DEBRIS_SCALE_BASE + (hash % DEBRIS_SCALE_RANGE[0]) / DEBRIS_SCALE_RANGE[1]),
       });
     }
   }
@@ -57,12 +84,16 @@ export function buildDebrisMeshes(state, visible) {
     tuft:   getDebrisTuftGeo,
     rock:   getDebrisRockGeo,
     flower: getDebrisFlowerGeo,
+    bush:   getDebrisTuftGeo,
+    vine:   getDebrisTuftGeo,
   };
 
   const colorMap = {
     tuft:   0x6B8E5A,
     rock:   0x8A8070,
     flower: 0xD4A0C0,
+    bush:   0x4A7A3A,
+    vine:   0x5A9A4A,
   };
 
   for (const [kind, instances] of Object.entries(groups)) {
@@ -96,8 +127,9 @@ export function buildDebrisMeshes(state, visible) {
  * @returns {THREE.InstancedMesh[]}
  */
 export function buildChunkDebrisMeshes(chunkTiles, visible) {
-  const groups = { tuft: [], rock: [], flower: [] };
+  const groups = { tuft: [], rock: [], flower: [], bush: [], vine: [] };
 
+  // Pass 1: Environmental debris (tuft/rock/flower)
   for (const tile of chunkTiles) {
     const key = `${tile.q},${tile.r}`;
     if (!visible.has(key)) continue;
@@ -122,6 +154,33 @@ export function buildChunkDebrisMeshes(chunkTiles, visible) {
     }
   }
 
+  // Pass 2: Flora features (bush/vine from biome flora rules)
+  for (const tile of chunkTiles) {
+    const key = `${tile.q},${tile.r}`;
+    if (!visible.has(key)) continue;
+    if (!tile.feature) continue;
+    const kind = tile.feature.kind;
+    if (kind !== 'bush' && kind !== 'vine') continue;
+
+    const surfaceY = tileTopY(tile.terrain);
+    const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
+    const hash = ((tile.q * DEBRIS_HASH_SEEDS[0] + tile.r * DEBRIS_HASH_SEEDS[1]) * DEBRIS_HASH_SEEDS[2]) % DEBRIS_HASH_SEEDS[3];
+
+    const angle = (hash * DEBRIS_ANGLE_STEP) % (Math.PI * 2);
+    const dist = DEBRIS_OFFSET_MIN + (hash % DEBRIS_OFFSET_RANGE[0]) / DEBRIS_OFFSET_RANGE[1];
+    const ox = Math.cos(angle) * dist;
+    const oz = Math.sin(angle) * dist;
+
+    const g = groups[kind];
+    if (g) {
+      g.push({
+        x: x + ox, y: surfaceY + DEBRIS_Y_OFFSET, z: z + oz,
+        rotY: (hash * DEBRIS_ROTATION_SEED) % (Math.PI * 2),
+        scale: (kind === 'bush' ? 1.5 : 0.8) * (DEBRIS_SCALE_BASE + (hash % DEBRIS_SCALE_RANGE[0]) / DEBRIS_SCALE_RANGE[1]),
+      });
+    }
+  }
+
   const results = [];
   const dummy = new THREE.Object3D();
 
@@ -129,12 +188,16 @@ export function buildChunkDebrisMeshes(chunkTiles, visible) {
     tuft:   getDebrisTuftGeo,
     rock:   getDebrisRockGeo,
     flower: getDebrisFlowerGeo,
+    bush:   getDebrisTuftGeo,
+    vine:   getDebrisTuftGeo,
   };
 
   const colorMap = {
     tuft:   0x6B8E5A,
     rock:   0x8A8070,
     flower: 0xD4A0C0,
+    bush:   0x4A7A3A,
+    vine:   0x5A9A4A,
   };
 
   for (const [kind, instances] of Object.entries(groups)) {

@@ -66,17 +66,58 @@ Setup screen "Advanced" sliders passed as `mapSettings` to `generateTiles()`:
 | `wateriness` | Multiplies water maxElevation threshold | 0.0–2.0 |
 | `mountainousness` | Divides mountain minElevation threshold | 0.0–2.0 |
 
+### Multi-biome mode
+
+The **default** setup option is "Multi-biome (mixed world)". A noise channel (`NOISE_CHANNEL_BIOME`) sampled at each chunk's center assigns the biome. Currently weighted as:
+- `[0, 0.40)` → `biome_default`
+- `[0.40, 0.70)` → `biome_verdant`
+- `[0.70, 1.00)` → `biome_arid`
+
+### Biome Fields
+
+See `src/game/rules/archetypeData/biomes.js` for exact definitions.
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `terrainThresholds` | object | Noise cutoffs for classifying terrain types per tile. |
+| `features` | `[{kind, threshold, compare, terrainExclude?}]` | Ordered list of feature spawn rules. `compare: 'gt'` = roll > threshold, `'lt'` = roll < threshold. First match wins. Replaces old `featureFrequencies`. |
+| `palette` | `{terrain: [r,g,b]}` | RGB colour overrides for 3D mesh and minimap. |
+| `terrainTags` | `string[]` | Terrain types this biome supports. |
+| `weatherAffinity` | `string[]` | Placeholder for future weather system. |
+| `terrainElevation` | `{terrain: number}` | (optional) Per-terrain Y-offset overrides. |
+| `moistureBias` | number | (optional) Additive offset to raw moisture noise, clamped. |
+| `supportsFloatingIslands` | boolean | (optional) Whether this biome can generate floating-island terrain. |
+
+### Feature kinds
+
+| Kind | Type | Mechanics | Visual |
+|------|------|-----------|--------|
+| `fruitTree` | resource | Heals on arrival, regrows after `FRUIT_REGROWTH_DAYS` | Tree mesh |
+| `tree` | flora | Decorative only | Tree mesh |
+| `largeTree` | flora | Decorative only, scaled 1.8x | Tree mesh (forced large) |
+| `knot` | resource | Mined on arrival for Knot currency | Knot mesh |
+| `bush` | flora | Decorative only | Tuft geometry, green, 1.5x |
+| `vine` | flora | Decorative only | Tuft geometry, lighter green, 0.8x |
+
 ### Adding a New Biome
 
 ```js
 defineArchetype('biome_my_new_biome', {
   type: 'biome',
+  id: 'biome_my_new_biome',
   name: 'Display Name',
   terrainThresholds: { /* ... */ },
-  featureFrequencies: { tree: { threshold: 0.935, exclude: ['desert'] }, knot: { threshold: 0.038 } },
-  palette: { plains: [r,g,b], forest: [r,g,b], desert: [r,g,b], marsh: [r,g,b], mountain: [r,g,b], water: [r,g,b] },
-  terrainTags: ['plains', 'forest', 'mountain'],
+  features: [
+    { kind: 'fruitTree', threshold: 0.970, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'tree',      threshold: 0.935, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'knot',      threshold: 0.038, compare: 'lt' },
+  ],
+  palette: { /* per-terrain [r,g,b] tuples */ },
+  terrainTags: ['plains', 'forest', 'desert', 'marsh', 'mountain', 'water'],
   weatherAffinity: ['temperate'],
+  terrainElevation: null,
+  moistureBias: 0,
+  supportsFloatingIslands: false,
 });
 ```
 

@@ -13,7 +13,7 @@ import { FACTION_VERDANT } from '../../params/game/factionParams.js';
 export function interactOnArrival(state, champ) {
   const factionMap = buildChampionFactionMap(state.champions);
   const tile = state.tiles[coordKey(champ.pos)];
-  if (tile.feature?.kind === 'tree' && tile.feature.ripe !== false) {
+  if (tile.feature?.kind === 'fruitTree' && tile.feature.ripe !== false) {
     if (!tile.feature.nextFruitDay || state.day >= tile.feature.nextFruitDay) {
       const heal = champ.faction === FACTION_VERDANT ? FRUIT_HEAL_VERDANT : FRUIT_HEAL_STANDARD;
       champ.hp = Math.min(champ.maxHp, champ.hp + heal);

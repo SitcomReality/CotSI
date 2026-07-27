@@ -21,6 +21,8 @@ export const MAX_LOG_ENTRIES = 100;
 export const NOISE_CHANNEL_ELEVATION = 1;
 /** Noise channel index for moisture sampling. */
 export const NOISE_CHANNEL_MOISTURE = 2;
+/** Noise channel index for biome region assignment (multi-biome). */
+export const NOISE_CHANNEL_BIOME = 3;
 /** Noise channel index for feature sprinkling. */
 export const NOISE_CHANNEL_FEATURES = 4;
 /** Noise channel index for debris spawn roll. */
@@ -39,6 +41,13 @@ export const MOUNTAIN_PEAK_MIN_NEIGHBORS = 4;
 export const WATER_BFS_MAX_DEPTH = 3;
 /** Ocean edge-detection epsilon buffer. */
 export const OCEAN_EDGE_BUFFER = 0.5;
+
+/** Elevation threshold for floating-island terrain (above mountain). */
+export const FLOATING_ISLAND_THRESHOLD = 0.985;
+/** Elevation threshold for peak terrain (snow-capped mountain variant). */
+export const PEAK_THRESHOLD = 0.96;
+/** Minimum noise value for a tile to be classified as denseForest. */
+export const DENSE_FOREST_MIN_MOISTURE = 0.85;
 /** Base knot amount before variation. */
 export const KNOT_BASE_AMOUNT = 2;
 /** Scale factor for knot-amount variation formula. */

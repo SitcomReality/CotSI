@@ -144,7 +144,7 @@ function runWorldTurn(state) {
   // regrow trees
   for (const key of state._unripeTrees) {
     const t = state.tiles[key];
-    if (t?.feature?.kind === 'tree' && t.feature.nextFruitDay != null && state.day >= t.feature.nextFruitDay) {
+    if (t?.feature?.kind === 'fruitTree' && t.feature.nextFruitDay != null && state.day >= t.feature.nextFruitDay) {
       t.feature.ripe = true;
       state._unripeTrees.delete(key);
     }

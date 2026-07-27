@@ -123,9 +123,6 @@ export function renderTerrainLayer(G, humanView) {
   // Precompute scale corrected for hex aspect ratio
   const visibleSet = humanView ? humanView.visible : new Set();
 
-  // Resolve palette
-  const palette = G.biomePalette || {};
-
   // Draw each explored hex as a small colored dot
   const hexW = HEX_RADIUS * scale;
   const hexH = HEX_RADIUS * MINIMAP_HEX_ASPECT_RATIO * scale;
@@ -134,13 +131,15 @@ export function renderTerrainLayer(G, humanView) {
     const tile = G.tiles[key];
     if (!tile) continue;
 
+    // Resolve biome palette per tile
+    const pal = (tile.biomeId && G.biomePalettes?.get(tile.biomeId)) || {};
     const { x, z } = hexCenter(tile.q, tile.r);
     const { x_rot, z_rot } = rotateWorld(x, z);
     const px = (x_rot - offsetX) * scale + PADDING;
     const py = (z_rot - offsetZ) * scale + PADDING;
 
     const isVisible = visibleSet.has(key);
-    const color = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || [0.3, 0.3, 0.3];
+    const color = pal[tile.terrain] || TERRAIN_COLOR[tile.terrain] || [0.3, 0.3, 0.3];
 
     ctx.globalAlpha = isVisible ? 1.0 : MINIMAP_EXPLORED_ALPHA;
     ctx.fillStyle = rgbToCSS(color);

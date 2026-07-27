@@ -20,9 +20,12 @@ export const LAKE_COLOR_MODULATION = { r: 0.7, g: 0.85, b: 0.9 };
 export const TERRAIN_ELEVATION = {
   plains: 0,
   forest: 0.15,
+  denseForest: 0.20,
   desert: 0,
   marsh: -0.05,
   mountain: 0.6,
+  peak: 1.0,
+  floatingIsland: 2.5,
   water: -0.15,
 };
 
