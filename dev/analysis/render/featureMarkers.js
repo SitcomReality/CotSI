@@ -1,0 +1,78 @@
+/**
+ * featureMarkers.js — Draw map features (trees, bushes, debris, etc.).
+ *
+ * Features are small decorative markers drawn on top of terrain tiles.
+ * Each feature kind has its own drawing recipe defined in theme.js.
+ */
+import { hexToPixel, HEX_SIZE } from './hexMath.js';
+import { FEATURES, DEBRIS, DEBRIS_SIZE } from './theme.js';
+
+/**
+ * Draw all visible features on the map.
+ *
+ * Supported kinds: tree, fruitTree, largeTree, knot, bush, vine.
+ * Unknown kinds are silently skipped.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} tiles    — tile map keyed by "q,r"
+ * @param {string[]} tileKeys — list of all tile keys to iterate
+ */
+export function drawFeatures(ctx, tiles, tileKeys) {
+  for (const key of tileKeys) {
+    const tile = tiles[key];
+    if (!tile.feature) continue;
+    const p = hexToPixel(tile.q, tile.r, HEX_SIZE);
+
+    const cfg = FEATURES[tile.feature.kind];
+    if (!cfg) continue;
+
+    // All features start with a filled circle
+    ctx.fillStyle = cfg.fill;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, cfg.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // fruitTree overlay: cross-hair
+    if (tile.feature.kind === 'fruitTree' && cfg.crossStroke) {
+      ctx.strokeStyle = cfg.crossStroke;
+      ctx.lineWidth = cfg.crossWidth;
+      ctx.beginPath();
+      ctx.moveTo(p.x - cfg.crossLen, p.y);
+      ctx.lineTo(p.x + cfg.crossLen, p.y);
+      ctx.moveTo(p.x, p.y - cfg.crossLen);
+      ctx.lineTo(p.x, p.y + cfg.crossLen);
+      ctx.stroke();
+    }
+
+    // vine overlay: ring stroke
+    if (tile.feature.kind === 'vine' && cfg.ringStroke) {
+      ctx.strokeStyle = cfg.ringStroke;
+      ctx.lineWidth = cfg.ringWidth;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, cfg.radius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+}
+
+/**
+ * Draw all visible debris on the map.
+ *
+ * Debris kinds: tuft, rock, flower. Unknown kinds render as flower.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} tiles    — tile map keyed by "q,r"
+ * @param {string[]} tileKeys — list of all tile keys to iterate
+ */
+export function drawDebris(ctx, tiles, tileKeys) {
+  for (const key of tileKeys) {
+    const tile = tiles[key];
+    if (!tile.debris) continue;
+    const p = hexToPixel(tile.q, tile.r, HEX_SIZE);
+
+    const color = DEBRIS[tile.debris.kind] || DEBRIS.flower;
+
+    ctx.fillStyle = color;
+    ctx.fillRect(p.x - DEBRIS_SIZE, p.y - DEBRIS_SIZE, DEBRIS_SIZE * 2, DEBRIS_SIZE * 2);
+  }
+}
