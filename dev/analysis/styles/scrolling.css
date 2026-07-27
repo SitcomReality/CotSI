@@ -1,0 +1,20 @@
+/* scrolling.css — Custom scrollbar styling for panels */
+
+#controls::-webkit-scrollbar,
+#stats-panel::-webkit-scrollbar,
+#sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+#controls::-webkit-scrollbar-track,
+#stats-panel::-webkit-scrollbar-track,
+#sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#controls::-webkit-scrollbar-thumb,
+#stats-panel::-webkit-scrollbar-thumb,
+#sidebar::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}

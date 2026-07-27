@@ -465,7 +465,16 @@ Some pre-existing cross-layer imports remain from before the layer migration. Th
 | `cycle.js` | Random-seed cycling (play/stop/speed controls) |
 | `multiSeed.js` | Batch multi-seed analysis with aggregated heatmaps |
 | `export.js` | PNG and JSON export of the current map view |
-| `analysis.css` | Styles for the analysis page layout and controls |
+| `styles/index.css` | Barrel: imports all analysis page stylesheets |
+| `styles/reset.css` | Global reset and base element styles |
+| `styles/layout.css` | Page grid and major panel positioning |
+| `styles/controls.css` | Control panel headings, inputs, buttons, toggles, loading |
+| `styles/sidebar.css` | Right sidebar container and entity toggle controls |
+| `styles/legend.css` | Legend: colour gradient bars and discrete swatches |
+| `styles/entityKey.css` | Entity key swatches in toggle labels |
+| `styles/statsPanel.css` | Stats panel highlights and metric display |
+| `styles/scrolling.css` | Custom scrollbar styling for panels |
+| `styles/cycle.css` | Random cycle button state styles |
 
 ---
 

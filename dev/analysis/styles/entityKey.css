@@ -1,0 +1,81 @@
+/* entityKey.css — Entity key swatches in toggle labels */
+
+.entity-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Champion marker */
+.entity-key[data-entity="champion"]::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #6a8abf;
+  border: 2px solid #fff;
+}
+
+/* Mob marker */
+.entity-key[data-entity="mob"]::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8B6914;
+}
+
+/* Trader marker */
+.entity-key[data-entity="trader"]::after {
+  content: '';
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #20b2aa;
+}
+
+/* Base marker */
+.entity-key[data-entity="base"]::after {
+  content: '';
+  display: block;
+  width: 9px;
+  height: 9px;
+  background: #6a8abf;
+  border: 1.5px solid #fff;
+}
+
+/* Feature marker (two dots) */
+.entity-key[data-entity="feature"] {
+  gap: 2px;
+}
+.entity-key[data-entity="feature"]::before,
+.entity-key[data-entity="feature"]::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.entity-key[data-entity="feature"]::before {
+  background: #2d5a1e;
+}
+.entity-key[data-entity="feature"]::after {
+  background: #c8a832;
+}
+
+/* Debris marker (3-color gradient strip) */
+.entity-key[data-entity="debris"]::after {
+  content: '';
+  display: block;
+  width: 14px;
+  height: 8px;
+  border-radius: 2px;
+  border: 1px solid #555;
+  background: linear-gradient(90deg, #5a7a3a 33%, #777 33% 66%, #c878a0 66%);
+}

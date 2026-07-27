@@ -1,0 +1,16 @@
+/* reset.css — Global reset and base element styles */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: #d0d0d0;
+  background: #1a1a1f;
+  overflow: hidden;
+}

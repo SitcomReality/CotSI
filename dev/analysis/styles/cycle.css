@@ -1,0 +1,21 @@
+/* cycle.css — Random cycle button state styles */
+
+#btn-cycle-toggle.active {
+  background: #6a4a3a;
+  border-color: #9a6a4a;
+  color: #ffd0a0;
+}
+
+#btn-cycle-toggle.active:hover {
+  background: #8a5a4a;
+}
+
+#btn-cycle-toggle.active.playing {
+  background: #3a5a3a;
+  border-color: #5a8a5a;
+  color: #a0d0a0;
+}
+
+#btn-cycle-toggle.active.playing:hover {
+  background: #4a7a4a;
+}

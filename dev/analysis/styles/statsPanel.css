@@ -1,0 +1,21 @@
+/* statsPanel.css — Stats panel highlights and metric display */
+
+.stat-section {
+  margin-bottom: 6px;
+}
+
+.stat-section .stat-label {
+  color: #888;
+}
+
+.stat-section .stat-value {
+  color: #c0c8d0;
+}
+
+.stat-bar {
+  display: inline-block;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 4px;
+}

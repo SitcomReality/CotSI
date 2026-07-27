@@ -1,0 +1,12 @@
+/* index.css — Barrel: imports all analysis page stylesheets.
+   Grouped by rate of change: reset -> layout -> components -> overrides. */
+
+@import "./reset.css";
+@import "./layout.css";
+@import "./controls.css";
+@import "./sidebar.css";
+@import "./legend.css";
+@import "./entityKey.css";
+@import "./statsPanel.css";
+@import "./scrolling.css";
+@import "./cycle.css";
