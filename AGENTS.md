@@ -8,7 +8,7 @@ CotSI is a browser-based, single-player hex-crawl strategy game, early in develo
 
 **Stack:** Vanilla JS (ES modules) + plain CSS. No framework, no bundler, no build step. Three.js for 3D rendering (`src/vendor/`). Served as static files from any HTTP server (ES modules require an origin — opening `index.html` from disk fails).
 
-**Test:** `python3 dev/check_imports.py` verifies all imports resolve and checks layer boundaries. No formal test runner. AI devs can't run the game; the user tests on request.
+**Test:** `python3 dev/check_imports.py` verifies all imports resolve and checks layer boundaries in `src/`. `python3 dev/check_analysis_imports.py` does the same for the standalone map analysis tool (`dev/analysis/`). No formal test runner. AI devs can't run the game; the user tests on request.
 
 **The User Can Help:** If there's ambiguity or confusion, ask questions. If there are complicated bugs, add console logs or debug features and the user will report results to help narrow it down.
 
@@ -77,6 +77,7 @@ window.__gameState; // same object as G
 | `dev/clockScheduler.md` | Clock API reference — all timer/scheduling patterns |
 | `dev/gameMechanics.md` | Combat round flow, turn order, biome system |
 | `dev/commonTasks.md` | How-to recipes for common changes |
+| `dev/analysis.html` | Standalone map-gen analysis tool (not part of the game) |
 
 ---
 

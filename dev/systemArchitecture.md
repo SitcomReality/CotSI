@@ -444,7 +444,28 @@ Some pre-existing cross-layer imports remain from before the layer migration. Th
 ## 7. Tooling
 
 - `python3 dev/check_imports.py` — verifies every relative import in `src/` resolves, and prints a boundary report of cross-layer imports vs the §2 dependency table.
+- `python3 dev/check_analysis_imports.py` — verifies every relative import in `dev/analysis/` resolves, including cross-references into `src/`. Does not check layer boundaries (those rules don't apply to the standalone analysis tool).
+- `dev/analysis.html` — standalone map-gen analysis page. Not part of the game UI. Opens directly in a browser (served from the same origin).
 - There is no build step and no test runner; `engine/rules/` and `game/rules/` must stay importable in plain Node (`node --check` clean, no DOM/Three imports).
+
+### `dev/analysis/` — Map gen analysis tool (standalone)
+
+| File | Purpose |
+|------|---------|
+| `main.js` | UI controller: wires DOM controls to all subsystems |
+| `state.js` | Shared mutable state (camera, view mode, cycle state) |
+| `domRefs.js` | DOM element cache (`els` object) |
+| `generation.js` | Pure map generation pipeline (terrain + entities) |
+| `renderer.js` | Canvas2D hex-map renderer (terrain, entities, zoom/pan) |
+| `render.js` | Render orchestration: clears, draws, posts to canvas |
+| `canvas.js` | Canvas setup, resize, and mouse-drag interaction |
+| `stats.js` | Pure statistic functions (terrain distribution, entity stats) |
+| `statsDisplay.js` | Updates the stats panel DOM from analysis results |
+| `legend.js` | Legend rendering: colour swatches and entity keys |
+| `cycle.js` | Random-seed cycling (play/stop/speed controls) |
+| `multiSeed.js` | Batch multi-seed analysis with aggregated heatmaps |
+| `export.js` | PNG and JSON export of the current map view |
+| `analysis.css` | Styles for the analysis page layout and controls |
 
 ---
 
@@ -459,3 +480,4 @@ Some pre-existing cross-layer imports remain from before the layer migration. Th
 | `dev/gameMechanics.md` | Combat round flow, turn order, biome system |
 | `dev/commonTasks.md` | How-to recipes for common changes |
 | `dev/largeMapRoadmap.md` | Future map-size and performance roadmap |
+| `dev/analysis.html` | Map-gen analysis tool reference (standalone page) |
