@@ -16,11 +16,11 @@ export function elevationColor(elev) {
   if (elev < 0.12) return '#3a8a8a';       // shore / beach — teal transition
   if (elev < 0.25) return '#4a9a4a';       // lowland — green
   if (elev < 0.45) return '#7aaa4a';       // midland — yellow-green
-  if (elev < 0.65) return '#b8a030';       // highland — yellow
-  if (elev < 0.80) return '#d48030';       // foothill — orange
-  if (elev < 0.905) return '#c05030';      // sub-mountain — red-orange
-  if (elev < 0.95) return '#a03030';       // mountain — deep red
-  return '#e06040';                         // peak — bright warm red
+  if (elev < 0.65) return '#fae06f';       // highland — yellow
+  if (elev < 0.80) return '#ec9748';       // foothill — orange
+  if (elev < 0.905) return '#db532e';      // sub-mountain — red-orange
+  if (elev < 0.95) return '#c4301c';       // mountain — deep red
+  return '#570000';                         // peak — bright warm red
 }
 
 /**
