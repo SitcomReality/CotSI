@@ -36,6 +36,7 @@ Details in `phaseA_progress.md`.
 4. `selectBiome()` + `BIOME_PRIORITY_ORDER` — **Done.**
 5. `classifyTerrain` rewrite (climate-aware, temperature/ice gates) — **Done.**
 6. Biome archetype updates (`origin`, `climateRange`, `terrainRules`, remove `moistureBias`) — **Done.**
+7. `generateChunkTiles` restructure (new pipeline wired in, dead code removed) — **Done.**
 
 ## Phase B
 

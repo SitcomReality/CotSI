@@ -212,3 +212,70 @@ python3 dev/check_imports.py
 python3 dev/check_imports.py
 # OK — all imports resolve, all named exports verified (235 files checked)
 ```
+
+---
+
+## A7. `generateChunkTiles` Restructure
+
+**Done.** Rewrote Pass 1 of `generateChunkTiles` to use the new `sampleBaseFields` → `selectBiome` → `classifyTerrain` pipeline. Updated cross-chunk helper functions. Removed dead code from the old pipeline.
+
+### Changes
+
+**File:** `src/game/rules/terrainGenerator.js`
+
+| Change | Details |
+|--------|---------|
+| Pass 1 rewrite | `biomeForRoll(hexFbm2D(...))` → `selectBiome(...)`, raw `hexFbm2D` calls → `sampleBaseFields()`, `_classifyTerrainLegacy` → `classifyTerrain()` |
+| Tile shape | Renamed/added: `elevationField` (continuous), `moisture`, `temperature`, `slope`, `isRiver`, `rawLayers`. Removed: `rawElev`, `rawMoist`. Kept: `elevation` as 3D height (renderer compat). |
+| `tileLookup` (Pass 2) | Out-of-chunk terrain uses `sampleBaseFields` + `classifyTerrain` with `biome_default` instead of old raw `hexFbm2D` + `_classifyTerrainLegacy` |
+| `_noiseIsWater` | Rewritten to use `sampleBaseFields` + `classifyTerrain`; checks for `'water'` or `'ice'` |
+| `waterTypeForTile` | Signature changed: `(seed, q, r, radius, noiseConfig, tileLookup)` — dropped old `T` param |
+| Features pass (Pass 4) | Inlined feature lookup (`biomeDef?.features \|\| DEFAULT_FEATURES`) — no more `resolveThresholds` |
+| Pass 1b placeholder | Commented block for `applySupernaturalOverrides` (A8) |
+| `resolveElevation` | Updated signature to take `biomeDef` instead of old resolved-thresholds object `T` |
+| `NOISE_CONFIG` | Added module-level constant bundling the Phase A noise configs |
+| Removed dead code | `BIOME_DISTRIBUTION`, `biomeForRoll()`, `resolveThresholds()`, `_classifyTerrainLegacy()` |
+| Removed dead imports | `NOISE_ELEVATION`, `NOISE_BIOME`, `FLOATING_ISLAND_THRESHOLD`, `PEAK_THRESHOLD`, `DENSE_FOREST_MIN_MOISTURE`, `DEFAULT_THRESHOLDS` |
+| Docstrings | Updated file header and `generateChunkTiles` JSDoc to describe new pipeline |
+
+### New tile object fields
+
+```js
+{
+  q, r, terrain, feature: null, debris: null,
+  mountainType: null, waterType: null,
+  elevation:         0.18,              // 3D height (renderer reads this)
+  elevationField:    0.723,             // continuous [0,1] elevation
+  moisture:          0.514,             // continuous [0,1] moisture
+  temperature:       0.362,             // continuous [0,1] temperature
+  slope:             0,                 // Phase B
+  isRiver:           false,             // Phase D
+  rawLayers:         { detail, ridges }, // Phase B composite
+  biomeId:           'biome_lush',
+}
+```
+
+### Key decisions
+
+- **`elevation` stays as 3D height**, not the continuous field value, because `terrainMesh.js:resolveElev()` reads it. The continuous field goes in `elevationField`.
+- **`NOISE_CONFIG` is a module-level constant** rather than a parameter — shared by `generateChunkTiles`, `tileLookup`, `_noiseIsWater`, and `waterTypeForTile`.
+- **`params` parameter kept** in the function signature for backward compatibility, but unused in the new pipeline. Removed in a later cleanup phase.
+- **`_noiseIsWater` passes `radius=9999`** to `sampleBaseFields` because it only needs relative elevation/temperature, not map-edge clamping. The radius is only used in the latitude term of temperature, where a huge radius means latitude stays near-equatorial (≈0.5) — acceptable for a water-detection helper.
+
+### Impact on consumers
+
+| Consumer | Impact |
+|----------|--------|
+| `generateTiles()` wrapper | No change — delegates to generateChunkTiles |
+| `gameFactory.js` | No change — reads `tile.biomeId` |
+| `terrainMesh.js` | No change — reads `tile.elevation` (still 3D height) |
+| `dev/analysis/generation/generate.js` | **Breaks at runtime** — reads `rawElev`/`rawMoist` which no longer exist. Fixed in A9. |
+
+### Verification
+
+```bash
+python3 dev/check_imports.py
+# OK — all imports resolve, all named exports verified (235 files checked)
+python3 dev/check_analysis_imports.py
+# OK — all analysis imports resolve, all named exports verified (30 files checked)
+```
