@@ -7,19 +7,18 @@
 
 ## 1. Objective
 
-Phase A uses a single FBM field for elevation, producing "popcorn noise" — isolated mountain blobs with no range structure. This phase introduces the 3-layer elevation composite (continent mask × detail) and slope computation. The result is continents with mountain ranges on them, flat plateaus, rolling hills, and natural terrain gradients.
+Phase A uses a single FBM field for elevation, producing uniform noise — elevation variation with no range structure or macro topography. This phase introduces the world shape function and the 2-layer additive elevation composite (detail + ridges). The result is natural terrain gradients shaped by the world envelope: highlands near the center, lowlands and ocean ring at the border, with mountain ranges from ridge noise and rolling hills from detail noise.
 
 ---
 
 ## 2. Scope
 
 **In scope:**
-- 3-layer elevation composite: `continentMask * (detail + ridges_placeholder)`
-- Slope computation using neighbor elevation deltas
+- 2-layer additive composite: `worldShape × (detail + ridges)` with world shape function
+- Slope computation using neighbor elevation deltas (works directly — no ultra-low-frequency continent mask)
 - Border ring sampling for chunk-edge slope and tagging
 - `hill` and `plateau` terrain types added to `TERRAIN`
 - Classifier discriminates mountain (steep) vs plateau (flat highland) via slope
-- Per-phase elevation weight normalization (see §4.1)
 - Eliminate `fallbackT` — border ring provides real data for all neighbor lookups
 
 **Out of scope:**
@@ -38,42 +37,50 @@ Phase A uses a single FBM field for elevation, producing "popcorn noise" — iso
 
 ## 4. Detailed Changes
 
-### 4.1 Elevation Composite with Per-Phase Normalization
+### 4.1 World Shape + Elevation Composite
 
-The multiplicative composite formula from the overview:
-
-```js
-rawElev = continent × (detail × wD + ridges × wR)
-elevation = clamp01(rawElev)
-```
-
-In Phase B, ridges = 0 (regular FBM placeholder until Phase F) and wD = 0.50. The product `continent × (detail × 0.50)` ranges [0, 0.50], so normalize:
+The continent mask is gone. Instead, an explicit world shape function controls macro topography:
 
 ```js
-// Phase B normalization (ridges not yet implemented, wD = 0.50):
-const rawElev = continent * (detail * 0.50 + ridges * 0.50);
-const elevation = clamp01(rawElev * 2.0);  // normalize [0, 0.5] → [0, 1]
+/**
+ * Shape the macro elevation envelope. Returns a multiplier in [0, 1].
+ * Default: center peak, dropping to zero at the map border (ocean ring).
+ */
+function worldShape(distFromCenter, radius) {
+  return 1.0 - (distFromCenter / radius);  // center peak
+  // return distFromCenter / radius;       // crater rim (mountains at edge)
+  // return 1.0;                           // flat (no macro shaping)
+}
 ```
 
-This means the calibration from Phase 0 produced thresholds against the *normalized* output. When Phase F adds the ridge layer, weights shift to wD = 0.30, wR = 0.70 (ridged FBM has a different amplitude profile) and the normalization constant is recalibrated. Each phase doc states its normalization formula explicitly.
+Elevation is additive with the world shape applied as a multiplier:
+
+```js
+const detail  = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
+const ridges  = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
+const distance = hexDistance(q, r, 0, 0);
+// Two FBM fields sum to approximately [0, 2], so divide by 2 for [0, 1]:
+const rawElev = worldShape(distance, radius) * (detail * 0.50 + ridges * 0.50);
+// worldShape at border = 0 ⇒ elevation forced to 0 ⇒ ocean ring
+const elevation = clamp01(rawElev);
+```
+
+The additive composite naturally spans a wider range than the old multiplicative `continent × detail` — no per-phase normalization hacks. The world shape clamps the edges to zero, creating a clean ocean border without a noise-derived landmass mask.
 
 ### 4.2 Noise Configuration (`worldParams.js`)
 
 Replace `NOISE_PHASE_A_ELEVATION` with the layered config:
 
 ```js
-export const NOISE_CONTINENT = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.0008  // TBD from Phase 0
-};
 export const NOISE_ELEVATION_DETAIL = {
-  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020   // TBD from Phase 0; target ~10-hex scale
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020
 };
 export const NOISE_RIDGE = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008   // TBD from Phase 0; target ~25-hex scale (regular FBM placeholder)
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008   // regular FBM placeholder until Phase F
 };
 ```
 
-**Frequency separation:** Target detail at ~10-hex and ridge at ~25-hex scale are separated by ~2.5× — distinct spatial scales rather than the original 20% separation that caused interference. Exact values determined by Phase 0 frequency verification.
+**Frequency separation:** Detail at ~10-hex and ridge at ~25-hex scale are separated by ~2.5× — distinct spatial scales that avoid interference.
 
 ### 4.3 Updated `sampleBaseFields`
 
@@ -81,18 +88,17 @@ export const NOISE_RIDGE = {
 export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const NC = noiseConfig;
 
-  // Multiplicative elevation composite: continent × (detail × wD + ridges × wR)
-  const continent = hexFbm2D(q, r, baseSeed + NC.SEED_CONTINENT, NC.CONTINENT);
-  const detail    = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL,    NC.ELEVATION_DETAIL);
-  const ridges    = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,     NC.RIDGE);
-  const rawElev   = continent * (detail * 0.50 + ridges * 0.50);
-  // Phase B normalization (ridges placeholder, wD = 0.50):
-  const elevation = clamp01(rawElev * 2.0);
+  // Additive elevation composite shaped by worldShape
+  const detail    = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
+  const ridges    = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
+  const distance  = hexDistance(q, r, 0, 0);
+  const rawElev   = worldShape(distance, radius) * (detail * 0.50 + ridges * 0.50);
+  const elevation = clamp01(rawElev);
 
-  // Moisture, temperature, region bias — updated per overview formulas
+  // Moisture, temperature, region bias — unchanged from Phase A
   const baseMoisture  = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.MOISTURE);
   const { y }         = hexToWorld(q, r);
-  const worldRadiusY  = radius * 1.73;  // calibrate in Phase 0
+  const worldRadiusY  = radius * 1.73;
   const latitudeTerm  = 1.0 - (Math.abs(y) / worldRadiusY);
   const tempVariation = hexFbm2D(q, r, baseSeed + NC.SEED_TEMP, NC.TEMP_VARIATION);
   const RULES         = DEFAULT_TERRAIN_RULES;
@@ -106,7 +112,7 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
   return {
     elevation,
-    rawLayers: { continent, detail, ridges },
+    rawLayers: { detail, ridges },
     baseMoisture,
     temperature,
     regionBiasM,
@@ -117,17 +123,15 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
 ### 4.4 Slope Computation
 
-Slope measures topographic steepness, not high-frequency noise roughness. Computing neighbor deltas from the full FBM elevation (which includes detail octaves down to ~5-hex wavelength) makes slope dominated by the finest octave — `plateauSlopeMin` and `hillSlopeMin` become knobs on `NOISE_ELEVATION_DETAIL`'s top octave rather than actual steepness.
-
-**Fix: compute slope from low-passed elevation** (continent + ridge layers only, excluding detail):
+Slope measures topographic steepness from neighbor elevation deltas. Without the ultra-low-frequency continent mask, the elevation field already varies at scales visible to single-hex neighbor comparisons — no low-pass filtering needed.
 
 ```js
-function computeSlope(q, r, elevationAt, lowPassElevationAt) {
-  const center = lowPassElevationAt(q, r);
+function computeSlope(q, r, elevationAt) {
+  const center = elevationAt(q, r);
   let totalDiff = 0;
   const nbrs = neighbors({ q, r });
   for (const n of nbrs) {
-    totalDiff += Math.abs(lowPassElevationAt(n.q, n.r) - center);
+    totalDiff += Math.abs(elevationAt(n.q, n.r) - center);
   }
   return clamp01(totalDiff / (6 * SLOPE_NORMALIZATION));
 }
@@ -344,7 +348,7 @@ function _provisionalTerrainForRing(q, r, fieldMap) {
 
 | File | Change | Summary |
 |------|--------|---------|
-| `src/params/game/worldParams.js` | edit | Replace `NOISE_PHASE_A_ELEVATION` with `NOISE_CONTINENT`, `NOISE_ELEVATION_DETAIL`, `NOISE_RIDGE`; add `SLOPE_NORMALIZATION` and new terrain rule thresholds |
+| `src/params/game/worldParams.js` | edit | Replace `NOISE_PHASE_A_ELEVATION` with `NOISE_ELEVATION_DETAIL`, `NOISE_RIDGE`; add `SLOPE_NORMALIZATION`, world shape config, and new terrain rule thresholds |
 | `src/game/rules/terrainGenerator.js` | **rewrite** | 3-layer elevation composite, slope computation, border ring, updated `classifyTerrain`, new `generateChunkTiles` flow |
 | `src/game/rules/terrainTypes.js` | edit | Add `hill` and `plateau` entries |
 | `src/game/rules/archetypeData/biomes.js` | edit | Add `hill`/`plateau` palette colors and `terrainTags` entries for existing biomes |
@@ -353,17 +357,17 @@ function _provisionalTerrainForRing(q, r, fieldMap) {
 
 ## 6. Deliverable
 
-- Mountain ranges form along continent edges (continent mask modulation). Mountains are not isolated blobs.
+- Mountain ranges form from ridge noise modulated by the world shape. Mountains can appear throughout the interior, not just at continent edges.
+- The world shape function controls macro topography: center peak (default), crater rim, or flat. Map border is an ocean ring via worldShape → 0 at edge.
 - Flat highlands above `mountainThreshold` with low slope classify as `plateau`, not `mountain`.
 - Hills appear as intermediate terrain between plains and mountains.
 - Chunk edges have correct slope, mountain tags, and water tags — no `fallbackT` approximations.
-- Analysis tool histograms reflect the 3-layer composite distribution.
+- Analysis tool histograms reflect the 2-layer additive composite distribution.
 
 ---
 
 ## 7. Risks & Edge Cases
 
-- **Border ring adds ~40% more `sampleBaseFields` calls per chunk.** For a 24×24 chunk (576 tiles), border ring width 2 adds `(24+4)² - 24² = 784 - 576 = 208` extra samples (36% overhead). FBM is cheap — this is acceptable for a generation pass that runs once at startup.
-- **Per-phase normalization changes the raw FBM distribution.** Re-run Phase 0 calibration after implementing the composite — regenerate quantile LUTs. The previous Phase A calibration was against a single field; the 3-layer composite has a different distribution shape. Thresholds are stable percentiles.
 - **Slope at chunk corners.** Corner hexes have neighbors in up to 3 different chunks. With the border ring, all 6 neighbors are available locally. Without the border ring, corners would need cross-chunk lookups. The ring eliminates this entirely for radius-1 slope computation.
 - **`plateauSlopeMin` and `hillSlopeMin` both live near the top of the slope distribution.** The raw neighbor delta from FBM fields is on the order of hundredths. Without the `SLOPE_NORMALIZATION` calibration, both thresholds would sit near the ceiling of observed slope values, making "all high ground is plateau" or "all high ground is mountain." Phase 0 calibration addresses this.
+- **Per-phase normalization is no longer needed.** The additive composite `detail + ridges` naturally spans [0, 2] — dividing by 2 maps to [0, 1]. No per-phase normalization hack required. When Phase F adds ridged FBM, the composite formula is unchanged; only the LUTs need regeneration.

@@ -45,7 +45,6 @@ The current frequencies were chosen for radius-21 maps. Small maps (radius 7) an
 
 | Noise Field | radius 7 | radius 21 | radius 50 | Notes |
 |-------------|----------|-----------|-----------|-------|
-| `CONTINENT` | 0.003 | 0.0008 | 0.0004 | Smaller maps need higher freq to see any landmass shape |
 | `ELEVATION_DETAIL` | 0.030 | 0.020 | 0.012 | Detail scale should feel local (~10 hexes) regardless of map size |
 | `RIDGE` | 0.015 | 0.008 | 0.005 | Mountain chains ~25-hex scale |
 | `MOISTURE` | 0.010 | 0.006 | 0.004 | Climate bands visible at all scales |
@@ -57,18 +56,15 @@ The current frequencies were chosen for radius-21 maps. Small maps (radius 7) an
 
 ```js
 elevation = clamp01(
-  continent * W_C +
-  detail    * W_D +
-  ridges    * W_R * continent
+  worldShape(dist, radius) * (detail * W_D + ridges * W_R)
 )
 ```
 
-Current weights: `W_C=0.60, W_D=0.25, W_R=0.15`. Tuning adjusts:
-- **Too much continent weight** → flat interiors, mountains only at continent edges.
-- **Too much detail weight** → popcorn mountains return.
+Current weights: `W_D=0.50, W_R=0.50` (equal blend). Tuning adjusts:
+- **Too much detail weight** → uniform noise, mountains everywhere.
 - **Too much ridge weight** → everything is sharp ridges, no rolling terrain.
 
-Target: ~30-40% of landmass has some elevation variation (hills or higher), ~5-10% is mountain or peak.
+Target: ~30-40% of landmass has some elevation variation (hills or higher), ~5-10% is mountain or peak. World shape function parameters tuned separately — center peak steepness, rim width, etc.
 
 ### 4.3 Threshold Tuning
 
@@ -311,7 +307,7 @@ These items remain deferred after Phase G:
 
 ## 9. Deliverable
 
-- Consistent terrain feel across radius 7, 21, and 50 maps. Small maps have appropriate scale (not a zoomed-in corner of a continent). Large maps have visible continents and regional variation.
+- Consistent terrain feel across radius 7, 21, and 50 maps. Small maps have appropriate scale (not a zoomed-in corner of a region). Large maps have visible regional variation.
 - No dead terrain types: `peak` and `floatingIsland` appear at appropriate frequencies.
 - Beach hexes provide a natural water/land transition.
 - Biome coverage is complete: no climate zone falls through to `biome_default` without an explicit decision.

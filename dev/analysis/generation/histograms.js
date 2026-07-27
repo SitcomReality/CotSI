@@ -22,7 +22,7 @@ import { hexesWithinRadius, neighbors, coordKey } from '../../../src/engine/rule
  * Sample base physical fields at a global hex coordinate.
  *
  * Matches the Phase A specification from overview.md §5.
- * - Elevation: continent × detail (ridge placeholder = 0.5, weight = 0)
+ * - Elevation: single additive FBM field (detail + ridges placeholder, worldShape applied in Phase B)
  * - Moisture: raw FBM, no water adjustment yet
  * - Temperature: latitude + lapse rate + local variation
  * - Region bias: two independent low-freq bias fields
@@ -34,23 +34,21 @@ import { hexesWithinRadius, neighbors, coordKey } from '../../../src/engine/rule
  * @param {number} q           - Global hex q
  * @param {number} r           - Global hex r
  * @param {object} noiseConfig - Noise config object with fields:
- *   { CONTINENT, ELEVATION_DETAIL, RIDGE, MOISTURE, TEMP_VARIATION, REGION,
- *     SEED_CONTINENT, SEED_DETAIL, SEED_RIDGE, SEED_MOISTURE, SEED_TEMP,
+ *   { ELEVATION_DETAIL, RIDGE, MOISTURE, TEMP_VARIATION, REGION,
+ *     SEED_DETAIL, SEED_RIDGE, SEED_MOISTURE, SEED_TEMP,
  *     SEED_REGION_M, SEED_REGION_T }
  * @param {number} radius      - Map radius (for latitude calculation)
- * @returns {object} { elevation, continent, detail, ridges, baseMoisture,
+ * @returns {object} { elevation, detail, ridges, baseMoisture,
  *                     temperature, regionBiasM, regionBiasT }
  */
 export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const NC = noiseConfig;
 
-  // ── Elevation composite ──────────────────────────────────────────────
-  // Phase A: continent × detail (ridge weight = 0, placeholder 0.5 returned)
-  const continent = hexFbm2D(q, r, baseSeed + NC.SEED_CONTINENT, NC.CONTINENT);
-  const detail    = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL,    NC.ELEVATION_DETAIL);
-  const ridges    = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,     NC.RIDGE);
-  // Ridge sampled but weight=0 — calibration against Phase A base only
-  const elevation = continent * (detail * 1.0 + ridges * 0.0);
+  // ── Elevation: single additive FBM (world shape applied in Phase B) ──
+  const detail = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
+  const ridges = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
+  // Phase A: detail only (ridge weight = 0). Full composite in Phase B.
+  const elevation = detail;
 
   // ── Moisture ─────────────────────────────────────────────────────────
   const baseMoisture = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.MOISTURE);
@@ -77,7 +75,6 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
   return {
     elevation: clamp01(elevation),
-    continent,
     detail,
     ridges,     // raw value returned for analysis (weight=0 in composite)
     baseMoisture,

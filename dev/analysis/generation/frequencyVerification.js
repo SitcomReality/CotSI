@@ -19,7 +19,6 @@ import { NOISE_CONFIG } from './noiseConfig.js';
 
 function seedOffsetFor(fieldKey) {
   const map = {
-    CONTINENT:       NOISE_CONFIG.SEED_CONTINENT,
     ELEVATION_DETAIL: NOISE_CONFIG.SEED_DETAIL,
     RIDGE:           NOISE_CONFIG.SEED_RIDGE,
     MOISTURE:        NOISE_CONFIG.SEED_MOISTURE,
@@ -30,7 +29,6 @@ function seedOffsetFor(fieldKey) {
 }
 
 const FIELD_LABELS = {
-  CONTINENT:        'Continent mask',
   ELEVATION_DETAIL:  'Elevation detail',
   RIDGE:            'Ridge noise',
   MOISTURE:         'Moisture',
@@ -39,7 +37,6 @@ const FIELD_LABELS = {
 };
 
 const FIELD_TARGETS = {
-  CONTINENT:        '2-4 landmasses on radius-50',
   ELEVATION_DETAIL:  '~10-hex local relief',
   RIDGE:            '~25-hex mountain chains',
   MOISTURE:         'broad wet/dry bands',
@@ -48,7 +45,7 @@ const FIELD_TARGETS = {
 };
 
 const FIELDS_TO_VERIFY = (() => {
-  const keys = ['CONTINENT', 'ELEVATION_DETAIL', 'RIDGE', 'MOISTURE', 'TEMP_VARIATION', 'REGION'];
+  const keys = ['ELEVATION_DETAIL', 'RIDGE', 'MOISTURE', 'TEMP_VARIATION', 'REGION'];
   return keys.map(k => ({
     label: FIELD_LABELS[k],
     key: k,

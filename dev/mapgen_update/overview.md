@@ -13,7 +13,7 @@ This document is the canonical entry point for the terrain generation redesign. 
 The current terrain generation produces worlds that feel disconnected and unnatural. Three root causes:
 
 1. **Biome is an independent noise roll**, not a conclusion drawn from physical fields. A hex can be "arid biome" with high moisture → forest inside a desert.
-2. **Noise scales are undifferentiated.** Elevation, moisture, and biome all use similar-frequency FBM. Everything looks like camouflage blotches rather than continents, regions, and local detail.
+2. **Noise scales are undifferentiated.** Elevation, moisture, and biome all use similar-frequency FBM. Everything looks like camouflage blotches rather than regions and local detail.
 3. **The classifier uses variables in isolation.** Mountains ignore moisture. Forests ignore elevation. Height and moisture rarely co-author the result.
 
 The bones are solid — seeded FBM, chunk-seamless global coordinates, multi-pass tagging, archetype-driven thresholds. This redesign keeps those foundations and builds a coherent climate → terrain → feature pipeline on top.
@@ -26,7 +26,7 @@ The bones are solid — seeded FBM, chunk-seamless global coordinates, multi-pas
 
 2. **Fields influence each other in a deliberate order.** Temperature falls with elevation. Moisture pools near water. Rivers follow gravity. Each pass builds on the last.
 
-3. **Separate macro and micro scale.** Continent masks are very low frequency. Regional variation is low frequency. Terrain detail is medium-to-high frequency. Features/debris are highest frequency. Each frequency band has a clear role.
+3. **Separate macro and micro scale.** Regional variation is medium frequency. Terrain detail is medium-to-high frequency. Features/debris are highest frequency. Each frequency band has a clear role. Overall landmass shape is an explicit world-shape function, not a noise-derived continent mask.
 
 4. **Deterministic and chunk-seamless on finite maps.** Every sample is a pure function of `(seed, q, r)`. Chunks are generated first with deterministic local fields, then global passes (rivers, water-type BFS, epicenter placement) run across the assembled full map. The key invariant: a hex generated as a core tile of chunk A produces identical values when the same hex is generated as a ring tile of chunk B.
 
@@ -48,11 +48,10 @@ For each hex (global q, r):
   ┌─────────────────────────────────────────────────┐
   │  PASS 1: Physical Fields (deterministic FBM)     │
   │                                                 │
-  │  continentMask  ←  very-low-freq FBM            │
-  │  elevationBase  ←  low-freq FBM                 │
   │  elevationDetail←  med-freq FBM                 │
   │  ridgeNoise     ←  med-freq ridged FBM (Phase F)│
-  │  elevation      =   continentMask × (elevationBase + detail + ridgeNoise)  │
+  │  rawElevation   =   detail + ridgeNoise          │
+  │  elevation      =   worldShape(d,r) × rawElevation│
   │  baseMoisture   ←  low-freq FBM                 │
   │  temperature    ←  latitudeTerm - elevation×lapseRate + tempNoise     │
   │  regionBiasM    ←  very-low-freq FBM (moisture bias)                  │
@@ -141,7 +140,7 @@ For each hex (global q, r):
 - **Pass 5 (rivers) moved before Pass 6 (terrain classification).** Rivers now boost moisture *before* final terrain classification, so fertile river valleys produce real terrain changes (more forest, less desert along river paths).
 - **regionBias is two independent fields** (`regionBiasM` and `regionBiasT`). The original shifted moisture and temperature by the same delta, making "hot+dry" or "cold+wet" regional biases impossible.
 - **Supernatural biome overlay (Pass 4b):** After `selectBiome` assigns natural biomes from climate, a jittered-grid epicenter pass places supernatural biomes (Brass Grave, Unfinished Lands, etc.) that override the climate-derived assignment. Epicenter seeds are placed deterministically in a coarse grid with per-cell jitter; regions grow via noise-modulated radial falloff. This is a pure function of `(seed, q, r)` — chunk-local, no global BFS required. Field modifiers and terrain maps are applied within epicenter regions so supernatural biomes alter the local environment, not just the palette. Each biome archetype declares `origin: 'natural'` or `origin: 'supernatural'`. Supernatural biomes have no `climateRange` — they are placed by event locations, not by climate matching.
-- **Multiplicative continent formula:** Elevation is `continent × (detail + ridges)` rather than an additive blend. When continent=0, elevation=0 (ocean). The additive form in the original §5 code would allow mountains in the middle of oceans.
+- **World shape function replaces continent mask:** Instead of a noise-derived continent mask, macro topography is shaped by an explicit `worldShape(distanceFromCenter, radius) → [0, 1]` function. This eliminates the compressed elevation distribution, zero-slope, and calibration complexity caused by the multiplicative `continent × detail` formula. The default shape is `1.0 - dist/radius` (center peak, ocean ring at border), configurable per-archetype. The map edge is handled naturally — elevation drops to zero at the border → water ring. No champions permanently separated by a noise roll.
 
 ---
 
@@ -154,7 +153,7 @@ Every generated tile carries these fields:
   q, r,                             // global hex coordinates
   elevation,                        // continuous [0, 1], the composite height value
   rawLayers: {                      // unblended noise components (debug/analysis)
-    continent, detail, ridges,
+    detail, ridges,
   },
   moisture,                         // continuous [0, 1], water-adjusted + river-boosted
   temperature,                      // continuous [0, 1]
@@ -185,19 +184,17 @@ A single function `sampleBaseFields(seed, q, r, noiseConfig, radius)` computes r
 export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const NC = noiseConfig;
 
-  // Elevation (multiplicative composite — continent=0 forces ocean)
-  const continent = hexFbm2D(q, r, baseSeed + NC.SEED_CONTINENT, NC.CONTINENT);
-  const detail    = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL,    NC.ELEVATION_DETAIL);
-  const ridges    = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,     NC.RIDGE);
-  const rawElev   = continent * (detail * 0.50 + ridges * 0.50);
+  // Elevation: additive composite shaped by worldShape
+  const detail    = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
+  const ridges    = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
+  const rawElev   = worldShape(hexDistance(q, r, 0, 0), radius) * (detail * 0.50 + ridges * 0.50);
 
   // Moisture (base, before water adjustment)
   const baseMoisture = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.MOISTURE);
 
   // Temperature from latitude + lapse rate + local variation
-  // Uses world-space Y for proper latitude bands (not hexDistance, which produces hexagonal iso-contours)
   const { y } = hexToWorld(q, r);
-  const worldRadiusY = radius * 1.73;  // hex row spacing ≈ √3; calibrate exact value in Phase 0
+  const worldRadiusY = radius * 1.73;
   const latitudeTerm  = 1.0 - (Math.abs(y) / worldRadiusY);
   const tempVariation = hexFbm2D(q, r, baseSeed + NC.SEED_TEMP, NC.TEMP_VARIATION);
   const temperature   = clamp01(
@@ -210,7 +207,7 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
   return {
     elevation:     clamp01(rawElev),
-    rawLayers:     { continent, detail, ridges },
+    rawLayers:     { detail, ridges },
     baseMoisture,
     temperature,
     regionBiasM,
@@ -219,9 +216,22 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 }
 ```
 
-**Quantile normalization** is applied after sampling: each continuous field (`elevation`, `moisture`, `temperature`) is mapped through a CDF lookup table built from an ensemble of seeds during Phase 0 calibration. The LUT maps raw FBM values → uniform [0, 1] percentiles. All thresholds in `DEFAULT_TERRAIN_RULES` and `climateRange` are expressed as percentiles and survive distribution changes when noise layers are added (Phases B, F). Per-seed variety comes from explicit offset rolls (e.g. `seaLevelOffset`) applied to raw values *before* the LUT.
+**World shape function:** The macro topography is an explicit function of distance from center, not a noise-derived continent mask:
 
-**Per-phase weight normalization:** In phases where ridge noise hasn't been implemented yet, the elevation composite is normalized so the [0, 1] range remains reachable. With the multiplicative model `continent × (detail × wD + ridges × wR)`, weights are adjusted per phase: Phase A has only detail (wD = 1.0, wR = 0), Phase B keeps detail at 0.50 (ridge placeholder returns 0), and Phase F sets detail + ridge weights to sum to 1.0 for the full ridged-FBM composite. Each phase doc specifies its exact normalization. These per-phase adjustments apply to raw FBM values — the quantile LUT handles the rest.
+```js
+/**
+ * Shape the macro elevation envelope. Returns a multiplier in [0, 1].
+ * Default: center peak, dropping to zero at the map border (ocean ring).
+ * Configurable per-archetype for crater worlds, flat maps, etc.
+ */
+function worldShape(distFromCenter, radius) {
+  return 1.0 - (distFromCenter / radius);  // center peak
+  // return distFromCenter / radius;       // crater rim
+  // return 1.0;                           // flat (no macro shaping)
+}
+```
+
+**Quantile normalization** is applied after sampling: each continuous field (`elevation`, `moisture`, `temperature`) is mapped through a CDF lookup table built from an ensemble of seeds during Phase 0 calibration. The LUT maps raw FBM values → uniform [0, 1] percentiles. All thresholds in `DEFAULT_TERRAIN_RULES` and `climateRange` are expressed as percentiles and survive distribution changes when noise layers are added (Phases B, F). Per-seed variety comes from explicit offset rolls (e.g. `seaLevelOffset`) applied to raw values *before* the LUT.
 
 ### Border Ring
 
@@ -254,31 +264,27 @@ const MAX_LOOKUP_RADIUS = Math.max(
 
 ## 6. Noise Configuration
 
-All noise parameters live in `src/params/game/worldParams.js`. Frequencies are calibrated during Phase 0 and expressed as percentiles in the phase docs.
+All noise parameters live in `src/params/game/worldParams.js`. Frequencies were verified during Phase 0 calibration (see `phase0_calibration.md` §4.1 for full findings and the zero-crossing methodology report).
 
 ```js
 // ── Elevation layers ──────────────────────────────────────────
-// All frequencies are TARGET VALUES pending Phase 0 verification of the
-// hexToWorld rescaling relationship. Exact values set during calibration.
-export const NOISE_CONTINENT = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.0008  // TBD: recalibrate
-};
 export const NOISE_ELEVATION_DETAIL = {
-  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020   // TBD: recalibrate, target ~10-hex scale
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020
 };
 export const NOISE_RIDGE = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008   // TBD: recalibrate, target ~25-hex scale
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008
 };
 
 // ── Climate fields ────────────────────────────────────────────
 export const NOISE_MOISTURE = {
-  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006    // TBD: recalibrate
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006
 };
 export const NOISE_TEMP_VARIATION = {
-  octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08     // TBD: recalibrate
+  octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08
 };
 export const NOISE_REGION = {
-  octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.0015   // TBD: recalibrate
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.003
+  // Confirmed via 100-seed × r=100 calibration: ~9 half-cycles, matches 8-12 target for 4-6 biome regions.
 };
 
 // ── Epicenter grid (supernatural biome placement) ──────────────────
@@ -301,7 +307,6 @@ export const NOISE_DEBRIS = {
 
 // ── Seed offsets (hash-derived, ensure independent fields from same base seed) ──
 // Derived via hash32(baseSeed ^ TAG) for each channel. Phase 0 verifies independence.
-export const SEED_CONTINENT   = 0x4E9D3A7F;
 export const SEED_DETAIL      = 0x7B2C1E8D;
 export const SEED_RIDGE       = 0x3F5A9B2C;
 export const SEED_MOISTURE    = 0x8C6E4F1A;
@@ -348,13 +353,20 @@ export const RIVER_SOURCE_FRACTION    = 0.0001; // sources per tile; total river
 //   waterNeighbors × NEAR_WATER_BOOST_PER_NEIGHBOR (currently 0.03, radius 2)
 // Region-bias strength (Phase A):
 //   (regionBias - 0.5) × REGION_BIAS_STRENGTH (currently hardcoded 0.10 in selectBiome)
-// Elevation composite weights (Phase A / B / F):
-//   detail × wD + ridges × wR, currently wD = 0.50, wR = 0.50 (multiplicative with continent)
+// Elevation composite weights (Phase B / F):
+//   detail × wD + ridges × wR, currently wD = 0.50, wR = 0.50
+// World shape function (Phase B):
+//   worldShape(dist, radius) — default center-peak: 1.0 - dist/radius
 // Temperature formula weights (Phase A):
 //   latitude 0.35, variation 0.10, elevation 0.30 (convex combination around 0.5)
 ```
 
-**Frequency note:** Ridge and detail frequencies (0.008 vs 0.020) are now well-separated (~2.5×) to avoid moiré interference. The original had them at 0.012 and 0.015 — only 20% apart, producing "muddier" noise rather than distinct mountain chains and rolling hills.
+**Frequency calibration findings (100 seeds × r=100, see `phase0_calibration.md` §4.1):**
+- Zero-crossing counting proved unreliable — dominated by simplex kernel gradient jitter, not FBM structural cycles.
+- The continent mask was removed — it was the root cause of compressed elevation distribution, zero slope, and calibration complexity. Elevation is now additive: `detail + ridges`, shaped by worldShape.
+- The original detail, ridge, moisture, and temperature frequencies produce correct macro-scale structure.
+- REGION at f=0.003 with 3 octaves (was 0.0015/2oct) is confirmed good — ~9 half-cycles matching the 4-6 biome region target.
+- Quantile normalization handles any remaining distribution compression from the additive composite.
 
 ---
 
@@ -823,7 +835,7 @@ Phase A includes both climate-driven biome classification and the full jittered-
 | River termination at local minima | Known limitation | Without sink filling, rivers that dead-end in basins produce dead-end rivers rather than lakes |
 | Biome topological smoothing | Deferred to Phase G | Lightweight post-pass to reassign isolated single-hex biome outliers |
 | Player terraforming / world modification | Out of scope | System assumes static deterministic world |
-| TEMP_VARIATION frequency (0.08) may cause salt-and-pepper biome boundaries | Phase 0 verification | Reduce frequency to ~0.02 (50-hex scale) if speckle is visible; quantile normalization amplifies threshold noise at high frequencies |
+| TEMP_VARIATION frequency (0.08) may cause salt-and-pepper biome boundaries | Phase G tuning | Reduce to ~0.02 if speckle visible after quantile normalization; 100-seed calibration confirms f=0.08 produces the correct macro-scale — no change needed yet |
 | Quantile LUT regeneration after Phase B / Phase F | Operational | Re-run Phase 0 calibration → regenerate LUTs; thresholds remain stable |
 
 ---

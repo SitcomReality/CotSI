@@ -5,55 +5,49 @@
  * source of truth for calibration noise parameters — sampleBaseFields,
  * frequencyVerification, and the calibration UI all import from here.
  *
- * Frequencies are FIRST-PASS CALIBRATED from zero-crossing analysis across
- * 2 seeds × r=50 (see update_progress/phase0_step1_calibration_1.md).
- * The earlier TBD values produced effective wavelengths 10-50× shorter than
- * targets. These corrected values divide each frequency by the ratio of
- * empirical half-cycles to target half-cycles.
+ * FREQUENCY STATUS (as of 100-seed calibration run, r=100, glut-17 base):
+ *
+ * Zero-crossing counting proved UNRELIABLE as a calibration method.
+ * The zero-crossings are dominated by simplex kernel gradient jitter within
+ * individual simplex cells, not FBM structural cycles.
+ *
+ * The continent mask was REMOVED from the design (see overview.md) — it was
+ * the root cause of compressed elevation distribution [0.12, 0.44], zero slope,
+ * and calibration complexity. Elevation is now additive: detail + ridges,
+ * shaped by an explicit worldShape(distanceFromCenter, radius) function.
+ *
+ * The ORIGINAL frequencies from overview.md §6 produce visible macro-structure.
+ * The one confirmed good change: REGION at f=0.003 with 3 octaves (was 0.0015/2oct)
+ * produces ~9 half-cycles across the map, matching the 8-12 target.
+ *
+ * VERDICT: Use original frequencies. Quantile normalization (CDF LUTs) handles
+ * distribution. Phase G tunes thresholds against the full pipeline.
  *
  * In Phase A, these constants move to src/params/game/worldParams.js.
- * For now they live here so calibration runs against the target pipeline
- * without requiring game code changes.
- *
- * Calibration targets (radius-50 map, ~100 hex span):
- *   CONTINENT:        4-8 half-cycles  (λ=12-25 hex)
- *   ELEVATION_DETAIL: 15-25 half-cycles (λ=4-7 hex)
- *   RIDGE:            5-10 half-cycles  (λ=10-20 hex)
- *   MOISTURE:         4-8 half-cycles   (λ=12-25 hex)
- *   TEMP_VARIATION:   20-40 half-cycles (λ=2.5-5 hex)
- *   REGION:           8-12 half-cycles  (λ=8-12 hex)
  */
 
 export const NOISE_CONFIG = {
 
   // ── Elevation layers ──────────────────────────────────────────────
-  // Frequencies calibrated from zero-crossing analysis across 2 seeds × r=50.
-  // CORRECTION FACTOR: empirical zero-crossings ÷ target half-cycles.
-  // CONTINENT target 4-8 half-cycles, current 36.5 → ÷6
-  CONTINENT: {
-    octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.00012,
-  },
-  // ELEVATION_DETAIL target ~20 half-cycles, current ~182 → ÷9
+  // ORIGINAL FREQUENCIES from overview.md §6 — produce correct macro-scale.
+  // Continent mask removed — elevation is additive: detail + ridges,
+  // shaped by worldShape(distanceFromCenter, radius).
   ELEVATION_DETAIL: {
-    octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.0025,
+    octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020,
   },
-  // RIDGE target 5-10 half-cycles, current ~48 → ÷6
   RIDGE: {
-    octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.0012,
+    octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008,
   },
 
   // ── Climate fields ────────────────────────────────────────────────
-  // MOISTURE target 4-8 half-cycles, current ~35 → ÷6
   MOISTURE: {
-    octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.0008,
+    octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006,
   },
-  // TEMP_VARIATION target ~30 half-cycles (λ~3 hex), current ~431 → ÷14
   TEMP_VARIATION: {
-    octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.005,
+    octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08,
   },
-  // REGION: increased to 3 octaves for stable regional structure.
-  // At f=0.003, 3 octaves give ~2 cycles of FBM structure per map plus sub-cell texture.
-  // Expected: ~6-12 half-cycles (target 8-12).
+  // REGION: f=0.003 with 3 octaves confirmed good across 100 seeds × r=100.
+  // Produces ~9 half-cycles, matching target 8-12 for 4-6 biome regions.
   REGION: {
     octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.003,
   },
@@ -73,7 +67,6 @@ export const NOISE_CONFIG = {
   },
 
   // ── Seed offsets (overview §6, §7.1) ──────────────────────────────
-  SEED_CONTINENT:   0x4E9D3A7F,
   SEED_DETAIL:      0x7B2C1E8D,
   SEED_RIDGE:       0x3F5A9B2C,
   SEED_MOISTURE:    0x8C6E4F1A,
@@ -92,7 +85,7 @@ export const NOISE_CONFIG = {
  * Convenience: list of seed fields for iteration.
  */
 export const SEED_FIELDS = [
-  'SEED_CONTINENT', 'SEED_DETAIL', 'SEED_RIDGE', 'SEED_MOISTURE',
+  'SEED_DETAIL', 'SEED_RIDGE', 'SEED_MOISTURE',
   'SEED_TEMP', 'SEED_REGION_M', 'SEED_REGION_T',
   'SEED_FEATURES', 'SEED_DEBRIS', 'SEED_DEBRIS_KIND',
 ];
@@ -101,7 +94,6 @@ export const SEED_FIELDS = [
  * Convenience: list of noise field names for iteration.
  */
 export const NOISE_FIELDS = [
-  { key: 'CONTINENT', label: 'Continent mask' },
   { key: 'ELEVATION_DETAIL', label: 'Elevation detail' },
   { key: 'RIDGE', label: 'Ridge noise' },
   { key: 'MOISTURE', label: 'Moisture' },

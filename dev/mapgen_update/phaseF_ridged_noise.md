@@ -134,22 +134,17 @@ Ridged FBM uses the same `NOISE_RIDGE` configuration (`octaves: 3, frequency: 0.
 
 ### 4.4 Per-Phase Normalization Update
 
-The Phase B normalization was:
+With ridged FBM producing values in [0, 1], the full additive composite is active:
 
 ```js
-const rawElev = continent * 0.60 + detail * 0.25 + ridges * 0.15 * continent;
-const elevation = clamp01(rawElev / 0.85);  // max with ridges=0
+const distance = hexDistance(q, r, 0, 0);
+const rawElev = worldShape(distance, radius) * (detail * 0.50 + ridges * 0.50);
+// Two FBM fields sum to approximately [0, 2]; divide by 2 for [0, 1].
+// worldShape at border = 0 ⇒ elevation forced to 0 ⇒ ocean ring.
+const elevation = clamp01(rawElev);
 ```
 
-With ridged FBM producing values in [0, 1], the ridges term is now active. The maximum of the composite is `0.60 + 0.25 + 0.15 = 1.0` (when continent=1, detail=1, ridges=1). But ridged noise's mean is lower than regular FBM (it concentrates near ridges), so the effective range may still be below 1.0.
-
-**Recalibrate:** Run Phase 0 calibration against the new composite to regenerate quantile LUTs. Thresholds remain stable percentiles. The normalization constant for the per-phase composite adjusts to the new 99th-percentile raw elevation:
-
-```js
-// After Phase 0 recalibration with ridged FBM:
-const ELEV_NORMALIZATION = /* 99th-percentile from recalibration */;
-const elevation = clamp01(rawElev / ELEV_NORMALIZATION);
-```
+Ridged noise's mean is lower than regular FBM (it concentrates near ridges), so the effective distribution may still compress slightly toward the low end. **Recalibrate:** Run Phase 0 calibration against the new composite to regenerate quantile LUTs. Thresholds remain stable percentiles.
 
 ### 4.5 Ridged Noise Configuration
 
@@ -160,7 +155,7 @@ export const NOISE_RIDGE = {
 };
 ```
 
-The `offset` parameter (0.9) is lower than the default 1.0 — this shifts the ridge baseline slightly lower, reducing the amount of low-elevation ridge noise that would create sharp features on plains. Mountains form where continent*ridges is high, i.e., where both continent mask and ridge noise are strong.
+The `offset` parameter (0.9) is lower than the default 1.0 — this shifts the ridge baseline slightly lower, reducing the amount of low-elevation ridge noise on flat terrain. Mountain ranges form where ridge noise is strong — the world shape function handles edge-to-ocean transition via the multiplicative envelope.
 
 ---
 
@@ -186,6 +181,5 @@ The `offset` parameter (0.9) is lower than the default 1.0 — this shifts the r
 ## 7. Risks & Edge Cases
 
 - **Ridged noise has a different value distribution than regular FBM.** The mean is lower, and values cluster near the ridges. This shifts the elevation histogram toward lower values, which changes terrain type percentages. Recalibration is essential — without it, mountain coverage drops and plains dominate.
-- **Ridged noise without continent mask modulation.** The composite multiplies ridges by `continent`, so ridges only appear on land. In deep ocean (continent ≈ 0), ridge noise is suppressed regardless of its value. This is correct — ocean floors shouldn't have mountain-range features at this scale.
 - **Sharp ridges may look unnatural if too frequent.** The `offset` parameter (0.9) and the squaring (`n * n`) both control ridge sharpness. Start conservative (lower offset, less squaring) and tune upward in Phase G if ridges look too soft.
 - **`ridgedFbm2D` is novel code in this project.** The simplex noise implementation is well-tested, but ridged FBM introduces new arithmetic paths. Test with known seeds against the analysis tool's elevation histogram to verify the output range is [0, 1] and the distribution shape matches expectations.

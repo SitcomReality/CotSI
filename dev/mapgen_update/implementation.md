@@ -30,7 +30,7 @@
 
 **Goal:** Replace independent biome noise with climate-driven selection + jittered-grid epicenter for supernatural biomes. Full epicenter system: grid placement, noise-modulated radial falloff, fieldModifiers, terrainMap — no placeholder.
 
-- [ ] Add noise config: `NOISE_CONTINENT`, `NOISE_PHASE_A_ELEVATION`, `NOISE_MOISTURE`, `NOISE_TEMP_VARIATION`, `NOISE_REGION`
+- [ ] Add noise config: `NOISE_PHASE_A_ELEVATION`, `NOISE_MOISTURE`, `NOISE_TEMP_VARIATION`, `NOISE_REGION`
 - [ ] Add `EPICENTER_GRID` config (`cellSize`, `jitterAmplitude`)
 - [ ] Add seed offsets (excluding `SEED_EPICENTER` — not needed for grid-based epicenter)
 - [ ] Implement `sampleBaseFields` (single-field elevation, temperature from latitude+lapse, two region bias fields)
@@ -55,9 +55,9 @@
 
 ## Phase B: Multi-Scale Elevation + Slope
 
-**Goal:** 3-layer elevation composite (continent × detail). Slope discriminates mountain/plateau/hill. Border ring.
+**Goal:** 2-layer additive elevation composite (detail + ridges) with world shape function. Slope discriminates mountain/plateau/hill. Border ring.
 
-- [ ] Replace `NOISE_PHASE_A_ELEVATION` with `NOISE_CONTINENT`, `NOISE_ELEVATION_DETAIL`, `NOISE_RIDGE`
+- [ ] Replace `NOISE_PHASE_A_ELEVATION` with `NOISE_ELEVATION_DETAIL`, `NOISE_RIDGE`
 - [ ] Update `sampleBaseFields` with 3-layer composite + per-phase normalization (`/ 0.85`)
 - [ ] Implement `computeSlope` using `SLOPE_NORMALIZATION` from Phase 0
 - [ ] Implement border ring sampling (width = `MAX_LOOKUP_RADIUS`, currently 2)

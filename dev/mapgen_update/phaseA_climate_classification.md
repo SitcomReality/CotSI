@@ -35,7 +35,7 @@ After this phase, biome selection is a data-driven lookup using three climate ax
 **Out of scope:**
 - Slope computation (Phase B)
 - Hill and plateau terrain types (Phase B)
-- Continent × detail composite (Phase B)
+- WorldShape + multi-layer composite (Phase B)
 - Water-adjusted moisture (Phase C)
 - Rivers (Phase D)
 
@@ -61,29 +61,23 @@ Replace the current flat noise config with the new layered structure:
 //   (move threshold constants to DEFAULT_TERRAIN_RULES)
 
 // Add:
-export const NOISE_CONTINENT = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.0008  // TBD from Phase 0
-};
-// Elevation in Phase A is a single field (PHASE_A_ELEVATION).
-// It produces a blended [0, 1] signal using a frequency that gives
-// visible landmass shapes at the target map sizes. The 3-layer composite
-// (continent × detail + ridges) replaces this in Phase B.
+// Elevation in Phase A is a single additive FBM field (PHASE_A_ELEVATION).
+// The worldShape function and multi-layer composite (detail + ridges) arrive in Phase B.
 export const NOISE_PHASE_A_ELEVATION = {
   octaves: 5, lacunarity: 2.0, gain: 0.5, frequency: 0.006   // TBD from Phase 0
 };
 
 export const NOISE_MOISTURE = {
-  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006   // TBD from Phase 0
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006   // Confirmed from Phase 0
 };
 export const NOISE_TEMP_VARIATION = {
-  octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08    // TBD from Phase 0
+  octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08    // Confirmed from Phase 0
 };
 export const NOISE_REGION = {
-  octaves: 2, lacunarity: 2.0, gain: 0.5, frequency: 0.0015  // TBD from Phase 0
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.003  // Confirmed: ~9 half-cycles, matches 8-12 target
 };
 
 // Seed offsets
-export const SEED_CONTINENT   = 0;
 export const SEED_MOISTURE    = 300;
 export const SEED_TEMP        = 400;
 export const SEED_REGION_M    = 500;
@@ -114,37 +108,35 @@ export const DEFAULT_TERRAIN_RULES = {
 //         (channel indices replaced by seed offsets)
 ```
 
-### 4.2 elevation in Phase A (Before the Multi-Layer Composite)
+### 4.2 elevation in Phase A (Before the World Shape + Multi-Layer Composite)
 
-Phase A uses a single elevation FBM field before the continent×detail composite arrives in Phase B. With the multiplicative model `continent × (detail × wD + ridges × wR)`, Phase A sets wD = 1.0 and wR = 0:
+Phase A uses a single additive elevation FBM field before the `worldShape × (detail + ridges)` composite arrives in Phase B:
 
 ```js
-// Phase A elevation: multiplicative model with single field
-const continent = hexFbm2D(q, r, baseSeed + SEED_CONTINENT, NOISE_PHASE_A_ELEVATION);
-// detail placeholder = 0.5 (constant), so elevation = continent × 0.5 × 2 = continent
-// Normalize to [0, 1] — single field already spans the full range after FBM
-const elevation = clamp01(continent * 0.50 * 2);  // = continent
+// Phase A elevation: single additive field, full [0, 1] range
+const rawElev = hexFbm2D(q, r, baseSeed + SEED_MOISTURE, NOISE_PHASE_A_ELEVATION);
+const elevation = clamp01(rawElev);
 ```
 
-This avoids the "maxes at 0.85" problem — `NOISE_PHASE_A_ELEVATION` is one FBM call. All thresholds derived in Phase 0 were calibrated against this same formula.
+No continent mask. No normalization hack. One FBM call spans the full range. The world shape function and ridge layer are applied in Phase B — Phase A produces uniform noise elevation for climate-driven biome selection.
 
 ### 4.3 Shared Sampler (`sampleBaseFields`)
 
-Updated to match the current overview formulas — world-space Y latitude, convex temperature, multiplicative elevation:
+Updated to match the current overview formulas — world-space Y latitude, convex temperature, additive elevation with world shape stub:
 
 ```js
 export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const NC = noiseConfig;
 
-  // Phase A elevation: single-field multiplicative (continent * 1.0, detail placeholder = 0.5)
-  const continent    = hexFbm2D(q, r, baseSeed + NC.SEED_CONTINENT, NC.PHASE_A_ELEVATION);
-  const elevation    = clamp01(continent * 0.50 * 2);  // normalize to [0, 1]
+  // Phase A elevation: single additive field (worldShape stub = 1.0)
+  const rawElev    = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.PHASE_A_ELEVATION);
+  const elevation  = clamp01(rawElev);
 
   const baseMoisture = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE,  NC.MOISTURE);
 
   // Temperature: world-space Y latitude (proper bands, not hexagonal iso-contours)
   const { y }            = hexToWorld(q, r);
-  const worldRadiusY     = radius * 1.73;  // hex row spacing ≈ √3; calibrate in Phase 0
+  const worldRadiusY     = radius * 1.73;
   const latitudeTerm     = 1.0 - (Math.abs(y) / worldRadiusY);
   const tempVariation    = hexFbm2D(q, r, baseSeed + NC.SEED_TEMP, NC.TEMP_VARIATION);
   const RULES            = DEFAULT_TERRAIN_RULES;
@@ -159,7 +151,7 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
   return {
     elevation,
-    rawLayers: { continent, detail: 0, ridges: 0 },
+    rawLayers: { detail: rawElev, ridges: 0 },
     baseMoisture,
     temperature,
     regionBiasM,
@@ -172,7 +164,7 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 - **Latitude uses world-space Y** via `hexToWorld(q, r).y`, not `hexDistance(q, r, 0, 0)`. hexDistance produces hexagonal iso-contours — visually, a hexagonal bullseye with sharp corners. World-space Y gives proper latitude bands that align with the hex grid's row geometry.
 - **Temperature is a convex combination centered on 0.5.** The original formula `0.50·lat + 0.15·noise − 0.40·elev` produced a range of roughly [0, 0.4] with a large point mass at 0 — `maxTemperature > 0.65` was dead code. The new formula centers around 0.5 and uses `waterMaxElevation` as the sea-level lapse-rate reference so sea level = neutral temperature, higher = colder.
 - **Radius is always known** (finite maps). No `radius > 0 ? ... : 0.5` fallback.
-- **Elevation is multiplicative** from Phase A onward: `continent × (detail × wD + ridges × wR)`. This ensures continent=0 forces ocean — no dry ocean basins from additive detail leakage.
+- **Elevation is additive** from Phase A onward. The worldShape function (Phase B) replaces the continent mask as the macro topography shaper. In Phase A, worldShape is effectively 1.0 — elevation variation comes purely from noise.
 
 ### 4.4 Data-Driven `selectBiome` + Supernatural Override
 
@@ -576,7 +568,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef, p
 - No more "forest in the desert" artifacts — terrain types respect their biome's `terrainRules` and the global `DEFAULT_TERRAIN_RULES`.
 - Mountains stop at the tree line — no forests on peaks (unless biome overrides `treeLineMax`).
 - Temperature varies with latitude (circular climate zones) and elevation (lapse rate).
-- Mountain placement uses single-field FBM: popcorn/blobby mountains expected. Range structure (continent mask) comes in Phase B.
+- Mountain placement uses single-field FBM: uniform noise blobs expected. Range structure (ridge noise + worldShape) comes in Phase B.
 - Single-biome mode unchanged — all hexes use the selected biome, no climate-based selection, no epicenter override.
 - Analysis tool shows the new fields (`temperature`, continuous `elevation`, `moisture`) and epicenter regions.
 - Calibration values from Phase 0 produce the target terrain distributions.
@@ -585,7 +577,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef, p
 
 ## 7. Risks & Edge Cases
 
-- **Single elevation field produces popcorn mountains.** Without the continent mask and slope discrimination (Phase B), mountain placement is noise-blob rather than range-based. This is expected and acceptable — Phase B fixes it.
+- **Single elevation field produces uniform noise blobs.** Without ridge noise and slope discrimination (Phase B), mountain placement is noise-blob rather than range-based. This is expected and acceptable — Phase B fixes it.
 - **Water still uses moisture gate.** In this phase, water requires both elevation < threshold AND moisture > threshold. The elevation-only water determination (oceans always water, lakes are moisture-gated) comes in Phase C. For now, "dry ocean basins" can still occur at low elevation + low moisture.
 - **Cold+dry climate yields `biome_default`.** The explicit gap in `climateRange` coverage is a known limitation — tundra/snow biomes added in Phase G.
 - **`fallbackT` removed.** The new border-ring approach eliminates the need for cross-chunk neighbor approximations. But in Phase A, the border ring infrastructure from Phase B isn't built yet. For this phase, cross-chunk lookups for mountain/water tagging can use `sampleBaseFields` directly — it's deterministic and works at any global coordinate.

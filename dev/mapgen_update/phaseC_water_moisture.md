@@ -55,7 +55,7 @@ function isProvisionalWater(elevation, moisture, terrainRules) {
 }
 ```
 
-The `waterType` BFS (Phase B, unchanged) determines ocean vs lake. Tiles whose water body connects to the map boundary get `waterType: 'ocean'`. All ocean tiles are water regardless of moisture — but in practice, oceans are at the lowest elevations where moisture from water proximity (applied in this phase) ensures the moisture gate passes. On finite maps, the map boundary is well-defined and the water-type BFS runs across the full assembled map in the `generateTiles` wrapper.
+The `waterType` BFS (Phase B, unchanged) determines ocean vs lake. Tiles whose water body connects to the map boundary get `waterType: 'ocean'`. On finite maps with a world-shape ocean ring, all perimeter water tiles connect to the boundary — the water-type BFS runs across the full assembled map in the `generateTiles` wrapper.
 
 **"Dry basin" handling:** Tiles with `elevation < waterMaxElevation && moisture <= waterMinMoisture` fall through water classification and become terrain (plains, desert, or marsh depending on moisture). This is intentional — it represents salt flats, dry lake beds, and desert basins. The alternative (all low elevation = water) would flood every desert valley.
 

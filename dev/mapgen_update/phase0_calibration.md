@@ -22,7 +22,6 @@ After this phase, all continuous fields (elevation, moisture, temperature, slope
 - Derive target distribution budgets (% water, % mountain, % forest, etc.)
 - Set thresholds as percentiles — stable across distribution changes; only LUTs need regeneration after Phases B/F
 - Calibrate the `SLOPE_NORMALIZATION` constant from measured elevation deltas
-- Verify frequency-to-wavelength relationships (`continent` at 0.0008 on radius-50)
 - Calibrate epicenter grid cell size for target supernatural biome coverage (3–10%)
 - Snapshot test the target distributions so regressions are caught by `check_analysis_imports.py`
 
@@ -43,23 +42,41 @@ None. This phase works against the *projected* pipeline — it measures noise fi
 
 ## 4. Detailed Changes
 
-### 4.1 Frequency Verification
+### 4.1 Frequency Verification — COMPLETE
 
 All frequency values in the design docs are **target values pending verification.** `hexFbm2D(q, r, seed, opts)` converts hex coords to world-space via `hexToWorld(q, r)`, which scales `y` by 0.866. The actual world-space distance between adjacent hexes is ~1.0 unit in x and ~1.73 in y (a flattened hex). At frequency 0.0008, the wavelength is 1/0.0008 = 1250 world-space units. A radius-50 map spans ~100 world-space units — that's 0.08 cycles, not "2-4 landmasses."
 
-**First calibration task:** Run `hexFbm2D` across a radius-50 map for each noise field and count zero-crossings of `(value - 0.5)`. Verify the actual effective frequencies against the target descriptions:
+**Initial approach:** Run `hexFbm2D` across a radius-50 map for each noise field and count zero-crossings of `(value - 0.5)`. Verify the actual effective frequencies against target descriptions.
 
-| Field | Target effective scale (radius-50) | Config frequency | Verdict after hexToWorld? |
-|-------|-----------------------------------|------------------|---------------------------|
-| `CONTINENT` | 2-4 landmasses | 0.0008 | TBD |
-| `ELEVATION_DETAIL` | ~10-hex local relief | 0.020 | TBD |
-| `RIDGE` | ~25-hex mountain chains | 0.008 | TBD |
-| `MOISTURE` | broad wet/dry bands | 0.006 | TBD |
-| `TEMP_VARIATION` | local temp noise | 0.08 | TBD |
-| `REGION` | 4-6 biome regions | 0.0015 | TBD |
-| — | — | — | — |
+**Calibration runs performed:**
+1. Single seed `glut-609`, r=50, original frequencies
+2. Single seed `glut-17`, r=50, original frequencies (replication)
+3. Single seed `glut-17`, r=50, frequencies divided by 6–14× to match zero-crossing targets
+4. 100 seeds × r=100, "corrected" frequencies (pooled histograms + quantile LUTs)
 
-If the observed effective frequencies differ from the targets, either correct the config values or document the `hexToWorld` rescaling factor. **All phase docs quote config frequencies that are TBD until this verification is complete.**
+**Finding: Zero-crossing counting is unreliable as a calibration method.**
+
+The zero-crossing counts are dominated by **simplex kernel gradient jitter** — the noise within a single simplex cell oscillates around its local mean — not by FBM structural cycles. Evidence:
+
+- **MOISTURE at f=0.0008** (divided 7.5× from 0.006) produced only **1.5 half-cycles** — the field collapsed to quasi-constant. The 4 octaves don't add diversity when the base frequency is too low to complete even one cycle across the map.
+- **TEMP_VARIATION at f=0.005** (divided 16× from 0.08, single octave) also collapsed to **1.5 half-cycles** — same problem.
+- **Slope dropped to zero** (p99=0.000 across 100 seeds × r=100). The ultra-low frequencies produce fields so smooth that adjacent hexes have identical elevation values.
+
+**Correct action:** The original frequencies from the plan docs produce visible macro-structure despite misleading crossing counts. The continent mask was removed — elevation is now additive (`detail + ridges`), eliminating the distribution compression caused by the multiplicative `continent × detail` formula. Quantile normalization (CDF LUTs) handles any remaining distribution compression.
+
+**The one confirmed good change:** REGION at f=0.003 with 3 octaves (was 0.0015/2oct) produces ~9 half-cycles across 100 seeds × r=100, matching the 8-12 target for 4-6 biome regions.
+
+**Final frequency table:**
+
+| Field | Frequency | Octaves | Status |
+|-------|-----------|---------|--------|
+| `ELEVATION_DETAIL` | 0.020 | 4 | Original — separated 2.5× from RIDGE, target ~10-hex scale |
+| `RIDGE` | 0.008 | 3 | Original — separated 2.5× from DETAIL, target ~25-hex scale |
+| `MOISTURE` | 0.006 | 4 | Original — produces broad wet/dry bands |
+| `TEMP_VARIATION` | 0.08 | 1 | Original — local variation; Phase G may reduce if salt-and-pepper visible |
+| `REGION` | 0.003 | 3 | **Confirmed** — ~9 half-cycles, matches 8-12 target |
+
+**Lesson for Phase G tuning:** Tune thresholds against the full quantile-normalized pipeline at the target map sizes. Frequency tuning should be visual ("do the landmasses look right?") rather than algorithmic — zero-crossing counting does not measure what we care about.
 
 ### 4.2 Analysis Tool: Histogram Collection
 
@@ -403,5 +420,4 @@ This gives a visual debug tool for seeing where thresholds sit relative to actua
 
 - **The Phase A elevation composite isn't written yet.** The calibration tool calls `sampleBaseFields` with the *target* composite formula, not the current code. This means calibration runs against a function that may not yet exist in `terrainGenerator.js`. Acceptable — the function can be implemented as a standalone in the analysis tool during this phase, then moved into the game code in Phase A.
 - **Small maps (radius 7) have low sample counts.** Histograms from 169-tile maps are noisy. Pool across multiple seeds (10+) to get stable statistics.
-- **The `continent` frequency claim needs verification.** If `hexToWorld` rescaling makes the effective frequency higher than the raw config value, document the actual relationship rather than correcting the config prematurely.
 - **Snapshot tests are coarse.** The threshold ranges [6%, 20%] are intentionally wide — they're regression catchers, not precision checks. Tightening happens in Phase G.
