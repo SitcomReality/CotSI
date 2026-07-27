@@ -38,6 +38,8 @@ The bones are solid — seeded FBM, chunk-seamless global coordinates, multi-pas
 
 8. **Supernatural biomes are placed by event, not climate.** Biomes like Brass Grave and Unfinished Lands represent divine-war events — crash sites, reality tears, god-death zones — not climate zones. They are placed by a separate epicenter-noise pass that ignores elevation, moisture, and temperature. Natural biomes use climate-driven `selectBiome()`; supernatural biomes use epicenter placement and override whatever the climate would have produced. Each biome archetype declares `origin: 'natural'` or `origin: 'supernatural'`.
 
+9. **Passable-hex contiguity is guaranteed.** All passable hexes form a single connected component — every champion can reach every other via passable terrain. Faction spawn points are surrounded by `SPAWN_CLEARANCE_RING` hexes of clear passable terrain (no features, no debris). Post-processing passes enforce both after classification: spawn clearance forces plains around spawn targets, and connectivity enforcement bridges any isolated passable pockets via minimum-cost terrain demotion through natural saddles (mountain passes) and fords (water → marsh).
+
 ---
 
 ## 3. Target Pipeline
@@ -131,6 +133,27 @@ For each hex (global q, r):
   │  features    ←  spawn(elevation, moisture, terrain, biomeDef)         │
   │  debris      ←  spawn(elevation, moisture, terrain, slope)           │
   └─────────────────────────────────────────────────┘
+                         │
+  ┌─────────────────────────────────────────────────┐
+  │  PASS 9: Spawn Clearance (global)               │
+  │                                                 │
+  │  Forces terrain to passable + clears features   │
+  │  and debris within SPAWN_CLEARANCE_RING of      │
+  │  each faction's spawn target. Runs on the       │
+  │  assembled flat tile set, after all chunks      │
+  │  are generated and merged.                      │
+  └─────────────────────────────────────────────────┘
+                         │
+  ┌─────────────────────────────────────────────────┐
+  │  PASS 10: Connectivity Enforcement (global)      │
+  │                                                 │
+  │  Flood-fill from center to find main passable    │
+  │  component. For any isolated pockets, bridge     │
+  │  via minimum-cost terrain demotion through       │
+  │  mountain saddles and water marshes.             │
+  │  Guarantees: all passable hexes form a single    │
+  │  connected component.                            │
+  └─────────────────────────────────────────────────┘
 ```
 
 **Key changes from the original `design.md` pipeline:**
@@ -140,7 +163,7 @@ For each hex (global q, r):
 - **Pass 5 (rivers) moved before Pass 6 (terrain classification).** Rivers now boost moisture *before* final terrain classification, so fertile river valleys produce real terrain changes (more forest, less desert along river paths).
 - **regionBias is two independent fields** (`regionBiasM` and `regionBiasT`). The original shifted moisture and temperature by the same delta, making "hot+dry" or "cold+wet" regional biases impossible.
 - **Supernatural biome overlay (Pass 4b):** After `selectBiome` assigns natural biomes from climate, a jittered-grid epicenter pass places supernatural biomes (Brass Grave, Unfinished Lands, etc.) that override the climate-derived assignment. Epicenter seeds are placed deterministically in a coarse grid with per-cell jitter; regions grow via noise-modulated radial falloff. This is a pure function of `(seed, q, r)` — chunk-local, no global BFS required. Field modifiers and terrain maps are applied within epicenter regions so supernatural biomes alter the local environment, not just the palette. Each biome archetype declares `origin: 'natural'` or `origin: 'supernatural'`. Supernatural biomes have no `climateRange` — they are placed by event locations, not by climate matching.
-- **World shape function replaces continent mask:** Instead of a noise-derived continent mask, macro topography is shaped by an explicit `worldShape(distanceFromCenter, radius) → [0, 1]` function. This eliminates the compressed elevation distribution, zero-slope, and calibration complexity caused by the multiplicative `continent × detail` formula. The default shape is `1.0 - dist/radius` (center peak, ocean ring at border), configurable per-archetype. The map edge is handled naturally — elevation drops to zero at the border → water ring. No champions permanently separated by a noise roll.
+- **World shape function replaces continent mask:** Instead of a noise-derived continent mask, macro topography is shaped by an explicit `worldShape(distanceFromCenter, radius) → [0, 1]` function. This eliminates the compressed elevation distribution, zero-slope, and calibration complexity caused by the multiplicative `continent × detail` formula. The default shape is `1.0 - dist/radius` (center peak, ocean ring at border), configurable per-archetype. The map edge is handled naturally — elevation drops to zero at the border → water ring. Combined with Pass 10 connectivity enforcement, this guarantees no champions are permanently separated.
 
 ---
 
@@ -842,17 +865,19 @@ Phase A includes both climate-driven biome classification and the full jittered-
 
 ## 14. File Summary
 
-| File | Phase 0 | A | B | C | D | E | F | G |
-|------|---------|---|---|---|---|---|---|---|
-| `src/engine/rules/noise.js` | — | — | — | — | — | — | **add** | — |
-| `src/params/game/worldParams.js` | **rewrite** | **rewrite** | edit | edit | edit | — | edit | edit |
-| `src/game/rules/terrainGenerator.js` | — | **rewrite** | **rewrite** | edit | edit | edit | edit | edit |
-| `src/game/rules/terrainTypes.js` | — | edit | edit | — | edit | — | — | edit |
-| `src/game/rules/archetypeData/biomes.js` | — | edit | edit | — | — | — | — | edit |
-| `src/game/state/gameFactory.js` | — | edit | — | — | — | — | — | — |
-| `dev/analysis/generation/generate.js` | edit | edit | edit | — | — | — | — | — |
+| File | Phase 0 | A | B | C | D | E | F | G | Post |
+|------|---------|---|---|---|---|---|---|---|------|
+| `src/engine/rules/noise.js` | — | — | — | — | — | — | **add** | — | — |
+| `src/params/game/worldParams.js` | **rewrite** | **rewrite** | edit | edit | edit | — | edit | edit | — |
+| `src/params/game/spawnParams.js` | — | — | — | — | — | — | — | — | edit |
+| `src/game/rules/terrainGenerator.js` | — | **rewrite** | **rewrite** | edit | edit | edit | edit | edit | edit |
+| `src/game/rules/terrainTypes.js` | — | edit | edit | — | edit | — | — | edit | — |
+| `src/game/rules/archetypeData/biomes.js` | — | edit | edit | — | — | — | — | edit | — |
+| `src/game/state/gameFactory.js` | — | edit | — | — | — | — | — | — | — |
+| `dev/analysis/generation/generate.js` | edit | edit | edit | — | — | — | — | — | — |
 
 **Key:** **rewrite** = major refactor. edit = targeted changes. add = new function. — = untouched.
+**Post** column covers Spawn Clearance (Pass 9) and Connectivity Enforcement (Pass 10) — global post-processing passes that run after all chunks are assembled, independent of any single phase.
 
 ---
 

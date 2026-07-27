@@ -10,7 +10,7 @@
  * biome assignment via FBM noise in terrainGenerator.js.
  */
 import { makeRng, stringSeed } from '../../engine/rules/seededRng.js';
-import { generateTiles } from '../rules/terrainGenerator.js';
+import { generateTiles, ensureSpawnClearance } from '../rules/terrainGenerator.js';
 import { getArchetype } from '../rules/archetypes.js';
 import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { shuffle } from '../../engine/rules/shuffle.js';
@@ -23,6 +23,7 @@ import { rebuildSpatialIndex } from './spatialIndex.js';
 import { createTileProxy } from './tileAccess.js';
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
+import { spawnTarget } from './spawnPosition.js';
 
 export function createGame({
   seed = 'glut-17',
@@ -44,6 +45,19 @@ export function createGame({
     isMultiBiome ? null : singleBiomeDef,
     mapSettings,
   );
+
+  // Post-classification: clear passable terrain around faction spawn targets.
+  // Uses an independent RNG stream so the game-state RNG is unaffected.
+  if (isMultiBiome) {
+    const clearanceRng = makeRng(seed + ':clearance');
+    const clearanceRand = () => clearanceRng();
+    const championCount = champions.length;
+    const spawnTargets = [];
+    for (let i = 0; i < championCount; i++) {
+      spawnTargets.push(spawnTarget(i, championCount, clearanceRand, radius));
+    }
+    ensureSpawnClearance(flatTiles, radius, spawnTargets);
+  }
 
   const rng = makeRng(seed);
   const rand = () => rng();

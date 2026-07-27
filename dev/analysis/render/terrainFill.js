@@ -13,19 +13,23 @@ import { BIOME_COLORS } from './theme.js';
  * Determine the fill color for a single tile.
  *
  * @param {object} tile        — tile with elevation, moisture, biomeId, terrain
- * @param {string} [viewMode]  — 'terrain' | 'biome' | 'elevation' | 'moisture'
+ * @param {string} [viewMode]  — 'terrain' | 'biome' | 'elevation' | 'moisture' | 'passability' | 'blank'
  * @param {object} [palettes]  — biome→palette map, keyed by biomeId
  * @returns {string} CSS color string
  */
 export function resolveFillColor(tile, viewMode, palettes) {
   if (viewMode === 'blank') return '#000';
 
-  if (viewMode === 'elevation' && tile.elevation !== undefined) {
-    return elevationColor(tile.elevation);
+  if (viewMode === 'elevation' && tile.elevationField !== undefined) {
+    return elevationColor(tile.elevationField);
   }
 
   if (viewMode === 'moisture' && tile.moisture !== undefined) {
     return moistureColor(tile.moisture);
+  }
+
+  if (viewMode === 'passability') {
+    return TERRAIN[tile.terrain]?.passable ? '#3a7a3a' : '#8b3a3a';
   }
 
   if (viewMode === 'biome') {

@@ -28,7 +28,7 @@ export const TERRAIN_ORDER = ['plains', 'forest', 'denseForest', 'desert', 'mars
 /**
  * Update the legend DOM element for the given view mode.
  *
- * @param {'terrain'|'biome'|'elevation'|'moisture'|'blank'} mode
+ * @param {'terrain'|'biome'|'elevation'|'moisture'|'passability'|'blank'} mode
  */
 export function updateLegend(mode) {
   if (!els.legend) return;
@@ -49,6 +49,9 @@ export function updateLegend(mode) {
 
   } else if (mode === 'biome') {
     els.legend.innerHTML = buildBiomeRegionLegend();
+
+  } else if (mode === 'passability') {
+    els.legend.innerHTML = buildPassabilityLegend();
 
   } else if (mode === 'blank') {
     els.legend.innerHTML = '<div class="legend-gradient" style="color:#666;font-style:italic;">Terrain hidden — only entities and features are visible.</div>';
@@ -134,5 +137,29 @@ function buildBiomeRegionLegend() {
   return `<div class="legend-item">
     <span class="legend-swatch" style="background:${color}"></span>
     <span>${biomeName}</span>
+  </div>`;
+}
+
+/**
+ * Build HTML for a passability legend.
+ * Shows which terrain types are passable vs. impassable.
+ *
+ * @returns {string}
+ */
+function buildPassabilityLegend() {
+  const passableTerrain = TERRAIN_ORDER.filter(t => TERRAIN[t]?.passable)
+    .map(t => TERRAIN[t]?.label || t);
+  const impassableTerrain = TERRAIN_ORDER.filter(t => !TERRAIN[t]?.passable)
+    .map(t => TERRAIN[t]?.label || t);
+
+  return `<div class="legend-swatches">
+    <div class="legend-item">
+      <span class="legend-swatch" style="background:#3a7a3a"></span>
+      <span><strong>Passable</strong> — ${passableTerrain.join(', ')}</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-swatch" style="background:#8b3a3a"></span>
+      <span><strong>Impassable</strong> — ${impassableTerrain.join(', ')}</span>
+    </div>
   </div>`;
 }

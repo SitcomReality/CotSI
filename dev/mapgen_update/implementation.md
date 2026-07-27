@@ -155,6 +155,42 @@
 
 ---
 
+## Post-Classification Passes: Spawn Clearance + Connectivity Enforcement
+
+**Goal:** Guarantee all passable hexes form a single connected component and all spawn points have clear passable surroundings.
+
+### Spawn Clearance (Pass 9)
+
+- [ ] Add `SPAWN_CLEARANCE_RING` to `src/params/game/spawnParams.js` (default 2)
+- [ ] Implement `ensureSpawnClearance()` in `src/game/rules/terrainGenerator.js`
+  - [ ] Recreate seeded RNG from seed, iterate champion count, compute `spawnTarget()` positions
+  - [ ] For each spawn target: clear all hexes within `SPAWN_CLEARANCE_RING`
+  - [ ] `demoteToPassable()`: water→marsh, ice→plains, mountain→hill, peak→hill, floatingIsland→hill
+  - [ ] Clear `feature` and `debris` to null on all cleared hexes
+
+### Connectivity Enforcement (Pass 10)
+
+- [ ] Implement `ensurePassableConnectivity()` in `src/game/rules/terrainGenerator.js`
+  - [ ] Collect all passable hex keys, build adjacency graph
+  - [ ] Flood-fill from center (or first passable hex) to find main component
+  - [ ] For each isolated component: Dijkstra bridge to main component with terrain-cost weights
+  - [ ] Terrain costs: water=1, ice=1, mountain=2, peak=4, floatingIsland=100
+  - [ ] Convert bridged hexes via `demoteToPassable()` and clear features/debris
+
+### Integration
+
+- [ ] Call both `ensureSpawnClearance()` and `ensurePassableConnectivity()` from `generateTiles()` after chunk assembly
+- [ ] Both are no-ops in single-biome mode (`biomeDef !== null`)
+- [ ] Run `python3 dev/check_imports.py` — must pass
+
+### Tuning (Phase G)
+
+- [ ] Adjust `SPAWN_CLEARANCE_RING` if spawn areas feel too large or too small
+- [ ] Adjust terrain-cost weights if bridging patterns look inorganic
+- [ ] Water future-proofing: when `TERRAIN[water].passable` becomes `true` (variable movement costs), connectivity auto-resolves through water — no bridging needed
+
+---
+
 ## Notes
 
 - Each phase checkmark = code written, import checks pass, snapshot tests pass, ready for user testing.

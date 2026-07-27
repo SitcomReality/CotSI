@@ -22,6 +22,8 @@ Tune noise parameters, terrain thresholds, and feature densities based on playte
 - River source count and path length tuning
 - Feature spawn rate tuning after density modulation changed effective probabilities
 - Rain shadow algorithm (properly designed or permanently deferred)
+- Tune connectivity enforcement: `SPAWN_CLEARANCE_RING` size, bridging terrain-cost weights
+- Verify connectivity passes produce natural-looking bridges (no ugly corridors through lakes/mountains)
 
 **Out of scope:**
 - Player terraforming / world modification
@@ -76,6 +78,19 @@ After Phase E's density modulation changed effective spawn rates:
 - Run feature spawn statistics across 10 seeds.
 - Adjust each biome's `features[].threshold` values so tree/bush/knot densities match the intended feel.
 - Verify fruit trees don't appear in deserts (climate check) or above tree line.
+
+### 4.5 Connectivity Tuning
+
+The post-classification passes (Pass 9: Spawn Clearance, Pass 10: Connectivity Enforcement) are designed to be minimal-intervention safety nets. The world-shape function already ensures a single landmass — isolated passable pockets should be rare. Tuning goals:
+
+- **`SPAWN_CLEARANCE_RING`** (default 2): If spawn zones feel too large or create unnatural clearings, reduce to 1. If champions still spawn next to mountains/water, increase to 3.
+- **Bridging terrain-cost weights:** The Dijkstra bridge algorithm uses these costs to find the most natural connection between isolated passable components. Tune if bridging patterns produce unnatural corridors:
+  - `water→marsh`: cost 1 (simple ford — should be the default bridge type)
+  - `ice→plains`: cost 1
+  - `mountain→hill`: cost 2 (mountain pass)
+  - `peak→hill`: cost 4 (major gap in a ridgeline)
+  - `floatingIsland`: cost 100 (avoid unless absolutely necessary)
+- **Water future-proofing:** When water becomes semi-passable (2×/3× movement cost), `TERRAIN[water].passable` should be set to `true`. The connectivity algorithm then automatically treats water as passable and no bridging through water occurs — the graph becomes inherently connected through water bodies. The weights become irrelevant for water bridging at that point.
 
 ---
 

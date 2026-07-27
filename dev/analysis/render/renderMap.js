@@ -24,7 +24,7 @@ import { CULL_MARGIN } from './theme.js';
  * @param {number} canvasWidth
  * @param {number} canvasHeight
  * @param {number} dpr             — device pixel ratio
- * @param {string} [viewMode]      — 'terrain' | 'biome' | 'elevation' | 'moisture'
+ * @param {string} [viewMode]      — 'terrain' | 'biome' | 'elevation' | 'moisture' | 'passability' | 'blank'
  */
 export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, canvasHeight, dpr, viewMode) {
   const size = HEX_SIZE * camera.zoom;

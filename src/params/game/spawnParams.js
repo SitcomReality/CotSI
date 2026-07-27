@@ -37,3 +37,8 @@ export const NUM_TRADERS = 3;
 export const TRADER_MOVES_PER_DAY = 2;
 /** Maximum ring-search depth for nearest-open-key fallback. */
 export const MAX_SPAWN_SEARCH_RINGS = 100;
+
+/** Hex-distance from each faction's spawn target to clear terrain + remove features/debris.
+ *  Ring 2 clears the target hex + all neighbors + neighbors-of-neighbors (~19 hexes per faction).
+ *  This guarantees the champion's start hex and its 5 non-base neighbors are clear passable terrain. */
+export const SPAWN_CLEARANCE_RING = 2;
