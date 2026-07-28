@@ -34,8 +34,11 @@ export function spawnFeature(roll, terrain, features) {
         return { kind: 'bush' };
       case 'vine':
         return { kind: 'vine' };
-      default:
-        return { kind: rule.kind };
+      default: {
+        const feature = { kind: rule.kind };
+        if (rule.state) Object.assign(feature, rule.state);
+        return feature;
+      }
     }
   }
 

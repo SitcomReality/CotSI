@@ -69,6 +69,32 @@ export const FEATURES = {
   knot:      { radius: 1.8, fill: '#c8a832' },
   bush:      { radius: 1.2, fill: '#5a8a3a' },
   vine:      { radius: 1.0, fill: '#4a7a2a', ringStroke: '#6aaa4a', ringWidth: 0.5 },
+
+  // Tier 1 features
+  palimpsestSlab:      { radius: 2.0, fill: '#c8c0a8' },
+  volvelle:            { radius: 2.0, fill: '#d4b830' },
+  foolsFire:           { radius: 1.5, fill: '#40d0e0' },
+  placeholderCypress:  { radius: 1.8, fill: '#3a5a2a' },
+  vegetableLamb:       { radius: 1.8, fill: '#c0d8a0' },
+  scoriaRose:          { radius: 1.5, fill: '#e87030' },
+  waxbloom:            { radius: 1.5, fill: '#a0d8e8' },
+  errataSlip:          { radius: 2.0, fill: '#f0e8d0' },
+  redLetterBramble:    { radius: 1.8, fill: '#1a1010' },
+
+  // Tier 2 features
+  gildedInitial:       { radius: 2.5, fill: '#d8b830' },
+  peridexionTree:      { radius: 2.5, fill: '#1a5a0a' },
+  listenerLichen:      { radius: 1.5, fill: '#80c0a0' },
+  saintsRib:           { radius: 3.0, fill: '#e8e0d0' },
+  drownedCopyist:      { radius: 2.0, fill: '#405868' },
+  censerSaint:         { radius: 2.0, fill: '#b89840' },
+  screamroot:          { radius: 1.5, fill: '#682040' },
+  nullLily:            { radius: 1.5, fill: '#e0e0e8' },
+  halfDrawnObelisk:    { radius: 2.5, fill: '#a0a098' },
+  witnessStone:        { radius: 2.0, fill: '#b0a890' },
+  cinderbloom:         { radius: 1.5, fill: '#e88040' },
+  brassLungVent:       { radius: 1.8, fill: '#a08050' },
+  ouroborosLoop:       { radius: 2.0, fill: '#c8a020' },
 };
 
 // ── Debris markers ──────────────────────────────────────────────────────────────

@@ -3,11 +3,13 @@ import { buildMountainMeshes, buildChunkMountainMeshes } from './mountainMeshes.
 import { buildKnotMeshes, buildChunkKnotMeshes } from './knotMeshes.js';
 import { buildBaseMeshes, buildChunkBaseMeshes } from './baseMeshes.js';
 import { buildDebrisMeshes, buildChunkDebrisMeshes } from './debrisMeshes.js';
+import { buildSimpleFeatureMeshes, buildChunkSimpleFeatureMeshes } from './simpleFeatureMeshes.js';
 
 export {
   buildTreeMeshes, buildMountainMeshes, buildKnotMeshes, buildBaseMeshes, buildDebrisMeshes,
+  buildSimpleFeatureMeshes,
   buildChunkTreeMeshes, buildChunkMountainMeshes, buildChunkKnotMeshes, buildChunkBaseMeshes,
-  buildChunkDebrisMeshes,
+  buildChunkDebrisMeshes, buildChunkSimpleFeatureMeshes,
 };
 
 /**
@@ -22,6 +24,7 @@ export function buildFeatureMeshes(state, visible) {
   results.push(...buildKnotMeshes(state, visible));
   results.push(...buildBaseMeshes(state, visible));
   results.push(...buildDebrisMeshes(state, visible));
+  results.push(...buildSimpleFeatureMeshes(state, visible));
 
   return results;
 }
@@ -41,6 +44,7 @@ export function buildChunkFeatureMeshes(chunkTiles, _state, visible) {
   results.push(...buildChunkKnotMeshes(chunkTiles, visible));
   results.push(...buildChunkBaseMeshes(chunkTiles, visible));
   results.push(...buildChunkDebrisMeshes(chunkTiles, visible));
+  results.push(...buildChunkSimpleFeatureMeshes(chunkTiles, visible));
 
   return results;
 }

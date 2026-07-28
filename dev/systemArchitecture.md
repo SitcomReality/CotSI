@@ -166,12 +166,15 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `scene/panAnimation.js` | Camera pan animation (smooth transitions) |
 | `scene/rendererSetup.js` | WebGL renderer setup and configuration |
 | `scene/sceneSetup.js` | Scene initialisation + registers render callback on clock |
-| `features/baseMeshes.js` | Base-terrain hex meshes (plains, forest, etc.) |
-| `features/debrisMeshes.js` | Debris/decorative meshes (shrubs, rocks) |
-| `features/featureGeometries.js` | Feature-geometry registry |
-| `features/featureMeshes.js` | Feature mesh creation and placement |
+| `features/baseMeshes.js` | Faction base meshes (tower + faction decoration) |
+| `features/debrisMeshes.js` | Environmental debris meshes (tufts, rocks, flowers) |
+| `features/featureGeometries.js` | Feature-geometry barrel |
+| `features/featureMeshes.js` | Feature mesh barrel: dedicated builders + simpleFeatureMeshes |
+| `features/featureVisuals.js` | Visual registry: kind → geometry, material, scale |
 | `features/knotMeshes.js` | Knot (resource node) meshes |
+| `features/meshBuilder.js` | Shared InstancedMesh iteration + build utilities |
 | `features/mountainMeshes.js` | Mountain cluster meshes |
+| `features/simpleFeatureMeshes.js` | Generic builder for features registered in FEATURE_VISUALS |
 | `features/treeMeshes.js` | Tree meshes (variants, LOD) |
 | `features/geometries/baseGeometries.js` | Base-terrain geometry constants and factories |
 | `features/geometries/debrisGeometries.js` | Debris geometry shapes |
