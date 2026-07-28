@@ -13,6 +13,11 @@ export const SIDE_DARKEN_FACTOR = 0.5;
 /** Lake color multipliers (applied to water tile base color). */
 export const LAKE_COLOR_MODULATION = { r: 0.7, g: 0.85, b: 0.9 };
 
+/** River overlay color (RGB 0-1) blended into top face of river-path tiles. */
+export const RIVER_OVERLAY_COLOR = [0.118, 0.471, 0.863];
+/** Blend weight for river overlay on top face (0 = no river, 1 = pure river color). */
+export const RIVER_OVERLAY_WEIGHT = 0.45;
+
 /**
  * Terrain elevation values (Y offset for each terrain type).
  * Applied during terrain mesh generation.

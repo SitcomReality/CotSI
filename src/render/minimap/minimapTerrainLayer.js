@@ -146,6 +146,15 @@ export function renderTerrainLayer(G, humanView) {
     ctx.beginPath();
     ctx.ellipse(px, py, Math.max(hexW, MINIMAP_MIN_DOT_WIDTH_PX), Math.max(hexH, MINIMAP_MIN_DOT_HEIGHT_PX), 0, 0, Math.PI * 2);
     ctx.fill();
+
+    // River overlay: draw a smaller blue dot on river-path tiles
+    if (tile.isRiver) {
+      ctx.globalAlpha = isVisible ? 0.85 : 0.5;
+      ctx.fillStyle = 'rgba(30, 120, 220, 0.7)';
+      ctx.beginPath();
+      ctx.ellipse(px, py, Math.max(hexW * 0.5, 1), Math.max(hexH * 0.5, 1), 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   ctx.globalAlpha = 1.0;

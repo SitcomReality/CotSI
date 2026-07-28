@@ -1,7 +1,7 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { terrainMaterial } from '../scene/materials.js';
 import { HEX_RADIUS, hexCenter, hexCornersXZ } from '../hexWorldSpace.js';
-import { HEX_THICKNESS, SIDE_DARKEN_FACTOR, LAKE_COLOR_MODULATION, TERRAIN_ELEVATION } from '../../../params/render/terrainParams.js';
+import { HEX_THICKNESS, SIDE_DARKEN_FACTOR, LAKE_COLOR_MODULATION, TERRAIN_ELEVATION, RIVER_OVERLAY_COLOR, RIVER_OVERLAY_WEIGHT } from '../../../params/render/terrainParams.js';
 
 // Elevation per terrain type (world units)
 export const ELEVATION = TERRAIN_ELEVATION;
@@ -82,6 +82,15 @@ export function buildTerrainMesh(state, visible, explored) {
       : baseColor;
     const sideColor = resolvedColor.map(c => c * SIDE_DARKEN);
 
+    // River overlay on top face only — blend river blue into the terrain color
+    const topColor = tile.isRiver
+      ? [
+          resolvedColor[0] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[0] * RIVER_OVERLAY_WEIGHT,
+          resolvedColor[1] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[1] * RIVER_OVERLAY_WEIGHT,
+          resolvedColor[2] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[2] * RIVER_OVERLAY_WEIGHT,
+        ]
+      : resolvedColor;
+
     const { x: cx, z: cz } = hexCenter(tile.q, tile.r);
     const corners = hexCornersXZ(cx, cz);
     const topY = elev + HEX_THICKNESS;
@@ -94,9 +103,9 @@ export function buildTerrainMesh(state, visible, explored) {
       const c1 = corners[(i + 1) % 6];
 
       // Triangle: center → corner[i+1] → corner[i] (CCW from above)
-      addVertex(positions, colors, vi, centerX, centerY, centerZ, baseColor);
-      addVertex(positions, colors, vi + 3, c1.x, topY, c1.z, baseColor);
-      addVertex(positions, colors, vi + 6, c0.x, topY, c0.z, baseColor);
+      addVertex(positions, colors, vi, centerX, centerY, centerZ, topColor);
+      addVertex(positions, colors, vi + 3, c1.x, topY, c1.z, topColor);
+      addVertex(positions, colors, vi + 6, c0.x, topY, c0.z, topColor);
       vi += 9; // 3 vertices × 3 floats each
     }
 
@@ -167,6 +176,15 @@ export function buildChunkTerrainMesh(chunkTiles, state, visible, explored) {
       : baseColor;
     const sideColor = resolvedColor.map(c => c * SIDE_DARKEN);
 
+    // River overlay on top face only
+    const topColor = tile.isRiver
+      ? [
+          resolvedColor[0] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[0] * RIVER_OVERLAY_WEIGHT,
+          resolvedColor[1] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[1] * RIVER_OVERLAY_WEIGHT,
+          resolvedColor[2] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[2] * RIVER_OVERLAY_WEIGHT,
+        ]
+      : resolvedColor;
+
     const { x: cx, z: cz } = hexCenter(tile.q, tile.r);
     const corners = hexCornersXZ(cx, cz);
     const topY = elev + HEX_THICKNESS;
@@ -177,9 +195,9 @@ export function buildChunkTerrainMesh(chunkTiles, state, visible, explored) {
     for (let i = 0; i < 6; i++) {
       const c0 = corners[i];
       const c1 = corners[(i + 1) % 6];
-      addVertex(positions, colors, vi, centerX, centerY, centerZ, baseColor);
-      addVertex(positions, colors, vi + 3, c1.x, topY, c1.z, baseColor);
-      addVertex(positions, colors, vi + 6, c0.x, topY, c0.z, baseColor);
+      addVertex(positions, colors, vi, centerX, centerY, centerZ, topColor);
+      addVertex(positions, colors, vi + 3, c1.x, topY, c1.z, topColor);
+      addVertex(positions, colors, vi + 6, c0.x, topY, c0.z, topColor);
       vi += 9;
     }
 

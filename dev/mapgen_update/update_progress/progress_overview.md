@@ -20,7 +20,7 @@ Details in `phase0_progress.md`.
 10. Wire tests into analysis page — **Done.**
 11. Distributions tab in analysis page — **Done.**
 12. Output calibration_v1.json — **Done.**
-13. Re-run Phase 0 calibration after Phase B/C composite changes — **Deferred.**
+13. Re-run Phase 0 calibration after Phase B/C composite changes — **Done. (2026-07-28 batch analysis — thresholds applied.)**
 
 **Notes:** Continent mask replaced by explicit `worldShape(dist, radius)`. Quantile LUTs from old multiplicative composite invalidated — re-run after Phase B.
 
@@ -41,7 +41,7 @@ Details in `phaseA_progress.md`.
 
 **Complete.** Phase A delivers the climate-driven pipeline with jittered-grid epicenters. Elevation is still a single FBM field — Phase B builds the multi-scale additive composite.
 
-**Still pending (Phase B dependency):** Threshold values in `DEFAULT_TERRAIN_RULES` are still placeholders matching old constants. Recalibrate when the full `worldShape × (detail + ridges)` composite is in place.
+**Threshold calibration:** Percentile-derived thresholds from 500-seed × 3-radius batch analysis applied to `DEFAULT_TERRAIN_RULES`. Slope discrimination thresholds (plateauSlopeMin, hillSlopeMin) and waterMinMoisture also tuned from the same batch data. See `dev/mapgen_update/analysis_data/batchanalysis_2026-07-28_23-28.md`.
 
 ## Phase B
 
