@@ -107,8 +107,8 @@ export const EPICENTER_GRID = {
 // Slope calibration
 // ---------------------------------------------------------------------------
 
-/** 95th-percentile of per-tile mean neighbor elevation delta (calibrated in Phase 0). */
-export const SLOPE_NORMALIZATION = 0.3;
+/** 95th-percentile of per-tile mean neighbor elevation delta (derived from 500-seed × 3-radius batch analysis, 2026-07-28). */
+export const SLOPE_NORMALIZATION = 0.0138;
 
 /** Maximum lookup radius for border-ring sampling in per-chunk generation.
  *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
@@ -122,28 +122,28 @@ export const MAX_LOOKUP_RADIUS = 3;
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_TERRAIN_RULES = {
-  // Elevation thresholds — calibrated from FBM distribution (calibration_v1.json)
-  waterMaxElevation:        0.32,  // p12
-  mountainThreshold:        0.68,  // p90
-  peakThreshold:            0.74,  // p97
-  floatingIslandThreshold:  0.82,  // p99.5
-  marshMaxElevation:        0.42,  // p35
-  hillElevationMin:         0.55,  // p55 (calibrated)
+  // Elevation thresholds — derived from 500-seed × 3-radius batch analysis
+  waterMaxElevation:        0.020, // p12
+  mountainThreshold:        0.340, // p90
+  peakThreshold:            0.460, // p97
+  floatingIslandThreshold:  0.560, // p99.5
+  marshMaxElevation:        0.080, // p35
+  hillElevationMin:         0.140, // p55
 
-  // Slope thresholds — Phase B
+  // Slope thresholds — hand-tuned (discriminate within mountain/hill elevation bands)
   plateauSlopeMin:          0.08,  // below this → plateau, above → mountain
   hillSlopeMin:             0.10,
 
-  // Moisture thresholds — calibrated from moisture distribution
-  forestMinMoisture:        0.58,  // p72
-  denseForestMinMoisture:   0.64,  // p85
-  desertMaxMoisture:        0.34,  // p20
-  marshMinMoisture:         0.52,  // p58
+  // Moisture thresholds — derived from 500-seed × 3-radius batch analysis
+  forestMinMoisture:        0.600, // p72
+  denseForestMinMoisture:   0.660, // p85
+  desertMaxMoisture:        0.340, // p20
+  marshMinMoisture:         0.520, // p58
 
-  // Temperature
-  freezeTempMax:            0.40,  // p15
+  // Temperature — derived from batch analysis
+  freezeTempMax:            0.520, // p15
 
-  // Not calibrated (keep hand-tuned)
+  // Hand-tuned (not percentile-derived)
   waterMinMoisture:         0.50,
   treeLineMax:              0.85,
   snowLineMax:              0.15,

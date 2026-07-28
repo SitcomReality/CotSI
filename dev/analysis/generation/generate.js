@@ -25,12 +25,16 @@ export const DEFAULT_CHAMPIONS = [
  * Mirrors the pipeline in gameFactory.js: tiles -> champs -> mobs -> traders.
  * Tiles carry continuous fields (elevationField, moisture, temperature).
  *
- * @param {string}  seedText    - Seed string
- * @param {number}  radius      - Map radius in hexes
- * @param {object}  biomeDef    - Resolved biome archetype definition (null for multi-biome)
- * @returns {{ tiles, champions, mobs, traders, baseKeys, biomeDef, radius, seed, biomeIds }}
+ * @param {string}  seedText       - Seed string
+ * @param {number}  radius         - Map radius in hexes
+ * @param {object}  biomeDef       - Resolved biome archetype definition (null for multi-biome)
+ * @param {object}  [params]       - Optional generation parameters
+ * @param {boolean} [params.multiBiome] - If true, biomeDef is overridden to null
+ * @returns {{ tiles, champions, mobs, traders, baseKeys, biomeDef, radius, seed, biomeIds, multiBiome }}
  */
-export function generateSingleSeed(seedText, radius, biomeDef) {
+export function generateSingleSeed(seedText, radius, biomeDef, params = {}) {
+  const multiBiome = !!params.multiBiome;
+  if (multiBiome) biomeDef = null;
   const tiles = generateTiles(seedText, radius, biomeDef);
   const rng = makeRng(seedText);
   const rand = () => rng();
@@ -57,6 +61,7 @@ export function generateSingleSeed(seedText, radius, biomeDef) {
     tiles, champions, mobs, traders, baseKeys,
     biomeDef, radius, seed: seedText,
     biomeIds: [...biomeIds],
+    multiBiome,
   };
 }
 
