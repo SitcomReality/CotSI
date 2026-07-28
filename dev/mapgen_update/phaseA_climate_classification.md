@@ -347,7 +347,7 @@ Each biome gains `origin`, `climateRange` (natural biomes only), and `terrainRul
 defineArchetype('biome_default', {
   type: 'biome',
   id: 'biome_default',
-  name: 'Default Manuscript',
+  name: 'Untouched',
   origin: 'natural',
 
   // No climateRange — catch-all (last in priority, returned as fallback)
@@ -367,7 +367,7 @@ defineArchetype('biome_default', {
 defineArchetype('biome_lush', {
   type: 'biome',
   id: 'biome_lush',
-  name: 'Lush Woodland',
+  name: 'Painforest',
   origin: 'natural',
 
   climateRange: {

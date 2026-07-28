@@ -359,7 +359,7 @@ After a full architecture review of the completed Phase A, seven refinements wer
 
 Natural biomes covered only `biome_arid` (m≤0.22, t≥0.65) and `biome_lush` (m≥0.62, t≥0.25), leaving a large climate gap at `{ m: 0.22–0.62, t: > 0.60 }` — all falling to `biome_default`.
 
-**Fix:** Added `biome_savanna` ("Sunscorched Savanna") with `climateRange: { minMoisture: 0.22, maxMoisture: 0.60, minTemperature: 0.60 }`. Inserted in `BIOME_PRIORITY_ORDER` between `biome_arid` and `biome_lush`. Uses transitional terrain rules (moderate forest/desert thresholds) and warm golden palette distinct from both neighboring biomes.
+**Fix:** Added `biome_savanna` ("Scorch") with `climateRange: { minMoisture: 0.22, maxMoisture: 0.60, minTemperature: 0.60 }`. Inserted in `BIOME_PRIORITY_ORDER` between `biome_arid` and `biome_lush`. Uses transitional terrain rules (moderate forest/desert thresholds) and warm golden palette distinct from both neighboring biomes.
 
 ### A10c. Supernatural field write-back
 

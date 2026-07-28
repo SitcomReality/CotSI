@@ -643,7 +643,7 @@ function classifyTerrain(elevation, moisture, temperature, slope, biomeDef) {
 defineArchetype('biome_lush', {
   type: 'biome',
   id: 'biome_lush',
-  name: 'Lush Woodland',
+  name: 'Painforest',
   origin: 'natural',  // placed by selectBiome() from climate
 
   // Climate range for biome selection (data-driven selectBiome reads this)

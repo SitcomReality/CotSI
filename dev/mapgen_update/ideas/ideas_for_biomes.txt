@@ -6,7 +6,7 @@
 * ARCHIVE combat penalty, REVERIE combat bonus 
 * Weather can be randomly different to the global weather, including a unique weather condition (or two) that only occurs in this biome
 
-## Weeping Marsh: a cool land soaked in the tears of a mourning god
+## Mourning Marsh: a cool land soaked in the tears of a mourning god
 * The weather here always has rain
 * VERDANT combat bonus, HEARTH combat penalty
 

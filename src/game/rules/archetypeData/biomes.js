@@ -28,7 +28,7 @@ import { defineArchetype } from '../archetypes.js';
 defineArchetype('biome_default', {
   type: 'biome',
   id: 'biome_default',
-  name: 'Default Manuscript',
+  name: 'Untouched',
   origin: 'natural',
 
   // No climateRange — catch-all (last in priority, always matches)
@@ -112,7 +112,7 @@ defineArchetype('biome_brass_grave', {
 defineArchetype('biome_savanna', {
   type: 'biome',
   id: 'biome_savanna',
-  name: 'Sunscorched Savanna',
+  name: 'Scorch',
   origin: 'natural',
 
   climateRange: {
@@ -159,7 +159,7 @@ defineArchetype('biome_savanna', {
 defineArchetype('biome_lush', {
   type: 'biome',
   id: 'biome_lush',
-  name: 'Lush Woodland',
+  name: 'Painforest',
   origin: 'natural',
 
   climateRange: {
@@ -308,7 +308,7 @@ defineArchetype('biome_frigid_silence', {
 defineArchetype('biome_weeping_marsh', {
   type: 'biome',
   id: 'biome_weeping_marsh',
-  name: 'Weeping Marsh',
+  name: 'Mourning Marsh',
   origin: 'natural',
 
   climateRange: {
