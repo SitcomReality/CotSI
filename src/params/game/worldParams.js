@@ -51,16 +51,17 @@ export const KNOT_AMOUNT_VARIATION_MOD = 3;
 export const NOISE_MOISTURE = { octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006 };
 
 // ---------------------------------------------------------------------------
-// Phase A noise configuration
+// Phase B noise configuration
 // ---------------------------------------------------------------------------
 
-/**
- * Phase A elevation: single additive FBM field.
- * Frequencies confirmed by Phase 0 calibration (see dev/analysis/generation/noiseConfig.js).
- * Used by the sampleBaseFields pipeline in terrainGenerator.js.
- */
-export const NOISE_PHASE_A_ELEVATION = {
+/** Detail elevation: medium frequency (~10-hex scale). */
+export const NOISE_ELEVATION_DETAIL = {
   octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020,
+};
+
+/** Ridge noise: low frequency (~25-hex scale). Regular FBM placeholder until Phase F. */
+export const NOISE_RIDGE = {
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008,
 };
 
 /** Temperature variation: very high frequency for local microclimate jitter. */
@@ -85,8 +86,11 @@ export const SEED_FEATURES    = 0x1E4A7C9D;
 export const SEED_DEBRIS      = 0xD8F3A5B1;
 export const SEED_DEBRIS_KIND = 0x4C7E2F9A;
 
-/** Seed offset for elevation noise (Phase A single-field FBM). Same as noiseConfig.js SEED_DETAIL. */
-export const SEED_ELEVATION = 0x7B2C1E8D;
+/** Seed offset for detail elevation layer. */
+export const SEED_DETAIL = 0x7B2C1E8D;
+
+/** Seed offset for ridge elevation layer. */
+export const SEED_RIDGE = 0x3F5A9B2C;
 
 // ---------------------------------------------------------------------------
 // Epicenter grid (supernatural biome placement)
@@ -100,9 +104,21 @@ export const EPICENTER_GRID = {
 };
 
 // ---------------------------------------------------------------------------
-// Default terrain rules — consumed by the new classifyTerrain in Phase A.
+// Slope calibration
+// ---------------------------------------------------------------------------
+
+/** 95th-percentile of per-tile mean neighbor elevation delta (calibrated in Phase 0). */
+export const SLOPE_NORMALIZATION = 0.3;
+
+/** Maximum lookup radius for border-ring sampling in per-chunk generation.
+ *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
+export const MAX_LOOKUP_RADIUS = 3;
+
+// ---------------------------------------------------------------------------
+// Default terrain rules — consumed by classifyTerrain (Phase A+).
 // Elevation percentile-based thresholds populated from calibration_v1.json
 // (run "Derive Thresholds" in the analysis tool → download calibration_v1.json).
+// Slope thresholds added in Phase B.
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_TERRAIN_RULES = {
@@ -112,7 +128,11 @@ export const DEFAULT_TERRAIN_RULES = {
   peakThreshold:            0.74,  // p97
   floatingIslandThreshold:  0.82,  // p99.5
   marshMaxElevation:        0.42,  // p35
-  hillElevationMin:         0.52,  // p55 (Phase B — not wired yet)
+  hillElevationMin:         0.55,  // p55 (calibrated)
+
+  // Slope thresholds — Phase B
+  plateauSlopeMin:          0.08,  // below this → plateau, above → mountain
+  hillSlopeMin:             0.10,
 
   // Moisture thresholds — calibrated from moisture distribution
   forestMinMoisture:        0.58,  // p72

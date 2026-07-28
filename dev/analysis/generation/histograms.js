@@ -47,11 +47,23 @@ import { hexesWithinRadius, neighbors, coordKey } from '../../../src/engine/rule
 export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const NC = noiseConfig;
 
-  // ── Elevation: single additive FBM (world shape applied in Phase B) ──
+  // ── Elevation: 2-layer additive composite shaped by worldShape ──
   const detail = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
   const ridges = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
-  // Phase A: detail only (ridge weight = 0). Full composite in Phase B.
-  const elevation = detail;
+
+  // World shape: center peak, dropping to zero at the border
+  function worldShape(distFromCenter, mapRadius) {
+    return 1.0 - (distFromCenter / mapRadius);
+  }
+
+  // Distance from map center (0,0) in hex units
+  const hdQ = Math.abs(q);
+  const hdR = Math.abs(r);
+  const hdS = Math.abs(-q - r);
+  const distFromCenter = Math.max(hdQ, hdR, hdS);
+
+  const rawElev = worldShape(distFromCenter, radius) * (detail * 0.50 + ridges * 0.50);
+  const elevation = clamp01(rawElev);
 
   // ── Moisture ─────────────────────────────────────────────────────────
   const baseMoisture = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.MOISTURE);

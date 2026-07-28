@@ -52,12 +52,14 @@ defineArchetype('biome_default', {
     denseForest:   [0.176, 0.420, 0.137],  // dark rich green
     desert:        [0.839, 0.694, 0.357],  // warm golden sand
     marsh:         [0.506, 0.600, 0.404],  // murky vibrant marsh
+    hill:          [0.545, 0.659, 0.388],  // olive-green
+    plateau:       [0.604, 0.565, 0.471],  // warm grey
     mountain:      [0.529, 0.486, 0.416],  // rocky warm gray
     peak:          [0.690, 0.729, 0.784],  // pale snowy rock
     floatingIsland:[0.753, 0.847, 0.910],  // pale cyan-white
     water:         [0.373, 0.604, 0.757],  // bright cyan-blue
   },
-  terrainTags: ['plains', 'forest', 'desert', 'marsh', 'mountain', 'peak', 'floatingIsland', 'water'],
+  terrainTags: ['plains', 'forest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
   weatherAffinity: ['temperate', 'rainy'],
 
   terrainElevation: null,
@@ -96,12 +98,14 @@ defineArchetype('biome_brass_grave', {
   palette: {
     plains:   [0.710, 0.630, 0.420],  // warm brass
     desert:   [0.780, 0.650, 0.380],  // bleached brass
+    hill:     [0.620, 0.550, 0.370],  // brass-toned brown
+    plateau:  [0.550, 0.480, 0.380],  // dark oxidized brass
     mountain: [0.580, 0.450, 0.320],  // dark oxidized brass
     peak:     [0.750, 0.680, 0.550],  // pale brass highlight
     water:    [0.350, 0.450, 0.500],  // murky metallic blue
     ice:      [0.600, 0.680, 0.720],  // cold brass-teal
   },
-  terrainTags: ['plains', 'desert', 'mountain', 'peak', 'water', 'ice'],
+  terrainTags: ['plains', 'desert', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
   weatherAffinity: ['arid'],
 });
 
@@ -140,11 +144,13 @@ defineArchetype('biome_savanna', {
     denseForest: [0.320, 0.380, 0.160],  // dark thicket
     desert:      [0.840, 0.700, 0.400],  // warm sand
     marsh:       [0.560, 0.540, 0.360],  // dry reed
+    hill:        [0.560, 0.540, 0.340],  // dry grass hill
+    plateau:     [0.600, 0.540, 0.440],  // warm dusty plateau
     mountain:    [0.580, 0.500, 0.400],  // warm rock
     peak:        [0.700, 0.660, 0.580],  // dusty peak
     water:       [0.340, 0.560, 0.700],  // warm blue
   },
-  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'mountain', 'peak', 'water'],
+  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water'],
   weatherAffinity: ['arid', 'temperate'],
   terrainElevation: { mountain: 0.70, plains: 0.05 },
   supportsFloatingIslands: false,
@@ -184,12 +190,14 @@ defineArchetype('biome_lush', {
     denseForest:   [0.120, 0.350, 0.100],  // very dark deep wood
     desert:        [0.780, 0.650, 0.400],  // muted, sandy — rare here
     marsh:         [0.420, 0.550, 0.340],  // greener marsh
+    hill:          [0.400, 0.580, 0.300],  // mossy green
+    plateau:       [0.500, 0.520, 0.430],  // mossy grey
     mountain:      [0.480, 0.520, 0.450],  // mossy gray
     peak:          [0.650, 0.700, 0.750],  // moss-snow blend
     floatingIsland:[0.650, 0.750, 0.800],  // greenish float
     water:         [0.300, 0.550, 0.700],  // deeper blue
   },
-  terrainTags: ['plains', 'forest', 'denseForest', 'marsh', 'mountain', 'peak', 'floatingIsland', 'water'],
+  terrainTags: ['plains', 'forest', 'denseForest', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
   weatherAffinity: ['rainy', 'temperate'],
 
   terrainElevation: {
@@ -234,12 +242,14 @@ defineArchetype('biome_arid', {
     denseForest:   [0.350, 0.380, 0.180],  // withered olive
     desert:        [0.880, 0.720, 0.380],  // bright golden sand
     marsh:         [0.580, 0.520, 0.350],  // dry reed-brown
+    hill:          [0.580, 0.480, 0.300],  // reddish tan
+    plateau:       [0.620, 0.540, 0.420],  // warm pale grey
     mountain:      [0.580, 0.440, 0.350],  // warm reddish rock
     peak:          [0.720, 0.680, 0.600],  // dusty pale
     floatingIsland:[0.750, 0.700, 0.650],  // dusty float
     water:         [0.300, 0.520, 0.680],  // pale desert blue
   },
-  terrainTags: ['plains', 'desert', 'mountain', 'peak', 'floatingIsland', 'water'],
+  terrainTags: ['plains', 'desert', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
   weatherAffinity: ['arid', 'temperate'],
 
   terrainElevation: {

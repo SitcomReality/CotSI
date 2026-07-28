@@ -16,6 +16,8 @@ export const TERRAIN = {
   denseForest:   { fill:'#2d6b23', ink:'#70b060', label:'Deep wood',       passable:true,  movementCost:2, mark:'♣' },
   desert:        { fill:'#d6b15b', ink:'#f0d890', label:'Desert',          passable:true,  movementCost:1, mark:'·' },
   marsh:         { fill:'#819967', ink:'#b8cfa0', label:'Marsh',           passable:true,  movementCost:1, mark:'≈' },
+  hill:          { fill:'#8ba863', ink:'#c8d8b0', label:'Hill',            passable:true,  movementCost:1, mark:'∧' },
+  plateau:       { fill:'#9a9078', ink:'#d0c8b8', label:'Plateau',         passable:true,  movementCost:1, mark:'⊓' },
   mountain:      { fill:'#877c6a', ink:'#c0b8a8', label:'Impassable peaks', passable:false, movementCost:Infinity, mark:'∧' },
   peak:          { fill:'#b0b8c8', ink:'#e0e8f0', label:'High peak',       passable:false, movementCost:Infinity, mark:'▲' },
   floatingIsland:{ fill:'#c0d8e8', ink:'#e0f0ff', label:'Floating isle',   passable:false, movementCost:Infinity, mark:'⌂' },

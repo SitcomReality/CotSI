@@ -17,17 +17,19 @@ import { generateSingleSeed } from './generate.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import { sampleBaseFields } from '../../../src/game/rules/terrainGenerator.js';
 import {
-  NOISE_PHASE_A_ELEVATION, NOISE_MOISTURE, NOISE_TEMP_VARIATION, NOISE_REGION,
-  SEED_ELEVATION, SEED_MOISTURE, SEED_TEMP, SEED_REGION_M, SEED_REGION_T,
+  NOISE_ELEVATION_DETAIL, NOISE_RIDGE, NOISE_MOISTURE, NOISE_TEMP_VARIATION, NOISE_REGION,
+  SEED_DETAIL, SEED_RIDGE, SEED_MOISTURE, SEED_TEMP, SEED_REGION_M, SEED_REGION_T,
 } from '../../../src/params/game/worldParams.js';
 
 /** Noise config matching the module-level NOISE_CONFIG in terrainGenerator.js. */
 const TEST_NOISE_CONFIG = {
-  PHASE_A_ELEVATION: NOISE_PHASE_A_ELEVATION,
+  ELEVATION_DETAIL: NOISE_ELEVATION_DETAIL,
+  RIDGE: NOISE_RIDGE,
   MOISTURE: NOISE_MOISTURE,
   TEMP_VARIATION: NOISE_TEMP_VARIATION,
   REGION: NOISE_REGION,
-  SEED_ELEVATION,
+  SEED_DETAIL,
+  SEED_RIDGE,
   SEED_MOISTURE,
   SEED_TEMP,
   SEED_REGION_M,
@@ -122,6 +124,7 @@ export function formatSeamReport({ passed, failures }) {
   lines.push(`Status: ${passed ? 'PASSED' : 'FAILED'}`);
   lines.push(`Seed: ${TEST_SEED}  |  Radius: ${TEST_RADIUS}`);
   lines.push('Invariant: elevationField, moisture & temperature are pure functions of (seed, q, r)');
+  lines.push('Formula: worldShape(dist, radius) × (detail×0.5 + ridges×0.5)');
   lines.push('');
 
   if (passed) {

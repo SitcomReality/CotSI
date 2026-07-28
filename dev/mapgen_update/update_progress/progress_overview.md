@@ -1,6 +1,8 @@
 # Mapgen Update Progress Tracking
 
-Keep this file concise, used as an overview that points to more specific progress tracking files if necessary.
+This file is a checklist for tracking progress in the update plan described in `dev/mapgen_update/overview.md`.
+
+Detailed information about specific steps can be stored in `phase*_progress.md` if it might be pertinent to subsequent updates.
 
 ## Phase 0
 
@@ -42,6 +44,18 @@ Details in `phaseA_progress.md`.
 **Still pending (Phase B dependency):** Threshold values in `DEFAULT_TERRAIN_RULES` are still placeholders matching old constants. Recalibrate when the full `worldShape × (detail + ridges)` composite is in place.
 
 ## Phase B
+
+Details in `phaseB_progress.md`.
+
+1. Noise config: Replace `NOISE_PHASE_A_ELEVATION` with `NOISE_ELEVATION_DETAIL` + `NOISE_RIDGE`; replace `SEED_ELEVATION` with `SEED_DETAIL` + `SEED_RIDGE`; add `SLOPE_NORMALIZATION`; add `plateauSlopeMin`/`hillSlopeMin` to `DEFAULT_TERRAIN_RULES` — **worldParams.js** — **Done.**
+2. Add `hill` and `plateau` terrain types — **terrainTypes.js** — **Done.**
+3. Add `hill`/`plateau` palette colors and `terrainTags` entries for existing biomes — **biomes.js** — **Done.**
+4. Add `worldShape`, `computeSlope`, `hexesInExpandedChunk`, `_provisionalTerrainForRing` functions — **terrainGenerator.js**
+5. Update `sampleBaseFields` with 2-layer additive composite + worldShape — **terrainGenerator.js**
+6. Update `classifyTerrain` to use slope for mountain/plateau/hill discrimination — **terrainGenerator.js**
+7. Rewrite `generateChunkTiles` with border ring sampling, slope computation, and `fallbackT` removal — **terrainGenerator.js**
+8. Update analysis tool for the new elevation composite and tile fields — **dev/analysis/generation/generate.js**
+9. Remove old `NOISE_PHASE_A_ELEVATION` / `SEED_ELEVATION` references; update `NOISE_CONFIG` bundle — **terrainGenerator.js**, **worldParams.js**
 
 ## Phase C
 
