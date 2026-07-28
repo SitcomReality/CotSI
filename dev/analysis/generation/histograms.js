@@ -13,7 +13,7 @@
  *
  * Pure: no DOM, no state, no side effects.
  */
-import { hexFbm2D, hexToWorld } from '../../../src/engine/rules/noise.js';
+import { hexFbm2D, hexRidgedFbm2D, hexToWorld } from '../../../src/engine/rules/noise.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import { hexesWithinRadius, neighbors, coordKey } from '../../../src/engine/rules/hexGrid.js';
 
@@ -49,7 +49,7 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
   // ── Elevation: 2-layer additive composite shaped by worldShape ──
   const detail = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
-  const ridges = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
+  const ridges = hexRidgedFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
 
   // World shape: center peak, dropping to zero at the border
   function worldShape(distFromCenter, mapRadius) {

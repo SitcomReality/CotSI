@@ -187,3 +187,71 @@ export function hexFbm2D(q, r, seed, opts = {}) {
   const { x, y } = hexToWorld(q, r);
   return fbm2D(x, y, seed, opts);
 }
+
+/**
+ * Ridged Fractional Brownian Motion (2D).
+ *
+ * Standard FBM sums octaves of simplex noise — produces rounded, rolling terrain.
+ * Ridged FBM takes |noise| at each octave and inverts, producing sharp ridges
+ * where the unmodified noise crosses zero.
+ *
+ * @param {number} x   - World-space x
+ * @param {number} y   - World-space y
+ * @param {number} seed - Integer seed
+ * @param {object} [opts]
+ * @param {number} [opts.octaves=4]
+ * @param {number} [opts.lacunarity=2]
+ * @param {number} [opts.gain=0.5]
+ * @param {number} [opts.frequency=0.01]
+ * @param {number} [opts.offset=1.0]  - Vertical offset to shift ridges above zero
+ * @returns {number} - Value in [0, 1]
+ */
+export function ridgedFbm2D(x, y, seed, opts = {}) {
+  const seedInt = typeof seed === 'number' ? seed : stringSeed(seed);
+  const octaves    = opts.octaves    ?? 4;
+  const lacunarity = opts.lacunarity ?? 2;
+  const gain       = opts.gain       ?? 0.5;
+  const frequency  = opts.frequency  ?? 0.01;
+  const offset     = opts.offset     ?? 1.0;
+
+  const perm = _getPerm(seedInt);
+
+  let value = 0;
+  let amp = 1;
+  let maxAmp = 0;
+  let freq = frequency;
+  let weight = 1;
+
+  for (let i = 0; i < octaves; i++) {
+    let n = _simplex2D(x * freq, y * freq, perm);
+
+    // Absolute value creates sharp ridge at zero-crossings
+    n = Math.abs(n);
+    // Invert so ridges point upward: offset - |n|
+    n = offset - n;
+    // Square to sharpen ridges further
+    n = n * n * weight;
+
+    // Weight successive octaves by the previous octave's value
+    weight = n;
+
+    value += n * amp;
+    maxAmp += amp;
+    amp *= gain;
+    freq *= lacunarity;
+  }
+
+  // Normalize to [0, 1]
+  // maxAmp is sum of amplitudes (1 + gain + gain² + ...) ≈ 2.0 for gain=0.5
+  // offset=1.0 gives output roughly in [-1, 1] per octave before squaring
+  const raw = (value / maxAmp + offset - 1) / offset;
+  return raw < 0 ? 0 : raw > 1 ? 1 : raw;
+}
+
+/**
+ * Convenience: sample ridged FBM at a hex coordinate's world-space position.
+ */
+export function hexRidgedFbm2D(q, r, seed, opts = {}) {
+  const { x, y } = hexToWorld(q, r);
+  return ridgedFbm2D(x, y, seed, opts);
+}

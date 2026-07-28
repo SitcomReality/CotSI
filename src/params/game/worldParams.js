@@ -57,9 +57,9 @@ export const NOISE_ELEVATION_DETAIL = {
   octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020,
 };
 
-/** Ridge noise: low frequency (~25-hex scale). Regular FBM placeholder until Phase F. */
+/** Ridge noise: low frequency (~25-hex scale). Uses ridged FBM for sharp mountain crests. */
 export const NOISE_RIDGE = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008,
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008, offset: 0.9,
 };
 
 /** Temperature variation: very high frequency for local microclimate jitter. */
@@ -105,8 +105,8 @@ export const EPICENTER_GRID = {
 // Slope calibration
 // ---------------------------------------------------------------------------
 
-/** 95th-percentile of per-tile mean neighbor elevation delta (derived from 500-seed × 3-radius batch analysis, 2026-07-28). */
-export const SLOPE_NORMALIZATION = 0.0138;
+/** 95th-percentile of per-tile mean neighbor elevation delta (derived from 250-seed × 3-radius batch analysis, 2026-07-29). */
+export const SLOPE_NORMALIZATION = 0.0152;
 
 /** Maximum lookup radius for border-ring sampling in per-chunk generation.
  *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
@@ -120,32 +120,31 @@ export const MAX_LOOKUP_RADIUS = 3;
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_TERRAIN_RULES = {
-  // Elevation thresholds — derived from 500-seed × 3-radius batch analysis
-  waterMaxElevation:        0.020, // p12
-  mountainThreshold:        0.340, // p90
-  peakThreshold:            0.440, // p97
-  floatingIslandThreshold:  0.560, // p99.5
-  marshMaxElevation:        0.080, // p35
-  hillElevationMin:         0.140, // p55
+  // Elevation thresholds — derived from 250-seed × 3-radius batch analysis (Phase F ridged noise)
+  waterMaxElevation:        0.000, // p12
+  mountainThreshold:        0.220, // p90
+  peakThreshold:            0.320, // p97
+  floatingIslandThreshold:  0.480, // p99.5
+  marshMaxElevation:        0.040, // p35
+  hillElevationMin:         0.080, // p55
 
-  // Slope thresholds — calibrated from 500-seed × 3-radius batch analysis.
+  // Slope thresholds — calibrated from 250-seed × 3-radius batch analysis.
   // Among mountain-elevation tiles (~p90+), ~8-10% have stable enough slope to
   // qualify as plateau rather than mountain. Among mid-elevation tiles (p55-p90),
   // ~25% have enough local relief to qualify as hill; the rest fall to plains/forest.
   plateauSlopeMin:          0.55,  // above this → mountain, below → plateau
   hillSlopeMin:             0.25,
 
-  // Moisture thresholds — derived from 500-seed × 3-radius batch analysis
-  forestMinMoisture:        0.600, // p72
+  // Moisture thresholds — derived from 250-seed × 3-radius batch analysis
+  forestMinMoisture:        0.580, // p72
   denseForestMinMoisture:   0.660, // p85
   desertMaxMoisture:        0.340, // p20
   marshMinMoisture:         0.520, // p58
 
   // Temperature — derived from batch analysis
-  freezeTempMax:            0.520, // p15
+  freezeTempMax:            0.540, // p15
 
-  // Water moisture gate — lowered from 0.50 to 0.32 after 500-seed × 3-radius
-  // batch analysis showed water coverage at 3.5-4.6% (target [6%, 50%]).
+  // Water moisture gate — from 250-seed × 3-radius batch analysis.
   // waterMaxElevation=p12 gives ~12% low-elevation tiles; at p20 moisture ~80%
   // of those qualify, targeting ~8-10% total water.
   waterMinMoisture:         0.32,

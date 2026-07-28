@@ -1,4 +1,4 @@
-import { hexFbm2D, hexToWorld } from '../../../../engine/rules/noise.js';
+import { hexFbm2D, hexRidgedFbm2D, hexToWorld } from '../../../../engine/rules/noise.js';
 import { distance } from '../../../../engine/rules/hexGrid.js';
 import {
   NOISE_ELEVATION_DETAIL, NOISE_RIDGE, NOISE_MOISTURE,
@@ -49,7 +49,7 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
 
   // Additive elevation composite shaped by worldShape
   const detail    = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
-  const ridges    = hexFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
+  const ridges    = hexRidgedFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
   const dist      = distance({ q, r }, { q: 0, r: 0 });
   const rawElev   = worldShape(dist, radius) * (detail * 0.50 + ridges * 0.50);
   const elevation = clamp01(rawElev);

@@ -36,7 +36,7 @@ export const NOISE_CONFIG = {
     octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020,
   },
   RIDGE: {
-    octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008,
+    octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008, offset: 0.9,
   },
 
   // ── Climate fields ────────────────────────────────────────────────
