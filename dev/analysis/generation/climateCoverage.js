@@ -6,10 +6,9 @@
  * (biome_default when not chosen as the fallback, or any biome that has
  * no climateRange in the future pipeline) are reported as coverage gaps.
  *
- * In the current generator, biome assignment is noise-driven, not climate-
- * matched, so this report shows the de-facto coverage: which (rawElev,
- * rawMoist) tuples each biome currently claims. The report makes coverage
- * gaps visible before playtesting.
+ * In the current generator, biome assignment is climate-driven (Phase A)
+ * with epicenter overrides. This report shows which (elevation, moisture)
+ * tuples each biome claims. The report makes coverage gaps visible.
  *
  * Pure: no DOM, no state, no side effects.
  */
@@ -29,7 +28,7 @@ const CLIMATE_BINS = 10;
  * @param {number} [radius=21]          - Map radius
  * @returns {{ biomeCounts: object, biomeDefaultTiles: object[], climateGrid: object }}
  *   - biomeCounts: { biomeId: { count, pct } }
- *   - biomeDefaultTiles: array of { q, r, rawElev, rawMoist } for biome_default tiles
+ *   - biomeDefaultTiles: array of { q, r, elevationField, moisture } for biome_default tiles
  *   - climateGrid: binned summary of biome coverage
  */
 export function runClimateCoverageTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
@@ -50,7 +49,7 @@ export function runClimateCoverageTest(seedText = DEFAULT_SEED, radius = DEFAULT
   const climateGrid = {};
 
   for (const tile of tileEntries) {
-    const { q, r, rawElev, rawMoist, biomeId } = tile;
+    const { q, r, elevationField, moisture, biomeId } = tile;
 
     // Count
     if (!biomeCounts[biomeId]) {
@@ -60,12 +59,12 @@ export function runClimateCoverageTest(seedText = DEFAULT_SEED, radius = DEFAULT
 
     // Track biome_default tiles
     if (biomeId === 'biome_default') {
-      biomeDefaultTiles.push({ q, r, rawElev, rawMoist });
+      biomeDefaultTiles.push({ q, r, elevationField, moisture });
     }
 
     // Climate grid binning
-    const elevBin = Math.min(CLIMATE_BINS - 1, Math.floor(rawElev * CLIMATE_BINS));
-    const moistBin = Math.min(CLIMATE_BINS - 1, Math.floor(rawMoist * CLIMATE_BINS));
+    const elevBin = Math.min(CLIMATE_BINS - 1, Math.floor(elevationField * CLIMATE_BINS));
+    const moistBin = Math.min(CLIMATE_BINS - 1, Math.floor(moisture * CLIMATE_BINS));
     const binKey = `${elevBin},${moistBin}`;
     if (!climateGrid[binKey]) {
       climateGrid[binKey] = { elevBin, moistBin, biomes: new Set(), count: 0 };
@@ -124,10 +123,10 @@ export function formatClimateCoverageReport(report) {
   // biome_default sample tiles (show up to 10)
   if (report.biomeDefaultTiles.length > 0) {
     lines.push(`biome_default tiles: ${report.biomeDefaultTiles.length} (coverage gaps)`);
-    lines.push('Sample (rawElev, rawMoist) coordinates:');
+    lines.push('Sample (elevationField, moisture) coordinates:');
     const sample = report.biomeDefaultTiles.slice(0, 10);
     for (const t of sample) {
-      lines.push(`  (${t.q},${t.r})  elev=${t.rawElev?.toFixed(4)}  moist=${t.rawMoist?.toFixed(4)}`);
+      lines.push(`  (${t.q},${t.r})  elev=${t.elevationField?.toFixed(4)}  moist=${t.moisture?.toFixed(4)}`);
     }
     if (report.biomeDefaultTiles.length > 10) {
       lines.push(`  ... and ${report.biomeDefaultTiles.length - 10} more`);
@@ -153,9 +152,9 @@ export function formatClimateCoverageReport(report) {
     lines.push('');
   }
 
-  lines.push('Note: Current generator assigns biomes by noise roll, not climate matching.');
-  lines.push('biome_default is a legitimate biome (~40% target), not a fallthrough error.');
-  lines.push('In the future pipeline, gaps here indicate climate zones with no biome match.');
+  lines.push('Note: Biome assignment is climate-driven with epicenter overrides.');
+  lines.push('biome_default tiles here are climate gaps or fallout from epicenter regions.');
+  lines.push('Gaps indicate climate zones with no natural biome match.');
   lines.push('');
 
   return lines.join('\n');

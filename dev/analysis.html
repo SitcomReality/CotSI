@@ -78,34 +78,40 @@
       </div>
 
       <div class="control-group">
-        <h3>Multi-Seed Analysis</h3>
+        <h3>Batch Analysis</h3>
         <div class="control-row">
-          <label>Seed count</label>
-          <input type="number" id="multi-count" value="50" min="2" max="500">
+          <label>Seeds</label>
+          <input type="number" id="batch-count" value="50" min="2" max="500">
         </div>
-        <button class="primary" id="btn-multi-generate">Run Multi-Seed</button>
-        <div class="toggle-group" id="multi-output-toggles">
-          <label><input type="checkbox" id="multi-terrain" checked> Terrain distribution</label>
-          <label><input type="checkbox" id="multi-traders" checked> Trader heatmap</label>
-          <label><input type="checkbox" id="multi-champions"> Champion heatmap</label>
+        <div class="control-row">
+          <label>Radii</label>
+          <span class="checkbox-row">
+            <label><input type="checkbox" id="batch-radius-21" checked> 21</label>
+            <label><input type="checkbox" id="batch-radius-50"> 50</label>
+            <label><input type="checkbox" id="batch-radius-100"> 100</label>
+          </span>
         </div>
-      </div>
-
-      <div class="control-group">
-        <h3>Calibration</h3>
-        <div class="toggle-group" id="calib-toggles">
-          <label><input type="checkbox" id="calib-freq" checked> Frequency Verification</label>
-          <label><input type="checkbox" id="calib-hist"> Histogram Collection</label>
-          <label><input type="checkbox" id="calib-lut"> Quantile LUTs</label>
+        <div class="toggle-group batch-outputs">
+          <label><input type="checkbox" id="batch-terrain" checked> Terrain dist.</label>
+          <label><input type="checkbox" id="batch-traders" checked> Trader heatmap</label>
+          <label><input type="checkbox" id="batch-champions"> Champion heatmap</label>
+          <label><input type="checkbox" id="batch-histograms"> Pooled histograms</label>
+          <label><input type="checkbox" id="batch-luts"> Quantile LUTs</label>
+          <label><input type="checkbox" id="batch-frequency"> Freq. verification</label>
+          <label><input type="checkbox" id="batch-snapshot" checked> Snapshot tests</label>
+          <label><input type="checkbox" id="batch-seam"> Seam test</label>
+          <label><input type="checkbox" id="batch-climate"> Climate coverage</label>
+          <label><input type="checkbox" id="batch-thresholds" checked> Derive thresholds</label>
         </div>
-        <div class="btn-row" style="margin-top:8px">
-          <button id="btn-run-tests">Run Tests</button>
+        <button class="primary" id="btn-batch-run">Run Batch Analysis</button>
+        <div id="batch-progress" class="hidden">
+          <div class="progress-bar">
+            <div class="progress-fill" id="batch-progress-fill"></div>
+          </div>
+          <div class="progress-text" id="batch-progress-text"></div>
         </div>
-        <div class="btn-row" style="margin-top:4px">
-          <button id="btn-derive-thresholds">Derive Thresholds</button>
-          <button id="btn-download-calib" disabled>Download thresholds</button>
-        </div>
-        <div class="btn-row" style="margin-top:2px">
+        <div class="btn-row" style="margin-top:6px">
+          <button id="btn-download-thresholds" disabled>Download thresholds</button>
           <button id="btn-download-luts" disabled style="font-size:0.85em">Download LUTs (full, ~30 KB)</button>
         </div>
       </div>

@@ -9,7 +9,7 @@
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import { hexesWithinRadius, neighbors, coordKey } from '../../../src/engine/rules/hexGrid.js';
 import { sampleBaseFields, collectHistograms, percentileFromHistogram } from './histograms.js';
-import { poolHistograms, buildQuantileLUT } from './quantileLUT.js';
+import { poolHistograms, buildQuantileLUT, normalizeField } from './quantileLUT.js';
 import { NOISE_CONFIG } from './noiseConfig.js';
 
 // ---------------------------------------------------------------------------
@@ -266,6 +266,135 @@ export function calibratePipeline({ seeds, radii, noiseConfig }) {
 }
 
 // ---------------------------------------------------------------------------
+// Derive thresholds from pre-collected data (used by batchRunner)
+// ---------------------------------------------------------------------------
+
+/**
+ * Derive thresholds and quantile LUTs from already-collected histogram data.
+ *
+ * Unlike calibratePipeline(), this does NOT call collectHistograms() or
+ * collectRawSlopeDeltas() — it receives the already-collected arrays,
+ * pools them, and computes thresholds + LUTs.
+ *
+ * @param {object} histData - { elev, moist, temp, slope } — each is an array of Uint32Array histograms
+ * @param {number[]|Float64Array[]} slopeDeltas  - Raw per-tile average neighbor deltas, or null
+ * @param {object} [meta] - Optional metadata to attach to result
+ * @returns {object} { quantileLUTs, thresholds, slopeNormalization, meta }
+ */
+export function deriveThresholds(histData, slopeDeltas, meta = {}) {
+  // ── Pool histograms per field ──────────────────────────────────────
+  const pooledElev  = poolHistograms(histData.elev);
+  const pooledMoist = poolHistograms(histData.moist);
+  const pooledTemp  = poolHistograms(histData.temp);
+  const pooledSlope = poolHistograms(histData.slope);
+
+  // ── Build quantile LUTs (256-entry) ────────────────────────────────
+  const elevLUT  = buildQuantileLUT(pooledElev);
+  const moistLUT = buildQuantileLUT(pooledMoist);
+  const tempLUT  = buildQuantileLUT(pooledTemp);
+  const slopeLUT = buildQuantileLUT(pooledSlope);
+
+  // ── Derive thresholds from pooled histograms ───────────────────────
+  const thresholds = {
+    waterMaxElevation: {
+      value: percentileFromHistogram(pooledElev, 0.12),
+      targetPercentile: 12,
+      field: 'elevation',
+      description: '12th percentile — ~12% water coverage',
+    },
+    mountainThreshold: {
+      value: percentileFromHistogram(pooledElev, 0.90),
+      targetPercentile: 90,
+      field: 'elevation',
+      description: '90th percentile — top 10% elevation',
+    },
+    peakThreshold: {
+      value: percentileFromHistogram(pooledElev, 0.97),
+      targetPercentile: 97,
+      field: 'elevation',
+      description: '97th percentile — top 3% elevation',
+    },
+    floatingIslandThreshold: {
+      value: percentileFromHistogram(pooledElev, 0.995),
+      targetPercentile: 99.5,
+      field: 'elevation',
+      description: '99.5th percentile — top 0.5% elevation',
+    },
+    hillElevationMin: {
+      value: percentileFromHistogram(pooledElev, 0.55),
+      targetPercentile: 55,
+      field: 'elevation',
+      description: '55th percentile — hill starting elevation',
+    },
+    marshMaxElevation: {
+      value: percentileFromHistogram(pooledElev, 0.35),
+      targetPercentile: 35,
+      field: 'elevation',
+      description: '35th percentile — max elevation for marsh',
+    },
+
+    forestMinMoisture: {
+      value: percentileFromHistogram(pooledMoist, 0.72),
+      targetPercentile: 72,
+      field: 'moisture',
+      description: '72nd percentile — forest minimum moisture',
+    },
+    denseForestMinMoisture: {
+      value: percentileFromHistogram(pooledMoist, 0.85),
+      targetPercentile: 85,
+      field: 'moisture',
+      description: '85th percentile — dense forest minimum moisture',
+    },
+    desertMaxMoisture: {
+      value: percentileFromHistogram(pooledMoist, 0.20),
+      targetPercentile: 20,
+      field: 'moisture',
+      description: '20th percentile — desert maximum moisture',
+    },
+    marshMinMoisture: {
+      value: percentileFromHistogram(pooledMoist, 0.58),
+      targetPercentile: 58,
+      field: 'moisture',
+      description: '58th percentile — marsh minimum moisture',
+    },
+
+    freezeTempMax: {
+      value: percentileFromHistogram(pooledTemp, 0.15),
+      targetPercentile: 15,
+      field: 'temperature',
+      description: '15th percentile — freeze threshold (placeholder)',
+    },
+  };
+
+  // ── Slope normalization ────────────────────────────────────────────
+  let slopeNormalization = 0.010; // fallback
+  if (slopeDeltas && slopeDeltas.length > 0) {
+    const sorted = [...slopeDeltas].sort((a, b) => a - b);
+    const idx = Math.floor((sorted.length - 1) * 0.95);
+    slopeNormalization = sorted[idx];
+  }
+
+  return {
+    quantileLUTs: {
+      elevation:  Array.from(elevLUT),
+      moisture:   Array.from(moistLUT),
+      temperature: Array.from(tempLUT),
+      slope:      Array.from(slopeLUT),
+    },
+    thresholds,
+    slopeNormalization,
+    meta: {
+      seedCount: meta.seedCount || 0,
+      radii: meta.radii || [],
+      fieldsSampled: ['elevation', 'moisture', 'temperature', 'slope'],
+      noiseConfigFingerprint: meta.noiseConfigFingerprint || fingerprintNoiseConfig(NOISE_CONFIG),
+      dateGenerated: meta.dateGenerated || new Date().toISOString(),
+      version: 1,
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Export serialization
 // ---------------------------------------------------------------------------
 
@@ -372,7 +501,6 @@ export function formatCalibrationReport(result) {
     if (!lut) continue;
     // Rebuild Float32Array for normalizeField
     const lutArray = new Float32Array(lut);
-    const { normalizeField } = requireLUTNormalizer();
     const check10 = normalizeField(0.10, lutArray).toFixed(4);
     const check50 = normalizeField(0.50, lutArray).toFixed(4);
     const check90 = normalizeField(0.90, lutArray).toFixed(4);
@@ -387,25 +515,6 @@ export function formatCalibrationReport(result) {
   lines.push('');
 
   return lines.join('\n');
-}
-
-/**
- * Inline require for normalizeField to avoid circular dependency issues.
- * Returns { normalizeField } from quantileLUT.js.
- */
-function requireLUTNormalizer() {
-  // Dynamic import isn't available, but we can inline the normalizer
-  // since it's a pure function.
-  return {
-    normalizeField(rawValue, lut) {
-      const clamped = rawValue < 0 ? 0 : rawValue > 1 ? 1 : rawValue;
-      const lutIndex = clamped * (lut.length - 1);
-      const loIdx = Math.floor(lutIndex);
-      const hiIdx = Math.min(loIdx + 1, lut.length - 1);
-      const frac = lutIndex - loIdx;
-      return lut[loIdx] + (lut[hiIdx] - lut[loIdx]) * frac;
-    },
-  };
 }
 
 // ---------------------------------------------------------------------------

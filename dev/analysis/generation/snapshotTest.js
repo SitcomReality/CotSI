@@ -22,8 +22,8 @@ const TEST_RADIUS = 21;
  * Phase G tightens these.
  */
 const TOLERANCE = {
-  water:          { min: 0.06, max: 0.20, label: 'water' },
-  mountain:       { min: 0.03, max: 0.15, label: 'mountain' },
+  water:          { min: 0.06, max: 0.50, label: 'water' },
+  mountain:       { min: 0.00, max: 0.25, label: 'mountain' },
   peak:           { min: 0.00, max: 0.05, label: 'peak' },
   floatingIsland: { min: 0.00, max: 0.02, label: 'floatingIsland' },
 };

@@ -43,26 +43,35 @@ export function cacheDom() {
   els.btnNextRandom = $('btn-next-random');
   els.cycleSpeed = $('cycle-speed');
   els.cycleSpeedValue = $('cycle-speed-value');
-  els.multiCount = $('multi-count');
-  els.btnMultiGenerate = $('btn-multi-generate');
+  els.multiBiomeCheck = $('multi-biome-check');
   els.btnExportPng = $('btn-export-png');
   els.btnExportJson = $('btn-export-json');
-
-  // Calibration checkboxes
-  els.calibFreq = $('calib-freq');
-  els.calibHist = $('calib-hist');
-  els.calibLut   = $('calib-lut');
-  els.btnRunTests = $('btn-run-tests');
-  els.btnDeriveThresholds = $('btn-derive-thresholds');
-  els.btnDownloadCalib = $('btn-download-calib');
-  els.btnDownloadLuts  = $('btn-download-luts');
-
-  // Multi-seed output checkboxes
-  els.multiTerrain   = $('multi-terrain');
-  els.multiTraders   = $('multi-traders');
-  els.multiChampions = $('multi-champions');
   els.statsPanel = $('stats-panel');
-  els.multiBiomeCheck = $('multi-biome-check');
+  els.legend = $('legend');
+  els.loading = $('loading');
+  els.mapArea = $('map-area');
+
+  // Batch analysis
+  els.batchCount = $('batch-count');
+  els.batchRadii21 = $('batch-radius-21');
+  els.batchRadii50 = $('batch-radius-50');
+  els.batchRadii100 = $('batch-radius-100');
+  els.batchTerrain = $('batch-terrain');
+  els.batchTraders = $('batch-traders');
+  els.batchChampions = $('batch-champions');
+  els.batchHistograms = $('batch-histograms');
+  els.batchLuts = $('batch-luts');
+  els.batchFrequency = $('batch-frequency');
+  els.batchSnapshot = $('batch-snapshot');
+  els.batchSeam = $('batch-seam');
+  els.batchClimate = $('batch-climate');
+  els.batchThresholds = $('batch-thresholds');
+  els.btnBatchRun = $('btn-batch-run');
+  els.batchProgressFill = $('batch-progress-fill');
+  els.batchProgressText = $('batch-progress-text');
+  els.batchProgress = $('batch-progress');
+  els.btnDownloadThresholds = $('btn-download-thresholds');
+  els.btnDownloadLuts = $('btn-download-luts');
   els.legend = $('legend');
   els.loading = $('loading');
   els.mapArea = $('map-area');

@@ -19,6 +19,9 @@ import { sampleBaseFields, isProvisionalWater, NOISE_CONFIG } from '../../../src
 import { hexesWithinRadius, coordKey } from '../../../src/engine/rules/hexGrid.js';
 import { DEFAULT_TERRAIN_RULES } from '../../../src/params/game/worldParams.js';
 
+/** Supernatural biome IDs to skip during seam comparison (epicenter overrides break pure-function invariance). */
+const SUPERNATURAL_BIOME_IDS = ['biome_brass_grave', 'biome_unfinished_lands'];
+
 /** Test seed and radius. */
 const TEST_SEED = 'glut-17';
 const TEST_RADIUS = 21;
@@ -51,7 +54,11 @@ export function runSeamTest() {
     }
 
     for (const tile of tileEntries) {
-      const { q, r, elevationField, moisture, temperature } = tile;
+      const { q, r, elevationField, moisture, temperature, biomeId } = tile;
+
+      // Skip tiles overridden by supernatural biomes — epicenter fieldModifiers
+      // break the pure-function invariant against sampleBaseFields.
+      if (SUPERNATURAL_BIOME_IDS.includes(biomeId)) continue;
 
       // Recompute base fields directly via sampleBaseFields
       const fields = sampleBaseFields(baseSeed, q, r, NOISE_CONFIG, TEST_RADIUS);

@@ -1,0 +1,57 @@
+/* batch.css — Batch Analysis controls */
+
+.batch-outputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 8px;
+  margin: 6px 0;
+}
+
+.batch-outputs label {
+  font-size: 0.82em;
+  white-space: nowrap;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.checkbox-row label {
+  font-size: 0.90em;
+  cursor: pointer;
+}
+
+/* ── Progress bar ───────────────────────────────────────────── */
+
+#batch-progress {
+  margin: 8px 0;
+}
+
+#batch-progress.hidden {
+  display: none;
+}
+
+.progress-bar {
+  height: 18px;
+  background: #2a2a2e;
+  border: 1px solid #4a4a50;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #4e8cd4, #6db3f2);
+  transition: width 0.15s ease-out;
+  border-radius: 3px;
+}
+
+.progress-text {
+  font-size: 0.80em;
+  color: #b0b0b8;
+  margin-top: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+}
