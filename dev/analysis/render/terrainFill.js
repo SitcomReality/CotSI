@@ -38,10 +38,8 @@ export function resolveFillColor(tile, viewMode, palettes) {
 
   if (viewMode === 'biome') {
     const bid = tile.biomeId || 'biome_default';
-    if (bid === 'biome_default') return BIOME_COLORS.default;
-    if (bid === 'biome_lush')    return BIOME_COLORS.lush;
-    if (bid === 'biome_arid')    return BIOME_COLORS.arid;
-    return BIOME_COLORS.fallback;
+    const colorKey = bid.replace('biome_', '');
+    return BIOME_COLORS[colorKey] ?? BIOME_COLORS.fallback;
   }
 
   // Terrain view — use biome palette colours (scaled to 0–255) or TERRAIN fallback

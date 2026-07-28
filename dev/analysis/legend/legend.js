@@ -21,7 +21,7 @@ import { BIOME_COLORS, RIVER } from '../render/theme.js';
 
 // ─── Terrain display order ────────────────────────────────────────────────
 
-export const TERRAIN_ORDER = ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'mountain', 'peak', 'floatingIsland', 'water'];
+export const TERRAIN_ORDER = ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water', 'ice'];
 
 // ─── Update legend ────────────────────────────────────────────────────────
 
@@ -116,11 +116,9 @@ function buildBiomeRegionLegend() {
     for (const bid of biomeIds) {
       const def = getArchetype(bid);
       const biomeName = def?.name || bid;
-      let color;
-      if (bid === 'biome_default') color = BIOME_COLORS.default;
-      else if (bid === 'biome_lush')    color = BIOME_COLORS.lush;
-      else if (bid === 'biome_arid')    color = BIOME_COLORS.arid;
-      else color = BIOME_COLORS.fallback;
+      // Look up color by biome ID key, or fall back to default/fallback
+      const colorKey = bid.replace('biome_', '');
+      const color = BIOME_COLORS[colorKey] ?? BIOME_COLORS.fallback;
       parts.push(`<div class="legend-item">
         <span class="legend-swatch" style="background:${color}"></span>
         <span>${biomeName}</span>
@@ -132,11 +130,8 @@ function buildBiomeRegionLegend() {
   // Single biome — just show the biome name with its colour
   const bid = result.biomeDef?.id || 'biome_default';
   const biomeName = result.biomeDef?.name || 'Default';
-  let color;
-  if (bid === 'biome_default') color = BIOME_COLORS.default;
-  else if (bid === 'biome_lush')    color = BIOME_COLORS.lush;
-  else if (bid === 'biome_arid')    color = BIOME_COLORS.arid;
-  else color = BIOME_COLORS.fallback;
+  const colorKey = bid.replace('biome_', '');
+  const color = BIOME_COLORS[colorKey] ?? BIOME_COLORS.fallback;
   return `<div class="legend-item">
     <span class="legend-swatch" style="background:${color}"></span>
     <span>${biomeName}</span>

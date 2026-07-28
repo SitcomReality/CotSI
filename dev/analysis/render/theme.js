@@ -15,9 +15,14 @@
 // ── View-mode biome colors ──────────────────────────────────────────────────────
 
 export const BIOME_COLORS = {
-  default: '#6a9a4a',
-  lush: '#3a7a2a',
-  arid: '#c8a050',
+  default:  '#6a9a4a',
+  lush:     '#3a7a2a',
+  arid:     '#c8a050',
+  savanna:  '#b89840',
+  brass_grave: '#a09050',
+  frigid_silence: '#7aaccc',
+  weeping_marsh: '#4a7a5a',
+  unfinished_lands: '#9a9a9a',
   /** Fallback for unknown biome IDs */
   fallback: '#888',
 };

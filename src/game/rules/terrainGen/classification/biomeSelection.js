@@ -3,16 +3,18 @@ import { getArchetype } from '../../archetypes.js';
 
 /** Natural biomes — climate-driven, in specificity order. biome_default is last (catch-all). */
 const BIOME_PRIORITY_ORDER = [
-  'biome_arid',    // hot + dry (most specific)
-  'biome_savanna', // hot transitional — between arid and lush
-  'biome_lush',    // wet + warm
-  'biome_default', // catch-all — last, always matches
+  'biome_arid',            // hot + dry (most specific)
+  'biome_savanna',         // hot transitional — between arid and lush
+  'biome_frigid_silence',  // cold mid-moisture (Phase D)
+  'biome_lush',            // wet + warm
+  'biome_weeping_marsh',   // cold wet (Phase D)
+  'biome_default',         // catch-all — last, always matches
 ];
 
 /** Supernatural biomes — placed by jittered-grid epicenter pass (A8), never by climate. */
 const SUPERNATURAL_BIOMES = [
-  // 'biome_unfinished_lands',  // uncomment in Phase G
   'biome_brass_grave',
+  'biome_unfinished_lands',
 ];
 
 export { BIOME_PRIORITY_ORDER, SUPERNATURAL_BIOMES };
