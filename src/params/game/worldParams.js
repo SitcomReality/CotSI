@@ -23,8 +23,6 @@ export const NOISE_CHANNEL_FEATURES = 4;
 export const NOISE_CHANNEL_DEBRIS = 5;
 /** Noise channel index for debris kind selection. */
 export const NOISE_CHANNEL_DEBRIS_KIND = 6;
-/** Debris spawn noise threshold. */
-export const DEBRIS_SPAWN_THRESHOLD = 0.92;
 /** Debris kind threshold: tuft (≤threshold). */
 export const DEBRIS_TUFT_THRESHOLD = 0.4;
 /** Debris kind threshold: rock (≤threshold). */

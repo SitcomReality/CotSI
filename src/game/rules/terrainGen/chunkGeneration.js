@@ -6,7 +6,7 @@ import { CHUNK_SIZE } from '../../../params/engine/chunkParams.js';
 import {
   MAX_LOOKUP_RADIUS, DEFAULT_TERRAIN_RULES,
   NOISE_CHANNEL_FEATURES, NOISE_CHANNEL_DEBRIS, NOISE_CHANNEL_DEBRIS_KIND,
-  DEBRIS_SPAWN_THRESHOLD, DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD,
+  DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD,
 } from '../../../params/game/worldParams.js';
 import { getArchetype } from '../archetypes.js';
 import { NOISE_CONFIG, sampleBaseFields } from './fields/sampleBaseFields.js';
@@ -18,6 +18,7 @@ import { classifyTerrain, resolveElevation } from './classification/terrainClass
 import { applySupernaturalOverrides } from './placement/epicenterPlacement.js';
 import { tagMountainType } from './tagging/mountainTagging.js';
 import { waterTypeForTile } from './tagging/waterTagging.js';
+import { featureDensity, canSpawnFruitTree, shouldSpawnRock } from './features/featureDensity.js';
 import { spawnFeature } from './features/featureSpawning.js';
 
 /**
@@ -53,8 +54,8 @@ export function hexesInExpandedChunk(cq, cr, ringWidth) {
  *   6. Apply supernatural overrides (multi-biome only)
  *   7. Mountain type tagging
  *   8. Water type tagging
- *   9. Sprinkle features
- *  10. Sprinkle debris
+ *   9. Sprinkle features (density-modulated + fruit tree climate gate)
+ *  10. Sprinkle debris (terrain-aware rock probability)
  *
  * @param {string}   seedText  - Seed string for reproducible generation
  * @param {number}   chunkQ    - Chunk q coordinate
@@ -188,29 +189,54 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
   }
 
-  // --- Pass 8: Sprinkle features (flora + resources from biome features list) ---
+  // --- Pass 8: Sprinkle features (flora + resources, density-modulated) ---
   for (const [, tile] of tileMap) {
     if (!TERRAIN[tile.terrain].passable) continue;
     const tileBiomeDef = biomeDef || getArchetype(tile.biomeId) || getArchetype('biome_default');
     const features = tileBiomeDef?.features || DEFAULT_FEATURES;
+    const treeLineMax = tileBiomeDef?.terrainRules?.treeLineMax ?? DEFAULT_TERRAIN_RULES.treeLineMax;
+    const density = featureDensity(
+      tile.terrain, tile.elevationField, tile.moisture, tile.slope, treeLineMax
+    );
     const roll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_FEATURES);
-    const feature = spawnFeature(roll, tile.terrain, features);
+    const feature = spawnFeature(roll, tile.terrain, density, features);
+
+    // Fruit tree climate gate: skip if conditions aren't suitable
+    if (feature && feature.kind === 'fruitTree') {
+      if (!canSpawnFruitTree(tile.elevationField, tile.moisture, treeLineMax)) {
+        tile.feature = null;
+        continue;
+      }
+    }
+
     if (feature) {
       tile.feature = feature;
     }
   }
 
   // --- Pass 9: Environmental debris (grass tufts, rocks, flowers) ---
+  // Rock debris uses terrain-aware probability (slope + moisture); tufts and
+  // flowers use a fixed spawn gate with kind-roll discrimination.
   for (const [, tile] of tileMap) {
     if (!TERRAIN[tile.terrain].passable) continue;
     if (tile.feature) continue;
-    const debrisRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS);
-    if (debrisRoll > DEBRIS_SPAWN_THRESHOLD) {
-      const kindRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS_KIND);
-      const kind = kindRoll < DEBRIS_TUFT_THRESHOLD ? 'tuft'
-        : kindRoll < DEBRIS_ROCK_THRESHOLD ? 'rock'
-        : 'flower';
-      tile.debris = { kind };
+
+    const kindRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS_KIND);
+    const kind = kindRoll < DEBRIS_TUFT_THRESHOLD ? 'tuft'
+      : kindRoll < DEBRIS_ROCK_THRESHOLD ? 'rock'
+      : 'flower';
+
+    if (kind === 'rock') {
+      const rockProb = shouldSpawnRock(tile.slope, tile.moisture);
+      const spawnRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS);
+      if (spawnRoll < rockProb) {
+        tile.debris = { kind: 'rock' };
+      }
+    } else {
+      const spawnRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS);
+      if (spawnRoll > 0.92) {
+        tile.debris = { kind };
+      }
     }
   }
 

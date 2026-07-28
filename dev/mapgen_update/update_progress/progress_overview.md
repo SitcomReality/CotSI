@@ -87,6 +87,20 @@ Details in `phaseD_rivers.md`.
 
 ## Phase E
 
+Details in `phaseE_feature_density.md`.
+
+1. Add `featureDensity(terrain, elevation, moisture, slope, treeLineMax)` — continuous [0,1] density from climate fields — **featureDensity.js** — **Done.**
+2. Add `canSpawnFruitTree(elevation, moisture, treeLineMax)` — climate gate preventing fruit trees in deserts/above tree line — **featureDensity.js** — **Done.**
+3. Add `shouldSpawnRock(slope, moisture)` — terrain-aware rock probability replacing binary `DEBRIS_SPAWN_THRESHOLD` — **featureDensity.js** — **Done.**
+4. Update `spawnFeature()` signature to accept `density` param; modulate rule thresholds with `densityMod` — **featureSpawning.js** — **Done.**
+5. Update feature pass (Pass 8) in `generateChunkTiles`: compute `featureDensity()` per tile, pass to updated `spawnFeature()`, apply fruit tree climate check with fallthrough-to-null — **chunkGeneration.js** — **Done.**
+6. Update debris pass (Pass 9) in `generateChunkTiles`: use `shouldSpawnRock()` for rock probability on sloped/dry passable tiles without features — **chunkGeneration.js** — **Done.**
+7. Remove or bypass old `DEBRIS_SPAWN_THRESHOLD` binary gate for rock debris; keep `DEBRIS_TUFT_THRESHOLD`/`DEBRIS_ROCK_THRESHOLD` for kind discrimination within terrain-aware rock probability — **chunkGeneration.js**, **worldParams.js** — **Done.**
+8. Ensure continuous `density` value is stored on feature objects (`feature.density`) for renderer use — **featureSpawning.js** — **Done.**
+9. Update analysis tool to show feature density distribution per terrain/biome — **analysis tool** — **Done.**
+10. Update imports in `chunkGeneration.js` to include new exports from `featureDensity.js` — **chunkGeneration.js** — **Done.**
+11. Verify: forest edges are gradual (trees thin near desert boundaries), rocks cluster on mountain slopes and dry regions, fruit trees only appear below tree line with moisture > 0.60, no hard density transitions at terrain-type boundaries
+
 ## Phase F
 
 ## Phase G

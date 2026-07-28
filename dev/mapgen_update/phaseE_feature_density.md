@@ -195,7 +195,16 @@ for (const [, tile] of tileMap) {
 
 | File | Change | Summary |
 |------|--------|---------|
-| `src/game/rules/terrainGen/features/featureSpawning.js` | edit | `spawnFeature`, `featureDensity`, fruit tree climate check, updated debris rock logic |
+| `src/game/rules/terrainGen/features/featureDensity.js` | **new** | `featureDensity`, `canSpawnFruitTree`, `shouldSpawnRock` — pure climate-derived probability functions |
+| `src/game/rules/terrainGen/features/featureSpawning.js` | edit | `spawnFeature` signature: `(roll, terrain, density, features)`; threshold modulation via density; continuous `density` on feature objects |
+| `src/game/rules/terrainGen/chunkGeneration.js` | edit | Feature pass computes `featureDensity` per tile; fruit tree climate gate; debris pass uses `shouldSpawnRock` for terrain-aware rock probability |
+| `src/params/game/worldParams.js` | edit | Removed `DEBRIS_SPAWN_THRESHOLD` (replaced by `shouldSpawnRock`) |
+| `src/game/rules/terrainGen/index.js` | edit | Added barrel exports for `featureDensity`, `canSpawnFruitTree`, `shouldSpawnRock` |
+| `dev/analysis/render/colorMaps.js` | edit | Added `DENSITY_COLOR_STOPS` and `densityColor()` |
+| `dev/analysis/render/terrainFill.js` | edit | Added `'density'` view mode branch |
+| `dev/analysis/legend/legend.js` | edit | Added `'density'` legend branch |
+| `dev/analysis.html` | edit | Added `<option value="density">Feature Density</option>` |
+| `dev/analysis/state.js` | edit | Updated viewMode JSDoc type
 
 ---
 

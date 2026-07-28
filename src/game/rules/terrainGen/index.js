@@ -8,6 +8,7 @@ export { classifyTerrain, resolveElevation } from './classification/terrainClass
 export { applySupernaturalOverrides } from './placement/epicenterPlacement.js';
 export { tagMountainType } from './tagging/mountainTagging.js';
 export { waterTypeForTile } from './tagging/waterTagging.js';
+export { featureDensity, canSpawnFruitTree, shouldSpawnRock } from './features/featureDensity.js';
 export { spawnFeature } from './features/featureSpawning.js';
 export { selectRiverSources } from './rivers/riverSources.js';
 export { seededHash, traceRiver } from './rivers/riverTrace.js';

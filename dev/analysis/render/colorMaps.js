@@ -38,6 +38,17 @@ export const MOISTURE_COLOR_STOPS = [
   { max: 1.0,    color: '#004a8f', label: 'Saturated' },
 ];
 
+// ─── Feature density color stops (ascending by max) ─────────────────────────
+
+/** @type {{ max: number, color: string, label: string }[]} */
+export const DENSITY_COLOR_STOPS = [
+  { max: 0.20,  color: '#2a2a2a', label: 'Sparse' },
+  { max: 0.40,  color: '#4a6a3a', label: 'Low' },
+  { max: 0.60,  color: '#6a9a4a', label: 'Moderate' },
+  { max: 0.80,  color: '#8aba5a', label: 'Dense' },
+  { max: 1.0,   color: '#aada6a', label: 'Lush' },
+];
+
 // ─── Lookup helpers ────────────────────────────────────────────────────────
 
 /**
@@ -63,4 +74,16 @@ export function moistureColor(moist) {
   }
   // Safety net (should not be reached with normal 0–1 input)
   return MOISTURE_COLOR_STOPS[MOISTURE_COLOR_STOPS.length - 1].color;
+}
+
+/**
+ * Map a feature density value (0–1) to a vegetation-density color.
+ * Shows how climate (moisture, elevation, slope) influences feature spawning density.
+ */
+export function densityColor(value) {
+  for (const stop of DENSITY_COLOR_STOPS) {
+    if (value < stop.max) return stop.color;
+  }
+  // Safety net (should not be reached with normal 0–1 input)
+  return DENSITY_COLOR_STOPS[DENSITY_COLOR_STOPS.length - 1].color;
 }

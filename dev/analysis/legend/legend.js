@@ -16,7 +16,7 @@ import { S } from '../state.js';
 import { els } from '../domRefs.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
 import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
-import { ELEVATION_COLOR_STOPS, MOISTURE_COLOR_STOPS } from '../render/colorMaps.js';
+import { ELEVATION_COLOR_STOPS, MOISTURE_COLOR_STOPS, DENSITY_COLOR_STOPS } from '../render/colorMaps.js';
 import { BIOME_COLORS, RIVER } from '../render/theme.js';
 
 // ─── Terrain display order ────────────────────────────────────────────────
@@ -28,7 +28,7 @@ export const TERRAIN_ORDER = ['plains', 'forest', 'denseForest', 'desert', 'mars
 /**
  * Update the legend DOM element for the given view mode.
  *
- * @param {'terrain'|'biome'|'elevation'|'moisture'|'baseMoisture'|'passability'|'rivers'|'blank'} mode
+ * @param {'terrain'|'biome'|'elevation'|'moisture'|'baseMoisture'|'density'|'passability'|'rivers'|'blank'} mode
  */
 export function updateLegend(mode) {
   if (!els.legend) return;
@@ -43,6 +43,9 @@ export function updateLegend(mode) {
 
   } else if (mode === 'moisture' || mode === 'baseMoisture') {
     els.legend.innerHTML = buildGradientLegend(MOISTURE_COLOR_STOPS);
+
+  } else if (mode === 'density') {
+    els.legend.innerHTML = buildGradientLegend(DENSITY_COLOR_STOPS);
 
   } else if (mode === 'terrain') {
     els.legend.innerHTML = buildTerrainLegend();

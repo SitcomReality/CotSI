@@ -6,14 +6,16 @@
  * the tile's terrain type fill from game rules.
  */
 import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
-import { elevationColor, moistureColor } from './colorMaps.js';
+import { elevationColor, moistureColor, densityColor } from './colorMaps.js';
 import { BIOME_COLORS } from './theme.js';
+import { featureDensity } from '../../../src/game/rules/terrainGen/features/featureDensity.js';
+import { DEFAULT_TERRAIN_RULES } from '../../../src/params/game/worldParams.js';
 
 /**
  * Determine the fill color for a single tile.
  *
  * @param {object} tile        — tile with elevation, moisture, baseMoisture, biomeId, terrain
- * @param {string} [viewMode]  — 'terrain' | 'biome' | 'elevation' | 'moisture' | 'baseMoisture' | 'passability' | 'blank'
+ * @param {string} [viewMode]  — 'terrain' | 'biome' | 'elevation' | 'moisture' | 'baseMoisture' | 'density' | 'passability' | 'blank'
  * @param {object} [palettes]  — biome→palette map, keyed by biomeId
  * @returns {string} CSS color string
  */
@@ -34,6 +36,16 @@ export function resolveFillColor(tile, viewMode, palettes) {
 
   if (viewMode === 'passability') {
     return TERRAIN[tile.terrain]?.passable ? '#3a7a3a' : '#8b3a3a';
+  }
+
+  if (viewMode === 'density') {
+    // Impassable tiles don't get features — show as neutral grey
+    if (!TERRAIN[tile.terrain]?.passable) return '#444';
+    const dens = featureDensity(
+      tile.terrain, tile.elevationField, tile.moisture, tile.slope,
+      DEFAULT_TERRAIN_RULES.treeLineMax
+    );
+    return densityColor(dens);
   }
 
   if (viewMode === 'biome') {
