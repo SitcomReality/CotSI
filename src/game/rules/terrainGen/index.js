@@ -1,0 +1,15 @@
+export { worldShape } from './fields/worldShape.js';
+export { computeSlope, clamp01 } from './fields/slopeComputation.js';
+export { NOISE_CONFIG, sampleBaseFields } from './fields/sampleBaseFields.js';
+export { isProvisionalWater, provisionalTerrainForRing } from './classification/provisionalWater.js';
+export { adjustMoisture, computeRainShadow } from './classification/moistureAdjustment.js';
+export { selectBiome, BIOME_PRIORITY_ORDER, SUPERNATURAL_BIOMES } from './classification/biomeSelection.js';
+export { classifyTerrain, resolveElevation } from './classification/terrainClassification.js';
+export { applySupernaturalOverrides } from './placement/epicenterPlacement.js';
+export { tagMountainType } from './tagging/mountainTagging.js';
+export { waterTypeForTile } from './tagging/waterTagging.js';
+export { spawnFeature } from './features/featureSpawning.js';
+export { ensureSpawnClearance, demoteToPassable, PASSEABLE_DEMOTION } from './postProcess/spawnClearance.js';
+export { ensurePassableConnectivity } from './postProcess/connectivityEnforcement.js';
+export { hexesInExpandedChunk, generateChunkTiles } from './chunkGeneration.js';
+export { generateTiles } from './flatGeneration.js';

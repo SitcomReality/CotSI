@@ -15,28 +15,9 @@
  */
 import { generateSingleSeed } from './generate.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
-import { sampleBaseFields, isProvisionalWater } from '../../../src/game/rules/terrainGenerator.js';
+import { sampleBaseFields, isProvisionalWater, NOISE_CONFIG } from '../../../src/game/rules/terrainGen/index.js';
 import { hexesWithinRadius, coordKey } from '../../../src/engine/rules/hexGrid.js';
-import {
-  NOISE_ELEVATION_DETAIL, NOISE_RIDGE, NOISE_MOISTURE, NOISE_TEMP_VARIATION, NOISE_REGION,
-  SEED_DETAIL, SEED_RIDGE, SEED_MOISTURE, SEED_TEMP, SEED_REGION_M, SEED_REGION_T,
-  DEFAULT_TERRAIN_RULES,
-} from '../../../src/params/game/worldParams.js';
-
-/** Noise config matching the module-level NOISE_CONFIG in terrainGenerator.js. */
-const TEST_NOISE_CONFIG = {
-  ELEVATION_DETAIL: NOISE_ELEVATION_DETAIL,
-  RIDGE: NOISE_RIDGE,
-  MOISTURE: NOISE_MOISTURE,
-  TEMP_VARIATION: NOISE_TEMP_VARIATION,
-  REGION: NOISE_REGION,
-  SEED_DETAIL,
-  SEED_RIDGE,
-  SEED_MOISTURE,
-  SEED_TEMP,
-  SEED_REGION_M,
-  SEED_REGION_T,
-};
+import { DEFAULT_TERRAIN_RULES } from '../../../src/params/game/worldParams.js';
 
 /** Test seed and radius. */
 const TEST_SEED = 'glut-17';
@@ -77,7 +58,7 @@ export function runSeamTest() {
       const { q, r, elevationField, moisture, temperature } = tile;
 
       // Recompute base fields directly via sampleBaseFields
-      const fields = sampleBaseFields(baseSeed, q, r, TEST_NOISE_CONFIG, TEST_RADIUS);
+      const fields = sampleBaseFields(baseSeed, q, r, NOISE_CONFIG, TEST_RADIUS);
 
       // Compare elevation (allow tiny floating-point drift)
       if (Math.abs(elevationField - fields.elevation) > 1e-12) {
@@ -98,7 +79,7 @@ export function runSeamTest() {
       // Compare adjusted moisture: recompute from base fields + neighbor water count
       let waterCount = 0;
       for (const n of hexesWithinRadius(2)) {
-        const nFields = sampleBaseFields(baseSeed, q + n.q, r + n.r, TEST_NOISE_CONFIG, TEST_RADIUS);
+        const nFields = sampleBaseFields(baseSeed, q + n.q, r + n.r, NOISE_CONFIG, TEST_RADIUS);
         if (isProvisionalWater(nFields.elevation, nFields.baseMoisture, DEFAULT_TERRAIN_RULES)) {
           waterCount++;
         }

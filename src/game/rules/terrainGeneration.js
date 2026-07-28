@@ -8,4 +8,4 @@
  */
 export { TERRAIN, DEFAULT_FEATURES } from './terrainTypes.js';
 export { nearestOpenKey, nearestOpenMultiRing } from './tileQueries.js';
-export { generateTiles } from './terrainGenerator.js';
+export { generateTiles } from './terrainGen/flatGeneration.js';

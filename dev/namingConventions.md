@@ -23,6 +23,8 @@ The following words are banned in file and directory names:
 
 Name the thing by what it does: `hexGrid.js` not `hexUtils.js`, `turnPipeline.js` not `turnController.js`, `combatUiState.js` not `combatStateManager.js`, `turnActions.js` not `turnLogic.js`.
 
+Never re-use terminology for two different purposes: `Verdant` is a faction so that word can never be used to describe terrain, `tokens` are an internal name for a UI element so `game pieces` are used for the small flat cylinders of mobs.
+
 ---
 
 ## 3. Directory Naming

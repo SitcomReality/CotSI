@@ -10,7 +10,7 @@
  * biome assignment via FBM noise in terrainGenerator.js.
  */
 import { makeRng, stringSeed } from '../../engine/rules/seededRng.js';
-import { generateTiles, ensureSpawnClearance } from '../rules/terrainGenerator.js';
+import { generateTiles, ensureSpawnClearance } from '../rules/terrainGen/index.js';
 import { getArchetype } from '../rules/archetypes.js';
 import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { shuffle } from '../../engine/rules/shuffle.js';
