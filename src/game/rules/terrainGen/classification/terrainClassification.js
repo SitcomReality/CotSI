@@ -37,16 +37,19 @@ export function classifyTerrain(elevation, moisture, temperature, slope, biomeDe
     return slope > R.plateauSlopeMin ? 'mountain' : 'plateau';
   }
 
-  // Hills: moderate elevation, moderate slope
-  if (elevation > R.hillElevationMin && slope > R.hillSlopeMin)
-    return 'hill';
-
   const belowTreeLine = elevation < R.treeLineMax;
 
   if (belowTreeLine && moisture > R.denseForestMinMoisture) return 'denseForest';
   if (belowTreeLine && moisture > R.forestMinMoisture)      return 'forest';
   if (moisture < R.desertMaxMoisture)                       return 'desert';
   if (moisture > R.marshMinMoisture && elevation < R.marshMaxElevation) return 'marsh';
+
+  // Hills: moderate elevation, moderate slope.
+  // Placed after moisture checks so climate-driven terrain (forest, desert, marsh) gets
+  // first pick of non-mountainous land. Hill becomes "elevated land that isn't climatically
+  // distinctive" rather than a voracious gate that starves moisture-based types.
+  if (elevation > R.hillElevationMin && slope > R.hillSlopeMin)
+    return 'hill';
 
   return 'plains';
 }

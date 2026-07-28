@@ -124,6 +124,7 @@ async function runBatchAnalysis() {
   els.btnBatchRun.disabled = true;
   els.btnDownloadThresholds.disabled = true;
   els.btnDownloadLuts.disabled = true;
+  els.btnDownloadBatchReport.disabled = true;
   progressBar.show('Starting batch...');
 
   try {
@@ -151,6 +152,8 @@ async function runBatchAnalysis() {
       els.btnDownloadThresholds.disabled = false;
       els.btnDownloadLuts.disabled = false;
     }
+    // Batch report button always enabled after a run
+    els.btnDownloadBatchReport.disabled = false;
   } catch (err) {
     els.statsPanel.textContent = `Batch analysis error:\n${err.message}\n${err.stack || ''}`;
   } finally {
@@ -187,6 +190,18 @@ function downloadLUTs() {
   URL.revokeObjectURL(url);
 }
 
+function downloadBatchReport() {
+  const text = els.statsPanel.textContent;
+  if (!text || text === 'Loading...') return;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'batch_report.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── Bind controls ────────────────────────────────────────────────────────────
 
 function bindControls() {
@@ -218,6 +233,9 @@ function bindControls() {
   }
   if (els.btnDownloadLuts) {
     els.btnDownloadLuts.addEventListener('click', downloadLUTs);
+  }
+  if (els.btnDownloadBatchReport) {
+    els.btnDownloadBatchReport.addEventListener('click', downloadBatchReport);
   }
 
   // Entity toggles re-render

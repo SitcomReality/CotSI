@@ -26,12 +26,17 @@ import { percentileFromHistogram } from '../generation/histograms.js';
  * @returns {string} Formatted report
  */
 export function formatBatchReport(result, opts = {}) {
-  const { seedCount, radii, perRadius, calibration } = result;
+  const { seedCount, radii, perRadius, calibration, snapshot } = result;
   const parts = [];
 
   parts.push(`=== Batch Analysis Report ===`);
   parts.push(`Seeds: ${seedCount}  |  Radii: ${radii.join(', ')}`);
   parts.push('');
+
+  // ── Snapshot test (once, not per-radius) ─────────────────────────────
+  if (snapshot) {
+    parts.push(formatSnapshotReport(snapshot));
+  }
 
   // ── Per-radius sections ────────────────────────────────────────────
   for (const radius of radii) {
@@ -102,6 +107,20 @@ export function formatBatchReport(result, opts = {}) {
         const p99 = percentileFromHistogram(pooled, 0.99);
         parts.push(`  ${f.label.padEnd(14)} p10=${p10.toFixed(3)}  p25=${p25.toFixed(3)}  p50=${p50.toFixed(3)}  p75=${p75.toFixed(3)}  p90=${p90.toFixed(3)}  p99=${p99.toFixed(3)}`);
       }
+
+      // Land-only moisture row (excludes water and ice tiles)
+      if (rData.tileHistsLand && rData.tileHistsLand.length > 0) {
+        const moistList = rData.tileHistsLand.map(h => h.moistHist);
+        const pooledMoistLand = poolHistograms(moistList);
+        const lp10 = percentileFromHistogram(pooledMoistLand, 0.10);
+        const lp25 = percentileFromHistogram(pooledMoistLand, 0.25);
+        const lp50 = percentileFromHistogram(pooledMoistLand, 0.50);
+        const lp75 = percentileFromHistogram(pooledMoistLand, 0.75);
+        const lp90 = percentileFromHistogram(pooledMoistLand, 0.90);
+        const lp99 = percentileFromHistogram(pooledMoistLand, 0.99);
+        parts.push(`  Moisture (land)  p10=${lp10.toFixed(3)}  p25=${lp25.toFixed(3)}  p50=${lp50.toFixed(3)}  p75=${lp75.toFixed(3)}  p90=${lp90.toFixed(3)}  p99=${lp99.toFixed(3)}`);
+      }
+
       parts.push('');
     }
 
@@ -126,9 +145,6 @@ export function formatBatchReport(result, opts = {}) {
     }
 
     // Tests
-    if (rData.snapshot) {
-      parts.push(formatSnapshotReport(rData.snapshot));
-    }
     if (rData.seam) {
       parts.push(formatSeamReport(rData.seam));
     }

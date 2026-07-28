@@ -186,6 +186,51 @@ export function percentileFromHistogram(hist, p) {
 }
 
 // ---------------------------------------------------------------------------
+// Tile-based histogram collection
+// ---------------------------------------------------------------------------
+
+/**
+ * Collect 50-bin histograms from generated tile objects.
+ *
+ * Iterates the tile objects produced by generateSingleSeed and bins
+ * the actual field values that classifyTerrain uses — adjusted moisture,
+ * composited elevation, and temperature — into 50-bin histograms.
+ *
+ * When landOnly is true, tiles with terrain 'water' or 'ice' are skipped,
+ * producing histograms for land tiles only. This avoids water/ice tiles
+ * inflating moisture percentiles (desert tuning uses land-only moisture).
+ *
+ * @param {object} tiles  - Tile objects keyed by "q,r" string
+ * @param {object} [opts]
+ * @param {boolean} [opts.landOnly=false] - Skip water and ice tiles
+ * @returns {{ elevHist: Uint32Array, moistHist: Uint32Array,
+ *             tempHist: Uint32Array, tileCount: number }}
+ */
+export function collectTileHistograms(tiles, opts = { landOnly: false }) {
+  const BINS = 50;
+
+  const elevHist  = new Uint32Array(BINS);
+  const moistHist = new Uint32Array(BINS);
+  const tempHist  = new Uint32Array(BINS);
+  let tileCount = 0;
+
+  for (const key of Object.keys(tiles)) {
+    const tile = tiles[key];
+    if (opts.landOnly && (tile.terrain === 'water' || tile.terrain === 'ice')) continue;
+
+    const elevBin  = Math.min(BINS - 1, Math.floor(clamp01(tile.elevationField) * BINS));
+    const moistBin = Math.min(BINS - 1, Math.floor(clamp01(tile.moisture) * BINS));
+    const tempBin  = Math.min(BINS - 1, Math.floor(clamp01(tile.temperature) * BINS));
+    elevHist[elevBin]++;
+    moistHist[moistBin]++;
+    tempHist[tempBin]++;
+    tileCount++;
+  }
+
+  return { elevHist, moistHist, tempHist, tileCount };
+}
+
+// ---------------------------------------------------------------------------
 // Utility
 // ---------------------------------------------------------------------------
 

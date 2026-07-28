@@ -1,0 +1,438 @@
+=== Batch Analysis Report ===
+Seeds: 500  |  Radii: 7, 21, 50
+
+--- Radius 7 ---
+
+Terrain distribution (mean % +/- stddev):
+  Plains        14.0%  +/- 9.06  (min 4.1%, max 35.5%)
+  Forest        13.1%  +/-13.08  (min 0.0%, max 33.1%)
+  Deep wood      0.0%  +/- 0.00  (min 0.0%, max 0.0%)
+  Desert        30.5%  +/-26.65  (min 0.0%, max 72.2%)
+  Marsh          1.0%  +/- 1.25  (min 0.0%, max 5.9%)
+  Hill           9.0%  +/- 8.70  (min 0.0%, max 26.0%)
+  Plateau        0.0%  +/- 0.00  (min 0.0%, max 0.0%)
+  Impassable peaks   4.1%  +/- 4.41  (min 0.0%, max 12.4%)
+  High peak      5.1%  +/- 3.57  (min 0.0%, max 8.9%)
+  Floating isle   1.7%  +/- 0.75  (min 0.6%, max 3.0%)
+  Broken water   4.0%  +/- 4.13  (min 0.0%, max 18.9%)
+  Frozen surface  17.5%  +/-19.69  (min 0.0%, max 60.9%)
+
+Trader position heatmap (top 15 hexes by seed count):
+      -7,0  100/500  (20.0%)
+      -6,0  89/500  (17.8%)
+      -7,3  86/500  (17.2%)
+      -7,5  84/500  (16.8%)
+      -6,1  83/500  (16.6%)
+      -7,4  80/500  (16.0%)
+      -7,1  78/500  (15.6%)
+      -7,2  75/500  (15.0%)
+      -6,2  73/500  (14.6%)
+      -7,6  67/500  (13.4%)
+      -6,4  60/500  (12.0%)
+      -6,5  56/500  (11.2%)
+      -7,7  56/500  (11.2%)
+      -6,3  48/500  (9.6%)
+     -6,-1  44/500  (8.8%)
+
+Champion spawn heatmap (top 15 hexes by seed count):
+       3,1  125/500  (25.0%)
+     -4,-1  97/500  (19.4%)
+      -5,3  93/500  (18.6%)
+      4,-3  86/500  (17.2%)
+      -6,3  85/500  (17.0%)
+     -3,-1  83/500  (16.6%)
+      1,-4  76/500  (15.2%)
+      -4,6  72/500  (14.4%)
+       4,1  72/500  (14.4%)
+      -4,5  70/500  (14.0%)
+      -1,5  64/500  (12.8%)
+      -6,4  63/500  (12.6%)
+       2,1  57/500  (11.4%)
+      -2,5  53/500  (10.6%)
+      -4,0  52/500  (10.4%)
+
+Pooled Histograms (500 seeds × r=7):
+  Elevation      p10=0.000  p25=0.000  p50=0.080  p75=0.180  p90=0.300  p99=0.500
+  Moisture       p10=0.320  p25=0.380  p50=0.500  p75=0.600  p90=0.660  p99=0.740
+  Temperature    p10=0.520  p25=0.540  p50=0.580  p75=0.620  p90=0.660  p99=0.700
+  Slope          p10=0.000  p25=0.020  p50=0.040  p75=0.040  p90=0.060  p99=0.100
+
+Frequency Verification:
+  Elevation detail:
+    config freq=0.03  octaves=4
+    target: ~10-hex local relief
+    zero-crossings=15  half-cycles=7.5
+    effective λ=1wu  (~1.9 hexes)
+  Ridge noise:
+    config freq=0.015  octaves=3
+    target: ~25-hex mountain chains
+    zero-crossings=9  half-cycles=4.5
+    effective λ=2wu  (~3.1 hexes)
+  Moisture:
+    config freq=0.01  octaves=4
+    target: broad wet/dry bands
+    zero-crossings=2  half-cycles=1.0
+    effective λ=7wu  (~14.0 hexes)
+  Temperature variation:
+    config freq=0.08  octaves=1
+    target: local temp noise
+    zero-crossings=7  half-cycles=3.5
+    effective λ=2wu  (~4.0 hexes)
+  Region bias:
+    config freq=0.004  octaves=3
+    target: 4-6 biome regions on radius-50
+    zero-crossings=0  half-cycles=0.0
+    effective λ=Infinitywu  (~Infinity hexes)
+
+=== Snapshot Tests ===
+Status: FAILED
+Radius: 21  |  Seeds: 3
+
+Seed "test-alpha" (1387 tiles):
+  All distributions within tolerance.
+  Measured: water=15.1%  mountain=0.0%  peak=4.1%  floatingIsland=0.5%
+
+Seed "test-beta" (1387 tiles):
+  FAIL: water: 0.1% out of range [6%, 50%]
+  FAIL: peak: 6.3% out of range [0%, 5%]
+  Measured: water=0.1%  mountain=3.5%  peak=6.3%  floatingIsland=0.8%
+
+Seed "test-gamma" (1387 tiles):
+  FAIL: water: 3.8% out of range [6%, 50%]
+  FAIL: floatingIsland: 2.0% out of range [0%, 2%]
+  Measured: water=3.8%  mountain=1.7%  peak=0.1%  floatingIsland=2.0%
+
+=== Chunk-Seam Invariant Test ===
+Status: PASSED
+Seed: glut-17  |  Radius: 21
+Invariant: elevationField & temperature are pure functions of (seed, q, r)
+Moisture: adjusted (coastal boost) — recomputed from base fields + neighbor water
+Formula: worldShape(dist, radius) × (detail×0.5 + ridges×0.5)
+
+All tiles verified — stored fields match recomputed values.
+
+=== Climate Coverage Report ===
+Seed: glut-17  |  Radius: 7  |  Tiles: 169
+
+Biome distribution:
+  biome_brass_grave: 151 tiles (89.3%)
+  biome_savanna: 8 tiles (4.7%)
+  biome_frigid_silence: 7 tiles (4.1%)
+  biome_default: 3 tiles (1.8%)
+
+biome_default tiles: 3 (coverage gaps)
+Sample (elevationField, moisture) coordinates:
+  (6,-2)  elev=0.0584  moist=0.4335
+  (7,-3)  elev=0.0000  moist=0.4052
+  (7,-2)  elev=0.0000  moist=0.4335
+
+Note: Biome assignment is climate-driven with epicenter overrides.
+biome_default tiles here are climate gaps or fallout from epicenter regions.
+Gaps indicate climate zones with no natural biome match.
+
+--- Radius 21 ---
+
+Terrain distribution (mean % +/- stddev):
+  Plains        14.6%  +/- 5.84  (min 1.7%, max 31.3%)
+  Forest        19.6%  +/- 8.16  (min 0.6%, max 36.7%)
+  Deep wood      1.5%  +/- 2.34  (min 0.0%, max 9.9%)
+  Desert        37.4%  +/-12.93  (min 8.4%, max 62.9%)
+  Marsh          1.3%  +/- 0.91  (min 0.0%, max 5.2%)
+  Hill           9.3%  +/- 4.14  (min 0.1%, max 21.1%)
+  Plateau        0.5%  +/- 0.65  (min 0.0%, max 5.0%)
+  Impassable peaks   1.5%  +/- 1.34  (min 0.0%, max 6.8%)
+  High peak      3.0%  +/- 2.67  (min 0.0%, max 7.7%)
+  Floating isle   1.4%  +/- 0.74  (min 0.4%, max 2.8%)
+  Broken water   3.9%  +/- 3.92  (min 0.0%, max 17.7%)
+  Frozen surface   6.1%  +/- 4.56  (min 0.0%, max 20.5%)
+
+Trader position heatmap (top 15 hexes by seed count):
+     -21,0  207/500  (41.4%)
+     -21,1  205/500  (41.0%)
+     -21,2  173/500  (34.6%)
+     -21,3  148/500  (29.6%)
+     -21,4  105/500  (21.0%)
+     -21,5  76/500  (15.2%)
+     -21,7  64/500  (12.8%)
+    -21,11  59/500  (11.8%)
+     -21,6  58/500  (11.6%)
+    -21,10  57/500  (11.4%)
+     -21,9  50/500  (10.0%)
+     -21,8  48/500  (9.6%)
+    -20,10  19/500  (3.8%)
+    -20,11  19/500  (3.8%)
+    -20,-1  16/500  (3.2%)
+
+Champion spawn heatmap (top 15 hexes by seed count):
+     10,-8  50/500  (10.0%)
+     -14,7  47/500  (9.4%)
+      10,1  44/500  (8.8%)
+     -15,8  43/500  (8.6%)
+     -8,-6  43/500  (8.6%)
+     11,-8  42/500  (8.4%)
+     2,-10  42/500  (8.4%)
+      1,10  40/500  (8.0%)
+       9,1  39/500  (7.8%)
+     -8,-5  39/500  (7.8%)
+     3,-10  38/500  (7.6%)
+      1,11  38/500  (7.6%)
+     4,-13  36/500  (7.2%)
+      1,12  36/500  (7.2%)
+      2,11  35/500  (7.0%)
+
+Pooled Histograms (500 seeds × r=21):
+  Elevation      p10=0.000  p25=0.020  p50=0.080  p75=0.160  p90=0.280  p99=0.500
+  Moisture       p10=0.260  p25=0.340  p50=0.500  p75=0.640  p90=0.720  p99=0.800
+  Temperature    p10=0.520  p25=0.540  p50=0.580  p75=0.620  p90=0.660  p99=0.700
+  Slope          p10=0.000  p25=0.000  p50=0.000  p75=0.020  p90=0.020  p99=0.040
+
+Frequency Verification:
+  Elevation detail:
+    config freq=0.02  octaves=4
+    target: ~10-hex local relief
+    zero-crossings=67  half-cycles=33.5
+    effective λ=1wu  (~1.3 hexes)
+  Ridge noise:
+    config freq=0.008  octaves=3
+    target: ~25-hex mountain chains
+    zero-crossings=23  half-cycles=11.5
+    effective λ=2wu  (~3.7 hexes)
+  Moisture:
+    config freq=0.006  octaves=4
+    target: broad wet/dry bands
+    zero-crossings=5  half-cycles=2.5
+    effective λ=8wu  (~16.8 hexes)
+  Temperature variation:
+    config freq=0.08  octaves=1
+    target: local temp noise
+    zero-crossings=154  half-cycles=77.0
+    effective λ=0wu  (~0.5 hexes)
+  Region bias:
+    config freq=0.0015  octaves=3
+    target: 4-6 biome regions on radius-50
+    zero-crossings=2  half-cycles=1.0
+    effective λ=21wu  (~42.0 hexes)
+
+=== Snapshot Tests ===
+Status: FAILED
+Radius: 21  |  Seeds: 3
+
+Seed "test-alpha" (1387 tiles):
+  All distributions within tolerance.
+  Measured: water=15.1%  mountain=0.0%  peak=4.1%  floatingIsland=0.5%
+
+Seed "test-beta" (1387 tiles):
+  FAIL: water: 0.1% out of range [6%, 50%]
+  FAIL: peak: 6.3% out of range [0%, 5%]
+  Measured: water=0.1%  mountain=3.5%  peak=6.3%  floatingIsland=0.8%
+
+Seed "test-gamma" (1387 tiles):
+  FAIL: water: 3.8% out of range [6%, 50%]
+  FAIL: floatingIsland: 2.0% out of range [0%, 2%]
+  Measured: water=3.8%  mountain=1.7%  peak=0.1%  floatingIsland=2.0%
+
+=== Chunk-Seam Invariant Test ===
+Status: PASSED
+Seed: glut-17  |  Radius: 21
+Invariant: elevationField & temperature are pure functions of (seed, q, r)
+Moisture: adjusted (coastal boost) — recomputed from base fields + neighbor water
+Formula: worldShape(dist, radius) × (detail×0.5 + ridges×0.5)
+
+All tiles verified — stored fields match recomputed values.
+
+=== Climate Coverage Report ===
+Seed: glut-17  |  Radius: 21  |  Tiles: 1387
+
+Biome distribution:
+  biome_brass_grave: 419 tiles (30.2%)
+  biome_frigid_silence: 290 tiles (20.9%)
+  biome_default: 265 tiles (19.1%)
+  biome_savanna: 223 tiles (16.1%)
+  biome_lush: 190 tiles (13.7%)
+
+biome_default tiles: 265 (coverage gaps)
+Sample (elevationField, moisture) coordinates:
+  (-21,11)  elev=0.0000  moist=0.5898
+  (-20,10)  elev=0.0111  moist=0.5822
+  (-20,11)  elev=0.0105  moist=0.5960
+  (-19,9)  elev=0.0221  moist=0.5740
+  (-19,10)  elev=0.0211  moist=0.5878
+  (-19,11)  elev=0.0201  moist=0.6032
+  (-18,9)  elev=0.0302  moist=0.5790
+  (-18,10)  elev=0.0291  moist=0.5946
+  (-18,11)  elev=0.0291  moist=0.6118
+  (-17,8)  elev=0.0384  moist=0.5697
+  ... and 255 more
+
+Note: Biome assignment is climate-driven with epicenter overrides.
+biome_default tiles here are climate gaps or fallout from epicenter regions.
+Gaps indicate climate zones with no natural biome match.
+
+--- Radius 50 ---
+
+Terrain distribution (mean % +/- stddev):
+  Plains        23.3%  +/- 7.00  (min 9.8%, max 49.9%)
+  Forest        22.1%  +/- 5.36  (min 8.5%, max 35.9%)
+  Deep wood      2.7%  +/- 3.76  (min 0.0%, max 14.6%)
+  Desert        26.4%  +/- 6.95  (min 8.6%, max 47.9%)
+  Marsh          0.9%  +/- 0.73  (min 0.0%, max 4.5%)
+  Hill           1.8%  +/- 0.93  (min 0.0%, max 6.8%)
+  Plateau        3.9%  +/- 1.25  (min 0.5%, max 8.3%)
+  Impassable peaks   0.1%  +/- 0.10  (min 0.0%, max 0.6%)
+  High peak      3.5%  +/- 1.80  (min 0.3%, max 7.1%)
+  Floating isle   1.2%  +/- 0.51  (min 0.3%, max 2.3%)
+  Broken water   3.6%  +/- 2.99  (min 0.0%, max 15.7%)
+  Frozen surface  10.6%  +/- 3.91  (min 0.0%, max 23.1%)
+
+Trader position heatmap (top 15 hexes by seed count):
+     -50,0  160/500  (32.0%)
+     -50,1  153/500  (30.6%)
+     -50,2  150/500  (30.0%)
+     -50,3  109/500  (21.8%)
+     -50,4  61/500  (12.2%)
+     -50,5  41/500  (8.2%)
+    -50,11  28/500  (5.6%)
+     -50,6  26/500  (5.2%)
+     -47,0  26/500  (5.2%)
+     -50,7  25/500  (5.0%)
+    -49,-1  23/500  (4.6%)
+     -50,8  18/500  (3.6%)
+     -50,9  18/500  (3.6%)
+    -50,10  18/500  (3.6%)
+    -49,11  17/500  (3.4%)
+
+Champion spawn heatmap (top 15 hexes by seed count):
+    33,-28  13/500  (2.6%)
+      31,0  12/500  (2.4%)
+    11,-31  12/500  (2.4%)
+     7,-30  12/500  (2.4%)
+    -37,19  11/500  (2.2%)
+   -22,-10  11/500  (2.2%)
+    -33,16  11/500  (2.2%)
+     7,-33  10/500  (2.0%)
+    31,-24  10/500  (2.0%)
+    12,-36  10/500  (2.0%)
+    -36,18  10/500  (2.0%)
+      32,0  10/500  (2.0%)
+    35,-25  10/500  (2.0%)
+    33,-30  9/500  (1.8%)
+   -22,-11  9/500  (1.8%)
+
+Pooled Histograms (500 seeds × r=50):
+  Elevation      p10=0.000  p25=0.020  p50=0.080  p75=0.160  p90=0.260  p99=0.480
+  Moisture       p10=0.240  p25=0.320  p50=0.480  p75=0.660  p90=0.740  p99=0.840
+  Temperature    p10=0.520  p25=0.560  p50=0.580  p75=0.620  p90=0.660  p99=0.700
+  Slope          p10=0.000  p25=0.000  p50=0.000  p75=0.000  p90=0.000  p99=0.020
+
+Frequency Verification:
+  Elevation detail:
+    config freq=0.012  octaves=4
+    target: ~10-hex local relief
+    zero-crossings=252  half-cycles=126.0
+    effective λ=0wu  (~0.8 hexes)
+  Ridge noise:
+    config freq=0.005  octaves=3
+    target: ~25-hex mountain chains
+    zero-crossings=55  half-cycles=27.5
+    effective λ=2wu  (~3.6 hexes)
+  Moisture:
+    config freq=0.004  octaves=4
+    target: broad wet/dry bands
+    zero-crossings=18  half-cycles=9.0
+    effective λ=6wu  (~11.1 hexes)
+  Temperature variation:
+    config freq=0.08  octaves=1
+    target: local temp noise
+    zero-crossings=871  half-cycles=435.5
+    effective λ=0wu  (~0.2 hexes)
+  Region bias:
+    config freq=0.0008  octaves=3
+    target: 4-6 biome regions on radius-50
+    zero-crossings=2  half-cycles=1.0
+    effective λ=50wu  (~100.0 hexes)
+
+=== Snapshot Tests ===
+Status: FAILED
+Radius: 21  |  Seeds: 3
+
+Seed "test-alpha" (1387 tiles):
+  All distributions within tolerance.
+  Measured: water=15.1%  mountain=0.0%  peak=4.1%  floatingIsland=0.5%
+
+Seed "test-beta" (1387 tiles):
+  FAIL: water: 0.1% out of range [6%, 50%]
+  FAIL: peak: 6.3% out of range [0%, 5%]
+  Measured: water=0.1%  mountain=3.5%  peak=6.3%  floatingIsland=0.8%
+
+Seed "test-gamma" (1387 tiles):
+  FAIL: water: 3.8% out of range [6%, 50%]
+  FAIL: floatingIsland: 2.0% out of range [0%, 2%]
+  Measured: water=3.8%  mountain=1.7%  peak=0.1%  floatingIsland=2.0%
+
+=== Chunk-Seam Invariant Test ===
+Status: PASSED
+Seed: glut-17  |  Radius: 21
+Invariant: elevationField & temperature are pure functions of (seed, q, r)
+Moisture: adjusted (coastal boost) — recomputed from base fields + neighbor water
+Formula: worldShape(dist, radius) × (detail×0.5 + ridges×0.5)
+
+All tiles verified — stored fields match recomputed values.
+
+=== Climate Coverage Report ===
+Seed: glut-17  |  Radius: 50  |  Tiles: 7651
+
+Biome distribution:
+  biome_lush: 1604 tiles (21.0%)
+  biome_brass_grave: 1461 tiles (19.1%)
+  biome_default: 1425 tiles (18.6%)
+  biome_unfinished_lands: 1384 tiles (18.1%)
+  biome_frigid_silence: 1024 tiles (13.4%)
+  biome_savanna: 753 tiles (9.8%)
+
+biome_default tiles: 1425 (coverage gaps)
+Sample (elevationField, moisture) coordinates:
+  (-50,19)  elev=0.0000  moist=0.5492
+  (-50,20)  elev=0.0000  moist=0.5520
+  (-50,21)  elev=0.0000  moist=0.5541
+  (-50,22)  elev=0.0000  moist=0.5556
+  (-50,23)  elev=0.0000  moist=0.5569
+  (-50,24)  elev=0.0000  moist=0.5584
+  (-50,25)  elev=0.0000  moist=0.5603
+  (-50,26)  elev=0.0000  moist=0.5630
+  (-50,27)  elev=0.0000  moist=0.5668
+  (-50,30)  elev=0.0000  moist=0.5861
+  ... and 1415 more
+
+Note: Biome assignment is climate-driven with epicenter overrides.
+biome_default tiles here are climate gaps or fallout from epicenter regions.
+Gaps indicate climate zones with no natural biome match.
+
+=== Threshold Derivation ===
+  500 seeds × radii [7, 21, 50]
+
+Derived Thresholds (raw values at target percentiles):
+
+  waterMaxElevation            0.0000  (p12, elevation)
+  mountainThreshold            0.2600  (p90, elevation)
+  peakThreshold                0.4000  (p97, elevation)
+  floatingIslandThreshold      0.5200  (p99.5, elevation)
+  hillElevationMin             0.0800  (p55, elevation)
+  marshMaxElevation            0.0400  (p35, elevation)
+  forestMinMoisture            0.6400  (p72, moisture)
+  denseForestMinMoisture       0.7000  (p85, moisture)
+  desertMaxMoisture            0.3000  (p20, moisture)
+  marshMinMoisture             0.5400  (p58, moisture)
+  freezeTempMax                0.5400  (p15, temperature)
+
+Slope normalization:  0.0244  (95th percentile of per-tile avg deltas)
+
+Quantile LUT sanity (raw → normalized):
+  Elevation      raw:0.10→0.6416  0.50→0.9929  0.90→1.0000
+  Moisture       raw:0.10→0.0018  0.50→0.5258  0.90→0.9999
+  Temperature    raw:0.10→0.0000  0.50→0.0392  0.90→1.0000
+  Slope          raw:0.10→0.9999  0.50→1.0000  0.90→1.0000
+
+---
+Thresholds are raw values at the target percentile of the pooled
+distribution. They remain stable when Phases B/F change the composite.
+Only the quantile LUTs need regeneration after those phases.

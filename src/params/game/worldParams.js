@@ -105,8 +105,19 @@ export const EPICENTER_GRID = {
 // Slope calibration
 // ---------------------------------------------------------------------------
 
-/** 95th-percentile of per-tile mean neighbor elevation delta (derived from 250-seed × 3-radius batch analysis, 2026-07-29). */
-export const SLOPE_NORMALIZATION = 0.0152;
+/**
+ * Slope normalization divisor for computeSlope().
+ * Derived from r=21-specific avgDelta distribution (p95 ~0.030), targeting
+ * gameSlope ≈0.75 at p95 so the top end of the range discriminates genuine
+ * steep terrain. The pooled (all-radii) p95 of 0.0133 was dominated by
+ * r=100 tiles (78% of total) with near-zero slope.
+ *
+ * With SN=0.040, r=21's three raw-delta tiers map to usable slope values:
+ *   avgDelta 0.000 → slope 0.00 (flat)
+ *   avgDelta 0.020 → slope 0.50 (moderate)
+ *   avgDelta 0.040 → slope 1.00 (steep)
+ */
+export const SLOPE_NORMALIZATION = 0.040;
 
 /** Maximum lookup radius for border-ring sampling in per-chunk generation.
  *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
@@ -120,33 +131,34 @@ export const MAX_LOOKUP_RADIUS = 3;
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_TERRAIN_RULES = {
-  // Elevation thresholds — derived from 250-seed × 3-radius batch analysis (Phase F ridged noise)
-  waterMaxElevation:        0.000, // p12
-  mountainThreshold:        0.220, // p90
-  peakThreshold:            0.320, // p97
-  floatingIslandThreshold:  0.480, // p99.5
-  marshMaxElevation:        0.040, // p35
+  // Elevation thresholds — derived from 500-seed × 3-radius batch analysis (Phase G batch 003, post-SN-fix)
+  waterMaxElevation:        0.016, // p14 — low-elevation tiles become water candidates
+  mountainThreshold:        0.260, // p90
+  peakThreshold:            0.350, // p97 (slightly conservative vs batch-derived 0.400 to prevent undercount)
+  floatingIslandThreshold:  0.520, // p99.5
+  marshMaxElevation:        0.060, // p42 — raised from p35 to widen marsh's low-elevation catchment
   hillElevationMin:         0.080, // p55
 
-  // Slope thresholds — calibrated from 250-seed × 3-radius batch analysis.
-  // Among mountain-elevation tiles (~p90+), ~8-10% have stable enough slope to
-  // qualify as plateau rather than mountain. Among mid-elevation tiles (p55-p90),
-  // ~25% have enough local relief to qualify as hill; the rest fall to plains/forest.
-  plateauSlopeMin:          0.55,  // above this → mountain, below → plateau
+  // Slope thresholds — calibrated from Phase G batch 004.
+  // With SN=0.040, r=21 slopes map to 0.0 (flat), 0.50 (moderate), 1.0 (steep).
+  // plateauSlopeMin=0.40: moderate-slope high-elevation tiles (0.50 > 0.40) become
+  // mountain rather than plateau, targeting ~5% mountain + ~5% plateau at r=21.
+  // hillSlopeMin=0.25: both moderate and steep mid-elevation tiles become hills.
+  plateauSlopeMin:          0.40,  // above this → mountain, below → plateau
   hillSlopeMin:             0.25,
 
-  // Moisture thresholds — derived from 250-seed × 3-radius batch analysis
-  forestMinMoisture:        0.580, // p72
-  denseForestMinMoisture:   0.660, // p85
-  desertMaxMoisture:        0.340, // p20
-  marshMinMoisture:         0.520, // p58
+  // Moisture thresholds — derived from Phase G batch 003
+  forestMinMoisture:        0.640, // p72
+  denseForestMinMoisture:   0.700, // p85
+  desertMaxMoisture:        0.180, // p5 of land-only moisture — pooled histograms include water/ice tiles
+  marshMinMoisture:         0.480, // p50 — generous floor to increase marsh from current 1.3%
 
   // Temperature — derived from batch analysis
   freezeTempMax:            0.540, // p15
 
-  // Water moisture gate — from 250-seed × 3-radius batch analysis.
-  // waterMaxElevation=p12 gives ~12% low-elevation tiles; at p20 moisture ~80%
-  // of those qualify, targeting ~8-10% total water.
+  // Water moisture gate — batch-derived.
+  // waterMaxElevation=0.016 gives ~14% low-elevation tiles; at waterMinMoisture=0.32
+  // roughly two-thirds of those qualify, targeting ~8-10% total water.
   waterMinMoisture:         0.32,
   treeLineMax:              0.85,
   snowLineMax:              0.15,

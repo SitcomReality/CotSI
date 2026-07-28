@@ -73,6 +73,7 @@ export function cacheDom() {
   els.batchProgress = $('batch-progress');
   els.btnDownloadThresholds = $('btn-download-thresholds');
   els.btnDownloadLuts = $('btn-download-luts');
+  els.btnDownloadBatchReport = $('btn-download-batch-report');
   els.legend = $('legend');
   els.loading = $('loading');
   els.mapArea = $('map-area');

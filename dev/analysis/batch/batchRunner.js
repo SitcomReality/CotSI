@@ -8,7 +8,7 @@
  * Pure: no DOM, no state, no side effects (except via generator calls).
  */
 import { generateSingleSeed } from '../generation/generate.js';
-import { collectHistograms } from '../generation/histograms.js';
+import { collectHistograms, collectTileHistograms } from '../generation/histograms.js';
 import { verifyFrequency } from '../generation/frequencyVerification.js';
 import { runSnapshotTests } from '../generation/snapshotTest.js';
 import { runSeamTest } from '../generation/seamTest.js';
@@ -111,6 +111,10 @@ export async function runBatch(opts) {
       ? { elev: [], moist: [], temp: [], slope: [] }
       : null;
 
+    // Per-seed tile-based histogram accumulators for this radius
+    const radiusTileHistsAll = [];
+    const radiusTileHistsLand = [];
+
     // Unused but may want in future:
     for (let i = 0; i < seedCount; i++) {
       const seedText = `${baseSeed}-${i}`;
@@ -120,6 +124,10 @@ export async function runBatch(opts) {
       // ── 1. Generate full map (needed for terrain/trader) ──────────────
       const result = generateSingleSeed(seedText, radius, null, { multiBiome });
       const stats = collectSeedStats(result);
+
+      // ── 1a. Collect tile-based histograms (actual field values) ──────
+      radiusTileHistsAll.push(collectTileHistograms(result.tiles, { landOnly: false }));
+      radiusTileHistsLand.push(collectTileHistograms(result.tiles, { landOnly: true }));
 
       // Accumulate terrain distributions
       terrainDists.push(stats.terrain);
@@ -211,9 +219,6 @@ export async function runBatch(opts) {
     }
 
     // ── 5. Tests (once per radius with a representative seed) ────────────
-    if (wants.snapshot) {
-      radiusResult.snapshot = runSnapshotTests();
-    }
     if (wants.seam) {
       radiusResult.seam = runSeamTest();
     }
@@ -228,7 +233,17 @@ export async function runBatch(opts) {
         : null;
     }
 
+    // Tile-based histograms always collected (lightweight, used for land-only moisture)
+    radiusResult.tileHists = radiusTileHistsAll;
+    radiusResult.tileHistsLand = radiusTileHistsLand;
+
     perRadius[radiusKey] = radiusResult;
+  }
+
+  // ── Snapshot test (once, not per-radius) ─────────────────────────────
+  let snapshot = null;
+  if (wants.snapshot) {
+    snapshot = runSnapshotTests();
   }
 
   // ── Cross-radius threshold derivation ────────────────────────────────
@@ -247,6 +262,7 @@ export async function runBatch(opts) {
     radii,
     perRadius,
     calibration,
+    snapshot,
   };
 }
 
