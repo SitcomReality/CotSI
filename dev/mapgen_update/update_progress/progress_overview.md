@@ -67,10 +67,10 @@ Details in `phaseB_progress.md`.
 4. Build `provisionalWaterSet` from border ring `fieldMap` using `DEFAULT_TERRAIN_RULES` — **generateChunkTiles** — **Done.**
 5. Insert provisional water classification pass (Pass 2) and moisture adjustment pass (Pass 3) before terrain classification — **generateChunkTiles** — **Done.**
 6. Wire adjusted moisture into `classifyTerrain` calls and tile metadata (`moisture` field) — **generateChunkTiles** — **Done.**
-7. Update seam test to validate adjusted moisture consistency rather than base-moisture identity — **seamTest.js**
-8. Add adjusted moisture visualization to analysis tool — **analysis tool**
+7. Update seam test to validate adjusted moisture consistency rather than base-moisture identity — **seamTest.js** — **Done.**
+8. Add adjusted moisture visualization to analysis tool — **analysis tool** — **Done.**
 
-**Still pending:** Seam test (7) and analysis tool visualization (8) — Phase C items that modify files outside `terrainGenerator.js`.
+**Complete.** Phase C delivers elevation-based water classification, coastal moisture boost, `baseMoisture` stored alongside adjusted `moisture`, and analysis tool visualisation for both raw and adjusted moisture fields.
 
 ## Phase D
 

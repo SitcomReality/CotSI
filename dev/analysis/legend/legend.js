@@ -28,7 +28,7 @@ export const TERRAIN_ORDER = ['plains', 'forest', 'denseForest', 'desert', 'mars
 /**
  * Update the legend DOM element for the given view mode.
  *
- * @param {'terrain'|'biome'|'elevation'|'moisture'|'passability'|'blank'} mode
+ * @param {'terrain'|'biome'|'elevation'|'moisture'|'baseMoisture'|'passability'|'blank'} mode
  */
 export function updateLegend(mode) {
   if (!els.legend) return;
@@ -41,7 +41,7 @@ export function updateLegend(mode) {
   if (mode === 'elevation') {
     els.legend.innerHTML = buildGradientLegend(ELEVATION_COLOR_STOPS);
 
-  } else if (mode === 'moisture') {
+  } else if (mode === 'moisture' || mode === 'baseMoisture') {
     els.legend.innerHTML = buildGradientLegend(MOISTURE_COLOR_STOPS);
 
   } else if (mode === 'terrain') {

@@ -124,12 +124,10 @@ export function hexesInExpandedChunk(cq, cr, ringWidth) {
  * @param {object} terrainRules - terrain rule thresholds
  * @returns {boolean}
  */
-function isProvisionalWater(elevation, moisture, terrainRules) {
+export function isProvisionalWater(elevation, moisture, terrainRules) {
   if (elevation >= terrainRules.waterMaxElevation) return false;
   return moisture > terrainRules.waterMinMoisture;
-}
-
-/**
+}/**
  * Boost moisture for land tiles near water.
  *
  * Counts water neighbors within radius 2 via the provisionalWaterSet.
@@ -718,6 +716,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
       mountainType: null, waterType: null,
       elevation: resolveElevation(terrain, hexBiomeDef),
       elevationField: fields.elevation,
+      baseMoisture: fields.baseMoisture,
       moisture,
       temperature: fields.temperature,
       slope,

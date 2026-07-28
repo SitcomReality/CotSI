@@ -1,11 +1,11 @@
 /**
  * seamTest.js — Chunk-seam invariant verification.
  *
- * Verifies that terrain generation is a pure function of (seed, q, r):
- * every tile's elevationField, moisture, and temperature match what
- * sampleBaseFields() would produce at the same global coordinate.
- * This catches regressions where per-chunk state or global-pass residue
- * leaks into the continuous field values.
+ * Verifies that terrain generation produces consistent results:
+ * every tile's elevationField and temperature match what sampleBaseFields()
+ * would produce at the same global coordinate. Moisture is now adjusted
+ * (coastal boost near water), so it's validated against a recomputation
+ * from base fields + neighbor provisional-water classification.
  *
  * The test generates a full map via generateSingleSeed (which assembles
  * chunks), then recomputes fields for each tile via direct sampleBaseFields
@@ -15,10 +15,12 @@
  */
 import { generateSingleSeed } from './generate.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
-import { sampleBaseFields } from '../../../src/game/rules/terrainGenerator.js';
+import { sampleBaseFields, isProvisionalWater } from '../../../src/game/rules/terrainGenerator.js';
+import { hexesWithinRadius, coordKey } from '../../../src/engine/rules/hexGrid.js';
 import {
   NOISE_ELEVATION_DETAIL, NOISE_RIDGE, NOISE_MOISTURE, NOISE_TEMP_VARIATION, NOISE_REGION,
   SEED_DETAIL, SEED_RIDGE, SEED_MOISTURE, SEED_TEMP, SEED_REGION_M, SEED_REGION_T,
+  DEFAULT_TERRAIN_RULES,
 } from '../../../src/params/game/worldParams.js';
 
 /** Noise config matching the module-level NOISE_CONFIG in terrainGenerator.js. */
@@ -43,9 +45,10 @@ const TEST_RADIUS = 21;
 /**
  * Run the chunk-seam invariant test.
  *
- * Generates a map and verifies that every tile's elevationField, moisture,
- * and temperature match what a direct sampleBaseFields call would produce
- * for the same (seed, q, r).
+ * Generates a map and verifies that:
+ * - elevationField and temperature match sampleBaseFields
+ * - moisture matches the coastal-adjusted value computed from base fields
+ *   and neighbor provisional-water classification
  *
  * @returns {{ passed: boolean, failures: object[] }}
  *   Each failure: { q, r, field, stored, recomputed }
@@ -73,26 +76,39 @@ export function runSeamTest() {
     for (const tile of tileEntries) {
       const { q, r, elevationField, moisture, temperature } = tile;
 
-      // Recompute fields directly via sampleBaseFields
+      // Recompute base fields directly via sampleBaseFields
       const fields = sampleBaseFields(baseSeed, q, r, TEST_NOISE_CONFIG, TEST_RADIUS);
 
-      // Compare (allow tiny floating-point drift)
+      // Compare elevation (allow tiny floating-point drift)
       if (Math.abs(elevationField - fields.elevation) > 1e-12) {
         failures.push({
           q, r, field: 'elevationField',
           stored: elevationField, recomputed: fields.elevation,
         });
       }
-      if (Math.abs(moisture - fields.baseMoisture) > 1e-12) {
-        failures.push({
-          q, r, field: 'moisture',
-          stored: moisture, recomputed: fields.baseMoisture,
-        });
-      }
+
+      // Compare temperature (allow tiny floating-point drift)
       if (Math.abs(temperature - fields.temperature) > 1e-12) {
         failures.push({
           q, r, field: 'temperature',
           stored: temperature, recomputed: fields.temperature,
+        });
+      }
+
+      // Compare adjusted moisture: recompute from base fields + neighbor water count
+      let waterCount = 0;
+      for (const n of hexesWithinRadius(2)) {
+        const nFields = sampleBaseFields(baseSeed, q + n.q, r + n.r, TEST_NOISE_CONFIG, TEST_RADIUS);
+        if (isProvisionalWater(nFields.elevation, nFields.baseMoisture, DEFAULT_TERRAIN_RULES)) {
+          waterCount++;
+        }
+      }
+      const expectedMoisture = Math.min(1, Math.max(0, fields.baseMoisture + waterCount * 0.03));
+
+      if (Math.abs(moisture - expectedMoisture) > 1e-12) {
+        failures.push({
+          q, r, field: 'moisture',
+          stored: moisture, recomputed: expectedMoisture,
         });
       }
 
@@ -123,12 +139,13 @@ export function formatSeamReport({ passed, failures }) {
   lines.push('=== Chunk-Seam Invariant Test ===');
   lines.push(`Status: ${passed ? 'PASSED' : 'FAILED'}`);
   lines.push(`Seed: ${TEST_SEED}  |  Radius: ${TEST_RADIUS}`);
-  lines.push('Invariant: elevationField, moisture & temperature are pure functions of (seed, q, r)');
+  lines.push('Invariant: elevationField & temperature are pure functions of (seed, q, r)');
+  lines.push('Moisture: adjusted (coastal boost) — recomputed from base fields + neighbor water');
   lines.push('Formula: worldShape(dist, radius) × (detail×0.5 + ridges×0.5)');
   lines.push('');
 
   if (passed) {
-    lines.push('All tiles verified — sampleBaseFields values match stored fields.');
+    lines.push('All tiles verified — stored fields match recomputed values.');
   } else {
     lines.push(`${failures.length} mismatch(es) found (showing first 10):`);
     for (const f of failures) {

@@ -16,7 +16,7 @@ export const S = {
   canvasEl: null,
   ctx: null,
 
-  /** Current view mode: 'terrain' | 'biome' | 'elevation' | 'moisture' | 'passability' | 'distributions' | 'blank' */
+  /** Current view mode: 'terrain' | 'biome' | 'elevation' | 'moisture' | 'baseMoisture' | 'passability' | 'distributions' | 'blank' */
   viewMode: 'terrain',
 
   // ── Random cycle state ─────────────────────────────────────────────────
