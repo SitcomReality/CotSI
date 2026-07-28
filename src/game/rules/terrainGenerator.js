@@ -2,10 +2,12 @@
  * terrainGenerator.js — Seeded terrain generation algorithm.
  * Pure: takes a seed, returns tiles. Hex-grid math lives in engine/rules/hexGrid.js.
  *
- * Pipeline: sampleBaseFields() → computeSlope() → selectBiome() → classifyTerrain().
+ * Pipeline: sampleBaseFields() → isProvisionalWater() → adjustMoisture() → computeSlope() → selectBiome() → classifyTerrain().
  * Elevation is a 2-layer additive composite (detail + ridges × worldShape).
  * Slope discriminates mountain vs plateau vs hill.
  * Moisture and temperature are sampled as continuous noise fields.
+ * Water is classified by elevation with a secondary moisture gate; land tiles near water
+ * receive a coastal moisture boost before terrain classification.
  * Biome assignment is climate-driven (selectBiome reads biomeDef.climateRange).
  * Terrain classification uses DEFAULT_TERRAIN_RULES merged with biome-specific
  * terrainRules, with temperature gates (ice, snow-capped peaks) and tree line.
@@ -17,7 +19,7 @@
  */
 import { hash32, seededNoise, stringSeed } from '../../engine/rules/seededRng.js';
 import { hexFbm2D, hexToWorld } from '../../engine/rules/noise.js';
-import { coordKey, distance, neighbors } from '../../engine/rules/hexGrid.js';
+import { coordKey, distance, hexesWithinRadius, neighbors } from '../../engine/rules/hexGrid.js';
 import { TERRAIN, DEFAULT_FEATURES } from './terrainTypes.js';
 import { tileToChunk, localCoord, localKey, hexesInChunk } from '../../engine/rules/chunkGrid.js';
 import { CHUNK_SIZE } from '../../params/engine/chunkParams.js';
@@ -111,6 +113,63 @@ export function hexesInExpandedChunk(cq, cr, ringWidth) {
 }
 
 /**
+ * Classify a tile as provisional water from elevation and moisture alone.
+ *
+ * Primary gate: elevation below waterMaxElevation.
+ * Secondary gate: moisture above waterMinMoisture (prevents flooding desert basins).
+ * Returns true if both gates pass — the tile will be provisional water.
+ *
+ * @param {number} elevation    - [0, 1] elevation field
+ * @param {number} moisture     - [0, 1] moisture field
+ * @param {object} terrainRules - terrain rule thresholds
+ * @returns {boolean}
+ */
+function isProvisionalWater(elevation, moisture, terrainRules) {
+  if (elevation >= terrainRules.waterMaxElevation) return false;
+  return moisture > terrainRules.waterMinMoisture;
+}
+
+/**
+ * Boost moisture for land tiles near water.
+ *
+ * Counts water neighbors within radius 2 via the provisionalWaterSet.
+ * Each water neighbor adds 0.03 moisture — a coastal tile typically gets
+ * +0.09 to +0.18, enough to push borderline-desert tiles into plains or forest.
+ * Result is clamped to [0, 1].
+ *
+ * @param {number}     q                   - Hex q coordinate
+ * @param {number}     r                   - Hex r coordinate
+ * @param {number}     baseMoisture        - [0, 1] base moisture field value
+ * @param {Map}        fieldMap            - Map<coordKey, sampleBaseFields result>
+ * @param {Set<string>} provisionalWaterSet - Set<coordKey> of water-classified tiles
+ * @returns {number} adjusted moisture [0, 1]
+ */
+function adjustMoisture(q, r, baseMoisture, fieldMap, provisionalWaterSet) {
+  let waterNeighbors = 0;
+  for (const n of hexesWithinRadius(2)) {
+    if (provisionalWaterSet.has(coordKey({ q: q + n.q, r: r + n.r }))) {
+      waterNeighbors++;
+    }
+  }
+  return clamp01(baseMoisture + waterNeighbors * 0.03);
+}
+
+/**
+ * Rain shadow drying effect — stub, deferred to Phase G.
+ *
+ * A real rain shadow requires: prevailing wind direction, cross-wind
+ * elevation gradient sampling, and a decay function. Returns 0 for now.
+ *
+ * @param {number}   _q           - Hex q coordinate
+ * @param {number}   _r           - Hex r coordinate
+ * @param {function} _elevationAt - (q, r) => elevation
+ * @returns {number} 0
+ */
+function computeRainShadow(_q, _r, _elevationAt) {
+  return 0;  // deferred to Phase G
+}
+
+/**
  * Check if a border-ring hex would be mountain/peak or water from its base fields.
  * Used by mountain and water tagging tileLookup closures — avoids re-sampling
  * border-ring hexes that aren't stored in the core tileMap.
@@ -125,7 +184,7 @@ function _provisionalTerrainForRing(q, r, fieldMap) {
   if (!f) return null;
   const R = DEFAULT_TERRAIN_RULES;
   if (f.elevation > R.mountainThreshold) return 'mountain';
-  if (f.elevation < R.waterMaxElevation && f.baseMoisture > R.waterMinMoisture) return 'water';
+  if (isProvisionalWater(f.elevation, f.baseMoisture, R)) return 'water';
   return null;
 }
 
@@ -567,13 +626,15 @@ function spawnFeature(roll, terrain, features) {
  *
  * Pipeline:
  *   1. Sample base fields for all hexes (core + border ring)
- *   2. Compute slope for core hexes
- *   3. Classify terrain with slope
- *   4. Apply supernatural overrides (multi-biome only)
- *   5. Mountain type tagging (uses fieldMap, no fallback)
- *   6. Water type tagging (uses fieldMap, no fallback)
- *   7. Sprinkle features
- *   8. Sprinkle debris
+ *   2. Classify provisional water (elevation-based, uses DEFAULT_TERRAIN_RULES)
+ *   3. Adjust moisture (coastal boost for land tiles near water)
+ *   4. Compute slope for core hexes
+ *   5. Classify terrain with adjusted moisture + slope
+ *   6. Apply supernatural overrides (multi-biome only)
+ *   7. Mountain type tagging (uses fieldMap, no fallback)
+ *   8. Water type tagging (uses fieldMap, no fallback)
+ *   9. Sprinkle features
+ *  10. Sprinkle debris
  *
  * @param {string}   seedText  - Seed string for reproducible generation
  * @param {number}   chunkQ    - Chunk q coordinate
@@ -604,7 +665,23 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
   }
 
-  // --- Pass 1: Compute slope for core hexes ---
+  // --- Pass 1: Classify provisional water (all hexes: core + border ring) ---
+  const provisionalWaterSet = new Set();
+  for (const [key, fields] of fieldMap) {
+    if (isProvisionalWater(fields.elevation, fields.baseMoisture, DEFAULT_TERRAIN_RULES)) {
+      provisionalWaterSet.add(key);
+    }
+  }
+
+  // --- Pass 2: Adjust moisture (core hexes, boosted by nearby water) ---
+  const adjustedMoistureMap = new Map();
+  for (const key of coreSet) {
+    const [q, r] = key.split(',').map(Number);
+    const fields = fieldMap.get(key);
+    adjustedMoistureMap.set(key, adjustMoisture(q, r, fields.baseMoisture, fieldMap, provisionalWaterSet));
+  }
+
+  // --- Pass 3: Compute slope for core hexes ---
   const slopeMap = new Map();
   for (const key of coreSet) {
     const [q, r] = key.split(',').map(Number);
@@ -612,11 +689,12 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     slopeMap.set(key, computeSlope(q, r, elevationAt));
   }
 
-  // --- Pass 2: Classify terrain for core hexes ---
+  // --- Pass 4: Classify terrain for core hexes (with adjusted moisture) ---
   for (const key of coreSet) {
     const [q, r] = key.split(',').map(Number);
     const fields = fieldMap.get(key);
     const slope = slopeMap.get(key);
+    const moisture = adjustedMoistureMap.get(key);
 
     let hexBiomeId, hexBiomeDef;
     if (biomeDef) {
@@ -624,14 +702,14 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
       hexBiomeId = biomeDef.id;
     } else {
       hexBiomeId = selectBiome(
-        fields.elevation, fields.baseMoisture, fields.temperature,
+        fields.elevation, moisture, fields.temperature,
         fields.regionBiasM, fields.regionBiasT
       );
       hexBiomeDef = getArchetype(hexBiomeId) || getArchetype('biome_default');
     }
 
     const terrain = classifyTerrain(
-      fields.elevation, fields.baseMoisture, fields.temperature, slope, hexBiomeDef
+      fields.elevation, moisture, fields.temperature, slope, hexBiomeDef
     );
 
     const { lq, lr } = localCoord(chunkQ, chunkR, q, r);
@@ -640,7 +718,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
       mountainType: null, waterType: null,
       elevation: resolveElevation(terrain, hexBiomeDef),
       elevationField: fields.elevation,
-      moisture: fields.baseMoisture,
+      moisture,
       temperature: fields.temperature,
       slope,
       isRiver: false,
@@ -649,12 +727,12 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     });
   }
 
-  // Pass 2b: Supernatural biome override (jittered-grid epicenter pass)
+  // Pass 5b: Supernatural biome override (jittered-grid epicenter pass)
   if (!biomeDef) {
     applySupernaturalOverrides(tileMap, seed, radius);
   }
 
-  // --- Pass 3: Local mountain type tagging ---
+  // --- Pass 6: Local mountain type tagging ---
   // tileLookup checks core tileMap first, then falls back to fieldMap
   // for border-ring hexes via _provisionalTerrainForRing.
   const tileLookup = (nq, nr) => {
@@ -684,14 +762,14 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
   }
 
-  // --- Pass 4: Local water type tagging ---
+  // --- Pass 7: Local water type tagging ---
   for (const [, tile] of tileMap) {
     if (tile.terrain === 'water') {
       tile.waterType = waterTypeForTile(tile.q, tile.r, radius, fieldMap, tileLookup);
     }
   }
 
-  // --- Pass 5: Sprinkle features (flora + resources from biome features list) ---
+  // --- Pass 8: Sprinkle features (flora + resources from biome features list) ---
   for (const [, tile] of tileMap) {
     if (!TERRAIN[tile.terrain].passable) continue;
     const tileBiomeDef = biomeDef || getArchetype(tile.biomeId) || getArchetype('biome_default');
@@ -703,7 +781,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
   }
 
-  // --- Pass 6: Environmental debris (grass tufts, rocks, flowers) ---
+  // --- Pass 9: Environmental debris (grass tufts, rocks, flowers) ---
   for (const [, tile] of tileMap) {
     if (!TERRAIN[tile.terrain].passable) continue;
     if (tile.feature) continue;

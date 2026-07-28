@@ -50,14 +50,27 @@ Details in `phaseB_progress.md`.
 1. Noise config: Replace `NOISE_PHASE_A_ELEVATION` with `NOISE_ELEVATION_DETAIL` + `NOISE_RIDGE`; replace `SEED_ELEVATION` with `SEED_DETAIL` + `SEED_RIDGE`; add `SLOPE_NORMALIZATION`; add `plateauSlopeMin`/`hillSlopeMin` to `DEFAULT_TERRAIN_RULES` — **worldParams.js** — **Done.**
 2. Add `hill` and `plateau` terrain types — **terrainTypes.js** — **Done.**
 3. Add `hill`/`plateau` palette colors and `terrainTags` entries for existing biomes — **biomes.js** — **Done.**
-4. Add `worldShape`, `computeSlope`, `hexesInExpandedChunk`, `_provisionalTerrainForRing` functions — **terrainGenerator.js**
-5. Update `sampleBaseFields` with 2-layer additive composite + worldShape — **terrainGenerator.js**
-6. Update `classifyTerrain` to use slope for mountain/plateau/hill discrimination — **terrainGenerator.js**
-7. Rewrite `generateChunkTiles` with border ring sampling, slope computation, and `fallbackT` removal — **terrainGenerator.js**
-8. Update analysis tool for the new elevation composite and tile fields — **dev/analysis/generation/generate.js**
-9. Remove old `NOISE_PHASE_A_ELEVATION` / `SEED_ELEVATION` references; update `NOISE_CONFIG` bundle — **terrainGenerator.js**, **worldParams.js**
+4. Add `worldShape`, `computeSlope`, `hexesInExpandedChunk`, `_provisionalTerrainForRing` functions — **terrainGenerator.js** — **Done.**
+5. Update `sampleBaseFields` with 2-layer additive composite + worldShape — **terrainGenerator.js** — **Done.**
+6. Update `classifyTerrain` to use slope for mountain/plateau/hill discrimination — **terrainGenerator.js** — **Done.**
+7. Rewrite `generateChunkTiles` with border ring sampling, slope computation, and `fallbackT` removal — **terrainGenerator.js** — **Done.**
+8. Update analysis tool for the new elevation composite and tile fields — **seamTest.js**, **histograms.js** — **Done.**
+9. Remove old `NOISE_PHASE_A_ELEVATION` / `SEED_ELEVATION` references; update `NOISE_CONFIG` bundle — **terrainGenerator.js**, **worldParams.js** — **Done.**
+
+**Complete.** Phase B delivers the 2-layer additive elevation composite (detail + ridges × worldShape), slope-based mountain/plateau/hill discrimination, border ring sampling (no `fallbackT`), and updated analysis tool fields.
 
 ## Phase C
+
+1. Add `isProvisionalWater(elevation, moisture, terrainRules)` — elevation-based water classifier (oceans: elevation gate only; lakes: elevation + moisture gate) — **terrainGenerator.js** — **Done.**
+2. Add `adjustMoisture(tile, q, r, fieldMap, provisionalWaterSet)` — coastal moisture boost for land tiles within radius 2 of water — **terrainGenerator.js** — **Done.**
+3. Add `computeRainShadow` stub — placeholder returning 0 (deferred to Phase G) — **terrainGenerator.js** — **Done.**
+4. Build `provisionalWaterSet` from border ring `fieldMap` using `DEFAULT_TERRAIN_RULES` — **generateChunkTiles** — **Done.**
+5. Insert provisional water classification pass (Pass 2) and moisture adjustment pass (Pass 3) before terrain classification — **generateChunkTiles** — **Done.**
+6. Wire adjusted moisture into `classifyTerrain` calls and tile metadata (`moisture` field) — **generateChunkTiles** — **Done.**
+7. Update seam test to validate adjusted moisture consistency rather than base-moisture identity — **seamTest.js**
+8. Add adjusted moisture visualization to analysis tool — **analysis tool**
+
+**Still pending:** Seam test (7) and analysis tool visualization (8) — Phase C items that modify files outside `terrainGenerator.js`.
 
 ## Phase D
 
