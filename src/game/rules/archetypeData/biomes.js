@@ -41,9 +41,15 @@ defineArchetype('biome_default', {
   // fruitTree at high threshold (rare), tree at medium threshold (common),
   // then knot at the low end.
   features: [
-    { kind: 'fruitTree', threshold: 0.970, compare: 'gt', terrainExclude: ['desert'] },
-    { kind: 'tree',      threshold: 0.935, compare: 'gt', terrainExclude: ['desert'] },
-    { kind: 'knot',      threshold: 0.038, compare: 'lt' },
+    { kind: 'fruitTree',          threshold: 0.970, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'tree',               threshold: 0.935, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'vegetableLamb',      threshold: 0.925, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'witnessStone',       threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
+    { kind: 'screamroot',         threshold: 0.890, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'palimpsestSlab',     threshold: 0.875, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
+    { kind: 'gildedInitial',      threshold: 0.865, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
+    { kind: 'placeholderCypress', threshold: 0.850, compare: 'gt', terrainExclude: ['desert', 'forest', 'marsh'] },
+    { kind: 'knot',               threshold: 0.038, compare: 'lt' },
   ],
 
   palette: {
@@ -92,7 +98,16 @@ defineArchetype('biome_brass_grave', {
   },
 
   features: [
-    { kind: 'knot', threshold: 0.08, compare: 'lt' },
+    // Rare unique features
+    { kind: 'volvelle',       threshold: 0.99, compare: 'gt', terrainExclude: [] },
+    { kind: 'censerSaint',    threshold: 0.98, compare: 'gt', terrainExclude: [] },
+    // Decorative features
+    { kind: 'scoriaRose',     threshold: 0.95, compare: 'gt', terrainExclude: ['ice'] },
+    { kind: 'cinderbloom',    threshold: 0.92, compare: 'gt', terrainExclude: ['ice'] },
+    // Hazard (narrow lt before broader knot)
+    { kind: 'brassLungVent',  threshold: 0.02, compare: 'lt', terrainExclude: [] },
+    // Resources
+    { kind: 'knot',           threshold: 0.08, compare: 'lt' },
   ],
 
   palette: {
@@ -132,9 +147,15 @@ defineArchetype('biome_savanna', {
   },
 
   // Savanna: sparse trees, rare fruit trees, scattered knots
+  // Note: fruitTree must come before tree (higher threshold = rarer, first-match-wins)
   features: [
-    { kind: 'tree',      threshold: 0.945, compare: 'gt', terrainExclude: ['desert'] },
+    // Low-roll hazard (narrow lt before broader knot)
+    { kind: 'redLetterBramble', threshold: 0.01, compare: 'lt', terrainExclude: ['water', 'ice'] },
+    // High-roll features — rarest first
     { kind: 'fruitTree', threshold: 0.980, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'saintsRib', threshold: 0.965, compare: 'gt', terrainExclude: [] },
+    { kind: 'tree',      threshold: 0.945, compare: 'gt', terrainExclude: ['desert'] },
+    // Resources
     { kind: 'knot',      threshold: 0.038, compare: 'lt' },
   ],
 
@@ -178,10 +199,12 @@ defineArchetype('biome_lush', {
 
   // Lush: abundant fruit trees + decorative trees + bushes on low-moisture tiles
   features: [
-    { kind: 'fruitTree', threshold: 0.930, compare: 'gt', terrainExclude: ['desert'] },
-    { kind: 'tree',      threshold: 0.860, compare: 'gt', terrainExclude: ['desert'] },
-    { kind: 'bush',      threshold: 0.060, compare: 'lt', terrainExclude: ['desert', 'marsh'] },
-    { kind: 'knot',      threshold: 0.035, compare: 'lt' },
+    { kind: 'fruitTree',       threshold: 0.930, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'peridexionTree',  threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
+    { kind: 'screamroot',      threshold: 0.890, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'tree',            threshold: 0.860, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'bush',            threshold: 0.060, compare: 'lt', terrainExclude: ['desert', 'marsh'] },
+    { kind: 'knot',            threshold: 0.035, compare: 'lt' },
   ],
 
   palette: {
@@ -231,9 +254,16 @@ defineArchetype('biome_arid', {
 
   // Arid: sparse everything — rare fruit trees, very rare decorative trees
   features: [
-    { kind: 'fruitTree', threshold: 0.985, compare: 'gt', terrainExclude: [] },
-    { kind: 'tree',      threshold: 0.965, compare: 'gt', terrainExclude: [] },
-    { kind: 'knot',      threshold: 0.040, compare: 'lt' },
+    // High-roll features — rarest first
+    { kind: 'fruitTree',         threshold: 0.985, compare: 'gt', terrainExclude: [] },
+    { kind: 'saintsRib',         threshold: 0.975, compare: 'gt', terrainExclude: [] },
+    { kind: 'ouroborosLoop',     threshold: 0.970, compare: 'gt', terrainExclude: [] },
+    { kind: 'tree',              threshold: 0.965, compare: 'gt', terrainExclude: [] },
+    // Low-roll hazards (narrow lt before broader knot)
+    { kind: 'redLetterBramble',  threshold: 0.01, compare: 'lt', terrainExclude: ['water', 'ice'] },
+    { kind: 'listenerLichen',    threshold: 0.025, compare: 'lt', terrainExclude: ['desert'] },
+    // Resources
+    { kind: 'knot',              threshold: 0.040, compare: 'lt' },
   ],
 
   palette: {
@@ -282,7 +312,9 @@ defineArchetype('biome_frigid_silence', {
 
   // Frigid: very sparse — cold stunts growth
   features: [
-    { kind: 'knot', threshold: 0.05, compare: 'lt' },
+    { kind: 'waxbloom',       threshold: 0.97, compare: 'gt', terrainExclude: [] },
+    { kind: 'listenerLichen', threshold: 0.94, compare: 'gt', terrainExclude: [] },
+    { kind: 'knot',           threshold: 0.05, compare: 'lt' },
   ],
 
   palette: {
@@ -330,7 +362,10 @@ defineArchetype('biome_weeping_marsh', {
 
   // Weeping: very sparse — cold, wet, not hospitable
   features: [
-    { kind: 'knot', threshold: 0.04, compare: 'lt' },
+    { kind: 'foolsFire',      threshold: 0.98, compare: 'gt', terrainExclude: [] },
+    { kind: 'drownedCopyist', threshold: 0.96, compare: 'gt', terrainExclude: [] },
+    { kind: 'screamroot',     threshold: 0.93, compare: 'gt', terrainExclude: [] },
+    { kind: 'knot',           threshold: 0.04, compare: 'lt' },
   ],
 
   palette: {
@@ -385,7 +420,13 @@ defineArchetype('biome_unfinished_lands', {
   },
 
   features: [
-    { kind: 'knot', threshold: 0.03, compare: 'lt' },
+    { kind: 'errataSlip',       threshold: 0.99, compare: 'gt', terrainExclude: [] },
+    { kind: 'gildedInitial',    threshold: 0.98, compare: 'gt', terrainExclude: [] },
+    { kind: 'palimpsestSlab',   threshold: 0.96, compare: 'gt', terrainExclude: [] },
+    { kind: 'halfDrawnObelisk', threshold: 0.95, compare: 'gt', terrainExclude: [] },
+    { kind: 'nullLily',         threshold: 0.93, compare: 'gt', terrainExclude: [] },
+    { kind: 'placeholderCypress', threshold: 0.90, compare: 'gt', terrainExclude: [] },
+    { kind: 'knot',             threshold: 0.03, compare: 'lt' },
   ],
 
   palette: {

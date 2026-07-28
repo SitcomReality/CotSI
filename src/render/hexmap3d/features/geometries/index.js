@@ -26,3 +26,21 @@ export {
   getBaseRingGeo,
   getBaseRingDotGeo,
 } from './baseGeometries.js';
+
+export {
+  getSlabGeo,
+  getDiscGeo,
+  getOrbGeo,
+  getPlantGeo,
+  getClusterGeo,
+  getArchGeo,
+  getFigureGeo,
+  getCenserGeo,
+  getMonumentGeo,
+  getStoneGeo,
+  getVentGeo,
+  getRingGeo,
+  getObeliskGeo,
+  getCypressGeo,
+  getBigtreeGeo,
+} from './featureGeometries.js';
