@@ -61,8 +61,11 @@ function getFieldsToVerify(radius) {
 // ---------------------------------------------------------------------------
 
 /**
- * Count zero-crossings of (value - 0.5) for a noise field sampled over
- * the hex grid within `radius`. Also reports world-space extent.
+ * Count zero-crossings of (value - 0.5) for a noise field along a single
+ * transect across the map's central row (r=0, q from -radius to +radius).
+ * A single-row transect gives an accurate 1D measurement; summing across
+ * all rows inflates the count by ~(2*radius+1) and produces wavelengths
+ * of ~2-3 hexes regardless of the actual noise frequency.
  *
  * @param {number} seed        - Integer seed (from stringSeed)
  * @param {object} noiseOpts   - FBM options passed to hexFbm2D
@@ -72,40 +75,25 @@ function getFieldsToVerify(radius) {
 function countCrossings(seed, noiseOpts, radius) {
   const tiles = hexesWithinRadius(radius);
 
-  const values = tiles.map(({ q, r }) =>
-    hexFbm2D(q, r, seed, noiseOpts)
-  );
+  // Select only tiles on the central row (r=0) for a 1D transect
+  const transect = tiles
+    .filter(t => t.r === 0)
+    .map(t => ({ q: t.q, v: hexFbm2D(t.q, t.r, seed, noiseOpts) }))
+    .sort((a, b) => a.q - b.q);
 
-  const valueMap = new Map();
-  for (let i = 0; i < tiles.length; i++) {
-    valueMap.set(`${tiles[i].q},${tiles[i].r}`, values[i]);
-  }
-
-  // Group by row (r) and count sign changes of (value - 0.5) along q
-  const byRow = new Map();
-  for (let i = 0; i < tiles.length; i++) {
-    const { q, r } = tiles[i];
-    if (!byRow.has(r)) byRow.set(r, []);
-    byRow.get(r).push({ q, v: values[i] });
-  }
-
+  // Count sign changes of (value - 0.5) along the transect
   let crossings = 0;
-  for (const [, row] of byRow) {
-    row.sort((a, b) => a.q - b.q);
-    for (let i = 1; i < row.length; i++) {
-      const prev = row[i - 1].v - 0.5;
-      const curr = row[i].v - 0.5;
-      if ((prev >= 0) !== (curr >= 0)) crossings++;
-    }
+  for (let i = 1; i < transect.length; i++) {
+    const prev = transect[i - 1].v - 0.5;
+    const curr = transect[i].v - 0.5;
+    if ((prev >= 0) !== (curr >= 0)) crossings++;
   }
 
-  // World-space extent at the far edge of the map
-  // For a hex grid spanning [-radius, radius] in both q and r,
-  // the world-space corner is at hexToWorld(radius, -radius)
-  const { x: maxX, y: maxY } = hexToWorld(radius, -radius);
-  const worldWidth = Math.abs(maxX * 2);   // approximate map width
+  // World-space width of the transect: hexToWorld(r=0) = x = q, so
+  // from q=-radius to q=+radius the width is 2*radius world units.
+  const worldWidth = radius * 2;
 
-  return { crossings, totalTiles: tiles.length, worldWidth };
+  return { crossings, totalTiles: transect.length, worldWidth };
 }
 
 // ---------------------------------------------------------------------------

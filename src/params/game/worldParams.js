@@ -107,17 +107,20 @@ export const EPICENTER_GRID = {
 
 /**
  * Slope normalization divisor for computeSlope().
- * Derived from r=21-specific avgDelta distribution (p95 ~0.030), targeting
- * gameSlope ≈0.75 at p95 so the top end of the range discriminates genuine
- * steep terrain. The pooled (all-radii) p95 of 0.0133 was dominated by
- * r=100 tiles (78% of total) with near-zero slope.
  *
- * With SN=0.040, r=21's three raw-delta tiers map to usable slope values:
+ * Set to 0.020 as a compromise between r=21 and r=100 dynamics.
+ * The r=21-specific p95 avg delta is ~0.030 → normalized slope = 1.50
+ * (clamped to 1.0), while r=100's p95 avg delta is ~0.013 → slope = 0.65.
+ * This keeps hills viable at all radii (hills need slope > 0.25):
+ *   r=21 hills: ~12%   r=50 hills: ~8%   r=100 hills: ~6-8%
+ *
+ * With SN=0.020, the raw-delta tiers map to:
  *   avgDelta 0.000 → slope 0.00 (flat)
- *   avgDelta 0.020 → slope 0.50 (moderate)
- *   avgDelta 0.040 → slope 1.00 (steep)
+ *   avgDelta 0.005 → slope 0.25 (hill threshold)
+ *   avgDelta 0.010 → slope 0.50 (moderate)
+ *   avgDelta 0.020 → slope 1.00 (steep — clamped)
  */
-export const SLOPE_NORMALIZATION = 0.040;
+export const SLOPE_NORMALIZATION = 0.020;
 
 /** Maximum lookup radius for border-ring sampling in per-chunk generation.
  *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
@@ -140,7 +143,7 @@ export const DEFAULT_TERRAIN_RULES = {
   hillElevationMin:         0.080, // p55
 
   // Slope thresholds — calibrated from Phase G batch 004.
-  // With SN=0.040, r=21 slopes map to 0.0 (flat), 0.50 (moderate), 1.0 (steep).
+  // With SN=0.020, r=21 slopes map to 0.0 (flat), 0.50 (moderate), 1.0 (steep).
   // plateauSlopeMin=0.40: moderate-slope high-elevation tiles (0.50 > 0.40) become
   // mountain rather than plateau, targeting ~5% mountain + ~5% plateau at r=21.
   // hillSlopeMin=0.25: both moderate and steep mid-elevation tiles become hills.
@@ -150,7 +153,7 @@ export const DEFAULT_TERRAIN_RULES = {
   // Moisture thresholds — derived from Phase G batch 003
   forestMinMoisture:        0.640, // p72
   denseForestMinMoisture:   0.700, // p85
-  desertMaxMoisture:        0.180, // p5 of land-only moisture — pooled histograms include water/ice tiles
+  desertMaxMoisture:        0.140, // p2-3 land-only moisture — p20 was ~0.300 (inflated by water/ice in old histograms)
   marshMinMoisture:         0.480, // p50 — generous floor to increase marsh from current 1.3%
 
   // Temperature — derived from batch analysis
