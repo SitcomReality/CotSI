@@ -33,11 +33,7 @@ const CLIMATE_BINS = 10;
  *   - climateGrid: binned summary of biome coverage
  */
 export function runClimateCoverageTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
-  const result = generateSingleSeed(seedText, radius, null, {
-    heightVariation: 1.0,
-    wateriness: 1.0,
-    mountainousness: 1.0,
-  });
+  const result = generateSingleSeed(seedText, radius, null);
   const tiles = result.tiles;
   const tileEntries = Object.values(tiles);
   const tileCount = tileEntries.length;

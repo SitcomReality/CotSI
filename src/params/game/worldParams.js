@@ -154,14 +154,14 @@ export const DEFAULT_TERRAIN_RULES = {
 // ---------------------------------------------------------------------------
 
 /** Minimum elevation percentile for river source candidates. */
-export const RIVER_SOURCE_MIN_ELEV    = 0.75;
+export const RIVER_SOURCE_MIN_ELEV    = 0.65;
 /** Minimum base moisture for river source candidates. */
-export const RIVER_SOURCE_MIN_MOIST   = 0.55;
+export const RIVER_SOURCE_MIN_MOIST   = 0.45;
 /** Fraction of tiles selected as river sources. */
-export const RIVER_SOURCE_FRACTION    = 0.0001;
+export const RIVER_SOURCE_FRACTION    = 0.0005;
 /** Maximum trace steps per river. */
 export const RIVER_MAX_LENGTH         = 200;
 /** Moisture boost added to tiles near rivers. */
-export const RIVER_MOISTURE_BOOST     = 0.10;
+export const RIVER_MOISTURE_BOOST     = 0.15;
 /** Radius in hexes for river moisture boost. */
 export const RIVER_BOOST_RADIUS       = 1;

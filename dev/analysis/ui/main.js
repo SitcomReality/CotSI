@@ -39,14 +39,6 @@ import { runClimateCoverageTest, formatClimateCoverageReport } from '../generati
 
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
-function getMapSettings() {
-  return {
-    heightVariation: parseFloat(els.hvSlider.value),
-    wateriness: parseFloat(els.wtSlider.value),
-    mountainousness: parseFloat(els.mtSlider.value),
-  };
-}
-
 function getGenerationOptions() {
   return {
     multiBiome: els.multiBiomeCheck.checked,
@@ -66,9 +58,8 @@ function loadAndDisplay(seedText) {
       const radius = parseInt(els.radius.value, 10) || 21;
       const biomeId = els.biome.value;
       const biomeDef = getArchetype(biomeId) || getArchetype('biome_default');
-      const mapSettings = getMapSettings();
       const genOptions = getGenerationOptions();
-      const result = generateSingleSeed(seedText, radius, biomeDef, mapSettings, genOptions);
+      const result = generateSingleSeed(seedText, radius, biomeDef, genOptions);
       S.lastResult = result;
 
       renderAndFit();
@@ -104,7 +95,6 @@ async function doMultiSeedGenerate() {
   const radius = parseInt(els.radius.value, 10) || 21;
   const biomeId = els.biome.value;
   const biomeDef = getArchetype(biomeId) || getArchetype('biome_default');
-  const mapSettings = getMapSettings();
   const genOptions = getGenerationOptions();
 
   // ── Read calibration toggles ─────────────────────────────────
@@ -139,7 +129,6 @@ async function doMultiSeedGenerate() {
       count,
       radius,
       biomeDef,
-      mapSettings,
       multiBiome: genOptions.multiBiome,
       collectCalibration: collectCalib,
       noiseConfig: collectCalib ? NOISE_CONFIG : null,
@@ -150,7 +139,7 @@ async function doMultiSeedGenerate() {
 
     // ── 3. Display the last seed's map ───────────────────────────
     const lastSeedText = `${baseSeed}-${count - 1}`;
-    const displayResult = generateSingleSeed(lastSeedText, radius, biomeDef, mapSettings, genOptions);
+    const displayResult = generateSingleSeed(lastSeedText, radius, biomeDef, genOptions);
     S.lastResult = displayResult;
     renderAndFit();
     updateStats();
@@ -291,11 +280,6 @@ function downloadCalibrationLUTs() {
 // ─── Bind controls ────────────────────────────────────────────────────────────
 
 function bindControls() {
-  // Slider labels
-  els.hvSlider.addEventListener('input', () => { els.hvValue.textContent = els.hvSlider.value; });
-  els.wtSlider.addEventListener('input', () => { els.wtValue.textContent = els.wtSlider.value; });
-  els.mtSlider.addEventListener('input', () => { els.mtValue.textContent = els.mtSlider.value; });
-
   // Seed presets
   els.btnPresetDefault.addEventListener('click', () => {
     els.seed.value = 'glut-17';

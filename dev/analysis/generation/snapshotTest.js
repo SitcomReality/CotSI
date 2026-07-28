@@ -42,11 +42,7 @@ export function runSnapshotTests() {
     const failures = [];
 
     try {
-      const result = generateSingleSeed(seedText, TEST_RADIUS, null, {
-        heightVariation: 1.0,
-        wateriness: 1.0,
-        mountainousness: 1.0,
-      });
+      const result = generateSingleSeed(seedText, TEST_RADIUS, null);
       const tiles = result.tiles;
       const tileCount = Object.keys(tiles).length;
       if (tileCount === 0) {

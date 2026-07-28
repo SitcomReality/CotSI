@@ -23,12 +23,7 @@ function doGenerate(seedText) {
   const biomeId = els.biome.value;
   const biomeDef = getArchetype(biomeId) || getArchetype('biome_default');
   const multiBiome = els.multiBiomeCheck.checked;
-  const mapSettings = {
-    heightVariation: parseFloat(els.hvSlider.value),
-    wateriness: parseFloat(els.wtSlider.value),
-    mountainousness: parseFloat(els.mtSlider.value),
-  };
-  const result = generateSingleSeed(seedText, radius, biomeDef, mapSettings, { multiBiome });
+  const result = generateSingleSeed(seedText, radius, biomeDef, { multiBiome });
   S.lastResult = result;
 }
 

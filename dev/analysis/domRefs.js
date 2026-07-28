@@ -27,12 +27,7 @@ export function cacheDom() {
   els.seed = $('seed-input');
   els.radius = $('radius-input');
   els.biome = $('biome-select');
-  els.hvSlider = $('hv-slider');
-  els.hvValue = $('hv-value');
-  els.wtSlider = $('wt-slider');
-  els.wtValue = $('wt-value');
-  els.mtSlider = $('mt-slider');
-  els.mtValue = $('mt-value');
+
   els.btnGenerate = $('btn-generate');
   els.btnPresetDefault = $('btn-preset-default');
   els.btnPresetAlt = $('btn-preset-alt');

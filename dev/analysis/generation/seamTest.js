@@ -38,11 +38,7 @@ export function runSeamTest() {
   const failures = [];
 
   try {
-    const result = generateSingleSeed(TEST_SEED, TEST_RADIUS, null, {
-      heightVariation: 1.0,
-      wateriness: 1.0,
-      mountainousness: 1.0,
-    });
+    const result = generateSingleSeed(TEST_SEED, TEST_RADIUS, null);
     const tiles = result.tiles;
     const baseSeed = stringSeed(TEST_SEED);
 

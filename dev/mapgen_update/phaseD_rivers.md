@@ -44,19 +44,19 @@ The critical fix from the original design: river moisture boost runs **before** 
 
 ```js
 // River source selection
-export const RIVER_SOURCE_MIN_ELEV    = 0.75;  // calibrated percentile
-export const RIVER_SOURCE_MIN_MOIST   = 0.55;
-export const RIVER_SOURCE_FRACTION    = 0.0001; // sources per tile; total river coverage ≈ fraction × avg river length
+export const RIVER_SOURCE_MIN_ELEV    = 0.65;  // calibrated percentile
+export const RIVER_SOURCE_MIN_MOIST   = 0.45;
+export const RIVER_SOURCE_FRACTION    = 0.0005; // sources per tile; total river coverage ≈ fraction × avg river length
 
 // River tracing
 export const RIVER_MAX_LENGTH         = 200;
 
 // River effects
-export const RIVER_MOISTURE_BOOST     = 0.10;
+export const RIVER_MOISTURE_BOOST     = 0.15;
 export const RIVER_BOOST_RADIUS       = 1;
 ```
 
-The number of river sources is `Math.max(1, Math.ceil(mapTileCount * RIVER_SOURCE_FRACTION))`. At radius 7 (169 tiles), this produces 1 source. At radius 50 (~7,651 tiles), ~23 sources. This scales naturally with map size.
+The number of river sources is `Math.max(1, Math.ceil(mapTileCount * RIVER_SOURCE_FRACTION))`. At radius 7 (169 tiles), this produces 1 source. At radius 50 (~7,651 tiles), ~4 sources. This scales naturally with map size.
 
 ### 4.2 Source Selection
 
@@ -265,7 +265,7 @@ Rivers trace downhill until they hit water, a local minimum, or `RIVER_MAX_LENGT
 - `isRiver: true` on all river-path tiles (data ready for future rendering).
 - River paths are natural rather than axis-locked (seeded tie-breaking).
 - Analysis tool shows river paths and the moisture boost halo around them.
-- River count scales with map size (1 river on radius 7, ~23 on radius 50).
+- River count scales with map size (1 river on radius 7, ~4 on radius 50).
 
 ---
 

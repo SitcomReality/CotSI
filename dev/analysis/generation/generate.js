@@ -28,11 +28,10 @@ export const DEFAULT_CHAMPIONS = [
  * @param {string}  seedText    - Seed string
  * @param {number}  radius      - Map radius in hexes
  * @param {object}  biomeDef    - Resolved biome archetype definition (null for multi-biome)
- * @param {object}  mapSettings - { heightVariation, wateriness, mountainousness }
  * @returns {{ tiles, champions, mobs, traders, baseKeys, biomeDef, radius, seed, biomeIds }}
  */
-export function generateSingleSeed(seedText, radius, biomeDef, mapSettings) {
-  const tiles = generateTiles(seedText, radius, biomeDef, mapSettings);
+export function generateSingleSeed(seedText, radius, biomeDef) {
+  const tiles = generateTiles(seedText, radius, biomeDef);
   const rng = makeRng(seedText);
   const rand = () => rng();
 

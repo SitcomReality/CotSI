@@ -79,14 +79,13 @@ function buildChampionHeatmap(perSeedStats) {
  * @param {number}   params.count      - Number of seeds to generate
  * @param {number}   params.radius     - Map radius
  * @param {object}   params.biomeDef   - Resolved biome archetype definition
- * @param {object}   params.mapSettings - { heightVariation, wateriness, mountainousness }
  * @param {boolean}  params.multiBiome - Whether to use multi-biome generation
  * @param {function} params.onProgress - Called with (current, total) after each seed
  * @param {boolean}  [params.collectCalibration] - If true, collect histogram data per seed
  * @param {object}   [params.noiseConfig]        - Required when collectCalibration is true
  * @returns {Promise<object>} { perSeedStats, aggregate, traderHeatmap, championHeatmap, calibrationResults? }
  */
-export async function runMultiSeed({ baseSeed, count, radius, biomeDef, mapSettings, multiBiome = false, onProgress, collectCalibration = false, noiseConfig = null }) {
+export async function runMultiSeed({ baseSeed, count, radius, biomeDef, multiBiome = false, onProgress, collectCalibration = false, noiseConfig = null }) {
   const perSeedStats = [];
   const terrainDistributions = [];
   const allChampionPositions = [];
@@ -99,7 +98,7 @@ export async function runMultiSeed({ baseSeed, count, radius, biomeDef, mapSetti
 
   for (let i = 0; i < count; i++) {
     const seedText = `${baseSeed}-${i}`;
-    const result = generateSingleSeed(seedText, radius, biomeDef, mapSettings, { multiBiome });
+    const result = generateSingleSeed(seedText, radius, biomeDef, { multiBiome });
     const stats = collectSeedStats(result);
 
     // Collect champion positions for heatmap
