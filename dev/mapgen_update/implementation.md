@@ -162,7 +162,7 @@
 ### Spawn Clearance (Pass 9)
 
 - [ ] Add `SPAWN_CLEARANCE_RING` to `src/params/game/spawnParams.js` (default 2)
-- [ ] Implement `ensureSpawnClearance()` in `src/game/rules/terrainGenerator.js`
+- [ ] Implement `ensureSpawnClearance()` in `src/game/rules/terrainGen/postProcess/spawnClearance.js`
   - [ ] Recreate seeded RNG from seed, iterate champion count, compute `spawnTarget()` positions
   - [ ] For each spawn target: clear all hexes within `SPAWN_CLEARANCE_RING`
   - [ ] `demoteToPassable()`: water→marsh, ice→plains, mountain→hill, peak→hill, floatingIsland→hill
@@ -170,7 +170,7 @@
 
 ### Connectivity Enforcement (Pass 10)
 
-- [ ] Implement `ensurePassableConnectivity()` in `src/game/rules/terrainGenerator.js`
+- [ ] Implement `ensurePassableConnectivity()` in `src/game/rules/terrainGen/postProcess/connectivityEnforcement.js`
   - [ ] Collect all passable hex keys, build adjacency graph
   - [ ] Flood-fill from center (or first passable hex) to find main component
   - [ ] For each isolated component: Dijkstra bridge to main component with terrain-cost weights

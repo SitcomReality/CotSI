@@ -164,7 +164,7 @@ The `offset` parameter (0.9) is lower than the default 1.0 — this shifts the r
 | File | Change | Summary |
 |------|--------|---------|
 | `src/engine/rules/noise.js` | **add** | `ridgedFbm2D`, `hexRidgedFbm2D` functions |
-| `src/game/rules/terrainGenerator.js` | edit | Swap ridge layer from `hexFbm2D` to `hexRidgedFbm2D` |
+| `src/game/rules/terrainGen/fields/sampleBaseFields.js` | edit | Swap ridge layer from `hexFbm2D` to `hexRidgedFbm2D` |
 | `src/params/game/worldParams.js` | edit | Add `offset` to `NOISE_RIDGE` config; update `ELEV_NORMALIZATION` |
 
 ---

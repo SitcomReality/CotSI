@@ -311,7 +311,11 @@ These items remain deferred after Phase G:
 | File | Change | Summary |
 |------|--------|---------|
 | `src/params/game/worldParams.js` | edit | Tuned frequencies, composite weights, thresholds; new terrain rule entries for beach |
-| `src/game/rules/terrainGenerator.js` | edit | Beach classification, biome smoothing, rain shadow (optional), domain warping (optional) |
+| `src/game/rules/terrainGen/classification/terrainClassification.js` | edit | Beach classification |
+| `src/game/rules/terrainGen/classification/biomeSelection.js` | edit | Biome topological smoothing |
+| `src/game/rules/terrainGen/classification/moistureAdjustment.js` | edit | Rain shadow implementation |
+| `src/game/rules/terrainGen/fields/sampleBaseFields.js` | edit | Domain warping (optional) |
+| `src/game/rules/terrainGen/placement/epicenterPlacement.js` | edit | Supernatural biome tuning |
 | `src/game/rules/terrainTypes.js` | edit | Add `beach` (and optionally `tundra`, `scrubland`) |
 | `src/game/rules/archetypeData/biomes.js` | edit | New biome definitions (tundra, cold steppe); updated feature thresholds; tuned epicenter params|
 | `src/engine/rules/noise.js` | edit | Domain warping helper (optional) |

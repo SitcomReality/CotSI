@@ -195,7 +195,7 @@ for (const [, tile] of tileMap) {
 
 | File | Change | Summary |
 |------|--------|---------|
-| `src/game/rules/terrainGenerator.js` | edit | `featureDensity`, updated `spawnFeature`, fruit tree climate check, updated debris rock logic |
+| `src/game/rules/terrainGen/features/featureSpawning.js` | edit | `spawnFeature`, `featureDensity`, fruit tree climate check, updated debris rock logic |
 
 ---
 

@@ -250,7 +250,10 @@ Rivers trace downhill until they hit water, a local minimum, or `RIVER_MAX_LENGT
 | File | Change | Summary |
 |------|--------|---------|
 | `src/params/game/worldParams.js` | edit | River config constants (`RIVER_SOURCE_FRACTION`, `RIVER_MOISTURE_BOOST`, etc.) |
-| `src/game/rules/terrainGenerator.js` | edit | `selectRiverSources`, `traceRiver`, `applyRiverMoistureBoost`, updated `generateTiles` pass order |
+| `src/game/rules/terrainGen/rivers/riverSources.js` | **add** | `selectRiverSources` |
+| `src/game/rules/terrainGen/rivers/riverTrace.js`   | **add** | `traceRiver` with seeded tie-breaking |
+| `src/game/rules/terrainGen/rivers/riverMoisture.js` | **add** | `applyRiverMoistureBoost` |
+| `src/game/rules/terrainGen/flatGeneration.js`       | edit | River post-passes in `generateTiles` wrapper |
 | `src/game/rules/terrainTypes.js` | — | No changes (river is a tag, not a terrain type) |
 
 ---

@@ -870,7 +870,22 @@ Phase A includes both climate-driven biome classification and the full jittered-
 | `src/engine/rules/noise.js` | — | — | — | — | — | — | **add** | — | — |
 | `src/params/game/worldParams.js` | **rewrite** | **rewrite** | edit | edit | edit | — | edit | edit | — |
 | `src/params/game/spawnParams.js` | — | — | — | — | — | — | — | — | edit |
-| `src/game/rules/terrainGenerator.js` | — | **rewrite** | **rewrite** | edit | edit | edit | edit | edit | edit |
+| `src/game/rules/terrainGen/index.js` | — | — | — | — | — | — | — | — | — |
+| `src/game/rules/terrainGen/fields/sampleBaseFields.js` | — | add | edit | — | — | — | edit | edit | — |
+| `src/game/rules/terrainGen/fields/worldShape.js` | — | — | add | — | — | — | — | — | — |
+| `src/game/rules/terrainGen/fields/slopeComputation.js` | — | — | add | — | — | — | — | — | — |
+| `src/game/rules/terrainGen/classification/provisionalWater.js` | — | — | — | add | — | — | — | — | — |
+| `src/game/rules/terrainGen/classification/moistureAdjustment.js` | — | — | — | add | — | — | — | edit | — |
+| `src/game/rules/terrainGen/classification/biomeSelection.js` | — | add | — | — | — | — | — | edit | — |
+| `src/game/rules/terrainGen/classification/terrainClassification.js` | — | add | edit | — | — | — | — | edit | — |
+| `src/game/rules/terrainGen/placement/epicenterPlacement.js` | — | add | — | — | — | — | — | edit | — |
+| `src/game/rules/terrainGen/tagging/mountainTagging.js` | — | — | edit | — | — | — | — | — | — |
+| `src/game/rules/terrainGen/tagging/waterTagging.js` | — | — | edit | — | — | — | — | — | — |
+| `src/game/rules/terrainGen/features/featureSpawning.js` | — | — | — | — | — | edit | — | — | — |
+| `src/game/rules/terrainGen/postProcess/spawnClearance.js` | — | — | — | — | — | — | — | — | add |
+| `src/game/rules/terrainGen/postProcess/connectivityEnforcement.js` | — | — | — | — | — | — | — | — | add |
+| `src/game/rules/terrainGen/chunkGeneration.js` | — | add | edit | edit | — | — | — | — | — |
+| `src/game/rules/terrainGen/flatGeneration.js` | — | add | — | — | edit | — | — | — | edit |
 | `src/game/rules/terrainTypes.js` | — | edit | edit | — | edit | — | — | edit | — |
 | `src/game/rules/archetypeData/biomes.js` | — | edit | edit | — | — | — | — | edit | — |
 | `src/game/state/gameFactory.js` | — | edit | — | — | — | — | — | — | — |
@@ -899,7 +914,10 @@ Completed steps should be noted in `update_progress/progress_overview.md` with a
 - `src/engine/rules/noise.js` — Simplex 2D + FBM implementation
 - `src/game/rules/archetypes.js` — Archetype registry
 - `src/game/rules/archetypeData/biomes.js` — Current biome definitions
-- `src/game/rules/terrainGenerator.js` — Current generation pipeline
+- `src/game/rules/terrainGen/` — Refactored generation pipeline (16 files)
+- `src/game/rules/terrainGen/index.js` — Barrel re-export of all terrain gen exports
+- `src/game/rules/terrainGen/chunkGeneration.js` — Per-chunk pipeline (`generateChunkTiles`)
+- `src/game/rules/terrainGen/flatGeneration.js` — Flat-map wrapper (`generateTiles`)
 - `src/params/game/worldParams.js` — Current noise config
 - `src/engine/rules/chunkGrid.js` — Chunk coordinate math (24×24 chunks)
 - `dev/largeMapRoadmap.md` — Scaling plan and chunk infrastructure context
