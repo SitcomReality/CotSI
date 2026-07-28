@@ -77,6 +77,18 @@ export const DEBRIS = {
 /** Half-side of the debris square in hex-pixels */
 export const DEBRIS_SIZE = 1;
 
+// ── River overlay ──────────────────────────────────────────────────────────
+
+/** Radius (in hexes) for river moisture boost — used to compute the boost halo. */
+export const RIVER_BOOST_RADIUS = 1;
+
+export const RIVER = {
+  /** Semi-transparent blue fill for moisture-boosted tiles (halo). */
+  boostColor: 'rgba(64, 160, 255, 0.12)',
+  /** Brighter blue fill for river-path tiles. */
+  pathColor: 'rgba(30, 120, 220, 0.7)',
+};
+
 // ── Viewport culling ────────────────────────────────────────────────────────────
 
 /** Margin (in hex sizes) outside the viewport still rendered */

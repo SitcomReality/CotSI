@@ -6,12 +6,12 @@
  * Drawing utilities live in sibling modules; visual constants
  * live in theme.js.
  */
-import { coordKey } from '../../../src/engine/rules/hexGrid.js';
+import { coordKey, hexesWithinRadius } from '../../../src/engine/rules/hexGrid.js';
 import { hexToPixel, drawHexPath, HEX_SIZE } from './hexMath.js';
 import { resolveFillColor } from './terrainFill.js';
 import { drawBases, drawMobs, drawTraders, drawChampions } from './entityMarkers.js';
 import { drawFeatures, drawDebris } from './featureMarkers.js';
-import { CULL_MARGIN } from './theme.js';
+import { CULL_MARGIN, RIVER, RIVER_BOOST_RADIUS } from './theme.js';
 
 /**
  * Render the full map: terrain hexes + entity markers.
@@ -86,6 +86,47 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
     // Track bases
     if (options.showBases && tile.feature?.kind === 'base') {
       baseKeys.add(key);
+    }
+  }
+
+  // Draw river overlay (moisture boost halo + river-path highlight)
+  if (viewMode === 'rivers') {
+    // Find all river tiles and compute boost halo set
+    const riverKeys = new Set();
+    for (const key of tileKeys) {
+      if (tiles[key].isRiver) riverKeys.add(key);
+    }
+
+    if (riverKeys.size > 0) {
+      const offsets = hexesWithinRadius(RIVER_BOOST_RADIUS);
+      const boostedKeys = new Set();
+      for (const key of riverKeys) {
+        boostedKeys.add(key);
+        const [q, r] = key.split(',').map(Number);
+        for (const n of offsets) {
+          boostedKeys.add(coordKey({ q: q + n.q, r: r + n.r }));
+        }
+      }
+
+      // Draw moisture boost halo (semi-transparent blue on boosted tiles)
+      for (const key of boostedKeys) {
+        const tile = tiles[key];
+        if (!tile) continue;
+        if (riverKeys.has(key)) continue; // river tiles get their own fill below
+        const p = hexToPixel(tile.q, tile.r, HEX_SIZE);
+        drawHexPath(ctx, p.x, p.y, HEX_SIZE * 0.95);
+        ctx.fillStyle = RIVER.boostColor;
+        ctx.fill();
+      }
+
+      // Draw river-path tiles (brighter blue)
+      for (const key of riverKeys) {
+        const tile = tiles[key];
+        const p = hexToPixel(tile.q, tile.r, HEX_SIZE);
+        drawHexPath(ctx, p.x, p.y, HEX_SIZE * 0.95);
+        ctx.fillStyle = RIVER.pathColor;
+        ctx.fill();
+      }
     }
   }
 

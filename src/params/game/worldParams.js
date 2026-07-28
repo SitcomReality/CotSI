@@ -148,3 +148,20 @@ export const DEFAULT_TERRAIN_RULES = {
   treeLineMax:              0.85,
   snowLineMax:              0.15,
 };
+
+// ---------------------------------------------------------------------------
+// River configuration (Phase D)
+// ---------------------------------------------------------------------------
+
+/** Minimum elevation percentile for river source candidates. */
+export const RIVER_SOURCE_MIN_ELEV    = 0.75;
+/** Minimum base moisture for river source candidates. */
+export const RIVER_SOURCE_MIN_MOIST   = 0.55;
+/** Fraction of tiles selected as river sources. */
+export const RIVER_SOURCE_FRACTION    = 0.0001;
+/** Maximum trace steps per river. */
+export const RIVER_MAX_LENGTH         = 200;
+/** Moisture boost added to tiles near rivers. */
+export const RIVER_MOISTURE_BOOST     = 0.10;
+/** Radius in hexes for river moisture boost. */
+export const RIVER_BOOST_RADIUS       = 1;

@@ -76,13 +76,13 @@ Details in `phaseB_progress.md`.
 
 Details in `phaseD_rivers.md`.
 
-1. Add river config constants to `worldParams.js` (`RIVER_SOURCE_MIN_ELEV`, `RIVER_SOURCE_MIN_MOIST`, `RIVER_SOURCE_FRACTION`, `RIVER_MAX_LENGTH`, `RIVER_MOISTURE_BOOST`, `RIVER_BOOST_RADIUS`)
-2. Add `seedFromPosition(seed, q, r, step)` tie-breaking function — **terrainGen/rivers/riverTrace.js**
-3. Add `selectRiverSources(tiles, fieldMap, params)` function — **terrainGen/rivers/riverSources.js**
-4. Add `traceRiver(start, fieldMap, provisionalWaterSet, params)` function with seeded tie-breaking — **terrainGen/rivers/riverTrace.js**
-5. Add `applyRiverMoistureBoost(tiles, riverPaths, fieldMap)` function — **terrainGen/rivers/riverMoisture.js**
-6. Update `generateTiles()` wrapper: assemble flat fieldMap, run river post-passes (source selection → trace → boost), re-classify terrain for river-affected tiles, re-run water-type tagging, set `isRiver` flags — **terrainGen/flatGeneration.js**
-7. Update analysis tool to show river paths and moisture boost halo — **analysis tool**
+1. Add river config constants to `worldParams.js` (`RIVER_SOURCE_MIN_ELEV`, `RIVER_SOURCE_MIN_MOIST`, `RIVER_SOURCE_FRACTION`, `RIVER_MAX_LENGTH`, `RIVER_MOISTURE_BOOST`, `RIVER_BOOST_RADIUS`) — **Done.**
+2. Add `seededHash(q, r, step, seed)` tie-breaking function — **terrainGen/rivers/riverTrace.js** — **Done.**
+3. Add `selectRiverSources(tiles, fieldMap, params)` function — **terrainGen/rivers/riverSources.js** — **Done.**
+4. Add `traceRiver(start, fieldMap, provisionalWaterSet, params)` function with seeded tie-breaking — **terrainGen/rivers/riverTrace.js** — **Done.**
+5. Add `applyRiverMoistureBoost(tiles, riverPaths)` function — **terrainGen/rivers/riverMoisture.js** — **Done.**
+6. Update `generateTiles()` wrapper: assemble flat fieldMap, run river post-passes (source selection → trace → boost), re-classify terrain for river-affected tiles, set `isRiver` flags — **terrainGen/flatGeneration.js** — **Done.**
+7. Update analysis tool to show river paths and moisture boost halo — **analysis tool** — **Done.**
 8. Verify: river valleys are greener (visibly more forest/marsh along paths), source count scales with map size, paths are natural (not axis-locked), dead-end rivers at local minima are acceptable
 
 ## Phase E

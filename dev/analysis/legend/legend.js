@@ -17,7 +17,7 @@ import { els } from '../domRefs.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
 import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
 import { ELEVATION_COLOR_STOPS, MOISTURE_COLOR_STOPS } from '../render/colorMaps.js';
-import { BIOME_COLORS } from '../render/theme.js';
+import { BIOME_COLORS, RIVER } from '../render/theme.js';
 
 // ─── Terrain display order ────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ export const TERRAIN_ORDER = ['plains', 'forest', 'denseForest', 'desert', 'mars
 /**
  * Update the legend DOM element for the given view mode.
  *
- * @param {'terrain'|'biome'|'elevation'|'moisture'|'baseMoisture'|'passability'|'blank'} mode
+ * @param {'terrain'|'biome'|'elevation'|'moisture'|'baseMoisture'|'passability'|'rivers'|'blank'} mode
  */
 export function updateLegend(mode) {
   if (!els.legend) return;
@@ -52,6 +52,9 @@ export function updateLegend(mode) {
 
   } else if (mode === 'passability') {
     els.legend.innerHTML = buildPassabilityLegend();
+
+  } else if (mode === 'rivers') {
+    els.legend.innerHTML = buildRiversLegend();
 
   } else if (mode === 'blank') {
     els.legend.innerHTML = '<div class="legend-gradient" style="color:#666;font-style:italic;">Terrain hidden — only entities and features are visible.</div>';
@@ -160,6 +163,30 @@ function buildPassabilityLegend() {
     <div class="legend-item">
       <span class="legend-swatch" style="background:#8b3a3a"></span>
       <span><strong>Impassable</strong> — ${impassableTerrain.join(', ')}</span>
+    </div>
+  </div>`;
+}
+
+
+/**
+ * Build HTML for a rivers legend.
+ * Shows terrain palette + river path + boost halo swatches.
+ *
+ * @returns {string}
+ */
+function buildRiversLegend() {
+  return `<div class="legend-swatches">
+    ${TERRAIN_ORDER.map(t => `<div class="legend-item">
+      <span class="legend-swatch" style="background:${TERRAIN[t]?.fill || '#444'}"></span>
+      <span>${TERRAIN[t]?.label || t}</span>
+    </div>`).join('')}
+    <div class="legend-item" style="margin-top:6px;">
+      <span class="legend-swatch" style="background:${RIVER.pathColor}"></span>
+      <span>River path</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-swatch" style="background:${RIVER.boostColor}"></span>
+      <span>Moisture boost (fertile valley)</span>
     </div>
   </div>`;
 }
