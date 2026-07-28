@@ -43,7 +43,7 @@ Tune noise parameters, terrain thresholds, and feature densities based on playte
 
 ### 4.1 Frequency Tuning by Map Size
 
-The current frequencies were chosen for radius-21 maps. Small maps (radius 7) and large maps (radius 50) need different effective scales.
+The current frequencies were chosen for radius-21 maps. Tiny sudden death maps (radius 7) and large maps (radius 50) need different effective scales. Ultimately the goal is to also support massive maps up to 100 radius.
 
 | Noise Field | radius 7 | radius 21 | radius 50 | Notes |
 |-------------|----------|-----------|-----------|-------|
@@ -52,7 +52,7 @@ The current frequencies were chosen for radius-21 maps. Small maps (radius 7) an
 | `MOISTURE` | 0.010 | 0.006 | 0.004 | Climate bands visible at all scales |
 | `REGION` | 0.004 | 0.0015 | 0.0008 | 3-5 biome regions per map |
 
-**Implementation:** Either make frequencies map-size-dependent (scale by `1/radius`), or pick a single set that works adequately at all target sizes. The analysis tool's multi-radius calibration (Phase 0) informs this decision.
+**Implementation:** Either make frequencies map-size-dependent (scale by `1/radius`), or pick a single set that works adequately at all target sizes. The analysis tool's multi-radius calibration can inform this decision.
 
 ### 4.2 Composite Weight Tuning
 

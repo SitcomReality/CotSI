@@ -13,7 +13,7 @@ import { verifyFrequency } from '../generation/frequencyVerification.js';
 import { runSnapshotTests } from '../generation/snapshotTest.js';
 import { runSeamTest } from '../generation/seamTest.js';
 import { runClimateCoverageTest } from '../generation/climateCoverage.js';
-import { NOISE_CONFIG } from '../generation/noiseConfig.js';
+import { getNoiseConfig, NOISE_CONFIG } from '../generation/noiseConfig.js';
 import {
   collectRawSlopeDeltas,
   deriveThresholds,
@@ -142,7 +142,8 @@ export async function runBatch(opts) {
 
       // ── 2. Collect histograms (needed for all calibration data) ────────
       if (wants.histograms) {
-        const h = collectHistograms(seedText, radius, NOISE_CONFIG);
+        const nc = getNoiseConfig(radius);
+        const h = collectHistograms(seedText, radius, nc);
         radiusCalibHists.elev.push(h.elevHist);
         radiusCalibHists.moist.push(h.moistHist);
         radiusCalibHists.temp.push(h.tempHist);
@@ -156,7 +157,7 @@ export async function runBatch(opts) {
 
         // Collect slope deltas for threshold normalization
         if (wants.thresholds) {
-          const deltas = collectRawSlopeDeltas(seedText, radius, NOISE_CONFIG);
+          const deltas = collectRawSlopeDeltas(seedText, radius, nc);
           for (let d = 0; d < deltas.length; d++) {
             allSlopeDeltas.push(deltas[d]);
           }

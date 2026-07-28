@@ -10,7 +10,7 @@
 import { hexFbm2D, hexToWorld } from '../../../src/engine/rules/noise.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import { hexesWithinRadius } from '../../../src/engine/rules/hexGrid.js';
-import { NOISE_CONFIG } from './noiseConfig.js';
+import { getNoiseConfig, SEED_DETAIL, SEED_RIDGE, SEED_MOISTURE, SEED_TEMP, SEED_REGION_M } from './noiseConfig.js';
 
 // ---------------------------------------------------------------------------
 // Field registry — reads from noiseConfig.js (single source of truth).
@@ -19,11 +19,11 @@ import { NOISE_CONFIG } from './noiseConfig.js';
 
 function seedOffsetFor(fieldKey) {
   const map = {
-    ELEVATION_DETAIL: NOISE_CONFIG.SEED_DETAIL,
-    RIDGE:           NOISE_CONFIG.SEED_RIDGE,
-    MOISTURE:        NOISE_CONFIG.SEED_MOISTURE,
-    TEMP_VARIATION:  NOISE_CONFIG.SEED_TEMP,
-    REGION:          NOISE_CONFIG.SEED_REGION_M,
+    ELEVATION_DETAIL: SEED_DETAIL,
+    RIDGE:           SEED_RIDGE,
+    MOISTURE:        SEED_MOISTURE,
+    TEMP_VARIATION:  SEED_TEMP,
+    REGION:          SEED_REGION_M,
   };
   return map[fieldKey] ?? 0;
 }
@@ -44,16 +44,17 @@ const FIELD_TARGETS = {
   REGION:           '4-6 biome regions on radius-50',
 };
 
-const FIELDS_TO_VERIFY = (() => {
+function getFieldsToVerify(radius) {
+  const nc = getNoiseConfig(radius);
   const keys = ['ELEVATION_DETAIL', 'RIDGE', 'MOISTURE', 'TEMP_VARIATION', 'REGION'];
   return keys.map(k => ({
     label: FIELD_LABELS[k],
     key: k,
     seedOffset: seedOffsetFor(k),
-    config: { ...NOISE_CONFIG[k] },
+    config: { ...nc[k] },
     target: FIELD_TARGETS[k],
   }));
-})();
+}
 
 // ---------------------------------------------------------------------------
 // Verify a single noise field
@@ -123,7 +124,8 @@ export function verifyFrequency(seedText = 'glut-17', radius = 50) {
 
   const results = [];
 
-  for (const field of FIELDS_TO_VERIFY) {
+  const fieldsToVerify = getFieldsToVerify(radius);
+  for (const field of fieldsToVerify) {
     const { crossings, totalTiles, worldWidth } = countCrossings(
       seed + field.seedOffset,
       field.config,
@@ -145,6 +147,7 @@ export function verifyFrequency(seedText = 'glut-17', radius = 50) {
       configFrequency: field.config.frequency,
       octaves: field.config.octaves,
       target: field.target,
+      mapRadius: radius,
       crossings,
       totalTiles,
       halfCycles: halfCycles.toFixed(1),
@@ -168,7 +171,9 @@ export function verifyFrequency(seedText = 'glut-17', radius = 50) {
 export function formatFrequencyReport(results) {
   const lines = [];
   lines.push('=== Frequency Verification Report ===');
-  lines.push(`Map radius: ${results.length > 0 ? 50 : '?'}  |  Tiles: ${results[0]?.totalTiles || 0}`);
+  const r = results[0]?.mapRadius ?? '?';
+  const n = results[0]?.totalTiles ?? 0;
+  lines.push(`Map radius: ${r}  |  Tiles: ${n}`);
   lines.push('');
 
   for (const r of results) {

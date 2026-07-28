@@ -8,7 +8,7 @@
  * Pure rendering — reads noise config and seed from DOM, no state mutation.
  */
 import { collectHistograms } from '../generation/histograms.js';
-import { NOISE_CONFIG } from '../generation/noiseConfig.js';
+import { getNoiseConfig } from '../generation/noiseConfig.js';
 import { els } from '../domRefs.js';
 
 // ── Threshold definitions for overlay lines ────────────────────────────────
@@ -64,7 +64,7 @@ export function renderDistributions(ctx, canvasW, canvasH, dpr) {
 
   let hists;
   try {
-    hists = collectHistograms(seedText, radius, NOISE_CONFIG);
+    hists = collectHistograms(seedText, radius, getNoiseConfig(radius));
   } catch {
     ctx.fillStyle = '#c44';
     ctx.font = '14px monospace';

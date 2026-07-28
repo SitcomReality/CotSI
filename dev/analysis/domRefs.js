@@ -53,6 +53,7 @@ export function cacheDom() {
 
   // Batch analysis
   els.batchCount = $('batch-count');
+  els.batchRadii7 = $('batch-radius-7');
   els.batchRadii21 = $('batch-radius-21');
   els.batchRadii50 = $('batch-radius-50');
   els.batchRadii100 = $('batch-radius-100');

@@ -9,7 +9,7 @@ import {
   DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD,
 } from '../../../params/game/worldParams.js';
 import { getArchetype } from '../archetypes.js';
-import { NOISE_CONFIG, sampleBaseFields } from './fields/sampleBaseFields.js';
+import { getNoiseConfig, sampleBaseFields } from './fields/sampleBaseFields.js';
 import { computeSlope } from './fields/slopeComputation.js';
 import { isProvisionalWater, provisionalTerrainForRing } from './classification/provisionalWater.js';
 import { adjustMoisture } from './classification/moistureAdjustment.js';
@@ -72,8 +72,9 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
   // --- Pass 0: Sample base fields for all hexes (core + border ring) ---
   const allHexes = hexesInExpandedChunk(chunkQ, chunkR, MAX_LOOKUP_RADIUS);
   const fieldMap = new Map();
+  const noiseConfig = getNoiseConfig(radius);
   for (const { q, r } of allHexes) {
-    fieldMap.set(coordKey({ q, r }), sampleBaseFields(seed, q, r, NOISE_CONFIG, radius));
+    fieldMap.set(coordKey({ q, r }), sampleBaseFields(seed, q, r, noiseConfig, radius));
   }
 
   // Determine which hexes are in the core chunk and within the map radius

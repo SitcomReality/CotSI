@@ -77,6 +77,7 @@ let _lastCalibration = null;
  */
 function getSelectedRadii() {
   const radii = [];
+  if (els.batchRadii7?.checked) radii.push(7);
   if (els.batchRadii21?.checked) radii.push(21);
   if (els.batchRadii50?.checked) radii.push(50);
   if (els.batchRadii100?.checked) radii.push(100);
