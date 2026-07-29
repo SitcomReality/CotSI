@@ -67,6 +67,8 @@ export function cacheDom() {
   els.batchSeam = $('batch-seam');
   els.batchClimate = $('batch-climate');
   els.batchThresholds = $('batch-thresholds');
+  els.batchSpatial = $('batch-spatial');
+  els.batchCorrelations = $('batch-correlations');
   els.btnBatchRun = $('btn-batch-run');
   els.batchProgressFill = $('batch-progress-fill');
   els.batchProgressText = $('batch-progress-text');

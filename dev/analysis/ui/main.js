@@ -100,6 +100,8 @@ function getBatchOptions() {
     seam:          els.batchSeam?.checked          ?? false,
     climate:       els.batchClimate?.checked       ?? false,
     thresholds:    els.batchThresholds?.checked    ?? true,
+    spatial:       els.batchSpatial?.checked       ?? false,
+    correlations:  els.batchCorrelations?.checked  ?? false,
   };
 }
 

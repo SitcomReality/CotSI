@@ -17,6 +17,14 @@ import {
   entityStats,
   traderAnalysis,
 } from './stats.js';
+import {
+  runSpatialStats,
+  formatSpatialStats,
+  pearsonCorrelation,
+  formatCorrelations,
+  jointHistogramWithBiome,
+  formatJointHistogram,
+} from './spatialStats.js';
 
 // ─── Single-seed stats ────────────────────────────────────────────────────────
 
@@ -74,6 +82,24 @@ export function formatStats() {
       lines.push(`  (${tp.pos.q}, ${tp.pos.r})  center dist=${tp.distToCenter}  nearest base=${tp.minBaseDist ?? 'N/A'}`);
     }
   }
+  lines.push('');
+
+  // Spatial statistics (patch analysis)
+  const spatialResults = runSpatialStats(tiles);
+  lines.push(formatSpatialStats(spatialResults, terrainStats.total));
+
+  // Cross-field correlations
+  const tileArray = Object.values(tiles);
+  const corrPairs = [
+    { fieldA: 'elevationField', fieldB: 'temperature',  r: pearsonCorrelation(tileArray, 'elevationField', 'temperature').r },
+    { fieldA: 'elevationField', fieldB: 'moisture',     r: pearsonCorrelation(tileArray, 'elevationField', 'moisture').r },
+    { fieldA: 'moisture',       fieldB: 'temperature',  r: pearsonCorrelation(tileArray, 'moisture', 'temperature').r },
+  ];
+  lines.push(formatCorrelations(corrPairs));
+
+  // 2D joint histogram (elevation × moisture) with biome overlay
+  const jh = jointHistogramWithBiome(tileArray, 'elevationField', 'moisture');
+  lines.push(formatJointHistogram(jh));
 
   return lines.join('\n');
 }

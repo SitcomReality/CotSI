@@ -2,87 +2,132 @@
  * seamTest.js — Chunk-seam invariant verification.
  *
  * Verifies that terrain generation produces consistent results:
- * every tile's elevationField and temperature match what sampleBaseFields()
- * would produce at the same global coordinate. Moisture is now adjusted
- * (coastal boost near water), so it's validated against a recomputation
- * from base fields + neighbor provisional-water classification.
+ * every tile's elevationField, temperature, baseMoisture, slope, biomeId,
+ * and terrain match what independent recomputation would produce.
  *
  * The test generates a full map via generateSingleSeed (which assembles
  * chunks), then recomputes fields for each tile via direct sampleBaseFields
  * calls and asserts they match the stored values.
  *
+ * Fields tested:
+ *   elevationField  — pure function of (seed, q, r) via sampleBaseFields
+ *   temperature     — pure function of (seed, q, r) via sampleBaseFields
+ *   baseMoisture    — pure function of (seed, q, r) via sampleBaseFields
+ *   moisture        — adjusted: baseMoisture + coastal boost from neighbor water
+ *   slope           — recomputed via computeSlope() from recomputed elevations
+ *   biomeId         — recomputed via selectBiome() from recomputed fields
+ *   terrain         — recomputed via classifyTerrain() from recomputed fields + biome rules
+ *
+ * Not tested (neighbor-context-dependent post-processing, not pure per-tile):
+ *   mountainType    — depends on neighbor terrain classification
+ *   waterType       — depends on BFS to map edge
+ *   isRiver         — trace result depends on full-map flow accumulation
+ *   feature/debris  — random spawn rolls, not field-invariant
+ *
  * Pure: no DOM, no state, no side effects beyond console.assert.
  */
 import { generateSingleSeed } from './generate.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
-import { sampleBaseFields, isProvisionalWater, NOISE_CONFIG } from '../../../src/game/rules/terrainGen/index.js';
+import {
+  sampleBaseFields, isProvisionalWater, NOISE_CONFIG,
+  computeSlope, selectBiome, classifyTerrain,
+} from '../../../src/game/rules/terrainGen/index.js';
+import { getArchetype } from '../../../src/game/rules/archetypes.js';
 import { hexesWithinRadius, coordKey } from '../../../src/engine/rules/hexGrid.js';
 import { DEFAULT_TERRAIN_RULES } from '../../../src/params/game/worldParams.js';
 
 /** Supernatural biome IDs to skip during seam comparison (epicenter overrides break pure-function invariance). */
 const SUPERNATURAL_BIOME_IDS = ['biome_brass_grave', 'biome_unfinished_lands'];
 
-/** Test seed and radius. */
-const TEST_SEED = 'glut-17';
-const TEST_RADIUS = 21;
+/** Default seed and radius (for backward compatibility). */
+const DEFAULT_SEED = 'glut-17';
+const DEFAULT_RADIUS = 21;
 
 /**
- * Run the chunk-seam invariant test.
+ * Run the chunk-seam invariant test for a single (seed, radius) pair.
  *
- * Generates a map and verifies that:
- * - elevationField and temperature match sampleBaseFields
- * - moisture matches the coastal-adjusted value computed from base fields
- *   and neighbor provisional-water classification
+ * Two-pass design:
+ *   Pass 1 — recompute all base fields (elevation, moisture, temperature,
+ *            regionBias) into a lookup map for slope computation.
+ *   Pass 2 — verify every non-supernatural tile.
  *
- * @returns {{ passed: boolean, failures: object[] }}
+ * @param {string} [seedText='glut-17']  - Seed string
+ * @param {number} [radius=21]           - Map radius
+ * @returns {{ passed: boolean, failures: object[], seed: string, radius: number }}
  *   Each failure: { q, r, field, stored, recomputed }
  */
-export function runSeamTest() {
+export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
   const failures = [];
 
   try {
-    const result = generateSingleSeed(TEST_SEED, TEST_RADIUS, null);
+    const result = generateSingleSeed(seedText, radius, null);
     const tiles = result.tiles;
-    const baseSeed = stringSeed(TEST_SEED);
+    const baseSeed = stringSeed(seedText);
 
     const tileEntries = Object.values(tiles);
     if (tileEntries.length === 0) {
       return {
         passed: false,
         failures: [{ q: 0, r: 0, field: 'generation', stored: 'n/a', recomputed: 'no tiles generated' }],
+        seed: seedText,
+        radius,
       };
     }
 
+    // ── Pass 1: Build recomputed-field map ────────────────────────────────
+    const recomputed = new Map(); // coordKey -> { elevation, baseMoisture, temperature, regionBiasM, regionBiasT }
+    for (const tile of tileEntries) {
+      const { q, r } = tile;
+      const fields = sampleBaseFields(baseSeed, q, r, NOISE_CONFIG, radius);
+      recomputed.set(coordKey(tile), fields);
+    }
+
+    // ── Pass 2: Verify each non-supernatural tile ──────────────────────────
     for (const tile of tileEntries) {
       const { q, r, elevationField, moisture, temperature, biomeId } = tile;
+
+      const key = coordKey(tile);
+      const fields = recomputed.get(key);
+      if (!fields) continue; // should not happen
 
       // Skip tiles overridden by supernatural biomes — epicenter fieldModifiers
       // break the pure-function invariant against sampleBaseFields.
       if (SUPERNATURAL_BIOME_IDS.includes(biomeId)) continue;
 
-      // Recompute base fields directly via sampleBaseFields
-      const fields = sampleBaseFields(baseSeed, q, r, NOISE_CONFIG, TEST_RADIUS);
-
-      // Compare elevation (allow tiny floating-point drift)
+      // ── 1. elevationField ──────────────────────────────────────────────
       if (Math.abs(elevationField - fields.elevation) > 1e-12) {
         failures.push({
           q, r, field: 'elevationField',
           stored: elevationField, recomputed: fields.elevation,
         });
+        if (failures.length >= 10) break;
+        continue;
       }
 
-      // Compare temperature (allow tiny floating-point drift)
+      // ── 2. temperature ─────────────────────────────────────────────────
       if (Math.abs(temperature - fields.temperature) > 1e-12) {
         failures.push({
           q, r, field: 'temperature',
           stored: temperature, recomputed: fields.temperature,
         });
+        if (failures.length >= 10) break;
+        continue;
       }
 
-      // Compare adjusted moisture: recompute from base fields + neighbor water count
+      // ── 3. baseMoisture ────────────────────────────────────────────────
+      if (Math.abs(tile.baseMoisture - fields.baseMoisture) > 1e-12) {
+        failures.push({
+          q, r, field: 'baseMoisture',
+          stored: tile.baseMoisture, recomputed: fields.baseMoisture,
+        });
+        if (failures.length >= 10) break;
+        continue;
+      }
+
+      // ── 4. moisture (adjusted: base + coastal boost) ────────────────────
       let waterCount = 0;
       for (const n of hexesWithinRadius(2)) {
-        const nFields = sampleBaseFields(baseSeed, q + n.q, r + n.r, NOISE_CONFIG, TEST_RADIUS);
+        const nFields = sampleBaseFields(baseSeed, q + n.q, r + n.r, NOISE_CONFIG, radius);
         if (isProvisionalWater(nFields.elevation, nFields.baseMoisture, DEFAULT_TERRAIN_RULES)) {
           waterCount++;
         }
@@ -94,53 +139,177 @@ export function runSeamTest() {
           q, r, field: 'moisture',
           stored: moisture, recomputed: expectedMoisture,
         });
+        if (failures.length >= 10) break;
+        continue;
       }
 
-      // Bail early on excessive failures to keep the report readable
-      if (failures.length >= 10) break;
+      // ── 5. slope (via computeSlope from recomputed elevations) ──────────
+      const elevationAt = (nq, nr) => {
+        const f = recomputed.get(coordKey({ q: nq, r: nr }));
+        return f ? f.elevation : 0;
+      };
+      const expectedSlope = computeSlope(q, r, elevationAt);
+
+      if (Math.abs(tile.slope - expectedSlope) > 1e-12) {
+        failures.push({
+          q, r, field: 'slope',
+          stored: tile.slope, recomputed: expectedSlope,
+        });
+        if (failures.length >= 10) break;
+        continue;
+      }
+
+      // ── 6. biomeId (via selectBiome from recomputed fields) ─────────────
+      // Use the expected adjusted moisture for biome selection, since that's
+      // what the generation pipeline uses.
+      const expectedBiomeId = selectBiome(
+        fields.elevation, expectedMoisture, fields.temperature,
+        fields.regionBiasM, fields.regionBiasT
+      );
+
+      if (biomeId !== expectedBiomeId) {
+        failures.push({
+          q, r, field: 'biomeId',
+          stored: biomeId, recomputed: expectedBiomeId,
+        });
+        if (failures.length >= 10) break;
+        continue;
+      }
+
+      // ── 7. terrain (via classifyTerrain from recomputed fields + biome rules) ──
+      const biomeDef = getArchetype(expectedBiomeId) || getArchetype('biome_default');
+      const expectedTerrain = classifyTerrain(
+        fields.elevation, expectedMoisture, fields.temperature,
+        expectedSlope, biomeDef
+      );
+
+      if (tile.terrain !== expectedTerrain) {
+        failures.push({
+          q, r, field: 'terrain',
+          stored: tile.terrain, recomputed: expectedTerrain,
+        });
+        if (failures.length >= 10) break;
+      }
     }
   } catch (err) {
     return {
       passed: false,
       failures: [{ q: 0, r: 0, field: 'error', stored: err.message, recomputed: 'n/a' }],
+      seed: seedText,
+      radius,
     };
   }
 
   return {
     passed: failures.length === 0,
     failures,
+    seed: seedText,
+    radius,
   };
 }
 
 /**
  * Format seam test results as a human-readable text report.
  *
- * @param {{ passed: boolean, failures: object[] }} testResult - Output of runSeamTest()
+ * @param {{ passed: boolean, failures: object[], seed: string, radius: number }} testResult - Output of runSeamTest()
  * @returns {string}
  */
-export function formatSeamReport({ passed, failures }) {
+export function formatSeamReport({ passed, failures, seed, radius }) {
   const lines = [];
   lines.push('=== Chunk-Seam Invariant Test ===');
   lines.push(`Status: ${passed ? 'PASSED' : 'FAILED'}`);
-  lines.push(`Seed: ${TEST_SEED}  |  Radius: ${TEST_RADIUS}`);
-  lines.push('Invariant: elevationField & temperature are pure functions of (seed, q, r)');
-  lines.push('Moisture: adjusted (coastal boost) — recomputed from base fields + neighbor water');
-  lines.push('Formula: worldShape(dist, radius) × (detail×0.5 + ridges×0.5)');
+  lines.push(`Seed: ${seed}  |  Radius: ${radius}`);
+  lines.push('Invariant: fields (elevation, temperature, baseMoisture, moisture, slope, biomeId, terrain)');
+  lines.push('');
+  lines.push('Checked fields:');
+  lines.push('  elevationField  ← sampleBaseFields().elevation');
+  lines.push('  temperature     ← sampleBaseFields().temperature');
+  lines.push('  baseMoisture    ← sampleBaseFields().baseMoisture');
+  lines.push('  moisture        ← baseMoisture + coastal boost (neighbor water)');
+  lines.push('  slope           ← computeSlope() from recomputed elevations');
+  lines.push('  biomeId         ← selectBiome() from recomputed fields');
+  lines.push('  terrain         ← classifyTerrain() from recomputed fields + biome rules');
   lines.push('');
 
   if (passed) {
-    lines.push('All tiles verified — stored fields match recomputed values.');
+    lines.push('All tiles verified — stored values match recomputed values.');
   } else {
     lines.push(`${failures.length} mismatch(es) found (showing first 10):`);
     for (const f of failures) {
       if (f.field === 'error') {
         lines.push(`  ERROR: ${f.stored}`);
+      } else if (f.field === 'biomeId' || f.field === 'terrain') {
+        lines.push(
+          `  (${f.q},${f.r}) ${f.field}: ` +
+          `stored="${f.stored}"  recomputed="${f.recomputed}"`
+        );
       } else {
         lines.push(
           `  (${f.q},${f.r}) ${f.field}: ` +
           `stored=${f.stored?.toFixed?.(8) ?? f.stored}  ` +
           `recomputed=${f.recomputed?.toFixed?.(8) ?? f.recomputed}`
         );
+      }
+    }
+  }
+  lines.push('');
+
+  return lines.join('\n');
+}
+
+/**
+ * Run the seam invariant across multiple seeds at a given radius.
+ *
+ * @param {string[]} seeds  - Array of seed strings
+ * @param {number}   radius - Map radius
+ * @returns {{ results: { seed: string, passed: boolean, failures: object[] }[], seedCount: number, radius: number }}
+ */
+export function runMultiSeedSeamTest(seeds, radius) {
+  const results = seeds.map(s => runSeamTest(s, radius));
+  return {
+    results,
+    seedCount: seeds.length,
+    radius,
+  };
+}
+
+/**
+ * Format multi-seed seam test results.
+ *
+ * @param {{ results: { seed: string, passed: boolean, failures: object[] }[], seedCount: number, radius: number }} multiResult
+ * @returns {string}
+ */
+export function formatMultiSeedSeamReport(multiResult) {
+  const lines = [];
+  lines.push('=== Chunk-Seam Invariant Test (multi-seed) ===');
+  lines.push(`Seeds: ${multiResult.seedCount}  |  Radius: ${multiResult.radius}`);
+  lines.push('');
+
+  const failed = multiResult.results.filter(r => !r.passed);
+  if (failed.length === 0) {
+    lines.push('All seeds PASSED — terrain generation is chunk-seam invariant.');
+  } else {
+    lines.push(`${failed.length}/${multiResult.seedCount} seed(s) FAILED:`);
+    for (const f of failed) {
+      lines.push(`  Seed "${f.seed}": ${f.failures.length} mismatch(es)`);
+      for (const failure of f.failures.slice(0, 5)) {
+        if (failure.field === 'error') {
+          lines.push(`    ERROR: ${failure.stored}`);
+        } else if (failure.field === 'biomeId' || failure.field === 'terrain') {
+          lines.push(
+            `    (${failure.q},${failure.r}) ${failure.field}: ` +
+            `stored="${failure.stored}"  recomputed="${failure.recomputed}"`
+          );
+        } else {
+          lines.push(
+            `    (${failure.q},${failure.r}) ${failure.field}: ` +
+            `stored=${failure.stored?.toFixed?.(8) ?? failure.stored}  ` +
+            `recomputed=${failure.recomputed?.toFixed?.(8) ?? failure.recomputed}`
+          );
+        }
+      }
+      if (f.failures.length > 5) {
+        lines.push(`    ... and ${f.failures.length - 5} more`);
       }
     }
   }

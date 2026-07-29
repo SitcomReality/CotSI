@@ -11,7 +11,7 @@ import { generateSingleSeed } from '../generation/generate.js';
 import { collectHistograms, collectTileHistograms } from '../generation/histograms.js';
 import { verifyFrequency } from '../generation/frequencyVerification.js';
 import { runSnapshotTests } from '../generation/snapshotTest.js';
-import { runSeamTest } from '../generation/seamTest.js';
+import { runMultiSeedSeamTest } from '../generation/seamTest.js';
 import { runClimateCoverageTest } from '../generation/climateCoverage.js';
 import { getNoiseConfig, NOISE_CONFIG } from '../generation/noiseConfig.js';
 import {
@@ -28,6 +28,7 @@ import {
   traderAnalysis,
   aggregateTerrainDistributions,
 } from '../stats/stats.js';
+import { runSpatialStats, pearsonCorrelation } from '../stats/spatialStats.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
 
 // ─── Per-seed stats collector ────────────────────────────────────────────────
@@ -80,6 +81,8 @@ export async function runBatch(opts) {
     seam:          options.seam          ?? false,
     climate:       options.climate       ?? false,
     thresholds:    options.thresholds    ?? false,
+    spatial:       options.spatial       ?? false,
+    correlations:  options.correlations  ?? false,
   };
 
   // ── Derive implied toggles ─────────────────────────────────────────
@@ -111,6 +114,13 @@ export async function runBatch(opts) {
       ? { elev: [], moist: [], temp: [], slope: [] }
       : null;
 
+    // Per-seed spatial stats accumulators
+    const perSeedSpatial = wants.spatial ? [] : null;
+    // Per-seed correlation accumulators
+    const perSeedCorrElevTemp = wants.correlations ? [] : null;
+    const perSeedCorrElevMoist = wants.correlations ? [] : null;
+    const perSeedCorrMoistTemp = wants.correlations ? [] : null;
+
     // Per-seed tile-based histogram accumulators for this radius
     const radiusTileHistsAll = [];
     const radiusTileHistsLand = [];
@@ -131,6 +141,19 @@ export async function runBatch(opts) {
 
       // Accumulate terrain distributions
       terrainDists.push(stats.terrain);
+
+      // Collect spatial stats per seed
+      if (wants.spatial) {
+        perSeedSpatial.push(runSpatialStats(result.tiles));
+      }
+
+      // Collect cross-field correlations per seed
+      if (wants.correlations) {
+        const tileArray = Object.values(result.tiles);
+        perSeedCorrElevTemp.push(pearsonCorrelation(tileArray, 'elevationField', 'temperature').r);
+        perSeedCorrElevMoist.push(pearsonCorrelation(tileArray, 'elevationField', 'moisture').r);
+        perSeedCorrMoistTemp.push(pearsonCorrelation(tileArray, 'moisture', 'temperature').r);
+      }
 
       // Accumulate trader positions for heatmap
       if (wants.traderHeatmap && stats.traderPositions.length > 0) {
@@ -213,14 +236,67 @@ export async function runBatch(opts) {
       radiusResult.championHeatmap = null;
     }
 
+    // ── 3b. Spatial stats aggregate ────────────────────────────────────
+    if (wants.spatial && perSeedSpatial.length > 0) {
+      // Collect per-terrain patch stats across seeds
+      const terrainKeys = new Set();
+      for (const seedSpatial of perSeedSpatial) {
+        for (const t of seedSpatial) {
+          terrainKeys.add(t.terrainType);
+        }
+      }
+      const spatialAgg = [];
+      for (const terrain of terrainKeys) {
+        const entries = perSeedSpatial
+          .map(s => s.find(t => t.terrainType === terrain))
+          .filter(Boolean);
+        if (entries.length === 0) continue;
+
+        const meanComp = entries.reduce((a, b) => a + b.componentCount, 0) / entries.length;
+        const meanSingleton = entries.reduce((a, b) => a + b.singletonCount, 0) / entries.length;
+        const meanLargestFrac = entries.reduce((a, b) => a + parseFloat(b.largestPatchFraction), 0) / entries.length;
+        const meanGini = entries.reduce((a, b) => a + parseFloat(b.gini), 0) / entries.length;
+        spatialAgg.push({
+          terrainType: terrain,
+          totalTiles: entries[0].totalTiles, // same across seeds at same radius
+          componentCount: meanComp.toFixed(2),
+          singletonCount: meanSingleton.toFixed(2),
+          largestPatchFraction: meanLargestFrac.toFixed(4),
+          gini: meanGini.toFixed(4),
+        });
+      }
+      spatialAgg.sort((a, b) => b.totalTiles - a.totalTiles);
+      radiusResult.spatial = spatialAgg;
+    }
+
+    // ── 3c. Correlation aggregate ──────────────────────────────────────
+    if (wants.correlations && perSeedCorrElevTemp.length > 0) {
+      const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+      const std = (arr, m) => Math.sqrt(arr.reduce((s, v) => s + (v - m) ** 2, 0) / arr.length);
+      const mt = mean(perSeedCorrElevTemp);
+      const mm = mean(perSeedCorrElevMoist);
+      const mtm = mean(perSeedCorrMoistTemp);
+      radiusResult.correlations = [
+        { fieldA: 'elevationField', fieldB: 'temperature',  rMean: mt.toFixed(4),  rStd: std(perSeedCorrElevTemp, mt).toFixed(4) },
+        { fieldA: 'elevationField', fieldB: 'moisture',     rMean: mm.toFixed(4),  rStd: std(perSeedCorrElevMoist, mm).toFixed(4) },
+        { fieldA: 'moisture',       fieldB: 'temperature',  rMean: mtm.toFixed(4), rStd: std(perSeedCorrMoistTemp, mtm).toFixed(4) },
+      ];
+    }
+
     // ── 4. Frequency verification (once per radius) ─────────────────────
     if (wants.frequency) {
       radiusResult.frequency = verifyFrequency(baseSeed, radius);
     }
 
-    // ── 5. Tests (once per radius with a representative seed) ────────────
+    // ── 5. Tests (per radius) ─────────────────────────────────────────
     if (wants.seam) {
-      radiusResult.seam = runSeamTest();
+      // Run seam test across multiple seeds at this radius
+      const seamSeeds = [];
+      const numSeamSeeds = Math.min(seedCount, 5);
+      for (let si = 0; si < numSeamSeeds; si++) {
+        seamSeeds.push(`${baseSeed}-${si}`);
+      }
+      radiusResult.seam = runMultiSeedSeamTest(seamSeeds, radius);
     }
     if (wants.climate) {
       radiusResult.climate = runClimateCoverageTest(baseSeed, radius);

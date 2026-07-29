@@ -5,18 +5,45 @@
  * formatted text. No DOM, no state, no side effects.
  *
  * Delegates to existing formatters for individual sections:
- *   - formatSnapshotReport(), formatSeamReport(), formatClimateCoverageReport()
+ *   - formatSnapshotReport(), formatMultiSeedSeamReport(), formatClimateCoverageReport()
  *   - formatMultiStats(), formatCalibrationReport()
  *   - formatFrequencyReport(), formatMultiCalibrationReport()
  */
 import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
 import { formatSnapshotReport } from '../generation/snapshotTest.js';
-import { formatSeamReport } from '../generation/seamTest.js';
+import { formatMultiSeedSeamReport } from '../generation/seamTest.js';
 import { formatClimateCoverageReport } from '../generation/climateCoverage.js';
 import { formatFrequencyReport } from '../stats/calibrationDisplay.js';
 import { formatCalibrationReport, exportCalibrationV1 } from '../generation/thresholdDerivation.js';
 import { poolHistograms } from '../generation/quantileLUT.js';
 import { percentileFromHistogram } from '../generation/histograms.js';
+import { heatmapConcentration } from './stats.js';
+
+/** Total hexes in a radius-r map: 3r(r+1) + 1 */
+function totalTilesAtRadius(r) {
+  return 3 * r * (r + 1) + 1;
+}
+
+/**
+ * Estimate passable tile count from an aggregateTerrainDistributions result.
+ * Sums the mean percentages for all passable terrain types and multiplies
+ * by total tile count for the radius.
+ *
+ * @param {object} terrainAgg - { terrainType: { mean: string, ... } }
+ * @param {number} radius     - Map radius
+ * @returns {number}
+ */
+function estimatePassableTiles(terrainAgg, radius) {
+  const total = totalTilesAtRadius(radius);
+  let passablePct = 0;
+  for (const [terrain, d] of Object.entries(terrainAgg)) {
+    const def = TERRAIN[terrain];
+    if (def && def.passable) {
+      passablePct += parseFloat(d.mean);
+    }
+  }
+  return Math.round(total * passablePct / 100);
+}
 
 /**
  * Format the full batch analysis result as a single text report.
@@ -67,6 +94,12 @@ export function formatBatchReport(result, opts = {}) {
         const pct = ((count / seedCount) * 100).toFixed(1);
         parts.push(`  ${key.padStart(8)}  ${count}/${seedCount}  (${pct}%)`);
       }
+      // Concentration metrics
+      if (rData.terrain) {
+        const validTiles = estimatePassableTiles(rData.terrain, radius);
+        const conc = heatmapConcentration(rData.traderHeatmap, seedCount, validTiles);
+        parts.push(`  Concentration: Gini=${conc.gini}  unique=${conc.uniqueHexes}  expected=${conc.expectedUnique}  (${conc.note})`);
+      }
       parts.push('');
     }
 
@@ -79,6 +112,12 @@ export function formatBatchReport(result, opts = {}) {
       for (const [key, count] of sorted) {
         const pct = ((count / seedCount) * 100).toFixed(1);
         parts.push(`  ${key.padStart(8)}  ${count}/${seedCount}  (${pct}%)`);
+      }
+      // Concentration metrics (champions use passable tiles too)
+      if (rData.terrain) {
+        const validTiles = estimatePassableTiles(rData.terrain, radius);
+        const conc = heatmapConcentration(rData.championHeatmap, seedCount, validTiles);
+        parts.push(`  Concentration: Gini=${conc.gini}  unique=${conc.uniqueHexes}  expected=${conc.expectedUnique}  (${conc.note})`);
       }
       parts.push('');
     }
@@ -146,10 +185,35 @@ export function formatBatchReport(result, opts = {}) {
 
     // Tests
     if (rData.seam) {
-      parts.push(formatSeamReport(rData.seam));
+      parts.push(formatMultiSeedSeamReport(rData.seam));
     }
     if (rData.climate) {
       parts.push(formatClimateCoverageReport(rData.climate));
+    }
+
+    // Spatial stats
+    if (rData.spatial && rData.spatial.length > 0) {
+      parts.push('Spatial Statistics (mean across seeds):');
+      for (const s of rData.spatial) {
+        parts.push(
+          `  ${s.terrainType.padEnd(14)} patches=${s.componentCount}  ` +
+          `singletons=${s.singletonCount}  ` +
+          `largest=${(s.largestPatchFraction * 100).toFixed(1)}%  ` +
+          `gini=${s.gini}`
+        );
+      }
+      parts.push('');
+    }
+
+    // Cross-field correlations
+    if (rData.correlations && rData.correlations.length > 0) {
+      parts.push('Cross-field Correlations (Pearson r, mean ± std across seeds):');
+      for (const c of rData.correlations) {
+        parts.push(
+          `  ${c.fieldA.padEnd(18)} × ${c.fieldB.padEnd(18)}  r=${c.rMean}  ±${c.rStd}`
+        );
+      }
+      parts.push('');
     }
   }
 
