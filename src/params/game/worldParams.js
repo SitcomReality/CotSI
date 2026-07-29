@@ -108,18 +108,15 @@ export const EPICENTER_GRID = {
 /**
  * Slope normalization divisor for computeSlope().
  * Derived from the 95th percentile of per-tile average elevation deltas
- * across 500-seed × 3-radius batch analysis.
- * With SN=0.0133, p95 avg delta maps to slope ≈ 1.0:
- *   totalDiff at p95 = 6 × 0.0133 = 0.0798
- *   slope = 0.0798 / (6 × 0.0133) = 1.0
+ * across 200-seed × 4-radius batch analysis (batch 010).
+ * SN=0.0636 means p95 avg delta maps to slope ≈ 1.0.
  *
  * Effect on common deltas:
- *   avgDelta 0.0033 → slope 0.25 (hill threshold)
- *   avgDelta 0.0050 → slope 0.38 (gentle slope)
- *   avgDelta 0.010  → slope 0.75 (moderate)
- *   avgDelta 0.015  → slope 1.00 (steep — clamped)
+ *   avgDelta 0.016  → slope 0.25 (hill threshold)
+ *   avgDelta 0.025  → slope 0.40 (plateau threshold)
+ *   avgDelta 0.064  → slope 1.00 (p95 — clamped)
  */
-export const SLOPE_NORMALIZATION = 0.0133;
+export const SLOPE_NORMALIZATION = 0.0636;
 
 /** Maximum lookup radius for border-ring sampling in per-chunk generation.
  *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
@@ -127,39 +124,36 @@ export const MAX_LOOKUP_RADIUS = 3;
 
 // ---------------------------------------------------------------------------
 // Default terrain rules — consumed by classifyTerrain (Phase A+).
-// Elevation percentile-based thresholds populated from calibration_v1.json
-// (run "Derive Thresholds" in the analysis tool → download calibration_v1.json).
-// Slope thresholds added in Phase B.
+// Percentile-based thresholds derived from batch analysis (batch 010).
+// Re-derive after any change to worldShape or elevation formulas.
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_TERRAIN_RULES = {
-  // Elevation thresholds — derived from 500-seed × 3-radius batch analysis (Phase G batch 003, post-SN-fix)
-  waterMaxElevation:        0.016, // p14 — low-elevation tiles become water candidates
-  mountainThreshold:        0.260, // p90
-  peakThreshold:            0.350, // p97 (slightly conservative vs batch-derived 0.400 to prevent undercount)
-  floatingIslandThreshold:  0.520, // p99.5
-  marshMaxElevation:        0.060, // p42 — raised from p35 to widen marsh's low-elevation catchment
-  hillElevationMin:         0.080, // p55
+  // Elevation thresholds — derived from 200-seed × 4-radius batch analysis (batch 010, post-recalibration)
+  waterMaxElevation:        0.1200, // p12 — ~12% water coverage
+  mountainThreshold:        0.5000, // p90 — top 10% elevation
+  peakThreshold:            0.5800, // p97 — top 3% elevation (subset of mountain)
+  floatingIslandThreshold:  0.6600, // p99.5 — top 0.5% elevation
+  marshMaxElevation:        0.2400, // p35
+  hillElevationMin:         0.3200, // p55
 
-  // Slope thresholds — calibrated from Phase G batch 004.
-  // With SN=0.020, r=21 slopes map to 0.0 (flat), 0.50 (moderate), 1.0 (steep).
-  // plateauSlopeMin=0.40: moderate-slope high-elevation tiles (0.50 > 0.40) become
-  // mountain rather than plateau, targeting ~5% mountain + ~5% plateau at r=21.
-  // hillSlopeMin=0.25: both moderate and steep mid-elevation tiles become hills.
-  plateauSlopeMin:          0.40,  // above this → mountain, below → plateau
+  // Slope thresholds — derived from batch 010. SN=0.0636 so raw delta p95→1.0.
+  // plateauSlopeMin=0.40 and hillSlopeMin=0.25 carry over pending visual validation
+  // after SN update — re-evaluate in next batch.
+  plateauSlopeMin:          0.40,
   hillSlopeMin:             0.25,
 
-  // Moisture thresholds — derived from Phase G batch 003
-  forestMinMoisture:        0.640, // p72
-  denseForestMinMoisture:   0.700, // p85
-  desertMaxMoisture:        0.140, // p2-3 land-only moisture — p20 was ~0.300 (inflated by water/ice in old histograms)
-  marshMinMoisture:         0.480, // p50 — generous floor to increase marsh from current 1.3%
+  // Moisture thresholds — derived from batch 010
+  forestMinMoisture:        0.5800, // p72
+  denseForestMinMoisture:   0.6600, // p85
+  desertMaxMoisture:        0.3600, // p20 land-only moisture
+  marshMinMoisture:         0.5200, // p58
 
-  // Temperature — derived from batch analysis
-  freezeTempMax:            0.540, // p15
+  // Temperature — derived from batch 010
+  freezeTempMax:            0.4800, // p15
 
-  // Water moisture gate — batch-derived.
-  // waterMaxElevation=0.016 gives ~14% low-elevation tiles; at waterMinMoisture=0.32
+  // Water moisture gate — holds pending batch 011 re-run with new SN.
+  // waterMaxElevation=0.12 gives ~12% low-elevation tiles; at waterMinMoisture=0.32
   // roughly two-thirds of those qualify, targeting ~8-10% total water.
   waterMinMoisture:         0.32,
   treeLineMax:              0.85,

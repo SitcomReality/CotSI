@@ -16,6 +16,7 @@
 import { hexFbm2D, hexRidgedFbm2D, hexToWorld } from '../../../src/engine/rules/noise.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import { hexesWithinRadius, neighbors, coordKey } from '../../../src/engine/rules/hexGrid.js';
+import { DEFAULT_TERRAIN_RULES } from '../../../src/params/game/worldParams.js';
 
 // ---------------------------------------------------------------------------
 // Provisional sampleBaseFields (Phase A target pipeline)
@@ -79,10 +80,10 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const tempVariation = hexFbm2D(q, r, baseSeed + NC.SEED_TEMP, NC.TEMP_VARIATION);
 
   // Temperature formula: base latitude + local variation - elevation lapse
-  // waterMaxElevation reference (0.12) is a percentile placeholder —
-  // Phase 0 calibration will set the actual value.
+  // Lapse rate references DEFAULT_TERRAIN_RULES.waterMaxElevation so the
+  // temperature formula stays in sync with the game code automatically.
   const temperature = clamp01(
-    0.5 + 0.35 * (latitudeTerm - 0.5) + 0.10 * (tempVariation - 0.5) - 0.30 * (elevation - 0.12)
+    0.5 + 0.35 * (latitudeTerm - 0.5) + 0.10 * (tempVariation - 0.5) - 0.30 * (elevation - DEFAULT_TERRAIN_RULES.waterMaxElevation)
   );
 
   // ── Region bias (two independent fields) ─────────────────────────────
