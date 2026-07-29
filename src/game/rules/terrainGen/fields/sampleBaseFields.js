@@ -85,8 +85,8 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const tempVariation = hexFbm2D(q, r, baseSeed + NC.SEED_TEMP, NC.TEMP_VARIATION);
   const RULES = DEFAULT_TERRAIN_RULES;
   const temperature = clamp01(
-    0.5 + 0.35 * (latitudeTerm - 0.5)
-        + 0.10 * (tempVariation - 0.5)
+    0.5 + 0.55 * (latitudeTerm - 0.5)
+        + 0.12 * (tempVariation - 0.5)
         - 0.30 * (elevation - RULES.waterMaxElevation)
   );
 

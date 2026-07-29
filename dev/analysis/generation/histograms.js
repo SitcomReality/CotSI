@@ -83,7 +83,7 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   // Lapse rate references DEFAULT_TERRAIN_RULES.waterMaxElevation so the
   // temperature formula stays in sync with the game code automatically.
   const temperature = clamp01(
-    0.5 + 0.35 * (latitudeTerm - 0.5) + 0.10 * (tempVariation - 0.5) - 0.30 * (elevation - DEFAULT_TERRAIN_RULES.waterMaxElevation)
+    0.5 + 0.55 * (latitudeTerm - 0.5) + 0.12 * (tempVariation - 0.5) - 0.30 * (elevation - DEFAULT_TERRAIN_RULES.waterMaxElevation)
   );
 
   // ── Region bias (two independent fields) ─────────────────────────────
