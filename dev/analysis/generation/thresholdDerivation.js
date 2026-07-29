@@ -8,7 +8,8 @@
  */
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import { hexesWithinRadius, neighbors, coordKey } from '../../../src/engine/rules/hexGrid.js';
-import { sampleBaseFields, collectHistograms, percentileFromHistogram } from './histograms.js';
+import { sampleBaseFields } from '../../../src/game/rules/terrainGen/index.js';
+import { collectHistograms, percentileFromHistogram } from './histograms.js';
 import { poolHistograms, buildQuantileLUT, normalizeField } from './quantileLUT.js';
 import { NOISE_CONFIG } from './noiseConfig.js';
 

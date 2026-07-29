@@ -1,105 +1,18 @@
 /**
  * histograms.js — Histogram collection for noise field distribution analysis.
  *
- * Provides provisional sampleBaseFields (matching the Phase A spec) and
- * histogram collection across entire maps. Used by the calibration pipeline
- * in Phase 0 to measure actual noise output distributions.
- *
- * The provisional sampleBaseFields lives here during Phase 0 and moves to
- * terrainGenerator.js in Phase A when the pipeline is rebuilt.
+ * Collects histograms across entire maps for the calibration pipeline.
+ * The sampleBaseFields function it needs is imported directly from the game's
+ * terrain generator so histogram data always reflects the live game code.
  *
  * Threshold derivation and slope normalization live in thresholdDerivation.js,
  * which consumes the histograms and percentiles exported here.
  *
  * Pure: no DOM, no state, no side effects.
  */
-import { hexFbm2D, hexRidgedFbm2D, hexToWorld } from '../../../src/engine/rules/noise.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import { hexesWithinRadius, neighbors, coordKey } from '../../../src/engine/rules/hexGrid.js';
-import { DEFAULT_TERRAIN_RULES } from '../../../src/params/game/worldParams.js';
-
-// ---------------------------------------------------------------------------
-// Provisional sampleBaseFields (Phase A target pipeline)
-// ---------------------------------------------------------------------------
-
-/**
- * Sample base physical fields at a global hex coordinate.
- *
- * Matches the Phase A specification from overview.md §5.
- * - Elevation: single additive FBM field (detail + ridges placeholder, worldShape applied in Phase B)
- * - Moisture: raw FBM, no water adjustment yet
- * - Temperature: latitude + lapse rate + local variation
- * - Region bias: two independent low-freq bias fields
- *
- * All values are raw FBM output [0, 1] — quantile normalization is applied
- * as a separate step after all tiles are sampled.
- *
- * @param {number} baseSeed    - Integer seed from stringSeed(seedText)
- * @param {number} q           - Global hex q
- * @param {number} r           - Global hex r
- * @param {object} noiseConfig - Noise config object with fields:
- *   { ELEVATION_DETAIL, RIDGE, MOISTURE, TEMP_VARIATION, REGION,
- *     SEED_DETAIL, SEED_RIDGE, SEED_MOISTURE, SEED_TEMP,
- *     SEED_REGION_M, SEED_REGION_T }
- * @param {number} radius      - Map radius (for latitude calculation)
- * @returns {object} { elevation, detail, ridges, baseMoisture,
- *                     temperature, regionBiasM, regionBiasT }
- */
-export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
-  const NC = noiseConfig;
-
-  // ── Elevation: 2-layer additive composite shaped by worldShape ──
-  const detail = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
-  const ridges = hexRidgedFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
-
-  // World shape: quadratic falloff — narrower ocean ring, less zero-mass
-  function worldShape(distFromCenter, mapRadius) {
-    return 1.0 - ((distFromCenter / mapRadius) ** 2);
-  }
-
-  // Distance from map center (0,0) in hex units
-  const hdQ = Math.abs(q);
-  const hdR = Math.abs(r);
-  const hdS = Math.abs(-q - r);
-  const distFromCenter = Math.max(hdQ, hdR, hdS);
-
-  const rawElev = worldShape(distFromCenter, radius) * (detail * 0.50 + ridges * 0.50);
-  // Hypsometric curve spreads the low-mid elevation range
-  const elevation = Math.pow(rawElev, 0.6);
-
-  // ── Moisture ─────────────────────────────────────────────────────────
-  const baseMoisture = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.MOISTURE);
-
-  // ── Temperature ──────────────────────────────────────────────────────
-  // Latitude from world-space Y coordinate
-  const { y } = hexToWorld(q, r);
-  // worldRadiusY: hex row spacing ≈ √3 ≈ 1.732. The exact value depends
-  // on hexToWorld's y-scaling of 0.866 × 2 = 1.732 for the full diameter.
-  const worldRadiusY = radius * 1.7320508;
-  const latitudeTerm = 1.0 - (Math.abs(y) / worldRadiusY);
-  const tempVariation = hexFbm2D(q, r, baseSeed + NC.SEED_TEMP, NC.TEMP_VARIATION);
-
-  // Temperature formula: base latitude + local variation - elevation lapse
-  // Lapse rate references DEFAULT_TERRAIN_RULES.waterMaxElevation so the
-  // temperature formula stays in sync with the game code automatically.
-  const temperature = clamp01(
-    0.5 + 0.55 * (latitudeTerm - 0.5) + 0.12 * (tempVariation - 0.5) - 0.30 * (elevation - DEFAULT_TERRAIN_RULES.waterMaxElevation)
-  );
-
-  // ── Region bias (two independent fields) ─────────────────────────────
-  const regionBiasM = hexFbm2D(q, r, baseSeed + NC.SEED_REGION_M, NC.REGION);
-  const regionBiasT = hexFbm2D(q, r, baseSeed + NC.SEED_REGION_T, NC.REGION);
-
-  return {
-    elevation: clamp01(elevation),
-    detail,
-    ridges,     // raw value returned for analysis (weight=0 in composite)
-    baseMoisture,
-    temperature,
-    regionBiasM,
-    regionBiasT,
-  };
-}
+import { sampleBaseFields } from '../../../src/game/rules/terrainGen/index.js';
 
 // ---------------------------------------------------------------------------
 // Histogram collection

@@ -15,15 +15,15 @@
 // ── View-mode biome colors ──────────────────────────────────────────────────────
 
 export const BIOME_COLORS = {
-  default:  '#6a9a4a',
-  lush:     '#3a7a2a',
-  arid:     '#c8a050',
-  savanna:  '#b89840',
-  edenfall: '#8a4a9a',
-  brass_grave: '#a09050',
-  frigid_silence: '#7aaccc',
-  weeping_marsh: '#4a7a5a',
-  unfinished_lands: '#9a9a9a',
+  default:  '#7aba5a',   // Untouched — bright vibrant grass green
+  lush:     '#2d6a2a',   // Painforest — deep forest green
+  arid:     '#b89838',   // Sere Wastes — sandy gold
+  savanna:  '#c97a2d',   // Scorch — burnt orange
+  edenfall: '#8a4a9a',   // Edenfall — purple (distinctive, keep)
+  brass_grave: '#8a7a40', // Brass Grave — olive-brass
+  frigid_silence: '#6ab0d0', // Frigid Silence — icy blue
+  weeping_marsh: '#4a7a5a', // Mourning Marsh — muted green
+  unfinished_lands: '#b0a090', // Unfinished Lands — warm taupe-grey
   /** Fallback for unknown biome IDs */
   fallback: '#888',
 };
