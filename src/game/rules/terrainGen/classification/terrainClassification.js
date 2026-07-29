@@ -25,15 +25,16 @@ export function classifyTerrain(elevation, moisture, temperature, slope, biomeDe
     if (moisture > R.waterMinMoisture) return 'water';
   }
 
-  // Snow-capped peaks: high elevation + cold
-  if (elevation > R.peakThreshold && temperature < R.snowLineMax) return 'peak';
-
-  // Elevation gates
+  // Floating islands: separate phenomenon, not a mountain subtype
   if (elevation > R.floatingIslandThreshold) return 'floatingIsland';
-  if (elevation > R.peakThreshold)          return 'peak';
 
-  // Mountain vs plateau: slope discriminates
+  // Mountain vs plateau: slope discriminates.
+  // Peaks are a capstone within mountains — every peak is also above
+  // mountainThreshold, guaranteeing mountain >= peak in area.
   if (elevation > R.mountainThreshold) {
+    if (elevation > R.peakThreshold) {
+      return temperature < R.snowLineMax ? 'peak' : 'peak';
+    }
     return slope > R.plateauSlopeMin ? 'mountain' : 'plateau';
   }
 

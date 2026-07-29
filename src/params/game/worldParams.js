@@ -45,21 +45,21 @@ export const KNOT_AMOUNT_VARIATION_MOD = 3;
 // Noise configuration
 // ---------------------------------------------------------------------------
 
-/** Moisture field: medium-scale. Frequency 0.006 confirmed by Phase 0 calibration. */
-export const NOISE_MOISTURE = { octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006 };
+/** Moisture field: medium-scale. Absolute frequency — same physical scale at all radii. */
+export const NOISE_MOISTURE = { octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.02 };
 
 // ---------------------------------------------------------------------------
 // Phase B noise configuration
 // ---------------------------------------------------------------------------
 
-/** Detail elevation: medium frequency (~10-hex scale). */
+/** Detail elevation: absolute frequency (~10-hex local relief at all radii). */
 export const NOISE_ELEVATION_DETAIL = {
-  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020,
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.10,
 };
 
-/** Ridge noise: low frequency (~25-hex scale). Uses ridged FBM for sharp mountain crests. */
+/** Ridge noise: absolute frequency (~25-hex mountain chains at all radii). Uses ridged FBM for sharp mountain crests. */
 export const NOISE_RIDGE = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008, offset: 0.9,
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.04, offset: 0.9,
 };
 
 /** Temperature variation: very high frequency for local microclimate jitter. */
@@ -107,20 +107,19 @@ export const EPICENTER_GRID = {
 
 /**
  * Slope normalization divisor for computeSlope().
+ * Derived from the 95th percentile of per-tile average elevation deltas
+ * across 500-seed × 3-radius batch analysis.
+ * With SN=0.0133, p95 avg delta maps to slope ≈ 1.0:
+ *   totalDiff at p95 = 6 × 0.0133 = 0.0798
+ *   slope = 0.0798 / (6 × 0.0133) = 1.0
  *
- * Set to 0.020 as a compromise between r=21 and r=100 dynamics.
- * The r=21-specific p95 avg delta is ~0.030 → normalized slope = 1.50
- * (clamped to 1.0), while r=100's p95 avg delta is ~0.013 → slope = 0.65.
- * This keeps hills viable at all radii (hills need slope > 0.25):
- *   r=21 hills: ~12%   r=50 hills: ~8%   r=100 hills: ~6-8%
- *
- * With SN=0.020, the raw-delta tiers map to:
- *   avgDelta 0.000 → slope 0.00 (flat)
- *   avgDelta 0.005 → slope 0.25 (hill threshold)
- *   avgDelta 0.010 → slope 0.50 (moderate)
- *   avgDelta 0.020 → slope 1.00 (steep — clamped)
+ * Effect on common deltas:
+ *   avgDelta 0.0033 → slope 0.25 (hill threshold)
+ *   avgDelta 0.0050 → slope 0.38 (gentle slope)
+ *   avgDelta 0.010  → slope 0.75 (moderate)
+ *   avgDelta 0.015  → slope 1.00 (steep — clamped)
  */
-export const SLOPE_NORMALIZATION = 0.020;
+export const SLOPE_NORMALIZATION = 0.0133;
 
 /** Maximum lookup radius for border-ring sampling in per-chunk generation.
  *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
