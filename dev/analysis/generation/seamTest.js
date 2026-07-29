@@ -138,9 +138,16 @@ export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
           waterCount++;
         }
       }
-      let expectedMoisture = Math.min(1, Math.max(0, fields.baseMoisture + waterCount * 0.03));
+      // Coastal moisture boost (water neighbors within radius 2)
+      const coastalMoisture = Math.min(1, Math.max(0, fields.baseMoisture + waterCount * 0.03));
 
-      // Apply river moisture boost if tile is within RIVER_BOOST_RADIUS of a river
+      // biomeMoisture: the moisture value used for biome selection.
+      // The pipeline selects biomes BEFORE river boost — a river valley
+      // changes terrain locally but does not change the biome.
+      const biomeMoisture = coastalMoisture;
+
+      // River moisture boost (for terrain reclassification, not biome selection)
+      let expectedMoisture = coastalMoisture;
       const riverCheckKey = coordKey({ q, r });
       if (riverKeySet.has(riverCheckKey)) {
         expectedMoisture = Math.min(1, Math.max(0, expectedMoisture + RIVER_MOISTURE_BOOST));
@@ -179,10 +186,11 @@ export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
       }
 
       // ── 6. biomeId (via selectBiome from recomputed fields) ─────────────
-      // Use the expected adjusted moisture for biome selection, since that's
-      // what the generation pipeline uses.
+      // Use biomeMoisture (coastal boost only, no river boost). The pipeline
+      // selects biomes during chunk generation before the river post-pass
+      // boosts moisture — so biomeId reflects pre-river conditions.
       const expectedBiomeId = selectBiome(
-        fields.elevation, expectedMoisture, fields.temperature,
+        fields.elevation, biomeMoisture, fields.temperature,
         fields.regionBiasM, fields.regionBiasT
       );
 
@@ -196,9 +204,17 @@ export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
       }
 
       // ── 7. terrain (via classifyTerrain from recomputed fields + biome rules) ──
-      const biomeDef = getArchetype(expectedBiomeId) || getArchetype('biome_default');
+      // Use the stored tile.biomeId, not the recomputed one. The pipeline's
+      // river post-pass reclassifies terrain using the original biome's rules,
+      // not a recalculated biome. See flatGeneration.js line 82.
+      //
+      // Use the stored moisture value, not the recomputed expectedMoisture.
+      // Both agree within 1e-12 (checked above), but exact classification
+      // thresholds (e.g. forestMinMoisture=0.58) can flip on a 1e-15 ULP
+      // difference — the stored value is the one the pipeline actually used.
+      const biomeDef = getArchetype(biomeId) || getArchetype('biome_default');
       const expectedTerrain = classifyTerrain(
-        fields.elevation, expectedMoisture, fields.temperature,
+        fields.elevation, moisture, fields.temperature,
         expectedSlope, biomeDef
       );
 

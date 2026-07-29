@@ -194,7 +194,8 @@ function downloadBatchReport() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'batch_report.txt';
+  const ts = new Date().toISOString().replace(/:/g, '-');
+  a.download = `batch_report_${ts}.txt`;
   a.click();
   URL.revokeObjectURL(url);
 }

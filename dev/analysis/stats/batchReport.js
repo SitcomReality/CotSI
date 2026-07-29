@@ -140,6 +140,7 @@ export function formatBatchReport(result, opts = {}) {
   const parts = [];
 
   parts.push(`=== Batch Analysis Report ===`);
+  parts.push(`Generated: ${new Date().toISOString()}`);
   parts.push('');
 
   // Active config header
