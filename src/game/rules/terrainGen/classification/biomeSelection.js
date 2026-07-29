@@ -5,6 +5,7 @@ import { getArchetype } from '../../archetypes.js';
 const BIOME_PRIORITY_ORDER = [
   'biome_arid',            // hot + dry (most specific)
   'biome_savanna',         // hot transitional — between arid and lush
+  'biome_edenfall',        // temperate mid-moisture — fills gap between hot and cold
   'biome_frigid_silence',  // cold mid-moisture (Phase D)
   'biome_lush',            // wet + warm
   'biome_weeping_marsh',   // cold wet (Phase D)

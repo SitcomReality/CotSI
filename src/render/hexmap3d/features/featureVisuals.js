@@ -176,4 +176,19 @@ export const FEATURE_VISUALS = {
     meshName: 'feature-ring',
     scale: 1.2,
   },
+
+  // ── Edenfall biome features ──────────────────────────────────────────────
+
+  edenMushroom: {
+    geometry: getBigtreeGeo,
+    material: () => new THREE.MeshLambertMaterial({ color: 0x7A2A8A, flatShading: true }),
+    meshName: 'flora-mushroom',
+    scale: 2.5,
+  },
+  edenShroomlet: {
+    geometry: getClusterGeo,
+    material: () => new THREE.MeshLambertMaterial({ color: 0xA060C0, flatShading: true }),
+    meshName: 'flora-shroomlet',
+    scale: 1.2,
+  },
 };

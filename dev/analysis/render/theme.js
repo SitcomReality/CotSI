@@ -19,6 +19,7 @@ export const BIOME_COLORS = {
   lush:     '#3a7a2a',
   arid:     '#c8a050',
   savanna:  '#b89840',
+  edenfall: '#8a4a9a',
   brass_grave: '#a09050',
   frigid_silence: '#7aaccc',
   weeping_marsh: '#4a7a5a',

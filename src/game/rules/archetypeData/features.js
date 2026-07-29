@@ -248,3 +248,21 @@ defineArchetype('feature_ouroborosLoop', {
   tags: ['sere_wastes'],
   visual: { scale: 1.2 },
 });
+
+// ── Edenfall biome features ─────────────────────────────────────────────────
+
+defineArchetype('feature_edenMushroom', {
+  type: 'feature',
+  name: 'Eden Mushroom',
+  archetypeShape: 'bigtree',
+  tags: ['edenfall'],
+  visual: { scale: 2.5 },
+});
+
+defineArchetype('feature_edenShroomlet', {
+  type: 'feature',
+  name: 'Shroomlet',
+  archetypeShape: 'cluster',
+  tags: ['edenfall'],
+  visual: { scale: 1.2 },
+});
