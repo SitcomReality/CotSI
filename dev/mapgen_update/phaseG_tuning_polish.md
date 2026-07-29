@@ -43,7 +43,7 @@ Tune noise parameters, terrain thresholds, and feature densities based on playte
 
 ### 4.1 Frequency Tuning by Map Size
 
-The current frequencies were chosen for radius-21 maps. Tiny sudden death maps (radius 7) and large maps (radius 50) need different effective scales. Ultimately the goal is to also support massive maps up to 100 radius.
+The current frequencies were chosen for radius-21 maps. Tiny sudden death maps (radius 7) and medium maps (radius 35) need different effective scales. Ultimately the goal is to also support very large maps up to 77 radius.
 
 | Noise Field | radius 7 | radius 21 | radius 50 | Notes |
 |-------------|----------|-----------|-----------|-------|
@@ -326,7 +326,7 @@ These items remain deferred after Phase G:
 
 ## 9. Deliverable
 
-- Consistent terrain feel across radius 7, 21, and 50 maps. Small maps have appropriate scale (not a zoomed-in corner of a region). Large maps have visible regional variation.
+- Consistent terrain feel across radius 21, 35 and 77 maps. Small maps have appropriate scale (not a zoomed-in corner of a region). Large maps have visible regional variation. Tiny 7 radius sudden death maps shouldn't have egregious issues.
 - No dead terrain types: `peak` and `floatingIsland` appear at appropriate frequencies.
 - Beach hexes provide a natural water/land transition.
 - Biome coverage is complete: no climate zone falls through to `biome_default` without an explicit decision.

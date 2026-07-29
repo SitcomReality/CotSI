@@ -13,7 +13,7 @@
  *   elevationField  — pure function of (seed, q, r) via sampleBaseFields
  *   temperature     — pure function of (seed, q, r) via sampleBaseFields
  *   baseMoisture    — pure function of (seed, q, r) via sampleBaseFields
- *   moisture        — adjusted: baseMoisture + coastal boost from neighbor water
+ *   moisture        — adjusted: baseMoisture + coastal boost + river boost
  *   slope           — recomputed via computeSlope() from recomputed elevations
  *   biomeId         — recomputed via selectBiome() from recomputed fields
  *   terrain         — recomputed via classifyTerrain() from recomputed fields + biome rules
@@ -29,12 +29,12 @@
 import { generateSingleSeed } from './generate.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import {
-  sampleBaseFields, isProvisionalWater, NOISE_CONFIG,
+  sampleBaseFields, isProvisionalWater, getNoiseConfig,
   computeSlope, selectBiome, classifyTerrain,
 } from '../../../src/game/rules/terrainGen/index.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
 import { hexesWithinRadius, coordKey } from '../../../src/engine/rules/hexGrid.js';
-import { DEFAULT_TERRAIN_RULES } from '../../../src/params/game/worldParams.js';
+import { DEFAULT_TERRAIN_RULES, RIVER_MOISTURE_BOOST, RIVER_BOOST_RADIUS } from '../../../src/params/game/worldParams.js';
 
 /** Supernatural biome IDs to skip during seam comparison (epicenter overrides break pure-function invariance). */
 const SUPERNATURAL_BIOME_IDS = ['biome_brass_grave', 'biome_unfinished_lands'];
@@ -78,8 +78,14 @@ export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
     const recomputed = new Map(); // coordKey -> { elevation, baseMoisture, temperature, regionBiasM, regionBiasT }
     for (const tile of tileEntries) {
       const { q, r } = tile;
-      const fields = sampleBaseFields(baseSeed, q, r, NOISE_CONFIG, radius);
+      const fields = sampleBaseFields(baseSeed, q, r, getNoiseConfig(radius), radius);
       recomputed.set(coordKey(tile), fields);
+    }
+
+    // ── Pass 1b: Build river-key set for moisture-boost accounting ────────
+    const riverKeySet = new Set();
+    for (const tile of tileEntries) {
+      if (tile.isRiver) riverKeySet.add(coordKey(tile));
     }
 
     // ── Pass 2: Verify each non-supernatural tile ──────────────────────────
@@ -124,15 +130,28 @@ export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
         continue;
       }
 
-      // ── 4. moisture (adjusted: base + coastal boost) ────────────────────
+      // ── 4. moisture (adjusted: base + coastal boost + river boost) ───────
       let waterCount = 0;
       for (const n of hexesWithinRadius(2)) {
-        const nFields = sampleBaseFields(baseSeed, q + n.q, r + n.r, NOISE_CONFIG, radius);
+        const nFields = sampleBaseFields(baseSeed, q + n.q, r + n.r, getNoiseConfig(radius), radius);
         if (isProvisionalWater(nFields.elevation, nFields.baseMoisture, DEFAULT_TERRAIN_RULES)) {
           waterCount++;
         }
       }
-      const expectedMoisture = Math.min(1, Math.max(0, fields.baseMoisture + waterCount * 0.03));
+      let expectedMoisture = Math.min(1, Math.max(0, fields.baseMoisture + waterCount * 0.03));
+
+      // Apply river moisture boost if tile is within RIVER_BOOST_RADIUS of a river
+      const riverCheckKey = coordKey({ q, r });
+      if (riverKeySet.has(riverCheckKey)) {
+        expectedMoisture = Math.min(1, Math.max(0, expectedMoisture + RIVER_MOISTURE_BOOST));
+      } else {
+        for (const n of hexesWithinRadius(RIVER_BOOST_RADIUS)) {
+          if (riverKeySet.has(coordKey({ q: q + n.q, r: r + n.r }))) {
+            expectedMoisture = Math.min(1, Math.max(0, expectedMoisture + RIVER_MOISTURE_BOOST));
+            break;
+          }
+        }
+      }
 
       if (Math.abs(moisture - expectedMoisture) > 1e-12) {
         failures.push({
@@ -225,7 +244,7 @@ export function formatSeamReport({ passed, failures, seed, radius }) {
   lines.push('  elevationField  ← sampleBaseFields().elevation');
   lines.push('  temperature     ← sampleBaseFields().temperature');
   lines.push('  baseMoisture    ← sampleBaseFields().baseMoisture');
-  lines.push('  moisture        ← baseMoisture + coastal boost (neighbor water)');
+  lines.push('  moisture        ← baseMoisture + coastal boost + river boost');
   lines.push('  slope           ← computeSlope() from recomputed elevations');
   lines.push('  biomeId         ← selectBiome() from recomputed fields');
   lines.push('  terrain         ← classifyTerrain() from recomputed fields + biome rules');

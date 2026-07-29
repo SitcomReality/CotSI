@@ -4,8 +4,10 @@ import { RIVER_MOISTURE_BOOST, RIVER_BOOST_RADIUS } from '../../../../params/gam
 
 /**
  * Apply moisture boost to all tiles near river paths.
- * Mutates both tile.baseMoisture and tile.moisture so the coastal
- * adjustment is preserved (both are boosted identically).
+ * Only mutates tile.moisture so the raw baseMoisture field is preserved
+ * for invariant recomputation (seam test). The downstream terrain
+ * re-classification in flatGeneration.js reads tile.moisture, not
+ * tile.baseMoisture.
  *
  * @param {object[]} tiles       - Array of all tile objects
  * @param {object[][]} riverPaths - Array of river path arrays
@@ -39,7 +41,6 @@ export function applyRiverMoistureBoost(tiles, riverPaths) {
   for (const key of boostedKeys) {
     const tile = tileByKey.get(key);
     if (tile) {
-      tile.baseMoisture = clamp01(tile.baseMoisture + RIVER_MOISTURE_BOOST);
       tile.moisture = clamp01(tile.moisture + RIVER_MOISTURE_BOOST);
     }
   }

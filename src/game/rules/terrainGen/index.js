@@ -1,6 +1,6 @@
 export { worldShape } from './fields/worldShape.js';
 export { computeSlope, clamp01 } from './fields/slopeComputation.js';
-export { NOISE_CONFIG, sampleBaseFields } from './fields/sampleBaseFields.js';
+export { getNoiseConfig, NOISE_CONFIG, sampleBaseFields } from './fields/sampleBaseFields.js';
 export { isProvisionalWater, provisionalTerrainForRing } from './classification/provisionalWater.js';
 export { adjustMoisture, computeRainShadow } from './classification/moistureAdjustment.js';
 export { selectBiome, BIOME_PRIORITY_ORDER, SUPERNATURAL_BIOMES } from './classification/biomeSelection.js';
