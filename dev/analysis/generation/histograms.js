@@ -51,9 +51,9 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const detail = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
   const ridges = hexRidgedFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
 
-  // World shape: center peak, dropping to zero at the border
+  // World shape: quadratic falloff — narrower ocean ring, less zero-mass
   function worldShape(distFromCenter, mapRadius) {
-    return 1.0 - (distFromCenter / mapRadius);
+    return 1.0 - ((distFromCenter / mapRadius) ** 2);
   }
 
   // Distance from map center (0,0) in hex units
@@ -63,7 +63,8 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const distFromCenter = Math.max(hdQ, hdR, hdS);
 
   const rawElev = worldShape(distFromCenter, radius) * (detail * 0.50 + ridges * 0.50);
-  const elevation = clamp01(rawElev);
+  // Hypsometric curve spreads the low-mid elevation range
+  const elevation = Math.pow(rawElev, 0.6);
 
   // ── Moisture ─────────────────────────────────────────────────────────
   const baseMoisture = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.MOISTURE);
