@@ -41,6 +41,8 @@ export function cacheDom() {
   els.viewMode = $('view-mode');
   els.btnCycleToggle = $('btn-cycle-toggle');
   els.btnNextRandom = $('btn-next-random');
+  els.btnPrevSeed = $('btn-prev-seed');
+  els.btnNextSeed = $('btn-next-seed');
   els.cycleSpeed = $('cycle-speed');
   els.cycleSpeedValue = $('cycle-speed-value');
   els.multiBiomeCheck = $('multi-biome-check');
@@ -55,8 +57,8 @@ export function cacheDom() {
   els.batchCount = $('batch-count');
   els.batchRadii7 = $('batch-radius-7');
   els.batchRadii21 = $('batch-radius-21');
-  els.batchRadii50 = $('batch-radius-50');
-  els.batchRadii100 = $('batch-radius-100');
+  els.batchRadii35 = $('batch-radius-35');
+  els.batchRadii77 = $('batch-radius-77');
   els.batchTerrain = $('batch-terrain');
   els.batchTraders = $('batch-traders');
   els.batchChampions = $('batch-champions');
@@ -70,10 +72,11 @@ export function cacheDom() {
   els.batchSpatial = $('batch-spatial');
   els.batchCorrelations = $('batch-correlations');
   els.btnBatchRun = $('btn-batch-run');
+  els.btnBatchToggleAll = $('btn-batch-toggle-all');
+  els.btnBatchDeselectAll = $('btn-batch-deselect-all');
   els.batchProgressFill = $('batch-progress-fill');
   els.batchProgressText = $('batch-progress-text');
   els.batchProgress = $('batch-progress');
-  els.btnDownloadThresholds = $('btn-download-thresholds');
   els.btnDownloadLuts = $('btn-download-luts');
   els.btnDownloadBatchReport = $('btn-download-batch-report');
   els.legend = $('legend');

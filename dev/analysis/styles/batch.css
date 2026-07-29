@@ -1,26 +1,83 @@
 /* batch.css — Batch Analysis controls */
 
 .batch-outputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
   margin: 6px 0;
 }
 
 .batch-outputs label {
   font-size: 0.82em;
-  white-space: nowrap;
+  white-space: normal;
+  min-width: 0;
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #bbb;
+  cursor: pointer;
 }
 
+/* ── Toggle All / Deselect All ────────────────────────────────── */
+
+.toggle-all-row {
+  display: flex;
+  gap: 12px;
+  margin: 4px 0 2px 0;
+}
+
+.toggle-all-btn {
+  font-size: 0.75em;
+  color: #6a8abf;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+}
+
+.toggle-all-btn:hover {
+  text-decoration: underline;
+  color: #8aacdf;
+}
+
+/* ── Radii checkbox row ────────────────────────────────────────── */
+
 .checkbox-row {
-  display: inline-flex;
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 0.35rem 0.6rem;
+  min-width: 0;
 }
 
 .checkbox-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
   font-size: 0.90em;
   cursor: pointer;
+}
+
+/* ── Download row ──────────────────────────────────────────────── */
+
+.download-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.download-row button.primary {
+  background: #4a6a9a;
+  border-color: #6a8abf;
+  color: #fff;
+  font-weight: 600;
+}
+
+.download-row button.primary:hover {
+  background: #5a7aaa;
 }
 
 /* ── Progress bar ───────────────────────────────────────────── */

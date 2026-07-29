@@ -32,6 +32,24 @@
   min-width: 80px;
   font-size: 13px;
   color: #aaa;
+  flex-shrink: 0;
+}
+
+.control-row.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.control-row.nav-row button {
+  flex: 1;
+  text-align: center;
+  padding: 5px 0;
+  font-size: 12px;
+}
+
+.control-row.nav-row button.primary {
+  flex: 1.2;
 }
 
 .control-row input[type="text"],

@@ -11,7 +11,7 @@ import { renderAndFit } from '../render/orchestrate.js';
 import { updateLegend } from '../legend/legend.js';
 import { updateStats } from '../stats/statsDisplay.js';
 import { setupCanvasInteraction } from './canvas.js';
-import { pickAndGenerateRandom, startCycle, stopCycle } from './cycle.js';
+import { pickAndGenerateRandom, startCycle, stopCycle, nextSeed, prevSeed } from './cycle.js';
 import { exportPng, exportJson } from './export.js';
 import { getArchetype, listArchetypes } from '../../../src/game/rules/archetypes.js';
 import '../../../src/game/rules/archetypeData/index.js'; // side-effect: populate registry
@@ -79,8 +79,8 @@ function getSelectedRadii() {
   const radii = [];
   if (els.batchRadii7?.checked) radii.push(7);
   if (els.batchRadii21?.checked) radii.push(21);
-  if (els.batchRadii50?.checked) radii.push(50);
-  if (els.batchRadii100?.checked) radii.push(100);
+  if (els.batchRadii35?.checked) radii.push(35);
+  if (els.batchRadii77?.checked) radii.push(77);
   return radii.length > 0 ? radii : [21]; // fallback
 }
 
@@ -106,6 +106,16 @@ function getBatchOptions() {
 }
 
 /**
+ * Toggle all batch output checkboxes on or off.
+ */
+function setAllBatchOutputs(checked) {
+  const checkboxes = document.querySelectorAll('.batch-outputs input[type="checkbox"]');
+  for (const cb of checkboxes) {
+    cb.checked = checked;
+  }
+}
+
+/**
  * Run a complete batch analysis across all selected (seeds × radii).
  * Replaces the old multi-seed, test-runner, and threshold-derivation paths.
  */
@@ -124,7 +134,6 @@ async function runBatchAnalysis() {
   );
 
   els.btnBatchRun.disabled = true;
-  els.btnDownloadThresholds.disabled = true;
   els.btnDownloadLuts.disabled = true;
   els.btnDownloadBatchReport.disabled = true;
   progressBar.show('Starting batch...');
@@ -151,7 +160,6 @@ async function runBatchAnalysis() {
 
     // ── Enable download buttons if thresholds were derived ─────────────
     if (result.calibration) {
-      els.btnDownloadThresholds.disabled = false;
       els.btnDownloadLuts.disabled = false;
     }
     // Batch report button always enabled after a run
@@ -165,19 +173,6 @@ async function runBatchAnalysis() {
 }
 
 // ─── Download helpers ──────────────────────────────────────────────────
-
-function downloadThresholds() {
-  if (!_lastCalibration) return;
-  const doc = calibrationToJSON(_lastCalibration, false);
-  if (!doc) return;
-  const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'calibration_v1.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 function downloadLUTs() {
   if (!_lastCalibration) return;
@@ -204,6 +199,16 @@ function downloadBatchReport() {
   URL.revokeObjectURL(url);
 }
 
+// ─── Sync state from DOM ────────────────────────────────────────────────
+
+/**
+ * Sync runtime state from DOM elements that may have been restored by browser
+ * form autofill or cached values on page refresh. Call before the first render.
+ */
+function syncStateFromDom() {
+  S.viewMode = els.viewMode.value;
+}
+
 // ─── Bind controls ────────────────────────────────────────────────────────────
 
 function bindControls() {
@@ -224,15 +229,28 @@ function bindControls() {
     loadAndDisplay(seedText);
   });
 
+  // Seed navigation (prev / next)
+  if (els.btnPrevSeed) {
+    els.btnPrevSeed.addEventListener('click', prevSeed);
+  }
+  if (els.btnNextSeed) {
+    els.btnNextSeed.addEventListener('click', nextSeed);
+  }
+
   // Batch analysis
   els.btnBatchRun.addEventListener('click', () => {
     runBatchAnalysis();
   });
 
-  // Download thresholds / LUTs
-  if (els.btnDownloadThresholds) {
-    els.btnDownloadThresholds.addEventListener('click', downloadThresholds);
+  // Toggle all / deselect all batch outputs
+  if (els.btnBatchToggleAll) {
+    els.btnBatchToggleAll.addEventListener('click', () => setAllBatchOutputs(true));
   }
+  if (els.btnBatchDeselectAll) {
+    els.btnBatchDeselectAll.addEventListener('click', () => setAllBatchOutputs(false));
+  }
+
+  // Download LUTs / batch report
   if (els.btnDownloadLuts) {
     els.btnDownloadLuts.addEventListener('click', downloadLUTs);
   }
@@ -298,6 +316,7 @@ function bindControls() {
 function init() {
   cacheDom();
   populateBiomes();
+  syncStateFromDom();
   bindControls();
   setupCanvasInteraction();
 
