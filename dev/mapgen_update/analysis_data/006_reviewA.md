@@ -104,21 +104,6 @@ Multiply `worldShape` by a low-frequency continent mask, or domain-warp the dist
 
 ---
 
-## The trader placement is a straight-up bug
-
-```
-r=7:   -6,1 (24.7%)  -6,2  -6,0  -6,5  -6,4  -5,0 ...
-r=21:  -21,0 (18.3%) -21,2 -21,1 -19,0 ...
-r=50:  -50,2 (13.8%) -50,0 -50,1 -47,0 ...
-r=100: -100,1 (9.5%) -100,2 -100,0 -94,2 ...
-```
-
-Top-3 at **every** radius is `q = -radius`, `r ∈ {0,1,2,3}` — the exact west corner of the hex map, the first cell in a `for q = -R; q <= R` scan. This is first-match-wins in iteration order, or an argmax where ties are common and the first tie wins. The secondary cluster ~6% inboard (`-47`, `-94`) is where the corner is water on some seeds and it walks in one step.
-
-Players will learn "walk west" on every single map. Unlike the champion ring, this one won't fix itself.
-
----
-
 ## Biomes: two problems, both structural
 
 **Supernatural biomes are ~30% of the world.**
@@ -161,28 +146,14 @@ At r=7 frozen is 23.8% ± 16.68 with max 60.4%, because a 14-hex-wide map is sma
 
 ---
 
-## Tooling gaps worth closing
-
-- **The seam test says `Radius: 21` under all four sections**, including "--- Radius 50 ---" and "--- Radius 100 ---". It's copy-pasted; seams are untested at 50 and 100. One seed, too.
-- **The seam invariant excludes moisture, biome, terrain, and rivers.** It tests the two passes least likely to break and skips the ones most likely to.
-- **The snapshot tolerance is uselessly wide** — it passes a seed with 16.5% water and 0.0% mountain *and* a seed with 7.0% water and 2.8% mountain. 16.5% is 2.7σ from the pooled r=21 mean. A test that can't fail isn't a test.
-- **No spatial statistics.** Terrain % tells you nothing about whether the map *looks* like anything. 20% desert as one region and 20% as speckle are the same number. Add: mean/median patch size per terrain, count of size-1 patches, largest-patch fraction, and number of connected components. Given moisture λ = map width and temp λ = 14 hexes, I'd bet you have giant biome blobs with frozen confetti scattered over them — and nothing in this report would reveal that.
-- **No cross-field correlations.** `corr(elevation, temperature)` should be strongly negative from the lapse rate. Is it? A 2D joint histogram of (elevation, moisture) with biome overlay would have shown the `biome_default` gap instantly.
-- **Placement heatmaps need normalization.** Report concentration vs. uniform-over-*valid*-tiles (Gini, or KL divergence), so you can distinguish "placement bug" from "terrain availability." Right now the trader bug and the champion ring look similar in the output but have completely different causes.
-- **Naming drift.** Snapshot says `mountain`/`peak`; pooled says "Impassable peaks"/"High peak". And "Frozen surface" isn't in the design doc's terrain table at all.
-
----
-
 ## What I'd fix, in order
 
 1. **Split noise config into absolute and relative classes** and set frequencies from `f ≈ 1/λ_target`. This is one change that fixes slope, hill/plateau, mountain ranges, terrain scale-drift, and the r=7 variance blowout simultaneously.
-2. **Fix the trader scan-order bug.** Smallest change, clearest player-facing win.
+2. *Trader bug corrected*
 3. **Renormalize elevation** (kill the zero point-mass, span the range, apply an explicit hypsometric curve) and re-derive `waterMaxElevation` from something that isn't a clamped percentile.
 4. **Add a low-frequency continent mask to `worldShape`** so coastlines vary per seed.
 5. **Replace epicenter thresholding with a point-set** and add the missing temperate-lowland biome.
 6. **Then re-run the whole battery** — everything above changes every distribution, and the derived thresholds in this report are already stale.
-
-The one thing I'd add to the report before re-running: **echo the active config**, and add patch-size stats. Without those two you'll be in the same position next time — a page of numbers that can't be reconciled with the code that produced them.
 
 # Developer's Note
 

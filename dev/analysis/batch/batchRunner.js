@@ -256,6 +256,8 @@ export async function runBatch(opts) {
         const meanSingleton = entries.reduce((a, b) => a + b.singletonCount, 0) / entries.length;
         const meanLargestFrac = entries.reduce((a, b) => a + parseFloat(b.largestPatchFraction), 0) / entries.length;
         const meanGini = entries.reduce((a, b) => a + parseFloat(b.gini), 0) / entries.length;
+        const meanSize = entries.reduce((a, b) => a + parseFloat(b.meanSize), 0) / entries.length;
+        const medianSize = entries.reduce((a, b) => a + parseFloat(b.medianSize), 0) / entries.length;
         spatialAgg.push({
           terrainType: terrain,
           totalTiles: entries[0].totalTiles, // same across seeds at same radius
@@ -263,6 +265,8 @@ export async function runBatch(opts) {
           singletonCount: meanSingleton.toFixed(2),
           largestPatchFraction: meanLargestFrac.toFixed(4),
           gini: meanGini.toFixed(4),
+          meanSize: meanSize.toFixed(2),
+          medianSize: medianSize.toFixed(1),
         });
       }
       spatialAgg.sort((a, b) => b.totalTiles - a.totalTiles);
@@ -334,6 +338,7 @@ export async function runBatch(opts) {
   }
 
   return {
+    baseSeed,
     seedCount,
     radii,
     perRadius,

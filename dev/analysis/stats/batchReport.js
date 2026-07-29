@@ -18,6 +18,12 @@ import { formatCalibrationReport, exportCalibrationV1 } from '../generation/thre
 import { poolHistograms } from '../generation/quantileLUT.js';
 import { percentileFromHistogram } from '../generation/histograms.js';
 import { heatmapConcentration } from './stats.js';
+import { getNoiseConfig, NOISE_FIELDS } from '../generation/noiseConfig.js';
+import {
+  DEFAULT_TERRAIN_RULES,
+  SLOPE_NORMALIZATION,
+  EPICENTER_GRID,
+} from '../../../src/params/game/worldParams.js';
 
 /** Total hexes in a radius-r map: 3r(r+1) + 1 */
 function totalTilesAtRadius(r) {
@@ -45,20 +51,99 @@ function estimatePassableTiles(terrainAgg, radius) {
   return Math.round(total * passablePct / 100);
 }
 
+// ─── Noise-field labels for config display ──────────────────────────────────
+
+const NOISE_FIELD_LABELS = {
+  ELEVATION_DETAIL: 'Elevation detail',
+  RIDGE:            'Ridge noise',
+  MOISTURE:         'Moisture',
+  TEMP_VARIATION:   'Temperature variation',
+  REGION:           'Region bias',
+};
+
+/**
+ * Format the active generation configuration as a self-documenting header.
+ *
+ * @param {number} seedCount      - Number of seeds used
+ * @param {number[]} radii        - Map radii tested
+ * @param {string} [baseSeed]     - Base seed text
+ * @param {boolean} [multiBiome]  - Whether multi-biome was enabled
+ * @returns {string}
+ */
+function formatConfigSection(seedCount, radii, baseSeed = 'glut-17', multiBiome = true) {
+  const lines = [];
+  lines.push('=== Active Configuration ===');
+  lines.push(`Base seed: ${baseSeed}  |  Seeds: ${seedCount}  |  Radii: ${radii.join(', ')}  |  Multi-biome: ${multiBiome ? 'yes' : 'no'}`);
+  lines.push('');
+
+  // Per-radius noise config
+  lines.push('Noise Config:');
+  for (const radius of radii) {
+    const nc = getNoiseConfig(radius);
+    lines.push(`  Radius ${radius}:`);
+    for (const field of NOISE_FIELDS) {
+      const fk = field.key;
+      const cfg = nc[fk];
+      if (!cfg) continue;
+      const label = (NOISE_FIELD_LABELS[fk] || fk).padEnd(22);
+      const parts = [`octaves=${cfg.octaves}`, `freq=${cfg.frequency}`, `lacunarity=${cfg.lacunarity}`, `gain=${cfg.gain}`];
+      if (cfg.offset !== undefined) parts.push(`offset=${cfg.offset}`);
+      lines.push(`    ${label} ${parts.join('  ')}`);
+    }
+  }
+  lines.push('');
+
+  // Terrain rules
+  lines.push('Terrain Rules (DEFAULT_TERRAIN_RULES):');
+  const ruleLabels = {
+    waterMaxElevation:        'waterMaxElevation',
+    mountainThreshold:        'mountainThreshold',
+    peakThreshold:            'peakThreshold',
+    floatingIslandThreshold:  'floatingIslandThreshold',
+    marshMaxElevation:        'marshMaxElevation',
+    hillElevationMin:         'hillElevationMin',
+    plateauSlopeMin:          'plateauSlopeMin',
+    hillSlopeMin:             'hillSlopeMin',
+    forestMinMoisture:        'forestMinMoisture',
+    denseForestMinMoisture:   'denseForestMinMoisture',
+    desertMaxMoisture:        'desertMaxMoisture',
+    marshMinMoisture:         'marshMinMoisture',
+    freezeTempMax:            'freezeTempMax',
+    waterMinMoisture:         'waterMinMoisture',
+  };
+  for (const [key, label] of Object.entries(ruleLabels)) {
+    const val = DEFAULT_TERRAIN_RULES[key];
+    if (val !== undefined) {
+      lines.push(`  ${label.padEnd(28)} ${val}`);
+    }
+  }
+  lines.push('');
+
+  lines.push(`Slope Normalization: ${SLOPE_NORMALIZATION}`);
+  const eg = EPICENTER_GRID || {};
+  lines.push(`Epicenter Grid: cellSize=${eg.cellSize}  jitterAmplitude=${eg.jitterAmplitude}`);
+  lines.push('');
+
+  return lines.join('\n');
+}
+
 /**
  * Format the full batch analysis result as a single text report.
  *
  * @param {object} result - Output from batchRunner.runBatch()
- * @param {object} [opts] - Options describing what was collected
+ * @param {object} [opts] - Options describing what was collected; may include multiBiome
  * @returns {string} Formatted report
  */
 export function formatBatchReport(result, opts = {}) {
-  const { seedCount, radii, perRadius, calibration, snapshot } = result;
+  const { seedCount, radii, perRadius, calibration, snapshot, baseSeed } = result;
+  const multiBiome = opts.multiBiome !== undefined ? opts.multiBiome : true;
   const parts = [];
 
   parts.push(`=== Batch Analysis Report ===`);
-  parts.push(`Seeds: ${seedCount}  |  Radii: ${radii.join(', ')}`);
   parts.push('');
+
+  // Active config header
+  parts.push(formatConfigSection(seedCount, radii, baseSeed || 'glut-17', multiBiome));
 
   // ── Snapshot test (once, not per-radius) ─────────────────────────────
   if (snapshot) {
@@ -198,6 +283,7 @@ export function formatBatchReport(result, opts = {}) {
         parts.push(
           `  ${s.terrainType.padEnd(14)} patches=${s.componentCount}  ` +
           `singletons=${s.singletonCount}  ` +
+          `mean=${s.meanSize}  med=${s.medianSize}  ` +
           `largest=${(s.largestPatchFraction * 100).toFixed(1)}%  ` +
           `gini=${s.gini}`
         );

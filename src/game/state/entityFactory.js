@@ -79,11 +79,13 @@ export function createMobs({ tiles, rand, used, radius }) {
 export function createTraders({ tiles, rand, used, champions }) {
   const traders = [];
 
+  const passable = Object.keys(tiles).filter(
+    k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !tiles[k].debris && !used.has(k)
+  );
+
   for (let i = 0; i < NUM_TRADERS; i++) {
-    const key = Object.keys(tiles).find(
-      k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !tiles[k].debris && !used.has(k)
-    );
-    if (!key) break;
+    if (!passable.length) break;
+    const key = passable.splice(Math.floor(rand() * passable.length), 1)[0];
     used.add(key);
     traders.push({
       id: `tr-${i}`,

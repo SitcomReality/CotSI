@@ -147,7 +147,7 @@ async function runBatchAnalysis() {
     _lastCalibration = result.calibration;
 
     // ── Format and display the report ──────────────────────────────────
-    els.statsPanel.textContent = formatBatchReport(result, options);
+    els.statsPanel.textContent = formatBatchReport(result, { ...options, multiBiome: genOptions.multiBiome });
 
     // ── Enable download buttons if thresholds were derived ─────────────
     if (result.calibration) {
