@@ -17,14 +17,9 @@ import {
   entityStats,
   traderAnalysis,
 } from './stats.js';
-import {
-  runSpatialStats,
-  formatSpatialStats,
-  pearsonCorrelation,
-  formatCorrelations,
-  jointHistogramWithBiome,
-  formatJointHistogram,
-} from './spatialStats.js';
+import { runSpatialStats } from './spatialStats.js';
+import { pearsonCorrelation, jointHistogramWithBiome } from './correlations.js';
+import { formatSpatialStats, formatCorrelations, formatJointHistogram } from './spatialFormatting.js';
 
 // ─── Single-seed stats ────────────────────────────────────────────────────────
 

@@ -1,291 +1,33 @@
 /**
- * stats.js — Pure stat-collection functions for the analysis page.
+ * stats.js — Barrel: re-exports all stat-collection functions.
  *
- * All functions take tile/entity data and return structured statistics.
- * No DOM, no rendering, no side effects.
+ * Sub-modules:
+ *   tileStats.js      — Per-tile distributions (biome, terrain, features, etc.)
+ *   entityStats.js    — Entity statistics (champions, mobs, traders)
+ *   aggregation.js    — Multi-seed aggregation helpers
+ *   concentration.js  — Gini coefficient and heatmap concentration metrics
  */
-import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
-import { coordKey, distance } from '../../../src/engine/rules/hexGrid.js';
+export {
+  biomeDistribution,
+  terrainDistribution,
+  featureCounts,
+  debrisCounts,
+  mountainAnalysis,
+  waterAnalysis,
+} from './tileStats.js';
 
-// ─── Biome distribution ──────────────────────────────────────────────────────
+export {
+  entityStats,
+  traderAnalysis,
+  traderRingHistogram,
+} from './entityStats.js';
 
-export function biomeDistribution(tiles) {
-  const counts = {};
-  let total = 0;
+export {
+  aggregateTerrainDistributions,
+} from './aggregation.js';
 
-  for (const key of Object.keys(tiles)) {
-    const bid = tiles[key].biomeId || 'unknown';
-    counts[bid] = (counts[bid] || 0) + 1;
-    total++;
-  }
-
-  const dist = {};
-  for (const [bid, count] of Object.entries(counts)) {
-    dist[bid] = { count, pct: total > 0 ? (count / total * 100).toFixed(1) : '0.0' };
-  }
-
-  return { dist, total };
-}
-
-// ─── Terrain ─────────────────────────────────────────────────────────────────
-
-export function terrainDistribution(tiles) {
-  const counts = {};
-  let total = 0;
-
-  for (const key of Object.keys(tiles)) {
-    const t = tiles[key].terrain;
-    counts[t] = (counts[t] || 0) + 1;
-    total++;
-  }
-
-  const dist = {};
-  for (const [terrain, count] of Object.entries(counts)) {
-    dist[terrain] = { count, pct: total > 0 ? (count / total * 100).toFixed(1) : '0.0' };
-  }
-
-  return { dist, total };
-}
-
-// ─── Features ─────────────────────────────────────────────────────────────────
-
-export function featureCounts(tiles) {
-  let trees = 0;
-  let fruitTrees = 0;
-  let largeTrees = 0;
-  let knots = 0;
-  let bases = 0;
-  let bushes = 0;
-  let vines = 0;
-
-  for (const key of Object.keys(tiles)) {
-    const f = tiles[key].feature;
-    if (!f) continue;
-    switch (f.kind) {
-      case 'tree': trees++; break;
-      case 'fruitTree': fruitTrees++; break;
-      case 'largeTree': largeTrees++; break;
-      case 'knot': knots++; break;
-      case 'base': bases++; break;
-      case 'bush': bushes++; break;
-      case 'vine': vines++; break;
-    }
-  }
-
-  return { trees, fruitTrees, largeTrees, knots, bases, bushes, vines };
-}
-
-export function debrisCounts(tiles) {
-  let tufts = 0;
-  let rocks = 0;
-  let flowers = 0;
-
-  for (const key of Object.keys(tiles)) {
-    const d = tiles[key].debris;
-    if (!d) continue;
-    if (d.kind === 'tuft') tufts++;
-    else if (d.kind === 'rock') rocks++;
-    else if (d.kind === 'flower') flowers++;
-  }
-
-  return { tufts, rocks, flowers, total: tufts + rocks + flowers };
-}
-
-// ─── Mountains ────────────────────────────────────────────────────────────────
-
-export function mountainAnalysis(tiles) {
-  let total = 0;
-  let peaks = 0;
-  let slopes = 0;
-  let isolated = 0;
-  let untyped = 0;
-
-  for (const key of Object.keys(tiles)) {
-    if (tiles[key].terrain !== 'mountain') continue;
-    total++;
-    const mt = tiles[key].mountainType;
-    if (mt === 'peak') peaks++;
-    else if (mt === 'slope') slopes++;
-    else if (mt === 'isolated') isolated++;
-    else untyped++;
-  }
-
-  return { total, peaks, slopes, isolated, untyped };
-}
-
-// ─── Water ───────────────────────────────────────────────────────────────────
-
-export function waterAnalysis(tiles) {
-  let total = 0;
-  let lakes = 0;
-  let oceans = 0;
-  let untyped = 0;
-
-  for (const key of Object.keys(tiles)) {
-    if (tiles[key].terrain !== 'water') continue;
-    total++;
-    const wt = tiles[key].waterType;
-    if (wt === 'lake') lakes++;
-    else if (wt === 'ocean') oceans++;
-    else untyped++;
-  }
-
-  return { total, lakes, oceans, untyped };
-}
-
-// ─── Entities ─────────────────────────────────────────────────────────────────
-
-export function entityStats(champions, mobs, traders) {
-  return {
-    champions: champions ? champions.filter(c => c.alive !== false).length : 0,
-    mobs: mobs ? mobs.filter(m => m.alive !== false).length : 0,
-    traders: traders ? traders.length : 0,
-  };
-}
-
-/**
- * Collect trader positions and distances to center and nearest base.
- */
-export function traderAnalysis(tiles, traders, baseKeys) {
-  if (!traders || !traders.length) return [];
-
-  const baseList = baseKeys
-    ? [...baseKeys].map(k => { const [q, r] = k.split(',').map(Number); return { q, r }; })
-    : [];
-
-  return traders.map(t => {
-    const distToCenter = distance({ q: 0, r: 0 }, t.pos);
-    let minBaseDist = Infinity;
-    for (const b of baseList) {
-      const d = distance(t.pos, b);
-      if (d < minBaseDist) minBaseDist = d;
-    }
-    return {
-      pos: { q: t.pos.q, r: t.pos.r },
-      distToCenter,
-      minBaseDist: minBaseDist === Infinity ? null : minBaseDist,
-    };
-  });
-}
-
-/**
- * Compute a histogram of trader ring positions (distance from center).
- * Returns { ringDist: { [ring]: count } }
- */
-export function traderRingHistogram(traders) {
-  const hist = {};
-  if (!traders) return hist;
-  for (const t of traders) {
-    const d = distance({ q: 0, r: 0 }, t.pos);
-    hist[d] = (hist[d] || 0) + 1;
-  }
-  return hist;
-}
-
-// ─── Aggregate helpers (for multi-seed) ──────────────────────────────────────
-
-/**
- * Combine multiple terrainDistribution results into mean and stddev.
- */
-export function aggregateTerrainDistributions(distributions) {
-  const terrains = Object.keys(TERRAIN);
-  const result = {};
-
-  for (const t of terrains) {
-    const pcts = distributions.map(d => parseFloat((d.dist[t] || {}).pct || 0));
-    const mean = pcts.reduce((a, b) => a + b, 0) / pcts.length;
-    const variance = pcts.reduce((sum, v) => sum + (v - mean) ** 2, 0) / pcts.length;
-    result[t] = {
-      mean: mean.toFixed(1),
-      stddev: Math.sqrt(variance).toFixed(2),
-      min: Math.min(...pcts).toFixed(1),
-      max: Math.max(...pcts).toFixed(1),
-    };
-  }
-
-  return result;
-}
-
-// ─── Concentration metrics (for heatmap normalization) ──────────────────────────
-
-/**
- * Compute the Gini coefficient for an array of non-negative values.
- *
- * 0 = perfectly equal distribution (all values identical).
- * 1 = maximally concentrated (one value holds all the mass).
- *
- * @param {number[]} values - Array of non-negative counts/values
- * @returns {number} Gini coefficient in [0, 1]
- */
-export function giniCoefficient(values) {
-  if (values.length === 0) return 0;
-  const sorted = [...values].sort((a, b) => a - b);
-  const n = sorted.length;
-  let cumulative = 0;
-  let sumWeighted = 0;
-  for (let i = 0; i < n; i++) {
-    cumulative += sorted[i];
-    sumWeighted += (i + 1) * sorted[i];
-  }
-  if (cumulative === 0) return 0;
-  // Gini = (2 * sumWeighted) / (n * cumulative) - (n + 1) / n
-  return (2 * sumWeighted) / (n * cumulative) - (n + 1) / n;
-}
-
-/**
- * Count passable tiles from a terrain distribution result.
- *
- * @param {{ dist: object, total: number }} terrainDist - Output of terrainDistribution()
- * @returns {number}
- */
-export function passableTileCount(terrainDist) {
-  let passable = 0;
-  for (const [terrain, info] of Object.entries(terrainDist.dist)) {
-    const def = TERRAIN[terrain];
-    if (def && def.passable) {
-      passable += info.count;
-    }
-  }
-  return passable;
-}
-
-/**
- * Compute concentration metrics for a heatmap.
- *
- * Reports the Gini coefficient of the occupied-hex distribution, the number
- * of unique hexes ever occupied, and the expected unique hexes if placement
- * were uniform-random across valid tiles.
- *
- * @param {Map<string, number>} heatmap    - Map from "q,r" -> seed count
- * @param {number}              seedCount  - Total seeds in the batch
- * @param {number}              validTiles - Number of valid placement tiles
- * @returns {{ gini: string, uniqueHexes: number, expectedUnique: string, note: string }}
- */
-export function heatmapConcentration(heatmap, seedCount, validTiles) {
-  if (!heatmap || heatmap.size === 0 || seedCount === 0) {
-    return { gini: 'N/A', uniqueHexes: 0, expectedUnique: 'N/A', note: 'No data' };
-  }
-
-  const counts = [...heatmap.values()];
-  const uniqueHexes = heatmap.size;
-  const gini = giniCoefficient(counts);
-
-  // Expected unique hexes under uniform-random placement:
-  // For each seed, P(avoid a specific hex) = 1 - 1/validTiles
-  // Over M seeds: P(hex never occupied) = (1 - 1/validTiles)^M
-  // Expected unique = validTiles * (1 - (1 - 1/validTiles)^M)
-  const expectedUnique = validTiles > 0
-    ? validTiles * (1 - Math.pow(1 - 1 / validTiles, seedCount))
-    : 0;
-
-  const ratio = expectedUnique > 0
-    ? (uniqueHexes / expectedUnique).toFixed(2)
-    : 'N/A';
-
-  return {
-    gini: gini.toFixed(4),
-    uniqueHexes,
-    expectedUnique: expectedUnique.toFixed(1),
-    note: `obs/exp ratio: ${ratio}`,
-  };
-}
+export {
+  giniCoefficient,
+  passableTileCount,
+  heatmapConcentration,
+} from './concentration.js';

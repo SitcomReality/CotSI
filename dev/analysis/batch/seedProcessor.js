@@ -9,7 +9,7 @@
 import { generateSingleSeed } from '../generation/generate.js';
 import { collectHistograms, collectTileHistograms } from '../generation/histograms.js';
 import { getNoiseConfig } from '../generation/noiseConfig.js';
-import { collectRawSlopeDeltas } from '../generation/thresholdDerivation.js';
+import { collectRawSlopeDeltas } from '../generation/slopeDeltas.js';
 import {
   terrainDistribution,
   featureCounts,
@@ -19,7 +19,8 @@ import {
   entityStats,
   traderAnalysis,
 } from '../stats/stats.js';
-import { runSpatialStats, pearsonCorrelation } from '../stats/spatialStats.js';
+import { runSpatialStats } from '../stats/spatialStats.js';
+import { pearsonCorrelation } from '../stats/correlations.js';
 
 // ─── Per-seed stats collector ────────────────────────────────────────────────
 

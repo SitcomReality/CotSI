@@ -3,6 +3,8 @@
  *
  * Provides seed stepping (prev/next), random seed generation, and
  * an auto-play cycle managed via play/pause controls with a speed slider.
+ *
+ * Seed stepping logic lives in ./seedStepper.js.
  */
 import { S } from '../state.js';
 import { els } from '../domRefs.js';
@@ -11,6 +13,7 @@ import { renderAndFit } from '../render/orchestrate.js';
 import { updateStats } from '../stats/statsDisplay.js';
 import { updateLegend } from '../legend/legend.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
+import { computeStep } from './seedStepper.js';
 
 // ─── Generation helpers ──────────────────────────────────────────────────────
 
@@ -51,41 +54,18 @@ function generateFromCurrentSeed() {
 // ─── Seed stepping ───────────────────────────────────────────────────────────
 
 /**
- * Parse the numeric suffix from a seed string (e.g. "glut-42" → prefix "glut-", width 2, value 42).
- * Returns null if the seed has no trailing number.
- */
-function parseSeed(value) {
-  const match = value.trim().match(/^(.*?)(\d+)$/);
-  if (!match) return null;
-  return { prefix: match[1], digits: match[2], width: match[2].length, value: parseInt(match[2], 10) };
-}
-
-/**
- * Step the seed by `delta`, preserving any zero-padding on the numeric suffix.
- * - "glut-42" +1 → "glut-43"
- * - "glut-009" +1 → "glut-010"  (padding preserved)
- * - "glut-0" -1  → "glut-0"     (floored at 0)
- * - "hello" +1   → "hello-1"    (appends -1 for non-numeric seeds)
- * - "hello" -1   → no-op        (no numeric component to decrement)
+ * Step the seed by `delta`, delegating to seedStepper logic.
  */
 function stepSeed(delta) {
   const value = els.seed.value.trim();
-  const parsed = parseSeed(value);
+  const result = computeStep(value, delta);
 
-  if (!parsed) {
-    // Non-numeric seed: only step forward (append -1), backward does nothing
-    if (delta > 0) {
-      els.seed.value = value ? `${value}-1` : 'seed-1';
-      generateFromCurrentSeed();
-    }
-    return;
+  if (!result) return; // backward step on non-numeric seed — no-op
+
+  els.seed.value = result.text;
+  if (result.changed) {
+    generateFromCurrentSeed();
   }
-
-  const { prefix, width } = parsed;
-  const current = parsed.value;
-  const next = Math.max(0, current + delta);
-  els.seed.value = prefix + String(next).padStart(width, '0');
-  generateFromCurrentSeed();
 }
 
 /**
