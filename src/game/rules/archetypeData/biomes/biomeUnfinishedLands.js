@@ -12,9 +12,9 @@ defineArchetype('biome_unfinished_lands', {
   origin: 'supernatural',
 
   epicenter: {
-    radius:       16,
-    radiusNoise:  0.35,
-    noiseScale:   0.03,
+    radiusFraction:  0.11,
+    radiusNoise:    1.5,
+    noiseScale:     0.07,
   },
 
   fieldModifiers: {

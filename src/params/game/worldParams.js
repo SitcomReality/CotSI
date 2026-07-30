@@ -91,14 +91,15 @@ export const SEED_DETAIL = 0x7B2C1E8D;
 export const SEED_RIDGE = 0x3F5A9B2C;
 
 // ---------------------------------------------------------------------------
-// Epicenter grid (supernatural biome placement)
-// Cell size determines epicenter seed density. Each cell gets one seed at a
-// deterministically jittered position. Coverage tuning deferred to Phase G.
+// Epicenter config (supernatural biome placement)
+// Density determines how many epicenter seeds are placed via dart-throwing.
+// Radius scales with map radius via per-biome radiusFraction.
 // ---------------------------------------------------------------------------
 
-export const EPICENTER_GRID = {
-  cellSize:          45,    // hex units between grid cell centres
-  jitterAmplitude:   0.40,  // fraction of cell size for position jitter
+export const EPICENTER_CONFIG = {
+  density:           0.0008,  // epicenters per unit hex area
+  minDistFraction:   0.14,    // min distance between epicenters, as fraction of radius
+  maxEpicenters:     12,      // hard cap on any map
 };
 
 // ---------------------------------------------------------------------------

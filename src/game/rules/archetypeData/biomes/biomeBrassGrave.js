@@ -12,9 +12,9 @@ defineArchetype('biome_brass_grave', {
   origin: 'supernatural',
 
   epicenter: {
-    radius:       12,
-    radiusNoise:  0.30,
-    noiseScale:   0.04,
+    radiusFraction:  0.16,
+    radiusNoise:    0.30,
+    noiseScale:     0.04,
   },
 
   fieldModifiers: {

@@ -1,12 +1,74 @@
-import { hash32, stringSeed } from '../../../../engine/rules/seededRng.js';
+import { makeRng, stringSeed } from '../../../../engine/rules/seededRng.js';
 import { hexFbm2D } from '../../../../engine/rules/noise.js';
 import { coordKey, distance } from '../../../../engine/rules/hexGrid.js';
-import { EPICENTER_GRID } from '../../../../params/game/worldParams.js';
+import { EPICENTER_CONFIG } from '../../../../params/game/worldParams.js';
 import { getArchetype } from '../../archetypes.js';
 import { classifyTerrain } from '../classification/terrainClassification.js';
 import { resolveElevation } from '../classification/terrainClassification.js';
 import { clamp01 } from '../fields/slopeComputation.js';
 import { SUPERNATURAL_BIOMES } from '../classification/biomeSelection.js';
+
+/**
+ * Generate epicenter seed positions via seeded dart-throwing.
+ *
+ * Places N seed points randomly on a hex-shaped map of the given radius,
+ * enforcing a minimum distance between them for organic-but-spread
+ * placement. N scales with map area via EPICENTER_CONFIG.density.
+ *
+ * Biome assignment uses low-frequency FBM noise for natural regional
+ * clustering — brass_grave and unfinished_lands form broad contiguous
+ * patches rather than a perfectly random scatter.
+ *
+ * Fully deterministic for a given (baseSeed, radius) pair.
+ *
+ * @param {number} baseSeed - Integer seed from stringSeed(seedText)
+ * @param {number} radius   - Map radius in hexes
+ * @returns {{ q: number, r: number, biomeId: string, biomeDef: object }[]}
+ */
+function generateSupernaturalSeeds(baseSeed, radius) {
+  const area = 3 * Math.sqrt(3) / 2 * radius * radius;
+  const targetCount = Math.min(
+    EPICENTER_CONFIG.maxEpicenters,
+    Math.max(1, Math.floor(area * EPICENTER_CONFIG.density))
+  );
+  const minDist = Math.max(4, radius * EPICENTER_CONFIG.minDistFraction);
+
+  const rng = makeRng('supernatural_' + baseSeed);
+  const seeds = [];
+  const maxAttempts = targetCount * 50;
+
+  const biomeNoiseSeed = baseSeed + 0x9D6E1F3A;
+  const biomeNoiseOpts = { frequency: 0.008, octaves: 2, gain: 0.5, lacunarity: 2.0 };
+
+  for (let attempts = 0; seeds.length < targetCount && attempts < maxAttempts; attempts++) {
+    // Rejection-sample a valid hex coordinate within the map
+    const q = Math.floor(rng() * (2 * radius + 1)) - radius;
+    const r = Math.floor(rng() * (2 * radius + 1)) - radius;
+    if (Math.abs(-q - r) > radius) continue;
+
+    // Enforce minimum distance from existing seeds
+    let tooClose = false;
+    for (const existing of seeds) {
+      if (distance({ q, r }, { q: existing.q, r: existing.r }) < minDist) {
+        tooClose = true;
+        break;
+      }
+    }
+    if (tooClose) continue;
+
+    // Assign biome via low-frequency FBM for natural regional clustering
+    const noiseVal = hexFbm2D(q, r, biomeNoiseSeed, biomeNoiseOpts);
+    const biomeIndex = Math.floor(noiseVal * SUPERNATURAL_BIOMES.length);
+    const biomeId = SUPERNATURAL_BIOMES[Math.min(biomeIndex, SUPERNATURAL_BIOMES.length - 1)];
+    const biomeDef = getArchetype(biomeId);
+
+    if (biomeDef?.epicenter) {
+      seeds.push({ q, r, biomeId, biomeDef });
+    }
+  }
+
+  return seeds;
+}
 
 /**
  * Deterministic integer offset from a biome ID + tag pair.
@@ -17,35 +79,15 @@ function hashSeedOffset(biomeId, tag) {
 }
 
 /**
- * Deterministic 2D position jitter within a grid cell.
- * Returns { q, r } offset in [-amplitude*cellSize/2, +amplitude*cellSize/2].
- */
-function seededJitter(baseSeed, cellQ, cellR, cellSize, amplitude) {
-  const hashQ = hash32(baseSeed ^ 0x4A1EBEAD ^ (cellQ * 0x9E3779B9) ^ (cellR * 0x7F4A7C2D));
-  const hashR = hash32(baseSeed ^ 0x3C8D6E2F ^ (cellQ * 0x2B1F5A8D) ^ (cellR * 0x6E3D1F9C));
-  const range = cellSize * amplitude;
-  return {
-    q: ((hashQ / 0xFFFFFFFF) - 0.5) * range,
-    r: ((hashR / 0xFFFFFFFF) - 0.5) * range,
-  };
-}
-
-/**
- * Deterministic biome index from cell grid coordinates.
- * Each cell gets one supernatural biome, evenly distributed across the map.
- */
-function hashBiomeIndex(baseSeed, cellQ, cellR, count) {
-  const hash = hash32(baseSeed ^ 0x9D6E1F3A ^ (cellQ * 0x4B8D7C2E) ^ (cellR * 0x3F2A5E1C));
-  return Math.abs(hash) % count;
-}
-
-/**
- * Apply supernatural biome overrides via jittered-grid epicenter placement.
+ * Apply supernatural biome overrides via dart-thrown epicenter placement.
  *
- * Epicenter seeds are placed on a deterministic grid with per-cell jitter.
- * Each seed is assigned a supernatural biome by hash. Regions grow via
- * noise-modulated radial falloff — a pure function of (baseSeed, q, r),
- * fully chunk-local.
+ * Epicenter seeds are placed by seeded dart-throwing for organic distribution
+ * with no grid alignment. Each seed is assigned a supernatural biome by
+ * low-frequency noise. Regions grow via noise-modulated radial falloff —
+ * a pure function of (baseSeed, q, r), fully deterministic.
+ *
+ * Radius scales with map radius via each biome's epicenter.radiusFraction,
+ * so supernatural regions are proportional to the map at all scales.
  *
  * Tile fields (elevationField, moisture, temperature) are modified per
  * biomeDef.fieldModifiers before terrain is reclassified with the biome's
@@ -59,42 +101,7 @@ function hashBiomeIndex(baseSeed, cellQ, cellR, count) {
 export function applySupernaturalOverrides(tileMap, baseSeed, radius) {
   if (!SUPERNATURAL_BIOMES.length) return;
 
-  const G = EPICENTER_GRID;
-
-  // Max epicenter radius across all supernatural biomes
-  let maxEpRadius = 0;
-  for (const biomeId of SUPERNATURAL_BIOMES) {
-    const def = getArchetype(biomeId);
-    if (def?.epicenter?.radius) {
-      maxEpRadius = Math.max(maxEpRadius, def.epicenter.radius);
-    }
-  }
-  if (!maxEpRadius) return;
-
-  // Grid range: cells whose epicenters could affect tiles in this chunk
-  const gridRange = Math.ceil(radius / G.cellSize) + Math.ceil(maxEpRadius / G.cellSize) + 1;
-
-  // Place epicenter seeds for all cells in range
-  const seeds = [];
-  for (let gridR = -gridRange; gridR <= gridRange; gridR++) {
-    for (let gridQ = -gridRange; gridQ <= gridRange; gridQ++) {
-      const jitter = seededJitter(baseSeed, gridQ, gridR, G.cellSize, G.jitterAmplitude);
-      const seedQ = Math.round(gridQ * G.cellSize + jitter.q);
-      const seedR = Math.round(gridR * G.cellSize + jitter.r);
-
-      // Seed within map bounds?
-      if (distance({ q: 0, r: 0 }, { q: seedQ, r: seedR }) > radius) continue;
-
-      const biomeIndex = hashBiomeIndex(baseSeed, gridQ, gridR, SUPERNATURAL_BIOMES.length);
-      const biomeId = SUPERNATURAL_BIOMES[biomeIndex];
-      const biomeDef = getArchetype(biomeId);
-
-      if (biomeDef?.epicenter) {
-        seeds.push({ q: seedQ, r: seedR, biomeId, biomeDef });
-      }
-    }
-  }
-
+  const seeds = generateSupernaturalSeeds(baseSeed, radius);
   if (!seeds.length) return;
 
   // For each tile, check if within any epicenter region
@@ -105,12 +112,15 @@ export function applySupernaturalOverrides(tileMap, baseSeed, radius) {
 
       const dist = distance({ q: tile.q, r: tile.r }, { q: s.q, r: s.r });
 
+      // Base radius scales with map size via radiusFraction
+      const baseRadius = (ep.radiusFraction ?? ep.radius / radius) * radius;
+
       // Noise-modulated radius for organic, irregular region boundaries
       const radiusNoise = hexFbm2D(tile.q, tile.r,
         baseSeed + hashSeedOffset(s.biomeId, 'epicenterRadius'),
         { frequency: ep.noiseScale, octaves: 2, gain: 0.5, lacunarity: 2.0 }
       );
-      const effectiveRadius = ep.radius * (1.0 + (radiusNoise - 0.5) * 2 * ep.radiusNoise);
+      const effectiveRadius = baseRadius * (1.0 + (radiusNoise - 0.5) * 2 * ep.radiusNoise);
 
       if (dist < effectiveRadius) {
         const mods = s.biomeDef.fieldModifiers || {};

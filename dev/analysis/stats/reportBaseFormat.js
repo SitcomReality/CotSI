@@ -11,7 +11,7 @@ import { getNoiseConfig, NOISE_FIELDS } from '../generation/noiseConfig.js';
 import {
   DEFAULT_TERRAIN_RULES,
   SLOPE_NORMALIZATION,
-  EPICENTER_GRID,
+  EPICENTER_CONFIG,
 } from '../../../src/params/game/worldParams.js';
 
 /** Total hexes in a radius-r map: 3r(r+1) + 1 */
@@ -109,8 +109,8 @@ export function formatConfigSection(seedCount, radii, baseSeed = 'glut-17', mult
   lines.push('');
 
   lines.push(`Slope Normalization: ${SLOPE_NORMALIZATION}`);
-  const eg = EPICENTER_GRID || {};
-  lines.push(`Epicenter Grid: cellSize=${eg.cellSize}  jitterAmplitude=${eg.jitterAmplitude}`);
+  const ec = EPICENTER_CONFIG || {};
+  lines.push(`Epicenter Config: density=${ec.density}  minDistFraction=${ec.minDistFraction}  maxEpicenters=${ec.maxEpicenters}`);
   lines.push('');
 
   return lines.join('\n');
