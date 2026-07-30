@@ -26,7 +26,7 @@ defineArchetype('biome_tundra', {
     marshMinMoisture:       0.30,
     marshMaxElevation:      0.50,
     freezeTempMax:          0.60,
-    mountainThreshold:      0.90,
+    mountainThreshold:      0.52,
   },
 
   // Tundra: sparse — cold stunts growth.

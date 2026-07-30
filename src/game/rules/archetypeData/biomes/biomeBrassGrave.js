@@ -24,7 +24,7 @@ defineArchetype('biome_brass_grave', {
   },
 
   terrainRules: {
-    mountainThreshold:  0.85,
+    mountainThreshold:  0.52,
     forestMinMoisture:  0.92,
     desertMaxMoisture:  0.45,
     waterMaxElevation:  0.06,

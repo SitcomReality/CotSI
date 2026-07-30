@@ -17,7 +17,7 @@ defineArchetype('biome_sere_wastes', {
   },
 
   terrainRules: {
-    mountainThreshold: 0.890,
+    mountainThreshold: 0.50,
     waterMaxElevation: 0.04,
     waterMinMoisture: 0.70,
     forestMinMoisture: 0.85,

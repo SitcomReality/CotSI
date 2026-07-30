@@ -22,7 +22,7 @@ defineArchetype('biome_painforest', {
     desertMaxMoisture: 0.08,
     marshMinMoisture: 0.50,
     marshMaxElevation: 0.40,
-    mountainThreshold: 0.920,
+    mountainThreshold: 0.55,
   },
 
   // Painforest: abundant fruit trees + decorative trees + bushes on low-moisture tiles

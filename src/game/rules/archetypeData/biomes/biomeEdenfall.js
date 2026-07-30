@@ -28,7 +28,7 @@ defineArchetype('biome_edenfall', {
     desertMaxMoisture:      0.15,
     marshMinMoisture:       0.60,
     marshMaxElevation:      0.35,
-    mountainThreshold:      0.85,
+    mountainThreshold:      0.50,
     waterMaxElevation:      0.10,
   },
 

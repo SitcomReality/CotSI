@@ -25,8 +25,8 @@ defineArchetype('biome_unfinished_lands', {
 
   // Raw, half-formed terrain: lots of mountains, barren, incomplete
   terrainRules: {
-    mountainThreshold:      0.80,
-    peakThreshold:          0.90,
+    mountainThreshold:      0.44,
+    peakThreshold:          0.55,
     hillElevationMin:       0.08,
     forestMinMoisture:      0.80,
     denseForestMinMoisture: 0.90,

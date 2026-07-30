@@ -18,7 +18,7 @@ defineArchetype('biome_scorch', {
   },
 
   terrainRules: {
-    mountainThreshold: 0.900,
+    mountainThreshold: 0.50,
     forestMinMoisture: 0.76,
     denseForestMinMoisture: 0.88,
     desertMaxMoisture: 0.12,
