@@ -14,7 +14,7 @@ defineArchetype('biome_scorch', {
   climateRange: {
     minMoisture: 0.22,
     maxMoisture: 0.60,
-    minTemperature: 0.60,
+    minTemperature: 0.68,
   },
 
   terrainRules: {

@@ -4,13 +4,13 @@ import { getArchetype } from '../../archetypes.js';
 /** Natural biomes — climate-driven, in specificity order. biome_default is last (catch-all). */
 const BIOME_PRIORITY_ORDER = [
   'biome_sere_wastes',      // hot + dry (most specific)
-  'biome_dustbleed',        // low-elevation drylands
   'biome_scorch',           // hot transitional — between sere_wastes and painforest
+  'biome_frigid_silence',   // cold, dry-to-mid (maxMoist 0.55) — before temperate generalists
+  'biome_mourning_marsh',   // very cold + wet (maxTemp 0.35, minMoist 0.58) — extreme cold before tundra
+  'biome_tundra',           // cold + wet (maxTemp 0.52, minMoist 0.50) — catches cool-wet after extreme cold
+  'biome_dustbleed',        // low-elevation drylands
   'biome_edenfall',         // temperate mid-moisture — wide ceiling catches painforest boundary
-  'biome_frigid_silence',   // cold, any dryness (no minMoisture — covers cold steppe gap)
   'biome_painforest',       // wet + warm
-  'biome_tundra',           // cold + wet
-  'biome_mourning_marsh',   // very cold + wet
   'biome_default',          // catch-all — last, always matches
 ];
 

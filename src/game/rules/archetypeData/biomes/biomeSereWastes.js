@@ -11,9 +11,12 @@ defineArchetype('biome_sere_wastes', {
   name: 'Sere Wastes',
   origin: 'natural',
 
+  // Covers hot+arid tiles. minTemperature lowered from 0.55→0.50 and maxMoisture
+  // widened from 0.28→0.30 so sere_wastes catches more warm-dry tiles as scorch
+  // retreats to higher temperatures (scorch minTemp 0.68).
   climateRange: {
-    maxMoisture: 0.22,
-    minTemperature: 0.65,
+    maxMoisture: 0.30,
+    minTemperature: 0.50,
   },
 
   terrainRules: {

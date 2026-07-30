@@ -62,9 +62,9 @@ export const NOISE_RIDGE = {
   octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.04, offset: 0.9,
 };
 
-/** Temperature variation: very high frequency for local microclimate jitter. */
+/** Temperature variation: multi-octave for local microclimate jitter, creating cold pockets for tundra/frigid silence. */
 export const NOISE_TEMP_VARIATION = {
-  octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08,
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.08,
 };
 
 /** Region bias: large-scale, 3 octaves for soft regional transitions. */

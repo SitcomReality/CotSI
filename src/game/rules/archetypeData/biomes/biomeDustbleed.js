@@ -11,13 +11,14 @@ defineArchetype('biome_dustbleed', {
   name: 'Dustbleed',
   origin: 'natural',
 
-  // Widened from original tiny niche to cover all low-elevation drylands.
-  // Stays at priority #2 below sere_wastes (hot+dry), so hot+dry tiles
-  // still go to sere_wastes first.
+  // Widened to cover more low-elevation drylands and transitional tiles.
+  // maxMoisture raised from 0.42→0.50 and maxElevation from 0.25→0.30
+  // to catch more tiles that don't fit other biomes.
+  // Stays after cold biomes in priority so cold-dry tiles go to frigid_silence.
   climateRange: {
     minElevation: 0,
-    maxElevation: 0.2,
-    maxMoisture:  0.3,
+    maxElevation: 0.30,
+    maxMoisture:  0.50,
   },
 
   // Low-elevation, low-moisture cursed terrain — tainted by dried god-blood

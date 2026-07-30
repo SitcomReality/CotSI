@@ -11,11 +11,12 @@ defineArchetype('biome_tundra', {
   name: 'The Tundra',
   origin: 'natural',
 
-  // Cold + wet — fills gap above mourning_marsh's maxTemperature (0.25)
-  // at moist >= 0.60. Priority below painforest, above mourning_marsh.
+  // Cold + wet — widened minMoisture from 0.58→0.50 and maxTemperature from
+  // 0.42→0.52 so tundra captures wet cold tiles that frigid_silence excludes
+  // (frigid maxMoist 0.55) and covers a wider cold-wet band.
   climateRange: {
-    minMoisture: 0.60,
-    maxTemperature: 0.35,
+    minMoisture: 0.50,
+    maxTemperature: 0.52,
   },
 
   // Tundra: cold suppresses forests, abundant ice, sparse growth

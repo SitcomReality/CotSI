@@ -11,14 +11,16 @@ defineArchetype('biome_edenfall', {
   name: 'Edenfall',
   origin: 'natural',
 
-  // Temperate mid-moisture — fills the gap between hot savanna and cold frigid_silence
-  // Wide maxMoisture (0.70) catches boundary tiles near painforest's edge
-  // that would otherwise fall through due to regional bias.
+  // Temperate mid-moisture — expanded to fill the gap left by scorch's retreat.
+  // minTemperature lowered from 0.47→0.42 so it catches cool moderate-moist
+  // tiles that would otherwise fall into biome_default (the classic gap at
+  // temp 0.43-0.47, moist 0.58-0.63). maxTemperature widened from 0.67→0.82
+  // so it captures warm tiles that scorch (minTemp 0.68) no longer covers.
   climateRange: {
-    minMoisture: 0.20,
-    maxMoisture: 0.70,
-    minTemperature: 0.48,
-    maxTemperature: 0.65,
+    minMoisture: 0.22,
+    maxMoisture: 0.68,
+    minTemperature: 0.42,
+    maxTemperature: 0.82,
   },
 
   // Fertile temperate: abundant forests, sparse desert, moderate marsh

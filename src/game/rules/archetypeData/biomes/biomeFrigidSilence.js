@@ -11,13 +11,12 @@ defineArchetype('biome_frigid_silence', {
   name: 'The Frigid Silence',
   origin: 'natural',
 
-  // Covers cold+dry (no minMoisture) through mid-moisture — unifies the
-  // cold steppe gap with the existing frigid climate zone.
-  // Lowered maxTemperature to 0.35 to stay truly cold, avoiding overlap
-  // with edenfall (minTemperature 0.48) and scorch (minTemperature 0.60).
+  // Covers cold+dry through mid-moisture. maxTemperature raised from 0.47→0.52
+  // so it captures more cold tiles. maxMoisture narrowed 0.58→0.55 so the
+  // wetter cold niche (moist ≥ 0.55) falls to tundra / mourning_marsh.
   climateRange: {
-    maxMoisture: 0.60,
-    maxTemperature: 0.35,
+    maxMoisture: 0.55,
+    maxTemperature: 0.52,
   },
 
   // Cold steppe/tundra: cold suppresses forest, more ice, sparse growth

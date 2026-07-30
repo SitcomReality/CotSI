@@ -100,10 +100,14 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const latitudeTerm  = 1.0 - (Math.abs(y) / worldRadiusY);
   const tempVariation = hexFbm2D(q, r, baseSeed + NC.SEED_TEMP, NC.TEMP_VARIATION);
   const RULES = DEFAULT_TERRAIN_RULES;
+  // Widen the latitude gradient (0.55→0.80) so the map centre is warmer
+  // and the map edge is colder, giving cold biomes room to appear.
+  // Increase the elevation lapse rate (0.30→0.40) so high peaks get colder
+  // regardless of latitude, creating cold high-elevation microclimates.
   const temperature = clamp01(
-    0.5 + 0.55 * (latitudeTerm - 0.5)
-        + 0.12 * (tempVariation - 0.5)
-        - 0.30 * (elevation - RULES.waterMaxElevation)
+    0.5 + 0.80 * (latitudeTerm - 0.5)
+        + 0.35 * (tempVariation - 0.5)
+        - 0.40 * (elevation - RULES.waterMaxElevation)
   );
 
   // Region bias: two independent low-frequency fields
