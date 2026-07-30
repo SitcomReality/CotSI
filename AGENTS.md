@@ -95,4 +95,4 @@ Delegate to sub-agents as much as possible. Spawning agents to perform specific 
 
 ## Current Process Underway
 
-A large update to terrain generation is being worked on, as described in `dev/mapgen_update/overview.md`
+The terrain generation redesign is substantially complete. Remaining tuning and polish work is tracked in `dev/mapgen_update/remaining_work.md`.

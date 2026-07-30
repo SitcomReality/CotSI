@@ -16,7 +16,8 @@
  *   moisture        — adjusted: baseMoisture + coastal boost + river boost
  *   slope           — recomputed via computeSlope() from recomputed elevations
  *   biomeId         — recomputed via selectBiome() from recomputed fields
- *   terrain         — recomputed via classifyTerrain() from recomputed fields + biome rules
+ *   terrain         — verify classifyTerrain(stored fields) === stored terrain
+ *                     (catches connectivity-enforcement or post-processing interference)
  *
  * Not tested (neighbor-context-dependent post-processing, not pure per-tile):
  *   mountainType    — depends on neighbor terrain classification
@@ -208,14 +209,15 @@ export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
       // river post-pass reclassifies terrain using the original biome's rules,
       // not a recalculated biome. See flatGeneration.js line 82.
       //
-      // Use the stored moisture value, not the recomputed expectedMoisture.
-      // Both agree within 1e-12 (checked above), but exact classification
-      // thresholds (e.g. forestMinMoisture=0.58) can flip on a 1e-15 ULP
-      // difference — the stored value is the one the pipeline actually used.
+      // Use stored elevation, moisture, temperature, and slope — not the
+      // recomputed ones. All agree within 1e-12 (checked above), but exact
+      // classification thresholds (e.g. hillElevationMin=0.32, hillSlopeMin=0.25,
+      // forestMinMoisture=0.58) can flip on a 1e-15 ULP difference. The stored
+      // values are the ones the pipeline actually used.
       const biomeDef = getArchetype(biomeId) || getArchetype('biome_default');
       const expectedTerrain = classifyTerrain(
-        fields.elevation, moisture, fields.temperature,
-        expectedSlope, biomeDef
+        elevationField, moisture, temperature,
+        tile.slope, biomeDef
       );
 
       if (tile.terrain !== expectedTerrain) {
