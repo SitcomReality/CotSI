@@ -3,12 +3,13 @@ import { getArchetype } from '../../archetypes.js';
 
 /** Natural biomes — climate-driven, in specificity order. biome_default is last (catch-all). */
 const BIOME_PRIORITY_ORDER = [
-  'biome_arid',            // hot + dry (most specific)
-  'biome_savanna',         // hot transitional — between arid and lush
+  'biome_sere_wastes',     // hot + dry (most specific)
+  'biome_dustbleed',       // low-elevation, low-moisture cursed badlands
+  'biome_scorch',          // hot transitional — between sere_wastes and painforest
   'biome_edenfall',        // temperate mid-moisture — fills gap between hot and cold
   'biome_frigid_silence',  // cold mid-moisture (Phase D)
-  'biome_lush',            // wet + warm
-  'biome_weeping_marsh',   // cold wet (Phase D)
+  'biome_painforest',      // wet + warm
+  'biome_mourning_marsh',  // cold wet (Phase D)
   'biome_default',         // catch-all — last, always matches
 ];
 

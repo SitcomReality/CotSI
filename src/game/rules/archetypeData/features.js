@@ -173,7 +173,7 @@ defineArchetype('feature_saintsRib', {
   type: 'feature',
   name: "Saint's Rib",
   archetypeShape: 'arch',
-  tags: ['sere_wastes', 'savanna'],
+  tags: ['sere_wastes', 'scorch'],
   visual: { scale: 2.0 },
 });
 
@@ -197,7 +197,7 @@ defineArchetype('feature_screamroot', {
   type: 'feature',
   name: 'Screamroot',
   archetypeShape: 'plant',
-  tags: ['untouched', 'lush', 'mourning_marsh'],
+  tags: ['untouched', 'painforest', 'mourning_marsh'],
   visual: { scale: 1.0 },
 });
 
@@ -221,7 +221,7 @@ defineArchetype('feature_witnessStone', {
   type: 'feature',
   name: 'Witness-Stone',
   archetypeShape: 'stone',
-  tags: ['untouched', 'savanna'],
+  tags: ['untouched', 'scorch'],
   visual: { scale: 1.3 },
 });
 
@@ -264,5 +264,15 @@ defineArchetype('feature_edenShroomlet', {
   name: 'Shroomlet',
   archetypeShape: 'cluster',
   tags: ['edenfall'],
+  visual: { scale: 1.2 },
+});
+
+// ── Dustbleed biome features ──────────────────────────────────────────────
+
+defineArchetype('feature_dustbleedCrystal', {
+  type: 'feature',
+  name: 'Dustbleed Crystal',
+  archetypeShape: 'cluster',
+  tags: ['dustbleed'],
   visual: { scale: 1.2 },
 });

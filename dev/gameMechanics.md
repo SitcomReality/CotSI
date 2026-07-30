@@ -68,10 +68,10 @@ Setup screen "Advanced" sliders passed as `mapSettings` to `generateTiles()`:
 
 ### Multi-biome mode
 
-The **default** setup option is "Multi-biome (mixed world)". A noise channel (`NOISE_CHANNEL_BIOME`) sampled at each chunk's center assigns the biome. Currently weighted as:
-- `[0, 0.40)` → `biome_default`
-- `[0.40, 0.70)` → `biome_lush`
-- `[0.70, 1.00)` → `biome_arid`
+The **default** setup option is "Multi-biome (mixed world)". Biomes are now assigned
+per-hex from climate fields (elevation, moisture, temperature) through `selectBiome()`
+in `src/game/rules/terrainGen/classification/biomeSelection.js` — see that file for
+the current priority order and each biome's `climateRange` in `biomes.js`.
 
 ### Biome Fields
 

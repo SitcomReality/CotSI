@@ -124,9 +124,9 @@ defineArchetype('biome_brass_grave', {
   weatherAffinity: ['arid'],
 });
 
-defineArchetype('biome_savanna', {
+defineArchetype('biome_scorch', {
   type: 'biome',
-  id: 'biome_savanna',
+  id: 'biome_scorch',
   name: 'Scorch',
   origin: 'natural',
 
@@ -146,7 +146,7 @@ defineArchetype('biome_savanna', {
     waterMaxElevation: 0.08,
   },
 
-  // Savanna: sparse trees, rare fruit trees, scattered knots
+  // Scorch: sparse trees, rare fruit trees, scattered knots
   // Note: fruitTree must come before tree (higher threshold = rarer, first-match-wins)
   features: [
     // Low-roll hazard (narrow lt before broader knot)
@@ -236,9 +236,9 @@ defineArchetype('biome_edenfall', {
   supportsFloatingIslands: false,
 });
 
-defineArchetype('biome_lush', {
+defineArchetype('biome_painforest', {
   type: 'biome',
-  id: 'biome_lush',
+  id: 'biome_painforest',
   name: 'Painforest',
   origin: 'natural',
 
@@ -256,7 +256,7 @@ defineArchetype('biome_lush', {
     mountainThreshold: 0.920,
   },
 
-  // Lush: abundant fruit trees + decorative trees + bushes on low-moisture tiles
+  // Painforest: abundant fruit trees + decorative trees + bushes on low-moisture tiles
   features: [
     { kind: 'fruitTree',       threshold: 0.930, compare: 'gt', terrainExclude: ['desert'] },
     { kind: 'peridexionTree',  threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
@@ -290,9 +290,9 @@ defineArchetype('biome_lush', {
   supportsFloatingIslands: false,
 });
 
-defineArchetype('biome_arid', {
+defineArchetype('biome_sere_wastes', {
   type: 'biome',
-  id: 'biome_arid',
+  id: 'biome_sere_wastes',
   name: 'Sere Wastes',
   origin: 'natural',
 
@@ -311,7 +311,7 @@ defineArchetype('biome_arid', {
     marshMaxElevation: 0.20,
   },
 
-  // Arid: sparse everything — rare fruit trees, very rare decorative trees
+  // Sere Wastes: sparse everything — rare fruit trees, very rare decorative trees
   features: [
     // High-roll features — rarest first
     { kind: 'fruitTree',         threshold: 0.985, compare: 'gt', terrainExclude: [] },
@@ -345,6 +345,56 @@ defineArchetype('biome_arid', {
     mountain: 0.75,
     plains: 0.05,
   },
+  supportsFloatingIslands: false,
+});
+
+defineArchetype('biome_dustbleed', {
+  type: 'biome',
+  id: 'biome_dustbleed',
+  name: 'Dustbleed',
+  origin: 'natural',
+
+  climateRange: {
+    minElevation: 0,
+    maxElevation: 0.1,
+    minMoisture:  0.1,
+    maxMoisture:  0.2,
+  },
+
+  // Low-elevation, low-moisture cursed terrain — tainted by dried god-blood
+  terrainRules: {
+    desertMaxMoisture:    0.35,
+    forestMinMoisture:    0.60,
+    mountainThreshold:    0.92,
+    waterMaxElevation:    0.04,
+    waterMinMoisture:     0.70,
+    marshMinMoisture:     0.60,
+    marshMaxElevation:    0.15,
+  },
+
+  // Dustbleed: sparse cursed-land features — turquoise crystals, rare screamroot
+  features: [
+    { kind: 'dustbleedCrystal', threshold: 0.94, compare: 'gt', terrainExclude: [] },
+    { kind: 'screamroot',       threshold: 0.96, compare: 'gt', terrainExclude: [] },
+    { kind: 'knot',             threshold: 0.04, compare: 'lt' },
+  ],
+
+  palette: {
+    plains:        [0.550, 0.200, 0.150],  // deep rusty red-brown (dead cursed grass)
+    forest:        [0.250, 0.500, 0.450],  // dark teal (grass quenched by god blood)
+    denseForest:   [0.150, 0.400, 0.350],  // deeper teal thicket
+    desert:        [0.700, 0.350, 0.200],  // reddish sandy
+    marsh:         [0.350, 0.250, 0.200],  // murky blood-mud
+    hill:          [0.500, 0.250, 0.200],  // rusty hill
+    plateau:       [0.550, 0.300, 0.250],  // dusty red plateau
+    mountain:      [0.450, 0.250, 0.220],  // dark red rock
+    peak:          [0.600, 0.450, 0.400],  // pale red-grey
+    water:         [0.200, 0.450, 0.500],  // murky teal (tainted water)
+  },
+  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water'],
+  weatherAffinity: ['arid', 'temperate'],
+
+  terrainElevation: null,
   supportsFloatingIslands: false,
 });
 
@@ -396,9 +446,9 @@ defineArchetype('biome_frigid_silence', {
   supportsFloatingIslands: false,
 });
 
-defineArchetype('biome_weeping_marsh', {
+defineArchetype('biome_mourning_marsh', {
   type: 'biome',
-  id: 'biome_weeping_marsh',
+  id: 'biome_mourning_marsh',
   name: 'Mourning Marsh',
   origin: 'natural',
 
@@ -419,7 +469,7 @@ defineArchetype('biome_weeping_marsh', {
     freezeTempMax:           0.60,
   },
 
-  // Weeping: very sparse — cold, wet, not hospitable
+  // Mourning Marsh: very sparse — cold, wet, not hospitable
   features: [
     { kind: 'foolsFire',      threshold: 0.98, compare: 'gt', terrainExclude: [] },
     { kind: 'drownedCopyist', threshold: 0.96, compare: 'gt', terrainExclude: [] },

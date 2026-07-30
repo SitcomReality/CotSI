@@ -16,13 +16,14 @@
 
 export const BIOME_COLORS = {
   default:  '#7aba5a',   // Untouched — bright vibrant grass green
-  lush:     '#2d6a2a',   // Painforest — deep forest green
-  arid:     '#b89838',   // Sere Wastes — sandy gold
-  savanna:  '#c97a2d',   // Scorch — burnt orange
-  edenfall: '#8a4a9a',   // Edenfall — purple (distinctive, keep)
-  brass_grave: '#8a7a40', // Brass Grave — olive-brass
+  painforest:   '#2d6a2a',   // Painforest — deep forest green
+  sere_wastes:  '#b89838',   // Sere Wastes — sandy gold
+  scorch:       '#c97a2d',   // Scorch — burnt orange
+  edenfall:     '#8a4a9a',   // Edenfall — purple (distinctive, keep)
+  dustbleed:    '#8b2a2a',   // Dustbleed — deep rusty blood-red (distinctive)
+  brass_grave:  '#8a7a40',   // Brass Grave — olive-brass
   frigid_silence: '#6ab0d0', // Frigid Silence — icy blue
-  weeping_marsh: '#4a7a5a', // Mourning Marsh — muted green
+  mourning_marsh: '#4a7a5a', // Mourning Marsh — muted green
   unfinished_lands: '#b0a090', // Unfinished Lands — warm taupe-grey
   /** Fallback for unknown biome IDs */
   fallback: '#888',
@@ -96,6 +97,7 @@ export const FEATURES = {
   cinderbloom:         { radius: 1.5, fill: '#e88040' },
   brassLungVent:       { radius: 1.8, fill: '#a08050' },
   ouroborosLoop:       { radius: 2.0, fill: '#c8a020' },
+  dustbleedCrystal:    { radius: 2.0, fill: '#40c8b8' },  // turquoise crystal
 };
 
 // ── Debris markers ──────────────────────────────────────────────────────────────
