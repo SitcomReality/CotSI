@@ -1,0 +1,59 @@
+/**
+ * biomeMourningMarsh.js — 'Mourning Marsh' biome.
+ * Cold wetland — marsh dominates, lots of ice, almost no desert, very sparse features.
+ */
+
+import { defineArchetype } from '../../archetypes.js';
+
+defineArchetype('biome_mourning_marsh', {
+  type: 'biome',
+  id: 'biome_mourning_marsh',
+  name: 'Mourning Marsh',
+  origin: 'natural',
+
+  climateRange: {
+    minMoisture: 0.62,
+    maxTemperature: 0.25,
+  },
+
+  // Cold wetland: marsh dominates, lots of ice, almost no desert
+  terrainRules: {
+    marshMinMoisture:        0.20,
+    marshMaxElevation:       0.50,
+    waterMinMoisture:        0.15,
+    waterMaxElevation:       0.08,
+    forestMinMoisture:       0.30,
+    denseForestMinMoisture:  0.50,
+    desertMaxMoisture:       0.05,
+    freezeTempMax:           0.60,
+  },
+
+  // Mourning Marsh: very sparse — cold, wet, not hospitable
+  features: [
+    { kind: 'foolsFire',      threshold: 0.98, compare: 'gt', terrainExclude: [] },
+    { kind: 'drownedCopyist', threshold: 0.96, compare: 'gt', terrainExclude: [] },
+    { kind: 'screamroot',     threshold: 0.93, compare: 'gt', terrainExclude: [] },
+    { kind: 'knot',           threshold: 0.04, compare: 'lt' },
+  ],
+
+  palette: {
+    plains:        [0.350, 0.480, 0.350],  // dark wet grass
+    forest:        [0.220, 0.380, 0.220],  // murky woodland
+    denseForest:   [0.120, 0.280, 0.150],  // deep dark mire
+    desert:        [0.550, 0.480, 0.350],  // rare dry patch
+    marsh:         [0.300, 0.420, 0.280],  // deep marsh green
+    hill:          [0.380, 0.440, 0.320],  // wet hill
+    plateau:       [0.420, 0.460, 0.400],  // wet grey
+    mountain:      [0.400, 0.440, 0.420],  // wet rock
+    peak:          [0.600, 0.620, 0.680],  // pale cold peak
+    water:         [0.250, 0.420, 0.550],  // deep mournful blue
+    ice:           [0.550, 0.650, 0.750],  // pale ice
+  },
+  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
+  weatherAffinity: ['rainy', 'snowy'],
+
+  terrainElevation: {
+    marsh: -0.08,
+  },
+  supportsFloatingIslands: false,
+});

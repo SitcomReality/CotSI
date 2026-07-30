@@ -9,4 +9,4 @@
 
 import './mobs.js';
 import './features.js';
-import './biomes.js';
+import './biomes/index.js';

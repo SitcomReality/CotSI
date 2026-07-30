@@ -1,0 +1,57 @@
+/**
+ * biomeFrigidSilence.js — 'The Frigid Silence' biome.
+ * Cold steppe/tundra with sparse growth, abundant ice, and frost-bleached palette.
+ */
+
+import { defineArchetype } from '../../archetypes.js';
+
+defineArchetype('biome_frigid_silence', {
+  type: 'biome',
+  id: 'biome_frigid_silence',
+  name: 'The Frigid Silence',
+  origin: 'natural',
+
+  // Covers cold+dry (no minMoisture) through mid-moisture — unifies the
+  // cold steppe gap with the existing frigid climate zone.
+  // Lowered maxTemperature to 0.35 to stay truly cold, avoiding overlap
+  // with edenfall (minTemperature 0.48) and scorch (minTemperature 0.60).
+  climateRange: {
+    maxMoisture: 0.60,
+    maxTemperature: 0.35,
+  },
+
+  // Cold steppe/tundra: cold suppresses forest, more ice, sparse growth
+  terrainRules: {
+    forestMinMoisture:      0.65,
+    denseForestMinMoisture: 0.75,
+    freezeTempMax:          0.60,
+    desertMaxMoisture:      0.30,
+    marshMinMoisture:       0.55,
+  },
+
+  // Frigid: very sparse — cold stunts growth
+  features: [
+    { kind: 'waxbloom',       threshold: 0.97, compare: 'gt', terrainExclude: [] },
+    { kind: 'listenerLichen', threshold: 0.94, compare: 'gt', terrainExclude: [] },
+    { kind: 'knot',           threshold: 0.05, compare: 'lt' },
+  ],
+
+  palette: {
+    plains:        [0.580, 0.620, 0.550],  // frost-bleached grass
+    forest:        [0.340, 0.480, 0.350],  // sparse taiga green
+    denseForest:   [0.220, 0.350, 0.250],  // deep cold green
+    desert:        [0.720, 0.680, 0.550],  // pale cold sand
+    marsh:         [0.480, 0.540, 0.480],  // frosty marsh
+    hill:          [0.520, 0.580, 0.480],  // cold olive
+    plateau:       [0.550, 0.560, 0.520],  // pale grey-green
+    mountain:      [0.500, 0.520, 0.500],  // cold grey
+    peak:          [0.650, 0.720, 0.780],  // bright frost
+    water:         [0.350, 0.500, 0.620],  // cold blue
+    ice:           [0.680, 0.780, 0.850],  // pale frost
+  },
+  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
+  weatherAffinity: ['temperate', 'snowy'],
+
+  terrainElevation: null,
+  supportsFloatingIslands: false,
+});
