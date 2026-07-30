@@ -51,8 +51,9 @@ defineArchetype('biome_mourning_marsh', {
     peak:          [0.600, 0.620, 0.680],  // pale cold peak
     water:         [0.250, 0.420, 0.550],  // deep mournful blue
     ice:           [0.550, 0.650, 0.750],  // pale ice
+    beach:         [0.500, 0.480, 0.420],  // dark wet sand
   },
-  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
   weatherAffinity: ['rainy', 'snowy'],
 
   terrainElevation: {

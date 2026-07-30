@@ -28,6 +28,7 @@ export const TERRAIN_ELEVATION = {
   denseForest: 0.20,
   desert: 0,
   marsh: -0.05,
+  beach: -0.05,
   mountain: 0.6,
   peak: 1.0,
   floatingIsland: 2.5,

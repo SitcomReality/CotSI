@@ -131,7 +131,8 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
 
     const terrain = classifyTerrain(
-      fields.elevation, moisture, fields.temperature, slope, hexBiomeDef
+      fields.elevation, moisture, fields.temperature, slope, hexBiomeDef,
+      q, r, (nq, nr) => provisionalWaterSet.has(coordKey({ q: nq, r: nr }))
     );
 
     const { lq, lr } = localCoord(chunkQ, chunkR, q, r);

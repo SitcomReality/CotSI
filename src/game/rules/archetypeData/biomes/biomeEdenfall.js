@@ -57,8 +57,9 @@ defineArchetype('biome_edenfall', {
     mountain:      [0.480, 0.380, 0.500],  // purplish rock
     peak:          [0.650, 0.580, 0.720],  // pale purple snow
     water:         [0.300, 0.380, 0.600],  // deep blue-purple
+    beach:         [0.700, 0.550, 0.600],  // purple-tinted sand
   },
-  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water'],
   weatherAffinity: ['temperate', 'rainy'],
 
   terrainElevation: {

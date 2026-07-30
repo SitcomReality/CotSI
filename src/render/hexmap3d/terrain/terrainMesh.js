@@ -40,6 +40,7 @@ export const TERRAIN_COLOR = {
   floatingIsland:[0.753, 0.847, 0.910],  // #c0d8e8 — pale cyan-white
   water:         [0.373, 0.604, 0.757],  // #5f9ac1 — bright cyan-blue
   ice:           [0.649, 0.820, 0.957],  // #a6d1f4 — pale ice blue
+  beach:         [0.910, 0.847, 0.627],  // #e8d8a0 — warm sand
 };
 
 // Darken factor for side faces

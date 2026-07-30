@@ -50,8 +50,9 @@ defineArchetype('biome_dustbleed', {
     mountain:      [0.450, 0.250, 0.220],  // dark red rock
     peak:          [0.600, 0.450, 0.400],  // pale red-grey
     water:         [0.200, 0.450, 0.500],  // murky teal (tainted water)
+    beach:         [0.650, 0.350, 0.250],  // rusty tainted sand
   },
-  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water'],
   weatherAffinity: ['arid', 'temperate'],
 
   terrainElevation: null,

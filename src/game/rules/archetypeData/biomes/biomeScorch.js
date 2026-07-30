@@ -51,8 +51,9 @@ defineArchetype('biome_scorch', {
     mountain:    [0.580, 0.500, 0.400],  // warm rock
     peak:        [0.700, 0.660, 0.580],  // dusty peak
     water:       [0.340, 0.560, 0.700],  // warm blue
+    beach:       [0.900, 0.750, 0.500],  // hot bright sand
   },
-  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water'],
   weatherAffinity: ['arid', 'temperate'],
   terrainElevation: { mountain: 0.70, plains: 0.05 },
   supportsFloatingIslands: false,

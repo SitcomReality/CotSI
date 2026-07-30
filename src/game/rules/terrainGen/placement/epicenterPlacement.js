@@ -135,7 +135,18 @@ export function applySupernaturalOverrides(tileMap, baseSeed, radius) {
         tile.temperature   = modTemp;
 
         tile.biomeId = s.biomeId;
-        tile.terrain = classifyTerrain(modElev, modMoist, modTemp, tile.slope, s.biomeDef);
+        tile.terrain = classifyTerrain(modElev, modMoist, modTemp, tile.slope, s.biomeDef,
+          tile.q, tile.r, (nq, nr) => {
+            const nk = coordKey({ q: nq, r: nr });
+            // tileMap keys are localKeys — iterate values to match by q,r
+            for (const t of tileMap.values()) {
+              if (coordKey({ q: t.q, r: t.r }) === nk) {
+                return t.terrain === 'water' || t.terrain === 'ice';
+              }
+            }
+            return false;
+          }
+        );
         tile.elevation = resolveElevation(tile.terrain, s.biomeDef);
 
         break;  // first matching supernatural biome wins

@@ -47,8 +47,9 @@ defineArchetype('biome_painforest', {
     peak:          [0.650, 0.700, 0.750],  // moss-snow blend
     floatingIsland:[0.650, 0.750, 0.800],  // greenish float
     water:         [0.300, 0.550, 0.700],  // deeper blue
+    beach:         [0.650, 0.550, 0.380],  // mossy green-tinged sand
   },
-  terrainTags: ['plains', 'forest', 'denseForest', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
   weatherAffinity: ['rainy', 'temperate'],
 
   terrainElevation: {

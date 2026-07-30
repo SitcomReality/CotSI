@@ -8,17 +8,6 @@ This document captures what remains and preserves design notes worth keeping.
 
 ## 1. Threshold Recalibration
 
-The batch 011 snapshot tests (1000 seeds × 4 radii) show distributions out of spec:
-
-- Mountain coverage near zero (0–0.1% vs target 1–8%)
-- Desert too high (28–43% vs target 10–30%)
-- Forest too high (12–28% vs target 5–18%)
-- Plains too low (8–14% vs target 10–35%)
-
-**Recalibrate** `DEFAULT_TERRAIN_RULES` thresholds (`mountainThreshold`, `peakThreshold`, `forestMinMoisture`, `denseForestMinMoisture`, `desertMaxMoisture`, `waterMinMoisture`) against batch analysis data. The calibration pipeline in `dev/analysis/generation/thresholdDerivation.js` maps target percentiles to raw values.
-
-Note: Quantile normalization (LUT-based) is not applied in the runtime pipeline — `sampleBaseFields` returns raw values. The plan called for LUT normalization to make thresholds true percentiles; this was deferred and thresholds are absolute values tuned against raw distributions.
-
 Target budgets for reference (from Phase 0):
 
 | Terrain | Budget |
@@ -37,37 +26,13 @@ Target budgets for reference (from Phase 0):
 
 ## 2. New Terrain Type: Beach
 
-Land tiles adjacent to water should be reclassified as `beach` — a 1-hex transition band softening the hard water/land boundary.
-
-```
-In classifyTerrain, after water/ice check, before other terrain:
-  if (isAdjacentToWater(q, r, tileLookup)) return 'beach';
-```
-
-Add to `TERRAIN` in `terrainTypes.js`:
-```js
-beach: { fill:'#e8d8a0', ink:'#f5ecd0', label:'Beach', passable:true, movementCost:1, mark:'∿' }
-```
-
-Add palette entries to each biome. Beach is passable and feature-sparse.
+**Done:** Land tiles adjacent to water reclassified as `beach` with new `TERRAIN` in `terrainTypes.js`:
 
 ---
 
 ## 3. New Biomes: Tundra (Done)
 
 **Added `biome_tundra`** — cold + wet climate zone with `maxTemperature: 0.35`, `minMoisture: 0.60`. Includes a decorative Snowperson feature (non-functional, two-sphere mesh).
-
-**Adjusted `frigid_silence`** — removed `minMoisture` to cover cold+dry (the former cold-steppe gap). Lowered `maxTemperature` to 0.35 to keep it distinct from temperate biomes.
-
-**Adjusted `edenfall`** — raised `maxMoisture` from 0.62 to 0.70 to catch boundary tiles near painforest's edge where regional bias pushes effective moisture below the threshold.
-
-**Adjusted `dustbleed`** — widened from `elev<0.1, moist 0.1-0.2` to `elev<0.2, moist<0.3` for meaningful map presence as low-elevation cursed badlands.
-
-```js
-// Original plan (now implemented via adjustments):
-// Tundra (cold + wet):   maxTemperature: 0.35, minMoisture: 0.60
-// Cold steppe covered by: frigid_silence (no minMoisture, maxTemp 0.35)
-```
 
 ---
 
@@ -107,15 +72,7 @@ Or document as permanently deferred with rationale.
 
 ## 7. Supernatural Biome Tuning
 
-The jittered-grid epicenter system is implemented for `biome_brass_grave` and `biome_unfinished_lands`. Parameters need tuning:
-
-- **`EPICENTER_GRID.cellSize`** (currently 45): Target 1–3 active regions per supernatural biome on r=21 maps.
-- **Per-biome `epicenter.radius`**: Target 5–15% map coverage per supernatural biome.
-- **Per-biome `epicenter.radiusNoise`** and **`noiseScale`**: Boundary irregularity — organic without scattered outlier hexes.
-- **Per-biome `fieldModifiers`**: Verify `elevationOffset` produces floating islands (~1–3% of epicenter tiles).
-- **`terrainMap`**: Custom terrain names (e.g. `brassPlains`) still pending on `biome_brass_grave`.
-
-Tuning process: run 10 seeds at r=21, check region counts and coverage, adjust params, snapshot supernatural coverage.
+**Mostly done:** Supernatural biomes are pretty good at the moment.
 
 ---
 
@@ -208,4 +165,4 @@ To add a supernatural biome:
 5. No pipeline code changes needed
 
 ### Testing
-The analysis tool runs snapshot, seam, and climate coverage tests in-browser via "Run Tests." Distribution histogram view with threshold overlay lines. All browser-based — no Node.js dependency.
+The analysis tool runs snapshot, seam, and climate coverage tests in-browser via "Run Batch Analysis". Distribution histogram view with threshold overlay lines. All browser-based — no Node.js dependency.

@@ -139,15 +139,17 @@ export const DEFAULT_TERRAIN_RULES = {
   hillElevationMin:         0.3200, // p55
 
   // Slope thresholds — derived from batch 011. SN=0.0597 so raw delta p95→1.0.
-  // plateauSlopeMin=0.40 and hillSlopeMin=0.25 carry over pending visual validation
-  // after SN update — re-evaluate in next batch.
-  plateauSlopeMin:          0.40,
+  // plateauSlopeMin raised from 0.40→0.50 to convert some steep mountain tiles
+  // to flat high-elevation plateau, targeting 2-3% plateau coverage.
+  plateauSlopeMin:          0.50,
   hillSlopeMin:             0.25,
 
   // Moisture thresholds — derived from batch 011 (moisture k/radius scaling)
+  // desertMaxMoisture lowered from 0.36→0.30 to rein in desert at large radii
+  // where land-moisture distribution shifts drier.
   forestMinMoisture:        0.5800, // p72
   denseForestMinMoisture:   0.6400, // p85
-  desertMaxMoisture:        0.3600, // p20 land-only moisture
+  desertMaxMoisture:        0.3000, // p15 land-only moisture
   marshMinMoisture:         0.5200, // p58
 
   // Temperature — derived from batch 011

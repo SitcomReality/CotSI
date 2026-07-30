@@ -55,8 +55,9 @@ defineArchetype('biome_sere_wastes', {
     peak:          [0.720, 0.680, 0.600],  // dusty pale
     floatingIsland:[0.750, 0.700, 0.650],  // dusty float
     water:         [0.300, 0.520, 0.680],  // pale desert blue
+    beach:         [0.880, 0.750, 0.520],  // bleached golden sand
   },
-  terrainTags: ['plains', 'desert', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
   weatherAffinity: ['arid', 'temperate'],
 
   terrainElevation: {

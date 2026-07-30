@@ -30,7 +30,7 @@ defineArchetype('biome_unfinished_lands', {
     hillElevationMin:       0.08,
     forestMinMoisture:      0.80,
     denseForestMinMoisture: 0.90,
-    desertMaxMoisture:      0.50,
+    desertMaxMoisture:      0.35,
     waterMaxElevation:      0.04,
   },
 
@@ -53,7 +53,8 @@ defineArchetype('biome_unfinished_lands', {
     peak:     [0.680, 0.700, 0.720],  // cold pale
     water:    [0.400, 0.480, 0.580],  // desaturated blue
     ice:      [0.650, 0.680, 0.720],  // pale teal
+    beach:    [0.750, 0.700, 0.620],  // faded half-formed sand
   },
-  terrainTags: ['plains', 'desert', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
   weatherAffinity: ['arid', 'temperate'],
 });

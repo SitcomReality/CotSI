@@ -82,7 +82,11 @@ export function generateTiles(seedText, radius, biomeDef = null, params = {}) {
       const archetypeDef = getArchetype(tile.biomeId) || getArchetype('biome_default');
       if (!archetypeDef) continue;
       const terrain = classifyTerrain(
-        tile.elevationField, tile.moisture, tile.temperature, tile.slope, archetypeDef
+        tile.elevationField, tile.moisture, tile.temperature, tile.slope, archetypeDef,
+        tile.q, tile.r, (nq, nr) => {
+          const nt = tiles[coordKey({ q: nq, r: nr })];
+          return nt && (nt.terrain === 'water' || nt.terrain === 'ice');
+        }
       );
       tile.terrain = terrain;
       tile.elevation = resolveElevation(terrain, archetypeDef);

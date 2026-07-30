@@ -50,8 +50,9 @@ defineArchetype('biome_tundra', {
     peak:          [0.750, 0.820, 0.880],  // bright snow peak
     water:         [0.350, 0.520, 0.580],  // cold blue
     ice:           [0.720, 0.820, 0.880],  // pale ice
+    beach:         [0.750, 0.720, 0.650],  // frost-bleached pale sand
   },
-  terrainTags: ['plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
   weatherAffinity: ['snowy', 'temperate'],
 
   terrainElevation: null,

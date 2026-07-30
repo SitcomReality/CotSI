@@ -23,6 +23,7 @@ export const TERRAIN = {
   floatingIsland:{ fill:'#c0d8e8', ink:'#e0f0ff', label:'Floating isle',   passable:false, movementCost:Infinity, mark:'⌂' },
   water:         { fill:'#5f9ac1', ink:'#a0d0e8', label:'Broken water',    passable:false, movementCost:Infinity, mark:'~' },
   ice:           { fill:'#b8d8f0', ink:'#e0f0ff', label:'Frozen surface',  passable:false, movementCost:Infinity, mark:'❄' },
+  beach:         { fill:'#e8d8a0', ink:'#f5ecd0', label:'Beach',           passable:true,  movementCost:1, mark:'∿' },
 };
 
 export const DEFAULT_FEATURES = [

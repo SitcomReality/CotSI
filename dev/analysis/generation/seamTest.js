@@ -220,7 +220,12 @@ export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
       const biomeDef = getArchetype(biomeId) || getArchetype('biome_default');
       const expectedTerrain = classifyTerrain(
         elevationField, moisture, temperature,
-        tile.slope, biomeDef
+        tile.slope, biomeDef,
+        q, r, (nq, nr) => {
+          const nk = coordKey({ q: nq, r: nr });
+          const t = tiles[nk];
+          return t && (t.terrain === 'water' || t.terrain === 'ice');
+        }
       );
 
       if (tile.terrain !== expectedTerrain) {
