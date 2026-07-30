@@ -1,22 +1,22 @@
 /**
  * worldSimulation.js — End-of-round world simulation and turn advancement.
  * Depends on entityQueries, turnActions, fogOfWar, and victoryChecks.
+ *
+ * Mob harassment and trader movement have been extracted to
+ * mobHarassment.js and traderMovement.js respectively.
  */
-import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
-import { TERRAIN } from '../rules/terrainTypes.js';
+import { coordKey } from '../../engine/rules/hexGrid.js';
 import { weatherForDay } from '../rules/weatherScript.js';
-import { getChampion, occupiedByChampion, occupiedByMob, occupiedByTrader } from './entityQueries.js';
-import { updateSpatialIndex } from './spatialIndex.js';
+import { getChampion } from './entityQueries.js';
 import { beginTurn, isDigEligible } from './turnActions.js';
 import { interactOnArrival } from './arrivalInteractions.js';
 import { addLogEntry } from './gameLog.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
-import { recordLedgerEntry } from './dispatchLedger.js';
 import { checkVictory } from './victoryChecks.js';
-import { recordDeath } from './deathTracker.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
-import { MOB_HARASS_CHANCE, MOB_HARASS_DMG_BASE, MOB_HARASS_DMG_RANGE, MOB_WANDER_CHANCE } from '../../params/game/worldParams.js';
+import { runMobHarassment } from './mobHarassment.js';
+import { runTraderMovement } from './traderMovement.js';
 
 export function finishTurn(state) {
   const champ = getChampion(state, state.activeChampionId);
@@ -101,46 +101,9 @@ function _runWorldTurn(state) {
 function runWorldTurn(state) {
   startMeasure('worldTurn');
 
-  const _factionMap = buildChampionFactionMap(state.champions);
   // mob harass
-  for (const mob of state.mobs.filter(m => m.alive)) {
-    const adj = state.champions.find(c => c.alive && c.faction !== 2 && distance(c.pos, mob.pos) === 1);
-    if (adj && state._rng() < MOB_HARASS_CHANCE) {
-      const dmg = MOB_HARASS_DMG_BASE + Math.floor(state._rng() * MOB_HARASS_DMG_RANGE);
-      adj.hp -= dmg;
-      addLogEntry(state, {
-        category: LOG_CATEGORY.COMBAT,
-        subject: { text: mob.name },
-        verb: 'harasses',
-        object: championSegment(adj.name, _factionMap),
-        detail: { text: `for ${dmg} damage`, color: 'var(--crimson)' },
-      });
-      recordLedgerEntry(adj, `-${dmg} HP — ${mob.name} harassment`, 'loss', 'hp');
-      if (adj.hp <= 0) {
-        adj.alive = false;
-        recordDeath(state, adj, 'was erased by marginalia');
-      }
-    } else if (mob.aggressive && state._rng() < MOB_WANDER_CHANCE) {
-      // wander
-      const opts = neighbors(mob.pos)
-        .map(coordKey)
-        .filter(
-          k =>
-            state.tiles[k] &&
-            TERRAIN[state.tiles[k].terrain].passable &&
-            !state.tiles[k].feature &&
-            !state.tiles[k].debris &&
-            !occupiedByChampion(state, k) &&
-            !occupiedByMob(state, k) &&
-            !occupiedByTrader(state, k)
-        );
-      if (opts.length) {
-        const oldKey = coordKey(mob.pos);
-        mob.pos = parseKey(opts[Math.floor(state._rng() * opts.length)]);
-        updateSpatialIndex(state, oldKey, coordKey(mob.pos), mob, 'mob');
-      }
-    }
-  }
+  runMobHarassment(state);
+
   // regrow trees
   for (const key of state._unripeTrees) {
     const t = state.tiles[key];
@@ -149,35 +112,9 @@ function runWorldTurn(state) {
       state._unripeTrees.delete(key);
     }
   }
+
   // traders move
-  for (const tr of state.traders) {
-    for (let s = 0; s < tr.movesPerDay; s++) {
-      const target = state.tiles[tr.targetBaseKey] || tr.pos;
-      // Pick the hex neighbor that moves closest to the target.
-      // Using neighbors() ensures we only step in valid axial directions,
-      // unlike the old Cartesian dx/dy which could produce illegal (+1,+1).
-      const nbrs = neighbors(tr.pos);
-      let bestNbr = null;
-      let bestDist = Infinity;
-      for (const nbr of nbrs) {
-        const d = distance(nbr, target);
-        if (d < bestDist) { bestDist = d; bestNbr = nbr; }
-      }
-      const nk = bestNbr ? coordKey(bestNbr) : '';
-      if (bestNbr && state.tiles[nk] && TERRAIN[state.tiles[nk].terrain].passable && !state.tiles[nk].feature && !state.tiles[nk].debris && !occupiedByChampion(state, nk) && !occupiedByMob(state, nk) && !occupiedByTrader(state, nk)) {
-        const oldKey = coordKey(tr.pos);
-        tr.pos = { q: bestNbr.q, r: bestNbr.r };
-        updateSpatialIndex(state, oldKey, coordKey(tr.pos), tr, 'trader');
-      }
-      if (nk === tr.targetBaseKey) {
-        // pick new base from the pre-built base index
-        const bases = [...(state._baseKeys || [])];
-        tr.targetBaseKey = bases.length > 0
-          ? bases[Math.floor(state._rng() * bases.length)]
-          : nk;
-        break;
-      }
-    }
-  }
+  runTraderMovement(state);
+
   endMeasure('worldTurn');
 }

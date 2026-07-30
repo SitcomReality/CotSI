@@ -74,7 +74,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | File | Purpose |
 |------|---------|
 | `archetypes.js` | Archetype registry with inheritance (biomes, features, mobs) |
-| `archetypeData/biomes.js` | Biome archetype definitions |
+| `archetypeData/biomes/` | Directory: per-biome archetype definitions (10 files + barrel) |
 | `archetypeData/features.js` | Feature archetype definitions |
 | `archetypeData/mobs.js` | Mob creature definitions |
 | `archetypeData/index.js` | Barrel: triggers all archetype registrations |
@@ -83,12 +83,36 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `logGrammar.js` | Grammar/template helpers for structured game-log messages |
 | `logHelpers.js` | Utility functions for log message formatting |
 | `paleyScoring.js` | Paley tournament score calculation (7-node tournament) |
-| `terrainGeneration.js` | Terrain generation pipeline (noise → tile types) |
-| `terrainGenerator.js` | Terrain generation orchestration (calls rules) |
-| `terrainTypes.js` | Terrain type constants and terrain-tag helpers |
-| `tileQueries.js` | Tile-lookup helpers (elevation, moisture, terrain type) |
+| `terrainTypes.js` | Terrain type constants and default features |
+| `terrainGen/` | Terrain generation pipeline (19 files — see below) |
+| `tileQueries.js` | Spawn-placement helpers (nearestOpenKey, nearestOpenMultiRing) |
 | `traderStock.js` | Trader stock generation logic |
 | `weatherScript.js` | Weather generation/scripting |
+
+#### `src/game/rules/terrainGen/` — Terrain generation subsystem
+
+| File | Purpose |
+|------|---------|
+| `index.js` | Barrel: re-exports all terrainGen sub-modules |
+| `chunkGeneration.js` | Chunk-level tile generation orchestration |
+| `flatGeneration.js` | Flat (non-chunked) tile generation |
+| `classification/biomeSelection.js` | Biome selection from climate fields |
+| `classification/moistureAdjustment.js` | Moisture adjustment (rain shadows) |
+| `classification/provisionalWater.js` | Provisional water detection |
+| `classification/terrainClassification.js` | Terrain type classification from fields |
+| `features/featureDensity.js` | Feature density/noise calculations |
+| `features/featureSpawning.js` | Spawn logic for features |
+| `fields/sampleBaseFields.js` | Noise field sampling (elevation, moisture, temp) |
+| `fields/slopeComputation.js` | Slope calculation from elevation |
+| `fields/worldShape.js` | World shape falloff function |
+| `placement/epicenterPlacement.js` | Supernatural biome epicenter placement |
+| `postProcess/connectivityEnforcement.js` | Ensures passable-tile connectivity via Dijkstra |
+| `postProcess/spawnClearance.js` | Clears spawn-point tiles |
+| `rivers/riverMoisture.js` | Applies moisture boost from rivers |
+| `rivers/riverSources.js` | Selects river source points |
+| `rivers/riverTrace.js` | River tracing algorithm |
+| `tagging/mountainTagging.js` | Mountain type tagging |
+| `tagging/waterTagging.js` | Water type tagging |
 
 ### `src/game/state/` — Mutable state, queries, and mutations
 
@@ -103,7 +127,9 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `championMovement.js` | Champion movement mutations (move, expenditure) |
 | `combat/combatAutoResolve.js` | Auto-resolve combat between two bots |
 | `combat/combatBotAI.js` | Bot colour-picking AI during combat |
-| `combat/combatDamage.js` | Combat damage calculation and application |
+| `combat/combatDamage.js` | Combat round damage resolution |
+| `combat/combatFlee.js` | Flee-from-combat resolution (survive at 1 HP) |
+| `combat/combatFinalize.js` | Final combat resolution and loot distribution |
 | `combat/combatPicks.js` | Combat colour-pick logic and validation |
 | `combat/combatScoring.js` | Combat round scoring from colour picks |
 | `combat/combatState.js` | Combat state creation and management |
@@ -119,12 +145,17 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `gameLog.js` | Game event log: append and query |
 | `initialGameState.js` | Default/initial values for game state fields |
 | `liveGame.js` | The singleton `G` object — live mutable game state |
+| `mobHarassment.js` | Mob harassment and wandering AI (world turn) |
 | `spatialIndex.js` | Spatial hash for fast entity-location queries |
 | `spawnPosition.js` | Determines valid spawn positions on the map |
-| `tileAccess.js` | Tile read/write access helpers |
+| `tileAccess.js` | Chunk-aware tile CRUD accessors (get/set/delete) |
+| `tileIteration.js` | Tile iteration helpers (allTileKeys, forEachTile, tileCount) |
+| `chunkDirtyTracking.js` | Dirty-chunk flag management for render culling |
+| `tileProxy.js` | Backward-compatible `state.tiles` Proxy over chunk storage |
+| `traderMovement.js` | Trader pathfinding and movement (world turn) |
 | `turnActions.js` | Per-turn action processing (movement, interaction) |
 | `victoryChecks.js` | Win-condition evaluation |
-| `worldSimulation.js` | World-day simulation (weather, economy, spawns) |
+| `worldSimulation.js` | World-day turn advancement and bookkeeping |
 
 ### `src/runtime/` — Cross-layer orchestration (composition root)
 
@@ -258,12 +289,13 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 
 | File | Purpose |
 |------|---------|
+| `artifactChoiceModal.js` | Artifact draft choice selection UI |
 | `confirmModal.js` | Generic confirmation modal |
 | `deathModal.js` | Champion death announcement modal |
 | `dispatchModal.js` | Dispatch-event selection modal |
 | `heraldModal.js` | Herald narrative event modal |
 | `modalShell.js` | Modal base shell (open, close, animate) |
-| `rewardModal.js` | Reward/artifact selection modal |
+| `rewardModal.js` | Generic reward display modal |
 
 #### `src/ui/combat/` — Combat UI
 

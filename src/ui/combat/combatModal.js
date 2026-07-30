@@ -3,7 +3,7 @@ export { startCombat, closeCombat } from './combatLifecycle.js';
 import { setGameState, setCallbacks, setFinishAttackerTurn } from './combatUiState.js';
 export { setGameState, setCallbacks };
 export { openRewardModal, openTrader } from './combatRewardUI.js';
-export { openArtifactChoiceModal } from '../modals/rewardModal.js';
+export { openArtifactChoiceModal } from '../modals/artifactChoiceModal.js';
 import { wireCombatActions } from './combatInteractions.js';
 
 export function initCombatModal(deps) {

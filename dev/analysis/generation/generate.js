@@ -4,7 +4,7 @@
  * No DOM access, no mutable state. Every function takes its inputs as
  * parameters and returns a result object.
  */
-import { generateTiles } from '../../../src/game/rules/terrainGenerator.js';
+import { generateTiles } from '../../../src/game/rules/terrainGen/index.js';
 import { makeRng } from '../../../src/engine/rules/seededRng.js';
 import { createChampions } from '../../../src/game/state/championFactory.js';
 import { createMobs, createTraders } from '../../../src/game/state/entityFactory.js';

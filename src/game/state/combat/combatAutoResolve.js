@@ -13,7 +13,9 @@ import { botCombatPick } from './combatBotAI.js';
 import { getAvailablePicks, recordPick, bothPicksIn, advancePhase } from './combatPicks.js';
 import { processReveal, applyFinalBonuses } from './combatScoring.js';
 import { shouldBotFlee } from './combatBotAI.js';
-import { resolveRoundDamage, nextCombatRound, finalizeCombat, fleeFromCombat } from './combatDamage.js';
+import { resolveRoundDamage, nextCombatRound } from './combatDamage.js';
+import { fleeFromCombat } from './combatFlee.js';
+import { finalizeCombat } from './combatFinalize.js';
 import { AUTO_RESOLVE_MAX_ROUNDS } from '../../../params/game/combatParams.js';
 
 /**

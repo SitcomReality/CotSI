@@ -15,7 +15,7 @@ import { setDerivedState, setInteractionHighlights } from '../render/overlays/ov
 import { startMeasure, endMeasure } from '../dev/devPerformance.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
 import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
-import { clearDirtyFlags } from '../game/state/tileAccess.js';
+import { clearDirtyFlags } from '../game/state/chunkDirtyTracking.js';
 
 /** Whether the minimap has been initialized. */
 let minimapInitialized = false;

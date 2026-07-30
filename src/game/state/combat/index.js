@@ -33,6 +33,12 @@ export {
 export {
   resolveRoundDamage,
   nextCombatRound,
-  finalizeCombat,
-  fleeFromCombat,
 } from './combatDamage.js';
+
+export {
+  fleeFromCombat,
+} from './combatFlee.js';
+
+export {
+  finalizeCombat,
+} from './combatFinalize.js';

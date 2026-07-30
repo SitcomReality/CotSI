@@ -20,7 +20,7 @@ import { createMobs, createTraders } from './entityFactory.js';
 import { refreshVision } from './fogOfWar.js';
 import { beginTurn } from './turnActions.js';
 import { rebuildSpatialIndex } from './spatialIndex.js';
-import { createTileProxy } from './tileAccess.js';
+import { createTileProxy } from './tileProxy.js';
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
 import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 import { spawnTarget } from './spawnPosition.js';

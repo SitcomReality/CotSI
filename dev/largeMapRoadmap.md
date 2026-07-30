@@ -5,6 +5,9 @@ from the current radius-7 (169 tiles) toward large and potentially infinite worl
 Each phase is a self-contained project that can be planned, implemented, and tested
 independently before moving to the next.
 
+This work has been completed (except for the unlikely infinite map).
+This file has been kept for reference.
+
 ---
 
 ## ✅ Completed Foundations
