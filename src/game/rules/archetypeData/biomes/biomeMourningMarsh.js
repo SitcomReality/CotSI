@@ -12,11 +12,11 @@ defineArchetype('biome_mourning_marsh', {
   origin: 'natural',
 
   // Very cold + wet — the most extreme cold biome. maxTemperature raised from
-  // 0.28→0.35 so it has a realistic chance to appear. Sits before tundra in
-  // priority so tiles ≤ 0.35 temp with ≥ 0.58 moist go to mourning_marsh.
+  // 0.35→0.45 so it captures more cold-wet tiles. Sits before tundra in
+  // priority so tiles ≤ 0.45 temp with ≥ 0.58 moist go to mourning_marsh.
   climateRange: {
     minMoisture: 0.58,
-    maxTemperature: 0.35,
+    maxTemperature: 0.45,
   },
 
   // Cold wetland: marsh dominates, lots of ice, almost no desert

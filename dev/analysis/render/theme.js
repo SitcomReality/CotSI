@@ -15,18 +15,19 @@
 // ── View-mode biome colors ──────────────────────────────────────────────────────
 
 export const BIOME_COLORS = {
-  default:  '#7aba5a',   // Untouched — bright vibrant grass green
-  painforest:   '#2d6a2a',   // Painforest — deep forest green
-  sere_wastes:  '#b89838',   // Sere Wastes — sandy gold
-  scorch:       '#c97a2d',   // Scorch — burnt orange
+  default:  '#ffffff',   // Untouched — bright vibrant grass green
+  painforest:   '#0bd300',   // Painforest — deep forest green
+  sere_wastes:  '#fdd354',   // Sere Wastes — sandy gold
+  scorch:       '#be5f00',   // Scorch — burnt orange
   edenfall:     '#8a4a9a',   // Edenfall — purple (distinctive, keep)
   dustbleed:    '#8b2a2a',   // Dustbleed — deep rusty blood-red (distinctive)
-  brass_grave:  '#8a7a40',   // Brass Grave — olive-brass
-  frigid_silence: '#6ab0d0', // Frigid Silence — icy blue
-  mourning_marsh: '#4a7a5a', // Mourning Marsh — muted green
-  unfinished_lands: '#b0a090', // Unfinished Lands — warm taupe-grey
+  brass_grave:  '#6b4000',   // Brass Grave — olive-brass
+  frigid_silence: '#73badb', // Frigid Silence — icy blue
+  mourning_marsh: '#006b54', // Mourning Marsh — muted green
+  unfinished_lands: '#ffb5ef', // Unfinished Lands — warm taupe-grey
+  tundra: '#202b94', // Tundra
   /** Fallback for unknown biome IDs */
-  fallback: '#888',
+  fallback: '#000000',
 };
 
 // ── Entity markers ──────────────────────────────────────────────────────────────
