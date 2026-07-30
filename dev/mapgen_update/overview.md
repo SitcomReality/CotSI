@@ -287,27 +287,30 @@ const MAX_LOOKUP_RADIUS = Math.max(
 
 ## 6. Noise Configuration
 
-All noise parameters live in `src/params/game/worldParams.js`. Frequencies were verified during Phase 0 calibration (see `phase0_calibration.md` §4.1 for full findings and the zero-crossing methodology report).
+All noise parameters live in `src/params/game/worldParams.js`. Frequencies were verified during Phase 0 calibration and refined in batch 011 (see §6a for radius-dependent scaling).
+
+### 6a. Base Noise Configs
+
+These are the *absolute* frequencies, calibrated for maps in the r=35 range. `getNoiseConfig(radius)` applies radius-dependent scaling to ridge and moisture (see §6b).
 
 ```js
 // ── Elevation layers ──────────────────────────────────────────
 export const NOISE_ELEVATION_DETAIL = {
-  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.100
 };
 export const NOISE_RIDGE = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.008
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.040
 };
 
 // ── Climate fields ────────────────────────────────────────────
 export const NOISE_MOISTURE = {
-  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.006
+  octaves: 4, lacunarity: 2.0, gain: 0.5, frequency: 0.020
 };
 export const NOISE_TEMP_VARIATION = {
   octaves: 1, lacunarity: 2.0, gain: 0.5, frequency: 0.08
 };
 export const NOISE_REGION = {
-  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.003
-  // Confirmed via 100-seed × r=100 calibration: ~9 half-cycles, matches 8-12 target for 4-6 biome regions.
+  octaves: 3, lacunarity: 2.0, gain: 0.5, frequency: 0.010
 };
 
 // ── Epicenter grid (supernatural biome placement) ──────────────────
@@ -384,12 +387,46 @@ export const RIVER_SOURCE_FRACTION    = 0.0001; // sources per tile; total river
 //   latitude 0.35, variation 0.10, elevation 0.30 (convex combination around 0.5)
 ```
 
-**Frequency calibration findings (100 seeds × r=100, see `phase0_calibration.md` §4.1):**
-- Zero-crossing counting proved unreliable — dominated by simplex kernel gradient jitter, not FBM structural cycles.
-- The continent mask was removed — it was the root cause of compressed elevation distribution, zero slope, and calibration complexity. Elevation is now additive: `detail + ridges`, shaped by worldShape.
-- The original detail, ridge, moisture, and temperature frequencies produce correct macro-scale structure.
-- REGION at f=0.003 with 3 octaves (was 0.0015/2oct) is confirmed good — ~9 half-cycles matching the 4-6 biome region target.
-- Quantile normalization handles any remaining distribution compression from the additive composite.
+### 6b. Radius-Dependent Frequency Scaling
+
+Detail, temperature variation, and feature/debris frequencies are absolute — a
+10-hex hill is 10 hexes on every map size. Ridge and moisture frequencies scale
+with radius so small maps get proportionate feature diversity.
+
+Without scaling, at r=21 a ridge frequency of 0.040 completes only ~0.5
+half-cycles across the map, producing near-constant elevation that suppresses
+mountain formation and inflates desert coverage. The scaling rules below fix
+this.
+
+**Ridge:** `frequency = NOISE_RIDGE.frequency * (REF_RADIUS / radius)`  
+where `REF_RADIUS = 35`. Ridge's base frequency (0.040) was calibrated for
+r=35 maps. At r=21 this gives `0.040 × 35/21 ≈ 0.067` → ~3 half-cycles (was
+0.5). At r=77 it gives `0.040 × 35/77 ≈ 0.018` → still ~3 half-cycles.
+
+**Moisture:** `frequency = k / radius` where `k = 1.68`  
+Moisture's base frequency (0.020) is too low for REF_RADIUS scaling to help —
+`0.020 × 35/21 ≈ 0.033` still gives only 0.5 half-cycles. A direct k/radius
+formula at r=21 gives `1.68 / 21 ≈ 0.080` → ~2.5 half-cycles (was 0.5). The
+constant k=1.68 was chosen so that at r=35, moisture frequency ≈ 0.048, close
+to the ridge frequency at that radius.
+
+**Region bias:** `frequency = 1.1 / radius` — same as before, gives ~1 half-cycle
+at all radii (ensures 4-6 biome regions on a r=50 map).
+
+**Why not scale everything?** Detail noise at 0.100 already produces adequate
+half-cycles even at r=21 (~2.5 at r=21, ~6 at r=35). Scaling it would make
+local terrain features unnaturally large on big maps. Temperature variation is
+local microclimate jitter (single octave, frequency 0.08) that doesn't need
+radius-dependent structure.
+
+Verified in batch 011 (500 seeds × r=7,21,35,77). See `batch_report_2026-07-29T15-27-41.124Z.txt`.
+
+**Frequency calibration findings (batch 011, 500 seeds × r=7,21,35,77):**
+- Ridge and moisture now scale with radius (§6b). At r=21, ridge → ~3 half-cycles (was 0.5), moisture → ~2.5 half-cycles (was 0.5). Small maps no longer produce near-constant ridge/moisture fields.
+- Detail noise at 0.100 stays absolute — produces adequate half-cycles at all radii (r=21: 2.5, r=35: 6.0, r=77: 13.0).
+- The continent mask was removed (phase0) — root cause of compressed elevation distribution, zero slope, and calibration complexity. Elevation is now additive: `detail + ridges`, shaped by worldShape.
+- Quantile normalization handles distribution compression from the additive composite.
+- Zero-crossing counting (from phase0) proved unreliable — dominated by simplex kernel gradient jitter. Batch histograms confirmed the current frequency values.
 
 ---
 

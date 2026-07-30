@@ -116,7 +116,7 @@ export const EPICENTER_GRID = {
  *   avgDelta 0.025  → slope 0.40 (plateau threshold)
  *   avgDelta 0.064  → slope 1.00 (p95 — clamped)
  */
-export const SLOPE_NORMALIZATION = 0.0636;
+export const SLOPE_NORMALIZATION = 0.0597;
 
 /** Maximum lookup radius for border-ring sampling in per-chunk generation.
  *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
@@ -129,28 +129,28 @@ export const MAX_LOOKUP_RADIUS = 3;
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_TERRAIN_RULES = {
-  // Elevation thresholds — derived from 200-seed × 4-radius batch analysis (batch 010, post-recalibration)
+  // Elevation thresholds — derived from 500-seed × 4-radius batch (batch 011, moisture k/radius scaling)
   waterMaxElevation:        0.1200, // p12 — ~12% water coverage
-  mountainThreshold:        0.5000, // p90 — top 10% elevation
+  mountainThreshold:        0.4800, // p90 — top 10% elevation
   peakThreshold:            0.5800, // p97 — top 3% elevation (subset of mountain)
   floatingIslandThreshold:  0.6600, // p99.5 — top 0.5% elevation
   marshMaxElevation:        0.2400, // p35
   hillElevationMin:         0.3200, // p55
 
-  // Slope thresholds — derived from batch 010. SN=0.0636 so raw delta p95→1.0.
+  // Slope thresholds — derived from batch 011. SN=0.0597 so raw delta p95→1.0.
   // plateauSlopeMin=0.40 and hillSlopeMin=0.25 carry over pending visual validation
   // after SN update — re-evaluate in next batch.
   plateauSlopeMin:          0.40,
   hillSlopeMin:             0.25,
 
-  // Moisture thresholds — derived from batch 010
+  // Moisture thresholds — derived from batch 011 (moisture k/radius scaling)
   forestMinMoisture:        0.5800, // p72
-  denseForestMinMoisture:   0.6600, // p85
+  denseForestMinMoisture:   0.6400, // p85
   desertMaxMoisture:        0.3600, // p20 land-only moisture
   marshMinMoisture:         0.5200, // p58
 
-  // Temperature — derived from batch 010
-  freezeTempMax:            0.4800, // p15
+  // Temperature — derived from batch 011
+  freezeTempMax:            0.5000, // p15
 
   // Water moisture gate — holds pending batch 011 re-run with new SN.
   // waterMaxElevation=0.12 gives ~12% low-elevation tiles; at waterMinMoisture=0.32

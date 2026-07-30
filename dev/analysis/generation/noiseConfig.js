@@ -63,9 +63,21 @@ export const NOISE_FIELDS = [
 
 /**
  * Build a noise config bundle appropriate for the given map radius.
- * Detail, ridge, and moisture use absolute frequencies (same physical
- * scale at all radii). Region bias scales with radius.
- * Temperature variation is left at its fixed frequency.
+ *
+ * Elevation detail uses an absolute frequency so a 10-hex hill is 10 hexes
+ * on every map size. Ridge, moisture, and region bias scale with radius so
+ * that small maps get proportionate feature diversity — without this,
+ * at r=21 ridge and moisture complete <1 cycle, producing near-constant
+ * fields that suppress mountains and inflate desert coverage.
+ *
+ * REF_RADIUS = 35: ridge's absolute frequency (0.04) was calibrated for
+ * r=35. At r=21 the REF_RADIUS/radius scaling gives ~1.7× higher frequency,
+ * yielding ~2.5 half-cycles instead of the current 0.5.
+ *
+ * Moisture uses a direct k/radius formula (k=1.68) because its base
+ * frequency (0.02) is too low for REF_RADIUS/radius to produce enough
+ * variation on small maps — at r=21, 0.02 * 35/21 = 0.033 still gives
+ * only 0.5 half-cycles. 1.68/21 = 0.080 gives ~2-3 half-cycles.
  *
  * @param {number} radius - Map radius in hexes
  * @returns {{ ELEVATION_DETAIL, RIDGE, MOISTURE, TEMP_VARIATION, REGION,
@@ -73,10 +85,11 @@ export const NOISE_FIELDS = [
  *             SEED_REGION_M, SEED_REGION_T }}
  */
 export function getNoiseConfig(radius) {
+  const REF_RADIUS = 35;
   return {
     ELEVATION_DETAIL: NOISE_ELEVATION_DETAIL,
-    RIDGE:            NOISE_RIDGE,
-    MOISTURE:         NOISE_MOISTURE,
+    RIDGE:            { ...NOISE_RIDGE,   frequency: NOISE_RIDGE.frequency   * (REF_RADIUS / radius) },
+    MOISTURE:         { ...NOISE_MOISTURE, frequency: 1.68 / radius },
     TEMP_VARIATION:   NOISE_TEMP_VARIATION,
     REGION:           { ...NOISE_REGION, frequency: 1.1 / radius },
     SEED_DETAIL,
