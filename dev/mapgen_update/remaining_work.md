@@ -24,7 +24,7 @@ Target budgets for reference (from Phase 0):
 
 ---
 
-## 2. New Terrain Type: Beach
+## 2. New Terrain Type: Beach (Done)
 
 **Done:** Land tiles adjacent to water reclassified as `beach` with new `TERRAIN` in `terrainTypes.js`:
 
@@ -70,9 +70,9 @@ Or document as permanently deferred with rationale.
 
 ---
 
-## 7. Supernatural Biome Tuning
+## 7. Supernatural Biome Tuning (Done)
 
-**Mostly done:** Supernatural biomes are pretty good at the moment.
+**Done:** Supernatural biomes are pretty good.
 
 ---
 

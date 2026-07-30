@@ -17,7 +17,7 @@ import { showBotIndicator, hideBotIndicator } from '../ui/panels/botIndicator.js
 import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../dev/devPerformance.js';
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
-import { tileTopY } from '../render/hexmap3d/hexMapRenderer.js';
+import { tileSurfaceY } from '../render/hexmap3d/hexMapRenderer.js';
 import { CHAMPION_HEIGHT_OFFSET } from '../params/render/animationParams.js';
 import { ANIMATION_CUSHION_MS } from '../params/ui/uiParams.js';
 
@@ -124,14 +124,14 @@ export async function runBot() {
 
         // World-space origin before the state mutation
         const fromTile = G.tiles[coordKey(ch.pos)];
-        const fromY = fromTile ? tileTopY(fromTile.terrain) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
+        const fromY = fromTile ? tileSurfaceY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
         const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
 
         moveChampion(G, ch, key, 1);
 
         // World-space destination after mutation
         const toTile = G.tiles[key];
-        const toY = toTile ? tileTopY(toTile.terrain) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
+        const toY = toTile ? tileSurfaceY(toTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
         const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
 
         // Start the animation BEFORE refreshAll so isAnimating is true when

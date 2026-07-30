@@ -2,7 +2,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileTopY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/terrainMesh.js';
 import {
   CHAMPION_BODY_Y_OFFSET,
   CHAMPION_HEAD_Y_OFFSET,
@@ -60,7 +60,7 @@ export function buildUnitMeshes(state, visible) {
 
     if (!champ && !mob && !trader) continue;
 
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
 
     if (champ) {

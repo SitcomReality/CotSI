@@ -2,9 +2,10 @@
 // Priority 5 (above fog, below selection ring).
 
 import { worldToScreen } from './screenProjection.js';
-import { hexCenter3D, hexCornersXZ, tileTopY } from '../hexmap3d/hexMapRenderer.js';
+import { hexCenter3D, hexCornersXZ, tileSurfaceY } from '../hexmap3d/hexMapRenderer.js';
 import { getDerivedMoveHighlights, getHoveredKey } from './overlayStack.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
+import { TERRAIN } from '../../game/rules/terrainTypes.js';
 import { MOVE_ALLOWED_WIDTH, MOVE_HOVER_WIDTH, HIGHLIGHT_RADIUS_FRAC, HIGHLIGHT_Y_OFFSET } from '../../params/render/overlayParams.js';
 
 // ---------------------------------------------------------------------------
@@ -39,7 +40,10 @@ export function renderMovementHighlights(ctx2d, state, camera, _time) {
     const hasTrader = state.traders?.some(t => coordKey(t.pos) === key);
     if (hasTrader) continue;
 
-    const surfaceY = tileTopY(tile.terrain);
+    // Safety guard: never highlight impassable terrain
+    if (!TERRAIN[tile.terrain]?.passable) continue;
+
+    const surfaceY = tileSurfaceY(tile);
     const hc = hexCenter3D(tile.q, tile.r, surfaceY);
 
     // Project all 6 corners of the hex (slightly above surface)

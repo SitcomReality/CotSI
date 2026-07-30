@@ -9,7 +9,7 @@
 //   - Faction base (neutral)          → cool blue   (#6a7a9a) — neutral
 
 import { worldToScreen } from './screenProjection.js';
-import { hexCenter3D, hexCornersXZ, tileTopY } from '../hexmap3d/hexMapRenderer.js';
+import { hexCenter3D, hexCornersXZ, tileSurfaceY } from '../hexmap3d/hexMapRenderer.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
 import { getInteractionHighlights, getHoveredKey } from './overlayStack.js';
 import {
@@ -162,7 +162,7 @@ export function renderInteractionHighlights(ctx2d, state, camera, time) {
     const tile = state.tiles[key];
     if (!tile) continue;
 
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const proj = projectHex(tile.q, tile.r, surfaceY, camera, canvas);
     if (!proj) continue;
 
@@ -203,7 +203,7 @@ export function renderInteractionHighlights(ctx2d, state, camera, time) {
   const tile = state.tiles[hoveredKey];
   if (!tile) return;
 
-  const surfaceY = tileTopY(tile.terrain);
+  const surfaceY = tileSurfaceY(tile);
   const proj = projectHex(tile.q, tile.r, surfaceY, camera, canvas);
   if (!proj) return;
 

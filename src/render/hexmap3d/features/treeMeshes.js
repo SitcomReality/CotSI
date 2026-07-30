@@ -1,7 +1,7 @@
 // src/render/hexmap3d/features/treeMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileTopY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/terrainMesh.js';
 import {
   getTreeTrunkGeo,
   getTreeCanopyRoundGeo,
@@ -81,7 +81,7 @@ export function buildTreeMeshes(state, visible) {
 
     const variant = treeVariant(tile.terrain, tile.q, tile.r);
     const { heightOffset, canopyY } = canopyForVariant(variant);
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
 
     // largeTree gets a forced large scale regardless of density
@@ -167,7 +167,7 @@ export function buildChunkTreeMeshes(chunkTiles, visible) {
 
     const variant = treeVariant(tile.terrain, tile.q, tile.r);
     const { heightOffset, canopyY } = canopyForVariant(variant);
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
 
     const baseScale = kind === 'largeTree' ? 1.8 : densityScale(tile.feature.density);

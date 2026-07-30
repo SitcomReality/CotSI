@@ -2,7 +2,7 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileTopY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/terrainMesh.js';
 import { getBaseSpikeGeo, getBaseRingGeo, getBaseRingDotGeo } from './geometries/index.js';
 import { BASE_TOWER, BASE_CAP, BASE_TOWER_Y_CENTER, BASE_CAP_Y_CENTER, BASE_CRU_SPIKE_Y, BASE_HEART_DOME, BASE_MASK_SPIRE, BASE_HOL_SPIKE, BASE_SPIKE_RING_RADIUS, BASE_SPIKE_TILT_AMOUNT, BASE_SPIKE, BASE_RING, BASE_RING_DOT } from '../../../params/render/geometryParams.js';
 
@@ -24,7 +24,7 @@ export function buildBaseMeshes(state, visible) {
     const fac = FACTIONS[f.faction];
     if (!fac) continue;
 
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     const group = new THREE.Group();
     group.name = `base_${f.faction}`;
@@ -111,7 +111,7 @@ export function buildChunkBaseMeshes(chunkTiles, visible) {
     const fac = FACTIONS[f.faction];
     if (!fac) continue;
 
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     const group = new THREE.Group();
     group.name = `base_${f.faction}`;

@@ -4,7 +4,7 @@
 
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileTopY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/terrainMesh.js';
 
 /**
  * Iterate tiles, apply visibility + filter match, compute hex-center position,
@@ -29,7 +29,7 @@ export function collectInstances(tilesOrArray, visible, matchFn, collectFn) {
       const tile = tilesOrArray.get(key);
       if (!tile) continue;
       if (!matchFn(tile)) continue;
-      const surfaceY = tileTopY(tile.terrain);
+      const surfaceY = tileSurfaceY(tile);
       const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
       const record = collectFn(tile, { x, y: surfaceY, z });
       if (record != null) addRecord(results, record);
@@ -39,7 +39,7 @@ export function collectInstances(tilesOrArray, visible, matchFn, collectFn) {
       const key = `${tile.q},${tile.r}`;
       if (!visible.has(key)) continue;
       if (!matchFn(tile)) continue;
-      const surfaceY = tileTopY(tile.terrain);
+      const surfaceY = tileSurfaceY(tile);
       const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
       const record = collectFn(tile, { x, y: surfaceY, z });
       if (record != null) addRecord(results, record);

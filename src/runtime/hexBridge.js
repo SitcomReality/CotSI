@@ -6,7 +6,7 @@
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
 import { movementRange, moveChampion, adjacentPassable } from '../game/state/championMovement.js';
-import { getSceneContext, animateCenterOnHex, tileTopY } from '../render/hexmap3d/hexMapRenderer.js';
+import { getSceneContext, animateCenterOnHex, tileSurfaceY } from '../render/hexmap3d/hexMapRenderer.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
 import { updateCameraStartCenter } from './mapCamera.js';
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
@@ -68,12 +68,12 @@ export function onHexClick(key) {
   if (allowed.includes(key)) {
     // Capture world-space origin before the state mutation
     const fromTile = G.tiles[coordKey(ch.pos)];
-    const fromY = fromTile ? tileTopY(fromTile.terrain) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
+    const fromY = fromTile ? tileSurfaceY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
     const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
     moveChampion(G, ch, key, 1);
     // Capture world-space destination after mutation
     const toTile = G.tiles[key];
-    const toY = toTile ? tileTopY(toTile.terrain) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
+    const toY = toTile ? tileSurfaceY(toTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
     const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
     setGameContext({
       phase: 'human_turn',

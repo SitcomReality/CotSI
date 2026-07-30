@@ -1,7 +1,7 @@
 // src/render/hexmap3d/features/knotMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileTopY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/terrainMesh.js';
 import { getKnotGeo } from './geometries/index.js';
 import { KNOT_RADIUS, KNOT_Y_OFFSET, KNOT_EMISSIVE_INTENSITY } from '../../../params/render/geometryParams.js';
 
@@ -17,7 +17,7 @@ export function buildKnotMeshes(state, visible) {
   for (const key of visible) {
     const tile = state.tiles[key];
     if (!tile || !tile.feature || tile.feature.kind !== 'knot' || tile.feature.mined) continue;
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     instances.push({
       x, y: surfaceY + KNOT_Y_OFFSET, z,
@@ -60,7 +60,7 @@ export function buildChunkKnotMeshes(chunkTiles, visible) {
     const key = `${tile.q},${tile.r}`;
     if (!visible.has(key)) continue;
     if (!tile.feature || tile.feature.kind !== 'knot' || tile.feature.mined) continue;
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     instances.push({ x, y: surfaceY + KNOT_Y_OFFSET, z, scale: 1.0 });
   }

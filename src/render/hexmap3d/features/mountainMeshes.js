@@ -1,7 +1,7 @@
 // src/render/hexmap3d/features/mountainMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileTopY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/terrainMesh.js';
 import { getMountainGeo } from './geometries/index.js';
 import { MOUNTAIN_HASH_SEEDS, MOUNTAIN_PEAK_SCALE, MOUNTAIN_PEAK_SCALE_RANGE, MOUNTAIN_SLOPE_SCALE, MOUNTAIN_SLOPE_SCALE_RANGE, MOUNTAIN_NORMAL_SCALE, MOUNTAIN_NORMAL_SCALE_RANGE, MOUNTAIN_SNOW_RING_RADIUS, MOUNTAIN_SNOW_RING_HEIGHT, MOUNTAIN_PEAK_HEIGHT, MOUNTAIN_ROCK_COLOR, MOUNTAIN_SNOW_COLOR } from '../../../params/render/geometryParams.js';
 
@@ -30,7 +30,7 @@ export function buildMountainMeshes(state, visible) {
     const tile = state.tiles[key];
     if (!tile || tile.terrain !== 'mountain') continue;
 
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     const hash = ((tile.q * MOUNTAIN_HASH_SEEDS[0] + tile.r * MOUNTAIN_HASH_SEEDS[1]) * MOUNTAIN_HASH_SEEDS[2]) % MOUNTAIN_HASH_SEEDS[3];
     const rotY = 0; // no rotation — base hex corners align with tile edges
@@ -133,7 +133,7 @@ export function buildChunkMountainMeshes(chunkTiles, visible) {
     if (!visible.has(key)) continue;
     if (tile.terrain !== 'mountain') continue;
 
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     const hash = ((tile.q * MOUNTAIN_HASH_SEEDS[0] + tile.r * MOUNTAIN_HASH_SEEDS[1]) * MOUNTAIN_HASH_SEEDS[2]) % MOUNTAIN_HASH_SEEDS[3];
     const rotY = 0;

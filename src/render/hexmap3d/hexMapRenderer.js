@@ -20,7 +20,7 @@ import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
 
 // Re‑export symbols needed by external consumers
 export { getSceneContext } from './sceneContext.js';
-export { tileTopY, HEX_THICKNESS } from './terrain/terrainMesh.js';
+export { tileTopY, tileSurfaceY, HEX_THICKNESS } from './terrain/terrainMesh.js';
 export { hexCenter, hexCornersXZ, hexCenter3D } from './hexWorldSpace.js';
 export { resetCamera, zoomCamera, fitCameraToMap } from './scene/cameraZoomMath.js';
 export { setPanBounds, setCameraStartCenter } from './scene/cameraPanMath.js';

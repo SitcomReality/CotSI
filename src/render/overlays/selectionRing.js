@@ -3,7 +3,7 @@
 // Priority: 10 (above fog, below future particles)
 
 import { worldToScreen } from './screenProjection.js';
-import { hexCenter3D, hexCornersXZ, tileTopY } from '../hexmap3d/hexMapRenderer.js';
+import { hexCenter3D, hexCornersXZ, tileSurfaceY } from '../hexmap3d/hexMapRenderer.js';
 import {
   ORBIT_FRAC,
   SELECTION_RING_SPEED,
@@ -24,7 +24,7 @@ export function renderSelectionRing(ctx2d, state, camera, time) {
   const tile = state.tiles[`${champ.pos.q},${champ.pos.r}`];
   if (!tile) return;
 
-  const surfaceY = tileTopY(tile.terrain);
+  const surfaceY = tileSurfaceY(tile);
   const hc = hexCenter3D(tile.q, tile.r, surfaceY);
 
   const center = worldToScreen(hc.x, surfaceY + SELECTION_RING_Y_OFFSET, hc.z, camera, ctx2d.canvas);

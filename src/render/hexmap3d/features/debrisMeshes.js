@@ -1,7 +1,7 @@
 // src/render/hexmap3d/features/debrisMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileTopY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/terrainMesh.js';
 import {
   getDebrisTuftGeo,
   getDebrisRockGeo,
@@ -30,7 +30,7 @@ export function buildDebrisMeshes(state, visible) {
     const tile = state.tiles[key];
     if (!tile || !tile.debris) continue;
 
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     const hash = ((tile.q * DEBRIS_HASH_SEEDS[0] + tile.r * DEBRIS_HASH_SEEDS[1]) * DEBRIS_HASH_SEEDS[2]) % DEBRIS_HASH_SEEDS[3];
 
@@ -102,7 +102,7 @@ export function buildChunkDebrisMeshes(chunkTiles, visible) {
     if (!visible.has(key)) continue;
     if (!tile.debris) continue;
 
-    const surfaceY = tileTopY(tile.terrain);
+    const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     const hash = ((tile.q * DEBRIS_HASH_SEEDS[0] + tile.r * DEBRIS_HASH_SEEDS[1]) * DEBRIS_HASH_SEEDS[2]) % DEBRIS_HASH_SEEDS[3];
 
