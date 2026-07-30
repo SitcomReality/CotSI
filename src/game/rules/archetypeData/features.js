@@ -276,3 +276,13 @@ defineArchetype('feature_dustbleedCrystal', {
   tags: ['dustbleed'],
   visual: { scale: 1.2 },
 });
+
+// ── Tundra biome features ──────────────────────────────────────────
+
+defineArchetype('feature_snowperson', {
+  type: 'feature',
+  name: 'Snowperson',
+  archetypeShape: 'snowperson',
+  tags: ['tundra'],
+  visual: { scale: 1.0 },
+});

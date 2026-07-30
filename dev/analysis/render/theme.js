@@ -98,6 +98,7 @@ export const FEATURES = {
   brassLungVent:       { radius: 1.8, fill: '#a08050' },
   ouroborosLoop:       { radius: 2.0, fill: '#c8a020' },
   dustbleedCrystal:    { radius: 2.0, fill: '#40c8b8' },  // turquoise crystal
+  snowperson:          { radius: 2.0, fill: '#f0f4f8' },  // white snow figure
 };
 
 // ── Debris markers ──────────────────────────────────────────────────────────────

@@ -29,6 +29,7 @@ import {
   getStoneGeo,
   getVentGeo,
   getRingGeo,
+  getSnowpersonGeo,
 } from './geometries/index.js';
 
 export const FEATURE_VISUALS = {
@@ -190,5 +191,14 @@ export const FEATURE_VISUALS = {
     material: () => new THREE.MeshLambertMaterial({ color: 0xA060C0, flatShading: true }),
     meshName: 'flora-shroomlet',
     scale: 1.2,
+  },
+
+  // ── Tundra biome features ──────────────────────────────────────────────
+
+  snowperson: {
+    geometry: getSnowpersonGeo,
+    material: () => new THREE.MeshLambertMaterial({ color: 0xF0F4F8, flatShading: true }),
+    meshName: 'feature-snowperson',
+    scale: 1.0,
   },
 };

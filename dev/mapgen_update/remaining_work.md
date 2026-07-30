@@ -53,21 +53,20 @@ Add palette entries to each biome. Beach is passable and feature-sparse.
 
 ---
 
-## 3. New Biomes: Tundra & Cold Steppe
+## 3. New Biomes: Tundra (Done)
 
-The cold+dry climate zone falls through to `biome_default`. Add two biomes before it in `BIOME_PRIORITY_ORDER`:
+**Added `biome_tundra`** — cold + wet climate zone with `maxTemperature: 0.35`, `minMoisture: 0.60`. Includes a decorative Snowperson feature (non-functional, two-sphere mesh).
 
-**Tundra** (cold + wet):
+**Adjusted `frigid_silence`** — removed `minMoisture` to cover cold+dry (the former cold-steppe gap). Lowered `maxTemperature` to 0.35 to keep it distinct from temperate biomes.
+
+**Adjusted `edenfall`** — raised `maxMoisture` from 0.62 to 0.70 to catch boundary tiles near painforest's edge where regional bias pushes effective moisture below the threshold.
+
+**Adjusted `dustbleed`** — widened from `elev<0.1, moist 0.1-0.2` to `elev<0.2, moist<0.3` for meaningful map presence as low-elevation cursed badlands.
+
 ```js
-climateRange: { maxTemperature: 0.20, minMoisture: 0.60 }
-terrainRules: { treeLineMax: 0.30, mountainThreshold: 0.85 }
-// palette: cold blues and whites, sparse features, no fruit trees
-```
-
-**Cold steppe** (cold + dry):
-```js
-climateRange: { maxTemperature: 0.20, maxMoisture: 0.22 }
-// sparse, dry palette
+// Original plan (now implemented via adjustments):
+// Tundra (cold + wet):   maxTemperature: 0.35, minMoisture: 0.60
+// Cold steppe covered by: frigid_silence (no minMoisture, maxTemp 0.35)
 ```
 
 ---

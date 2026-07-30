@@ -3,14 +3,15 @@ import { getArchetype } from '../../archetypes.js';
 
 /** Natural biomes — climate-driven, in specificity order. biome_default is last (catch-all). */
 const BIOME_PRIORITY_ORDER = [
-  'biome_sere_wastes',     // hot + dry (most specific)
-  'biome_dustbleed',       // low-elevation, low-moisture cursed badlands
-  'biome_scorch',          // hot transitional — between sere_wastes and painforest
-  'biome_edenfall',        // temperate mid-moisture — fills gap between hot and cold
-  'biome_frigid_silence',  // cold mid-moisture (Phase D)
-  'biome_painforest',      // wet + warm
-  'biome_mourning_marsh',  // cold wet (Phase D)
-  'biome_default',         // catch-all — last, always matches
+  'biome_sere_wastes',      // hot + dry (most specific)
+  'biome_dustbleed',        // low-elevation drylands
+  'biome_scorch',           // hot transitional — between sere_wastes and painforest
+  'biome_edenfall',         // temperate mid-moisture — wide ceiling catches painforest boundary
+  'biome_frigid_silence',   // cold, any dryness (no minMoisture — covers cold steppe gap)
+  'biome_painforest',       // wet + warm
+  'biome_tundra',           // cold + wet
+  'biome_mourning_marsh',   // very cold + wet
+  'biome_default',          // catch-all — last, always matches
 ];
 
 /** Supernatural biomes — placed by jittered-grid epicenter pass (A8), never by climate. */

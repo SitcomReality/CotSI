@@ -17,7 +17,8 @@
  *   slope           — recomputed via computeSlope() from recomputed elevations
  *   biomeId         — recomputed via selectBiome() from recomputed fields
  *   terrain         — verify classifyTerrain(stored fields) === stored terrain
- *                     (catches connectivity-enforcement or post-processing interference)
+ *                     (skips champion-base tiles; catches connectivity-enforcement
+ *                      or post-processing interference on non-base tiles)
  *
  * Not tested (neighbor-context-dependent post-processing, not pure per-tile):
  *   mountainType    — depends on neighbor terrain classification
@@ -204,16 +205,16 @@ export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
         continue;
       }
 
-      // ── 7. terrain (via classifyTerrain from recomputed fields + biome rules) ──
-      // Use the stored tile.biomeId, not the recomputed one. The pipeline's
-      // river post-pass reclassifies terrain using the original biome's rules,
-      // not a recalculated biome. See flatGeneration.js line 82.
-      //
-      // Use stored elevation, moisture, temperature, and slope — not the
-      // recomputed ones. All agree within 1e-12 (checked above), but exact
+      // ── 7. terrain (via classifyTerrain from stored fields + biome rules) ──
+      // Use stored fields — all agree within 1e-12 (checked above), but exact
       // classification thresholds (e.g. hillElevationMin=0.32, hillSlopeMin=0.25,
       // forestMinMoisture=0.58) can flip on a 1e-15 ULP difference. The stored
       // values are the ones the pipeline actually used.
+      //
+      // Skip champion base tiles — championFactory.js overrides their terrain to
+      // 'plains' (regardless of what classifyTerrain would produce). This is an
+      // intentional design decision, not a chunk-seam invariance failure.
+      if (tile.feature?.kind === 'base') continue;
       const biomeDef = getArchetype(biomeId) || getArchetype('biome_default');
       const expectedTerrain = classifyTerrain(
         elevationField, moisture, temperature,

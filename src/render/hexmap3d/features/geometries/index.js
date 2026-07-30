@@ -43,4 +43,5 @@ export {
   getObeliskGeo,
   getCypressGeo,
   getBigtreeGeo,
+  getSnowpersonGeo,
 } from './featureGeometries.js';

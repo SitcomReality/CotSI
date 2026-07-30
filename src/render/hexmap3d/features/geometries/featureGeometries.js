@@ -153,3 +153,33 @@ export function getBigtreeGeo() {
   if (!bigtreeGeo) { bigtreeGeo = new THREE.ConeGeometry(0.18, 0.30, 6); }
   return bigtreeGeo;
 }
+
+// =========================================================================
+// Snowperson — two stacked spheres (body + head) via LatheGeometry
+// =========================================================================
+
+let snowpersonGeo = null;
+export function getSnowpersonGeo() {
+  if (!snowpersonGeo) {
+    const pts = [];
+    const segments = 10;
+    for (let i = 0; i <= segments; i++) {
+      const a = (i / segments) * Math.PI;
+      // Body: radius 0.10 centered at y=0.08
+      const bodyR = Math.sin(a) * 0.10;
+      const bodyY = -Math.cos(a) * 0.10 + 0.08;
+      // Head: radius 0.06 centered at y=0.26
+      const headA = Math.max(0, Math.min(Math.PI, a * 1.8 - 0.6));
+      const headR = Math.sin(headA) * 0.06;
+      const headY = -Math.cos(headA) * 0.06 + 0.26;
+      // Blend body into head in the middle zone
+      const t = Math.max(0, Math.min(1, (a - 0.7) / 1.0));
+      pts.push(new THREE.Vector2(
+        bodyR * (1 - t) + headR * t,
+        bodyY * (1 - t) + headY * t,
+      ));
+    }
+    snowpersonGeo = new THREE.LatheGeometry(pts, 8);
+  }
+  return snowpersonGeo;
+}
