@@ -201,13 +201,17 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
       tile.terrain, tile.elevationField, tile.moisture, tile.slope, treeLineMax
     );
     const roll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_FEATURES);
-    const feature = spawnFeature(roll, tile.terrain, density, features);
+    let feature = spawnFeature(roll, tile.terrain, density, features);
 
-    // Fruit tree climate gate: skip if conditions aren't suitable
+    // Fruit tree climate gate: if conditions aren't suitable, fall through to
+    // the remaining feature rules with the same roll (keeps determinism) so a
+    // lower-priority rule can still win on this tile.
     if (feature && feature.kind === 'fruitTree') {
       if (!canSpawnFruitTree(tile.elevationField, tile.moisture, treeLineMax)) {
-        tile.feature = null;
-        continue;
+        feature = spawnFeature(
+          roll, tile.terrain, density,
+          features.filter((rule) => rule.kind !== 'fruitTree')
+        );
       }
     }
 

@@ -1,12 +1,13 @@
-# Large Map Roadmap — Meta-Plan
+# Large Map Roadmap — Meta-Plan (Complete)
 
 This document outlines the phased implementation plan for scaling CotSI's hex map
 from the current radius-7 (169 tiles) toward large and potentially infinite worlds.
 Each phase is a self-contained project that can be planned, implemented, and tested
 independently before moving to the next.
 
-This work has been completed (except for the unlikely infinite map).
-This file has been kept for reference.
+This work has been completed (except for the unlikely infinite map). Many of the values (eg. map sizes) are out-of-date.
+
+This file has only been kept for reference.
 
 ---
 
@@ -40,7 +41,7 @@ of fixed-size chunks:
 
 ---
 
-## Phase 3: Chunked Rendering
+## Phase 3: Chunked Rendering (Done)
 
 **Goal:** Replace the full-teardown-and-rebuild in `renderHexMap3D` with chunk-level
 mesh management. Only rebuild chunks whose contents changed. Add frustum culling.
@@ -92,7 +93,7 @@ mesh management. Only rebuild chunks whose contents changed. Add frustum culling
 
 ---
 
-## Phase 4: Scale Up
+## Phase 4: Scale Up (Done)
 
 **Goal:** Actually increase the map size. Test, profile, fix whatever breaks.
 

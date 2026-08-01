@@ -107,7 +107,7 @@ Frequency tuning should be visual ("do the landmasses look right?"), not algorit
 
 Phase E's density modulation changed effective spawn rates. Adjust each biome's `features[].threshold` values so tree/bush/knot densities match intended feel. Run feature spawn statistics across 10 seeds.
 
-Also address the **fruit-tree fallthrough**: if the fruit tree rule matches the noise roll but the climate gate (`canSpawnFruitTree`) fails, the tile gets `feature: null` — lower-priority rules (bush, etc.) don't get a chance. Add rule retry logic.
+Also address the **fruit-tree fallthrough** — DONE: if the fruit tree rule matches the noise roll but the climate gate (`canSpawnFruitTree`) fails, the tile now retries the same roll against the remaining feature rules (fruit-tree rules filtered out), so a lower-priority rule (tree, bush, etc.) can still win. Covered by a regression test in `tests/game/terrainGen.test.js`.
 
 ---
 

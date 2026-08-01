@@ -148,6 +148,31 @@ test('chunk generation is deterministic per chunk (seam invariant)', () => {
   }
 });
 
+test('fruit-tree climate gate falls through to lower-priority rules', () => {
+  // Regression: a fruitTree rule that matches the roll but fails the climate
+  // gate (treeLineMax 0 → `elevation < treeLineMax` never true) used to kill
+  // the whole roll with `feature: null`. Now the same roll is retried against
+  // the remaining rules, so 'tree' wins on every tile with roll > 0.
+  const biomeDef = {
+    id: 'test_gateFallthrough',
+    terrainRules: { treeLineMax: 0 },
+    features: [
+      { kind: 'fruitTree', threshold: 0, compare: 'gt' },
+      { kind: 'tree', threshold: 0, compare: 'gt' },
+    ],
+  };
+  const { tileMap } = generateChunkTiles('gate-fallthrough-seed', 0, 0, RADIUS, biomeDef);
+
+  let trees = 0;
+  for (const [, tile] of tileMap) {
+    if (tile.feature === null) continue; // roll exactly 0 — neither rule matched
+    assert.equal(tile.feature.kind, 'tree',
+      `gate-failed fruitTree must fall through to tree at ${tile.q},${tile.r} (got ${tile.feature.kind})`);
+    trees++;
+  }
+  assert.ok(trees > 0, 'expected at least one fallback tree in the chunk');
+});
+
 test('spawn-range hexes are all within the disc', () => {
   const tiles = generateTiles('bounds-seed', RADIUS);
   for (const key of Object.keys(tiles)) {
