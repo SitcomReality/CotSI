@@ -9,5 +9,9 @@
  * @returns {number} Multiplier in [0, 1]
  */
 export function worldShape(distFromCenter, radius) {
-  return 1.0 - ((distFromCenter / radius) ** 2);
+  const falloff = 1.0 - ((distFromCenter / radius) ** 2);
+  // Clamp at 0: beyond the map radius the multiplier would go negative,
+  // and Math.pow(negative, 0.6) in sampleBaseFields yields NaN, poisoning
+  // slope computation for border-ring hexes.
+  return falloff < 0 ? 0 : falloff;
 }

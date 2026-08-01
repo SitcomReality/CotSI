@@ -25,6 +25,8 @@ export function hash32(v) {
 }
 
 export function seededNoise(seed, q, r, salt=0){
+  // NOTE: `seed` must be an integer (the output of stringSeed(seedText)).
+  // Passing the raw seed string coerces to NaN in the xor and always yields 0.
   let x = seed + Math.imul(q + 101, 374761393) + Math.imul(r - 47, 668265263) + Math.imul(salt + 13, 362437);
   x = Math.imul(x ^ (x >>> 13), 1274126177);
   return ((x ^ (x >>> 16)) >>> 0) / 4294967296;

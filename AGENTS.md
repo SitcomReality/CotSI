@@ -8,7 +8,7 @@ CotSI is a browser-based hex-crawl strategy game, early in development. Seven fa
 
 **Stack:** Vanilla JS (ES modules) + plain CSS. No framework, no bundler, no build step. Three.js for 3D rendering (`src/vendor/`). Served as static files from any HTTP server (ES modules require an origin — opening `index.html` from disk fails).
 
-**Test:** `python3 dev/check_imports.py` verifies all imports resolve and checks layer boundaries in `src/`. `python3 dev/check_analysis_imports.py` does the same for the standalone map analysis tool (`dev/analysis/`). No formal test runner. AI devs can't run the game; the user tests on request.
+**Test:** `python3 dev/check_imports.py` verifies all imports resolve and checks layer boundaries in `src/`. `python3 dev/check_analysis_imports.py` does the same for the standalone map analysis tool (`dev/analysis/`). Unit tests: `tests/run.sh` (or `node --test` from the repo root) runs the zero-dependency `node:test` suite covering the pure layers — `src/engine/rules/` and `src/game/rules/` (incl. terrain-gen pipeline). No other formal test runner. AI devs can't run the game; the user tests on request.
 
 **The User Can Help:** If there's ambiguity or confusion, ask questions. If there are complicated bugs, add console logs or debug features and the user will report results to help narrow it down.
 

@@ -480,6 +480,7 @@ Some pre-existing cross-layer imports remain from before the layer migration. Th
 
 - `python3 dev/check_imports.py` — verifies every relative import in `src/` resolves, and prints a boundary report of cross-layer imports vs the §2 dependency table.
 - `python3 dev/check_analysis_imports.py` — verifies every relative import in `dev/analysis/` resolves, including cross-references into `src/`. Does not check layer boundaries (those rules don't apply to the standalone analysis tool).
+- `tests/run.sh` (or `node --test` from the repo root) — unit-test suite for the pure layers (`src/engine/rules/`, `src/game/rules/` incl. terrain-gen). Zero dependencies; uses Node's built-in `node:test` runner. `tests/` lives outside `src/` so it doesn't affect the boundary report.
 - `dev/analysis.html` — standalone map-gen analysis page. Not part of the game UI. Opens directly in a browser (served from the same origin).
 - There is no build step and no test runner; `engine/rules/` and `game/rules/` must stay importable in plain Node (`node --check` clean, no DOM/Three imports).
 
