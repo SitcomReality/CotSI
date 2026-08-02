@@ -103,29 +103,30 @@ export async function runCombatFlow() {
 
     // ---------- ROUND END ----------
     if (combat.phase === 'roundEnd') {
-      await handleRoundEnd();
-      if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; } // combat ended (death)
-
-      // After round 1: bots auto-flee if continuing would be fatal
-      if (combat.round > 1) {
-        const _G = getGameState();
-        if (_G) {
-          if (shouldBotFlee(combat.defender, combat)) {
-            fleeFromCombat(_G, combat, 'defender');
-            closeCombat();
-            clearContext();
-            measureEnd('combatFlow');
-            return;
-          }
-          if (shouldBotFlee(combat.attacker, combat)) {
-            fleeFromCombat(_G, combat, 'attacker');
-            closeCombat();
-            clearContext();
-            measureEnd('combatFlow');
-            return;
-          }
+      // Bots decide to flee BEFORE the round's damage is applied — the flee path
+      // applies the round's damage itself (capped at 1 HP) and ends combat.
+      // Checking after handleRoundEnd was broken: it zeroes roundScores and bumps
+      // the round, so shouldBotFlee always saw a clean slate and bots never fled.
+      const _G = getGameState();
+      if (_G) {
+        if (shouldBotFlee(combat.defender, combat)) {
+          fleeFromCombat(_G, combat, 'defender');
+          closeCombat();
+          clearContext();
+          measureEnd('combatFlow');
+          return;
+        }
+        if (shouldBotFlee(combat.attacker, combat)) {
+          fleeFromCombat(_G, combat, 'attacker');
+          closeCombat();
+          clearContext();
+          measureEnd('combatFlow');
+          return;
         }
       }
+
+      await handleRoundEnd();
+      if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; } // combat ended (death)
 
       continue;
     }

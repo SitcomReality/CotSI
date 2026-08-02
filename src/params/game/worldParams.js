@@ -160,7 +160,6 @@ export const DEFAULT_TERRAIN_RULES = {
   // roughly two-thirds of those qualify, targeting ~8-10% total water.
   waterMinMoisture:         0.32,
   treeLineMax:              0.85,
-  snowLineMax:              0.15,
 };
 
 // ---------------------------------------------------------------------------

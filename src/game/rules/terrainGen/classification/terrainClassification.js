@@ -22,7 +22,8 @@ function isAdjacentToWater(q, r, lookup) {
 /**
  * Determine terrain type from elevation, moisture, temperature, slope, and biome rules.
  *
- * Temperature gates: cold water → ice, cold peaks → snow-capped peak.
+ * Temperature gates: cold water → ice. Peaks have no temperature variant yet
+ * (a snow-capped peak terrain was promised but never implemented).
  * Slope discriminates mountain vs plateau vs hill.
  * Tree line prevents forests above treeLineMax.
  * Uses DEFAULT_TERRAIN_RULES merged with biome-specific terrainRules.
@@ -64,7 +65,7 @@ export function classifyTerrain(elevation, moisture, temperature, slope, biomeDe
   // mountainThreshold, guaranteeing mountain >= peak in area.
   if (elevation > R.mountainThreshold) {
     if (elevation > R.peakThreshold) {
-      return temperature < R.snowLineMax ? 'peak' : 'peak';
+      return 'peak';
     }
     return slope > R.plateauSlopeMin ? 'mountain' : 'plateau';
   }

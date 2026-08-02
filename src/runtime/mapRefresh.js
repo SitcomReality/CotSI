@@ -82,14 +82,14 @@ export function refreshMap() {
 
   try {
     renderHexMap3D(G, humanView);
+    // Clear chunk dirty flags only on success — if rendering throws, the chunks
+    // stay dirty so the next refresh retries the rebuild. Clearing unconditionally
+    // would let a transient render error permanently poison those chunks
+    // (stale/blank map with no recovery).
+    clearDirtyFlags(G);
   } catch (err) {
     console.error('[refreshMap] renderHexMap3D threw:', err);
   }
-
-  // Clear chunk dirty flags now that the renderer has rebuilt all dirty chunks.
-  // The renderer reads dirty flags but doesn't mutate state (layer boundary);
-  // the runtime layer handles the mutation.
-  clearDirtyFlags(G);
 
   // Initialize minimap on first render after game state is ready
   if (!minimapInitialized) {

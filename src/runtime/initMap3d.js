@@ -51,6 +51,9 @@ export function initMap3D(mountEl, gameState) {
     }
   } catch (err) {
     console.error('[initMap3D] initHexMap3D threw:', err);
+    // Leave map3dInitialized false so the next refresh retries scene creation —
+    // otherwise a failed init permanently leaves a dead scene with no recovery.
+    return false;
   }
   setupMapInteraction3D(
     onHexClick,

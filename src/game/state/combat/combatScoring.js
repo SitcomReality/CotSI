@@ -35,7 +35,7 @@ export function scorePickPair(state, A, B, pickA, pickB){
 /** Apply final score bonuses (Crucible, weather, artifacts, Hollow) */
 export function applyFinalBonuses(state, A, B, scoreA, scoreB){
   // Crucible Scarshield
-  const week = Math.floor((state.day-1)/7)+1;
+  const week = Math.floor((state.day - 1) / DAYS_PER_WEEK) + 1;
   if(A.faction===0){ scoreB = Math.max(0, scoreB - week); }
   if(B.faction===0){ scoreA = Math.max(0, scoreA - week); }
   // Final bonuses — champions get the full finalScoreBonus; mobs get their own faction's weather score

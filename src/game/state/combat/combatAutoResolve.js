@@ -51,7 +51,20 @@ export function resolveCombatSilently(state, attacker, defender) {
     processReveal(state, combat);
     advancePhase(combat); // → roundEnd
 
-    // ── Round end: apply bonuses, damage, check for death ──
+    // ── Round end: bots flee BEFORE damage is applied ──
+    // Flee replaces this round's damage application: fleeFromCombat applies the
+    // round's damage itself (with final bonuses), capped so the fleeing entity
+    // survives at 1 HP. Applying damage first (then fleeing) double-applied it.
+    if (shouldBotFlee(combat.defender, combat)) {
+      fleeFromCombat(state, combat, 'defender');
+      return { winner: null, loser: null, rounds, fled: 'defender' };
+    }
+    if (shouldBotFlee(combat.attacker, combat)) {
+      fleeFromCombat(state, combat, 'attacker');
+      return { winner: null, loser: null, rounds, fled: 'attacker' };
+    }
+
+    // ── No flee: apply bonuses, damage, check for death ──
     const { scoreA, scoreB } = applyFinalBonuses(
       state, combat.attacker, combat.defender,
       combat.roundScores.attacker, combat.roundScores.defender
@@ -66,16 +79,6 @@ export function resolveCombatSilently(state, attacker, defender) {
       const loser = attackerWon ? combat.defender : combat.attacker;
       finalizeCombat(state, winner, loser, attackerWon);
       return { winner, loser, rounds };
-    }
-
-    // ── After each round: bots flee if continuing would be fatal ──
-    if (shouldBotFlee(combat.defender, combat)) {
-      fleeFromCombat(state, combat, 'defender');
-      return { winner: null, loser: null, rounds, fled: 'defender' };
-    }
-    if (shouldBotFlee(combat.attacker, combat)) {
-      fleeFromCombat(state, combat, 'attacker');
-      return { winner: null, loser: null, rounds, fled: 'attacker' };
     }
 
     // ── Next round ──
