@@ -108,7 +108,10 @@ All four items resolved (commit A: items 2–4; commit B: item 1).
   `worldSimulation.advanceTurn` (order → world turn → dead-champion branch → victory).
 - **P3 (cheap, high bug-risk):** `championMovement`, `fogOfWar`, `digSystem`,
   `arrivalInteractions`, `entityQueries`/`spatialIndex`, `tileProxy`, `victoryChecks`,
-  `deathTracker`.
+  `deathTracker`. — DONE (commit 2): one test file per module (60 tests);
+  `stateFixture.js` extended (`makeTile`, `chunks`/`_unripeTrees`/`winnerId`/
+  `victoryReason`/`weather.dayLength`); dead `import { G } from './liveGame.js'`
+  removed from `digSystem`/`factionAbilities`/`artifactDraft` (imported, never used).
 - **P5 (trivial):** `engine/rules/shuffle.js` (only untested engine file),
   `weatherScript.js`, `logGrammar`/`logHelpers` (protect user-visible text),
   `dispatchReport.js` (biggest untested rules file). — DONE (commit 1):

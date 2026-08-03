@@ -9,7 +9,6 @@ import { addLogEntry } from './gameLog.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment, factionAccentVar } from '../rules/logHelpers.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
-import { G } from './liveGame.js';
 import { DIG_RELIC_CHANCE, DIG_POTENCY_CHANCE, DIG_GOLD_BASE, DIG_GOLD_RANDOM, DIG_GOLD_DAY_DIVISOR } from '../../params/game/economyParams.js';
 import { FACTION_EVERKNOWN, FACTION_COUNT } from '../../params/game/factionParams.js';
 

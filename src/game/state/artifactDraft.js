@@ -2,7 +2,6 @@
  * artifactDraft.js — Artifact draft pool selection and first-turn draft logic.
  */
 import { ARTIFACTS } from '../rules/factionData.js';
-import { G } from './liveGame.js';
 import { addLogEntry } from './gameLog.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';

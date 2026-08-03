@@ -55,6 +55,14 @@ export function makeMob(overrides = {}) {
 }
 
 /**
+ * Build a minimal tile with the shape state code expects:
+ * terrain key (looked up in TERRAIN for passability) + feature/debris slots.
+ */
+export function makeTile(terrain = 'plains', overrides = {}) {
+  return { terrain, feature: null, debris: null, ...overrides };
+}
+
+/**
  * Build a minimal live-game state (G) with the fields combat modules touch:
  * logs, spatialIndex, deathOrder/deathEvent, objectives, weather, day, _rng.
  */
@@ -67,13 +75,17 @@ export function makeState(overrides = {}) {
     mobs,
     traders: [],
     spatialIndex: new Map(),
+    chunks: new Map(),
     logs: [],
     deathOrder: [],
     deathEvent: null,
     objectives: { relicRace: false, lastStanding: false },
-    weather: { potency: Array(7).fill(0), score: Array(7).fill(0) },
+    weather: { potency: Array(7).fill(0), score: Array(7).fill(0), dayLength: 1 },
     day: 1,
     _rng: () => 0.5,
+    _unripeTrees: new Set(),
+    winnerId: null,
+    victoryReason: '',
     tiles: { '0,0': {}, '1,0': {}, '2,0': {} },
     ...overrides,
   };

@@ -2,7 +2,6 @@
  * factionAbilities.js — Start-of-turn faction-specific effects.
  */
 import { FACTIONS } from '../rules/factionData.js';
-import { G } from './liveGame.js';
 import { addLogEntry } from './gameLog.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
