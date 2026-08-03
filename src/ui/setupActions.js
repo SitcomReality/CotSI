@@ -122,5 +122,9 @@ registerAction('beginGame', () => {
       objectives: { relicRace: true, relicTarget, lastStanding },
       biome,
     });
+  } else {
+    // Start silently dying is a footgun — surface it instead
+    console.error('[setupActions] window.__beginGame missing — Start dead (runtime failed to load)');
+    toast('Cannot start: game runtime not loaded.', true);
   }
 });

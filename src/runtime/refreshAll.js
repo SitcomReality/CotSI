@@ -22,9 +22,12 @@ import { BOT_AUTO_DELAY_MS } from '../params/ui/uiParams.js';
 
 /**
  * Check whether any game modal is currently visible.
+ * Uses computed display so any show mechanism (inline style, class, stylesheet)
+ * is caught, not just inline `style="display: flex"`.
  */
 function anyModalOpen() {
-  return !!document.querySelector('.modal[style*="flex"]');
+  return Array.from(document.querySelectorAll('.modal'))
+    .some(m => getComputedStyle(m).display !== 'none');
 }
 
 // ---- Central render orchestrator ----

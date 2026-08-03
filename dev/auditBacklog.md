@@ -139,7 +139,13 @@ object as coordinates → NaN distances, fixed in commit 3).
   (`chunks`, `_unripeTrees`, `currentOrder`, `winnerId`/`victoryReason`,
   `weather.dayLength`, champion `baseMove`/`knot`/`weapon`/`armor`/`pendingDig`).
 
-## 5. Fragility hardening (systemic patterns)
+## 5. Fragility hardening (systemic patterns) — DONE
+
+All four tiers landed (commit 1: mapgen constants → `params/` + moisture drift,
+commit 2: dead params + silent fallbacks, commit 3: performance, commit 4: runtime
+robustness); suite 265 → 269 (+4 heap tests). One deliberate removal: the setup
+screen's mapSettings sliders (hv/wt/mt) — they silently did nothing against the new
+pipeline; re-add when the pipeline has real knobs (noted in `gameMechanics.md`).
 
 - **Magic numbers bypassing `src/params/`:** `chunkGeneration.js:243` (0.92 debris
   gate), `moistureAdjustment.js:26` (0.03 water boost), `featureDensity.js:21-67`
@@ -197,6 +203,14 @@ object as coordinates → NaN distances, fixed in commit 3).
   `if (window.__beginGame)` with no else (Start silently dead if beginGame didn't
   load); `refreshAll.js:27` `document.querySelector('.modal[style*="flex"]')` fragile
   inline-style probe.
+  — DONE (commit 4): `beginGame` starts the clock and defers via
+  `getClock().setTimeout(..., 'ui')` (the raw `setTimeout` is gone), with a
+  `gameStarting` re-entry guard reset in `finally`; `clockScheduler` wraps each due
+  timer's fn+reschedule in try/catch (mirrors the onTick guard); the bot movement
+  pacing wait uses the `'animation'` group so pausing the bot group can't deadlock
+  the turn lock mid-move; `setupActions` gained an else branch that console-errors
+  and toasts when `__beginGame` is missing; `anyModalOpen` now uses computed style
+  (catches every show mechanism, not just inline `style*="flex"`).
 
 ## 6. Placeholders that look like features
 

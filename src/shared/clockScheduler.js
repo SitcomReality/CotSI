@@ -63,10 +63,16 @@ export function createClock() {
       const due = popExpired(_timeoutTasks, _groups);
       for (const task of due) {
         if (!task.cancelled) {
-          task.fn();
-          const next = reschedule(task);
-          if (next) {
-            addTask(_timeoutTasks, next);
+          try {
+            task.fn();
+            const next = reschedule(task);
+            if (next) {
+              addTask(_timeoutTasks, next);
+            }
+          } catch (err) {
+            // A throwing timeout must not abort the rest of this tick or the
+            // reschedule of other due tasks
+            console.error('[clockScheduler] timer error:', err);
           }
         }
       }

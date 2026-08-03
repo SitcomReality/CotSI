@@ -144,7 +144,9 @@ export async function runBot() {
 
         // Wait for the animation to complete before stepping to the next hex.
         // +30ms cushion so the champion visibly "lands" before the next lift.
-        await getClock().wait(MOVE_DURATION + ANIMATION_CUSHION_MS, 'bot');
+        // 'animation' group: a 'bot'-group wait would never resolve while the
+        // bot group is paused, deadlocking the turn lock mid-move.
+        await getClock().wait(MOVE_DURATION + ANIMATION_CUSHION_MS, 'animation');
       }
 
       clearGameContext();
