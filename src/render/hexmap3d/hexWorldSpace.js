@@ -1,5 +1,5 @@
 // src/render/hexmap3d/hexWorldSpace.js
-// Shared hex→world-space geometry used by terrainMesh.js, the 3D scene, and overlays.
+// Shared hex→world-space geometry used by the terrain meshes, the 3D scene, and overlays.
 
 // World-space hex radius (maps from SVG's HEX_SIZE=30px to 3D units)
 export const HEX_RADIUS = 1.0;

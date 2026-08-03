@@ -26,6 +26,24 @@ export const RIVER_OVERLAY_WEIGHT = 0.45;
 export const TERRAIN_BLEND_FACTOR = 0.8;
 
 /**
+ * Terrain fill colors (RGB 0-1 tuples for vertex color attributes).
+ * Base color per terrain type; biomes can override per-tile via palette.
+ */
+export const TERRAIN_COLOR = {
+  plains:        [0.455, 0.678, 0.365],  // #74ad5d — vibrant meadow green
+  forest:        [0.294, 0.557, 0.255],  // #4b8e41 — deep vivid forest
+  denseForest:   [0.176, 0.420, 0.137],  // #2d6b23 — dark rich green
+  desert:        [0.839, 0.694, 0.357],  // #d6b15b — warm golden sand
+  marsh:         [0.506, 0.600, 0.404],  // #819967 — murky vibrant marsh
+  mountain:      [0.529, 0.486, 0.416],  // #877c6a — rocky warm gray
+  peak:          [0.690, 0.729, 0.784],  // #b0b8c8 — pale snowy rock
+  floatingIsland:[0.753, 0.847, 0.910],  // #c0d8e8 — pale cyan-white
+  water:         [0.373, 0.604, 0.757],  // #5f9ac1 — bright cyan-blue
+  ice:           [0.649, 0.820, 0.957],  // #a6d1f4 — pale ice blue
+  beach:         [0.910, 0.847, 0.627],  // #e8d8a0 — warm sand
+};
+
+/**
  * Terrain elevation values (Y offset for each terrain type).
  * Applied during terrain mesh generation.
  */

@@ -4,7 +4,7 @@
 
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileSurfaceY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/index.js';
 
 /**
  * Iterate tiles, apply visibility + filter match, compute hex-center position,

@@ -239,7 +239,11 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `interaction/mapInteraction.js` | Top-level map interaction coordinator |
 | `interaction/panMath.js` | Camera pan boundary math |
 | `interaction/touchInput.js` | Touch input handler (mobile/tablet) |
-| `terrain/terrainMesh.js` | Procedural terrain mesh (vertex colours) |
+| `terrain/buildTerrainMesh.js` | Procedural terrain mesh geometry (vertex colours) |
+| `terrain/cornerBlend.js` | Top-face corner color blending (soft biome transitions) |
+| `terrain/index.js` | Terrain module barrel (meshes + ground-level API) |
+| `terrain/tileColor.js` | Top-face color resolution (biome palette, lake/river) |
+| `terrain/tileHeight.js` | Ground-level math (tileSurfaceY, tileTopY, ELEVATION) |
 | `units/index.js` | Barrel for unit rendering |
 | `units/movementAnimator.js` | Unit movement animation (tween along path) |
 | `units/movementCurves.js` | Movement animation curves (easing) |

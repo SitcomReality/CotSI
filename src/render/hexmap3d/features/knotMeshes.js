@@ -1,7 +1,7 @@
 // src/render/hexmap3d/features/knotMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileSurfaceY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/index.js';
 import { getKnotGeo } from './geometries/index.js';
 import { KNOT_RADIUS, KNOT_Y_OFFSET, KNOT_EMISSIVE_INTENSITY } from '../../../params/render/geometryParams.js';
 

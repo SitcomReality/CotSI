@@ -1,7 +1,7 @@
 // src/render/hexmap3d/features/debrisMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileSurfaceY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/index.js';
 import {
   getDebrisTuftGeo,
   getDebrisRockGeo,

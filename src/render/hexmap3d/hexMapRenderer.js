@@ -4,7 +4,7 @@ import {
   getChunkEntry, setChunkEntry, forEachChunk,
   getAllTerrainMeshes, countExploredInChunk, disposeChunk
 } from './chunkManager.js';
-import { buildChunkTerrainMesh } from './terrain/terrainMesh.js';
+import { buildChunkTerrainMesh } from './terrain/index.js';
 import { buildChunkFeatureMeshes } from './features/featureMeshes.js';
 import { buildUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted, initPieceTextures, disposePieceTextures } from './units/index.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/mapInteraction.js';
@@ -20,7 +20,7 @@ import { startMeasure, endMeasure } from '../../dev/performance/index.js';
 
 // Re‑export symbols needed by external consumers
 export { getSceneContext } from './sceneContext.js';
-export { tileTopY, tileSurfaceY, HEX_THICKNESS } from './terrain/terrainMesh.js';
+export { tileTopY, tileSurfaceY, HEX_THICKNESS } from './terrain/index.js';
 export { hexCenter, hexCornersXZ, hexCenter3D } from './hexWorldSpace.js';
 export { resetCamera, zoomCamera, fitCameraToMap } from './scene/cameraZoomMath.js';
 export { setPanBounds, setCameraStartCenter } from './scene/cameraPanMath.js';

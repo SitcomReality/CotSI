@@ -2,7 +2,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileSurfaceY } from '../terrain/terrainMesh.js';
+import { tileSurfaceY } from '../terrain/index.js';
 import {
   CHAMPION_BODY_Y_OFFSET,
   CHAMPION_HEAD_Y_OFFSET,

@@ -11,7 +11,7 @@
 
 import { parseKey } from '../../engine/rules/hexGrid.js';
 import { hexCenter } from '../hexmap3d/hexWorldSpace.js';
-import { TERRAIN_COLOR } from '../hexmap3d/terrain/terrainMesh.js';
+import { TERRAIN_COLOR } from '../../params/render/terrainParams.js';
 import { CAMERA_YAW } from '../hexmap3d/scene/cameraState.js';
 import { MINIMAP_SIZE, PADDING, getTerrainCtx } from './minimapDom.js';
 import {
