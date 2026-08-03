@@ -17,8 +17,50 @@ export const TREE_TALL = { heightOffset: 0.65, canopyY: 0.55 };
 export const TREE_WIDE = { heightOffset: 0.55, canopyY: 0.45 };
 export const TREE_ROUND = { heightOffset: 0.50, canopyY: 0.50 };
 
-export const TREE_DENSITY_SCALE = { dense: 1.0, medium: 0.75, sparse: 0.50 };
 export const TREE_TRUNK_Y_FRACTION = 0.4;
+
+// ── Tree cluster + solitary layout ──
+// Forest/woods tiles render a cluster of trees scattered inside the hex;
+// individual trees (largeTree, fruitTree, lone tree on open ground) render
+// one bigger, more distinctive tree. All values are deterministic per tile.
+
+/** Min/max cluster size by terrain — count scales with the tile's density. */
+export const TREE_CLUSTER_COUNTS = { forest: [3, 5], denseForest: [4, 7] };
+/** Ring radii (world units, hex radius = 1.0) inside which cluster trees sit. */
+export const TREE_CLUSTER_RING = { min: 0.18, max: 0.55 };
+/** Outward-lean range (radians) — cluster trees lean away from the hex center. */
+export const TREE_CLUSTER_LEAN = { min: 0.045, max: 0.12 };
+
+/** Per-tree variation ranges for cluster trees. */
+export const TREE_VARIATION = {
+  scaleMin:        0.8,    // overall size relative to cluster base (1.0)
+  scaleMax:        1.15,
+  stretchYMin:     0.85,   // canopy height multiplier
+  stretchYMax:     1.3,
+  stretchXZMin:    0.9,    // canopy width multiplier
+  stretchXZMax:    1.15,
+  trunkStretchMin: 0.9,    // trunk height/width multiplier
+  trunkStretchMax: 1.2,
+  colorJitter:     0.05,   // ± brightness jitter for cluster leaf color
+  ringJitter:      0.15,   // ± fraction of ring width for radial scatter
+  angleJitter:     0.7,    // ± radians of angular scatter around even spacing
+};
+
+/** Solitary-tree treatments (individual trees). */
+export const TREE_SOLITARY = {
+  tree:      { scale: 1.15, stretchY: 1.1,  stretchXZ: 1.05, lean: 0.02 },
+  fruitTree: { scale: 1.1,  stretchY: 1.2,  stretchXZ: 1.1,  lean: 0.015 },
+  largeTree: { scale: 1.8,  stretchY: 1.3,  stretchXZ: 1.15, trunkStretch: 1.2, lean: 0.0 },
+};
+
+/** Canopy palette — applied per instance (material stays white). */
+export const TREE_CANOPY_COLORS = {
+  round: 0x3CB371,
+  tall:  0x2E8B57,
+  wide:  0x66CDAA,
+  large: 0x9ACD32, // Elder Tree — golden-green landmark
+  fruit: 0x7CB342, // Fruit Tree — warm green
+};
 
 // ── Mountain geometries ──
 export const MOUNTAIN_SNOW_RING_RADIUS = 0.45;

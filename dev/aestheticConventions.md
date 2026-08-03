@@ -469,6 +469,20 @@ The three-dimensional map follows the same artistic rules as the 2D UI: **low-po
 
 Stylized piece scale, not real-world fidelity. A champion and a mountain are both "game pieces on a stage" and can share similar heights.
 
+### Tree clusters (implemented in `treeMeshes.js`)
+
+Forest/woods tiles read as **groves**, not lone trees:
+
+- A `tree` feature on `forest`/`denseForest` terrain spawns a **cluster of 3–7 trees**
+  scattered inside the hex; cluster size scales with the tile's density
+- Each tree in a cluster varies slightly — size, trunk height, leaf height/width,
+  rotation, leaf color — and **leans slightly away from the hex center** (a
+  cartoony bouquet/grove silhouette)
+- `denseForest` (deep wood) clusters skew tall/pine-like; tundra taiga follows
+- Individual trees are landmarks: `largeTree` (Elder Tree) is big with a
+  golden-green canopy, `fruitTree` a warm-green round crown, and a lone `tree` on
+  open ground is larger than the old uniform default
+
 ---
 
 ## 12. The Dark Carnival Light
