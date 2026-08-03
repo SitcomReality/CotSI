@@ -1,4 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
+import { toonMaterial } from '../scene/materials.js';
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
@@ -24,6 +25,33 @@ import {
   pieceIconForArchetype,
   traderPieceIconId,
 } from './pieceIcons.js';
+import { addOutlines } from '../scene/outline.js';
+
+// ─── Shared unit materials (module-level, reused every rebuild) ─────────────
+// Unit meshes are rebuilt every render pass; these materials are built once
+// and marked shared so the per-frame disposal skips them (see sceneContext.disposeMesh).
+const CHAMPION_BODY_MAT = toonMaterial({});
+CHAMPION_BODY_MAT.userData.shared = true;
+const CHAMPION_HEAD_MAT = toonMaterial({ color: 0xffe8c8 });
+CHAMPION_HEAD_MAT.userData.shared = true;
+const PIECE_BODY_MAT = toonMaterial({});
+PIECE_BODY_MAT.userData.shared = true;
+const PIECE_CAP_FALLBACK_MAT = toonMaterial({ color: 0xf0e8d0 }); // plain parchment
+PIECE_CAP_FALLBACK_MAT.userData.shared = true;
+
+// Cap materials are keyed by their (cached) icon texture — one shared material
+// per icon, so repeated piece builds never re-create or recompile materials.
+const capMatCache = new Map();
+function capMaterialFor(tex) {
+  if (!tex) return PIECE_CAP_FALLBACK_MAT;
+  let mat = capMatCache.get(tex);
+  if (!mat) {
+    mat = toonMaterial({ map: tex });
+    mat.userData.shared = true;
+    capMatCache.set(tex, mat);
+  }
+  return mat;
+}
 
 /**
  * Build unit meshes for all visible champions, mobs, and traders.
@@ -91,7 +119,7 @@ export function buildUnitMeshes(state, visible) {
 
   // ---- Champion body InstancedMesh ----
   if (championBodyInstances.length > 0) {
-    const mat = new THREE.MeshLambertMaterial({ flatShading: true });
+    const mat = CHAMPION_BODY_MAT;
     const im = new THREE.InstancedMesh(getChampionBodyGeo(), mat, championBodyInstances.length);
     const dummy = new THREE.Object3D();
     championBodyInstances.forEach((inst, i) => {
@@ -110,7 +138,7 @@ export function buildUnitMeshes(state, visible) {
 
   // ---- Champion heads InstancedMesh ----
   if (championHeadInstances.length > 0) {
-    const mat = new THREE.MeshLambertMaterial({ color: 0xffe8c8, flatShading: true });
+    const mat = CHAMPION_HEAD_MAT;
     const im = new THREE.InstancedMesh(getChampionHeadGeo(), mat, championHeadInstances.length);
     const dummy = new THREE.Object3D();
     championHeadInstances.forEach((inst, i) => {
@@ -137,7 +165,8 @@ export function buildUnitMeshes(state, visible) {
     _buildPiecePair(traderInstances, traderPieceIconId(), 'trader', results);
   }
 
-  return results;
+  // Ink-outline twins for every unit mesh (see aestheticConventions §11).
+  return results.flatMap(addOutlines);
 }
 
 // ─── Piece building helper ──────────────────────────────────────────────────
@@ -155,7 +184,7 @@ function _buildPiecePair(instances, iconId, label, results) {
   const dummy = new THREE.Object3D();
 
   // --- Body (faction-coloured coin edge) ---
-  const bodyMat = new THREE.MeshLambertMaterial({ flatShading: true });
+  const bodyMat = PIECE_BODY_MAT;
   const bodyIm = new THREE.InstancedMesh(getPieceBodyGeo(), bodyMat, count);
 
   instances.forEach((inst, i) => {
@@ -173,9 +202,7 @@ function _buildPiecePair(instances, iconId, label, results) {
 
   // --- Cap (icon disc on top) ---
   const tex = iconId ? getPieceTexture(iconId) : null;
-  const capMat = tex
-    ? new THREE.MeshLambertMaterial({ map: tex })
-    : new THREE.MeshLambertMaterial({ color: 0xf0e8d0 }); // fallback: plain parchment
+  const capMat = capMaterialFor(tex); // shared per icon texture (see above)
   const capIm = new THREE.InstancedMesh(getPieceCapGeo(), capMat, count);
 
   // Cap Y is body centre + body half-height + cap half-height + tiny spacer

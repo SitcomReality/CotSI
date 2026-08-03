@@ -16,8 +16,10 @@
  */
 
 import * as THREE from '../../../vendor/three.module.js';
+import { toonMaterial } from '../scene/materials.js';
 import { getClock } from '../../../shared/clockScheduler.js';
 import { getChampionBodyGeo, getChampionHeadGeo } from './unitGeometries.js';
+import { getOutlineGeometry, outlineMaterial } from '../scene/outline.js';
 import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
 import {
   hexToRgb,
@@ -121,19 +123,27 @@ export function queueOrStart(championId, fromPos, toPos, factionColorHex, durati
 
   // Build temporary meshes
   const rgb = hexToRgb(factionColorHex);
-  const bodyMat = new THREE.MeshLambertMaterial({
+  const bodyMat = toonMaterial({
     color: new THREE.Color(rgb[0], rgb[1], rgb[2]),
-    flatShading: true,
   });
-  const headMat = new THREE.MeshLambertMaterial({
+  const headMat = toonMaterial({
     color: 0xffe8c8,
-    flatShading: true,
   });
 
   const body = new THREE.Mesh(getChampionBodyGeo(), bodyMat);
   const head = new THREE.Mesh(getChampionHeadGeo(), headMat);
   body.castShadow = true;
   head.castShadow = true;
+
+  // Ink-outline twins (shared hull geometry + material — never disposed here).
+  // Parented to body/head so they inherit the animation transform each frame
+  // and come off with their parent on cleanup.
+  const bodyOutline = new THREE.Mesh(getOutlineGeometry(body.geometry), outlineMaterial);
+  const headOutline = new THREE.Mesh(getOutlineGeometry(head.geometry), outlineMaterial);
+  bodyOutline.renderOrder = -1;
+  headOutline.renderOrder = -1;
+  body.add(bodyOutline);
+  head.add(headOutline);
 
   scene.add(body);
   scene.add(head);
@@ -216,7 +226,9 @@ function _removeAnimation(championId, anim) {
   }
   if (anim.body && scene) scene.remove(anim.body);
   if (anim.head && scene) scene.remove(anim.head);
-  // Dispose only the materials — geometries are shared via the geometry cache.
+  // Outline hulls are children of body/head, so they come off with them.
+  // Dispose only the materials — geometries are shared via the geometry cache
+  // (outline geometry + material are shared renderer assets, never disposed).
   if (anim.bodyMat) anim.bodyMat.dispose();
   if (anim.headMat) anim.headMat.dispose();
   activeAnimations.delete(championId);

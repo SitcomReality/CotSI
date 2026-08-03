@@ -1,5 +1,6 @@
 // src/render/hexmap3d/features/debrisMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
+import { toonMaterial } from '../scene/materials.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileSurfaceY } from '../terrain/index.js';
 import {
@@ -94,9 +95,8 @@ function buildDebrisMeshesFromGroups(groups) {
 
   for (const [kind, instances] of groups) {
     if (instances.length === 0) continue;
-    const mat = new THREE.MeshLambertMaterial({
+    const mat = toonMaterial({
       color: 0xffffff, // instance colors carry the tint
-      flatShading: true,
     });
     const mesh = new THREE.InstancedMesh(DEBRIS_GEO[kind](), mat, instances.length);
     instances.forEach((inst, i) => {

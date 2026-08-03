@@ -1,4 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
+import { toonMaterial } from './materials.js';
 import { createCameraState, applyCameraState } from './cameraState.js';
 import { createRenderer } from './rendererSetup.js';
 import { addLights } from './lightSetup.js';
@@ -96,7 +97,7 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
 
   // --- Ground plane (temporary, removed in Phase 2) ---
   const groundGeo = new THREE.PlaneGeometry(GROUND_PLANE_SIZE, GROUND_PLANE_SIZE);
-  const groundMat = new THREE.MeshLambertMaterial({ color: 0xd4b87a });
+  const groundMat = toonMaterial({ color: 0xd4b87a });
   const ground = new THREE.Mesh(groundGeo, groundMat);
   ground.name = 'ground';
   ground.rotation.x = -Math.PI / 2;

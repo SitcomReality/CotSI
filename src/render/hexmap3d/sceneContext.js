@@ -45,15 +45,17 @@ export function disposeSceneContext() {
 /**
  * Dispose a single mesh (geometry + material) and remove from scene.
  * For unit meshes (Groups/InstancedMeshes with no sub-children to recurse into).
+ * Shared module-level assets (marked `userData.shared`) are skipped — they are
+ * owned for the life of the renderer and reused across meshes (see outline.js).
  * @param {THREE.Object3D|undefined|null} mesh
  */
 export function disposeMesh(mesh) {
   if (!mesh) return;
-  if (mesh.geometry) mesh.geometry.dispose();
+  if (mesh.geometry && !mesh.geometry.userData?.shared) mesh.geometry.dispose();
   if (mesh.material) {
     if (Array.isArray(mesh.material)) {
-      mesh.material.forEach(m => m.dispose());
-    } else {
+      mesh.material.forEach(m => { if (!m.userData?.shared) m.dispose(); });
+    } else if (!mesh.material.userData?.shared) {
       mesh.material.dispose();
     }
   }

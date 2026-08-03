@@ -1,5 +1,6 @@
 // src/render/hexmap3d/features/baseMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
+import { toonMaterial } from '../scene/materials.js';
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileSurfaceY } from '../terrain/index.js';
@@ -29,8 +30,8 @@ export function buildBaseMeshes(state, visible) {
     const group = new THREE.Group();
     group.name = `base_${f.faction}`;
 
-    const towerMat = new THREE.MeshLambertMaterial({ color: fac.base, flatShading: true });
-    const accentMat = new THREE.MeshLambertMaterial({ color: fac.color, flatShading: true });
+    const towerMat = toonMaterial({ color: fac.base });
+    const accentMat = toonMaterial({ color: fac.color });
 
     // ---- Tower body ----
     const towerGeo = new THREE.CylinderGeometry(BASE_TOWER.bottomR, BASE_TOWER.topR, BASE_TOWER.height, BASE_TOWER.segments);
@@ -116,8 +117,8 @@ export function buildChunkBaseMeshes(chunkTiles, visible) {
     const group = new THREE.Group();
     group.name = `base_${f.faction}`;
 
-    const towerMat = new THREE.MeshLambertMaterial({ color: fac.base, flatShading: true });
-    const accentMat = new THREE.MeshLambertMaterial({ color: fac.color, flatShading: true });
+    const towerMat = toonMaterial({ color: fac.base });
+    const accentMat = toonMaterial({ color: fac.color });
 
     const towerGeo = new THREE.CylinderGeometry(BASE_TOWER.bottomR, BASE_TOWER.topR, BASE_TOWER.height, BASE_TOWER.segments);
     const tower = new THREE.Mesh(towerGeo, towerMat);

@@ -3,6 +3,7 @@
 // InstancedMesh per part geometry. Public entry points for the tree feature.
 
 import * as THREE from '../../../../vendor/three.module.js';
+import { toonMaterial } from '../../scene/materials.js';
 import {
   getTreeTrunkGeo,
   getTreeCanopyRoundGeo,
@@ -51,10 +52,10 @@ function buildMeshesFromInstances(instances) {
   }
 
   const results = [];
-  const trunkMat = new THREE.MeshLambertMaterial({ color: TRUNK_COLOR, flatShading: true });
-  const branchMat = new THREE.MeshLambertMaterial({ color: FRUIT_TREE_COLORS.branch, flatShading: true });
+  const trunkMat = toonMaterial({ color: TRUNK_COLOR });
+  const branchMat = toonMaterial({ color: FRUIT_TREE_COLORS.branch });
   // Canopy/apple material is white; per-tree colors arrive via instance colors.
-  const canopyMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF, flatShading: true });
+  const canopyMat = toonMaterial({ color: 0xFFFFFF });
 
   for (const [geo, data] of Object.entries(groups)) {
     const makeGeo = PART_GEOS[geo];

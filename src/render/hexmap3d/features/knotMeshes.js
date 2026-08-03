@@ -1,5 +1,6 @@
 // src/render/hexmap3d/features/knotMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
+import { toonMaterial } from '../scene/materials.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileSurfaceY } from '../terrain/index.js';
 import { getKnotGeo } from './geometries/index.js';
@@ -27,11 +28,10 @@ export function buildKnotMeshes(state, visible) {
 
   if (instances.length === 0) return [];
 
-  const mat = new THREE.MeshLambertMaterial({
+  const mat = toonMaterial({
     color: 0x7c3fb1,
     emissive: 0xb79aff,
     emissiveIntensity: KNOT_EMISSIVE_INTENSITY,
-    flatShading: true,
   });
   const mesh = new THREE.InstancedMesh(getKnotGeo(), mat, instances.length);
   const dummy = new THREE.Object3D();
@@ -67,11 +67,10 @@ export function buildChunkKnotMeshes(chunkTiles, visible) {
 
   if (instances.length === 0) return [];
 
-  const mat = new THREE.MeshLambertMaterial({
+  const mat = toonMaterial({
     color: 0x7c3fb1,
     emissive: 0xb79aff,
     emissiveIntensity: KNOT_EMISSIVE_INTENSITY,
-    flatShading: true,
   });
   const mesh = new THREE.InstancedMesh(getKnotGeo(), mat, instances.length);
   const dummy = new THREE.Object3D();

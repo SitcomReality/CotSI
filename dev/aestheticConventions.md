@@ -454,8 +454,12 @@ html[data-cross-highlight="0"] .rt-heptagram-node[data-index="0"] {
 
 ## 11. The 3D Map — Low Poly Cartoon
 
-> **⚠️ Aspirational — not yet implemented.** The current 3D renderer uses flat-shaded
-> materials without a toon/outline pass. The conventions below describe the target.
+> **✅ Implemented (coverage: units + features).** The 3D renderer now uses
+> `MeshToonMaterial` with a shared three-stop gradient map (`scene/materials.js`),
+> plus an inverted-hull ink outline pass on unit and feature geometry
+> (`scene/outline.js`, ink `--ink-line`). Deliberate deviation from §13.7:
+> **terrain tiles are not outlined** — they stay flat-shaded so the board reads
+> calm and the outline pass stays cheap. The conventions below describe the target.
 
 The three-dimensional map follows the same artistic rules as the 2D UI: **low-poly models with bold ink outlines.**
 
@@ -535,7 +539,7 @@ Gold (`--gold`) is for the primary CTA (Begin Interregnum, Confirm), selection h
 
 ### 13.7 One ink-to-edge rule
 
-No borderless elements on the Puppet layer. If it's a painted game piece (a faction glyph, a unit icon, a terrain tile), it has an ink outline. The only exceptions: background washes, fog overlays, and backlight glow effects (which sit visually *behind* the element).
+No borderless elements on the Puppet layer. If it's a painted game piece (a faction glyph, a unit icon, a terrain tile), it has an ink outline. The only exceptions: background washes, fog overlays, backlight glow effects (which sit visually *behind* the element), and **3D terrain tiles** — the 3D map deliberately omits tile outlines (see §11 coverage note).
 
 ---
 

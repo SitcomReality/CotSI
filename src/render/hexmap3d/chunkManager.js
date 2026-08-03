@@ -96,6 +96,8 @@ export function disposeChunk(ck, scene) {
 /**
  * Recursively dispose geometry and material of a mesh and its children.
  * Does NOT remove from scene (caller handles scene removal).
+ * Shared module-level assets (marked `userData.shared`) are skipped — they are
+ * reused across chunks and owned for the life of the renderer (see outline.js).
  * @param {THREE.Object3D|undefined|null} obj
  */
 export function disposeMeshRecursive(obj) {
@@ -106,11 +108,11 @@ export function disposeMeshRecursive(obj) {
       disposeMeshRecursive(child);
     }
   }
-  if (obj.geometry) obj.geometry.dispose();
+  if (obj.geometry && !obj.geometry.userData?.shared) obj.geometry.dispose();
   if (obj.material) {
     if (Array.isArray(obj.material)) {
-      obj.material.forEach(m => m.dispose());
-    } else {
+      obj.material.forEach(m => { if (!m.userData?.shared) m.dispose(); });
+    } else if (!obj.material.userData?.shared) {
       obj.material.dispose();
     }
   }

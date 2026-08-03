@@ -1,5 +1,6 @@
 // src/render/hexmap3d/features/mountainMeshes.js
 import * as THREE from '../../../vendor/three.module.js';
+import { toonMaterial } from '../scene/materials.js';
 import { getMountainGeo } from './geometries/index.js';
 import { collectInstances, buildInstanced } from './meshBuilder.js';
 import {
@@ -49,10 +50,11 @@ export function buildChunkMountainMeshes(chunkTiles, visible) {
   return buildMountainGroup(chunkTiles, visible);
 }
 
-const MOUNTAIN_MATERIAL = new THREE.MeshLambertMaterial({
+const MOUNTAIN_MATERIAL = toonMaterial({
   vertexColors: true,
-  flatShading: true,
 });
+// Module-level asset shared across chunks — disposal guards skip it (see chunkManager.js).
+MOUNTAIN_MATERIAL.userData.shared = true;
 
 function buildMountainGroup(tilesOrArray, visible) {
   const records = collectInstances(

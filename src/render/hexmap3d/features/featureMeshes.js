@@ -4,6 +4,7 @@ import { buildKnotMeshes, buildChunkKnotMeshes } from './knotMeshes.js';
 import { buildBaseMeshes, buildChunkBaseMeshes } from './baseMeshes.js';
 import { buildDebrisMeshes, buildChunkDebrisMeshes } from './debrisMeshes.js';
 import { buildSimpleFeatureMeshes, buildChunkSimpleFeatureMeshes } from './simpleFeatureMeshes.js';
+import { addOutlines } from '../scene/outline.js';
 
 export {
   buildTreeMeshes, buildMountainMeshes, buildKnotMeshes, buildBaseMeshes, buildDebrisMeshes,
@@ -46,5 +47,7 @@ export function buildChunkFeatureMeshes(chunkTiles, _state, visible) {
   results.push(...buildChunkDebrisMeshes(chunkTiles, visible));
   results.push(...buildChunkSimpleFeatureMeshes(chunkTiles, visible));
 
-  return results;
+  // Ink-outline twins for every feature mesh (units + features coverage —
+  // see aestheticConventions §11). addOutlines returns [source, ...hulls].
+  return results.flatMap(addOutlines);
 }
