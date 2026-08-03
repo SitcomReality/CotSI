@@ -215,7 +215,15 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `features/meshBuilder.js` | Shared InstancedMesh iteration + build utilities (per-instance scale/lean/color + tree-frame placement/orientation) |
 | `features/mountainMeshes.js` | Mountain cluster meshes |
 | `features/simpleFeatureMeshes.js` | Generic builder for features registered in FEATURE_VISUALS |
-| `features/treeMeshes.js` | Tree meshes (per-terrain cluster shapes, solitary trees, fruit-tree parts, lean) |
+| `features/trees/buildTreeMeshes.js` | Tree collection + InstancedMesh assembly; public entry points |
+| `features/trees/clusterTreeRecords.js` | Cluster (woods/forest) grove record generation |
+| `features/trees/fruitTreeRecords.js` | Fruit-tree record generation (segmented trunk, branches, canopy, apple) |
+| `features/trees/index.js` | Tree module barrel (re-exports buildTreeMeshes, buildChunkTreeMeshes) |
+| `features/trees/solitaryTreeRecords.js` | Solitary landmark tree record generation |
+| `features/trees/treeHash.js` | Deterministic per-tile / per-tree hashing |
+| `features/trees/treeParts.js` | Shared tree-part record + color helpers |
+| `features/trees/treeRecordsForTile.js` | Per-tile tree treatment dispatcher |
+| `features/trees/treeVariants.js` | Canopy variant selection + per-variant geometry |
 | `features/geometries/baseGeometries.js` | Base-terrain geometry constants and factories |
 | `features/geometries/debrisGeometries.js` | Debris geometry shapes |
 | `features/geometries/index.js` | Barrel for feature geometries |

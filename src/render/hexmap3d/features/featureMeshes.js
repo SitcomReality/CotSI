@@ -1,4 +1,4 @@
-import { buildTreeMeshes, buildChunkTreeMeshes } from './treeMeshes.js';
+import { buildTreeMeshes, buildChunkTreeMeshes } from './trees/index.js';
 import { buildMountainMeshes, buildChunkMountainMeshes } from './mountainMeshes.js';
 import { buildKnotMeshes, buildChunkKnotMeshes } from './knotMeshes.js';
 import { buildBaseMeshes, buildChunkBaseMeshes } from './baseMeshes.js';

@@ -469,7 +469,7 @@ The three-dimensional map follows the same artistic rules as the 2D UI: **low-po
 
 Stylized piece scale, not real-world fidelity. A champion and a mountain are both "game pieces on a stage" and can share similar heights.
 
-### Tree clusters (implemented in `treeMeshes.js`)
+### Tree clusters (implemented in `features/trees/`)
 
 Forest/woods tiles read as **groves**, not lone trees:
 
