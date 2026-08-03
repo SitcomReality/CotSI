@@ -8,7 +8,7 @@ This document covers naming and style rules for the CotSI codebase. For architec
 
 - `camelCase.js`, lowercase first letter. No hyphens, no underscores, no `sim` prefixes.
 - **Every file name is self-explanatory without its directory path.** Assume the reader sees the name in an editor tab with no context.
-- **No bare domains.** Never a file named `combat.js`, `map.js`, `turn.js`, `player.js`, `world.js`, `state.js`, `camera.js`. Always qualify: `combatState.js`, `hexGrid.js`, `turnPipeline.js`, `cameraState.js`.
+- **No bare domains.** Never a file named `combat.js`, `map.js`, `turn.js`, `player.js`, `world.js`, `state.js`, `camera.js`. Always qualify: `combatState.js`, `hexGrid.js`, `turnActions.js`, `cameraState.js`.
 - **Verbs for actions/mutations** (`advanceTurn.js`, `resolveRoundDamage`); **nouns for data, queries, and components** (`factionData.js`, `entityQueries.js`, `headerPanel.js`).
 - **`index.js` only as a zero-logic barrel.** If it contains a single function body, it needs a real name (e.g. `combatModal.js`, not `combatui-index.js`).
 - View-models: `nounViewModel.js` (`championViewModel.js`).
@@ -21,7 +21,7 @@ The following words are banned in file and directory names:
 
 `utils`, `helpers`, `common`, `misc`, `lib`, `controller`, `handler`, `manager`, `logic`, `service`.
 
-Name the thing by what it does: `hexGrid.js` not `hexUtils.js`, `turnPipeline.js` not `turnController.js`, `combatUiState.js` not `combatStateManager.js`, `turnActions.js` not `turnLogic.js`.
+Name the thing by what it does: `hexGrid.js` not `hexUtils.js`, `endTurn.js` not `turnController.js`, `combatUiState.js` not `combatStateManager.js`, `turnActions.js` not `turnLogic.js`.
 
 Never re-use terminology for two different purposes: `Verdant` is a faction so that word can never be used to describe terrain, `tokens` are an internal name for a UI element so `game pieces` are used for the small flat cylinders of mobs.
 

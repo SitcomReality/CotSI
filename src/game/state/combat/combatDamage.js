@@ -39,7 +39,11 @@ export function resolveRoundDamage(state, combat){
     recordLedgerEntry(attacker, `-${dmg} HP — duel vs ${defender.name}`, 'loss', 'hp');
     if(attacker.potencies && defender.potencies) moveDamagedBeforeDamager(state, attacker.id, defender.id);
   }
-  combat.combatLog.push(`Round ${combat.round} damage: ${to === 'attacker' ? attacker.name : defender.name} takes ${dmg}`);
+  combat.combatLog.push(
+    dmg > 0
+      ? `Round ${combat.round} damage: ${to === 'attacker' ? attacker.name : defender.name} takes ${dmg}`
+      : `Round ${combat.round} damage: neither side takes damage`
+  );
   if(attacker.hp <= 0) {
     attacker.alive = false;
     recordDeath(state, attacker, `fell in combat against ${defender.name}`);

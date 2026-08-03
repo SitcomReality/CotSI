@@ -13,11 +13,11 @@ import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { parseKey, distance, coordKey } from '../engine/rules/hexGrid.js';
 import { startCombat, openTrader } from '../ui/combat/combatModal.js';
-import { pulseEnd } from '../ui/hud.js';
+import { pulseEnd, toast } from '../ui/hud.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { interactBase } from '../game/state/baseInteraction.js';
 import { handleTeleportClick } from '../dev/devTools.js';
-import { setGameContext } from '../dev/devPerformance.js';
+import { setGameContext } from '../dev/performance/index.js';
 import { CHAMPION_HEIGHT_OFFSET } from '../params/render/animationParams.js';
 
 /**
@@ -58,7 +58,8 @@ export function onHexClick(key) {
 
   // Adjacent base → interact
   if (tile.feature?.kind === 'base' && dist === 1) {
-    interactBase(ch, tile);
+    const result = interactBase(ch, tile);
+    if (!result.ok) toast(result.reason);
     refreshAll();
     return;
   }

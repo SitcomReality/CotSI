@@ -21,7 +21,7 @@ import { refreshAll } from './refreshAll.js';
 import { finishTurn } from '../game/state/worldSimulation.js';
 import { G } from '../game/state/liveGame.js';
 import { hideBotIndicator } from '../ui/panels/botIndicator.js';
-import { startMeasure, endMeasure, enableAllMeasurements, getSnapshot, getMeasurementStats, getFps, startCapture, stopCapture, getCaptureReport, isCaptureActive, setGameContext, getGameContext, clearGameContext } from '../dev/devPerformance.js';
+import { startMeasure, endMeasure, enableAllMeasurements, getSnapshot, getMeasurementStats, getFps, startCapture, stopCapture, getCaptureReport, isCaptureActive, setGameContext, getGameContext, clearGameContext } from '../dev/performance/index.js';
 import { getClock } from '../shared/clockScheduler.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
 import '../dev/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel

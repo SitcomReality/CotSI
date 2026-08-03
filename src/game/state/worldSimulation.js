@@ -14,7 +14,7 @@ import { addLogEntry } from './gameLog.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
 import { checkVictory } from './victoryChecks.js';
-import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
+import { startMeasure, endMeasure } from '../../dev/performance/index.js';
 import { runMobHarassment } from './mobHarassment.js';
 import { runTraderMovement } from './traderMovement.js';
 

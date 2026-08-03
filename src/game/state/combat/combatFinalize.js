@@ -32,7 +32,7 @@ export function finalizeCombat(state, attacker, defender, attackerWon){
   if(attackerWon && attacker.alive && !defender.alive){
     attacker.pos = {...defender.pos};
     refreshVision(state);
-    const gold = defender.lootGold || (LOOT_GOLD_BASE + Math.floor(state._rng()*LOOT_GOLD_RANGE));
+    const gold = defender.lootGold ?? (LOOT_GOLD_BASE + Math.floor(state._rng()*LOOT_GOLD_RANGE));
     attacker.gold += gold;
     attacker.relics += 1;
     recordLedgerEntry(attacker, `+${gold} gold, +1 relic — spoils of ${defender.name}`, 'gain', 'relic');

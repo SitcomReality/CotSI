@@ -83,6 +83,12 @@ export async function initDevTools() {
   setMeasurementEnabled('runBot', true);
   setMeasurementEnabled('worldTurn', true);
 
+  // Enable world-generation measurements (called by prod files)
+  setMeasurementEnabled('createGame', true);
+  setMeasurementEnabled('placeChamps', true);
+  setMeasurementEnabled('genTiles', true);
+  setMeasurementEnabled('fogMaskGen', true);
+
   // Enable DOM refresh sub-measurements
   setMeasurementEnabled('dom:header', true);
   setMeasurementEnabled('dom:leftPanel', true);

@@ -11,7 +11,7 @@ The clock owns the `requestAnimationFrame` loop (Three.js renders via `clock.onT
 | Group | Used by | Purpose |
 |-------|---------|---------|
 | `default` | General purpose | Fallback for ungrouped timers |
-| `bot` | `refreshAll.js`, `turnPipeline.js` | Bot turn delays, bot AI pauses |
+| `bot` | `refreshAll.js`, `botTurnRunner.js` | Bot turn delays, bot AI pauses |
 | `combat` | `combatFx.js`, `combatFlow.js` | Combat exchange waits, HP drain, cleanup |
 | `animation` | *(reserved, currently unused)* | Reserved for score count-up, slot-flip timing |
 | `ui` | `dispatchModal.js`, `hud.js`, `headerPanel.js` | Dispatch reveal, toast auto-hide, tooltip close |

@@ -18,7 +18,7 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { getClock } from '../../../shared/clockScheduler.js';
 import { getChampionBodyGeo, getChampionHeadGeo } from './unitGeometries.js';
-import { startMeasure, endMeasure } from '../../../dev/devPerformance.js';
+import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
 import {
   hexToRgb,
   computeInterpolatedPos,

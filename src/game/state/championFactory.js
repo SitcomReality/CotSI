@@ -9,7 +9,7 @@ import { nearestOpenKey } from '../rules/tileQueries.js';
 import { shuffle } from '../../engine/rules/shuffle.js';
 import { spawnTarget } from './spawnPosition.js';
 import { placeBase } from './basePlacer.js';
-import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
+import { startMeasure, endMeasure } from '../../dev/performance/index.js';
 import { CHAMPION_STARTING_HP, CHAMPION_MAX_HP, CHAMPION_BASE_MOVE, CHAMPION_SIGHT_RANGE, CHAMPION_STARTING_GOLD, MIN_BASE_DISTANCE_FLOOR, MIN_BASE_DISTANCE_RADIUS_FRACTION } from '../../params/game/championParams.js';
 import { FACTION_COUNT, DEFAULT_POTENCY, OWN_FACTION_POTENCY } from '../../params/game/factionParams.js';
 

@@ -155,15 +155,16 @@ export function floatText(parentEl, anchorEl, text, kind = 'damage') {
 
   parentEl.appendChild(span);
 
-  // Auto-remove after animation (~900 ms, uses CSS animation-duration)
-  span.addEventListener('animationend', () => {
-    if (span.parentNode) span.parentNode.removeChild(span);
-  });
-
   // Fallback cleanup in case animationend doesn't fire
-  getClock().setTimeout(() => {
+  const cleanupId = getClock().setTimeout(() => {
     if (span.parentNode) span.parentNode.removeChild(span);
   }, FLOAT_TEXT_CLEANUP_MS, 'combat');
+
+  // Auto-remove after animation (~900 ms, uses CSS animation-duration)
+  span.addEventListener('animationend', () => {
+    getClock().clearTimeout(cleanupId);
+    if (span.parentNode) span.parentNode.removeChild(span);
+  });
 
   return span;
 }

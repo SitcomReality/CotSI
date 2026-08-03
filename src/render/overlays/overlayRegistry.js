@@ -4,7 +4,7 @@
 
 import { getClock } from '../../shared/clockScheduler.js';
 import { getOverlayCanvas, getCtx2d } from './overlayCanvas.js';
-import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
+import { startMeasure, endMeasure } from '../../dev/performance/index.js';
 
 let renderLayers = [];   // ordered array of { name, priority, render(ctx2d, state, camera, time) }
 

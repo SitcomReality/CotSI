@@ -1,7 +1,7 @@
 import { pickHex } from './hexPicking.js';
 import { showTooltip, hideTooltip } from './hoverTooltip.js';
 import { setHoveredKey } from '../../overlays/overlayStack.js';
-import { startMeasure, endMeasure } from '../../../dev/devPerformance.js';
+import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
 
 /**
  * Create a pointer-move handler that shows/hides a hex tooltip.

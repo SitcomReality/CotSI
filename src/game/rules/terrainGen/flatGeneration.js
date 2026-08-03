@@ -1,7 +1,7 @@
 import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { tileToChunk } from '../../../engine/rules/chunkGrid.js';
 import { stringSeed } from '../../../engine/rules/seededRng.js';
-import { startMeasure, endMeasure } from '../../../dev/devPerformance.js';
+import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
 import {
   RIVER_SOURCE_MIN_ELEV, RIVER_SOURCE_MIN_MOIST,
 } from '../../../params/game/worldParams.js';

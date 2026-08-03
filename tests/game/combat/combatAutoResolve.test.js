@@ -118,6 +118,26 @@ test('autoResolve: champion kills a mob on round 1 and collects loot', () => {
   assert.equal(champ.relics, 1);
 });
 
+test('autoResolve: lootGold of 0 is collected as-is (no re-roll)', () => {
+  const champ = makeChampion({
+    id: 'cA',
+    faction: 1,
+    potencies: [1, 6, 1, 1, 1, 1, 1], // primary 1 → 7
+    hp: 10,
+    maxHp: 10,
+    pos: { q: 0, r: 0 },
+  });
+  const mob = makeMob({ id: 'mM', faction: 3, hp: 3, maxHp: 3, lootGold: 0, pos: { q: 1, r: 0 } });
+  const state = makeState({ champions: [champ], mobs: [mob], globalOrder: [champ.id] });
+
+  const result = resolveCombatSilently(state, champ, mob);
+
+  assert.equal(result.winner, champ);
+  assert.equal(mob.alive, false);
+  assert.equal(champ.gold, 0, 'lootGold 0 is not replaced by a re-roll');
+  assert.equal(champ.relics, 1);
+});
+
 test('autoResolve: champion-vs-champion death records the loser and loots the winner', () => {
   const champA = makeChampion({
     id: 'cA',

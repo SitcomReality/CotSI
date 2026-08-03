@@ -43,7 +43,7 @@
 }
 
 .devtools__title {
-  font-family: var(--font-display, Cinzel, serif);
+  font-family: var(--font-display);
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -68,7 +68,7 @@
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--ink-mid, #a8a4b0);
-  font-family: var(--font-display, Cinzel, serif);
+  font-family: var(--font-display);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;

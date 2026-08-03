@@ -7,7 +7,7 @@
 .float-text {
   position: absolute;
   pointer-events: none;
-  font-family: 'Cinzel', Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 22px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);

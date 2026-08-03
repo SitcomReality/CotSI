@@ -12,7 +12,7 @@ import { drawHexPoly } from './fogDrawing.js';
 import { blurMaskInPlace } from './fogBlur.js';
 import { ensureCanvases, getVisibleMaskCanvas, getExploredMaskCanvas } from './fogMaskCache.js';
 import { cameraHasChanged, resetFogMaskCameraHash } from './fogCameraTracker.js';
-import { startMeasure, endMeasure } from '../../dev/devPerformance.js';
+import { startMeasure, endMeasure } from '../../dev/performance/index.js';
 import { FOG_BLUR_RADIUS } from '../../params/render/overlayParams.js';
 
 // Fog revision tracking for cache invalidation

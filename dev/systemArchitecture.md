@@ -175,7 +175,6 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `mapRefresh.js` | Map-refresh orchestration: state -> render overlays + 3D |
 | `refreshAll.js` | Full refresh: renders, overlays, UI, minimap |
 | `rewardPrompt.js` | Reward-prompt orchestration (modal flow) |
-| `turnPipeline.js` | Turn sequencing and state machine |
 | `zoomDisplay.js` | Zoom-level display update bridging state and UI |
 
 ### `src/render/` — Pixels: Three.js scene, Canvas2D overlays, minimap
@@ -418,10 +417,6 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 
 | File | Purpose |
 |------|---------|
-| `devActionWiring.js` | Top-level dev action wiring coordinator |
-| `devBotControl.js` | Dev bot-control panel top-level |
-| `devCheats.js` | Dev cheats panel top-level |
-| `devPerformance.js` | Dev performance panel top-level |
 | `devTools.js` | Dev tools panel shell with three tabs |
 
 ### `src/` — Root

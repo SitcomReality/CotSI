@@ -104,7 +104,7 @@ mesh management. Only rebuild chunks whose contents changed. Add frustum culling
   `createGame` function passes it through. No UI changes needed here.
 
 ### 4b — Profile and optimise
-- Extend the existing `dev/devPerformance.js` instrumentation to provide output in a
+- Extend the existing `dev/performance/index.js` instrumentation to provide output in a
   format that the user can easily copy to share with agents.
 - Measure: time to generate all chunks at startup, time per `refreshAll`, time per
   world turn, memory usage.

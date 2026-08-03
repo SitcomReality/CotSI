@@ -2,7 +2,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { createCameraState, applyCameraState } from './cameraState.js';
 import { createRenderer } from './rendererSetup.js';
 import { addLights } from './lightSetup.js';
-import { startMeasure, endMeasure } from '../../../dev/devPerformance.js';
+import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
 import { INITIAL_FRUSTUM, CAMERA_NEAR, CAMERA_FAR, GROUND_PLANE_SIZE, GROUND_PLANE_Y } from '../../../params/render/cameraParams.js';
 
 /**

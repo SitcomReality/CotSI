@@ -85,6 +85,8 @@ test('resolveRoundDamage: tie round deals no damage', () => {
   assert.equal(a.hp, 10);
   assert.equal(b.hp, 10);
   assert.deepEqual(state.globalOrder, ['a', 'b']); // no reorder on a tie
+  assert.equal(combat.combatLog.length, 1);
+  assert.match(combat.combatLog[0], /neither side takes damage/);
 });
 
 test('resolveRoundDamage: double knockout → both recorded dead', () => {
