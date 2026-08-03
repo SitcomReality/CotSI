@@ -109,13 +109,35 @@ export const FRUIT_TREE_COLORS = {
 };
 
 // ── Mountain geometries ──
-export const MOUNTAIN_SNOW_RING_RADIUS = 0.45;
-export const MOUNTAIN_SNOW_RING_HEIGHT = 0.8;
-export const MOUNTAIN_PEAK_HEIGHT = 1.2;
-export const MOUNTAIN_ROCK_COLOR = [0.55, 0.52, 0.42];
-export const MOUNTAIN_SNOW_COLOR = [0.92, 0.94, 0.98];
+/** Base hexagon radius — must match hexCornersXZ so adjacent mountains tile with no gaps. */
+export const MOUNTAIN_BASE_RADIUS = 1.0;
+export const MOUNTAIN_CAP_RADIUS = 0.45;
+export const MOUNTAIN_CAP_HEIGHT = 1.2;
+export const MOUNTAIN_TIP_HEIGHT = 1.8;
+/** Dark slate body — deliberately much darker than the terrain it sits on so the massif reads as a distinct 3D form. */
+export const MOUNTAIN_BODY_COLOR = [0.28, 0.31, 0.36];
+/** Bright cool white cap — pops against the dark body under warm sun light. */
+export const MOUNTAIN_CAP_COLOR = [0.92, 0.96, 1.0];
+
+/** Small ring just below the tip point — gives the very summit its own colorable band. */
+export const MOUNTAIN_TIP_RING_RADIUS = 0.12;
+export const MOUNTAIN_TIP_RING_HEIGHT = 1.6;
+/** The tip's own color — starts identical to the cap so it's invisible until tuned. */
+export const MOUNTAIN_TIP_COLOR = [0.92, 0.96, 1.0];
+
+/** Per-tile profile variants, chosen by `hash % MOUNTAIN_VARIANTS.length`. */
+export const MOUNTAIN_VARIANTS = ['classic', 'offpeak'];
+/** Asymmetric peak — cap ring + tip shift toward one corner, making one flank steep. */
+export const MOUNTAIN_OFFPEAK = {
+  direction: Math.PI / 6, // radians — toward a corner, between two edges
+  offset: 0.22,           // cap/tip shift from the hex center
+  capRadius: 0.38,        // smaller cap under the offset tip
+};
 
 export const MOUNTAIN_HASH_SEEDS = [13, 7, 19, 100];
+// The MOUNTAIN_PEAK/SLOPE/NORMAL_SCALE* below apply to the game-layer
+// mountainType tags ('peak' = tall center of a group, 'slope' = foothills),
+// not to the geometry tip.
 export const MOUNTAIN_PEAK_SCALE = 1.3;
 export const MOUNTAIN_PEAK_SCALE_RANGE = 15;
 export const MOUNTAIN_SLOPE_SCALE = 0.7;
