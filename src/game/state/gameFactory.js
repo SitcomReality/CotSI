@@ -31,7 +31,6 @@ export function createGame({
   champions = [],
   objectives = { relicRace: true, relicTarget: 7, lastStanding: true },
   biome = 'multi_biome',
-  mapSettings = {},
 }) {
   const isMultiBiome = biome === 'multi_biome';
 
@@ -43,7 +42,6 @@ export function createGame({
   const flatTiles = generateTiles(
     seed, radius,
     isMultiBiome ? null : singleBiomeDef,
-    mapSettings,
   );
 
   // Post-classification: clear passable terrain around faction spawn targets.
@@ -79,7 +77,7 @@ export function createGame({
 
   // --- Build the bare state skeleton ---
   const state = createInitialState({
-    seed, radius, biome, mapSettings,
+    seed, radius, biome,
     biomePalettes,
     tiles: flatTiles, objectives, rng,
   });

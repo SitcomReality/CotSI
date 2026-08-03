@@ -79,6 +79,23 @@ function hashSeedOffset(biomeId, tag) {
 }
 
 /**
+ * Base epicenter radius, scaled to map size.
+ * Prefers the per-biome radiusFraction; falls back to the legacy absolute
+ * `ep.radius` (a scaling bug in early defs) with a one-time warning.
+ */
+let warnedLegacyEpicenterRadius = false;
+function epicenterBaseRadius(ep, radius) {
+  if (ep.radiusFraction !== undefined) {
+    return ep.radiusFraction * radius;
+  }
+  if (!warnedLegacyEpicenterRadius) {
+    warnedLegacyEpicenterRadius = true;
+    console.warn('[epicenterPlacement] epicenter missing radiusFraction — falling back to legacy ep.radius');
+  }
+  return ep.radius;
+}
+
+/**
  * Apply supernatural biome overrides via dart-thrown epicenter placement.
  *
  * Epicenter seeds are placed by seeded dart-throwing for organic distribution
@@ -113,7 +130,7 @@ export function applySupernaturalOverrides(tileMap, baseSeed, radius) {
       const dist = distance({ q: tile.q, r: tile.r }, { q: s.q, r: s.r });
 
       // Base radius scales with map size via radiusFraction
-      const baseRadius = (ep.radiusFraction ?? ep.radius / radius) * radius;
+      const baseRadius = epicenterBaseRadius(ep, radius);
 
       // Noise-modulated radius for organic, irregular region boundaries
       const radiusNoise = hexFbm2D(tile.q, tile.r,

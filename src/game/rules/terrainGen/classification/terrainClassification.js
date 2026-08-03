@@ -87,9 +87,24 @@ export function classifyTerrain(elevation, moisture, temperature, slope, biomeDe
   return 'plains';
 }
 
+/** Fallback elevation when neither the biome nor TERRAIN_ELEVATION know a terrain. */
+const ELEVATION_FALLBACK = 0;
+
+/** Terrains already warned about (warn once per unknown terrain, not per tile). */
+const warnedMissingElevation = new Set();
+
 export function resolveElevation(terrain, biomeDef) {
   if (biomeDef?.terrainElevation?.[terrain] !== undefined) {
     return biomeDef.terrainElevation[terrain];
   }
-  return TERRAIN_ELEVATION[terrain] || 0;
+  // TERRAIN_ELEVATION is a render-domain table (3D Y-offset); a terrain absent
+  // from both sources is a data gap that silently resolving to 0 would hide.
+  if (TERRAIN_ELEVATION[terrain] === undefined) {
+    if (!warnedMissingElevation.has(terrain)) {
+      warnedMissingElevation.add(terrain);
+      console.warn(`[terrainClassification] no elevation entry for terrain "${terrain}" — using ${ELEVATION_FALLBACK}`);
+    }
+    return ELEVATION_FALLBACK;
+  }
+  return TERRAIN_ELEVATION[terrain];
 }

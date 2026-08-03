@@ -17,6 +17,7 @@ import {
 import { G } from '../../game/state/liveGame.js';
 import { getCombatUI, setFinishAttackerTurn } from './combatState.js';
 import { toast } from '../../ui/hud.js';
+import { FLEE_ROUND_DELAY } from '../../params/game/combatParams.js';
 import { renderCombat } from '../../ui/combat/combatRenderer.js';
 import { registerAction } from '../../shared/actionBus.js';
 import { closeCombat } from './combatLifecycle.js';
@@ -68,8 +69,8 @@ export function initCombat(deps) {
     const combat = getCombatUI();
     if (!combat) return;
 
-    // Cannot flee before at least one full round has completed
-    if (combat.round <= 1) {
+    // Cannot flee before FLEE_ROUND_DELAY rounds have completed
+    if (combat.round <= FLEE_ROUND_DELAY) {
       toast('Cannot flee before the first exchange resolves.', true);
       return;
     }

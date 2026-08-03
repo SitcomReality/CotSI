@@ -1,3 +1,4 @@
+import { FLEE_ROUND_DELAY } from '../../../params/game/combatParams.js';
 import { potencyWithPrimary, beats } from '../../rules/factionData.js';
 
 /**
@@ -50,10 +51,11 @@ export function botCombatPick(entity, revealedHistory, available) {
 /**
  * Decide whether a combatant should flee after the current round.
  *
- * Returns true only after round 1 has completed and the entity is
- * non-human, alive, and continuing would be likely fatal.
+ * Returns true only after FLEE_ROUND_DELAY rounds have completed and the
+ * entity is non-human, alive, and continuing would be likely fatal.
  *
- * Mobs (no .controller) always flee after round 1 if they lost the round.
+ * Mobs (no .controller) always flee after FLEE_ROUND_DELAY rounds if they
+ * lost the round.
  *
  * @param {object} entity — The combatant entity (champion or mob)
  * @param {object} combat — The current combat state
@@ -61,7 +63,7 @@ export function botCombatPick(entity, revealedHistory, available) {
  */
 export function shouldBotFlee(entity, combat) {
   if (!entity || !entity.alive) return false;
-  if (combat.round <= 1) return false;
+  if (combat.round <= FLEE_ROUND_DELAY) return false;
 
   // Humans decide on their own — never force-flee
   if (entity.controller === 'human') return false;
@@ -83,6 +85,6 @@ export function shouldBotFlee(entity, combat) {
     return entity.hp <= damageFromRound;
   }
 
-  // Mobs: always flee after round 1 if they lost
+  // Mobs: always flee after FLEE_ROUND_DELAY rounds if they lost
   return true;
 }

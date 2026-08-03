@@ -159,10 +159,21 @@ object as coordinates → NaN distances, fixed in commit 3).
 - **Dead params:** `FLEE_MIN_HP`/`FLEE_ROUND_DELAY` never used (combatFlee hardcodes
   `hp - 1`, combatBotAI hardcodes `round <= 1`); `mapSettings` sliders (hv/wt/mt) flow
   into `generateTiles` but are explicitly unused in the new pipeline — sliders
-  silently do nothing.
+  silently do nothing. — DONE (commit 2): `FLEE_MIN_HP`/`FLEE_ROUND_DELAY` wired into
+  `combatFlee`/`combatBotAI`/`combatActions`/`combatViewModel` (values unchanged — tests
+  pin the 1/1 behavior). Sliders **removed** per decision: the 3 range inputs, their
+  wiring, the dead `mapSettings` threading through `gameFactory`/`initialGameState`/
+  `generateTiles`/`generateChunkTiles`, and `DEFAULT_HV/WT/MT` are gone — also removing
+  a latent unbound-`DEFAULT_HV` ReferenceError in `setupActions`; `gameMechanics.md`
+  updated to match.
 - **Silent fallbacks hiding bad data:** `terrainClassification.js:93`
   (`TERRAIN_ELEVATION[t] || 0`), `chunkGeneration.js:110` (`?? 0` sea-level),
   `epicenterPlacement.js:116` (`radiusFraction ?? radius/radius`).
+  — DONE (commit 2): `resolveElevation` warns once per unknown terrain (an explicit
+  `=== undefined` check, so render-domain `TERRAIN_ELEVATION` gaps can't masquerade as
+  sea level); `chunkGeneration` border sampling uses the named `SEA_LEVEL_ELEVATION`
+  param with a comment (missing border entries are expected, not bad data);
+  `epicenterPlacement` falls back to legacy `ep.radius` via a warn-once helper.
 - **Performance:** `epicenterPlacement.js:139-148` beach lookup scans all `tileMap`
   values per neighbor (O(6·N) × seeds) and only sees current-chunk core tiles →
   chunk-seam-inconsistent beach in epicenters; `flatGeneration.js:108` /

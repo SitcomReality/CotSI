@@ -149,6 +149,13 @@ export const SLOPE_NORMALIZATION = 0.0597;
  *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
 export const MAX_LOOKUP_RADIUS = 3;
 
+/**
+ * Elevation assumed for out-of-chunk border samples during slope computation.
+ * Missing fieldMap entries at chunk borders are expected border sampling,
+ * not bad data — border hexes default to sea level.
+ */
+export const SEA_LEVEL_ELEVATION = 0;
+
 // ---------------------------------------------------------------------------
 // Default terrain rules — consumed by classifyTerrain (Phase A+).
 // Percentile-based thresholds derived from batch analysis (batch 010).

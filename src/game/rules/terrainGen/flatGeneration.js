@@ -21,10 +21,9 @@ import { getArchetype } from '../archetypes.js';
  * @param {string}   seedText  - Seed string for reproducible generation
  * @param {number}   radius    - Hex map radius (center 0,0)
  * @param {object}   [biomeDef]- Single biome archetype definition, or null for multi-biome
- * @param {object}   [params]  - Map parameter multipliers
  * @returns {object} tiles keyed by "q,r"
  */
-export function generateTiles(seedText, radius, biomeDef = null, params = {}) {
+export function generateTiles(seedText, radius, biomeDef = null) {
   startMeasure('genTiles');
 
   // Determine which chunks intersect the map radius
@@ -41,7 +40,7 @@ export function generateTiles(seedText, radius, biomeDef = null, params = {}) {
   const tiles = {};
   for (const ck of chunks) {
     const [cq, cr] = ck.split(',').map(Number);
-    const { tileMap } = generateChunkTiles(seedText, cq, cr, radius, biomeDef, params);
+    const { tileMap } = generateChunkTiles(seedText, cq, cr, radius, biomeDef);
     for (const [, tile] of tileMap) {
       tiles[coordKey(tile)] = tile;
     }

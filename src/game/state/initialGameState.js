@@ -6,13 +6,12 @@
  */
 import { weatherForDay } from '../rules/weatherScript.js';
 
-export function createInitialState({ seed, radius, biome, mapSettings, biomePalettes, tiles, objectives, rng }) {
+export function createInitialState({ seed, radius, biome, biomePalettes, tiles, objectives, rng }) {
   return {
     screen: 'world',
     seed,
     radius,
     biome,
-    mapSettings,
     biomePalettes,
     day: 1,
     weather: weatherForDay(1),

@@ -3,7 +3,7 @@ import { listArchetypes, getArchetype } from '../game/rules/archetypes.js';
 import '../game/rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { buildRoster } from './setupHeptagram.js';
 import './setupActions.js'; // side-effect: register action handlers
-import { DEFAULT_MAP_RADIUS, DEFAULT_RELIC_TARGET, DEFAULT_HV, DEFAULT_WT, DEFAULT_MT } from '../params/ui/setupParams.js';
+import { DEFAULT_MAP_RADIUS, DEFAULT_RELIC_TARGET } from '../params/ui/setupParams.js';
 
 // ─── Shared mutable state ───
 
@@ -46,20 +46,6 @@ export function initSetup() {
       biomeSelect.appendChild(opt);
     });
   }
-
-  // ---- Wire advanced slider displays ----
-  function wireSlider(sliderId, displayId) {
-    const slider = document.getElementById(sliderId);
-    const display = document.getElementById(displayId);
-    if (slider && display) {
-      const update = () => { display.textContent = slider.value; };
-      slider.addEventListener('input', update);
-      update();
-    }
-  }
-  wireSlider('hvSlider', 'hvVal');
-  wireSlider('wtSlider', 'wtVal');
-  wireSlider('mtSlider', 'mtVal');
 
   // ---- Build roster ----
   roster = FACTIONS.map((f, i) => ({

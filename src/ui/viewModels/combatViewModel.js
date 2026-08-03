@@ -1,6 +1,7 @@
 import { FACTIONS, potencyWithPrimary } from '../../game/rules/factionData.js';
 import { sideOf, entityFor } from '../../game/state/combat/index.js';
 import { CHAMPION_MAX_HP } from '../../params/game/championParams.js';
+import { FLEE_ROUND_DELAY } from '../../params/game/combatParams.js';
 
 /**
  * Pure view-model transformer for combat state.
@@ -45,7 +46,7 @@ export function getCombatVM(combat, { humanSide } = {}) {
     activeSide,
     awaitingSide,
     awaitingPrompt: buildAwaitingPrompt(combat, humanSide),
-    canFlee: round > 1,
+    canFlee: round > FLEE_ROUND_DELAY,
     first: firstVM,
     second: secondVM,
     slots: buildSlots(exchanges, lastReveal, phase, humanSide),

@@ -111,11 +111,6 @@ registerAction('beginGame', () => {
   const biomeSelect = document.getElementById('biomeSelect');
   const biome = biomeSelect ? biomeSelect.value : 'biome_default';
 
-  const hv = parseFloat(document.getElementById('hvSlider')?.value || String(DEFAULT_HV));
-  const wt = parseFloat(document.getElementById('wtSlider')?.value || String(DEFAULT_WT));
-  const mt = parseFloat(document.getElementById('mtSlider')?.value || String(DEFAULT_MT));
-  const mapSettings = { heightVariation: hv, wateriness: wt, mountainousness: mt };
-
   if (window.__beginGame) {
     window.__beginGame({
       seed: document.getElementById('seedInput')?.value || 'glut-' + Math.floor(Math.random() * SEED_RANDOM_MAX),
@@ -126,7 +121,6 @@ registerAction('beginGame', () => {
       })),
       objectives: { relicRace: true, relicTarget, lastStanding },
       biome,
-      mapSettings,
     });
   }
 });

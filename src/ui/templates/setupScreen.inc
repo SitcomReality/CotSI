@@ -52,19 +52,6 @@
               <span class="setup-label">Biome</span>
               <select id="biomeSelect" class="field-input"></select>
             </label>
-
-            <div class="setup-slider-row">
-              <label>Height <span id="hvVal">1.0</span>x</label>
-              <input type="range" id="hvSlider" min="0.5" max="2.0" step="0.1" value="1.0">
-            </div>
-            <div class="setup-slider-row">
-              <label>Water <span id="wtVal">1.0</span>x</label>
-              <input type="range" id="wtSlider" min="0.0" max="2.0" step="0.1" value="1.0">
-            </div>
-            <div class="setup-slider-row">
-              <label>Mountains <span id="mtVal">1.0</span>x</label>
-              <input type="range" id="mtSlider" min="0.0" max="2.0" step="0.1" value="1.0">
-            </div>
           </div>
         </details>
 

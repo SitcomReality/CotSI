@@ -58,13 +58,9 @@ Biomes are data-driven archetypes defined in `src/game/rules/archetypeData/biome
 
 ### Map Settings Parameters
 
-Setup screen "Advanced" sliders passed as `mapSettings` to `generateTiles()`:
-
-| Parameter | Effect | Range |
-|-----------|--------|-------|
-| `heightVariation` | Multiplies elevation noise amplitude | 0.5–2.0 |
-| `wateriness` | Multiplies water maxElevation threshold | 0.0–2.0 |
-| `mountainousness` | Divides mountain minElevation threshold | 0.0–2.0 |
+The setup screen's height/water/mountains sliders (`hv`/`wt`/`mt`) were removed in the
+§5 fragility-hardening pass — the new terrain pipeline doesn't consume `mapSettings`
+multipliers yet. Re-add the sliders when the pipeline has real knobs to expose.
 
 ### Multi-biome mode
 

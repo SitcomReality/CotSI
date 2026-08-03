@@ -4,7 +4,7 @@ import { TERRAIN, DEFAULT_FEATURES } from '../terrainTypes.js';
 import { tileToChunk, localCoord, localKey, hexesInChunk } from '../../../engine/rules/chunkGrid.js';
 import { CHUNK_SIZE } from '../../../params/engine/chunkParams.js';
 import {
-  MAX_LOOKUP_RADIUS, DEFAULT_TERRAIN_RULES,
+  MAX_LOOKUP_RADIUS, DEFAULT_TERRAIN_RULES, SEA_LEVEL_ELEVATION,
   NOISE_CHANNEL_FEATURES, NOISE_CHANNEL_DEBRIS, NOISE_CHANNEL_DEBRIS_KIND,
   DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD, DEBRIS_SPAWN_THRESHOLD,
 } from '../../../params/game/worldParams.js';
@@ -62,10 +62,9 @@ export function hexesInExpandedChunk(cq, cr, ringWidth) {
  * @param {number}   chunkR    - Chunk r coordinate
  * @param {number}   radius    - Hex map radius (center 0,0)
  * @param {object}   [biomeDef]- Single biome archetype def, or null for multi-biome
- * @param {object}   [params]  - Map parameter multipliers (unused in new pipeline)
  * @returns {{ tileMap: Map<string, object>, biomeId: string|null }}
  */
-export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = null, params = {}) {
+export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = null) {
   const seed = stringSeed(seedText);
   const tileMap = new Map();
 
@@ -107,7 +106,8 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
   const slopeMap = new Map();
   for (const key of coreSet) {
     const [q, r] = key.split(',').map(Number);
-    const elevationAt = (nq, nr) => fieldMap.get(coordKey({ q: nq, r: nr }))?.elevation ?? 0;
+    // Missing border-ring entries are expected — default to sea level
+    const elevationAt = (nq, nr) => fieldMap.get(coordKey({ q: nq, r: nr }))?.elevation ?? SEA_LEVEL_ELEVATION;
     slopeMap.set(key, computeSlope(q, r, elevationAt));
   }
 

@@ -3,8 +3,9 @@
  *
  * When a champion flees, the current round's damage is applied
  * (with final bonuses) but death is prevented: the fleeing entity
- * survives at 1 HP minimum.
+ * survives at FLEE_MIN_HP minimum.
  */
+import { FLEE_MIN_HP } from '../../../params/game/combatParams.js';
 import { applyFinalBonuses } from './combatScoring.js';
 import { moveDamagedBeforeDamager } from './combatDamage.js';
 import { recordLedgerEntry } from '../dispatchLedger.js';
@@ -16,7 +17,7 @@ import { checkVictory } from '../victoryChecks.js';
 
 /**
  * Resolve combat via flee — apply the current round's damage (with final bonuses)
- * but prevent death: the fleeing entity survives at 1 HP minimum.
+ * but prevent death: the fleeing entity survives at FLEE_MIN_HP minimum.
  *
  * Handles turn-order reorder, ledger entries, log, and attacker's
  * `lastActionCombat` / `moves` zeroing. Does NOT grant loot or move positions.
@@ -58,7 +59,7 @@ export function fleeFromCombat(state, combat, fleeingSide) {
     dmg = fleeingSide === 'attacker' ? scoreB - scoreA : scoreA - scoreB;
     const newHp = fleeingEntity.hp - dmg;
     if (newHp <= 0) {
-      dmg = fleeingEntity.hp - 1; // cap damage to survive at 1 HP
+      dmg = fleeingEntity.hp - FLEE_MIN_HP; // cap damage to survive at FLEE_MIN_HP
     }
     fleeingEntity.hp -= dmg;
     if (fleeingEntity.potencies && otherEntity.potencies) {
