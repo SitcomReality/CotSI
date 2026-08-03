@@ -181,7 +181,7 @@ function equipmentEffects(state, champ, effects) {
   });
 }
 
-const CONTRIBUTORS = [artifactEffects, factionEffects, terrainEffects, equipmentEffects];
+const CONTRIBUTORS = [weatherEffects, artifactEffects, factionEffects, terrainEffects, equipmentEffects];
 
 // ── Movement breakdown ──────────────────────────────────────────────────────
 // Parts mirror the inputs of dailyMoves (game/state/championMovement.js);

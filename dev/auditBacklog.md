@@ -111,7 +111,11 @@ All four items resolved (commit A: items 2–4; commit B: item 1).
   `deathTracker`.
 - **P5 (trivial):** `engine/rules/shuffle.js` (only untested engine file),
   `weatherScript.js`, `logGrammar`/`logHelpers` (protect user-visible text),
-  `dispatchReport.js` (biggest untested rules file).
+  `dispatchReport.js` (biggest untested rules file). — DONE (commit 1):
+  tests added for all five; `dispatchReport` tests exposed a real bug —
+  `weatherEffects` was missing from `CONTRIBUTORS`, so weather potency/score
+  stat cards never rendered in the Augur's Dispatch modal (dispatchModal.js
+  reads exactly those `report.effects` entries). Fixed (one line).
 - **Infra:** shared fixture pattern is `tests/helpers/stateFixture.js` (no `.test.js`
   suffix — safe from `node --test` discovery). `node --test` auto-discovers `*.test.js`
   from repo root; `baseInteraction.js`'s ui import keeps it untestable in node until
