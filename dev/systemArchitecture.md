@@ -28,6 +28,7 @@ src/
   render/         Pixels: Three.js scene, Canvas2D overlays, minimap. Reads state, never mutates.
   ui/             DOM: panels, modals, widgets, view-models. Never mutates game state.
   shared/         Leaf infrastructure imported by any layer; imports nothing project-local.
+  params/         Pure parameter/data constants (rate of change). Imports nothing project-local.
   vendor/         Third-party builds (Three.js). Exempt from naming rules. Do not edit.
 ```
 
@@ -36,6 +37,7 @@ src/
 | Importer      | May import |
 |---------------|------------|
 | `shared/`     | nothing project-local |
+| `params/`     | nothing project-local |
 | `engine/`     | `shared/`, `engine/` |
 | `game/rules/` | `shared/`, `engine/`, `game/rules/` |
 | `game/state/` | `shared/`, `engine/`, `game/rules/`, `game/state/` |
@@ -56,8 +58,10 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 
 | File | Purpose |
 |------|---------|
+| `binaryHeap.js` | Min-binary-heap priority queue (Dijkstra in connectivityEnforcement) |
 | `chunkGrid.js` | Chunk coordinate math (CHUNK_SIZE=24) for spatial partitioning |
 | `hexGrid.js` | Hex math: neighbors, distance, coordinates, ring queries, cubeRound |
+| `noise.js` | Seeded simplex noise (2D) + FBM for terrain fields |
 | `pathfinding.js` | A\* pathfinding on hex grid |
 | `seededRng.js` | Deterministic PRNG with seed |
 | `shuffle.js` | Fisher-Yates shuffle |
@@ -74,7 +78,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | File | Purpose |
 |------|---------|
 | `archetypes.js` | Archetype registry with inheritance (biomes, features, mobs) |
-| `archetypeData/biomes/` | Directory: per-biome archetype definitions (10 files + barrel) |
+| `archetypeData/biomes/` | Directory: per-biome archetype definitions (11 files + barrel) |
 | `archetypeData/features.js` | Feature archetype definitions |
 | `archetypeData/mobs.js` | Mob creature definitions |
 | `archetypeData/index.js` | Barrel: triggers all archetype registrations |
@@ -84,7 +88,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `logHelpers.js` | Utility functions for log message formatting |
 | `paleyScoring.js` | Paley tournament score calculation (7-node tournament) |
 | `terrainTypes.js` | Terrain type constants and default features |
-| `terrainGen/` | Terrain generation pipeline (19 files — see below) |
+| `terrainGen/` | Terrain generation pipeline (20 files — see below) |
 | `tileQueries.js` | Spawn-placement helpers (nearestOpenKey, nearestOpenMultiRing) |
 | `traderStock.js` | Trader stock generation logic |
 | `weatherScript.js` | Weather generation/scripting |
@@ -333,7 +337,19 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `setupHeptagram.js` | Setup-screen heptagram display |
 | `setupScreen.js` | New-game setup screen |
 | `svgIcon.js` | SVG icon component factory |
+| `templates/combatModal.inc` | Combat modal HTML template |
+| `templates/confirmModal.inc` | Confirm modal HTML template |
+| `templates/deathModal.inc` | Death announcement modal template |
+| `templates/devTools.inc` | Dev tools panel template |
+| `templates/dispatchModal.inc` | Dispatch-event modal template |
+| `templates/gameLayout.inc` | Game page layout template |
+| `templates/heraldModal.inc` | Herald narrative modal template |
+| `templates/loadingScreen.inc` | Loading screen template |
+| `templates/rewardModal.inc` | Reward modal template |
+| `templates/setupScreen.inc` | New-game setup screen template |
 | `templates/templateLoader.js` | HTML template loading/caching |
+| `templates/toast.inc` | Toast notification template |
+| `templates/victoryModal.inc` | Victory modal template |
 | `weatherDisplay.js` | Weather icon and label display |
 
 ### `src/shared/` — Layer-neutral infrastructure (imports nothing project-local)
@@ -344,6 +360,30 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `clockScheduler.js` | Centralized Clock with pause/resume, per-group speed control, master rAF loop |
 | `speedGroup.js` | Speed-group definitions and speed multipliers |
 | `timerQueue.js` | Priority-queue timer management for the clock scheduler |
+
+### `src/params/` — Pure parameter/data constants (imports nothing project-local)
+
+| File | Purpose |
+|------|---------|
+| `dev/cheatParams.js` | Default amounts for dev cheat actions |
+| `dev/performanceParams.js` | Performance profiling thresholds and frame-rate targets |
+| `engine/chunkParams.js` | Chunk sizing for hex-grid spatial partitioning |
+| `game/aiParams.js` | Bot AI decision thresholds, weights, and probabilities |
+| `game/championParams.js` | Champion starting stats and base values |
+| `game/combatParams.js` | Combat scoring, damage, loot, and auto-resolve parameters |
+| `game/economyParams.js` | Gold costs, heal amounts, dig values, and artifact economy |
+| `game/factionParams.js` | Faction counts, potency defaults, and ability parameters |
+| `game/spawnParams.js` | Spawn position and entity-count parameters |
+| `game/worldParams.js` | World simulation, days, and shared game-world constants |
+| `render/animationParams.js` | Movement animation durations, curve parameters, champion Y offsets |
+| `render/cameraParams.js` | Camera frustum, zoom, pan, and centering parameters |
+| `render/geometryParams.js` | 3D geometry dimensions for features and units |
+| `render/minimapParams.js` | Minimap canvas sizing, dot sizes, and layout constants |
+| `render/overlayParams.js` | Fog overlay, interaction highlights, and selection-ring parameters |
+| `render/terrainParams.js` | Terrain elevation, color values, and shared world-space constants |
+| `ui/combatUiParams.js` | Combat modal animation timings, icon sizes, and UI constants |
+| `ui/setupParams.js` | Setup-screen default values and slider ranges |
+| `ui/uiParams.js` | Panel dimensions, icon sizes, and UI animation timings |
 
 ### `src/vendor/` — Third-party builds (do not edit)
 
@@ -469,6 +509,27 @@ No step is skippable in new code. The UI never calls `game/state/` directly; ren
 
 Some pre-existing cross-layer imports remain from before the layer migration. They are tracked by `python3 dev/check_imports.py`. Do not add new violations; fix existing ones via view-models/snapshots when touching affected files. Static-data reads from `game/rules/` (faction colors, terrain constants) are tolerated — passing them through `runtime/` would add ceremony without architectural benefit. The checker encodes this tolerance as an explicit allowlist (`READONLY_RULES_DATA` in `check_imports.py`), so only the remaining logic/instrumentation imports are reported as debt.
 
+The current report shows **18 known-debt imports**, all deliberate pre-migration leftovers:
+
+- **`ui → game/state` (7) — view-model/state reads that predate the view-model migration:**
+  `ui/mapTooltip.js` (entityQueries, fogOfWar, championMovement), `ui/panels/leftPanel.js`
+  (liveGame), `ui/viewModels/championViewModel.js` (championMovement),
+  `ui/viewModels/combatViewModel.js` (combat/index), `ui/combat/combatReveal.js`
+  (combat/index).
+- **`render → dev` (7) — dev-tooling measurement instrumentation:**
+  `overlays/fogMaskGenerator.js`, `overlays/overlayRegistry.js`,
+  `hexmap3d/hexMapRenderer.js`, `hexmap3d/units/movementAnimator.js`,
+  `hexmap3d/interaction/cameraPan.js`, `hexmap3d/interaction/hexHover.js`,
+  `hexmap3d/scene/sceneSetup.js` — all importing `dev/performance/index.js`.
+- **`game → dev` (4) — dev-tooling measurement instrumentation:**
+  `rules/terrainGen/flatGeneration.js`, `state/championFactory.js`,
+  `state/gameFactory.js`, `state/worldSimulation.js` — all importing
+  `dev/performance/index.js`.
+
+The `render → dev` and `game → dev` entries are the dev-tools-in-production couplings
+flagged in the audit backlog §2 (gating them behind `?dev=1` would clear these without
+moving code).
+
 ---
 
 ## 7. Tooling
@@ -477,7 +538,7 @@ Some pre-existing cross-layer imports remain from before the layer migration. Th
 - `python3 dev/check_analysis_imports.py` — verifies every relative import in `dev/analysis/` resolves, including cross-references into `src/`. Does not check layer boundaries (those rules don't apply to the standalone analysis tool).
 - `tests/run.sh` (or `node --test` from the repo root) — unit-test suite for the pure layers (`src/engine/rules/`, `src/game/rules/` incl. terrain-gen). Zero dependencies; uses Node's built-in `node:test` runner. `tests/` lives outside `src/` so it doesn't affect the boundary report.
 - `dev/analysis.html` — standalone map-gen analysis page. Not part of the game UI. Opens directly in a browser (served from the same origin).
-- There is no build step and no test runner; `engine/rules/` and `game/rules/` must stay importable in plain Node (`node --check` clean, no DOM/Three imports).
+- There is no build step; `engine/rules/` and `game/rules/` must stay importable in plain Node (`node --check` clean, no DOM/Three imports).
 
 ### `dev/analysis/` — Map gen analysis tool (standalone)
 

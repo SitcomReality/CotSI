@@ -13,6 +13,12 @@ This document covers naming and style rules for the CotSI codebase. For architec
 - **`index.js` only as a zero-logic barrel.** If it contains a single function body, it needs a real name (e.g. `combatModal.js`, not `combatui-index.js`).
 - View-models: `nounViewModel.js` (`championViewModel.js`).
 
+**Known exceptions (accepted debt):** `logHelpers.js` violates the banned "helpers" word
+(renaming it is a code change — deferred), and five bare-domain dev-tooling files exist:
+`dev/cheats/{combat,map,state}.js`, `dev/botControl/state.js`, `dev/analysis/state.js`
+(the analysis tool is standalone and exempt from game naming rules). New code must not
+follow these examples.
+
 ---
 
 ## 2. Banned Words

@@ -11,10 +11,10 @@ The clock owns the `requestAnimationFrame` loop (Three.js renders via `clock.onT
 | Group | Used by | Purpose |
 |-------|---------|---------|
 | `default` | General purpose | Fallback for ungrouped timers |
-| `bot` | `refreshAll.js`, `botTurnRunner.js` | Bot turn delays, bot AI pauses |
-| `combat` | `combatFx.js`, `combatFlow.js` | Combat exchange waits, HP drain, cleanup |
-| `animation` | *(reserved, currently unused)* | Reserved for score count-up, slot-flip timing |
-| `ui` | `dispatchModal.js`, `hud.js`, `headerPanel.js` | Dispatch reveal, toast auto-hide, tooltip close |
+| `bot` | `refreshAll.js` | Bot turn auto-advance delay |
+| `combat` | `combatFx.js`, `combatState.js` | Combat waits, HP drain, cleanup |
+| `animation` | `botTurnRunner.js` | Champion-movement pacing between hex steps |
+| `ui` | `dispatchModal.js`, `hud.js`, `perfUI.js` | Dispatch reveal, end-turn pulse, perf-panel refresh |
 
 ---
 
@@ -63,7 +63,27 @@ getClock().pauseGroup('combat');
 getClock().resumeGroup('combat');
 getClock().pause();          // master pause
 getClock().resume();         // master resume
+
+// Start the rAF loop (idempotent). The clock is NOT running until start()
+// is called — nothing fires before it.
+getClock().start();
+
+// Queries
+getClock().now('bot');         // virtual time of a group
+getClock().isPaused();         // master-paused?
+getClock().isPaused('combat'); // master-paused OR that group paused?
+
+// Frame marker: one start/end callback per tick (ctx = start's return value)
+getClock().setFrameMarker((phase, ctx) => {
+  if (phase === 'start') { /* e.g. begin a measurement */ }
+  else { /* phase === 'end' */ }
+});
+getClock().setFrameMarker(null); // clear
 ```
+
+`getFrameTickStart()` returns the `performance.now()` timestamp from the top of the
+current tick (0 outside a tick) — the performance profiler uses it to compute per-frame
+JS time.
 
 ---
 
@@ -73,4 +93,11 @@ getClock().resume();         // master resume
 2. **Always specify a group** for gameplay-related tasks; use `'default'` only for generic one-offs
 3. **`onTick` is for per-frame work** (rendering, animation), not delayed logic (use `setTimeout`/`wait`)
 4. **`dispose()` on game restart** — `hexMapRenderer.initHexMap3D()` calls `getClock().dispose()`, which stops the rAF loop and clears all pending tasks
-5. **Group names are sticky** — unrecognized names auto-create with speed `1.0` and unpaused. Stick to the 5 defined groups (`default`, `bot`, `combat`, `animation` (reserved), `ui`)
+5. **Unrecognized groups are a silent-failure footgun.** Only the 5 defined groups
+   (`default`, `bot`, `combat`, `animation`, `ui`) can be used for scheduling. Passing an
+   unknown group to `setTimeout`/`setInterval`/`wait` computes the due time against
+   `default` but stores the task under the unknown name — `popExpired` never matches it,
+   so the timer **silently never fires**. Control calls (`pauseGroup`, `resumeGroup`,
+   `setSpeed`, `getSpeed`, `now`, `isPaused`) DO auto-create unknown groups, so a typo
+   there silently creates a dead group instead of erroring. If a timer never fires, check
+   the group string first.

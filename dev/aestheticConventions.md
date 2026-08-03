@@ -194,7 +194,7 @@ State is shown through **backlight glow** (`box-shadow` + `filter: drop-shadow`)
 | `--st-ally` | `#00cc88` | `--verdigris` | Teal-green glow — not green (that's VER's accent) |
 | `--st-neutral` | `#5a6070` | (separate gray) | Neutral gray, no glow |
 | `--st-selected` | `#ffbf00` | `--gold` | Gold glow — same as gold token |
-| `--st-reveal` | `#44bb66` | (derived from verdigris) | Combat reveal glow |
+| `--st-reveal` | `color-mix(in srgb, var(--verdigris) 60%, white)` | (verdigris mix) | Combat reveal glow |
 | `--st-move` | `color-mix(in srgb, #00cc88 15%, transparent)` | Verdigris wash | Movement highlight overlay |
 | `--st-danger` | `color-mix(in srgb, #ff6600 15%, transparent)` | Cinnabar wash | Danger zone overlay |
 | `--st-fog-seen` | `color-mix(in srgb, #1c202a 55%, transparent)` | Board color wash | Fog overlay on seen tiles |
@@ -280,10 +280,13 @@ Rounded to reinforce the cartoon / playful facade. No sharp right angles on inte
 ### Edge / divider weights (for the Proscenium layer — no ink outlines here)
 
 ```css
---crease:       1px;
---crease-bd:    2px;
---crease-bd-hi: 3px;
+--hair:       1px;
+--edge:       2px;     /* standard border */
+--edge-bold:  3px;     /* emphasis border */
+--edge-heavy: 4px;     /* heavy accent */
 ```
+
+> `--crease` / `--crease-bold` are **colors**, not widths — see §4.1 Chrome Palette.
 
 ---
 
@@ -383,19 +386,26 @@ State is shown through **backlight glow** (`box-shadow`) and optional icon chang
 
 ### Header champion state
 
+State comes from `data-state` attributes — `headerStates.js` maps each champion id to
+`'current' | 'played' | 'waiting' | 'dead'`; `--dead` is a modifier class.
+
 ```css
-.header__champion.current {
-  border-left: 3px solid var(--faction-color);  /* accent bar */
+.header-panel__champion[data-state="current"] {
+  border-left: 2px solid var(--faction-color, var(--ink));  /* accent bar */
 }
-.header__champion.current::after {
+.header-panel__champion[data-state="current"]::after {
   content: '';
   background: var(--gold);  /* gold dot indicator */
 }
-.header__champion.played {
+.header-panel__champion[data-state="played"] {
   opacity: 0.45;
 }
-.header__champion.waiting {
+.header-panel__champion[data-state="waiting"] {
   opacity: 0.75;
+}
+.header-panel__champion--dead {
+  opacity: 0.35;
+  filter: grayscale(0.7);
 }
 ```
 
@@ -407,10 +417,31 @@ State is shown through **backlight glow** (`box-shadow`) and optional icon chang
   stroke: var(--ink-line);
   stroke-width: var(--ink-weight-thin);
 }
+```
 
-/* Hovered node: enlarge + gold drop-shadow (not outline) */
-html:has(.paley-item--f0:hover) .rt-heptagram-node[data-index="0"] {
+### Cross-highlight (`.paley-item` ↔ heptagram)
+
+Cross-highlighting is driven by a `data-cross-highlight` attribute on `<html>` (set and
+cleared by JS on hover/mouseleave of any `.paley-item--fN` element — see
+`heptagramWidget.js`) — **not** by `:has()` selectors, which triggered cascade clashes
+across the whole page. The rules live in `paleyCrossHighlight.css` /
+`heptagramWidget.css`:
+
+```css
+/* Hovered item itself gets a gold glow */
+.paley-item:hover {
+  filter: drop-shadow(0 0 6px var(--gold));
+}
+
+/* Related factions: beaten → ally glow, losing → hostile glow */
+html[data-cross-highlight="0"] :is(.paley-item--f1, .paley-item--f2, .paley-item--f4) {
+  box-shadow: 0 0 8px var(--st-ally);
+}
+
+/* The matching heptagram node enlarges + gets the gold glow */
+html[data-cross-highlight="0"] .rt-heptagram-node[data-index="0"] {
   r: 18;
+  stroke-width: 2.5;
   filter: drop-shadow(0 0 6px var(--gold));
 }
 ```
@@ -422,6 +453,9 @@ html:has(.paley-item--f0:hover) .rt-heptagram-node[data-index="0"] {
 ---
 
 ## 11. The 3D Map — Low Poly Cartoon
+
+> **⚠️ Aspirational — not yet implemented.** The current 3D renderer uses flat-shaded
+> materials without a toon/outline pass. The conventions below describe the target.
 
 The three-dimensional map follows the same artistic rules as the 2D UI: **low-poly models with bold ink outlines.**
 
@@ -513,7 +547,7 @@ Stop and reconsider if you see any of these:
 - A big soft drop shadow on a card (use hard offset shadows)
 - A component that needed its own one-off colour or radius
 - Two different outline conventions on the same page
-- The `:has()` selector triggering across the entire page when hovering any `.paley-item`
+- A cross-highlight mechanism not driven by `html[data-cross-highlight]` (e.g. a stray `:has()` reintroduction)
 - Gold used for anything other than CTA / selection / current-turn indicator
 
 ---

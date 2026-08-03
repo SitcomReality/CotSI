@@ -8,7 +8,7 @@ CotSI is a browser-based hex-crawl strategy game, early in development. Seven fa
 
 **Stack:** Vanilla JS (ES modules) + plain CSS. No framework, no bundler, no build step. Three.js for 3D rendering (`src/vendor/`). Served as static files from any HTTP server (ES modules require an origin — opening `index.html` from disk fails).
 
-**Test:** `python3 dev/check_imports.py` verifies all imports resolve and checks layer boundaries in `src/`. `python3 dev/check_analysis_imports.py` does the same for the standalone map analysis tool (`dev/analysis/`). Unit tests: `tests/run.sh` (or `node --test` from the repo root) runs the zero-dependency `node:test` suite covering the pure layers — `src/engine/rules/` and `src/game/rules/` (incl. terrain-gen pipeline). No other formal test runner. AI devs can't run the game; the user tests on request.
+**Test:** `python3 dev/check_imports.py` verifies all imports resolve and checks layer boundaries in `src/`. `python3 dev/check_analysis_imports.py` does the same for the standalone map analysis tool (`dev/analysis/`). Unit tests: `tests/run.sh` (or `node --test` from the repo root) runs the zero-dependency `node:test` suite covering the pure layers — `src/engine/rules/` and `src/game/rules/` (incl. terrain-gen pipeline). No other formal test runner. AI devs can't run the game; the user tests on request. Node is not on PATH in the VSCodium extension shell — use `/run/host/usr/bin/node` directly, or `tests/run.sh` (it handles the Flatpak fallback).
 
 **The User Can Help:** If there's ambiguity or confusion, ask questions. If there are complicated bugs, add console logs or debug features and the user will report results to help narrow it down.
 
@@ -31,6 +31,7 @@ CotSI is a browser-based hex-crawl strategy game, early in development. Seven fa
 | `src/render/` | Three.js + Canvas2D (reads state, never mutates) | `shared/`, `engine/`; state via args |
 | `src/ui/` | DOM: panels, modals, widgets, view-models | `shared/`, `ui/`; dispatches via actionBus |
 | `src/shared/` | Leaf infrastructure (`actionBus.js`, `clockScheduler.js`, `speedGroup.js`, `timerQueue.js`) | nothing local |
+| `src/params/` | Pure parameter/data constants (rate of change) | nothing local |
 | `src/vendor/` | Third-party Three.js builds | do not edit |
 
 **Hard rules:**
@@ -51,7 +52,7 @@ window.__gameState; // same object as G
 **JavaScript:**
 - ES modules, `const`/`let`, two-space indent
 - File names: `camelCase.js`, self-explanatory without directory context
-- Banned names: `utils`, `helpers`, `common`, `misc`, `controller`, `manager`, `logic`, `service`
+- Banned names: `utils`, `helpers`, `common`, `misc`, `lib`, `controller`, `handler`, `manager`, `logic`, `service`
 - `index.js` only as a zero-logic barrel re-export
 - Hex coords: `{ q, r }` objects, `"q,r"` string keys
 
@@ -95,4 +96,7 @@ Delegate to sub-agents as much as possible. Spawning agents to perform specific 
 
 ## Current Process Underway
 
-The terrain generation redesign is substantially complete. Remaining tuning and polish work is tracked in `dev/mapgen_update/remaining_work.md`.
+Active work is tracked in `dev/auditBacklog.md`: phases §1 (trivial fixes), §3
+(structural), §4 (test coverage), §5 (fragility hardening), §7 (docs drift) and §8
+(environment) are DONE; §2 (dev-tooling gating) and §6 (placeholders) are deferred.
+Terrain-gen tuning and polish remains tracked in `dev/mapgen_update/remaining_work.md`.

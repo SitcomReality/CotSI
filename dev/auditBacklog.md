@@ -56,7 +56,7 @@ Resolved in the trivial-fixes phase (uncommitted):
   replaced with `var(--font-display)` in `fxLayer.css`, `devTools.css`,
   `devToolsContent.css`, `bot-indicator.css`.
 
-## 2. Dev-tooling gating (dev shipped in prod)
+## 2. Dev-tooling gating (dev shipped in prod) — DEFERRED
 
 - `bootstrap.js:90` calls `enableAllMeasurements()` unconditionally — every named
   measurement runs `performance.mark/measure` on each render frame, hover, and pan
@@ -212,7 +212,7 @@ pipeline; re-add when the pipeline has real knobs (noted in `gameMechanics.md`).
   and toasts when `__beginGame` is missing; `anyModalOpen` now uses computed style
   (catches every show mechanism, not just inline `style*="flex"`).
 
-## 6. Placeholders that look like features
+## 6. Placeholders that look like features — DEFERRED
 
 - **`placeholderCypress`** archetype wired into terrain gen + rendered with cone
   stand-ins (`archetypeData/features.js:98`, `biomeDefault.js:31`,
@@ -227,31 +227,41 @@ pipeline; re-add when the pipeline has real knobs (noted in `gameMechanics.md`).
   `recordPick`'s exchange-2 flip-back leaves `awaitingSide` on a side that already
   picked (benign today, fragile).
 
-## 7. Documentation drift (verdicts from the docs audit)
+## 7. Documentation drift (verdicts from the docs audit) — DONE
 
-- **`systemArchitecture.md` — MAJOR:** `src/params/` (18 files, 133 imports) entirely
-  undocumented; biome count wrong (11 + index, not 10); terrainGen count off; §6
-  boundary debt understates reality (missing game→dev, render→dev, ui→game/state);
-  §7 contradicts itself on the test runner; missing files (`engine/rules/noise.js`,
-  `geometries/featureGeometries.js`, `ui/templates/*.inc`).
-- **`clockScheduler.md`:** docs claim unknown speed groups "auto-create" — actually an
-  unknown group makes the timer **silently never fire** (footgun; rewrite as warning);
-  "Used by" column stale; document `start()`/`now()`/`isPaused()`/`setFrameMarker()`.
-- **`namingConventions.md`:** `logHelpers.js` violates the banned "helpers" word;
-  5 bare-domain dev files (`dev/cheats/{combat,map,state}.js`, `dev/botControl/state.js`,
-  `dev/analysis/state.js`); banned-word list differs from AGENTS.md (`lib`, `handler`).
-- **`aestheticConventions.md` — NOT obsolete** (contrary to earlier belief): token
-  values match the CSS tokens ~95%. Fix 4 stale snippets (`--st-reveal`, crease
-  widths, header class names, `:has()` pattern) and mark §11 (3D toon/outline) as
-  unbuilt. Keep as the token source of truth.
-- **Minor:** `commonTasks.md` references non-existent `terrainGenerator.js`;
-  `gameMechanics.md` cites `biomes.js` (it's a directory) + stale `featureFrequencies`
-  bullet; `cssConventions.md` documents phantom `rightPanel.css`/`stats.css` + dead
-  `srcConventions.md` cross-ref; AGENTS.md layer table omits `src/params/`.
+All items resolved in one docs commit (with §8). Every verdict was re-checked against the
+codebase before editing; the audit's stale claims are noted inline.
 
-## 8. Environment / process
+- **`systemArchitecture.md` — MAJOR:** — DONE: `src/params/` (18 files, imports nothing
+  project-local) added to §2 + the file tree; biome count fixed (11 files + barrel, not
+  10); terrainGen count fixed (20, not 19); `engine/rules/noise.js` and
+  `engine/rules/binaryHeap.js` (postdates the audit) added to the tree; the 12
+  `ui/templates/*.inc` files documented; §6 boundary debt rewritten with the real
+  18-import breakdown (7 ui→game/state, 7 render→dev, 4 game→dev); §7 test-runner
+  self-contradiction fixed. *Stale audit claim:* `geometries/featureGeometries.js` was
+  already documented — no change.
+- **`clockScheduler.md`:** — DONE: unknown-group footgun rewritten as a warning (an
+  unrecognized group makes timers **silently never fire** — control ops auto-create dead
+  groups instead of erroring); "Used by" column updated (`animation` →
+  `botTurnRunner.js` movement pacing, no longer "reserved"); `start()`/`now()`/
+  `isPaused()`/`setFrameMarker()` documented.
+- **`namingConventions.md`:** — DONE: known-exceptions note added for `logHelpers.js`
+  (banned "helpers" — renaming it is a code change, deferred) and the 5 bare-domain
+  dev files.
+- **`aestheticConventions.md` — NOT obsolete:** — DONE: 4 stale snippets fixed
+  (`--st-reveal` → `color-mix(...)`, crease widths → `--hair/--edge/--edge-bold/--edge-heavy`,
+  header classes → `header-panel__champion[data-state=…]`, `:has()` cross-highlight →
+  `html[data-cross-highlight]`); §11 (3D toon/outline) marked aspirational/unbuilt.
+- **Minor:** — DONE: `commonTasks.md` `terrainGenerator.js` → `terrainGen/`;
+  `gameMechanics.md` `biomes.js` → `biomes/` + stale `featureFrequencies` bullet →
+  `features`; `cssConventions.md` dead `srcConventions.md` cross-ref →
+  `systemArchitecture.md`, phantom `rightPanel.css`/`stats.css` dropped, 9 missing
+  component files added; AGENTS.md layer table gained `src/params/`, banned words
+  aligned with `namingConventions.md` (`lib`, `handler`).
 
-- Node is reachable only via `/run/host/usr/bin/node` from this interface — the
-  Flatpak fallback `tests/run.sh` already handles this; document it in AGENTS.md's
-  Test section.
-- Consider adding a "Current Process" pointer in AGENTS.md to this backlog doc.
+## 8. Environment / process — DONE
+
+- **Node path:** — DONE: AGENTS.md's Test section now documents
+  `/run/host/usr/bin/node` and the `tests/run.sh` Flatpak fallback.
+- **Current Process pointer:** — DONE: AGENTS.md now points to this backlog as the
+  active work tracker (the map-gen tuning doc is kept alongside).

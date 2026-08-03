@@ -1,6 +1,6 @@
 CSS Conventions
 
-The living rulebook for authoring styles. For full design-system rationale see dev/aestheticConventions.md; for architecture decisions see dev/srcConventions.md.
+The living rulebook for authoring styles. For full design-system rationale see dev/aestheticConventions.md; for architecture decisions see dev/systemArchitecture.md.
 Principles
 
     Order by rate of change. Tokens → layout → components → UI overrides. Later @imports win in the cascade.
@@ -29,13 +29,16 @@ styles/
 │   ├── card.css               # Barrel → cardBase + cardVariants
 │   ├── championPanel.css      # Barrel → left-champion-card/*.css
 │   ├── modalShell.css         # Shared modal chrome
-│   ├── setupScreen.css, dispatchModal.css, rewardModal.css
-│   ├── headerPanel.css, rightPanel.css, logPanel.css
-│   ├── heptagramWidget.css, tooltip.css, mapControls.css, fog.css, tile.css
+│   ├── setupScreen.css, setupControls.css, dispatchModal.css, rewardModal.css,
+│   │   confirmModal.css, deathModal.css, heraldModal.css
+│   ├── headerPanel.css, logPanel.css, mainLog.css, minimap.css
+│   ├── heptagramWidget.css, tooltip.css, mapControls.css, fog.css, tile.css,
+│   │   bot-indicator.css
 │   ├── championDetail.css
-│   ├── potencies.css, stats.css, swatch.css, manuscriptPanel.css
+│   ├── potencies.css, swatch.css, manuscriptPanel.css
 │   ├── note.css, forms.css, textTreatment.css
 │   ├── hud.css, paleyCrossHighlight.css
+│   ├── devTools.css, devToolsContent.css
 │   ├── left-champion-card/    # Subdir: container, header, hpRow, resources,
 │   │                         #   equipment, potency, actions (all camelCase)
 │   ├── combatModal.css        # Barrel → combatModal/*.css

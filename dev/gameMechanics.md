@@ -48,10 +48,10 @@ New round begins using the same `combat.first`/`second` assignments (reflecting 
 
 ## Biome System
 
-Biomes are data-driven archetypes defined in `src/game/rules/archetypeData/biomes.js` (type: `'biome'`). Each defines:
+Biomes are data-driven archetypes defined in `src/game/rules/archetypeData/biomes/` (type: `'biome'`). Each defines:
 
 - **`terrainThresholds`** — noise cutoffs per terrain type (`{ minElevation, maxElevation, minMoisture, maxMoisture }`)
-- **`featureFrequencies`** — noise thresholds for features (trees, knots)
+- **`features`** — ordered list of feature spawn rules (`{kind, threshold, compare, terrainExclude?}`; first match wins)
 - **`palette`** — RGB tuples per terrain type for vertex color overrides
 - **`terrainTags`** — which terrain types appear
 - **`weatherAffinity`** — hint for weather system (future)
@@ -67,11 +67,11 @@ multipliers yet. Re-add the sliders when the pipeline has real knobs to expose.
 The **default** setup option is "Multi-biome (mixed world)". Biomes are now assigned
 per-hex from climate fields (elevation, moisture, temperature) through `selectBiome()`
 in `src/game/rules/terrainGen/classification/biomeSelection.js` — see that file for
-the current priority order and each biome's `climateRange` in `biomes.js`.
+the current priority order and each biome's `climateRange` in `biomes/`.
 
 ### Biome Fields
 
-See `src/game/rules/archetypeData/biomes.js` for exact definitions.
+See `src/game/rules/archetypeData/biomes/` for exact definitions.
 
 | Field | Type | Purpose |
 |-------|------|---------|
