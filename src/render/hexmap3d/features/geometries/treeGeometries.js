@@ -5,16 +5,24 @@ import {
   TREE_CANOPY_ROUND,
   TREE_CANOPY_TALL,
   TREE_CANOPY_WIDE,
+  FRUIT_TREE_TRUNK,
+  FRUIT_TREE_BRANCH,
+  FRUIT_TREE_CANOPY,
+  FRUIT_TREE_APPLE,
 } from '../../../../params/render/geometryParams.js';
 
 // =========================================================================
-// Tree geometries — 3 canopy variants
+// Tree geometries — 3 canopy variants + fruit-tree parts
 // =========================================================================
 
 let treeTrunkGeo = null;
 let treeCanopyRoundGeo = null;
 let treeCanopyTallGeo = null;
 let treeCanopyWideGeo = null;
+let fruitTreeTrunkGeo = null;
+let fruitTreeBranchGeo = null;
+let fruitTreeCanopyGeo = null;
+let fruitTreeAppleGeo = null;
 
 export function getTreeTrunkGeo() {
   if (!treeTrunkGeo) {
@@ -50,4 +58,36 @@ export function getTreeCanopyWideGeo() {
 // Legacy alias for backward compat
 export function getTreeCanopyGeo() {
   return getTreeCanopyRoundGeo();
+}
+
+/** Fruit tree: single trunk segment (stack 2–3 of these, each tilted a bit more). */
+export function getFruitTreeTrunkGeo() {
+  if (!fruitTreeTrunkGeo) {
+    fruitTreeTrunkGeo = new THREE.CylinderGeometry(FRUIT_TREE_TRUNK.bottomR, FRUIT_TREE_TRUNK.topR, FRUIT_TREE_TRUNK.height, FRUIT_TREE_TRUNK.segments);
+  }
+  return fruitTreeTrunkGeo;
+}
+
+/** Fruit tree: forked branch (thin tapered cylinder, one per side). */
+export function getFruitTreeBranchGeo() {
+  if (!fruitTreeBranchGeo) {
+    fruitTreeBranchGeo = new THREE.CylinderGeometry(FRUIT_TREE_BRANCH.bottomR, FRUIT_TREE_BRANCH.topR, FRUIT_TREE_BRANCH.height, FRUIT_TREE_BRANCH.segments);
+  }
+  return fruitTreeBranchGeo;
+}
+
+/** Fruit tree: leaf ball at the end of the leaf branch. */
+export function getFruitTreeCanopyGeo() {
+  if (!fruitTreeCanopyGeo) {
+    fruitTreeCanopyGeo = new THREE.SphereGeometry(FRUIT_TREE_CANOPY.radius, FRUIT_TREE_CANOPY.wSegs, FRUIT_TREE_CANOPY.hSegs);
+  }
+  return fruitTreeCanopyGeo;
+}
+
+/** Fruit tree: the apple hanging below the fruit branch tip. */
+export function getFruitTreeAppleGeo() {
+  if (!fruitTreeAppleGeo) {
+    fruitTreeAppleGeo = new THREE.SphereGeometry(FRUIT_TREE_APPLE.radius, FRUIT_TREE_APPLE.wSegs, FRUIT_TREE_APPLE.hSegs);
+  }
+  return fruitTreeAppleGeo;
 }

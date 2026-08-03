@@ -212,10 +212,10 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `features/featureMeshes.js` | Feature mesh barrel: dedicated builders + simpleFeatureMeshes |
 | `features/featureVisuals.js` | Visual registry: kind → geometry, material, scale |
 | `features/knotMeshes.js` | Knot (resource node) meshes |
-| `features/meshBuilder.js` | Shared InstancedMesh iteration + build utilities (per-instance scale/lean/color) |
+| `features/meshBuilder.js` | Shared InstancedMesh iteration + build utilities (per-instance scale/lean/color + tree-frame placement/orientation) |
 | `features/mountainMeshes.js` | Mountain cluster meshes |
 | `features/simpleFeatureMeshes.js` | Generic builder for features registered in FEATURE_VISUALS |
-| `features/treeMeshes.js` | Tree meshes (cluster + solitary layout, variants, lean) |
+| `features/treeMeshes.js` | Tree meshes (per-terrain cluster shapes, solitary trees, fruit-tree parts, lean) |
 | `features/geometries/baseGeometries.js` | Base-terrain geometry constants and factories |
 | `features/geometries/debrisGeometries.js` | Debris geometry shapes |
 | `features/geometries/index.js` | Barrel for feature geometries |

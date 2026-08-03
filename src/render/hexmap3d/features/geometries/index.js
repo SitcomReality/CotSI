@@ -5,6 +5,10 @@ export {
   getTreeCanopyTallGeo,
   getTreeCanopyWideGeo,
   getTreeCanopyGeo,
+  getFruitTreeTrunkGeo,
+  getFruitTreeBranchGeo,
+  getFruitTreeCanopyGeo,
+  getFruitTreeAppleGeo,
 } from './treeGeometries.js';
 
 export {

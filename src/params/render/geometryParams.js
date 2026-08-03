@@ -62,6 +62,44 @@ export const TREE_CANOPY_COLORS = {
   fruit: 0x7CB342, // Fruit Tree — warm green
 };
 
+// ── Fruit tree (solitary landmark) ──
+// A single complex tree: 2–3 short trunk segments that lean a little more with
+// each rise (gentle curve), forking into two branches — a leaf ball rides one
+// branch tip, a red apple hangs just below the other.
+
+/** Trunk segment — tapered cylinder, base length 0.17 (scaled per segment). */
+export const FRUIT_TREE_TRUNK = { bottomR: 0.075, topR: 0.055, height: 0.17, segments: 5 };
+/** Forked branch — thin tapered cylinder, base length 0.26 (scaled per branch). */
+export const FRUIT_TREE_BRANCH = { bottomR: 0.032, topR: 0.02, height: 0.26, segments: 5 };
+/** Leaf ball at the end of one branch. */
+export const FRUIT_TREE_CANOPY = { radius: 0.2, wSegs: 6, hSegs: 4 };
+/** Apple hanging below the other branch tip. */
+export const FRUIT_TREE_APPLE = { radius: 0.06, wSegs: 6, hSegs: 4 };
+
+/** Fruit-tree composition — all values deterministic per tile via hashes. */
+export const FRUIT_TREE = {
+  segmentCount: [2, 3],            // trunk segments (hash-chosen per tree)
+  segmentLen: [0.15, 0.19],        // per-segment length range (× tree scale)
+  segmentLean: [0.04, 0.09],       // cumulative lean added per segment (radians)
+  branchAzimuth: [0.5, 1.0],       // fork spread from the trunk's curve axis (radians)
+  branchElevation: [0.45, 0.7],    // branch rise above horizontal (radians)
+  branchLenA: [0.24, 0.30],        // leaf branch length (× tree scale)
+  branchLenB: [0.19, 0.25],        // fruit branch length (× tree scale)
+  appleDrop: [0.02, 0.035],        // how far the apple hangs below the branch tip
+  scaleVar: [0.92, 1.08],          // per-tree overall size jitter
+  canopyStretchY: [0.9, 1.1],      // leaf-ball height multiplier
+  canopyStretchXZ: [0.95, 1.1],    // leaf-ball width multiplier
+  canopyTilt: 0.12,                // ± radians of lopsided tilt for the leaf ball
+  canopySink: 0.03,                // how far the ball sinks onto the branch tip
+  colorJitter: 0.04,               // ± brightness jitter for leaf ball + apple
+};
+
+/** Fruit-tree wood + fruit colors (canopy green reuses TREE_CANOPY_COLORS.fruit). */
+export const FRUIT_TREE_COLORS = {
+  branch: 0x9A6B4A, // younger wood — lighter than the trunk
+  apple:  0xE74C3C, // cartoon apple red
+};
+
 // ── Mountain geometries ──
 export const MOUNTAIN_SNOW_RING_RADIUS = 0.45;
 export const MOUNTAIN_SNOW_RING_HEIGHT = 0.8;

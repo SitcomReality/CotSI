@@ -475,13 +475,19 @@ Forest/woods tiles read as **groves**, not lone trees:
 
 - A `tree` feature on `forest`/`denseForest` terrain spawns a **cluster of 3–7 trees**
   scattered inside the hex; cluster size scales with the tile's density
-- Each tree in a cluster varies slightly — size, trunk height, leaf height/width,
+- Each terrain has **one silhouette**: `forest` is a **spherical** (round) deciduous
+  grove, `denseForest` (deep wood) a **conical** (tall) pine stand
+- Each tree in a cluster still varies slightly — size, trunk height, leaf height/width,
   rotation, leaf color — and **leans slightly away from the hex center** (a
   cartoony bouquet/grove silhouette)
-- `denseForest` (deep wood) clusters skew tall/pine-like; tundra taiga follows
 - Individual trees are landmarks: `largeTree` (Elder Tree) is big with a
-  golden-green canopy, `fruitTree` a warm-green round crown, and a lone `tree` on
-  open ground is larger than the old uniform default
+  golden-green canopy, and a lone `tree` on open ground is larger than the old
+  uniform default
+- `fruitTree` is the most elaborate landmark — a **curving 2–3 segment trunk**
+  (each segment leans a little more as it rises) forking into two branches: a
+  slightly lopsided **leaf ball** rides one branch tip, and a small **red apple**
+  hangs just below the other tip. All parts share one lean, so the whole tree
+  tilts rigidly around its base
 
 ---
 
