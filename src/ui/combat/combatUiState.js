@@ -12,10 +12,6 @@ let _finishAttackerTurn = null;
 
 export function setGameState(g) {
   _G = g;
-  // Also keep window.__gameState in sync for consistency
-  if (typeof window !== 'undefined') {
-    window.__gameState = g;
-  }
 }
 
 export function getGameState() {

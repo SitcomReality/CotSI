@@ -1,5 +1,5 @@
 import { createGame } from '../game/state/gameFactory.js';
-import { setGameInstance } from '../game/state/liveGame.js';
+import { G, setGameInstance } from '../game/state/liveGame.js';
 import { setGameState } from '../ui/combat/combatModal.js';
 import { syncSize } from '../render/overlays/overlayStack.js';
 import {
@@ -51,7 +51,7 @@ export function __beginGame(config) {
       fitCameraToMap(ctx3d.getCameraState(), game.radius);
       ctx3d.applyCamera();
     }
-    bindHeaderEvents();
+    bindHeaderEvents(() => G);
     initHeptagramWidget('paleyMount');
     refreshAll();
   }, SETUP_DEFER_MS);

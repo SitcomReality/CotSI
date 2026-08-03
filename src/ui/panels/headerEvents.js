@@ -14,12 +14,13 @@ import { DETAIL_CLOSE_DELAY_MS } from '../../params/ui/uiParams.js';
 let wired = false;
 
 /**
- * bindHeaderEvents()
+ * bindHeaderEvents(getState)
  * Delegation-based hover/click on .header-panel__champions.
  * Fills #championDetail using championVM() + h() for all markup.
  * Call once after DOM is ready (from bootstrapUI or __beginGame).
+ * @param {function} getState - () => current game state (live across restarts)
  */
-export function bindHeaderEvents() {
+export function bindHeaderEvents(getState) {
   // Prevent duplicate listener registration on repeated __beginGame calls
   if (wired) return;
   wired = true;
@@ -46,7 +47,7 @@ export function bindHeaderEvents() {
   }
 
   function openFor(champId, slot) {
-    const G = window.__gameState;
+    const G = getState();
     if (!G) return;
     const champ = G.champions.find(c => c.id === champId);
     if (!champ) return;

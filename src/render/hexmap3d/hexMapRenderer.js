@@ -6,7 +6,7 @@ import {
 } from './chunkManager.js';
 import { buildChunkTerrainMesh } from './terrain/terrainMesh.js';
 import { buildChunkFeatureMeshes } from './features/featureMeshes.js';
-import { buildUnitMeshes, setupUnitAnimations, initMovementAnimator, disposeMovementAnimator, cleanupCompleted, initPieceTextures, disposePieceTextures } from './units/index.js';
+import { buildUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted, initPieceTextures, disposePieceTextures } from './units/index.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/mapInteraction.js';
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/overlayStack.js';
 import { renderFogOverlay } from '../overlays/fogOverlay.js';
@@ -54,8 +54,7 @@ export function initHexMap3D(mountElement) {
   registerLayer('interactionHighlights', OVERLAY_Z.selection, renderInteractionHighlights);
   registerLayer('selectionRing', OVERLAY_Z.fog, renderSelectionRing);
 
-  // Setup animations (needs game state access)
-  setupUnitAnimations(ctx, () => window.__gameState);
+  // Idle unit animations deferred — setupUnitAnimations is a no-op stub.
 
   // Init movement animation layer — needs scene reference to add/remove meshes
   initMovementAnimator(ctx.scene);

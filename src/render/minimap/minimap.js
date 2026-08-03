@@ -32,7 +32,7 @@ export function initMinimap(mountEl, radius, getExploredFn) {
   if (getExploredFn) _getExploredForClick = getExploredFn;
   domInit(mountEl, (mx, my) => {
     if (_cachedScale > 0) {
-      handleMinimapClick(mx, my, _cachedScale, _cachedOffsetX, _cachedOffsetZ, _getExploredForClick);
+      handleMinimapClick(_lastG, mx, my, _cachedScale, _cachedOffsetX, _cachedOffsetZ, _getExploredForClick);
     }
   });
 

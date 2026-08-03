@@ -18,6 +18,7 @@ import { PADDING } from './minimapDom.js';
 /**
  * Handle a click on the minimap overlay canvas.
  *
+ * @param {object} G - Game state
  * @param {number} px - Pixel X relative to the overlay canvas
  * @param {number} py - Pixel Y relative to the overlay canvas
  * @param {number} scale - Current minimap scale
@@ -25,7 +26,7 @@ import { PADDING } from './minimapDom.js';
  * @param {number} offsetZ - Current world Z offset
  * @param {function} getExploredFn - (gameState) => {{ visible: Set<string>, explored: Set<string> }}
  */
-export function handleMinimapClick(px, py, scale, offsetX, offsetZ, getExploredFn) {
+export function handleMinimapClick(G, px, py, scale, offsetX, offsetZ, getExploredFn) {
   if (scale <= 0) return;
 
   // Invert the projection: pixel → rotated world coords
@@ -39,7 +40,6 @@ export function handleMinimapClick(px, py, scale, offsetX, offsetZ, getExploredF
   const worldZ = -x_rot * sinYaw + z_rot * cosYaw;
 
   // Find the closest explored hex to this world position
-  const G = window.__gameState;
   if (!G) return;
 
   const humanView = getExploredFn ? getExploredFn(G) : { explored: new Set() };

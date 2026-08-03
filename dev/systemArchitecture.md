@@ -467,7 +467,7 @@ No step is skippable in new code. The UI never calls `game/state/` directly; ren
 
 ## 6. Boundary Debt
 
-Some pre-existing cross-layer imports remain from before the layer migration. They are tracked by `python3 dev/check_imports.py`. Do not add new violations; fix existing ones via view-models/snapshots when touching affected files. Static-data reads from `game/rules/` (faction colors, terrain constants) are tolerated — passing them through `runtime/` would add ceremony without architectural benefit.
+Some pre-existing cross-layer imports remain from before the layer migration. They are tracked by `python3 dev/check_imports.py`. Do not add new violations; fix existing ones via view-models/snapshots when touching affected files. Static-data reads from `game/rules/` (faction colors, terrain constants) are tolerated — passing them through `runtime/` would add ceremony without architectural benefit. The checker encodes this tolerance as an explicit allowlist (`READONLY_RULES_DATA` in `check_imports.py`), so only the remaining logic/instrumentation imports are reported as debt.
 
 ---
 

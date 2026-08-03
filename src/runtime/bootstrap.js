@@ -72,7 +72,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadTemplate('confirmModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('loadingScreen').then(({ frag }) => root.appendChild(frag));
 
-    initModalActions(() => window.__gameState);
+    initModalActions(() => G);
     initCombatModal({
       refreshAll,
       toast,

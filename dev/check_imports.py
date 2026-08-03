@@ -6,8 +6,9 @@ Gates:
   1. Every relative import/export-from specifier in src/ resolves to a real file.
   2. Every named import refers to a symbol the target module actually exports
      (follows `export { x } from './y.js'` re-export chains).
-  3. Boundary report: cross-layer imports vs the rules in dev/cssConventions.md §2.
-     Informational only — existing debt is tracked there; do not add to it.
+  3. Boundary report: cross-layer imports vs the layer rules in AGENTS.md
+     (mirrored in dev/systemArchitecture.md §2). Informational only —
+     pre-existing debt is tracked in dev/auditBacklog.md; do not add to it.
 
 Usage:  python3 dev/check_imports.py
 Exit code is non-zero if gate 1 or 2 fails.
@@ -20,7 +21,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'src')
 
 # ---------------------------------------------------------------------------
-# Layer rules (dev/cssConventions.md §2). Layers not listed may import anything.
+# Layer rules (AGENTS.md / dev/systemArchitecture.md §2). Layers not listed
+# may import anything.
 # ---------------------------------------------------------------------------
 ALLOWED = {
     'shared':     {'shared'},
@@ -30,6 +32,16 @@ ALLOWED = {
     'render':     {'shared', 'engine'},
     'ui':         {'shared', 'ui'},
     # runtime/ and entrypoint.js may import everything.
+}
+
+# Read-only rules-data: static definitions (faction metadata, terrain
+# constants, archetypes), not logic or mutable state. Safe to import from any
+# layer — matches the tolerance policy in dev/systemArchitecture.md §6.
+READONLY_RULES_DATA = {
+    'src/game/rules/factionData.js',
+    'src/game/rules/terrainTypes.js',
+    'src/game/rules/archetypes.js',
+    'src/game/rules/archetypeData/index.js',
 }
 
 IMPORT_FROM_RE = re.compile(r"""\bimport\s*(\{[^}]*\}|\*\s+as\s+[\w$]+)\s*from\s*['"]([^'"]+)['"]""")
@@ -128,6 +140,9 @@ def main():
             target_layer = layer_of(target)
             # params/ is a leaf layer — importable from anywhere, no boundary check.
             if target.startswith('src/params/'):
+                return target
+            # Read-only rules-data is shared freely; logic/state is not.
+            if target in READONLY_RULES_DATA:
                 return target
             allowed = ALLOWED.get(importer_layer)
             if (allowed is not None and target.startswith('src/')

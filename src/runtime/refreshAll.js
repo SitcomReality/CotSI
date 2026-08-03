@@ -39,8 +39,6 @@ export function refreshAll() {
     return;
   }
 
-  window.__gameState = G;
-
   const ch = currentChamp();
 
   // Set profiling context based on current game phase

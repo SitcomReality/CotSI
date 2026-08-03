@@ -71,22 +71,31 @@ Resolved in the trivial-fixes phase (uncommitted):
 
 ## 3. Structural (bigger; do with tests in place)
 
+**Items 2–4 DONE** (commit A — mechanical structural fixes). **Item 1 (combat
+sequencer move) DEFERRED** to its own commit (B): the largest item, needs
+in-browser verification; the P1 combat tests are already in place for it.
+
 - **Combat sequencer lives in `ui/` — deepest structural issue.** `ui/combat/*`
   directly mutates G (`combatRoundEnd.js`, `combatLifecycle.js` creates combat state,
   `combatFlow.js` drives the sequencer), and runtime reaches INTO ui to start combat
   (`hexBridge.js:15`, `botTurnRunner.js:11` → `ui/combat/combatModal.js`). Move the
   sequencer to `runtime/`; ui renders + dispatches via `actionBus`. The new combat
-  tests make this tractable.
-- **`check_imports.py` doesn't model reality:** 22 of the 45 known-debt imports are
-  read-only static-data reads (factionData/terrainTypes into ui + render). Add an
-  explicit allowlist for read-only rules-data (or move faction presentation fields
-  into `params/`) instead of 22 mechanical fixes. The checker's `ALLOWED` set doesn't
-  include `params` (leaf-exempt) or `dev` (flagged per-importer).
-- **Two writers of `window.__gameState`:** `liveGame.js:16` vs `combatUiState.js:17` —
-  nothing asserts they agree. Rely on `liveGame` only.
-- **render reads global state via `window`:** `hexMapRenderer.js:58`, `minimapClickHandler.js:42`,
-  `headerEvents.js:49` (ui), `bootstrap.js:75` — sanctioned by AGENTS.md but violates
-  the "state via args" rule in spirit.
+  tests make this tractable. *(deferred — commit B)*
+- **`check_imports.py` doesn't model reality:** — DONE: explicit allowlist for
+  read-only rules-data (`factionData`/`terrainTypes`/`archetypes`/`archetypeData`)
+  added to the checker, implementing the tolerance policy already stated in
+  `systemArchitecture.md` §6; boundary report 44 → 22 (the remaining 22 are
+  ui→game/state logic reads + dev instrumentation). The alternative — moving faction
+  presentation fields into `params/` — remains available if zero debt is ever wanted.
+- **Two writers of `window.__gameState`:** — DONE: there were actually **three** —
+  `liveGame.js:16`, `combatUiState.js:17`, and `refreshAll.js:42` (missed by the
+  audit). Removed the `combatUiState` + `refreshAll` writes; `liveGame` is the sole
+  writer (AGENTS.md debug convention preserved).
+- **render reads global state via `window`:** — DONE: `bootstrap.js:75` → `() => G`
+  (already imported); `bindHeaderEvents` takes a `getState` arg (`beginGame` passes
+  `() => G`); `handleMinimapClick` takes `G` as a param (minimap passes its cached
+  `_lastG`); `hexMapRenderer.js:58` dropped the dead `setupUnitAnimations`
+  window-getter (the stub is a no-op).
 
 ## 4. Test coverage next (from coverage audit)
 
