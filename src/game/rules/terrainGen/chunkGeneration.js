@@ -6,7 +6,7 @@ import { CHUNK_SIZE } from '../../../params/engine/chunkParams.js';
 import {
   MAX_LOOKUP_RADIUS, DEFAULT_TERRAIN_RULES, SEA_LEVEL_ELEVATION,
   NOISE_CHANNEL_FEATURES, NOISE_CHANNEL_DEBRIS, NOISE_CHANNEL_DEBRIS_KIND,
-  DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD, DEBRIS_SPAWN_THRESHOLD,
+  DEBRIS_SPAWN_THRESHOLD,
 } from '../../../params/game/worldParams.js';
 import { getArchetype } from '../archetypes.js';
 import { getNoiseConfig, sampleBaseFields } from './fields/sampleBaseFields.js';
@@ -20,6 +20,7 @@ import { tagMountainType } from './tagging/mountainTagging.js';
 import { waterTypeForTile } from './tagging/waterTagging.js';
 import { featureDensity, canSpawnFruitTree, shouldSpawnRock } from './features/featureDensity.js';
 import { spawnFeature } from './features/featureSpawning.js';
+import { selectDebrisKind } from './features/debrisSpawning.js';
 
 /**
  * Generate all global (q, r) coordinates within a chunk expanded by ringWidth.
@@ -220,29 +221,28 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
   }
 
-  // --- Pass 9: Environmental debris (grass tufts, rocks, flowers) ---
-  // Rock debris uses terrain-aware probability (slope + moisture); tufts and
-  // flowers use a fixed spawn gate with kind-roll discrimination.
+  // --- Pass 9: Environmental debris (tufts, rocks, flowers, bones, crystals) ---
+  // Kind selection is biome/terrain-aware (debrisSpawning.js) so scatter matches
+  // the tile — desert gets bones, Edenfall grows crystals, etc. Rock debris
+  // keeps its terrain-aware probability gate (slope + moisture); all other
+  // kinds use the fixed spawn gate. Same noise channels as before, so existing
+  // seeds keep their spawn placement — only the kind string can differ.
   for (const [, tile] of tileMap) {
     if (!TERRAIN[tile.terrain].passable) continue;
     if (tile.feature) continue;
 
+    const tileBiomeDef = biomeDef || getArchetype(tile.biomeId) || getArchetype('biome_default');
     const kindRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS_KIND);
-    const kind = kindRoll < DEBRIS_TUFT_THRESHOLD ? 'tuft'
-      : kindRoll < DEBRIS_ROCK_THRESHOLD ? 'rock'
-      : 'flower';
+    const kind = selectDebrisKind(tile, tileBiomeDef, kindRoll);
+    if (!kind) continue;
 
+    const spawnRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS);
     if (kind === 'rock') {
-      const rockProb = shouldSpawnRock(tile.slope, tile.moisture);
-      const spawnRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS);
-      if (spawnRoll < rockProb) {
+      if (spawnRoll < shouldSpawnRock(tile.slope, tile.moisture)) {
         tile.debris = { kind: 'rock' };
       }
-    } else {
-      const spawnRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS);
-      if (spawnRoll > DEBRIS_SPAWN_THRESHOLD) {
-        tile.debris = { kind };
-      }
+    } else if (spawnRoll > DEBRIS_SPAWN_THRESHOLD) {
+      tile.debris = { kind };
     }
   }
 

@@ -2,8 +2,39 @@ import * as THREE from '../../../vendor/three.module.js';
 import { createCameraState, applyCameraState } from './cameraState.js';
 import { createRenderer } from './rendererSetup.js';
 import { addLights } from './lightSetup.js';
+import { graphicsSettings } from '../../overlays/graphicsSettings.js';
 import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
 import { INITIAL_FRUSTUM, CAMERA_NEAR, CAMERA_FAR, GROUND_PLANE_SIZE, GROUND_PLANE_Y } from '../../../params/render/cameraParams.js';
+
+// Stage background: dark parchment vignette fading to the abyss — frames the
+// map like a game board on a dark table (see aestheticConventions §1/§12).
+const BG_CENTER_COLOR = '#5c5242'; // matches CLEAR_COLOR (dark parchment)
+const BG_EDGE_COLOR = '#0c0e12';   // --abyss
+const BG_TEXTURE_SIZE = 512;
+
+/**
+ * Build a radial-gradient CanvasTexture used as the scene background.
+ * Center matches the old flat clear color; edges fall to the abyss so the
+ * map reads as a lit diorama rather than floating in uniform void.
+ */
+function createStageBackground() {
+  const canvas = document.createElement('canvas');
+  canvas.width = BG_TEXTURE_SIZE;
+  canvas.height = BG_TEXTURE_SIZE;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createRadialGradient(
+    BG_TEXTURE_SIZE / 2, BG_TEXTURE_SIZE / 2, BG_TEXTURE_SIZE * 0.08,
+    BG_TEXTURE_SIZE / 2, BG_TEXTURE_SIZE / 2, BG_TEXTURE_SIZE * 0.62
+  );
+  grad.addColorStop(0, BG_CENTER_COLOR);
+  grad.addColorStop(1, BG_EDGE_COLOR);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, BG_TEXTURE_SIZE, BG_TEXTURE_SIZE);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
 
 /**
  * Initialize the Three.js scene, renderer, camera, and lights.
@@ -22,6 +53,15 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
 
   // --- Scene ---
   const scene = new THREE.Scene();
+
+  // Stage background (parchment vignette → abyss) + subtle distance fog so
+  // far tiles recede toward the frame (aerial perspective). Fog near/far are
+  // eye-tuned for the default camera distance (~50) and map extent — larger
+  // maps may need a longer `far`.
+  scene.background = createStageBackground();
+  if (graphicsSettings.effects.fogMist) {
+    scene.fog = new THREE.Fog(new THREE.Color(BG_EDGE_COLOR), 60, 160);
+  }
 
   // --- Orthographic Camera (managed by camera3d) ---
   const rect = mountElement.getBoundingClientRect();

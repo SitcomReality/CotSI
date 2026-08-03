@@ -45,6 +45,10 @@ defineArchetype('biome_edenfall', {
     { kind: 'knot',                  threshold: 0.038, compare: 'lt' },
   ],
 
+  // Debris kind pool — overrides the terrain-based defaults (debrisSpawning.js):
+  // Edenfall scatter is crystals and fungal growths, not grass tufts.
+  debris: ['crystal', 'shroom', 'rock'],
+
   // Purple grass palette — all terrain types get a violet-magenta shift
   palette: {
     plains:        [0.550, 0.300, 0.550],  // purple grass

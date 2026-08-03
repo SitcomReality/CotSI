@@ -23,11 +23,7 @@ export const NOISE_CHANNEL_FEATURES = 4;
 export const NOISE_CHANNEL_DEBRIS = 5;
 /** Noise channel index for debris kind selection. */
 export const NOISE_CHANNEL_DEBRIS_KIND = 6;
-/** Debris kind threshold: tuft (≤threshold). */
-export const DEBRIS_TUFT_THRESHOLD = 0.4;
-/** Debris kind threshold: rock (≤threshold). */
-export const DEBRIS_ROCK_THRESHOLD = 0.7;
-/** Debris spawn gate: tufts/flowers spawn only when the debris roll exceeds this. */
+/** Debris spawn gate: non-rock debris spawns only when the debris roll exceeds this. */
 export const DEBRIS_SPAWN_THRESHOLD = 0.92;
 /** Mountain peak classification: minimum mountain-neighbor count (out of 6). */
 export const MOUNTAIN_PEAK_MIN_NEIGHBORS = 4;

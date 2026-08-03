@@ -19,6 +19,13 @@ export const RIVER_OVERLAY_COLOR = [0.118, 0.471, 0.863];
 export const RIVER_OVERLAY_WEIGHT = 0.45;
 
 /**
+ * Biome edge blending strength. Each top-face corner is pulled toward the
+ * average color of the tiles sharing that corner (0 = no blending, 1 = corner
+ * becomes the full average). Blends adjacent biomes into a soft gradient.
+ */
+export const TERRAIN_BLEND_FACTOR = 0.8;
+
+/**
  * Terrain elevation values (Y offset for each terrain type).
  * Applied during terrain mesh generation.
  */

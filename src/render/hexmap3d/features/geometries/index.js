@@ -19,6 +19,10 @@ export {
   getDebrisTuftGeo,
   getDebrisRockGeo,
   getDebrisFlowerGeo,
+  getDebrisBoneGeo,
+  getDebrisCrystalGeo,
+  getDebrisShroomGeo,
+  getDebrisLogGeo,
 } from './debrisGeometries.js';
 
 export {

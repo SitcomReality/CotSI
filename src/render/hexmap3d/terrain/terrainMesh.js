@@ -1,7 +1,8 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { terrainMaterial } from '../scene/materials.js';
 import { HEX_RADIUS, hexCenter, hexCornersXZ } from '../hexWorldSpace.js';
-import { HEX_THICKNESS, SIDE_DARKEN_FACTOR, LAKE_COLOR_MODULATION, TERRAIN_ELEVATION, RIVER_OVERLAY_COLOR, RIVER_OVERLAY_WEIGHT } from '../../../params/render/terrainParams.js';
+import { HEX_THICKNESS, SIDE_DARKEN_FACTOR, LAKE_COLOR_MODULATION, TERRAIN_ELEVATION, RIVER_OVERLAY_COLOR, RIVER_OVERLAY_WEIGHT, TERRAIN_BLEND_FACTOR } from '../../../params/render/terrainParams.js';
+import { neighbors, coordKey } from '../../../engine/rules/hexGrid.js';
 
 // Elevation per terrain type (world units)
 export const ELEVATION = TERRAIN_ELEVATION;
@@ -59,6 +60,80 @@ export const TERRAIN_COLOR = {
 // Darken factor for side faces
 const SIDE_DARKEN = SIDE_DARKEN_FACTOR;
 
+// Corner i of a pointy-top hex (angle 60i−30°, hexCornersXZ order) is shared
+// with the two tiles at these indices into neighbors() = [E, NE, NW, W, SW, SE].
+const CORNER_NEIGHBOR_INDICES = [
+  [0, 1], // -30°  (top-right):      E, NE
+  [0, 5], //  30°  (right):          E, SE
+  [5, 4], //  90°  (bottom-right):   SE, SW
+  [4, 3], // 150°  (bottom-left):    SW, W
+  [3, 2], // 210°  (left):           W, NW
+  [2, 1], // 270°  (top-left):       NW, NE
+];
+
+/**
+ * Memoized resolver for a tile's top-face color (per-tile biome palette →
+ * lake/river modulation). Returns the same array instance per tile within one
+ * mesh build.
+ */
+function makeTopColorResolver(state) {
+  const cache = new Map();
+  return (tile) => {
+    const key = `${tile.q},${tile.r}`;
+    const cached = cache.get(key);
+    if (cached) return cached;
+
+    const pal = (tile.biomeId && state.biomePalettes?.get(tile.biomeId)) || {};
+    const baseColor = pal[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
+
+    // Lakes get a darker, greener water color to distinguish from ocean
+    const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')
+      ? [baseColor[0] * LAKE_COLOR_MODULATION.r, baseColor[1] * LAKE_COLOR_MODULATION.g, baseColor[2] * LAKE_COLOR_MODULATION.b]
+      : baseColor;
+
+    // River overlay on top face only — blend river blue into the terrain color
+    const topColor = tile.isRiver
+      ? [
+          resolvedColor[0] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[0] * RIVER_OVERLAY_WEIGHT,
+          resolvedColor[1] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[1] * RIVER_OVERLAY_WEIGHT,
+          resolvedColor[2] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[2] * RIVER_OVERLAY_WEIGHT,
+        ]
+      : resolvedColor;
+
+    cache.set(key, topColor);
+    return topColor;
+  };
+}
+
+/**
+ * Top-face corner color for a tile, blended toward the average color of the
+ * explored tiles sharing that corner (soft biome transitions). Missing or
+ * unexplored neighbors are skipped; falls back to the tile's own top color.
+ */
+function cornerBlendColor(tile, cornerIdx, state, explored, topColorFor) {
+  const own = topColorFor(tile);
+  const parts = [own];
+  const nbrs = neighbors({ q: tile.q, r: tile.r });
+  for (const nIdx of CORNER_NEIGHBOR_INDICES[cornerIdx]) {
+    const nb = nbrs[nIdx];
+    const key = coordKey(nb);
+    const nbTile = state.tiles[key];
+    if (!nbTile || !explored.has(key)) continue;
+    parts.push(topColorFor(nbTile));
+  }
+  if (parts.length === 1) return own;
+
+  let r = 0, g = 0, b = 0;
+  for (const p of parts) { r += p[0]; g += p[1]; b += p[2]; }
+  const n = parts.length;
+  const f = TERRAIN_BLEND_FACTOR;
+  return [
+    own[0] * (1 - f) + (r / n) * f,
+    own[1] * (1 - f) + (g / n) * f,
+    own[2] * (1 - f) + (b / n) * f,
+  ];
+}
+
 /**
  * Build a single merged BufferGeometry for all visible + explored hex tiles.
  *
@@ -81,36 +156,27 @@ export function buildTerrainMesh(state, visible, explored) {
   const vertsPerHex = 54;
   const positions = new Float32Array(tileCount * vertsPerHex * 3);
   const colors = new Float32Array(tileCount * vertsPerHex * 3);
+  const topColorFor = makeTopColorResolver(state);
 
   let vi = 0; // vertex index (in floats, so vi/3 = vertex count)
 
   for (const tile of activeTiles) {
-    // Resolve biome palette per tile (multi-biome compatibility)
-    const pal = (tile.biomeId && state.biomePalettes?.get(tile.biomeId)) || {};
     const elev = resolveElev(tile, ELEVATION);
-    const baseColor = pal[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
-
-    // Lakes get a darker, greener water color to distinguish from ocean
-    const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')
-      ? [baseColor[0] * LAKE_COLOR_MODULATION.r, baseColor[1] * LAKE_COLOR_MODULATION.g, baseColor[2] * LAKE_COLOR_MODULATION.b]
-      : baseColor;
-    const sideColor = resolvedColor.map(c => c * SIDE_DARKEN);
-
-    // River overlay on top face only — blend river blue into the terrain color
-    const topColor = tile.isRiver
-      ? [
-          resolvedColor[0] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[0] * RIVER_OVERLAY_WEIGHT,
-          resolvedColor[1] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[1] * RIVER_OVERLAY_WEIGHT,
-          resolvedColor[2] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[2] * RIVER_OVERLAY_WEIGHT,
-        ]
-      : resolvedColor;
+    const topColor = topColorFor(tile);
+    const sideColor = topColor.map(c => c * SIDE_DARKEN);
 
     const { x: cx, z: cz } = hexCenter(tile.q, tile.r);
     const corners = hexCornersXZ(cx, cz);
     const topY = elev + HEX_THICKNESS;
     const botY = elev;
 
-    // --- Top face: fan triangulation from center ---
+    // Precompute blended corner colors (top face only)
+    const cornerColors = [];
+    for (let i = 0; i < 6; i++) {
+      cornerColors.push(cornerBlendColor(tile, i, state, explored, topColorFor));
+    }
+
+    // --- Top face: fan triangulation from center (corners blend into neighbors) ---
     const centerX = cx, centerZ = cz, centerY = topY;
     for (let i = 0; i < 6; i++) {
       const c0 = corners[i];
@@ -118,12 +184,12 @@ export function buildTerrainMesh(state, visible, explored) {
 
       // Triangle: center → corner[i+1] → corner[i] (CCW from above)
       addVertex(positions, colors, vi, centerX, centerY, centerZ, topColor);
-      addVertex(positions, colors, vi + 3, c1.x, topY, c1.z, topColor);
-      addVertex(positions, colors, vi + 6, c0.x, topY, c0.z, topColor);
+      addVertex(positions, colors, vi + 3, c1.x, topY, c1.z, cornerColors[(i + 1) % 6]);
+      addVertex(positions, colors, vi + 6, c0.x, topY, c0.z, cornerColors[i]);
       vi += 9; // 3 vertices × 3 floats each
     }
 
-    // --- Side faces: 6 quads, each = 2 triangles ---
+    // --- Side faces: 6 quads, each = 2 triangles (own darkened color, no blend) ---
     for (let i = 0; i < 6; i++) {
       const c0 = corners[i];
       const c1 = corners[(i + 1) % 6];
@@ -175,43 +241,34 @@ export function buildChunkTerrainMesh(chunkTiles, state, visible, explored) {
   const vertsPerHex = 54;
   const positions = new Float32Array(tileCount * vertsPerHex * 3);
   const colors = new Float32Array(tileCount * vertsPerHex * 3);
+  const topColorFor = makeTopColorResolver(state);
 
   let vi = 0;
-  // Resolve biome palette once for this chunk (all tiles share the same biome)
-  const firstTile = activeTiles[0];
-  const palette = (firstTile?.biomeId && state.biomePalettes?.get(firstTile.biomeId)) || {};
-
   for (const tile of activeTiles) {
     const elev = resolveElev(tile, ELEVATION);
-    const baseColor = palette[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
-
-    const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')
-      ? [baseColor[0] * LAKE_COLOR_MODULATION.r, baseColor[1] * LAKE_COLOR_MODULATION.g, baseColor[2] * LAKE_COLOR_MODULATION.b]
-      : baseColor;
-    const sideColor = resolvedColor.map(c => c * SIDE_DARKEN);
-
-    // River overlay on top face only
-    const topColor = tile.isRiver
-      ? [
-          resolvedColor[0] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[0] * RIVER_OVERLAY_WEIGHT,
-          resolvedColor[1] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[1] * RIVER_OVERLAY_WEIGHT,
-          resolvedColor[2] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[2] * RIVER_OVERLAY_WEIGHT,
-        ]
-      : resolvedColor;
+    const topColor = topColorFor(tile);
+    const sideColor = topColor.map(c => c * SIDE_DARKEN);
 
     const { x: cx, z: cz } = hexCenter(tile.q, tile.r);
     const corners = hexCornersXZ(cx, cz);
     const topY = elev + HEX_THICKNESS;
     const botY = elev;
 
-    // Top face: fan triangulation from center
+    // Precompute blended corner colors (top face only)
+    const cornerColors = [];
+    for (let i = 0; i < 6; i++) {
+      cornerColors.push(cornerBlendColor(tile, i, state, explored, topColorFor));
+    }
+
+    // Top face: fan triangulation from center (corners blend into neighbors)
     const centerX = cx, centerZ = cz, centerY = topY;
     for (let i = 0; i < 6; i++) {
       const c0 = corners[i];
       const c1 = corners[(i + 1) % 6];
+
       addVertex(positions, colors, vi, centerX, centerY, centerZ, topColor);
-      addVertex(positions, colors, vi + 3, c1.x, topY, c1.z, topColor);
-      addVertex(positions, colors, vi + 6, c0.x, topY, c0.z, topColor);
+      addVertex(positions, colors, vi + 3, c1.x, topY, c1.z, cornerColors[(i + 1) % 6]);
+      addVertex(positions, colors, vi + 6, c0.x, topY, c0.z, cornerColors[i]);
       vi += 9;
     }
 
@@ -219,6 +276,7 @@ export function buildChunkTerrainMesh(chunkTiles, state, visible, explored) {
     for (let i = 0; i < 6; i++) {
       const c0 = corners[i];
       const c1 = corners[(i + 1) % 6];
+
       addVertex(positions, colors, vi,      c0.x, botY, c0.z, sideColor);
       addVertex(positions, colors, vi + 3,  c0.x, topY, c0.z, sideColor);
       addVertex(positions, colors, vi + 6,  c1.x, topY, c1.z, sideColor);

@@ -30,6 +30,10 @@ export const HIGHLIGHT_Y_OFFSET = 0.06;
 // ── Movement highlights ──
 export const MOVE_ALLOWED_WIDTH = 2;
 export const MOVE_HOVER_WIDTH = 3;
+/** Dash pattern for the movement-highlight stroke (screen px). */
+export const MOVE_DASH = [6, 4];
+/** Dash march speed (px per ms of clock time). */
+export const MOVE_DASH_SPEED = 0.02;
 
 // ── Selection ring ──
 export const ORBIT_FRAC = 0.50;

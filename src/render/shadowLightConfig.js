@@ -23,8 +23,8 @@ export const shadowLightConfig = {
   radius: 1.0,
 
   // ---- Directional (sun) slight ----
-  sunColor: 0xfff4e0,
-  sunIntensity: 3.0,
+  sunColor: 0xffe8c8,
+  sunIntensity: 3.2,
   /** Light position in world space (direction is toward origin). */
 
     // x:10, y:15, z:5    = sun in bottom right, shadows point up-left
@@ -32,12 +32,16 @@ export const shadowLightConfig = {
   sunPosition: { x: -20, y: 10, z: -3 },
 
   // ---- Ambient fill ----
-  ambientColor: 0xc8b898,
-  ambientIntensity: 0.6,
+  // Cool slate fill — contrasts the warm sun so facets read as lit geometry
+  // instead of washing together.
+  ambientColor: 0x9aa8c8,
+  ambientIntensity: 0.45,
 
   // ---- Hemisphere (sky/ground gradient) ----
-  hemisphereSkyColor: 0xffe8c8,
-  hemisphereGroundColor: 0x8a6a3a,
+  // Cool sky above, warm ground bounce below (warm shadows per the
+  // dark-carnival light in aestheticConventions §12).
+  hemisphereSkyColor: 0xd8e4ff,
+  hemisphereGroundColor: 0x6a5a4a,
   hemisphereIntensity: 0.4,
 };
 

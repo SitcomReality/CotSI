@@ -55,6 +55,14 @@ export const BASE_RING_DOT = { radius: 0.03, wSegs: 4, hSegs: 3 };
 export const DEBRIS_TUFT = { bottomR: 0.04, height: 0.06, segments: 3 };
 export const DEBRIS_ROCK_RADIUS = 0.03;
 export const DEBRIS_FLOWER_RADIUS = 0.025;
+/** Sun-bleached bone shard — tapered pillar, tallest at the base. */
+export const DEBRIS_BONE = { topR: 0.008, bottomR: 0.02, height: 0.09, segments: 4 };
+/** Faceted crystal shard — low-segment cone. */
+export const DEBRIS_CRYSTAL = { radius: 0.03, height: 0.09, segments: 4 };
+/** Tiny mushroom — single cone cap (stem is implicit at this scale). */
+export const DEBRIS_SHROOM = { capR: 0.035, capHeight: 0.03, capSegments: 5 };
+/** Fallen log — short cylinder, pre-rotated flat by the geometry factory. */
+export const DEBRIS_LOG = { radius: 0.02, length: 0.12, segments: 5 };
 
 export const DEBRIS_HASH_SEEDS = [17, 11, 13, 100];
 export const DEBRIS_ANGLE_STEP = 0.618;
