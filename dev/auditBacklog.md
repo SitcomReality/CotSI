@@ -101,11 +101,23 @@ All four items resolved (commit A: items 2–4; commit B: item 1).
   `_lastG`); `hexMapRenderer.js:58` dropped the dead `setupUnitAnimations`
   window-getter (the stub is a no-op).
 
-## 4. Test coverage next (from coverage audit)
+## 4. Test coverage next (from coverage audit) — DONE
+
+All three tiers landed (commit 1: P5, commit 2: P3, commit 3: P2); suite
+153 → 265. Coverage also caught two real bugs: the dispatch modal's weather
+cards never rendered (`weatherEffects` missing from `CONTRIBUTORS`, fixed in
+commit 1) and traders never moved (`traderMovement` used the target tile
+object as coordinates → NaN distances, fixed in commit 3).
 
 - **P2:** `gameFactory.js` (zero coverage over the whole world assembly — verify the
   `dev/devPerformance` import chain is node-safe first, `overlay.js` touches `document`),
   `worldSimulation.advanceTurn` (order → world turn → dead-champion branch → victory).
+  — DONE (commit 3): full `createGame` invariants (7-faction world, bases,
+  entity counts, spatial index, order/herald, determinism, human dispatch,
+  single-biome + partial-game variants) and `finishTurn`/`advanceTurn` flows
+  incl. world-turn side effects (mob harassment + death, tree regrowth,
+  trader movement). Node-safety confirmed: the `dev/performance` barrel is
+  import-time safe (`overlay.js` touches `document` only when enabled).
 - **P3 (cheap, high bug-risk):** `championMovement`, `fogOfWar`, `digSystem`,
   `arrivalInteractions`, `entityQueries`/`spatialIndex`, `tileProxy`, `victoryChecks`,
   `deathTracker`. — DONE (commit 2): one test file per module (60 tests);
@@ -122,7 +134,10 @@ All four items resolved (commit A: items 2–4; commit B: item 1).
 - **Infra:** shared fixture pattern is `tests/helpers/stateFixture.js` (no `.test.js`
   suffix — safe from `node --test` discovery). `node --test` auto-discovers `*.test.js`
   from repo root; `baseInteraction.js`'s ui import keeps it untestable in node until
-  §1's fix lands.
+  §1's fix lands. — DONE: §1 removed the `ui/` import, so `baseInteraction` is
+  node-testable if ever wanted; fixture grew `makeTile` + canonical state fields
+  (`chunks`, `_unripeTrees`, `currentOrder`, `winnerId`/`victoryReason`,
+  `weather.dayLength`, champion `baseMove`/`knot`/`weapon`/`armor`/`pendingDig`).
 
 ## 5. Fragility hardening (systemic patterns)
 

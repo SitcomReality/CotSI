@@ -25,10 +25,15 @@ export function makeChampion(overrides = {}) {
     artifact: null,
     gold: 0,
     relics: 0,
+    knot: 0,
     moves: 0,
+    baseMove: 5,
+    weapon: 'ash staff',
+    armor: 'worn linen',
     lastActionCombat: false,
     sight: 0,
     explored: [],
+    pendingDig: false,
     ...overrides,
   };
 }
@@ -71,6 +76,7 @@ export function makeState(overrides = {}) {
   const mobs = overrides.mobs ?? [];
   return {
     globalOrder: overrides.globalOrder ?? champions.filter((c) => c.alive).map((c) => c.id),
+    currentOrder: overrides.currentOrder ?? [],
     champions,
     mobs,
     traders: [],

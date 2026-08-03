@@ -4,7 +4,7 @@
  * Each trader moves toward its target base each world turn,
  * pathfinding through passable tiles with no features or debris.
  */
-import { coordKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
+import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 import { occupiedByChampion, occupiedByMob, occupiedByTrader } from './entityQueries.js';
 import { updateSpatialIndex } from './spatialIndex.js';
@@ -19,7 +19,9 @@ import { updateSpatialIndex } from './spatialIndex.js';
 export function runTraderMovement(state) {
   for (const tr of state.traders) {
     for (let s = 0; s < tr.movesPerDay; s++) {
-      const target = state.tiles[tr.targetBaseKey] || tr.pos;
+      // Movement target is the base's coordinates. (Reading the tile object
+      // here would make every distance NaN — tiles have no q/r fields.)
+      const target = parseKey(tr.targetBaseKey) || tr.pos;
       // Pick the hex neighbor that moves closest to the target.
       // Using neighbors() ensures we only step in valid axial directions,
       // unlike the old Cartesian dx/dy which could produce illegal (+1,+1).
