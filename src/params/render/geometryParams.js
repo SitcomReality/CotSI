@@ -63,28 +63,36 @@ export const TREE_CANOPY_COLORS = {
 };
 
 // ── Fruit tree (solitary landmark) ──
-// A single complex tree: 2–3 short trunk segments that lean a little more with
-// each rise (gentle curve), forking into two branches — a leaf ball rides one
-// branch tip, a red apple hangs just below the other.
+// A single complex tree: 2–3 long trunk segments, each leaning its own direction
+// with severe per-segment angles (a snaking, gnarled trunk that tapers thicker at
+// the bottom), forking into two steep branches — each branch has a chance to bend
+// a second segment — with a leaf ball riding one final tip and a red apple
+// hanging just below the other.
 
 /** Trunk segment — tapered cylinder, base length 0.17 (scaled per segment). */
-export const FRUIT_TREE_TRUNK = { bottomR: 0.075, topR: 0.055, height: 0.17, segments: 5 };
+export const FRUIT_TREE_TRUNK = { bottomR: 0.09, topR: 0.055, height: 0.17, segments: 5 };
 /** Forked branch — thin tapered cylinder, base length 0.26 (scaled per branch). */
-export const FRUIT_TREE_BRANCH = { bottomR: 0.032, topR: 0.02, height: 0.26, segments: 5 };
+export const FRUIT_TREE_BRANCH = { bottomR: 0.042, topR: 0.026, height: 0.26, segments: 5 };
 /** Leaf ball at the end of one branch. */
-export const FRUIT_TREE_CANOPY = { radius: 0.2, wSegs: 6, hSegs: 4 };
+export const FRUIT_TREE_CANOPY = { radius: 0.1, wSegs: 6, hSegs: 4 };
 /** Apple hanging below the other branch tip. */
 export const FRUIT_TREE_APPLE = { radius: 0.06, wSegs: 6, hSegs: 4 };
 
 /** Fruit-tree composition — all values deterministic per tile via hashes. */
 export const FRUIT_TREE = {
   segmentCount: [2, 3],            // trunk segments (hash-chosen per tree)
-  segmentLen: [0.15, 0.19],        // per-segment length range (× tree scale)
-  segmentLean: [0.04, 0.09],       // cumulative lean added per segment (radians)
+  segmentLen: [0.22, 0.30],        // per-segment length range (× tree scale)
+  segmentLean: [0.12, 0.24],       // per-segment lean from the parent axis (radians)
+  segmentTaper: 0.7,               // per-segment XZ scale multiplier — trunk thickens downward
+  segmentAzDelta: [0.6, 1.3],      // ± per-segment azimuth wander (radians) — trunk snakes
   branchAzimuth: [0.5, 1.0],       // fork spread from the trunk's curve axis (radians)
-  branchElevation: [0.45, 0.7],    // branch rise above horizontal (radians)
-  branchLenA: [0.24, 0.30],        // leaf branch length (× tree scale)
-  branchLenB: [0.19, 0.25],        // fruit branch length (× tree scale)
+  branchElevation: [0.75, 1.05],   // branch rise above horizontal (radians)
+  branchLenA: [0.27, 0.34],        // leaf branch length (× tree scale)
+  branchLenB: [0.21, 0.28],        // fruit branch length (× tree scale)
+  branchSecondSegChance: 0.6,      // per-branch probability of a 2nd (bent) segment
+  branchSeg2Frac: [0.5, 0.7],      // 2nd-segment length as a fraction of branch length
+  branchBendAzimuth: [0.2, 0.55],  // 2nd-segment azimuth bend (radians)
+  branchBendElevation: [0.1, 0.3], // 2nd-segment extra rise (radians)
   appleDrop: [0.02, 0.035],        // how far the apple hangs below the branch tip
   scaleVar: [0.92, 1.08],          // per-tree overall size jitter
   canopyStretchY: [0.9, 1.1],      // leaf-ball height multiplier

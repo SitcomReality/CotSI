@@ -33,9 +33,10 @@ import {
  *
  * Solitary: `largeTree` (Elder Tree landmark), `fruitTree`, and a lone `tree` on
  * open terrain (plains, hill, marsh) render one bigger, more distinctive tree.
- * The fruit tree is the most elaborate: a curving 2–3 segment trunk forking
- * into two branches — a leaf ball rides one tip, a red apple hangs below the
- * other.
+ * The fruit tree is the most elaborate: a snaking 2–3 segment gnarled trunk
+ * (tapering thicker at the base) forking into two steep branches — each may bend
+ * a second segment — with a leaf ball riding one final tip and a red apple
+ * hanging below the other.
  */
 
 const TREE_KINDS = new Set(['tree', 'fruitTree', 'largeTree']);
@@ -245,8 +246,8 @@ const _dirV = new THREE.Vector3();
 const _axisV = new THREE.Vector3();
 
 /**
- * Unit direction for a forked branch: azimuth around the trunk's curve axis
- * (+X), elevation above horizontal. A cylinder's +Y axis rotates onto this.
+ * Unit direction for a segment: azimuth around +Y (0 → +X), elevation above
+ * horizontal. A cylinder's +Y axis rotates onto this (see dirAxisAngle).
  */
 function branchDir(azimuth, elevation) {
   const ce = Math.cos(elevation);
@@ -258,33 +259,43 @@ function branchDir(azimuth, elevation) {
 }
 
 /**
- * One forked-branch record: the branch spans from the trunk top to
- * trunk top + dir·len. localAxis/localAngle rotate the branch's +Y axis onto
- * `dir` (axis = Y × dir, angle = acos(dir·Y)).
+ * Local axis/angle that rotates a part's +Y axis onto `dir`
+ * (axis = Y × dir, angle = acos(dir·Y)).
  */
-function pushBranchRecord(records, shared, s, trunkTopX, trunkTopY, dir, len) {
+function dirAxisAngle(dir) {
   _axisV.crossVectors(_upDir, _dirV.set(dir.x, dir.y, dir.z));
   if (_axisV.lengthSq() < 1e-8) _axisV.set(1, 0, 0); // dir ≈ ±Y (won't happen for branches)
   _axisV.normalize();
-  const angle = Math.acos(Math.min(1, Math.max(-1, dir.y)));
+  return {
+    axis: { x: _axisV.x, y: _axisV.y, z: _axisV.z },
+    angle: Math.acos(Math.min(1, Math.max(-1, dir.y))),
+  };
+}
 
+/**
+ * One branch-segment record: a cylinder spanning `start` → `start + dir·len`.
+ * `scaleXZ` tapers the segment (defaults to the branch scale `s`).
+ */
+function pushBranchRecord(records, shared, s, start, dir, len, scaleXZ) {
+  const { axis, angle } = dirAxisAngle(dir);
   records.push({
     ...shared, geo: 'fruit-branch',
-    localPos: { x: trunkTopX + (dir.x * len) / 2, y: trunkTopY + (dir.y * len) / 2, z: (dir.z * len) / 2 },
-    localAxis: { x: _axisV.x, y: _axisV.y, z: _axisV.z }, localAngle: angle,
-    scaleXZ: s, scaleY: len / FRUIT_TREE_BRANCH.height,
+    localPos: { x: start.x + (dir.x * len) / 2, y: start.y + (dir.y * len) / 2, z: start.z + (dir.z * len) / 2 },
+    localAxis: axis, localAngle: angle,
+    scaleXZ: scaleXZ ?? s, scaleY: len / FRUIT_TREE_BRANCH.height,
   });
 }
 
 /**
- * Compose the parts of one fruit tree: 2–3 trunk segments that lean a little
- * more with each rise (a gentle curve), forking into two branches — a leaf
- * ball rides one tip, a red apple hangs just below the other. All parts share
- * the tree's rotY and world tilt, so the whole tree leans rigidly around its
- * base.
+ * Compose the parts of one fruit tree: 2–3 long trunk segments, each leaning its
+ * own direction with severe per-segment angles (a snaking gnarled trunk that
+ * tapers thicker at the base), forking into two steep branches — each may bend a
+ * second segment — with a leaf ball riding one final tip and a red apple hanging
+ * below the other. All parts share the tree's rotY and world tilt, so the whole
+ * tree leans rigidly around its base.
  *
- * Local frame: +Y up, trunk curve runs along +X. Every position is pre-folded
- * through the per-tree scale so the segments stack exactly.
+ * Local frame: +Y up. Every position is pre-folded through the per-tree scale so
+ * the segments stack exactly.
  */
 function fruitTreeRecords(tile, worldPos) {
   const tileH = tileHash(tile);
@@ -302,72 +313,89 @@ function fruitTreeRecords(tile, worldPos) {
     tilt: TREE_SOLITARY.fruitTree.lean ?? 0,
   };
 
-  // ── Trunk: 2–3 leaning segments, stacked exactly ──
+  // ── Trunk: 2–3 segments, each leaning its own direction (snaking) and
+  // tapering thicker toward the base; stacked exactly ──
   const segCount = tileH % 2 === 0 ? cfg.segmentCount[0] : cfg.segmentCount[1];
-  const segLean = f(2, cfg.segmentLean[0], cfg.segmentLean[1]);
-  let trunkTopX = 0;
-  let trunkTopY = 0;
+  let segAz = f(2, 0, Math.PI * 2); // lean azimuth random-walk start
+  const segAzMax = cfg.segmentAzDelta[1];
+  const trunkTop = { x: 0, y: 0, z: 0 };
   for (let i = 0; i < segCount; i++) {
-    const len = s * f(3 + i, cfg.segmentLen[0], cfg.segmentLen[1]);
-    const angle = (i + 1) * segLean;
-    const dx = len * Math.sin(angle);
-    const dy = len * Math.cos(angle);
-    // Negative localAngle: rotating around +Z by −α points the segment's +Y
-    // axis toward +X (the curve axis), so consecutive segments stack exactly.
+    const lean = f(3 + i, cfg.segmentLean[0], cfg.segmentLean[1]);
+    const len = s * f(6 + i, cfg.segmentLen[0], cfg.segmentLen[1]);
+    // branchDir's elevation is above horizontal; the trunk lean is off vertical,
+    // so complement it — a lean of 7–14° off straight up.
+    const dir = branchDir(segAz, Math.PI / 2 - lean);
+    const { axis, angle } = dirAxisAngle(dir);
     records.push({
       ...shared, geo: 'fruit-trunk',
-      localPos: { x: trunkTopX + dx / 2, y: trunkTopY + dy / 2, z: 0 },
-      localAxis: { x: 0, y: 0, z: 1 }, localAngle: -angle,
-      scaleXZ: s, scaleY: len / FRUIT_TREE_TRUNK.height,
+      localPos: { x: trunkTop.x + (dir.x * len) / 2, y: trunkTop.y + (dir.y * len) / 2, z: trunkTop.z + (dir.z * len) / 2 },
+      localAxis: axis, localAngle: angle,
+      scaleXZ: s * Math.pow(cfg.segmentTaper, i),
+      scaleY: len / FRUIT_TREE_TRUNK.height,
     });
-    trunkTopX += dx;
-    trunkTopY += dy;
+    trunkTop.x += dir.x * len;
+    trunkTop.y += dir.y * len;
+    trunkTop.z += dir.z * len;
+    segAz += (frac(treeHash(tileH, 9 + i)) - 0.5) * 2 * segAzMax;
   }
 
+  /**
+   * Walk one forked branch from `start`: a straight first segment, then — if the
+   * per-branch hash rolls under branchSecondSegChance — a bent second segment
+   * splaying outward by `bendSign`. Returns { tip, dir } for the final tip.
+   */
+  const walkBranch = (start, azimuth, elev, len, hashIdx, bendSign) => {
+    const dir1 = branchDir(azimuth, elev);
+    if (frac(treeHash(tileH, hashIdx)) >= cfg.branchSecondSegChance) {
+      pushBranchRecord(records, shared, s, start, dir1, len);
+      return { tip: { x: start.x + dir1.x * len, y: start.y + dir1.y * len, z: start.z + dir1.z * len }, dir: dir1 };
+    }
+    const seg2Frac = f(hashIdx + 1, cfg.branchSeg2Frac[0], cfg.branchSeg2Frac[1]);
+    const bendAz = f(hashIdx + 2, cfg.branchBendAzimuth[0], cfg.branchBendAzimuth[1]);
+    const bendElev = f(hashIdx + 3, cfg.branchBendElevation[0], cfg.branchBendElevation[1]);
+    const len1 = len * (1 - seg2Frac);
+    const len2 = len * seg2Frac;
+    pushBranchRecord(records, shared, s, start, dir1, len1);
+    const mid = { x: start.x + dir1.x * len1, y: start.y + dir1.y * len1, z: start.z + dir1.z * len1 };
+    const dir2 = branchDir(azimuth + bendSign * bendAz, elev + bendElev);
+    pushBranchRecord(records, shared, s, mid, dir2, len2, s * 0.75);
+    return { tip: { x: mid.x + dir2.x * len2, y: mid.y + dir2.y * len2, z: mid.z + dir2.z * len2 }, dir: dir2 };
+  };
+
   // ── Branches: fork out from the trunk top ──
-  const az = f(10, cfg.branchAzimuth[0], cfg.branchAzimuth[1]);
-  const dirA = branchDir(az, f(11, cfg.branchElevation[0], cfg.branchElevation[1]));
-  const dirB = branchDir(-az, f(12, cfg.branchElevation[0], cfg.branchElevation[1]));
-  const lenA = s * f(13, cfg.branchLenA[0], cfg.branchLenA[1]);
-  const lenB = s * f(14, cfg.branchLenB[0], cfg.branchLenB[1]);
-
-  const tipAX = trunkTopX + dirA.x * lenA;
-  const tipAY = trunkTopY + dirA.y * lenA;
-  const tipAZ = dirA.z * lenA;
-  const tipBX = trunkTopX + dirB.x * lenB;
-  const tipBY = trunkTopY + dirB.y * lenB;
-  const tipBZ = dirB.z * lenB;
-
-  pushBranchRecord(records, shared, s, trunkTopX, trunkTopY, dirA, lenA);
-  pushBranchRecord(records, shared, s, trunkTopX, trunkTopY, dirB, lenB);
+  const az = f(12, cfg.branchAzimuth[0], cfg.branchAzimuth[1]);
+  const lenA = s * f(15, cfg.branchLenA[0], cfg.branchLenA[1]);
+  const lenB = s * f(16, cfg.branchLenB[0], cfg.branchLenB[1]);
+  const branchA = walkBranch(trunkTop, az, f(13, cfg.branchElevation[0], cfg.branchElevation[1]), lenA, 17, 1);
+  const branchB = walkBranch(trunkTop, -az, f(14, cfg.branchElevation[0], cfg.branchElevation[1]), lenB, 21, -1);
 
   // ── Leaf ball on branch A tip (sunk slightly onto the tip, lopsided tilt) ──
-  const canopyTiltDir = frac(treeHash(tileH, 15)) * Math.PI * 2;
-  const canopyTiltAmt = (frac(treeHash(tileH, 16)) - 0.5) * 2 * cfg.canopyTilt;
+  const canopyTiltDir = frac(treeHash(tileH, 25)) * Math.PI * 2;
+  const canopyTiltAmt = (frac(treeHash(tileH, 26)) - 0.5) * 2 * cfg.canopyTilt;
   records.push({
     ...shared, geo: 'fruit-canopy',
     localPos: {
-      x: tipAX - dirA.x * cfg.canopySink,
-      y: tipAY - dirA.y * cfg.canopySink,
-      z: tipAZ - dirA.z * cfg.canopySink,
+      x: branchA.tip.x - branchA.dir.x * cfg.canopySink,
+      y: branchA.tip.y - branchA.dir.y * cfg.canopySink,
+      z: branchA.tip.z - branchA.dir.z * cfg.canopySink,
     },
     localAxis: { x: Math.cos(canopyTiltDir), y: 0, z: Math.sin(canopyTiltDir) }, localAngle: canopyTiltAmt,
-    scaleXZ: s * f(17, cfg.canopyStretchXZ[0], cfg.canopyStretchXZ[1]),
-    scaleY: s * f(18, cfg.canopyStretchY[0], cfg.canopyStretchY[1]),
-    color: clusterColor(TREE_CANOPY_COLORS.fruit, tileH, 19, cfg.colorJitter),
+    scaleXZ: s * f(27, cfg.canopyStretchXZ[0], cfg.canopyStretchXZ[1]),
+    scaleY: s * f(28, cfg.canopyStretchY[0], cfg.canopyStretchY[1]),
+    color: clusterColor(TREE_CANOPY_COLORS.fruit, tileH, 29, cfg.colorJitter),
   });
 
   // ── Apple hanging just below branch B tip ──
-  const drop = f(20, cfg.appleDrop[0], cfg.appleDrop[1]);
+  const drop = f(30, cfg.appleDrop[0], cfg.appleDrop[1]);
   records.push({
     ...shared, geo: 'fruit-apple',
     localPos: {
-      x: tipBX + (frac(treeHash(tileH, 21)) - 0.5) * 0.015,
-      y: tipBY - drop,
-      z: tipBZ + (frac(treeHash(tileH, 22)) - 0.5) * 0.015,
+      x: branchB.tip.x + (frac(treeHash(tileH, 31)) - 0.5) * 0.015,
+      y: branchB.tip.y - drop,
+      z: branchB.tip.z + (frac(treeHash(tileH, 32)) - 0.5) * 0.015,
     },
-    scale: s * f(23, 0.9, 1.1),
-    color: clusterColor(FRUIT_TREE_COLORS.apple, tileH, 24, cfg.colorJitter),
+    scale: s * f(33, 0.9, 1.1),
+    color: clusterColor(FRUIT_TREE_COLORS.apple, tileH, 34, cfg.colorJitter),
   });
 
   return records;
