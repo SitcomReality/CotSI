@@ -6,6 +6,8 @@ import {
   SEED_DETAIL, SEED_RIDGE, SEED_MOISTURE, SEED_TEMP,
   SEED_REGION_M, SEED_REGION_T,
   DEFAULT_TERRAIN_RULES,
+  ELEVATION_DETAIL_MIX, HYPSOMETRIC_EXPONENT,
+  TEMP_BASE, TEMP_LATITUDE_WEIGHT, TEMP_VARIATION_WEIGHT, TEMP_ELEVATION_LAPSE,
 } from '../../../../params/game/worldParams.js';
 import { worldShape } from './worldShape.js';
 import { clamp01 } from './slopeComputation.js';
@@ -86,10 +88,10 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   const detail    = hexFbm2D(q, r, baseSeed + NC.SEED_DETAIL, NC.ELEVATION_DETAIL);
   const ridges    = hexRidgedFbm2D(q, r, baseSeed + NC.SEED_RIDGE,  NC.RIDGE);
   const dist      = distance({ q, r }, { q: 0, r: 0 });
-  const rawElev   = worldShape(dist, radius) * (detail * 0.50 + ridges * 0.50);
+  const rawElev   = worldShape(dist, radius) * (detail * ELEVATION_DETAIL_MIX + ridges * ELEVATION_DETAIL_MIX);
   // Hypsometric curve spreads the low-mid elevation range so the terrain
   // classifier has room to distinguish plains, hills, mountains, and peaks.
-  const elevation = Math.pow(rawElev, 0.6);
+  const elevation = Math.pow(rawElev, HYPSOMETRIC_EXPONENT);
 
   // Moisture: raw FBM, no water adjustment yet (Phase C)
   const baseMoisture = hexFbm2D(q, r, baseSeed + NC.SEED_MOISTURE, NC.MOISTURE);
@@ -105,9 +107,9 @@ export function sampleBaseFields(baseSeed, q, r, noiseConfig, radius) {
   // Increase the elevation lapse rate (0.30→0.40) so high peaks get colder
   // regardless of latitude, creating cold high-elevation microclimates.
   const temperature = clamp01(
-    0.5 + 0.80 * (latitudeTerm - 0.5)
-        + 0.35 * (tempVariation - 0.5)
-        - 0.40 * (elevation - RULES.waterMaxElevation)
+    TEMP_BASE + TEMP_LATITUDE_WEIGHT * (latitudeTerm - 0.5)
+        + TEMP_VARIATION_WEIGHT * (tempVariation - 0.5)
+        - TEMP_ELEVATION_LAPSE * (elevation - RULES.waterMaxElevation)
   );
 
   // Region bias: two independent low-frequency fields

@@ -1,13 +1,14 @@
 import { coordKey, hexesWithinRadius } from '../../../../engine/rules/hexGrid.js';
 import { clamp01 } from '../fields/slopeComputation.js';
+import { WATER_MOISTURE_BOOST } from '../../../../params/game/worldParams.js';
 
 /**
  * Boost moisture for land tiles near water.
  *
  * Counts water neighbors within radius 2 via the provisionalWaterSet.
- * Each water neighbor adds 0.03 moisture — a coastal tile typically gets
- * +0.09 to +0.18, enough to push borderline-desert tiles into plains or forest.
- * Result is clamped to [0, 1].
+ * Each water neighbor adds WATER_MOISTURE_BOOST moisture — a coastal tile
+ * typically gets +0.09 to +0.18, enough to push borderline-desert tiles
+ * into plains or forest. Result is clamped to [0, 1].
  *
  * @param {number}     q                   - Hex q coordinate
  * @param {number}     r                   - Hex r coordinate
@@ -23,7 +24,7 @@ export function adjustMoisture(q, r, baseMoisture, fieldMap, provisionalWaterSet
       waterNeighbors++;
     }
   }
-  return clamp01(baseMoisture + waterNeighbors * 0.03);
+  return clamp01(baseMoisture + waterNeighbors * WATER_MOISTURE_BOOST);
 }
 
 /**

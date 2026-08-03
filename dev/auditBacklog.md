@@ -144,9 +144,18 @@ object as coordinates → NaN distances, fixed in commit 3).
 - **Magic numbers bypassing `src/params/`:** `chunkGeneration.js:243` (0.92 debris
   gate), `moistureAdjustment.js:26` (0.03 water boost), `featureDensity.js:21-67`
   (~12 constants), `sampleBaseFields.js:89-111` (0.50/0.50 mix, `^0.6` hypsometric),
-  `epicenterPlacement.js:40-41` (noise freq, `maxAttempts`).
+  `epicenterPlacement.js:40-41` (noise freq, `maxAttempts`). — DONE (commit 1): all
+  moved into `worldParams.js` — `DEBRIS_SPAWN_THRESHOLD`, `WATER_MOISTURE_BOOST`,
+  `FEATURE_DENSITY` object (15 keys), `ELEVATION_DETAIL_MIX`/`HYPSOMETRIC_EXPONENT` +
+  temperature terms (`TEMP_BASE`/`TEMP_LATITUDE_WEIGHT`/`TEMP_VARIATION_WEIGHT`/
+  `TEMP_ELEVATION_LAPSE`), `EPICENTER_CONFIG.noiseFrequency`/`maxAttemptsPerTarget`/
+  `minAbsDist`. Values verbatim — terrain-gen pipeline tests pin identical output.
 - **Threshold drift:** three different tree-moisture numbers — `featureDensity.js`
   0.72 ramp / 0.60 fruit-tree gate vs `worldParams.js` `forestMinMoisture: 0.58`.
+  — DONE (commit 1): the family now lives together — `FEATURE_DENSITY.moistRamp`
+  (0.72) / `fruitTreeMinMoisture` (0.60) beside `DEFAULT_TERRAIN_RULES.forestMinMoisture`
+  (0.58), with a comment documenting the relationship (dense-forest ramp above the
+  forest floor; fruit gate ≥ floor). Values unchanged.
 - **Dead params:** `FLEE_MIN_HP`/`FLEE_ROUND_DELAY` never used (combatFlee hardcodes
   `hp - 1`, combatBotAI hardcodes `round <= 1`); `mapSettings` sliders (hv/wt/mt) flow
   into `generateTiles` but are explicitly unused in the new pipeline — sliders

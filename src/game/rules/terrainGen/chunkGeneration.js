@@ -6,7 +6,7 @@ import { CHUNK_SIZE } from '../../../params/engine/chunkParams.js';
 import {
   MAX_LOOKUP_RADIUS, DEFAULT_TERRAIN_RULES,
   NOISE_CHANNEL_FEATURES, NOISE_CHANNEL_DEBRIS, NOISE_CHANNEL_DEBRIS_KIND,
-  DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD,
+  DEBRIS_TUFT_THRESHOLD, DEBRIS_ROCK_THRESHOLD, DEBRIS_SPAWN_THRESHOLD,
 } from '../../../params/game/worldParams.js';
 import { getArchetype } from '../archetypes.js';
 import { getNoiseConfig, sampleBaseFields } from './fields/sampleBaseFields.js';
@@ -240,7 +240,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
       }
     } else {
       const spawnRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS);
-      if (spawnRoll > 0.92) {
+      if (spawnRoll > DEBRIS_SPAWN_THRESHOLD) {
         tile.debris = { kind };
       }
     }

@@ -27,12 +27,17 @@ export const NOISE_CHANNEL_DEBRIS_KIND = 6;
 export const DEBRIS_TUFT_THRESHOLD = 0.4;
 /** Debris kind threshold: rock (≤threshold). */
 export const DEBRIS_ROCK_THRESHOLD = 0.7;
+/** Debris spawn gate: tufts/flowers spawn only when the debris roll exceeds this. */
+export const DEBRIS_SPAWN_THRESHOLD = 0.92;
 /** Mountain peak classification: minimum mountain-neighbor count (out of 6). */
 export const MOUNTAIN_PEAK_MIN_NEIGHBORS = 4;
 /** Water-type classification: max BFS depth for lake-vs-ocean check. */
 export const WATER_BFS_MAX_DEPTH = 3;
 /** Ocean edge-detection epsilon buffer. */
 export const OCEAN_EDGE_BUFFER = 0.5;
+
+/** Moisture added per adjacent water tile (coastal boost, radius-2 scan). */
+export const WATER_MOISTURE_BOOST = 0.03;
 
 /** Base knot amount before variation. */
 export const KNOT_BASE_AMOUNT = 2;
@@ -91,15 +96,36 @@ export const SEED_DETAIL = 0x7B2C1E8D;
 export const SEED_RIDGE = 0x3F5A9B2C;
 
 // ---------------------------------------------------------------------------
+// Phase B base-field shaping (sampleBaseFields.js)
+// ---------------------------------------------------------------------------
+
+/** Detail/ridge elevation mix weight (the two layers sum to 2× this). */
+export const ELEVATION_DETAIL_MIX = 0.50;
+/** Hypsometric curve exponent — spreads the low-mid elevation range. */
+export const HYPSOMETRIC_EXPONENT = 0.6;
+
+/** Temperature: neutral baseline. */
+export const TEMP_BASE = 0.5;
+/** Temperature: latitude gradient weight (widened 0.55→0.80 in batch 011). */
+export const TEMP_LATITUDE_WEIGHT = 0.80;
+/** Temperature: local variation weight. */
+export const TEMP_VARIATION_WEIGHT = 0.35;
+/** Temperature: elevation lapse rate (raised 0.30→0.40 in batch 011). */
+export const TEMP_ELEVATION_LAPSE = 0.40;
+
+// ---------------------------------------------------------------------------
 // Epicenter config (supernatural biome placement)
 // Density determines how many epicenter seeds are placed via dart-throwing.
 // Radius scales with map radius via per-biome radiusFraction.
 // ---------------------------------------------------------------------------
 
 export const EPICENTER_CONFIG = {
-  density:           0.0008,  // epicenters per unit hex area
-  minDistFraction:   0.14,    // min distance between epicenters, as fraction of radius
-  maxEpicenters:     12,      // hard cap on any map
+  density:             0.0008, // epicenters per unit hex area
+  minDistFraction:     0.14,   // min distance between epicenters, as fraction of radius
+  maxEpicenters:       12,     // hard cap on any map
+  noiseFrequency:      0.008,  // low-frequency FBM for regional biome clustering
+  maxAttemptsPerTarget: 50,    // dart-throw rejection attempts per epicenter
+  minAbsDist:          4,      // absolute floor for epicenter min distance (hexes)
 };
 
 // ---------------------------------------------------------------------------
@@ -160,6 +186,35 @@ export const DEFAULT_TERRAIN_RULES = {
   // roughly two-thirds of those qualify, targeting ~8-10% total water.
   waterMinMoisture:         0.32,
   treeLineMax:              0.85,
+};
+
+// ---------------------------------------------------------------------------
+// Feature density (featureDensity.js)
+// Tree/fruit/rock feature density shaping. The moisture values here form one
+// family with DEFAULT_TERRAIN_RULES.forestMinMoisture (0.58):
+//   moistRamp 0.72            — tree density ramps up only above the
+//                               dense-forest moisture, well past the forest floor.
+//   fruitTreeMinMoisture 0.60 — fruit trees need moisture above the forest floor
+//                               but below the dense-forest ramp.
+// Re-derive the family together if the moisture distribution shifts.
+// ---------------------------------------------------------------------------
+
+export const FEATURE_DENSITY = {
+  baseline:            0.5,  // plains baseline density
+  moistRamp:           0.72, // tree density ramp start (moisture)
+  moistSpan:           0.28, // ramp width: moisture 0.72 → 1.0 maps factor 0 → 1
+  treeLineHalf:        0.5,  // elevation penalty starts above half the tree line
+  treeDensityScale:    0.8,  // tree density scale (× elevFactor)
+  treeDensityMin:      0.2,  // tree density floor
+  plainsMoistFactor:   0.6,  // plains/hill density: moisture × this
+  plainsOffset:        0.1,  // plains/hill density: + this
+  marshMoistFactor:    0.4,  // marsh density: moisture × this
+  desertMoistFactor:   0.15, // desert density: moisture × this
+  fruitTreeMinMoisture: 0.60, // fruit-tree climate gate
+  rockSlopeNorm:       0.15, // rock prob: slope factor saturates at this slope
+  rockDryNorm:         0.5,  // rock prob: dryness saturates as moisture → 0
+  rockSlopeWeight:     0.6,  // rock prob: slope factor weight
+  rockDryWeight:       0.4,  // rock prob: dryness factor weight
 };
 
 // ---------------------------------------------------------------------------

@@ -31,14 +31,14 @@ function generateSupernaturalSeeds(baseSeed, radius) {
     EPICENTER_CONFIG.maxEpicenters,
     Math.max(1, Math.floor(area * EPICENTER_CONFIG.density))
   );
-  const minDist = Math.max(4, radius * EPICENTER_CONFIG.minDistFraction);
+  const minDist = Math.max(EPICENTER_CONFIG.minAbsDist, radius * EPICENTER_CONFIG.minDistFraction);
 
   const rng = makeRng('supernatural_' + baseSeed);
   const seeds = [];
-  const maxAttempts = targetCount * 50;
+  const maxAttempts = targetCount * EPICENTER_CONFIG.maxAttemptsPerTarget;
 
   const biomeNoiseSeed = baseSeed + 0x9D6E1F3A;
-  const biomeNoiseOpts = { frequency: 0.008, octaves: 2, gain: 0.5, lacunarity: 2.0 };
+  const biomeNoiseOpts = { frequency: EPICENTER_CONFIG.noiseFrequency, octaves: 2, gain: 0.5, lacunarity: 2.0 };
 
   for (let attempts = 0; seeds.length < targetCount && attempts < maxAttempts; attempts++) {
     // Rejection-sample a valid hex coordinate within the map
