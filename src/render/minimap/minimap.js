@@ -9,6 +9,7 @@ import { initMinimap as domInit, disposeMinimap as domDispose } from './minimapD
 import { renderTerrainLayer, resetTerrainCache } from './minimapTerrainLayer.js';
 import { renderOverlayLayer } from './minimapOverlayLayer.js';
 import { handleMinimapClick } from './minimapClickHandler.js';
+import { getSceneContext } from '../hexmap3d/hexMapRenderer.js';
 import { getClock } from '../../shared/clockScheduler.js';
 
 // ---- Module-level shared state ----
@@ -19,6 +20,7 @@ let _cachedOffsetZ = 0;
 let _overlayTickStop = null;
 let _lastG = null;
 let _lastHumanView = null;
+let _lastOverlayFingerprint = null;
 
 // ---- Initialization ----
 
@@ -38,11 +40,45 @@ export function initMinimap(mountEl, radius, getExploredFn) {
 
   // Register per-frame overlay redraw so the camera indicator follows
   // interactive pan/zoom without needing a full game-state refresh.
+  // Dirty-checked: skips the redraw when the camera and entities are unchanged.
   _overlayTickStop = getClock().onTick(() => {
     if (_lastG && _lastHumanView && _cachedScale > 0) {
-      renderOverlayLayer(_lastG, _lastHumanView, _cachedScale, _cachedOffsetX, _cachedOffsetZ);
+      const fingerprint = overlayFingerprint(_lastG, _cachedScale, _cachedOffsetX, _cachedOffsetZ);
+      if (fingerprint !== _lastOverlayFingerprint) {
+        _lastOverlayFingerprint = fingerprint;
+        renderOverlayLayer(_lastG, _lastHumanView, _cachedScale, _cachedOffsetX, _cachedOffsetZ);
+      }
     }
   });
+}
+
+/**
+ * Cheap signature of everything the overlay draws: camera state, projection
+ * params, and alive entity positions. When it is unchanged, the redraw would
+ * produce a pixel-identical frame, so it is skipped.
+ */
+function overlayFingerprint(G, scale, offsetX, offsetZ) {
+  let cam = '';
+  const ctx3d = getSceneContext();
+  if (ctx3d) {
+    const c = ctx3d.getCameraState();
+    cam = `${c.frustumSize}|${c.targetX.toFixed(3)}|${c.targetZ.toFixed(3)}|${c.aspect.toFixed(4)}|${c.pitch.toFixed(4)}|${c.yaw.toFixed(4)}`;
+  }
+  let ents = '';
+  for (const champ of G.champions) {
+    if (champ.alive) ents += `c${champ.id}:${champ.pos.q},${champ.pos.r};`;
+  }
+  if (G.mobs) {
+    for (const mob of G.mobs) {
+      if (mob.alive) ents += `m${mob.id}:${mob.pos.q},${mob.pos.r};`;
+    }
+  }
+  if (G.traders) {
+    for (const trader of G.traders) {
+      ents += `t${trader.id}:${trader.pos.q},${trader.pos.r};`;
+    }
+  }
+  return `${scale}|${offsetX.toFixed(2)}|${offsetZ.toFixed(2)}|${cam}|${ents}`;
 }
 
 // ---- Public API ----
@@ -56,6 +92,7 @@ export function initMinimap(mountEl, radius, getExploredFn) {
 export function renderMinimap(G, humanView) {
   _lastG = G;
   _lastHumanView = humanView;
+  _lastOverlayFingerprint = null; // force one fresh overlay redraw on the next tick
   const result = renderTerrainLayer(G, humanView);
   if (result) {
     _cachedScale = result.scale;
@@ -81,4 +118,5 @@ export function disposeMinimap() {
   _cachedOffsetZ = 0;
   _lastG = null;
   _lastHumanView = null;
+  _lastOverlayFingerprint = null;
 }

@@ -39,10 +39,13 @@ export function blurMaskInPlace(canvas, radius) {
   // Draw the original canvas at physical resolution onto temp
   tempCtx.drawImage(canvas, 0, 0);
 
-  // Blur temp onto itself via another intermediate (avoids in-place issues)
+  // Blur temp onto itself via another intermediate (avoids in-place issues).
+  // The canvas is physical-pixel sized with a DPR transform, so a CSS-px radius
+  // must be scaled by dpr to blur the same visual amount at every zoom level.
   const temp2Ctx = _blurTemp2.getContext('2d');
   temp2Ctx.clearRect(0, 0, w, h);
-  temp2Ctx.filter = `blur(${radius}px)`;
+  const dpr = window.devicePixelRatio || 1;
+  temp2Ctx.filter = `blur(${radius * dpr}px)`;
   temp2Ctx.drawImage(_blurTemp, 0, 0);
 
   // Copy blurred result back to the original canvas, replacing its content at
@@ -53,6 +56,5 @@ export function blurMaskInPlace(canvas, radius) {
   ctx.drawImage(_blurTemp2, 0, 0);
 
   // Restore the DPR transform so subsequent CSS-coord draws still work
-  const dpr = window.devicePixelRatio || 1;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }

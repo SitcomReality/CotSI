@@ -181,6 +181,14 @@ object as coordinates → NaN distances, fixed in commit 3).
   (O(V²) per isolated pocket) — use a priority queue; `minimap.js:41-45` renders
   overlay every frame while idle; `fogBlur.js:45` blur radius applied on a
   physical-pixel canvas (dpr× larger than param); `noise.js:20` `_permCache` unbounded.
+  — DONE (commit 3): epicenter beach lookup is O(1) via a chunk-local key→terrain
+  index kept in sync on reclassification (the chunk-seam inconsistency is documented
+  as a deferred limitation — needs neighbor-chunk data); Dijkstra in
+  `connectivityEnforcement` uses a new `engine/rules/binaryHeap.js` min-heap
+  (O(V log V), duplicate-entry + stale-skip; +4 tests); minimap overlay redraw is
+  dirty-checked (camera + entity fingerprint) and skipped when unchanged; fog blur
+  radius is dpr-scaled so `FOG_BLUR_RADIUS` renders as CSS px; `_permCache` is
+  capped at 64 seeds with oldest-first eviction.
 - **Robustness:** `beginGame.js:26` raw `setTimeout` (only timer violation outside
   vendor/dev) + no re-entry guard (double-click runs `createGame` twice);
   `clockScheduler.js:63-72` timeout `task.fn()` not try/caught — a throwing timeout

@@ -1,4 +1,5 @@
 import { coordKey, neighbors } from '../../../../engine/rules/hexGrid.js';
+import { createMinHeap } from '../../../../engine/rules/binaryHeap.js';
 import { TERRAIN } from '../../terrainTypes.js';
 import { demoteToPassable } from './spawnClearance.js';
 
@@ -103,37 +104,30 @@ export function ensurePassableConnectivity(tiles, radius) {
 /**
  * Dijkstra-search a minimum-cost bridge from an isolated passable component
  * to the main component, then convert impassable hexes on the path.
+ *
+ * Uses a min-heap priority queue (binaryHeap.js) instead of a linear min-scan,
+ * so worst-case per pocket is O(V log V) rather than O(V²).
  */
 function _bridgeComponent(tiles, isolatedSet, mainSet) {
   // Pick a seed from the isolated component
   const seed = isolatedSet.values().next().value;
 
-  const allKeys = Object.keys(tiles);
   const dist = {};
   const prev = {};
-  const unvisited = new Set(allKeys);
-
-  for (const key of allKeys) {
-    dist[key] = Infinity;
-    prev[key] = null;
-  }
   dist[seed] = 0;
+
+  // Duplicate-entry heap: a key may be pushed again when a shorter path is
+  // found; stale pops (priority > current dist) are skipped below.
+  const heap = createMinHeap();
+  heap.push(seed, 0);
 
   let reachedTarget = null;
 
-  while (unvisited.size > 0) {
-    // Find minimum-distance unvisited node
-    let minKey = null;
-    let minDist = Infinity;
-    for (const key of unvisited) {
-      if (dist[key] < minDist) {
-        minDist = dist[key];
-        minKey = key;
-      }
-    }
+  while (!heap.isEmpty()) {
+    const { key: minKey, priority: minDist } = heap.pop();
 
-    if (minKey === null || minDist === Infinity) break;
-    unvisited.delete(minKey);
+    // Stale entry — a shorter path to this key was found after this push
+    if (minDist > dist[minKey]) continue;
 
     // Reached main component?
     if (mainSet.has(minKey)) {
@@ -145,16 +139,17 @@ function _bridgeComponent(tiles, isolatedSet, mainSet) {
     const [cq, cr] = minKey.split(',').map(Number);
     for (const nbr of neighbors({ q: cq, r: cr })) {
       const nk = coordKey(nbr);
-      if (!unvisited.has(nk) || !tiles[nk]) continue;
+      if (!tiles[nk]) continue;
 
       const nbrTile = tiles[nk];
       const isPassable = TERRAIN[nbrTile.terrain]?.passable;
       const edgeCost = isPassable ? 0 : (BRIDGE_COST[nbrTile.terrain] ?? 100);
 
-      const alt = dist[minKey] + edgeCost;
-      if (alt < dist[nk]) {
+      const alt = minDist + edgeCost;
+      if (alt < (dist[nk] ?? Infinity)) {
         dist[nk] = alt;
         prev[nk] = minKey;
+        heap.push(nk, alt);
       }
     }
   }

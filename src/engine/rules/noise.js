@@ -19,6 +19,9 @@ import { stringSeed } from './seededRng.js';
 /** @type {Map<number, Uint8Array>} */
 const _permCache = new Map();
 
+/** Max seeded permutation tables cached; oldest evicted on overflow (LRU-ish). */
+const PERM_CACHE_MAX = 64;
+
 /**
  * Build or retrieve a seeded permutation table (512 entries).
  * @param {number} seed - Integer seed from stringSeed()
@@ -47,6 +50,10 @@ function _getPerm(seed) {
   perm = new Uint8Array(512);
   for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
 
+  // Bound the cache: Map preserves insertion order, so evict the oldest seed
+  if (_permCache.size >= PERM_CACHE_MAX) {
+    _permCache.delete(_permCache.keys().next().value);
+  }
   _permCache.set(seed, perm);
   return perm;
 }

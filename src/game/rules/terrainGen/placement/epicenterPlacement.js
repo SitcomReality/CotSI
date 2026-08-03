@@ -121,6 +121,17 @@ export function applySupernaturalOverrides(tileMap, baseSeed, radius) {
   const seeds = generateSupernaturalSeeds(baseSeed, radius);
   if (!seeds.length) return;
 
+  // O(1) beach lookup: index the chunk's tiles by global coordKey once, kept
+  // in sync as tiles are reclassified below (mirrors the previous live-value
+  // scan of tileMap). Known limitation: only this chunk's core tiles are
+  // indexed, so an epicenter near a chunk seam can classify a beach differently
+  // than the neighboring chunk would (chunk-seam-inconsistent beach). Cross-chunk
+  // terrain lookup needs neighbor-chunk data at classification time — deferred.
+  const terrainByKey = new Map();
+  for (const [, t] of tileMap) {
+    terrainByKey.set(coordKey({ q: t.q, r: t.r }), t.terrain);
+  }
+
   // For each tile, check if within any epicenter region
   for (const [, tile] of tileMap) {
     for (const s of seeds) {
@@ -154,16 +165,11 @@ export function applySupernaturalOverrides(tileMap, baseSeed, radius) {
         tile.biomeId = s.biomeId;
         tile.terrain = classifyTerrain(modElev, modMoist, modTemp, tile.slope, s.biomeDef,
           tile.q, tile.r, (nq, nr) => {
-            const nk = coordKey({ q: nq, r: nr });
-            // tileMap keys are localKeys — iterate values to match by q,r
-            for (const t of tileMap.values()) {
-              if (coordKey({ q: t.q, r: t.r }) === nk) {
-                return t.terrain === 'water' || t.terrain === 'ice';
-              }
-            }
-            return false;
+            const terrain = terrainByKey.get(coordKey({ q: nq, r: nr }));
+            return terrain === 'water' || terrain === 'ice';
           }
         );
+        terrainByKey.set(coordKey({ q: tile.q, r: tile.r }), tile.terrain);
         tile.elevation = resolveElevation(tile.terrain, s.biomeDef);
 
         break;  // first matching supernatural biome wins
