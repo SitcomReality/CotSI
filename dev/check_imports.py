@@ -8,7 +8,7 @@ Gates:
      (follows `export { x } from './y.js'` re-export chains).
   3. Boundary report: cross-layer imports vs the layer rules in AGENTS.md
      (mirrored in dev/systemArchitecture.md §2). Informational only —
-     pre-existing debt is tracked in dev/auditBacklog.md; do not add to it.
+     pre-existing debt is tracked in dev/futureWork.md; do not add to it.
 
 Usage:  python3 dev/check_imports.py
 Exit code is non-zero if gate 1 or 2 fails.

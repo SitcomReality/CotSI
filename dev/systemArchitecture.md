@@ -622,5 +622,5 @@ moving code).
 | `dev/clockScheduler.md` | Clock API reference — all timer/scheduling patterns |
 | `dev/gameMechanics.md` | Combat round flow, turn order, biome system |
 | `dev/commonTasks.md` | How-to recipes for common changes |
-| `dev/largeMapRoadmap.md` | Future map-size and performance roadmap |
+| `dev/futureWork.md` | Deferred work and future-reference roadmap |
 | `dev/analysis.html` | Map-gen analysis tool reference (standalone page) |

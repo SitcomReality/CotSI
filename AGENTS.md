@@ -96,7 +96,8 @@ Delegate to sub-agents as much as possible. Spawning agents to perform specific 
 
 ## Current Process Underway
 
-Active work is tracked in `dev/auditBacklog.md`: phases §1 (trivial fixes), §3
-(structural), §4 (test coverage), §5 (fragility hardening), §7 (docs drift) and §8
-(environment) are DONE; §2 (dev-tooling gating) and §6 (placeholders) are deferred.
-Terrain-gen tuning and polish remains tracked in `dev/mapgen_update/remaining_work.md`.
+Deferred and future work is tracked in `dev/futureWork.md` (consolidated from the
+audit backlog and the terrain-gen / large-map trackers): deferred audit phases §2
+(dev-tooling gating) and §6 (placeholders), optional structural follow-ups,
+terrain-gen tuning, and large-map future-scale reference. Completed audit phases
+(§1, §3–§5, §7, §8) live in git history.

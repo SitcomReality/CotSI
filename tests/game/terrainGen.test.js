@@ -57,7 +57,7 @@ test('seed variance: different seeds produce different maps', () => {
 });
 
 test('terrain budget: wide snapshot ranges hold at r=14', () => {
-  // Wide ranges from dev/mapgen_update/remaining_work.md §11 — tight ranges
+  // Wide ranges from dev/futureWork.md §4.8 — tight ranges
   // come later once thresholds are recalibrated.
   for (const seed of ['budget-a', 'budget-b', 'budget-c']) {
     const tiles = generateTiles(seed, RADIUS);
@@ -133,7 +133,7 @@ test('map covers the full radius disc', () => {
 });
 
 test('chunk generation is deterministic per chunk (seam invariant)', () => {
-  // Frequencies scale with map radius (§9 of remaining_work.md), so cross-radius
+  // Frequencies scale with map radius (§4.6 of dev/futureWork.md), so cross-radius
   // tile equality is not an invariant. The real invariant is per-chunk
   // determinism at a fixed radius — the basis for seamless chunked generation.
   const a = generateChunkTiles('chunk-seed', 1, -1, RADIUS).tileMap;
