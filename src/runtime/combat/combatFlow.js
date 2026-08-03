@@ -13,17 +13,13 @@ import {
   fleeFromCombat
 } from '../../game/state/combat/index.js';
 
-import {
-  getCombatUI,
-  getGameState,
-  getMeasure
-} from './combatUiState.js';
-
-import { renderCombat } from './combatRenderer.js';
+import { G } from '../../game/state/liveGame.js';
+import { getCombatUI, wait } from './combatState.js';
+import { renderCombat } from '../../ui/combat/combatRenderer.js';
 import { closeCombat } from './combatLifecycle.js';
-import { wait } from './combatFx.js';
-import { animateReveal } from './combatReveal.js';
+import { animateReveal } from '../../ui/combat/combatReveal.js';
 import { handleRoundEnd } from './combatRoundEnd.js';
+import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../../dev/performance/index.js';
 import { BOT_PICK_DELAY_MS, ROUND_END_HOLD_MS } from '../../params/ui/combatUiParams.js';
 
 // ---- helpers ----
@@ -41,17 +37,12 @@ function getOpponentRevealedHistory(combat, awaitingSide) {
 // ---- async sequencer ----
 
 export async function runCombatFlow() {
-  const measure = getMeasure();
-  const measureStart = measure ? measure.start : () => {};
-  const measureEnd = measure ? measure.end : () => {};
-  const setContext = measure ? measure.setContext : () => {};
-  const clearContext = measure ? measure.clearContext : () => {};
-  measureStart('combatFlow');
+  startMeasure('combatFlow');
 
   // Set profiler context: combat active
   const combat = getCombatUI();
   if (combat) {
-    setContext({ phase: 'combat', detail: 'active' });
+    setGameContext({ phase: 'combat', detail: 'active' });
   }
 
   while (getCombatUI()) {
@@ -61,41 +52,40 @@ export async function runCombatFlow() {
     if (isPickingPhase(combat)) {
       const side = combat.awaitingSide;
       const entity = entityFor(combat, side);
-      if (!entity) { clearContext(); measureEnd('combatFlow'); break; } // safety
+      if (!entity) { clearGameContext(); endMeasure('combatFlow'); break; } // safety
 
       // Non-human (bot or mob - mobs have no controller)
       if (entity.controller !== 'human') {
         await wait(BOT_PICK_DELAY_MS);
-        if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; } // cancelled (e.g. flee)
+        if (!getCombatUI()) { clearGameContext(); endMeasure('combatFlow'); return; } // cancelled (e.g. flee)
 
         const history = getOpponentRevealedHistory(combat, side);
         const available = getAvailablePicks(entity);
         const pick = botCombatPick(entity, history, available);
-        if (pick == null) { measureEnd('combatFlow'); closeCombat(); break; } // no valid pick — abort combat
+        if (pick == null) { endMeasure('combatFlow'); closeCombat(); break; } // no valid pick — abort combat
 
         recordPick(combat, side, pick);
         if (bothPicksIn(combat)) {
           advancePhase(combat);
         }
-        renderCombat();
+        renderCombat(combat);
         continue; // loop again - maybe second side is picking, or enter reveal
       }
 
       // Human - stop the loop; action bus will call runCombatFlow again
-      measureEnd('combatFlow');
+      endMeasure('combatFlow');
       break;
     }
 
     // ---------- REVEAL PHASE ----------
     if (isRevealPhase(combat)) {
-      const _G = getGameState();
-      const reveal = processReveal(_G, combat); // writes combat.lastReveal
+      const reveal = processReveal(G, combat); // writes combat.lastReveal
       if (reveal) {
-        await animateReveal(reveal);
+        await animateReveal(combat, reveal);
       }
-      renderCombat();
+      renderCombat(combat);
       await wait(ROUND_END_HOLD_MS); // extra hold for the eye to register
-      if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; }
+      if (!getCombatUI()) { clearGameContext(); endMeasure('combatFlow'); return; }
 
       advancePhase(combat);
       continue;
@@ -107,37 +97,35 @@ export async function runCombatFlow() {
       // applies the round's damage itself (capped at 1 HP) and ends combat.
       // Checking after handleRoundEnd was broken: it zeroes roundScores and bumps
       // the round, so shouldBotFlee always saw a clean slate and bots never fled.
-      const _G = getGameState();
-      if (_G) {
+      if (G) {
         if (shouldBotFlee(combat.defender, combat)) {
-          fleeFromCombat(_G, combat, 'defender');
+          fleeFromCombat(G, combat, 'defender');
           closeCombat();
-          clearContext();
-          measureEnd('combatFlow');
+          clearGameContext();
+          endMeasure('combatFlow');
           return;
         }
         if (shouldBotFlee(combat.attacker, combat)) {
-          fleeFromCombat(_G, combat, 'attacker');
+          fleeFromCombat(G, combat, 'attacker');
           closeCombat();
-          clearContext();
-          measureEnd('combatFlow');
+          clearGameContext();
+          endMeasure('combatFlow');
           return;
         }
       }
 
       await handleRoundEnd();
-      if (!getCombatUI()) { clearContext(); measureEnd('combatFlow'); return; } // combat ended (death)
+      if (!getCombatUI()) { clearGameContext(); endMeasure('combatFlow'); return; } // combat ended (death)
 
       continue;
     }
 
     // Unknown phase - stop
-    clearContext();
-    measureEnd('combatFlow');
+    clearGameContext();
+    endMeasure('combatFlow');
     break;
   }
 
-  clearContext();
-  measureEnd('combatFlow');
+  clearGameContext();
+  endMeasure('combatFlow');
 }
-

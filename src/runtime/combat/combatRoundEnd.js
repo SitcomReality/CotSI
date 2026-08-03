@@ -6,45 +6,40 @@ import {
   finalizeCombat,
 } from '../../game/state/combat/index.js';
 
-import {
-  getCombatUI,
-  getGameState,
-  getRefreshAll,
-  getToast,
-} from './combatUiState.js';
-
-import { renderCombat } from './combatRenderer.js';
-import { openRewardModal } from './combatRewardUI.js';
+import { G } from '../../game/state/liveGame.js';
+import { getCombatUI, wait } from './combatState.js';
+import { refreshAll } from '../refreshAll.js';
+import { toast } from '../../ui/hud.js';
+import { renderCombat } from '../../ui/combat/combatRenderer.js';
+import { openRewardModal } from '../../ui/combat/combatRewardUI.js';
 import { closeCombat } from './combatLifecycle.js';
 import {
-  wait,
   shakeCard,
   flashCard,
   drainHp,
   floatText,
   getFxLayer,
   getCard,
-} from './combatFx.js';
+} from '../../ui/combat/combatFx.js';
 import { ROUND_END_HOLD_MS } from '../../params/ui/combatUiParams.js';
 
 export async function handleRoundEnd() {
   const combat = getCombatUI();
   if (!combat || combat.phase !== 'roundEnd') return;
 
-  const _G = getGameState();
   const { attacker, defender, roundScores } = combat;
 
   // Apply final bonuses (Crucible, weather, margin, Hollow)
   const { scoreA, scoreB } = applyFinalBonuses(
-    _G, attacker, defender, roundScores.attacker, roundScores.defender
+    G, attacker, defender, roundScores.attacker, roundScores.defender
   );
   combat.roundScores.attacker = scoreA;
   combat.roundScores.defender = scoreB;
 
-  const result = resolveRoundDamage(_G, combat);
+  const result = resolveRoundDamage(G, combat);
 
   if (result.defenderDead) {
-    const rewards = finalizeCombat(_G, attacker, defender, true);
+    const rewards = finalizeCombat(G, attacker, defender, true);
     closeCombat();
     openRewardModal(attacker, {
       title: 'Victory!',
@@ -55,17 +50,14 @@ export async function handleRoundEnd() {
         { icon: 'i-relic', label: '+1 relic' },
       ],
     });
-    const refresh = getRefreshAll();
-    if (refresh) refresh();
+    refreshAll();
     return;
   }
 
   if (result.attackerDead) {
     closeCombat();
-    const toast = getToast();
-    if (toast) toast('You were defeated.', true);
-    const refresh = getRefreshAll();
-    if (refresh) refresh();
+    toast('You were defeated.', true);
+    refreshAll();
     return;
   }
 
@@ -95,12 +87,12 @@ export async function handleRoundEnd() {
     await drainHp(actualDamagedSide, newHpPct);
 
     // Render to sync DOM with new state
-    renderCombat();
+    renderCombat(combat);
   }
 
   await wait(ROUND_END_HOLD_MS);
   if (!getCombatUI()) return;
 
-  nextCombatRound(_G, combat); // re-derives first/second from updated G.globalOrder
-  renderCombat();
+  nextCombatRound(G, combat); // re-derives first/second from updated G.globalOrder
+  renderCombat(combat);
 }

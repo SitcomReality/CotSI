@@ -15,9 +15,8 @@
 import { registerAction, initModalActions } from '../shared/actionBus.js';
 import { preloadTemplates, loadTemplate } from '../ui/templates/templateLoader.js';
 import { onEndTurn } from './endTurn.js';
-import { initCombatModal } from '../ui/combat/combatModal.js';
+import { initCombat } from './combat/index.js';
 import { toast } from '../ui/hud.js';
-import { refreshAll } from './refreshAll.js';
 import { finishTurn } from '../game/state/worldSimulation.js';
 import { G } from '../game/state/liveGame.js';
 import { hideBotIndicator } from '../ui/panels/botIndicator.js';
@@ -73,13 +72,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadTemplate('loadingScreen').then(({ frag }) => root.appendChild(frag));
 
     initModalActions(() => G);
-    initCombatModal({
-      refreshAll,
-      toast,
-      startMeasure,
-      endMeasure,
-      setGameContext,
-      clearGameContext,
+    initCombat({
       finishAttackerTurn: () => {
         finishTurn(G);
         hideBotIndicator();

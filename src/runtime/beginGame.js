@@ -1,6 +1,5 @@
 import { createGame } from '../game/state/gameFactory.js';
 import { G, setGameInstance } from '../game/state/liveGame.js';
-import { setGameState } from '../ui/combat/combatModal.js';
 import { syncSize } from '../render/overlays/overlayStack.js';
 import {
   getSceneContext,
@@ -26,7 +25,6 @@ export function __beginGame(config) {
   setTimeout(() => {
     const game = createGame(config);
     setGameInstance(game);      // sets live G + window.__gameState
-    setGameState(game);         // keep combatModal in sync
 
     if (!resizeWired) {
       window.addEventListener('resize', syncSize);

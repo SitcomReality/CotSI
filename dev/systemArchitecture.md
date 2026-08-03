@@ -164,6 +164,12 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `beginGame.js` | Game-start orchestration: state init, render init, UI init |
 | `bootstrap.js` | App bootstrap: loads modules, starts the clock |
 | `botTurnRunner.js` | Runs bot turns: AI decision → state mutation → refresh |
+| `combat/combatActions.js` | Combat init + actionBus handlers (pick, flee) |
+| `combat/combatFlow.js` | Async combat sequencer (round driving) |
+| `combat/combatLifecycle.js` | Combat start/close + attacker turn-end hook |
+| `combat/combatRoundEnd.js` | Round resolution → FX orchestration |
+| `combat/combatState.js` | Active-combat holder + combat clock wait |
+| `combat/index.js` | Barrel: combat public API |
 | `deathAnnouncement.js` | Death-event coordination: state, render, UI |
 | `dispatchPrompt.js` | Dispatch-event prompt orchestration (modal + reward) |
 | `endTurn.js` | End-turn orchestration: cleanup, next-champ, refresh |
@@ -296,20 +302,14 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `modalShell.js` | Modal base shell (open, close, animate) |
 | `rewardModal.js` | Generic reward display modal |
 
-#### `src/ui/combat/` — Combat UI
+#### `src/ui/combat/` — Combat view (render + FX; sequencer lives in `runtime/combat/`)
 
 | File | Purpose |
 |------|---------|
-| `combatFlow.js` | Combat UI flow coordinator |
 | `combatFx.js` | Combat visual effects (screen shake, flash) |
-| `combatInteractions.js` | Combat colour-pick user interactions |
-| `combatLifecycle.js` | Combat modal lifecycle (enter, exit) |
-| `combatModal.js` | Combat modal DOM structure |
-| `combatRenderer.js` | Combat modal render/update |
-| `combatReveal.js` | Combat colour-reveal animation |
+| `combatRenderer.js` | Combat modal render/update (takes combat as arg) |
+| `combatReveal.js` | Combat colour-reveal animation (takes combat as arg) |
 | `combatRewardUI.js` | Combat reward display |
-| `combatRoundEnd.js` | Combat round-end summary display |
-| `combatUiState.js` | Combat UI state (selections, phase) |
 
 #### `src/ui/viewModels/` — Derived UI data transforms
 

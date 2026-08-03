@@ -69,18 +69,22 @@ Resolved in the trivial-fixes phase (uncommitted):
 - *Note:* This project is still in early development and these aren't immediate
   concerns. Right now the goal is expedient internal testing and iteration.
 
-## 3. Structural (bigger; do with tests in place)
+## 3. Structural (bigger; do with tests in place) — DONE
 
-**Items 2–4 DONE** (commit A — mechanical structural fixes). **Item 1 (combat
-sequencer move) DEFERRED** to its own commit (B): the largest item, needs
-in-browser verification; the P1 combat tests are already in place for it.
+All four items resolved (commit A: items 2–4; commit B: item 1).
 
-- **Combat sequencer lives in `ui/` — deepest structural issue.** `ui/combat/*`
-  directly mutates G (`combatRoundEnd.js`, `combatLifecycle.js` creates combat state,
-  `combatFlow.js` drives the sequencer), and runtime reaches INTO ui to start combat
-  (`hexBridge.js:15`, `botTurnRunner.js:11` → `ui/combat/combatModal.js`). Move the
-  sequencer to `runtime/`; ui renders + dispatches via `actionBus`. The new combat
-  tests make this tractable. *(deferred — commit B)*
+- **Combat sequencer lives in `ui/` — deepest structural issue.** — DONE: the
+  sequencer moved to `src/runtime/combat/` (`combatState.js` holder + combat wait,
+  `combatLifecycle.js` start/close, `combatFlow.js` async round driver,
+  `combatRoundEnd.js` resolution + FX, `combatActions.js` init + actionBus handlers,
+  `index.js` barrel). `ui/combat/` keeps only view functions (`combatRenderer`,
+  `combatReveal`, `combatFx`, `combatRewardUI`); `renderCombat`/`animateReveal` take
+  combat as a param; the sequencer reads `liveGame.G` directly (the `beginGame`
+  `setGameState` sync is gone); runtime reaches ui only via view calls; ui dispatches
+  via `actionBus` (`combatPick`/`fleeCombat` registered in `combatActions.js`).
+  Boundary debt 22 → 18. *Follow-up (optional): de-duplicate the round-driver shared
+  between `combatFlow` and `combatAutoResolve` (they independently re-implement
+  round-driving and once diverged on flee ordering).*
 - **`check_imports.py` doesn't model reality:** — DONE: explicit allowlist for
   read-only rules-data (`factionData`/`terrainTypes`/`archetypes`/`archetypeData`)
   added to the checker, implementing the tolerance policy already stated in

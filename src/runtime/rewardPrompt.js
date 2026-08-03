@@ -1,4 +1,4 @@
-import { openArtifactChoiceModal } from '../ui/combat/combatModal.js';
+import { openArtifactChoiceModal } from '../ui/modals/artifactChoiceModal.js';
 import { fillRewardModal } from '../ui/modals/rewardModal.js';
 import { currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';

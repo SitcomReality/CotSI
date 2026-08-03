@@ -1,14 +1,14 @@
 import { createCombatState } from '../../game/state/combat/index.js';
+import { G } from '../../game/state/liveGame.js';
 
 import {
   getCombatUI,
   setCombatUI,
-  getGameState,
   getFinishAttackerTurn,
-} from './combatUiState.js';
+} from './combatState.js';
 
-import { renderCombat } from './combatRenderer.js';
-import { showModal, hideModal } from '../modals/modalShell.js';
+import { renderCombat } from '../../ui/combat/combatRenderer.js';
+import { showModal, hideModal } from '../../ui/modals/modalShell.js';
 import { runCombatFlow } from './combatFlow.js';
 
 /**
@@ -18,8 +18,7 @@ import { runCombatFlow } from './combatFlow.js';
 export function startCombat(attacker, defender) {
   if (getCombatUI()) return; // re-entry guard
 
-  const _G = getGameState();
-  const combat = createCombatState(_G, attacker, defender);
+  const combat = createCombatState(G, attacker, defender);
   setCombatUI(combat);
   openCombatModal();
 }
@@ -27,9 +26,9 @@ export function startCombat(attacker, defender) {
 /**
  * Open the combat modal and begin the flow.
  */
-export function openCombatModal() {
+function openCombatModal() {
   showModal('combatModal');
-  renderCombat();
+  renderCombat(getCombatUI());
   runCombatFlow(); // start the sequence
 }
 
@@ -42,7 +41,6 @@ export function closeCombat() {
   // Capture attacker identity before combat state is cleared
   const combat = getCombatUI();
   const attackerId = combat?.attacker?.id;
-  const _G = getGameState();
 
   try {
     hideModal('combatModal');
@@ -51,7 +49,7 @@ export function closeCombat() {
   }
 
   // End the attacker's turn if they started combat and are still active
-  if (attackerId && _G && _G.activeChampionId === attackerId) {
+  if (attackerId && G && G.activeChampionId === attackerId) {
     const endTurn = getFinishAttackerTurn();
     if (endTurn) endTurn();
   }

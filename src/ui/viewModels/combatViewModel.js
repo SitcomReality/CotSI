@@ -4,7 +4,7 @@ import { CHAMPION_MAX_HP } from '../../params/game/championParams.js';
 
 /**
  * Pure view-model transformer for combat state.
- * Takes the combat state object (from combatUiState) and returns a
+ * Takes the combat state object (passed from runtime/combat) and returns a
  * plain data structure suitable for DOM rendering. No DOM, no side-effects.
  *
  * @param {object} combat — combat state (attacker, defender, first, second,

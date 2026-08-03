@@ -15,7 +15,7 @@ import { refreshZoomDisplay } from './zoomDisplay.js';
 import { runBot } from './botTurnRunner.js';
 import { G, currentChamp, isTurnLocked } from '../game/state/liveGame.js';
 import { getClock } from '../shared/clockScheduler.js';
-import { getCombatUI } from '../ui/combat/combatUiState.js';
+import { getCombatUI } from './combat/combatState.js';
 import { getAnimatingIds } from '../render/hexmap3d/units/index.js';
 import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../dev/performance/index.js';
 import { BOT_AUTO_DELAY_MS } from '../params/ui/uiParams.js';

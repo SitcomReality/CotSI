@@ -7,7 +7,7 @@ import { refreshAll } from './refreshAll.js';
 import { finishTurn } from '../game/state/worldSimulation.js';
 import { isDigEligible } from '../game/state/turnActions.js';
 import { openConfirmModal } from '../ui/modals/confirmModal.js';
-import { getCombatUI } from '../ui/combat/combatUiState.js';
+import { getCombatUI } from './combat/combatState.js';
 
 /**
  * Disable or re-enable the End Turn button with visual feedback.

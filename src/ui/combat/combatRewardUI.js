@@ -1,6 +1,6 @@
 import { fillRewardModal } from '../modals/rewardModal.js';
 import { showModal } from '../modals/modalShell.js';
-import { getToast } from './combatUiState.js';
+import { toast } from '../hud.js';
 
 /**
  * Open the reward modal after combat victory.
@@ -26,6 +26,5 @@ export function openRewardModal(champ, rew) {
  * Show a trader offer via toast (stays as-is, not a modal).
  */
 export function openTrader(tr) {
-  const toast = getToast();
-  if (toast) toast(`Trader ${tr.name} offers: ${tr.offer}`);
+  toast(`Trader ${tr.name} offers: ${tr.offer}`);
 }

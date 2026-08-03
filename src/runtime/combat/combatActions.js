@@ -1,3 +1,10 @@
+/**
+ * combatActions.js — Combat action-bus wiring and init.
+ *
+ * Registers the human combat interactions (pick a power, flee) with the
+ * shared action bus. ui dispatches via [data-action]; the sequencer here
+ * drives the combat flow. Called once from bootstrap via initCombat().
+ */
 import {
   entityFor,
   recordPick,
@@ -7,15 +14,17 @@ import {
   getAvailablePicks,
   fleeFromCombat
 } from '../../game/state/combat/index.js';
-import { getCombatUI, getToast, getRefreshAll } from './combatUiState.js';
-import { renderCombat } from './combatRenderer.js';
+import { G } from '../../game/state/liveGame.js';
+import { getCombatUI, setFinishAttackerTurn } from './combatState.js';
+import { toast } from '../../ui/hud.js';
+import { renderCombat } from '../../ui/combat/combatRenderer.js';
 import { registerAction } from '../../shared/actionBus.js';
 import { closeCombat } from './combatLifecycle.js';
 import { runCombatFlow } from './combatFlow.js';
-import { getGameState } from './combatUiState.js';
+import { refreshAll } from '../refreshAll.js';
 
 // ---- Pick ----
-export function pickCombatPower(combat, side, factionIdx) {
+function pickCombatPower(combat, side, factionIdx) {
   if (!combat || !isPickingPhase(combat)) return;
 
   const entity = entityFor(combat, side);
@@ -30,12 +39,14 @@ export function pickCombatPower(combat, side, factionIdx) {
     advancePhase(combat);
   }
 
-  renderCombat();
+  renderCombat(combat);
   runCombatFlow(); // resume sequencer (may handle next non-human or reveal)
 }
 
-// ---- Action bus wiring (called once, e.g. in initCombatModal) ----
-export function wireCombatActions() {
+// ---- Action bus wiring (called once, e.g. in initCombat) ----
+export function initCombat(deps) {
+  if (deps.finishAttackerTurn) setFinishAttackerTurn(deps.finishAttackerTurn);
+
   // Human pick: faction button click uses data-action and data-faction
   registerAction('combatPick', (el) => {
     const combat = getCombatUI();
@@ -59,13 +70,11 @@ export function wireCombatActions() {
 
     // Cannot flee before at least one full round has completed
     if (combat.round <= 1) {
-      const toast = getToast();
-      if (toast) toast('Cannot flee before the first exchange resolves.', true);
+      toast('Cannot flee before the first exchange resolves.', true);
       return;
     }
 
-    const _G = getGameState();
-    if (!_G) return;
+    if (!G) return;
 
     // Determine which role the human plays (attacker or defender)
     const humanSide = combat.first?.controller === 'human' ? 'first' : 'second';
@@ -73,11 +82,10 @@ export function wireCombatActions() {
       ? (combat.first === combat.attacker ? 'attacker' : 'defender')
       : (combat.second === combat.attacker ? 'attacker' : 'defender');
 
-    fleeFromCombat(_G, combat, fleeingRole);
+    fleeFromCombat(G, combat, fleeingRole);
 
-    _G.turnLock = false;
+    G.turnLock = false;
     closeCombat();
-    const refresh = getRefreshAll();
-    if (refresh) refresh();
+    refreshAll();
   });
 }

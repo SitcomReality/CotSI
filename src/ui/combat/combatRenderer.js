@@ -1,4 +1,3 @@
-import { getCombatUI } from './combatUiState.js';
 import { getCombatVM, getHumanSide } from '../viewModels/combatViewModel.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { setCrossHighlight } from '../heptagramWidget.js';
@@ -9,9 +8,12 @@ import { TOKEN_GLYPH_SIZE } from '../../params/ui/combatUiParams.js';
 // ─── Order-pulse state ────────────────────────────────────────────────────
 let _previousOrderKey = null;
 
-export function renderCombat() {
+/**
+ * Render the combat modal from the active combat object.
+ * @param {object} _combatUI — the active combat state
+ */
+export function renderCombat(_combatUI) {
   initOrderPulse();
-  const _combatUI = getCombatUI();
   if (!_combatUI) return;
   const _humanSide = getHumanSide(_combatUI);
   const vm = getCombatVM(_combatUI, { humanSide: _humanSide });

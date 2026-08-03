@@ -1,11 +1,11 @@
 /**
  * cheats/combat.js — Combat cheat functions.
  *
- * Layer: dev/ — imports ui/combat.
+ * Layer: dev/ — imports runtime/combat (read-only combat-state access).
  */
 
 import { CHEAT_COMBAT_DAMAGE_DEFAULT, CHEAT_COMBAT_WIN_ATTACKER_SCORE, CHEAT_COMBAT_WIN_DEFENDER_SCORE } from '../../params/dev/cheatParams.js';
-import { getCombatUI } from '../../ui/combat/combatUiState.js';
+import { getCombatUI } from '../../runtime/combat/combatState.js';
 import { toast } from '../../ui/hud.js';
 
 export function cheatCombatDamage(amount = CHEAT_COMBAT_DAMAGE_DEFAULT) {

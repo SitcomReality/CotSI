@@ -8,7 +8,7 @@ import { refreshAll } from './refreshAll.js';
 import { finishTurn } from '../game/state/worldSimulation.js';
 import { moveChampion } from '../game/state/championMovement.js';
 import { coordKey } from '../engine/rules/hexGrid.js';
-import { startCombat } from '../ui/combat/combatModal.js';
+import { startCombat } from './combat/index.js';
 import { resolveCombatSilently } from '../game/state/combat/combatAutoResolve.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { runBotTurn as aiDecide } from '../game/state/championAI.js';

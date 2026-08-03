@@ -1,5 +1,4 @@
 import { FACTIONS } from '../../game/rules/factionData.js';
-import { getCombatUI } from './combatUiState.js';
 import { sideOf } from '../../game/state/combat/index.js';
 import { svgIcon } from '../svgIcon.js';
 import {
@@ -19,8 +18,7 @@ import { SLOT_FLIP_WAIT_MS, CLASH_PAUSE_MS, COUNT_UP_DURATION_MS } from '../../p
  * Flips face-down slots, plays clash pulse, counts up running totals,
  * and floats delta scores.
  */
-export async function animateReveal(reveal) {
-  const combat = getCombatUI();
+export async function animateReveal(combat, reveal) {
   if (!combat || !reveal) return;
 
   const fxLayer = getFxLayer();
