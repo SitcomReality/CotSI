@@ -58,6 +58,14 @@ registerAction('randomizeSeed', () => {
   }
 });
 
+registerAction('setMapRadius', (el) => {
+  const radius = parseInt(el.dataset.radius, 10);
+  const mapRadiusEl = document.getElementById('mapRadius');
+  if (!Number.isNaN(radius) && mapRadiusEl) {
+    mapRadiusEl.value = radius;
+  }
+});
+
 registerAction('setGameMode', (el) => {
   const mode = parseInt(el.dataset.mode, 10);
   if (mode !== 7 && mode !== 3) return;

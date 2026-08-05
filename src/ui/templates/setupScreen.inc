@@ -30,8 +30,14 @@
         <!-- Map Radius -->
         <label class="setup-field">
           <span class="setup-label">Map Radius</span>
-          <input id="mapRadius" class="field-input" type="number" min="3" max="99" value="30">
+          <input id="mapRadius" class="field-input" type="number" min="3" max="99" value="21">
         </label>
+        <div class="setup-radius-presets">
+          <button class="setup-preset-btn" data-action="setMapRadius" data-radius="7">Sudden Death (7)</button>
+          <button class="setup-preset-btn" data-action="setMapRadius" data-radius="21">Small (21)</button>
+          <button class="setup-preset-btn" data-action="setMapRadius" data-radius="35">Medium (35)</button>
+          <button class="setup-preset-btn" data-action="setMapRadius" data-radius="77">Massive (77)</button>
+        </div>
 
         <!-- Relic Target -->
         <label class="setup-field">

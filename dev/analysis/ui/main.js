@@ -84,6 +84,22 @@ function bindControls() {
     els.seed.value = 'glut-' + Math.floor(Math.random() * 9999);
   });
 
+  // Radius presets — set the input and regenerate so the map matches
+  const radiusPresets = [
+    { btn: els.btnRadius7, radius: 7 },
+    { btn: els.btnRadius21, radius: 21 },
+    { btn: els.btnRadius35, radius: 35 },
+    { btn: els.btnRadius77, radius: 77 },
+  ];
+  for (const { btn, radius } of radiusPresets) {
+    if (!btn) continue;
+    btn.addEventListener('click', () => {
+      els.radius.value = radius;
+      const seedText = els.seed.value || 'glut-17';
+      loadAndDisplay(seedText);
+    });
+  }
+
   // Generate single seed
   els.btnGenerate.addEventListener('click', () => {
     const seedText = els.seed.value || 'glut-17';

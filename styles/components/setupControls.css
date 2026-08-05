@@ -126,6 +126,37 @@
 }
 
 /* =========================================================================
+   Map radius presets — quick size buttons under the radius input
+   ========================================================================= */
+
+.setup-radius-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.setup-preset-btn {
+  flex: 1 1 45%;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  line-height: 1.2;
+  padding: var(--s1) var(--s1);
+  border-radius: var(--r-sm);
+  border: var(--ink-weight-thin) solid var(--ink-line);
+  background: var(--board);
+  color: var(--ink-mid);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.setup-preset-btn:hover {
+  background: var(--board-hi);
+  color: var(--ink);
+}
+
+/* =========================================================================
    Advanced settings — terrain & biome (collapsed by default)
    ========================================================================= */
 

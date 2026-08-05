@@ -32,6 +32,10 @@ export function cacheDom() {
   els.btnPresetDefault = $('btn-preset-default');
   els.btnPresetAlt = $('btn-preset-alt');
   els.btnPresetRandom = $('btn-preset-random');
+  els.btnRadius7 = $('btn-radius-7');
+  els.btnRadius21 = $('btn-radius-21');
+  els.btnRadius35 = $('btn-radius-35');
+  els.btnRadius77 = $('btn-radius-77');
   els.toggleChamps = $('toggle-champs');
   els.toggleMobs = $('toggle-mobs');
   els.toggleTraders = $('toggle-traders');
