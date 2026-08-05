@@ -1,25 +1,35 @@
 // src/render/hexmap3d/features/trees/clusterTreeRecords.js
-// Cluster (woods/forest) treatment: a `tree` feature on forest/denseForest
-// terrain renders 3–7 trees scattered inside the hex. forest is a spherical
+// Cluster (woods/forest) treatment — the terrain decoration for forest and
+// denseForest tiles: 3–7 trees scattered inside the hex. forest is a spherical
 // (round) deciduous grove; denseForest (deep wood) a conical (tall) pine stand.
-// Each tree varies slightly in size, trunk height, leaf height/width, and
-// rotation, and leans slightly away from the hex center (cartoony bouquet
-// look). The tile's continuous density drives cluster size.
+// In the Painforest biome the grove members are gnarled twisted trees
+// (gnarledTreeRecords.js) with dark foliage. Each tree varies slightly in
+// size, trunk height, leaf height/width, and rotation, and leans slightly away
+// from the hex center (cartoony bouquet look). Tile moisture drives grove size.
 
-import * as THREE from '../../../../vendor/three.module.js';
 import { tileHash, treeHash, frac, lerp, clamp01 } from './treeHash.js';
 import { clusterVariant } from './treeVariants.js';
 import { addTreeRecords, clusterColor } from './treeParts.js';
+import { gnarledTreeRecords } from './gnarledTreeRecords.js';
 import {
   TREE_CLUSTER_COUNTS, TREE_CLUSTER_RING, TREE_CLUSTER_LEAN,
-  TREE_VARIATION, TREE_CANOPY_COLORS,
+  TREE_VARIATION, TREE_CANOPY_COLORS, PAINFOREST_GROVE_SCALE,
 } from '../../../../params/render/geometryParams.js';
+
+const PAINFOREST_BIOME = 'biome_painforest';
+
+/** Grove density from tile moisture: forest ≈ sparse, denseForest ≈ denser. */
+function clusterDensity(tile) {
+  const m = tile.moisture;
+  if (!Number.isFinite(m)) return 0.5;
+  return clamp01((m - 0.55) / 0.3);
+}
 
 /** Cluster size from density: forest 3–5, denseForest 4–7, ±1 hash jitter. */
 function clusterCount(terrain, density, tileH) {
   const [min, max] = TREE_CLUSTER_COUNTS[terrain] || TREE_CLUSTER_COUNTS.forest;
-  // Density is continuous (≈0.2 → 1.0 on forest tiles); clamp to 0..1.
-  const d = clamp01((density - 0.2) / 0.8);
+  // Density is continuous (forest tiles ≈ 0.1–1.0); clamp to 0..1.
+  const d = clamp01(density);
   const count = Math.round(lerp(min, max, d));
   return Math.min(max, Math.max(min, count + (tileH % 3) - 1));
 }
@@ -38,12 +48,15 @@ function treeVariation(tileH, i) {
 /**
  * Emit cluster grove records for a tile: `count` trees on a jittered ring
  * around the hex center (well inside the hex), each leaning away from it.
+ * Painforest grove members are gnarled trees; all other biomes use the
+ * terrain's canopy family (round forest / tall denseForest).
  */
 export function clusterTreeRecords(records, tile, worldPos, tileH) {
-  const count = clusterCount(tile.terrain, tile.feature.density ?? 0.5, tileH);
+  const count = clusterCount(tile.terrain, clusterDensity(tile), tileH);
+  const gnarled = tile.biomeId === PAINFOREST_BIOME;
   for (let i = 0; i < count; i++) {
     const v = treeVariation(tileH, i);
-    const variant = clusterVariant(tile.terrain);
+    const variant = gnarled ? null : clusterVariant(tile.terrain);
 
     // Position on a jittered ring around the hex center (well inside the hex)
     const ringT = clamp01(frac(treeHash(tileH, i + 1)) + (frac(treeHash(tileH, i + 2)) - 0.5) * TREE_VARIATION.ringJitter * 2);
@@ -55,9 +68,21 @@ export function clusterTreeRecords(records, tile, worldPos, tileH) {
     // Lean away from the hex center: tilt axis ⊥ outward direction, positive tilt → outward
     const len = Math.hypot(dx, dz) || 1e-6;
     const tilt = lerp(TREE_CLUSTER_LEAN.min, TREE_CLUSTER_LEAN.max, frac(treeHash(tileH, i + 8)));
+    const memberPos = { x: worldPos.x + dx, y: worldPos.y, z: worldPos.z + dz };
+
+    if (gnarled) {
+      gnarledTreeRecords(records, tile, memberPos, {
+        hashOffset: i,
+        scale: PAINFOREST_GROVE_SCALE,
+        canopyColor: TREE_CANOPY_COLORS.painforest,
+        tiltAxis: { x: dz / len, z: -dx / len },
+        tilt,
+      });
+      continue;
+    }
 
     addTreeRecords(records, {
-      x: worldPos.x + dx, y: worldPos.y, z: worldPos.z + dz,
+      x: memberPos.x, y: memberPos.y, z: memberPos.z,
       variant, ...v,
       tiltAxis: { x: dz / len, z: -dx / len }, tilt,
       color: clusterColor(TREE_CANOPY_COLORS[variant], tileH, i),

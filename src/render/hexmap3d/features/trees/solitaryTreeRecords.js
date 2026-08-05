@@ -1,8 +1,7 @@
 // src/render/hexmap3d/features/trees/solitaryTreeRecords.js
-// Solitary treatment: `largeTree` (Elder Tree landmark), `fruitTree`, and a
-// lone `tree` on open terrain (plains, hill, marsh) render one bigger, more
-// distinctive tree. (The fruit tree has its own elaborate builder — see
-// fruitTreeRecords.js.)
+// Solitary treatment: `largeTree` (Elder Tree landmark) and a lone `tree` on
+// open terrain (plains, hill, marsh) render one bigger, more distinctive tree.
+// (Fruit trees use the forest-family builder — see fruitTreeRecords.js.)
 
 import * as THREE from '../../../../vendor/three.module.js';
 import { treeHash, frac } from './treeHash.js';

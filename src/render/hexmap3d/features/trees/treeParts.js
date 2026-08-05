@@ -19,24 +19,33 @@ import { TREE_TRUNK_Y_FRACTION, TREE_VARIATION } from '../../../../params/render
  */
 export function addTreeRecords(records, tree) {
   const { x, y, z, variant, scale, stretchY, stretchXZ, trunkStretch, rotY, tiltAxis, tilt, color } = tree;
-  const { heightOffset, canopyY, halfHeight } = canopyForVariant(variant);
+  const { heightOffset, canopyY, halfHeight, trunkScale = 1 } = canopyForVariant(variant);
+  // The canopy keeps its original anchor (full trunkStretch) so the foliage's
+  // vertical layout is unchanged; only the trunk shortens (tall trees), keeping
+  // its top buried in the cone's fat lower part.
+  const trunk = trunkStretch * trunkScale;
+  const canopyLift = (canopyY * trunkStretch + halfHeight * (stretchY - 1)) * scale;
 
   records.push({
     x, z, geo: 'trunk',
     y,
-    lift: heightOffset * TREE_TRUNK_Y_FRACTION * scale * trunkStretch,
-    scale, scaleY: scale * trunkStretch,
+    lift: heightOffset * TREE_TRUNK_Y_FRACTION * scale * trunk,
+    scale, scaleY: scale * trunk,
     rotY, tiltAxis, tilt,
   });
 
   records.push({
     x, z, geo: `canopy-${variant}`,
     y,
-    lift: (canopyY * trunkStretch + halfHeight * (stretchY - 1)) * scale,
+    lift: canopyLift,
     scaleXZ: scale * stretchXZ, scaleY: scale * stretchY,
     rotY, tiltAxis, tilt,
     color,
   });
+
+  // Canopy center in the tree's local frame — lets callers hang parts (fruit)
+  // from the canopy with the same rigid transform.
+  return { canopyLift };
 }
 
 /** Leaf/fruit color = base color with a small deterministic brightness jitter. */

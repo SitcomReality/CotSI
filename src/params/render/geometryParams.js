@@ -6,23 +6,23 @@
 // ── Tree geometries ──
 export const TREE_TRUNK = { bottomR: 0.08, topR: 0.1, height: 0.4, segments: 6 };
 export const TREE_CANOPY_ROUND = { radius: 0.30, wSegs: 6, hSegs: 4 };
-export const TREE_CANOPY_TALL = { bottomR: 0.25, height: 0.65, radialSegs: 6, heightSegs: 2 };
+export const TREE_CANOPY_TALL = { bottomR: 0.25, height: 0.72, radialSegs: 6, heightSegs: 2 };
 export const TREE_CANOPY_WIDE = { bottomR: 0.45, height: 0.30, radialSegs: 6, heightSegs: 1 };
 
 export const TREE_VARIANT_HASH_SEEDS = [7, 13, 31, 17];
 export const TREE_FOREST_TALL_THRESHOLD = 10;
 export const TREE_VARIANT_THRESHOLDS = [6, 11]; // round/tall/wide thresholds for non-forest
 
-export const TREE_TALL = { heightOffset: 0.65, canopyY: 0.55 };
+export const TREE_TALL = { heightOffset: 0.65, canopyY: 0.58 };
 export const TREE_WIDE = { heightOffset: 0.55, canopyY: 0.45 };
 export const TREE_ROUND = { heightOffset: 0.50, canopyY: 0.50 };
 
 export const TREE_TRUNK_Y_FRACTION = 0.4;
 
 // ── Tree cluster + solitary layout ──
-// Forest/woods tiles render a cluster of trees scattered inside the hex;
-// individual trees (largeTree, fruitTree, lone tree on open ground) render
-// one bigger, more distinctive tree. All values are deterministic per tile.
+// Every forest/denseForest tile renders a scattered grove (its terrain
+// decoration); fruit trees and lone trees on open ground render one bigger,
+// more distinctive tree. All values are deterministic per tile.
 
 /** Min/max cluster size by terrain — count scales with the tile's density. */
 export const TREE_CLUSTER_COUNTS = { forest: [3, 5], denseForest: [4, 7] };
@@ -60,14 +60,20 @@ export const TREE_CANOPY_COLORS = {
   wide:  0x66CDAA,
   large: 0x9ACD32, // Elder Tree — golden-green landmark
   fruit: 0x7CB342, // Fruit Tree — warm green
+  painforest: 0x2E5D2E, // Painforest grove — dark twisted foliage
 };
 
-// ── Fruit tree (solitary landmark) ──
+/** Painforest grove member scale — gnarled trees drawn smaller than the old fruit-tree landmark. */
+export const PAINFOREST_GROVE_SCALE = 0.55;
+
+// ── Gnarled tree (Painforest groves) ──
 // A single complex tree: 2–3 long trunk segments, each leaning its own direction
 // with severe per-segment angles (a snaking, gnarled trunk that tapers thicker at
 // the bottom), forking into two steep branches — each branch has a chance to bend
-// a second segment — with a leaf ball riding one final tip and a red apple
-// hanging just below the other.
+// a second segment — with a leaf ball riding one final tip. This was the original
+// fruit-tree landmark; it now draws Painforest's grove members (twisted trees)
+// and stays parameterized (per-member hash offset, scale, canopy color, optional
+// apple) for reuse by other features/biomes.
 
 /** Trunk segment — tapered cylinder, base length 0.17 (scaled per segment). */
 export const FRUIT_TREE_TRUNK = { bottomR: 0.09, topR: 0.055, height: 0.17, segments: 5 };
@@ -102,10 +108,20 @@ export const FRUIT_TREE = {
   colorJitter: 0.04,               // ± brightness jitter for leaf ball + apple
 };
 
-/** Fruit-tree wood + fruit colors (canopy green reuses TREE_CANOPY_COLORS.fruit). */
+/** Gnarled-tree wood + canopy colors (canopy green usually overridden per biome). */
 export const FRUIT_TREE_COLORS = {
   branch: 0x9A6B4A, // younger wood — lighter than the trunk
-  apple:  0xE74C3C, // cartoon apple red
+  apple:  0xE74C3C, // ripe fruit — cartoon apple red
+  unripe: 0x9CCC65, // unripe fruit — small pale green
+};
+
+/** Fruit placement on a forest-family fruit tree — deterministic per tile via hashes. */
+export const FRUIT_TREE_FRUIT = {
+  count: [1, 2],         // how many fruits hang (hash-chosen per tree)
+  drop: [0.03, 0.06],    // distance below the canopy center (× tree scale)
+  radius: [0.10, 0.22],  // horizontal spread from the trunk (× tree scale)
+  jitter: 0.015,         // ± per-fruit axis jitter
+  unripeScale: 0.65,     // unripe fruit is visibly smaller than ripe
 };
 
 // ── Mountain geometries ──

@@ -15,14 +15,20 @@ import {
   getFruitTreeAppleGeo,
 } from '../geometries/index.js';
 import { collectInstances, buildInstanced } from '../meshBuilder.js';
-import { treeRecordsForTile } from './treeRecordsForTile.js';
+import { treeRecordsForTile, CLUSTER_TERRAINS } from './treeRecordsForTile.js';
 import { FRUIT_TREE_COLORS } from '../../../../params/render/geometryParams.js';
 
 const TREE_KINDS = new Set(['tree', 'fruitTree', 'largeTree']);
 const TRUNK_COLOR = 0x8B5E3C;
 
+/**
+ * A tile draws tree meshes when it carries a tree-family feature (solitary or
+ * fruit tree) or when it's a woods tile with no feature — its default grove.
+ * Any other feature (knot, base, slab…) claims the tile, so no grove.
+ */
 function isTreeTile(tile) {
-  return !!tile.feature && TREE_KINDS.has(tile.feature.kind);
+  if (tile.feature) return TREE_KINDS.has(tile.feature.kind);
+  return CLUSTER_TERRAINS.has(tile.terrain);
 }
 
 function collectTreeInstances(tilesOrArray, visible) {

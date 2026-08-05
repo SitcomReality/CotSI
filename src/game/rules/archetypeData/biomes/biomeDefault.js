@@ -21,8 +21,8 @@ defineArchetype('biome_default', {
   // fruitTree at high threshold (rare), tree at medium threshold (common),
   // then knot at the low end.
   features: [
-    { kind: 'fruitTree',          threshold: 0.970, compare: 'gt', terrainExclude: ['desert'] },
-    { kind: 'tree',               threshold: 0.935, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'fruitTree',          threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'tree',               threshold: 0.935, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     { kind: 'vegetableLamb',      threshold: 0.925, compare: 'gt', terrainExclude: ['desert'] },
     { kind: 'witnessStone',       threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
     { kind: 'screamroot',         threshold: 0.890, compare: 'gt', terrainExclude: ['desert'] },

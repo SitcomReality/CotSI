@@ -9,6 +9,10 @@ import {
  * threshold is modulated by the tile's continuous density — higher density
  * lowers the effective threshold, making features more likely.
  *
+ * Terrain gating is either negative (`terrainExclude` — skip listed terrains)
+ * or positive (`terrainOnly` — only spawn on listed terrains); both may be
+ * combined on one rule.
+ *
  * @param {number} roll    - Seeded noise value [0, 1] for this tile
  * @param {string} terrain - Terrain type string
  * @param {number} density - Continuous feature density [0, 1] from featureDensity()
@@ -18,6 +22,7 @@ import {
 export function spawnFeature(roll, terrain, density, features) {
   for (const rule of features) {
     if (rule.terrainExclude && rule.terrainExclude.includes(terrain)) continue;
+    if (rule.terrainOnly && !rule.terrainOnly.includes(terrain)) continue;
 
     // Density modulates the threshold: higher density → effective threshold is lower
     // e.g., threshold 0.935 with density 0.8 → effective threshold 0.935 * (1 - 0.8 * 0.5) = 0.561

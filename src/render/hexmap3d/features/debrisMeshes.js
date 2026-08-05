@@ -63,7 +63,9 @@ const DEBRIS_GEO = {
 function collectDebrisInstances(tiles, visible) {
   const groups = new Map();
   for (const key of visible) {
-    const tile = tiles[key];
+    // Chunk path passes a Map (buildChunkDebrisMeshes); the global path
+    // passes state.tiles (a Proxy supporting "q,r" property access).
+    const tile = tiles instanceof Map ? tiles.get(key) : tiles[key];
     if (!tile || !tile.debris) continue;
     const kind = tile.debris.kind;
     if (!DEBRIS_GEO[kind]) continue;

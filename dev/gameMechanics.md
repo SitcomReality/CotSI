@@ -88,7 +88,7 @@ See `src/game/rules/archetypeData/biomes/` for exact definitions.
 
 | Kind | Type | Mechanics | Visual |
 |------|------|-----------|--------|
-| `fruitTree` | resource | Heals on arrival, regrows after `FRUIT_REGROWTH_DAYS` | Tree mesh |
+| `fruitTree` | resource | Heals on arrival, regrows after `FRUIT_REGROWTH_DAYS` | Forest-family tree, visible ripening fruit (red ripe / green unripe) |
 | `tree` | flora | Decorative only | Tree mesh |
 | `largeTree` | flora | Decorative only, scaled 1.8x | Tree mesh (forced large) |
 | `knot` | resource | Mined on arrival for Knot currency | Knot mesh |
@@ -104,8 +104,8 @@ defineArchetype('biome_my_new_biome', {
   name: 'Display Name',
   terrainThresholds: { /* ... */ },
   features: [
-    { kind: 'fruitTree', threshold: 0.970, compare: 'gt', terrainExclude: ['desert'] },
-    { kind: 'tree',      threshold: 0.935, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'fruitTree', threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'tree',      threshold: 0.935, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     { kind: 'knot',      threshold: 0.038, compare: 'lt' },
   ],
   palette: { /* per-terrain [r,g,b] tuples */ },

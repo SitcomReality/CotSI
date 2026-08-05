@@ -27,10 +27,10 @@ defineArchetype('biome_painforest', {
 
   // Painforest: abundant fruit trees + decorative trees + bushes on low-moisture tiles
   features: [
-    { kind: 'fruitTree',       threshold: 0.930, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'fruitTree',       threshold: 0.930, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'peridexionTree',  threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
     { kind: 'screamroot',      threshold: 0.890, compare: 'gt', terrainExclude: ['desert'] },
-    { kind: 'tree',            threshold: 0.860, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'tree',            threshold: 0.860, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     { kind: 'bush',            threshold: 0.060, compare: 'lt', terrainExclude: ['desert', 'marsh'] },
     { kind: 'knot',            threshold: 0.035, compare: 'lt' },
   ],

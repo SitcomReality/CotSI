@@ -58,9 +58,12 @@ test('DEFAULT_FEATURES: documented priority order and shape', () => {
   }
 });
 
-test('DEFAULT_FEATURES: fruitTree excludes desert, knot is a low-threshold lt rule', () => {
-  const [fruitTree, , knot] = DEFAULT_FEATURES;
-  assert.ok(fruitTree.terrainExclude.includes('desert'));
+test('DEFAULT_FEATURES: fruitTree is woods-only, tree is excluded from woods, knot is a low-threshold lt rule', () => {
+  const [fruitTree, tree, knot] = DEFAULT_FEATURES;
+  assert.deepEqual(fruitTree.terrainOnly, ['forest', 'denseForest']);
+  assert.ok(tree.terrainExclude.includes('desert'));
+  assert.ok(tree.terrainExclude.includes('forest'), 'grove is terrain-driven now — tree must not spawn on woods');
+  assert.ok(tree.terrainExclude.includes('denseForest'), 'grove is terrain-driven now — tree must not spawn on deep wood');
   assert.equal(knot.compare, 'lt');
   assert.ok(knot.threshold < 0.1, 'knot should be rare (low threshold)');
 });

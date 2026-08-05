@@ -33,9 +33,9 @@ defineArchetype('biome_scorch', {
     // Low-roll hazard (narrow lt before broader knot)
     { kind: 'redLetterBramble', threshold: 0.01, compare: 'lt', terrainExclude: ['water', 'ice'] },
     // High-roll features — rarest first
-    { kind: 'fruitTree', threshold: 0.980, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'fruitTree', threshold: 0.980, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'saintsRib', threshold: 0.965, compare: 'gt', terrainExclude: [] },
-    { kind: 'tree',      threshold: 0.945, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'tree',      threshold: 0.945, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     // Resources
     { kind: 'knot',      threshold: 0.038, compare: 'lt' },
   ],

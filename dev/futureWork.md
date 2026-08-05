@@ -243,3 +243,10 @@ of the following ideas become useful:
   basic behaviors for testing during dev.
 - **Minimap scalability** — at large sizes the minimap becomes too small to be
   useful; consider a fixed-pixel local-area minimap if scale-up happens.
+- **Camera caps + fog are tuned to current map scale** — zoom is capped
+  (`ZOOM_MAX_FRUSTUM=15`, `DEFAULT_REFERENCE_FRUSTUM=40` in
+  `src/params/render/cameraParams.js`), as are `CAMERA_FAR=200` and the scene
+  fog (`sceneSetup.js`, 60–160). Shadows are radius dependent. A "conceptually
+  infinite map" still needs terrain-gen's radius semantics removed (`worldShape`
+  falloff, noise config scaled by 1/radius, latitude term, distance clamp) plus
+  camera-driven chunk streaming (see §6.1).

@@ -39,8 +39,8 @@ defineArchetype('biome_edenfall', {
     { kind: 'edenMushroom',          threshold: 0.970, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
     { kind: 'edenShroomlet',         threshold: 0.920, compare: 'gt', terrainExclude: ['desert'] },
     // Standard features
-    { kind: 'fruitTree',             threshold: 0.890, compare: 'gt', terrainExclude: ['desert'] },
-    { kind: 'tree',                  threshold: 0.830, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'fruitTree',             threshold: 0.890, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'tree',                  threshold: 0.830, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     // Resources
     { kind: 'knot',                  threshold: 0.038, compare: 'lt' },
   ],

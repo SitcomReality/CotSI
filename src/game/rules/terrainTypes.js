@@ -27,7 +27,7 @@ export const TERRAIN = {
 };
 
 export const DEFAULT_FEATURES = [
-  { kind: 'fruitTree', threshold: 0.970, compare: 'gt', terrainExclude: ['desert'] },
-  { kind: 'tree',      threshold: 0.935, compare: 'gt', terrainExclude: ['desert'] },
+  { kind: 'fruitTree', threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+  { kind: 'tree',      threshold: 0.935, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
   { kind: 'knot',      threshold: 0.038, compare: 'lt' },
 ];

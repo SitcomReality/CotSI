@@ -217,8 +217,9 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `features/mountainMeshes.js` | Mountain cluster meshes |
 | `features/simpleFeatureMeshes.js` | Generic builder for features registered in FEATURE_VISUALS |
 | `features/trees/buildTreeMeshes.js` | Tree collection + InstancedMesh assembly; public entry points |
-| `features/trees/clusterTreeRecords.js` | Cluster (woods/forest) grove record generation |
-| `features/trees/fruitTreeRecords.js` | Fruit-tree record generation (segmented trunk, branches, canopy, apple) |
+| `features/trees/clusterTreeRecords.js` | Cluster (woods/forest) grove record generation — the terrain decoration on every forest/denseForest tile |
+| `features/trees/fruitTreeRecords.js` | Forest-family fruit tree records (terrain canopy + ripening fruit) |
+| `features/trees/gnarledTreeRecords.js` | Gnarled tree records (Painforest groves; the old fruit-tree geometry, parameterized) |
 | `features/trees/index.js` | Tree module barrel (re-exports buildTreeMeshes, buildChunkTreeMeshes) |
 | `features/trees/solitaryTreeRecords.js` | Solitary landmark tree record generation |
 | `features/trees/treeHash.js` | Deterministic per-tile / per-tree hashing |

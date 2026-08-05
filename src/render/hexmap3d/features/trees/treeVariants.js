@@ -39,18 +39,20 @@ export function clusterVariant(terrain) {
 }
 
 /**
- * Per-variant geometry, placement offsets, and canopy half-height.
- * halfHeight anchors the canopy bottom to the trunk top when the canopy is
- * stretched in Y.
+ * Per-variant geometry, placement offsets, canopy half-height, and trunk
+ * height scale. halfHeight anchors the canopy bottom to the trunk top when the
+ * canopy is stretched in Y. trunkScale shortens the trunk for the tall (pine)
+ * variant — the cone tapers to a point, so a full-length trunk would poke
+ * through the foliage near the tip.
  */
 export function canopyForVariant(variant) {
   switch (variant) {
     case 'tall':
-      return { geo: getTreeCanopyTallGeo(), heightOffset: TREE_TALL.heightOffset, canopyY: TREE_TALL.canopyY, halfHeight: TREE_CANOPY_TALL.height / 2 };
+      return { geo: getTreeCanopyTallGeo(), heightOffset: TREE_TALL.heightOffset, canopyY: TREE_TALL.canopyY, halfHeight: TREE_CANOPY_TALL.height / 2, trunkScale: 0.8 };
     case 'wide':
-      return { geo: getTreeCanopyWideGeo(), heightOffset: TREE_WIDE.heightOffset, canopyY: TREE_WIDE.canopyY, halfHeight: TREE_CANOPY_WIDE.height / 2 };
+      return { geo: getTreeCanopyWideGeo(), heightOffset: TREE_WIDE.heightOffset, canopyY: TREE_WIDE.canopyY, halfHeight: TREE_CANOPY_WIDE.height / 2, trunkScale: 1.0 };
     case 'round':
     default:
-      return { geo: getTreeCanopyRoundGeo(), heightOffset: TREE_ROUND.heightOffset, canopyY: TREE_ROUND.canopyY, halfHeight: TREE_CANOPY_ROUND.radius };
+      return { geo: getTreeCanopyRoundGeo(), heightOffset: TREE_ROUND.heightOffset, canopyY: TREE_ROUND.canopyY, halfHeight: TREE_CANOPY_ROUND.radius, trunkScale: 1.0 };
   }
 }

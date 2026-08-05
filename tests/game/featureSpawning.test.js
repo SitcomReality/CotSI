@@ -31,6 +31,21 @@ test('spawnFeature: terrainExclude skips a rule', () => {
   assert.equal(f.kind, 'tree', 'fruitTree must be excluded on desert');
 });
 
+test('spawnFeature: terrainOnly restricts a rule to listed terrains', () => {
+  const features = [
+    { kind: 'fruitTree', threshold: 0.9, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'tree', threshold: 0.5, compare: 'gt' },
+  ];
+  const onForest = spawnFeature(0.95, 'forest', 0, features);
+  assert.equal(onForest.kind, 'fruitTree', 'fruitTree allowed on forest');
+  const onPlains = spawnFeature(0.95, 'plains', 0, features);
+  assert.equal(onPlains.kind, 'tree', 'fruitTree skipped off-forest, tree wins');
+  const onDesert = spawnFeature(0.95, 'desert', 0, features);
+  assert.equal(onDesert.kind, 'tree', 'terrainOnly also excludes desert');
+  const onDenseForest = spawnFeature(0.95, 'denseForest', 0, features);
+  assert.equal(onDenseForest.kind, 'fruitTree', 'fruitTree allowed on denseForest');
+});
+
 test('spawnFeature: density modulates threshold (higher density → easier match)', () => {
   const features = [{ kind: 'tree', threshold: 0.9, compare: 'gt' }];
   // density 0 → effective 0.9; roll 0.85 misses at density 0 but hits at high density.
