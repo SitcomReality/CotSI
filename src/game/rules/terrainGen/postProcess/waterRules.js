@@ -179,7 +179,41 @@ export function carveRiverBeds(tiles, riverPaths) {
 
       const elev = Math.max(waterFloor, Math.max(bankTarget, floor));
       tile.elevation = elev;
+      // Mark the tile as carved channel floor — the renderer uses this flag to
+      // move river tiles onto the water mesh (river water never terrain-blends).
+      tile.riverCarved = true;
       downstreamElev = elev;
+    }
+  }
+}
+
+/**
+ * Assign each river tile its downstream flow direction.
+ *
+ * traceRiver() paths are ordered source → mouth, so the flow of every path
+ * tile is simply the hex-coordinate delta to the next tile in the path. The
+ * renderer converts this to a world-space unit vector for the vertex-shader
+ * flow waves (buildWaterMesh.js / waterMaterial). Water-terrain tiles (the
+ * mouth, already part of a stationary body) and impassable path tiles get no
+ * flow — they are not carved, so the field is meaningless there.
+ *
+ * Only sets `tile.riverFlow = { dq, dr }`; everything else is left as-is.
+ * Deterministic and idempotent for identical paths.
+ *
+ * @param {object}      tiles      - Flat tile map keyed by "q,r"
+ * @param {Array<{q,r}[]>} riverPaths - Ordered river paths from traceRiver
+ */
+export function assignRiverFlows(tiles, riverPaths) {
+  for (const path of riverPaths) {
+    for (let i = 0; i < path.length; i++) {
+      const hex = path[i];
+      const tile = tiles[coordKey(hex)];
+      if (!tile || tile.terrain === 'water') continue;
+      if (!TERRAIN[tile.terrain]?.passable) continue;
+
+      const next = path[i + 1];
+      if (!next) continue;
+      tile.riverFlow = { dq: next.q - hex.q, dr: next.r - hex.r };
     }
   }
 }

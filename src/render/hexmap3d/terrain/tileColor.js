@@ -1,6 +1,7 @@
 import {
   TERRAIN_COLOR,
   LAKE_COLOR_MODULATION,
+  RIVER_COLOR,
   RIVER_OVERLAY_COLOR,
   RIVER_OVERLAY_WEIGHT,
 } from '../../../params/render/terrainParams.js';
@@ -19,6 +20,14 @@ export function makeTopColorResolver(state) {
 
     const pal = (tile.biomeId && state.biomePalettes?.get(tile.biomeId)) || {};
     const baseColor = pal[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
+
+    // Carved river channels are real water — a full river blue, independent of
+    // the underlying terrain palette. (The isRiver overlay below only applies
+    // to impassable land river tiles that stay on the terrain mesh.)
+    if (tile.riverCarved) {
+      cache.set(key, RIVER_COLOR);
+      return RIVER_COLOR;
+    }
 
     // Lakes get a darker, greener water color to distinguish from ocean
     const resolvedColor = (tile.terrain === 'water' && tile.waterType === 'lake')

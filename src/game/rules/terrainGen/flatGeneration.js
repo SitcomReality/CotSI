@@ -7,7 +7,7 @@ import {
 } from '../../../params/game/worldParams.js';
 import { generateChunkTiles } from './chunkGeneration.js';
 import { ensurePassableConnectivity } from './postProcess/connectivityEnforcement.js';
-import { enforceWaterRules, carveRiverBeds } from './postProcess/waterRules.js';
+import { enforceWaterRules, carveRiverBeds, assignRiverFlows } from './postProcess/waterRules.js';
 import { selectRiverSources } from './rivers/riverSources.js';
 import { traceRiver } from './rivers/riverTrace.js';
 import { applyRiverMoistureBoost } from './rivers/riverMoisture.js';
@@ -101,6 +101,10 @@ export function generateTiles(seedText, radius, biomeDef = null) {
         }
       }
     }
+
+    // Downstream flow direction per carved tile (for the animated river
+    // surface) — paths are ordered source → mouth.
+    assignRiverFlows(tiles, riverPaths);
   }
 
   // Post-classification: enforce passable-hex contiguity (multi-biome only)

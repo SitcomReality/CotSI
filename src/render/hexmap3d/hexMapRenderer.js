@@ -4,7 +4,7 @@ import {
   getChunkEntry, setChunkEntry, forEachChunk,
   getAllTerrainMeshes, countExploredInChunk, disposeChunk
 } from './chunkManager.js';
-import { buildChunkTerrainMesh, buildChunkWaterMesh } from './terrain/index.js';
+import { buildChunkTerrainMesh, buildChunkWaterMesh, buildChunkWaterSparkles } from './terrain/index.js';
 import { buildChunkFeatureMeshes } from './features/featureMeshes.js';
 import { buildUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted, initPieceTextures, disposePieceTextures } from './units/index.js';
 import { waterTimeUniform } from './scene/materials.js';
@@ -125,10 +125,15 @@ export function renderHexMap3D(state, humanView) {
       // Build water mesh for this chunk (water renders on its own material)
       const water = buildChunkWaterMesh(chunkTiles, state, visible, explored);
 
+      // Sparkle glints for still water (InstancedMesh accent, no ink outline —
+      // added to the features array after addOutlines ran inside
+      // buildChunkFeatureMeshes, so it is disposed with the chunk)
+      const sparkles = buildChunkWaterSparkles(chunkTiles, state, visible, explored);
+
       // Build feature meshes for this chunk
       const features = buildChunkFeatureMeshes(chunkTiles, state, visible);
 
-      if (terrain || water || features.length > 0) {
+      if (terrain || water || sparkles || features.length > 0) {
         const group = new THREE.Group();
         group.name = `chunk-${ck}`;
         if (terrain) {
@@ -138,6 +143,10 @@ export function renderHexMap3D(state, humanView) {
         if (water) {
           water.name = `water-${ck}`;
           group.add(water);
+        }
+        if (sparkles) {
+          sparkles.name = `sparkles-${ck}`;
+          features.push(sparkles);
         }
         for (const fm of features) {
           group.add(fm);

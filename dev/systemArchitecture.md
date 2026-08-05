@@ -112,7 +112,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `placement/epicenterPlacement.js` | Supernatural biome epicenter placement |
 | `postProcess/connectivityEnforcement.js` | Ensures passable-tile connectivity via Dijkstra |
 | `postProcess/spawnClearance.js` | Clears spawn-point tiles |
-| `postProcess/waterRules.js` | Water height rules: uniform stationary bodies, water below land, river-bed carving |
+| `postProcess/waterRules.js` | Water height rules: uniform stationary bodies, water below land, river-bed carving (+ riverCarved flag, downstream riverFlow) |
 | `rivers/riverMoisture.js` | Applies moisture boost from rivers |
 | `rivers/riverSources.js` | Selects river source points |
 | `rivers/riverTrace.js` | River tracing algorithm |
@@ -240,12 +240,13 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `interaction/mapInteraction.js` | Top-level map interaction coordinator |
 | `interaction/panMath.js` | Camera pan boundary math |
 | `interaction/touchInput.js` | Touch input handler (mobile/tablet) |
-| `terrain/buildTerrainMesh.js` | Procedural terrain mesh geometry (vertex colours) |
-| `terrain/buildWaterMesh.js` | Separate water mesh: own material, ripple attributes, no blending |
+| `terrain/buildTerrainMesh.js` | Procedural terrain mesh geometry (vertex colours, damp-bank side tint) |
+| `terrain/buildWaterMesh.js` | Separate water mesh: own material, ripple + flow attributes, no blending (water terrain + carved rivers) |
 | `terrain/cornerBlend.js` | Top-face corner color blending (soft biome transitions) |
 | `terrain/index.js` | Terrain module barrel (meshes + ground-level API) |
-| `terrain/tileColor.js` | Top-face color resolution (biome palette, lake/river) |
+| `terrain/tileColor.js` | Top-face color resolution (biome palette, lake/river color) |
 | `terrain/tileHeight.js` | Ground-level math (tileSurfaceY, tileTopY, ELEVATION) |
+| `terrain/waterSparkles.js` | InstancedMesh sparkle glints on still water (GPU twinkle, rides the ripple) |
 | `units/index.js` | Barrel for unit rendering |
 | `units/movementAnimator.js` | Unit movement animation (tween along path) |
 | `units/movementCurves.js` | Movement animation curves (easing) |

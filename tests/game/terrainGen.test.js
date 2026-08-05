@@ -9,6 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateTiles } from '../../src/game/rules/terrainGen/flatGeneration.js';
 import { generateChunkTiles } from '../../src/game/rules/terrainGen/chunkGeneration.js';
+import { assignRiverFlows } from '../../src/game/rules/terrainGen/postProcess/waterRules.js';
 import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
 import { TERRAIN_ELEVATION } from '../../src/params/render/terrainParams.js';
 import { WATER_LAND_GAP } from '../../src/params/game/worldParams.js';
@@ -44,6 +45,8 @@ test('determinism: same seed → identical tile maps', () => {
     assert.equal(ta.biomeId, tb.biomeId, `biome differs at ${key}`);
     assert.equal(ta.elevation, tb.elevation, `elevation differs at ${key}`);
     assert.equal(ta.moisture, tb.moisture, `moisture differs at ${key}`);
+    assert.equal(ta.riverCarved ?? false, tb.riverCarved ?? false, `riverCarved differs at ${key}`);
+    assert.deepEqual(ta.riverFlow ?? null, tb.riverFlow ?? null, `riverFlow differs at ${key}`);
   }
 });
 
@@ -270,4 +273,83 @@ test('river carve: passable river tiles recessed below banks, never below adjace
         `river tile ${coordKey(r)} (${r.elevation}) dug below adjacent water (${minAdjWater})`);
     }
   }
+});
+
+test('river carve flag: carved tiles marked riverCarved, impassable/water never', () => {
+  const tiles = generateTiles('river-carve-flag-seed', RADIUS);
+  const carved = Object.values(tiles).filter((t) => t.riverCarved);
+  assert.ok(carved.length > 0, 'expected at least one carved river tile');
+
+  for (const c of carved) {
+    assert.equal(c.isRiver, true, `carved tile ${coordKey(c)} must be a river tile`);
+    assert.ok(TERRAIN[c.terrain].passable, `carved tile ${coordKey(c)} must be passable terrain`);
+  }
+
+  // Water terrain is never carved, and non-carved land river tiles are exactly
+  // the impassable path tiles (mountain/peak/floatingIsland) that keep their
+  // elevation and only carry the river overlay.
+  for (const t of Object.values(tiles)) {
+    if (t.terrain === 'water') {
+      assert.equal(t.riverCarved ?? false, false, `water tile ${coordKey(t)} must not be riverCarved`);
+    } else if (t.isRiver && !t.riverCarved) {
+      assert.equal(TERRAIN[t.terrain].passable, false,
+        `non-carved land river tile ${coordKey(t)} must be impassable`);
+    }
+  }
+});
+
+test('river flow: carved tiles carry a downstream hex delta along the path', () => {
+  const tiles = generateTiles('river-flow-seed', RADIUS);
+  const flowing = Object.values(tiles).filter((t) => t.riverFlow);
+  assert.ok(flowing.length > 0, 'expected at least one tile with riverFlow');
+
+  for (const t of flowing) {
+    assert.equal(t.riverCarved, true, `flow only on carved tiles (${coordKey(t)})`);
+    const { dq, dr } = t.riverFlow;
+    assert.ok(
+      neighbors({ q: t.q, r: t.r }).some((n) => n.q === t.q + dq && n.r === t.r + dr),
+      `flow at ${coordKey(t)} must point at an immediate neighbor (${dq},${dr})`
+    );
+    const next = tiles[coordKey({ q: t.q + dq, r: t.r + dr })];
+    assert.ok(next, `downstream neighbor missing for ${coordKey(t)}`);
+    assert.ok(next.terrain === 'water' || next.isRiver,
+      `downstream of ${coordKey(t)} must be water-ish (${next.terrain})`);
+  }
+
+  // Impassable river tiles never carry flow.
+  for (const t of Object.values(tiles)) {
+    if (t.isRiver && t.terrain !== 'water' && !TERRAIN[t.terrain].passable) {
+      assert.equal(t.riverFlow, undefined, `impassable tile ${coordKey(t)} must have no flow`);
+    }
+  }
+});
+
+test('assignRiverFlows: hex delta points at the next path tile; tail gets none', () => {
+  const tiles = {
+    '0,0': { q: 0, r: 0, terrain: 'plains' },
+    '1,0': { q: 1, r: 0, terrain: 'forest' },
+    '2,0': { q: 2, r: 0, terrain: 'plains' },
+    '3,0': { q: 3, r: 0, terrain: 'water' },
+  };
+  const paths = [[
+    { q: 0, r: 0 },
+    { q: 1, r: 0 },
+    { q: 2, r: 0 },
+    { q: 3, r: 0 },
+  ]];
+  assignRiverFlows(tiles, paths);
+  assert.deepEqual(tiles['0,0'].riverFlow, { dq: 1, dr: 0 });
+  assert.deepEqual(tiles['1,0'].riverFlow, { dq: 1, dr: 0 });
+  assert.deepEqual(tiles['2,0'].riverFlow, { dq: 1, dr: 0 });
+  // The water tail (the mouth) is part of a stationary body — no flow field.
+  assert.equal(tiles['3,0'].riverFlow, undefined);
+
+  // Impassable path tiles are skipped.
+  const rocky = {
+    '0,0': { q: 0, r: 0, terrain: 'plains' },
+    '1,0': { q: 1, r: 0, terrain: 'mountain' },
+    '2,0': { q: 2, r: 0, terrain: 'plains' },
+  };
+  assignRiverFlows(rocky, [[{ q: 0, r: 0 }, { q: 1, r: 0 }, { q: 2, r: 0 }]]);
+  assert.equal(rocky['1,0'].riverFlow, undefined, 'impassable path tile gets no flow');
 });

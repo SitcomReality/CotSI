@@ -38,6 +38,33 @@ export const WATER_RIPPLE_SPEED = 2.0;
 export const WATER_RIPPLE_AMP = 0.03;
 export const WATER_RIPPLE_COVERAGE = 0.3;
 
+/** Full river blue for carved channel floors (rendered on the water mesh). */
+export const RIVER_COLOR = [0.176, 0.529, 0.902];
+
+/** River flow wave (vertex-shader, downstream-traveling) controls. */
+export const WATER_FLOW_SPEED = 2.5;
+export const WATER_FLOW_WAVE_LENGTH = 2.5;
+export const WATER_FLOW_AMP = 0.04;
+
+/** Damp-bank tint for land side faces adjacent to water or a river channel. */
+export const SIDE_WATER_TINT_COLOR = [0.10, 0.28, 0.42];
+export const SIDE_WATER_TINT_WEIGHT = 0.55;
+
+/**
+ * Sparkle glints on still water (InstancedMesh accents, see waterSparkles.js).
+ * Small unlit stars twinkle above the surface and bob with the same ripple
+ * phase/amplitude as the water beneath them.
+ */
+export const SPARKLE_DENSITY = 1.0;
+export const SPARKLE_SIZE = 0.10;
+export const SPARKLE_COLOR = [0.85, 0.95, 1.0];
+export const SPARKLE_TWINKLE_SPEED = 3.0;
+export const SPARKLE_TWINKLE_AMP = 0.45;
+/** Hover height above the water top face — clears the ripple envelope (max
+ * displacement WATER_RIPPLE_AMP = 0.03, plus the sparkle's own bob), so glints
+ * never clip into the surface. */
+export const SPARKLE_Y_OFFSET = 0.06;
+
 /**
  * Terrain fill colors (RGB 0-1 tuples for vertex color attributes).
  * Base color per terrain type; biomes can override per-tile via palette.
