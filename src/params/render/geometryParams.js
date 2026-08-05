@@ -33,8 +33,8 @@ export const TREE_CLUSTER_LEAN = { min: 0.045, max: 0.12 };
 
 /** Per-tree variation ranges for cluster trees. */
 export const TREE_VARIATION = {
-  scaleMin:        0.8,    // overall size relative to cluster base (1.0)
-  scaleMax:        1.15,
+  scaleMin:        1.3,    // overall size relative to cluster base (1.0); floor raised so
+  scaleMax:        1.5,    // de-emphasized trees (×DISPERSED_SCALE) stay readable (≥ ~0.8)
   stretchYMin:     0.85,   // canopy height multiplier
   stretchYMax:     1.3,
   stretchXZMin:    0.9,    // canopy width multiplier
@@ -65,6 +65,29 @@ export const TREE_CANOPY_COLORS = {
 
 /** Painforest grove member scale — gnarled trees drawn smaller than the old fruit-tree landmark. */
 export const PAINFOREST_GROVE_SCALE = 0.55;
+
+// ── Decoration de-emphasis (dispersal/sinking) ──
+// When a tile's center is claimed by an occupant (champion/mob/trader) or a
+// feature, decorations are pushed aside instead of removed. Values are world
+// units (hex radius = 1.0) unless noted.
+export const DECOR_DEEMPHASIS = {
+  scale: 0.62,          // × multiplier on a dispersed item's scale (single or cluster)
+  singleCorner: 3,      // hexCornersXZ index — upper-left corner, the shared "moved aside" anchor
+  singleInset: 0.62,    // × hex radius: single items sit at corner × this inset
+  ringMin: 0.68,        // dispersed multi-item ring inner radius (near the hex edge)
+  ringMax: 0.88,        // dispersed multi-item ring outer radius
+  sinkScale: 0.55,      // sunk (hill) decorations scale to this fraction
+  sinkDepth: 0.35,      // world units a sunk decoration descends below the surface
+};
+
+// ── Hill decoration ──
+// A low flattened dome on every hill tile — the terrain decoration for hill
+// terrain. It cannot spread out, so de-emphasis sinks it below the surface.
+export const HILL_DECOR = {
+  radius: 0.42,         // mound radius (hex radius = 1.0)
+  height: 0.28,         // mound height
+  color: 0x7A8F5A,      // mossy hill-green tint
+};
 
 // ── Gnarled tree (Painforest groves) ──
 // A single complex tree: 2–3 long trunk segments, each leaning its own direction
@@ -177,27 +200,18 @@ export const BASE_SPIKE = { bottomR: 0.06, height: 0.10, segments: 4 };
 export const BASE_RING = { radius: 0.28, tube: 0.02, radialSegs: 6, tubularSegs: 12 };
 export const BASE_RING_DOT = { radius: 0.03, wSegs: 4, hSegs: 3 };
 
-// ── Debris geometries ──
-export const DEBRIS_TUFT = { bottomR: 0.04, height: 0.06, segments: 3 };
-export const DEBRIS_ROCK_RADIUS = 0.03;
-export const DEBRIS_FLOWER_RADIUS = 0.025;
-/** Sun-bleached bone shard — tapered pillar, tallest at the base. */
-export const DEBRIS_BONE = { topR: 0.008, bottomR: 0.02, height: 0.09, segments: 4 };
-/** Faceted crystal shard — low-segment cone. */
-export const DEBRIS_CRYSTAL = { radius: 0.03, height: 0.09, segments: 4 };
-/** Tiny mushroom — single cone cap (stem is implicit at this scale). */
-export const DEBRIS_SHROOM = { capR: 0.035, capHeight: 0.03, capSegments: 5 };
-/** Fallen log — short cylinder, pre-rotated flat by the geometry factory. */
-export const DEBRIS_LOG = { radius: 0.02, length: 0.12, segments: 5 };
+// ── Simple-feature scatter jitter constants ──
+// Deterministic hash/scale constants that scatter simple features (and the
+// shared tuft geometry) across their hex in simpleFeatureMeshes.js.
+export const TUFT = { bottomR: 0.04, height: 0.06, segments: 3 };
 
-export const DEBRIS_HASH_SEEDS = [17, 11, 13, 100];
-export const DEBRIS_ANGLE_STEP = 0.618;
-export const DEBRIS_OFFSET_MIN = 0.15;
-export const DEBRIS_OFFSET_RANGE = [30, 200]; // max = offsetMin + (range[0]-1)/range[1]
-export const DEBRIS_Y_OFFSET = 0.03;
-export const DEBRIS_ROTATION_SEED = 0.723;
-export const DEBRIS_SCALE_BASE = 0.8;
-export const DEBRIS_SCALE_RANGE = [20, 100];
+export const SCATTER_HASH_SEEDS = [17, 11, 13, 100];
+export const SCATTER_ANGLE_STEP = 0.618;
+export const SCATTER_OFFSET_MIN = 0.15;
+export const SCATTER_OFFSET_RANGE = [30, 200]; // max = offsetMin + (range[0]-1)/range[1]
+export const SCATTER_ROTATION_SEED = 0.723;
+export const SCATTER_SCALE_BASE = 0.8;
+export const SCATTER_SCALE_RANGE = [20, 100];
 
 // ── Knot geometries ──
 export const KNOT_RADIUS = 0.2;

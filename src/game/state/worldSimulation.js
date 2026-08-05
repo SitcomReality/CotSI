@@ -17,6 +17,7 @@ import { checkVictory } from './victoryChecks.js';
 import { startMeasure, endMeasure } from '../../dev/performance/index.js';
 import { runMobHarassment } from './mobHarassment.js';
 import { runTraderMovement } from './traderMovement.js';
+import { markChunkDirty } from './chunkDirtyTracking.js';
 
 export function finishTurn(state) {
   const champ = getChampion(state, state.activeChampionId);
@@ -110,6 +111,8 @@ function runWorldTurn(state) {
     if (t?.feature?.kind === 'fruitTree' && t.feature.nextFruitDay != null && state.day >= t.feature.nextFruitDay) {
       t.feature.ripe = true;
       state._unripeTrees.delete(key);
+      // Feature state changed — rebuild the chunk so the ripened fruit shows.
+      markChunkDirty(state, t.q, t.r);
     }
   }
 

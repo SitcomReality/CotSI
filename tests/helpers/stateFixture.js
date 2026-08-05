@@ -61,10 +61,10 @@ export function makeMob(overrides = {}) {
 
 /**
  * Build a minimal tile with the shape state code expects:
- * terrain key (looked up in TERRAIN for passability) + feature/debris slots.
+ * terrain key (looked up in TERRAIN for passability) + feature slot.
  */
 export function makeTile(terrain = 'plains', overrides = {}) {
-  return { terrain, feature: null, debris: null, ...overrides };
+  return { terrain, feature: null, ...overrides };
 }
 
 /**

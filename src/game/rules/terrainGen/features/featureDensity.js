@@ -55,18 +55,3 @@ export function featureDensity(terrain, elevation, moisture, slope, treeLineMax)
 export function canSpawnFruitTree(elevation, moisture, treeLineMax) {
   return moisture > FEATURE_DENSITY.fruitTreeMinMoisture && elevation < treeLineMax;
 }
-
-/**
- * Terrain-aware rock probability for debris spawning.
- * Rocks are more common on steep slopes and in dry areas.
- *
- * @param {number} slope    - Topographic slope [0, 1]
- * @param {number} moisture - Adjusted moisture [0, 1]
- * @returns {number} Rock spawn probability in [0, 1]
- */
-export function shouldSpawnRock(slope, moisture) {
-  const FD = FEATURE_DENSITY;
-  const slopeFactor = clamp01(slope / FD.rockSlopeNorm);         // slope 0 → 0, slope 0.15+ → 1
-  const dryFactor = clamp01((FD.rockDryNorm - moisture) / FD.rockDryNorm); // moist 0.5+ → 0, moist 0 → 1
-  return slopeFactor * FD.rockSlopeWeight + dryFactor * FD.rockDryWeight;
-}

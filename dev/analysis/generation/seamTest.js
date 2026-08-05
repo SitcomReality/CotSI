@@ -24,7 +24,7 @@
  *   mountainType    — depends on neighbor terrain classification
  *   waterType       — depends on BFS to map edge
  *   isRiver         — trace result depends on full-map flow accumulation
- *   feature/debris  — random spawn rolls, not field-invariant
+ *   feature         — random spawn rolls, not field-invariant
  *
  * Pure: no DOM, no state, no side effects beyond console.assert.
  *

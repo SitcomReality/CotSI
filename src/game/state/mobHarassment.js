@@ -47,7 +47,6 @@ export function runMobHarassment(state) {
             state.tiles[k] &&
             TERRAIN[state.tiles[k].terrain].passable &&
             !state.tiles[k].feature &&
-            !state.tiles[k].debris &&
             !occupiedByChampion(state, k) &&
             !occupiedByMob(state, k) &&
             !occupiedByTrader(state, k)

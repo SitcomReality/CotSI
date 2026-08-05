@@ -2,7 +2,7 @@
  * renderMap.js — Full map renderer for the analysis page.
  *
  * Orchestrates the draw pipeline: terrain hexes with fill-color
- * resolution, then entity/feature/debris markers on top.
+ * resolution, then entity/feature markers on top.
  * Drawing utilities live in sibling modules; visual constants
  * live in theme.js.
  */
@@ -10,7 +10,7 @@ import { coordKey, hexesWithinRadius } from '../../../src/engine/rules/hexGrid.j
 import { hexToPixel, drawHexPath, HEX_SIZE } from './hexMath.js';
 import { resolveFillColor } from './terrainFill.js';
 import { drawBases, drawMobs, drawTraders, drawChampions } from './entityMarkers.js';
-import { drawFeatures, drawDebris } from './featureMarkers.js';
+import { drawFeatures } from './featureMarkers.js';
 import { CULL_MARGIN, RIVER, RIVER_BOOST_RADIUS } from './theme.js';
 
 /**
@@ -136,7 +136,6 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
   if (options.showTraders && traders)         drawTraders(ctx, traders, HEX_SIZE);
   if (options.showChampions && champions)     drawChampions(ctx, champions, HEX_SIZE);
   if (options.showFeatures)                   drawFeatures(ctx, tiles, tileKeys);
-  if (options.showDebris)                     drawDebris(ctx, tiles, tileKeys);
 
   ctx.restore();
 }

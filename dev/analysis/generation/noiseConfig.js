@@ -25,8 +25,6 @@ import {
   SEED_REGION_M,
   SEED_REGION_T,
   SEED_FEATURES,
-  SEED_DEBRIS,
-  SEED_DEBRIS_KIND,
 } from '../../../src/params/game/worldParams.js';
 
 // Re-export seed offsets for consumers that import from noiseConfig.js
@@ -38,8 +36,6 @@ export {
   SEED_REGION_M,
   SEED_REGION_T,
   SEED_FEATURES,
-  SEED_DEBRIS,
-  SEED_DEBRIS_KIND,
   EPICENTER_CONFIG,
 };
 
@@ -50,7 +46,7 @@ export const SEED_EPICENTER_HASH = 0xB8A4F2C6;
 export const SEED_FIELDS = [
   'SEED_DETAIL', 'SEED_RIDGE', 'SEED_MOISTURE',
   'SEED_TEMP', 'SEED_REGION_M', 'SEED_REGION_T',
-  'SEED_FEATURES', 'SEED_DEBRIS', 'SEED_DEBRIS_KIND',
+  'SEED_FEATURES',
 ];
 
 export const NOISE_FIELDS = [

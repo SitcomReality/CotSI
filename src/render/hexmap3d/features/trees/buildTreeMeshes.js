@@ -31,8 +31,11 @@ function isTreeTile(tile) {
   return CLUSTER_TERRAINS.has(tile.terrain);
 }
 
-function collectTreeInstances(tilesOrArray, visible) {
-  return collectInstances(tilesOrArray, visible, isTreeTile, treeRecordsForTile);
+function collectTreeInstances(tilesOrArray, visible, occupants) {
+  return collectInstances(
+    tilesOrArray, visible, isTreeTile,
+    (tile, worldPos) => treeRecordsForTile(tile, worldPos, occupants),
+  );
 }
 
 /** Part geometry registry — one InstancedMesh per geo key. */
@@ -76,18 +79,20 @@ function buildMeshesFromInstances(instances) {
  * Build tree InstancedMeshes for the current game state.
  * @param {object} state - Game state (state.tiles Map)
  * @param {Set<string>} visible - Set of "q,r" keys currently visible
+ * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildTreeMeshes(state, visible) {
-  return buildMeshesFromInstances(collectTreeInstances(state.tiles, visible));
+export function buildTreeMeshes(state, visible, occupants) {
+  return buildMeshesFromInstances(collectTreeInstances(state.tiles, visible, occupants));
 }
 
 /**
  * Build tree InstancedMeshes for a single chunk's tiles.
  * @param {object[]} chunkTiles - Array of tile objects in this chunk
  * @param {Set<string>} visible - Set of hex keys currently visible
+ * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildChunkTreeMeshes(chunkTiles, visible) {
-  return buildMeshesFromInstances(collectTreeInstances(chunkTiles, visible));
+export function buildChunkTreeMeshes(chunkTiles, visible, occupants) {
+  return buildMeshesFromInstances(collectTreeInstances(chunkTiles, visible, occupants));
 }

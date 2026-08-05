@@ -5,8 +5,7 @@ import { tileToChunk, localCoord, localKey, hexesInChunk } from '../../../engine
 import { CHUNK_SIZE } from '../../../params/engine/chunkParams.js';
 import {
   MAX_LOOKUP_RADIUS, DEFAULT_TERRAIN_RULES, SEA_LEVEL_ELEVATION,
-  NOISE_CHANNEL_FEATURES, NOISE_CHANNEL_DEBRIS, NOISE_CHANNEL_DEBRIS_KIND,
-  DEBRIS_SPAWN_THRESHOLD,
+  NOISE_CHANNEL_FEATURES,
 } from '../../../params/game/worldParams.js';
 import { getArchetype } from '../archetypes.js';
 import { getNoiseConfig, sampleBaseFields } from './fields/sampleBaseFields.js';
@@ -18,9 +17,8 @@ import { classifyTerrain, resolveElevation } from './classification/terrainClass
 import { applySupernaturalOverrides } from './placement/epicenterPlacement.js';
 import { tagMountainType } from './tagging/mountainTagging.js';
 import { waterTypeForTile } from './tagging/waterTagging.js';
-import { featureDensity, canSpawnFruitTree, shouldSpawnRock } from './features/featureDensity.js';
+import { featureDensity, canSpawnFruitTree } from './features/featureDensity.js';
 import { spawnFeature } from './features/featureSpawning.js';
-import { selectDebrisKind } from './features/debrisSpawning.js';
 
 /**
  * Generate all global (q, r) coordinates within a chunk expanded by ringWidth.
@@ -56,7 +54,6 @@ export function hexesInExpandedChunk(cq, cr, ringWidth) {
  *   7. Mountain type tagging
  *   8. Water type tagging
  *   9. Sprinkle features (density-modulated + fruit tree climate gate)
- *  10. Sprinkle debris (terrain-aware rock probability)
  *
  * @param {string}   seedText  - Seed string for reproducible generation
  * @param {number}   chunkQ    - Chunk q coordinate
@@ -138,7 +135,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
 
     const { lq, lr } = localCoord(chunkQ, chunkR, q, r);
     tileMap.set(localKey(lq, lr), {
-      q, r, terrain, feature: null, debris: null,
+      q, r, terrain, feature: null,
       mountainType: null, waterType: null,
       elevation: resolveElevation(terrain, hexBiomeDef),
       elevationField: fields.elevation,
@@ -218,31 +215,6 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
 
     if (feature) {
       tile.feature = feature;
-    }
-  }
-
-  // --- Pass 9: Environmental debris (tufts, rocks, flowers, bones, crystals) ---
-  // Kind selection is biome/terrain-aware (debrisSpawning.js) so scatter matches
-  // the tile — desert gets bones, Edenfall grows crystals, etc. Rock debris
-  // keeps its terrain-aware probability gate (slope + moisture); all other
-  // kinds use the fixed spawn gate. Same noise channels as before, so existing
-  // seeds keep their spawn placement — only the kind string can differ.
-  for (const [, tile] of tileMap) {
-    if (!TERRAIN[tile.terrain].passable) continue;
-    if (tile.feature) continue;
-
-    const tileBiomeDef = biomeDef || getArchetype(tile.biomeId) || getArchetype('biome_default');
-    const kindRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS_KIND);
-    const kind = selectDebrisKind(tile, tileBiomeDef, kindRoll);
-    if (!kind) continue;
-
-    const spawnRoll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_DEBRIS);
-    if (kind === 'rock') {
-      if (spawnRoll < shouldSpawnRock(tile.slope, tile.moisture)) {
-        tile.debris = { kind: 'rock' };
-      }
-    } else if (spawnRoll > DEBRIS_SPAWN_THRESHOLD) {
-      tile.debris = { kind };
     }
   }
 

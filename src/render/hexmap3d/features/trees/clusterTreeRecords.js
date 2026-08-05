@@ -15,6 +15,7 @@ import {
   TREE_CLUSTER_COUNTS, TREE_CLUSTER_RING, TREE_CLUSTER_LEAN,
   TREE_VARIATION, TREE_CANOPY_COLORS, PAINFOREST_GROVE_SCALE,
 } from '../../../../params/render/geometryParams.js';
+import { DECOR_STATE, DISPERSED_SCALE, dispersedRingOffsets } from '../decorEmphasis.js';
 
 const PAINFOREST_BIOME = 'biome_painforest';
 
@@ -50,30 +51,50 @@ function treeVariation(tileH, i) {
  * around the hex center (well inside the hex), each leaning away from it.
  * Painforest grove members are gnarled trees; all other biomes use the
  * terrain's canopy family (round forest / tall denseForest).
+ *
+ * When `mode` is DISPERSED (an occupant or feature claims the hex center)
+ * the trees move to a ring near the hex edge and shrink; when HIDDEN (an
+ * occupant + feature share the tile) no grove is emitted at all.
+ *
+ * @param {object[]} records  - accumulator array
+ * @param {object}   tile     - Tile with `terrain`, `biomeId`, `moisture`
+ * @param {object}   worldPos - { x, y, z } hex center in world space
+ * @param {number}   tileH    - deterministic per-tile hash
+ * @param {string|null} [mode] - one of DECOR_STATE, or null for normal
  */
-export function clusterTreeRecords(records, tile, worldPos, tileH) {
+export function clusterTreeRecords(records, tile, worldPos, tileH, mode) {
+  if (mode === DECOR_STATE.HIDDEN) return records;
+  const dispersed = mode === DECOR_STATE.DISPERSED;
   const count = clusterCount(tile.terrain, clusterDensity(tile), tileH);
   const gnarled = tile.biomeId === PAINFOREST_BIOME;
+  const ringOffsets = dispersed ? dispersedRingOffsets(count, tileH) : null;
   for (let i = 0; i < count; i++) {
     const v = treeVariation(tileH, i);
     const variant = gnarled ? null : clusterVariant(tile.terrain);
 
-    // Position on a jittered ring around the hex center (well inside the hex)
-    const ringT = clamp01(frac(treeHash(tileH, i + 1)) + (frac(treeHash(tileH, i + 2)) - 0.5) * TREE_VARIATION.ringJitter * 2);
-    const r = TREE_CLUSTER_RING.min + (TREE_CLUSTER_RING.max - TREE_CLUSTER_RING.min) * ringT;
-    const angle = (i / count) * Math.PI * 2 + (frac(treeHash(tileH, i + 2)) - 0.5) * TREE_VARIATION.angleJitter;
-    const dx = Math.cos(angle) * r;
-    const dz = Math.sin(angle) * r;
+    let dx;
+    let dz;
+    if (dispersed) {
+      ({ dx, dz } = ringOffsets[i]);
+    } else {
+      // Position on a jittered ring around the hex center (well inside the hex)
+      const ringT = clamp01(frac(treeHash(tileH, i + 1)) + (frac(treeHash(tileH, i + 2)) - 0.5) * TREE_VARIATION.ringJitter * 2);
+      const r = TREE_CLUSTER_RING.min + (TREE_CLUSTER_RING.max - TREE_CLUSTER_RING.min) * ringT;
+      const angle = (i / count) * Math.PI * 2 + (frac(treeHash(tileH, i + 2)) - 0.5) * TREE_VARIATION.angleJitter;
+      dx = Math.cos(angle) * r;
+      dz = Math.sin(angle) * r;
+    }
 
     // Lean away from the hex center: tilt axis ⊥ outward direction, positive tilt → outward
     const len = Math.hypot(dx, dz) || 1e-6;
     const tilt = lerp(TREE_CLUSTER_LEAN.min, TREE_CLUSTER_LEAN.max, frac(treeHash(tileH, i + 8)));
     const memberPos = { x: worldPos.x + dx, y: worldPos.y, z: worldPos.z + dz };
+    const groveScale = dispersed ? DISPERSED_SCALE : 1;
 
     if (gnarled) {
       gnarledTreeRecords(records, tile, memberPos, {
         hashOffset: i,
-        scale: PAINFOREST_GROVE_SCALE,
+        scale: PAINFOREST_GROVE_SCALE * groveScale,
         canopyColor: TREE_CANOPY_COLORS.painforest,
         tiltAxis: { x: dz / len, z: -dx / len },
         tilt,
@@ -84,6 +105,7 @@ export function clusterTreeRecords(records, tile, worldPos, tileH) {
     addTreeRecords(records, {
       x: memberPos.x, y: memberPos.y, z: memberPos.z,
       variant, ...v,
+      scale: v.scale * groveScale,
       tiltAxis: { x: dz / len, z: -dx / len }, tilt,
       color: clusterColor(TREE_CANOPY_COLORS[variant], tileH, i),
     });

@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnFeature } from '../../src/game/rules/terrainGen/features/featureSpawning.js';
-import { canSpawnFruitTree, featureDensity, shouldSpawnRock } from '../../src/game/rules/terrainGen/features/featureDensity.js';
+import { canSpawnFruitTree, featureDensity } from '../../src/game/rules/terrainGen/features/featureDensity.js';
 import { KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_MOD } from '../../src/params/game/worldParams.js';
 
 test('spawnFeature: returns null when no rule matches', () => {
@@ -110,10 +110,4 @@ test('featureDensity: forest is denser with more moisture', () => {
   const dry = featureDensity('forest', 0.2, 0.75, 0.05, 0.6);
   const wet = featureDensity('forest', 0.2, 1.0, 0.05, 0.6);
   assert.ok(wet >= dry, 'wetter forest should have density ≥ drier forest');
-});
-
-test('shouldSpawnRock: returns probability in [0, 1]', () => {
-  assert.ok(shouldSpawnRock(0.5, 0.1) >= 0 && shouldSpawnRock(0.5, 0.1) <= 1);
-  // Steep + dry should be at least as rocky as flat + wet.
-  assert.ok(shouldSpawnRock(0.5, 0.0) >= shouldSpawnRock(0.0, 0.5));
 });

@@ -10,13 +10,13 @@ spawn time and during all movement and pathfinding.
 | May occupy | May not occupy |
 |-----------|----------------|
 | Plains, forest, desert, marsh | Mountain, water (impassable terrain) |
-| Tree (*) | Faction base |
+| Fruit Tree (*) | Faction base |
 | God's Knot (*) | Another champion |
-| Debris (tuft, rock, flower) | Mob (aggressive or not) |
+| | Mob (aggressive or not) |
 | | Trader |
 
-(*) Champions interact with trees (eat fruit) and knots (mine) on arrival — these
-are intentional interactions, not just occupancy.
+(*) Champions interact with fruit trees (eat fruit) and knots (mine) on arrival
+— these are intentional interactions, not just occupancy.
 
 **Enforcement points:**
 - `isBlockedForMovement()` in `entityQueries.js` — used by `adjacentPassable()`,
@@ -33,15 +33,14 @@ Mobs spawn on and may only wander onto hexes that are **completely vacant**:
 
 - Passable terrain (not mountain, not water)
 - No feature (no tree, knot, base)
-- No debris (no tuft, rock, flower)
 - No champion
 - No other mob
 - No trader
 
 **Enforcement points:**
-- `createMobs()` in `entityFactory.js` — spawn filter adds `!tile.debris`.
+- `createMobs()` in `entityFactory.js` — spawn filter requires passable terrain with no feature.
 - Mob wandering in `runWorldTurn()` in `worldSimulation.js` — checks feature,
-  debris, champion, mob, and trader occupancy.
+  champion, mob, and trader occupancy.
 
 ---
 
@@ -51,20 +50,19 @@ Traders follow the same **completely vacant** rule as mobs:
 
 - Passable terrain
 - No feature
-- No debris
 - No champion
 - No mob
 - No other trader
 
 **Enforcement points:**
-- `createTraders()` in `entityFactory.js` — spawn filter adds `!tile.debris`.
+- `createTraders()` in `entityFactory.js` — spawn filter requires passable terrain with no feature.
 - Trader movement in `runWorldTurn()` in `worldSimulation.js` — checks feature,
-  debris, champion, mob, and trader occupancy.
+  champion, mob, and trader occupancy.
 
 ---
 
 ## Utility function
 
 `isVacant(state, key)` in `entityQueries.js` encapsulates the complete-vacancy
-check for mobs and traders: passable terrain, no feature, no debris, no champion,
+check for mobs and traders: passable terrain, no feature, no champion,
 no mob, no trader.

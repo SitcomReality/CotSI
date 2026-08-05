@@ -41,7 +41,6 @@ export function cacheDom() {
   els.toggleTraders = $('toggle-traders');
   els.toggleBases = $('toggle-bases');
   els.toggleFeatures = $('toggle-features');
-  els.toggleDebris = $('toggle-debris');
   els.viewMode = $('view-mode');
   els.btnCycleToggle = $('btn-cycle-toggle');
   els.btnNextRandom = $('btn-next-random');

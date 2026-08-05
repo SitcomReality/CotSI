@@ -2,7 +2,7 @@
  * theme.js — Rendering constants for the analysis page.
  *
  * This file holds visual constants for **entity markers, feature markers,
- * debris markers, biome overlay colors, and viewport culling margin**.
+ * biome overlay colors, and viewport culling margin**.
  *
  * It is NOT the source for elevation or moisture color maps — those live
  * in `colorMaps.js` (alongside the legend stops). Edit there to change
@@ -101,17 +101,6 @@ export const FEATURES = {
   dustbleedCrystal:    { radius: 2.0, fill: '#40c8b8' },  // turquoise crystal
   snowperson:          { radius: 2.0, fill: '#f0f4f8' },  // white snow figure
 };
-
-// ── Debris markers ──────────────────────────────────────────────────────────────
-
-export const DEBRIS = {
-  tuft:   '#5a7a3a',
-  rock:   '#777',
-  flower: '#c878a0',
-};
-
-/** Half-side of the debris square in hex-pixels */
-export const DEBRIS_SIZE = 1;
 
 // ── River overlay ──────────────────────────────────────────────────────────
 

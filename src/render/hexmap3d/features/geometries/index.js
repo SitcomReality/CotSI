@@ -20,14 +20,8 @@ export {
 } from './knotGeometries.js';
 
 export {
-  getDebrisTuftGeo,
-  getDebrisRockGeo,
-  getDebrisFlowerGeo,
-  getDebrisBoneGeo,
-  getDebrisCrystalGeo,
-  getDebrisShroomGeo,
-  getDebrisLogGeo,
-} from './debrisGeometries.js';
+  getTuftGeo,
+} from './tuftGeometries.js';
 
 export {
   getBaseSpikeGeo,
@@ -53,3 +47,7 @@ export {
   getBigtreeGeo,
   getSnowpersonGeo,
 } from './featureGeometries.js';
+
+export {
+  getHillDecorGeo,
+} from './hillDecorGeometries.js';

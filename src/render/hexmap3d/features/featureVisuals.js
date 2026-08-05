@@ -14,7 +14,7 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { toonMaterial } from '../scene/materials.js';
 import {
-  getDebrisTuftGeo,
+  getTuftGeo,
   getSlabGeo,
   getDiscGeo,
   getOrbGeo,
@@ -35,13 +35,13 @@ import {
 
 export const FEATURE_VISUALS = {
   bush: {
-    geometry: getDebrisTuftGeo,
+    geometry: getTuftGeo,
     material: () => toonMaterial({ color: 0x4A7A3A }),
     meshName: 'flora-bush',
     scale: 1.5,
   },
   vine: {
-    geometry: getDebrisTuftGeo,
+    geometry: getTuftGeo,
     material: () => toonMaterial({ color: 0x5A9A4A }),
     meshName: 'flora-vine',
     scale: 0.8,
@@ -95,7 +95,7 @@ export const FEATURE_VISUALS = {
     scale: 1.2,
   },
   redLetterBramble: {
-    geometry: getDebrisTuftGeo,
+    geometry: getTuftGeo,
     material: () => toonMaterial({ color: 0x1A1010 }),
     meshName: 'feature-bramble',
     scale: 1.3,

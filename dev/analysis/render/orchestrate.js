@@ -44,7 +44,6 @@ function getOptions() {
     showTraders: els.toggleTraders.checked,
     showBases: els.toggleBases.checked,
     showFeatures: els.toggleFeatures.checked,
-    showDebris: els.toggleDebris.checked,
     palettes,
   };
 }

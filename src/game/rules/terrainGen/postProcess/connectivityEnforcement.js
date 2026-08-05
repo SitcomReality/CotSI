@@ -163,7 +163,6 @@ function _bridgeComponent(tiles, isolatedSet, mainSet) {
     if (tile && !TERRAIN[tile.terrain]?.passable) {
       tile.terrain = demoteToPassable(tile.terrain);
       tile.feature = null;
-      tile.debris = null;
     }
     cur = prev[cur];
   }

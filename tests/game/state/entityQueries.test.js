@@ -43,17 +43,15 @@ test('isVacant: champion, mob, and trader occupancy', () => {
   assert.equal(isVacant(state, '2,0'), false, 'trader occupies');
 });
 
-test('isVacant: impassable terrain, missing tile, feature, and debris', () => {
+test('isVacant: impassable terrain, missing tile, and feature', () => {
   const tiles = {
     '0,0': makeTile('mountain'),
     '2,0': makeTile('plains', { feature: { kind: 'tree' } }),
-    '3,0': makeTile('plains', { debris: { kind: 'tuft' } }),
   };
   const state = makeState({ tiles });
   assert.equal(isVacant(state, '0,0'), false, 'impassable terrain');
   assert.equal(isVacant(state, '9,9'), false, 'missing tile');
   assert.equal(isVacant(state, '2,0'), false, 'feature present');
-  assert.equal(isVacant(state, '3,0'), false, 'debris present');
 });
 
 test('occupiedBy*: spatialIndex entry wins over position scan', () => {

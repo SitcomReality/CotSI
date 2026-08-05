@@ -17,7 +17,7 @@ export function demoteToPassable(terrain) {
 }
 
 /**
- * Force passable terrain + clear features/debris around each faction spawn target.
+ * Force passable terrain + clear features around each faction spawn target.
  * Runs after all chunks are assembled, before champion placement.
  *
  * @param {object}  tiles        - Flat tile map keyed by "q,r"
@@ -41,7 +41,6 @@ export function ensureSpawnClearance(tiles, radius, targets) {
 
         tile.terrain = demoteToPassable(tile.terrain);
         tile.feature = null;
-        tile.debris = null;
       }
     }
   }

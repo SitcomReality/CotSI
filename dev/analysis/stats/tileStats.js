@@ -68,22 +68,6 @@ export function featureCounts(tiles) {
   return { trees, fruitTrees, largeTrees, knots, bases, bushes, vines };
 }
 
-export function debrisCounts(tiles) {
-  let tufts = 0;
-  let rocks = 0;
-  let flowers = 0;
-
-  for (const key of Object.keys(tiles)) {
-    const d = tiles[key].debris;
-    if (!d) continue;
-    if (d.kind === 'tuft') tufts++;
-    else if (d.kind === 'rock') rocks++;
-    else if (d.kind === 'flower') flowers++;
-  }
-
-  return { tufts, rocks, flowers, total: tufts + rocks + flowers };
-}
-
 export function mountainAnalysis(tiles) {
   let total = 0;
   let peaks = 0;

@@ -11,7 +11,6 @@ import { collectHistograms } from './histograms.js';
 import {
   terrainDistribution,
   featureCounts,
-  debrisCounts,
   mountainAnalysis,
   waterAnalysis,
   entityStats,
@@ -28,7 +27,6 @@ function collectSeedStats(result) {
   return {
     terrain: terrainDistribution(tiles),
     features: featureCounts(tiles),
-    debris: debrisCounts(tiles),
     mountains: mountainAnalysis(tiles),
     water: waterAnalysis(tiles),
     entities: entityStats(champions, mobs, traders),

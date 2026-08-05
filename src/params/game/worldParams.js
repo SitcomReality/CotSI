@@ -19,12 +19,6 @@ export const MAX_LOG_ENTRIES = 100;
 
 /** Noise channel index for feature sprinkling. */
 export const NOISE_CHANNEL_FEATURES = 4;
-/** Noise channel index for debris spawn roll. */
-export const NOISE_CHANNEL_DEBRIS = 5;
-/** Noise channel index for debris kind selection. */
-export const NOISE_CHANNEL_DEBRIS_KIND = 6;
-/** Debris spawn gate: non-rock debris spawns only when the debris roll exceeds this. */
-export const DEBRIS_SPAWN_THRESHOLD = 0.92;
 /** Mountain peak classification: minimum mountain-neighbor count (out of 6). */
 export const MOUNTAIN_PEAK_MIN_NEIGHBORS = 4;
 /** Water-type classification: max BFS depth for lake-vs-ocean check. */
@@ -82,8 +76,6 @@ export const SEED_TEMP        = 0x2D7B8E3F;
 export const SEED_REGION_M    = 0x5A1C9D6E;
 export const SEED_REGION_T    = 0x9F3E7B4A;
 export const SEED_FEATURES    = 0x1E4A7C9D;
-export const SEED_DEBRIS      = 0xD8F3A5B1;
-export const SEED_DEBRIS_KIND = 0x4C7E2F9A;
 
 /** Seed offset for detail elevation layer. */
 export const SEED_DETAIL = 0x7B2C1E8D;
@@ -198,7 +190,7 @@ export const DEFAULT_TERRAIN_RULES = {
 
 // ---------------------------------------------------------------------------
 // Feature density (featureDensity.js)
-// Tree/fruit/rock feature density shaping. The moisture values here form one
+// Tree/fruit feature density shaping. The moisture values here form one
 // family with DEFAULT_TERRAIN_RULES.forestMinMoisture (0.58):
 //   moistRamp 0.72            — tree density ramps up only above the
 //                               dense-forest moisture, well past the forest floor.
@@ -219,10 +211,6 @@ export const FEATURE_DENSITY = {
   marshMoistFactor:    0.4,  // marsh density: moisture × this
   desertMoistFactor:   0.15, // desert density: moisture × this
   fruitTreeMinMoisture: 0.60, // fruit-tree climate gate
-  rockSlopeNorm:       0.15, // rock prob: slope factor saturates at this slope
-  rockDryNorm:         0.5,  // rock prob: dryness saturates as moisture → 0
-  rockSlopeWeight:     0.6,  // rock prob: slope factor weight
-  rockDryWeight:       0.4,  // rock prob: dryness factor weight
 };
 
 // ---------------------------------------------------------------------------

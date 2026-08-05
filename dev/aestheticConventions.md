@@ -491,16 +491,25 @@ decoration, not a feature:
   big with a golden-green canopy, and a lone `tree` on plains/hill/marsh is
   larger than a grove member
 
-**Interactive features claim their tile.** A feature that lands on a woods tile
-replaces that hex's grove, so it reads as the tile's single subject:
+**Interactives take the hex center; decorations step aside.** Priority is
+occupant (champion/mob/trader) > feature > terrain decoration. The
+highest-priority thing on a tile stays at its center; every lower-priority
+one is **de-emphasized** (shrunk and pushed aside) instead of removed, so
+the tile's decoration survives:
 
+- A feature on a woods tile keeps its place; the grove **disperses** — its
+  trees shrink and push out toward the hex edge as a ring (state computation
+  in `features/decorEmphasis.js`)
+- An occupant on a feature tile pushes that feature aside: single-item
+  features shrink and move to the shared upper-left-corner anchor of the hex
+- An occupant on a decoration tile disperses the grove, or sinks the hill
+  mound decoration below the tile surface; with an occupant **and** a feature
+  both present, the decoration is hidden entirely and the feature disperses
 - `fruitTree` is a **forest-family tree with visible fruit** — the same canopy
   family as the surrounding grove (round on forest, tall on denseForest),
   slightly larger and warmer-toned, with 1–2 fruits hanging under the canopy.
   Fruit tracks the regrowth cycle: **ripe trees show red apples, harvested
   trees regrow as small green fruit**
-- Any other feature (knot, base, slab…) suppresses the grove entirely on its
-  tile, keeping interactives legible among decorations
 
 ---
 

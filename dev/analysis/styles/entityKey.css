@@ -69,13 +69,4 @@
   background: #c8a832;
 }
 
-/* Debris marker (3-color gradient strip) */
-.entity-key[data-entity="debris"]::after {
-  content: '';
-  display: block;
-  width: 14px;
-  height: 8px;
-  border-radius: 2px;
-  border: 1px solid #555;
-  background: linear-gradient(90deg, #5a7a3a 33%, #777 33% 66%, #c878a0 66%);
-}
+

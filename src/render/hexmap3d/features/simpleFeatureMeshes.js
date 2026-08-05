@@ -6,21 +6,22 @@
 import { FEATURE_VISUALS } from './featureVisuals.js';
 import { collectInstances, buildInstanced } from './meshBuilder.js';
 import {
-  DEBRIS_HASH_SEEDS, DEBRIS_ANGLE_STEP, DEBRIS_OFFSET_MIN,
-  DEBRIS_OFFSET_RANGE, DEBRIS_ROTATION_SEED,
-  DEBRIS_SCALE_BASE, DEBRIS_SCALE_RANGE,
+  SCATTER_HASH_SEEDS, SCATTER_ANGLE_STEP, SCATTER_OFFSET_MIN,
+  SCATTER_OFFSET_RANGE, SCATTER_ROTATION_SEED,
+  SCATTER_SCALE_BASE, SCATTER_SCALE_RANGE,
 } from '../../../params/render/geometryParams.js';
+import { DISPERSED_SCALE, dispersedSingleOffset, isTileOccupied } from './decorEmphasis.js';
 
 /**
  * Compute a deterministic jitter offset and rotation for a tile,
  * used to scatter simple features naturally across their hex.
  */
 function jitterForTile(tile) {
-  const hash = ((tile.q * DEBRIS_HASH_SEEDS[0] + tile.r * DEBRIS_HASH_SEEDS[1]) * DEBRIS_HASH_SEEDS[2]) % DEBRIS_HASH_SEEDS[3];
-  const angle = (hash * DEBRIS_ANGLE_STEP) % (Math.PI * 2);
-  const dist = DEBRIS_OFFSET_MIN + (hash % DEBRIS_OFFSET_RANGE[0]) / DEBRIS_OFFSET_RANGE[1];
-  const rotY = (hash * DEBRIS_ROTATION_SEED) % (Math.PI * 2);
-  const scaleVar = DEBRIS_SCALE_BASE + (hash % DEBRIS_SCALE_RANGE[0]) / DEBRIS_SCALE_RANGE[1];
+  const hash = ((tile.q * SCATTER_HASH_SEEDS[0] + tile.r * SCATTER_HASH_SEEDS[1]) * SCATTER_HASH_SEEDS[2]) % SCATTER_HASH_SEEDS[3];
+  const angle = (hash * SCATTER_ANGLE_STEP) % (Math.PI * 2);
+  const dist = SCATTER_OFFSET_MIN + (hash % SCATTER_OFFSET_RANGE[0]) / SCATTER_OFFSET_RANGE[1];
+  const rotY = (hash * SCATTER_ROTATION_SEED) % (Math.PI * 2);
+  const scaleVar = SCATTER_SCALE_BASE + (hash % SCATTER_SCALE_RANGE[0]) / SCATTER_SCALE_RANGE[1];
   return {
     ox: Math.cos(angle) * dist,
     oz: Math.sin(angle) * dist,
@@ -34,10 +35,11 @@ function jitterForTile(tile) {
  *
  * @param {object} state  - Game state (must have state.tiles Map)
  * @param {Set<string>} visible - Set of "q,r" keys currently visible
+ * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildSimpleFeatureMeshes(state, visible) {
-  return _buildSimpleFeatures(state.tiles, visible);
+export function buildSimpleFeatureMeshes(state, visible, occupants) {
+  return _buildSimpleFeatures(state.tiles, visible, occupants);
 }
 
 /**
@@ -45,13 +47,14 @@ export function buildSimpleFeatureMeshes(state, visible) {
  *
  * @param {object[]} chunkTiles - Array of tile objects in this chunk
  * @param {Set<string>} visible - Set of "q,r" keys currently visible
+ * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildChunkSimpleFeatureMeshes(chunkTiles, visible) {
-  return _buildSimpleFeatures(chunkTiles, visible);
+export function buildChunkSimpleFeatureMeshes(chunkTiles, visible, occupants) {
+  return _buildSimpleFeatures(chunkTiles, visible, occupants);
 }
 
-function _buildSimpleFeatures(tilesOrArray, visible) {
+function _buildSimpleFeatures(tilesOrArray, visible, occupants) {
   // Group instances by kind: { kind → instances[] }
   const kindGroups = {};
 
@@ -65,11 +68,19 @@ function _buildSimpleFeatures(tilesOrArray, visible) {
     (tile, worldPos) => {
       const cfg = FEATURE_VISUALS[tile.feature.kind];
       const jitter = jitterForTile(tile);
-      const scale = (cfg.scale ?? 1.0) * jitter.scaleVar;
+      // An occupant claims the hex center: the feature steps aside to the
+      // shared upper-left-corner anchor and shrinks (decorEmphasis.js).
+      let x = worldPos.x + jitter.ox;
+      let z = worldPos.z + jitter.oz;
+      let scale = (cfg.scale ?? 1.0) * jitter.scaleVar;
+      if (isTileOccupied(occupants, tile)) {
+        const { dx, dz } = dispersedSingleOffset();
+        x = worldPos.x + dx;
+        z = worldPos.z + dz;
+        scale *= DISPERSED_SCALE;
+      }
       const inst = {
-        x: worldPos.x + jitter.ox,
-        y: worldPos.y,
-        z: worldPos.z + jitter.oz,
+        x, y: worldPos.y, z,
         scale,
         rotY: jitter.rotY,
         _kind: tile.feature.kind,

@@ -8,17 +8,46 @@ import { renderHexMap3D } from '../render/hexmap3d/hexMapRenderer.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { getHumanView } from '../game/state/fogOfWar.js';
 import { adjacentPassable } from '../game/state/championMovement.js';
-import { neighbors, coordKey } from '../engine/rules/hexGrid.js';
+import { neighbors, coordKey, parseKey } from '../engine/rules/hexGrid.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/minimap.js';
 import { setDerivedState, setInteractionHighlights } from '../render/overlays/overlayStack.js';
 import { startMeasure, endMeasure } from '../dev/performance/index.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
 import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
-import { clearDirtyFlags } from '../game/state/chunkDirtyTracking.js';
+import { clearDirtyFlags, markChunkDirty } from '../game/state/chunkDirtyTracking.js';
+import { occupiedKeys } from '../render/hexmap3d/features/decorEmphasis.js';
 
 /** Whether the minimap has been initialized. */
 let minimapInitialized = false;
+
+/**
+ * Last seen occupant-key set ("q,r"). Decoration de-emphasis is baked into
+ * chunk meshes, so chunks must rebuild when an occupant enters or leaves a
+ * tile — otherwise the dispersed/restored states would go stale. Diffing the
+ * occupant set at refresh time catches every move, death, and spawn with
+ * minimal rebuilds (only chunks whose occupancy actually changed).
+ */
+let lastOccupantKeys = null;
+
+function markOccupancyChunksDirty(state) {
+  const current = occupiedKeys(state);
+  if (lastOccupantKeys !== null) {
+    for (const key of current) {
+      if (!lastOccupantKeys.has(key)) {
+        const { q, r } = parseKey(key);
+        markChunkDirty(state, q, r);
+      }
+    }
+    for (const key of lastOccupantKeys) {
+      if (!current.has(key)) {
+        const { q, r } = parseKey(key);
+        markChunkDirty(state, q, r);
+      }
+    }
+  }
+  lastOccupantKeys = current;
+}
 
 /**
  * Initialize the 3D map scene (once) then render the current state.
@@ -80,6 +109,10 @@ export function refreshMap() {
   // One-time 3D scene initialization
   initMap3D(mountEl, G);
 
+  // De-emphasis toggle: rebuild chunks whose occupancy changed since the last
+  // refresh, so decorations disperse/restore as units move on and off tiles.
+  markOccupancyChunksDirty(G);
+
   try {
     renderHexMap3D(G, humanView);
     // Clear chunk dirty flags only on success — if rendering throws, the chunks
@@ -122,6 +155,7 @@ export function refreshMap() {
  */
 export function resetMapInitialized() {
   minimapInitialized = false;
+  lastOccupantKeys = null;
   disposeMinimap();
   resetInitFlags();
   resetCameraFocus();

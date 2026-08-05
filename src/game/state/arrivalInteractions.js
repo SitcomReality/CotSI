@@ -9,6 +9,7 @@ import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { FRUIT_HEAL_VERDANT, FRUIT_HEAL_STANDARD, FRUIT_REGROWTH_DAYS, KNOT_DEFAULT_AMOUNT } from '../../params/game/economyParams.js';
 import { FACTION_VERDANT } from '../../params/game/factionParams.js';
+import { markChunkDirty } from './chunkDirtyTracking.js';
 
 export function interactOnArrival(state, champ) {
   const factionMap = buildChampionFactionMap(state.champions);
@@ -20,6 +21,8 @@ export function interactOnArrival(state, champ) {
       tile.feature.nextFruitDay = state.day + FRUIT_REGROWTH_DAYS;
       tile.feature.ripe = false;
       state._unripeTrees.add(coordKey(champ.pos));
+      // Feature state changed — rebuild the chunk so the fruit regrow shows.
+      markChunkDirty(state, tile.q, tile.r);
       addLogEntry(state, {
         category: LOG_CATEGORY.HEAL,
         subject: championSegment(champ.name, factionMap),
@@ -43,5 +46,7 @@ export function interactOnArrival(state, champ) {
     });
     recordLedgerEntry(champ, `+${amt} God's Knot — mined`, 'gain', 'knot');
     tile.feature = null;
+    // Feature removed — rebuild the chunk so decorations restore (de-emphasis).
+    markChunkDirty(state, tile.q, tile.r);
   }
 }

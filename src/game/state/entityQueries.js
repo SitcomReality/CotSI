@@ -6,15 +6,14 @@ import { coordKey, parseKey } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 
 /**
- * A hex is considered "vacant" when it has no interactive features,
- * no debris (tufts, rocks, flowers), and no entities. Used by mob/trader
- * spawning and movement to ensure they only occupy truly empty hexes.
+ * A hex is considered "vacant" when it has no interactive features and no
+ * entities. Used by mob/trader spawning and movement to ensure they only
+ * occupy truly empty hexes.
  */
 export function isVacant(state, key) {
   const tile = state.tiles[key];
   if (!tile || !TERRAIN[tile.terrain].passable) return false;
   if (tile.feature) return false;
-  if (tile.debris) return false;
   if (occupiedByChampion(state, key)) return false;
   if (occupiedByMob(state, key)) return false;
   if (occupiedByTrader(state, key)) return false;

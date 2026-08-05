@@ -13,7 +13,6 @@ import { collectRawSlopeDeltas } from '../generation/slopeDeltas.js';
 import {
   terrainDistribution,
   featureCounts,
-  debrisCounts,
   mountainAnalysis,
   waterAnalysis,
   entityStats,
@@ -28,14 +27,13 @@ import { pearsonCorrelation } from '../stats/correlations.js';
  * Collect summary statistics from a single-generation result.
  *
  * @param {object} result - Output of generateSingleSeed()
- * @returns {object} Terrain, feature, debris, mountain, water, entity, and trader stats
+ * @returns {object} Terrain, feature, mountain, water, entity, and trader stats
  */
 export function collectSeedStats(result) {
   const { tiles, champions, mobs, traders, baseKeys } = result;
   return {
     terrain: terrainDistribution(tiles),
     features: featureCounts(tiles),
-    debris: debrisCounts(tiles),
     mountains: mountainAnalysis(tiles),
     water: waterAnalysis(tiles),
     entities: entityStats(champions, mobs, traders),

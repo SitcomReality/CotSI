@@ -11,7 +11,6 @@ import {
   biomeDistribution,
   terrainDistribution,
   featureCounts,
-  debrisCounts,
   mountainAnalysis,
   waterAnalysis,
   entityStats,
@@ -34,7 +33,6 @@ export function formatStats() {
   const bioDist = biomeDistribution(tiles);
   const terrainStats = terrainDistribution(tiles);
   const featCounts = featureCounts(tiles);
-  const debCounts = debrisCounts(tiles);
   const mtStats = mountainAnalysis(tiles);
   const wtStats = waterAnalysis(tiles);
   const entStats = entityStats(champions, mobs, traders);
@@ -64,7 +62,6 @@ export function formatStats() {
 
   lines.push('');
   lines.push(`Features:  trees=${featCounts.trees}  fruit=${featCounts.fruitTrees}  large=${featCounts.largeTrees}  knots=${featCounts.knots}  bases=${featCounts.bases}  bushes=${featCounts.bushes}  vines=${featCounts.vines}`);
-  lines.push(`Debris:    tufts=${debCounts.tufts}  rocks=${debCounts.rocks}  flowers=${debCounts.flowers}`);
   lines.push(`Mountains: total=${mtStats.total}  peaks=${mtStats.peaks}  slopes=${mtStats.slopes}  isolated=${mtStats.isolated}`);
   lines.push(`Water:     total=${wtStats.total}  lakes=${wtStats.lakes}  oceans=${wtStats.oceans}`);
   lines.push('');

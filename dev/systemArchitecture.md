@@ -208,10 +208,11 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `scene/rendererSetup.js` | WebGL renderer setup and configuration |
 | `scene/sceneSetup.js` | Scene initialisation + registers render callback on clock |
 | `features/baseMeshes.js` | Faction base meshes (tower + faction decoration) |
-| `features/debrisMeshes.js` | Environmental debris meshes (tufts, rocks, flowers) |
+| `features/decorEmphasis.js` | De-emphasis state computation (dispersed/sunk/hidden) for displaced decorations |
 | `features/featureGeometries.js` | Feature-geometry barrel |
 | `features/featureMeshes.js` | Feature mesh barrel: dedicated builders + simpleFeatureMeshes |
 | `features/featureVisuals.js` | Visual registry: kind → geometry, material, scale |
+| `features/hillDecorMeshes.js` | Hill mound decoration meshes (sink de-emphasis) |
 | `features/knotMeshes.js` | Knot (resource node) meshes |
 | `features/meshBuilder.js` | Shared InstancedMesh iteration + build utilities (per-instance scale/lean/color + tree-frame placement/orientation) |
 | `features/mountainMeshes.js` | Mountain cluster meshes |
@@ -227,11 +228,12 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `features/trees/treeRecordsForTile.js` | Per-tile tree treatment dispatcher |
 | `features/trees/treeVariants.js` | Canopy variant selection + per-variant geometry |
 | `features/geometries/baseGeometries.js` | Base-terrain geometry constants and factories |
-| `features/geometries/debrisGeometries.js` | Debris geometry shapes |
+| `features/geometries/hillDecorGeometries.js` | Hill mound decoration geometry |
 | `features/geometries/index.js` | Barrel for feature geometries |
 | `features/geometries/knotGeometries.js` | Knot geometry shapes |
 | `features/geometries/mountainGeometries.js` | Mountain geometry shapes |
 | `features/geometries/treeGeometries.js` | Tree geometry shapes |
+| `features/geometries/tuftGeometries.js` | Shared grass-tuft geometry (flora features) |
 | `interaction/cameraPan.js` | Camera pan input handler (mouse drag) |
 | `interaction/cameraZoom.js` | Camera zoom input handler (scroll wheel) |
 | `interaction/hexClick.js` | Hex click detection and dispatch |
@@ -590,10 +592,10 @@ moving code).
 | `render/renderDistributions.js` | Canvas2D histogram panel renderer |
 | `render/theme.js` | Visual theme constants (biome colours, river colours) |
 | `render/entityMarkers.js` | Entity marker drawing (champion, mob, trader, base) |
-| `render/featureMarkers.js` | Feature marker drawing (trees, bushes, vines, debris) |
+| `render/featureMarkers.js` | Feature marker drawing (trees, bushes, vines) |
 | `render/terrainFill.js` | Terrain colour fill and overlay rendering |
 | `stats/stats.js` | Barrel: re-exports tile, entity, aggregation, and concentration stats |
-| `stats/tileStats.js` | Per-tile distributions (biome, terrain, features, debris, mountains, water) |
+| `stats/tileStats.js` | Per-tile distributions (biome, terrain, features, mountains, water) |
 | `stats/entityStats.js` | Entity statistics (champions, mobs, traders) |
 | `stats/aggregation.js` | Multi-seed aggregation (terrain distribution mean/stddev) |
 | `stats/concentration.js` | Gini coefficient, passable-tile count, heatmap concentration |
