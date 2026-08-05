@@ -4,9 +4,10 @@ import {
   getChunkEntry, setChunkEntry, forEachChunk,
   getAllTerrainMeshes, countExploredInChunk, disposeChunk
 } from './chunkManager.js';
-import { buildChunkTerrainMesh } from './terrain/index.js';
+import { buildChunkTerrainMesh, buildChunkWaterMesh } from './terrain/index.js';
 import { buildChunkFeatureMeshes } from './features/featureMeshes.js';
 import { buildUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted, initPieceTextures, disposePieceTextures } from './units/index.js';
+import { waterTimeUniform } from './scene/materials.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/mapInteraction.js';
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/overlayStack.js';
 import { renderFogOverlay } from '../overlays/fogOverlay.js';
@@ -46,6 +47,11 @@ export function initHexMap3D(mountElement) {
 
   // Start the clock's rAF loop (safe to call multiple times)
   getClock().start();
+
+  // Water surface ripple: advance the shared shader time once per frame.
+  // getClock().dispose() above cleared any prior frame callbacks, so this is
+  // the only registration. One uniform write per frame drives every water mesh.
+  getClock().onTick((ts) => { waterTimeUniform.value = ts / 1000; });
 
   // Init 2D effects overlay and register layers
   initEffectsOverlay(ctx);
@@ -116,21 +122,28 @@ export function renderHexMap3D(state, humanView) {
       // Build terrain mesh for this chunk
       const terrain = buildChunkTerrainMesh(chunkTiles, state, visible, explored);
 
+      // Build water mesh for this chunk (water renders on its own material)
+      const water = buildChunkWaterMesh(chunkTiles, state, visible, explored);
+
       // Build feature meshes for this chunk
       const features = buildChunkFeatureMeshes(chunkTiles, state, visible);
 
-      if (terrain || features.length > 0) {
+      if (terrain || water || features.length > 0) {
         const group = new THREE.Group();
         group.name = `chunk-${ck}`;
         if (terrain) {
           terrain.name = `terrain-${ck}`;
           group.add(terrain);
         }
+        if (water) {
+          water.name = `water-${ck}`;
+          group.add(water);
+        }
         for (const fm of features) {
           group.add(fm);
         }
         ctx.scene.add(group);
-        setChunkEntry(ck, { group, terrain, features, exploredCount });
+        setChunkEntry(ck, { group, terrain, water, features, exploredCount });
       }
     }
   }

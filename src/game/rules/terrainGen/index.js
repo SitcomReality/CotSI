@@ -15,5 +15,6 @@ export { seededHash, traceRiver } from './rivers/riverTrace.js';
 export { applyRiverMoistureBoost } from './rivers/riverMoisture.js';
 export { ensureSpawnClearance, demoteToPassable, PASSEABLE_DEMOTION } from './postProcess/spawnClearance.js';
 export { ensurePassableConnectivity } from './postProcess/connectivityEnforcement.js';
+export { enforceWaterRules, carveRiverBeds } from './postProcess/waterRules.js';
 export { hexesInExpandedChunk, generateChunkTiles } from './chunkGeneration.js';
 export { generateTiles } from './flatGeneration.js';

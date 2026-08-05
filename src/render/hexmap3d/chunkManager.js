@@ -7,7 +7,7 @@ const chunkMeshes = new Map();
 /**
  * Look up a chunk entry by key.
  * @param {string} ck - Chunk key ("q,r")
- * @returns {{ group: THREE.Group, terrain: THREE.Mesh, features: (InstancedMesh|Group)[], exploredCount: number }|undefined}
+ * @returns {{ group: THREE.Group, terrain: THREE.Mesh, water: THREE.Mesh, features: (InstancedMesh|Group)[], exploredCount: number }|undefined}
  */
 export function getChunkEntry(ck) {
   return chunkMeshes.get(ck);
@@ -46,12 +46,14 @@ export function clearChunkEntries() {
 
 /**
  * Return all chunk terrain meshes as an array (for raycasting).
+ * Includes the per-chunk water meshes so water hexes remain pickable.
  * @returns {THREE.Mesh[]}
  */
 export function getAllTerrainMeshes() {
   const arr = [];
   for (const [, entry] of chunkMeshes) {
     if (entry.terrain) arr.push(entry.terrain);
+    if (entry.water) arr.push(entry.water);
   }
   return arr;
 }
@@ -81,6 +83,9 @@ export function disposeChunk(ck, scene) {
 
   // Dispose terrain
   disposeMeshRecursive(entry.terrain);
+
+  // Dispose water mesh
+  disposeMeshRecursive(entry.water);
 
   // Dispose feature meshes (may include THREE.Group with children)
   for (const fm of entry.features) {

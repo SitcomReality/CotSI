@@ -11,6 +11,7 @@ import { generateTiles } from '../../src/game/rules/terrainGen/flatGeneration.js
 import { generateChunkTiles } from '../../src/game/rules/terrainGen/chunkGeneration.js';
 import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
 import { TERRAIN_ELEVATION } from '../../src/params/render/terrainParams.js';
+import { WATER_LAND_GAP } from '../../src/params/game/worldParams.js';
 import { getArchetype } from '../../src/game/rules/archetypes.js';
 import '../../src/game/rules/archetypeData/index.js';
 import { coordKey, neighbors, distance } from '../../src/engine/rules/hexGrid.js';
@@ -117,8 +118,23 @@ test('per-tile invariants: known terrain, registered biome, fields in [0,1]', ()
     // Y-offset — a biome terrainElevation override wins, else the global
     // TERRAIN_ELEVATION lookup (mirrors resolveElevation).
     assert.ok(tile.elevationField >= 0 && tile.elevationField <= 1, `elevationField out of range at ${coordKey(tile)}`);
-    const expectedElev = biome.terrainElevation?.[tile.terrain] ?? TERRAIN_ELEVATION[tile.terrain];
-    assert.equal(tile.elevation, expectedElev, `display elevation mismatch at ${coordKey(tile)}`);
+    if (tile.terrain === 'water') {
+      // Water elevation is governed by the water-system rules pass (uniform
+      // component heights — see the 'water rule 2' tests), which flattens each
+      // stationary body to its lowest member, so it can only sit at or below
+      // its static table value.
+      const expectedElev = biome.terrainElevation?.water ?? TERRAIN_ELEVATION.water;
+      assert.ok(tile.elevation <= expectedElev, `water elevation raised above table at ${coordKey(tile)}`);
+    } else if (tile.isRiver) {
+      // Passable river tiles are carved into recessed channels below their
+      // banks (see the 'river carve' test); impassable river tiles keep their
+      // elevation. Either way the static table no longer pins them.
+      assert.ok(tile.elevation <= (biome.terrainElevation?.[tile.terrain] ?? TERRAIN_ELEVATION[tile.terrain]),
+        `river tile elevation raised above table at ${coordKey(tile)}`);
+    } else {
+      const expectedElev = biome.terrainElevation?.[tile.terrain] ?? TERRAIN_ELEVATION[tile.terrain];
+      assert.equal(tile.elevation, expectedElev, `display elevation mismatch at ${coordKey(tile)}`);
+    }
     assert.ok(tile.moisture >= 0 && tile.moisture <= 1, `moisture out of range at ${coordKey(tile)}`);
     assert.ok(tile.temperature >= 0 && tile.temperature <= 1, `temperature out of range at ${coordKey(tile)}`);
     assert.ok(tile.slope >= 0 && tile.slope <= 1, `slope out of range at ${coordKey(tile)}`);
@@ -178,5 +194,80 @@ test('spawn-range hexes are all within the disc', () => {
   for (const key of Object.keys(tiles)) {
     const [q, r] = key.split(',').map(Number);
     assert.ok(distance({ q, r }, { q: 0, r: 0 }) <= RADIUS, `tile ${key} outside radius`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Water system height rules (postProcess/waterRules.js)
+// ---------------------------------------------------------------------------
+
+test('water rule 2: adjacent stationary water tiles always share one height', () => {
+  const tiles = generateTiles('water-uniform-seed', RADIUS);
+  let waterSeen = false;
+  for (const tile of Object.values(tiles)) {
+    if (tile.terrain !== 'water' || tile.isRiver) continue;
+    waterSeen = true;
+    for (const n of neighbors({ q: tile.q, r: tile.r })) {
+      const nb = tiles[coordKey(n)];
+      if (!nb || nb.terrain !== 'water' || nb.isRiver) continue;
+      assert.equal(nb.elevation, tile.elevation,
+        `adjacent stationary water heights differ at ${coordKey(tile)} (${tile.elevation}) ↔ ${coordKey(n)} (${nb.elevation})`);
+    }
+  }
+  assert.ok(waterSeen, 'expected at least one stationary water tile');
+});
+
+test('water rule 1: every water tile sits below any adjacent non-river land', () => {
+  const tiles = generateTiles('water-below-land-seed', RADIUS);
+  let waterSeen = false;
+  for (const tile of Object.values(tiles)) {
+    if (tile.terrain !== 'water') continue;
+    waterSeen = true;
+    for (const n of neighbors({ q: tile.q, r: tile.r })) {
+      const nb = tiles[coordKey(n)];
+      if (!nb || nb.terrain === 'water' || nb.isRiver) continue;
+      assert.ok(nb.elevation > tile.elevation + WATER_LAND_GAP - 1e-9,
+        `water ${coordKey(tile)} (${tile.elevation}) not below land ${coordKey(n)} (${nb.elevation})`);
+    }
+  }
+  assert.ok(waterSeen, 'expected at least one water tile');
+});
+
+test('river carve: passable river tiles recessed below banks, never below adjacent water', () => {
+  const tiles = generateTiles('river-carve-seed', RADIUS);
+  const rivers = Object.values(tiles).filter((t) => t.isRiver && t.terrain !== 'water');
+  assert.ok(rivers.length > 0, 'expected at least one carved (land) river tile');
+
+  for (const r of rivers) {
+    // Impassable river tiles (mountain/peak/floatingIsland) are not carved —
+    // they keep their elevation and only carry the river overlay.
+    if (!TERRAIN[r.terrain].passable) continue;
+
+    let minBank = Infinity;
+    let hasBank = false;
+    let minAdjWater = Infinity;
+    let hasAdjWater = false;
+    for (const n of neighbors({ q: r.q, r: r.r })) {
+      const nb = tiles[coordKey(n)];
+      if (!nb) continue;
+      if (nb.terrain === 'water') {
+        if (nb.elevation < minAdjWater) minAdjWater = nb.elevation;
+        hasAdjWater = true;
+      } else if (!nb.isRiver) {
+        if (nb.elevation < minBank) minBank = nb.elevation;
+        hasBank = true;
+      }
+    }
+
+    // A tile with no qualifying bank falls back to the downstream level — the
+    // carve has nothing to dig against, so there is nothing to assert.
+    if (!hasBank) continue;
+
+    assert.ok(r.elevation < minBank,
+      `river tile ${coordKey(r)} (${r.elevation}) not below its banks (${minBank})`);
+    if (hasAdjWater) {
+      assert.ok(r.elevation >= minAdjWater - 1e-9,
+        `river tile ${coordKey(r)} (${r.elevation}) dug below adjacent water (${minAdjWater})`);
+    }
   }
 });

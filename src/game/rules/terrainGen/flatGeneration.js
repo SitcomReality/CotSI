@@ -7,6 +7,7 @@ import {
 } from '../../../params/game/worldParams.js';
 import { generateChunkTiles } from './chunkGeneration.js';
 import { ensurePassableConnectivity } from './postProcess/connectivityEnforcement.js';
+import { enforceWaterRules, carveRiverBeds } from './postProcess/waterRules.js';
 import { selectRiverSources } from './rivers/riverSources.js';
 import { traceRiver } from './rivers/riverTrace.js';
 import { applyRiverMoistureBoost } from './rivers/riverMoisture.js';
@@ -106,6 +107,15 @@ export function generateTiles(seedText, radius, biomeDef = null) {
   if (!biomeDef) {
     ensurePassableConnectivity(tiles, radius);
   }
+
+  // Water system height rules (order matters):
+  //   1. enforceWaterRules  — flatten stationary water bodies to a uniform
+  //      height, and guarantee water sits below adjacent land.
+  //   2. carveRiverBeds     — recess river channels below their banks, using
+  //      the now-final water levels as each river's terminal level.
+  // Rivers (isRiver) are exempt from both height rules' hard constraints.
+  enforceWaterRules(tiles);
+  carveRiverBeds(tiles, riverPaths);
 
   endMeasure('genTiles');
   return tiles;

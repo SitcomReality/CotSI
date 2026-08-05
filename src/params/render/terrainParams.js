@@ -22,8 +22,21 @@ export const RIVER_OVERLAY_WEIGHT = 0.45;
  * Biome edge blending strength. Each top-face corner is pulled toward the
  * average color of the tiles sharing that corner (0 = no blending, 1 = corner
  * becomes the full average). Blends adjacent biomes into a soft gradient.
+ * Water never participates: water tiles render on their own mesh with no corner
+ * blending, and land corners skip water neighbors (see cornerBlend.js).
  */
 export const TERRAIN_BLEND_FACTOR = 0.8;
+
+/**
+ * Water surface ripple (vertex-shader animation, see buildWaterMesh.js).
+ * Displaces water vertices by sin(uTime * SPEED + phase) * amp, where phase and
+ * amp are per-corner attributes: most corners have amp 0 (still water), a
+ * scattered COVERAGE fraction bobs slightly so the surface is never perfectly
+ * still. All GPU-side — one uTime uniform per frame.
+ */
+export const WATER_RIPPLE_SPEED = 2.0;
+export const WATER_RIPPLE_AMP = 0.03;
+export const WATER_RIPPLE_COVERAGE = 0.3;
 
 /**
  * Terrain fill colors (RGB 0-1 tuples for vertex color attributes).

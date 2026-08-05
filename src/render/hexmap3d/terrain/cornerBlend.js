@@ -16,6 +16,9 @@ const CORNER_NEIGHBOR_INDICES = [
  * Top-face corner color for a tile, blended toward the average color of the
  * explored tiles sharing that corner (soft biome transitions). Missing or
  * unexplored neighbors are skipped; falls back to the tile's own top color.
+ *
+ * Water neighbors are excluded from the average: water renders on its own mesh
+ * and must never terrain-blend with adjacent land (water system rule 3).
  */
 export function cornerBlendColor(tile, cornerIdx, state, explored, topColorFor) {
   const own = topColorFor(tile);
@@ -25,7 +28,7 @@ export function cornerBlendColor(tile, cornerIdx, state, explored, topColorFor) 
     const nb = nbrs[nIdx];
     const key = coordKey(nb);
     const nbTile = state.tiles[key];
-    if (!nbTile || !explored.has(key)) continue;
+    if (!nbTile || nbTile.terrain === 'water' || !explored.has(key)) continue;
     parts.push(topColorFor(nbTile));
   }
   if (parts.length === 1) return own;

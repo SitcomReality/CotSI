@@ -88,7 +88,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `logHelpers.js` | Utility functions for log message formatting |
 | `paleyScoring.js` | Paley tournament score calculation (7-node tournament) |
 | `terrainTypes.js` | Terrain type constants and default features |
-| `terrainGen/` | Terrain generation pipeline (20 files — see below) |
+| `terrainGen/` | Terrain generation pipeline (22 files — see below) |
 | `tileQueries.js` | Spawn-placement helpers (nearestOpenKey, nearestOpenMultiRing) |
 | `traderStock.js` | Trader stock generation logic |
 | `weatherScript.js` | Weather generation/scripting |
@@ -112,6 +112,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `placement/epicenterPlacement.js` | Supernatural biome epicenter placement |
 | `postProcess/connectivityEnforcement.js` | Ensures passable-tile connectivity via Dijkstra |
 | `postProcess/spawnClearance.js` | Clears spawn-point tiles |
+| `postProcess/waterRules.js` | Water height rules: uniform stationary bodies, water below land, river-bed carving |
 | `rivers/riverMoisture.js` | Applies moisture boost from rivers |
 | `rivers/riverSources.js` | Selects river source points |
 | `rivers/riverTrace.js` | River tracing algorithm |
@@ -240,6 +241,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `interaction/panMath.js` | Camera pan boundary math |
 | `interaction/touchInput.js` | Touch input handler (mobile/tablet) |
 | `terrain/buildTerrainMesh.js` | Procedural terrain mesh geometry (vertex colours) |
+| `terrain/buildWaterMesh.js` | Separate water mesh: own material, ripple attributes, no blending |
 | `terrain/cornerBlend.js` | Top-face corner color blending (soft biome transitions) |
 | `terrain/index.js` | Terrain module barrel (meshes + ground-level API) |
 | `terrain/tileColor.js` | Top-face color resolution (biome palette, lake/river) |

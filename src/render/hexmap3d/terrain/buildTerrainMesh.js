@@ -76,6 +76,8 @@ function addVertex(positions, colors, offset, x, y, z, color) {
 
 /**
  * Build a single merged BufferGeometry for all visible + explored hex tiles.
+ * Water tiles are excluded — they render via buildChunkWaterMesh on their own
+ * material (no terrain blending, ripple animation).
  *
  * @param {Object} state    - Game state (G)
  * @param {Set}    visible  - Set of hex keys currently visible
@@ -86,7 +88,7 @@ export function buildTerrainMesh(state, visible, explored) {
   const tiles = Object.values(state.tiles);
 
   // Count how many tiles we'll render
-  const activeTiles = tiles.filter(t => explored.has(`${t.q},${t.r}`));
+  const activeTiles = tiles.filter(t => explored.has(`${t.q},${t.r}`) && t.terrain !== 'water');
   const tileCount = activeTiles.length;
 
   const positions = new Float32Array(tileCount * VERTICES_PER_HEX * 3);
@@ -112,7 +114,8 @@ export function buildTerrainMesh(state, visible, explored) {
 
 /**
  * Build a merged BufferGeometry for tiles within a single chunk.
- * Only tiles present in `explored` are rendered.
+ * Only tiles present in `explored` are rendered; water tiles are excluded
+ * (they render via buildChunkWaterMesh on their own material).
  *
  * @param {object[]} chunkTiles - Array of tile objects belonging to this chunk
  * @param {object}   state      - Game state (for biomePalettes lookup per tile)
@@ -124,7 +127,7 @@ export function buildChunkTerrainMesh(chunkTiles, state, visible, explored) {
   const activeTiles = [];
   for (const tile of chunkTiles) {
     const key = `${tile.q},${tile.r}`;
-    if (explored.has(key)) activeTiles.push(tile);
+    if (explored.has(key) && tile.terrain !== 'water') activeTiles.push(tile);
   }
   if (activeTiles.length === 0) return null;
 

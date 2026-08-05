@@ -145,6 +145,11 @@ export const SLOPE_NORMALIZATION = 0.0597;
  *  Covers slope ±1 (computeSlope needs 6 neighbors) + water BFS ±2 = 3. */
 export const MAX_LOOKUP_RADIUS = 3;
 
+/** Minimum elevation gap between a water tile and adjacent land (world Y units). */
+export const WATER_LAND_GAP = 0.02;
+/** Depth a river channel is carved below its adjacent banks (world Y units). */
+export const RIVER_BED_DEPTH = 0.10;
+
 /**
  * Elevation assumed for out-of-chunk border samples during slope computation.
  * Missing fieldMap entries at chunk borders are expected border sampling,

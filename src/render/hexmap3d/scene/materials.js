@@ -1,4 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
+import { WATER_RIPPLE_SPEED } from '../../../params/render/terrainParams.js';
 
 /**
  * Three-stop toon gradient (dark → mid → white) shared by every toon material.
@@ -38,3 +39,34 @@ export const terrainMaterial = toonMaterial({
 });
 // Module-level asset shared across chunks — disposal guards skip it (see sceneContext.js).
 terrainMaterial.userData.shared = true;
+
+/**
+ * Shared water-surface material. Same toon shading as the terrain, but the
+ * vertex shader additionally bobs water vertices by
+ *   transformed.y += sin(uTime * WATER_RIPPLE_SPEED + aWaterPhase) * aWaterAmp
+ * so the surface is never perfectly still. The ripple is entirely GPU-side:
+ * phase/amplitude come from static per-vertex attributes (buildWaterMesh.js)
+ * and the frame driver only writes the single uTime uniform once per frame.
+ */
+export const waterMaterial = toonMaterial({
+  vertexColors: true,
+  side: THREE.FrontSide,
+});
+// Module-level asset shared across chunks — disposal guards skip it (see sceneContext.js).
+waterMaterial.userData.shared = true;
+
+/** Shared uTime uniform — the frame driver mutates `.value` once per rAF tick. */
+export const waterTimeUniform = { value: 0 };
+
+waterMaterial.onBeforeCompile = (shader) => {
+  shader.uniforms.uTime = waterTimeUniform;
+  shader.vertexShader =
+    'uniform float uTime;\n' +
+    'attribute float aWaterPhase;\n' +
+    'attribute float aWaterAmp;\n' +
+    shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>\n` +
+      `transformed.y += sin(uTime * ${WATER_RIPPLE_SPEED.toFixed(2)} + aWaterPhase) * aWaterAmp;`
+    );
+};
