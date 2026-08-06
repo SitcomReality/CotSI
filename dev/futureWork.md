@@ -26,12 +26,6 @@ Dev tools ship in the prod build (there is no build step to strip them):
 *Note:* The project is still in early development and these aren't immediate
 concerns — right now the goal is expedient internal testing and iteration.
 
-## 3. Optional structural follow-ups (from audit §3/§5)
-
-- **Epicenter beach lookup chunk-seam inconsistency:** the chunk-local key→terrain
-  index is O(1), but epicenter beach classification can differ across chunk seams
-  — needs neighbor-chunk data to fully resolve. Documented deferred limitation.
-
 ## 4. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
 ### 4.1 Threshold recalibration
