@@ -101,6 +101,38 @@ test('recordPick: rejects a second pick from the same side in one exchange', () 
   assert.equal(combat.exchanges[0].picks.first, 1);
 });
 
+test('recordPick: single-faction combatant may repeat its faction in exchange 2', () => {
+  // A mob (or a champion with a single potency) has only its own faction
+  // available, so the no-repeat guard would make exchange 2 impossible.
+  const a = makeChampion({ id: 'a' });
+  const mob = makeMob({ id: 'm', faction: 3 });
+  const combat = combatOf(a, mob);
+
+  assert.equal(recordPick(combat, 'first', 1), true);
+  assert.equal(recordPick(combat, 'second', 3), true);
+  // Advance to exchange 2 (second picks first)
+  combat.phase = 'reveal1';
+  advancePhase(combat); // → pick2
+  combat.awaitingSide = 'second';
+
+  assert.equal(recordPick(combat, 'second', 3), true, 'mob may repeat its only faction');
+  assert.equal(combat.exchanges[1].picks.second, 3);
+});
+
+test('recordPick: exchange-2 completion clears awaitingSide (no flip-back)', () => {
+  const a = makeChampion({ id: 'a' });
+  const b = makeChampion({ id: 'b' });
+  const combat = combatOf(a, b);
+  combat.phase = 'pick2';
+  combat.awaitingSide = 'second';
+
+  assert.equal(recordPick(combat, 'second', 2), true);
+  assert.equal(combat.awaitingSide, 'first');
+  assert.equal(recordPick(combat, 'first', 5), true);
+  assert.equal(combat.exchanges[1].picks.first, 5);
+  assert.equal(combat.awaitingSide, null, 'no side is awaiting once the exchange completes');
+});
+
 // ---- bothPicksIn ----
 
 test('bothPicksIn: false until both sides picked, true after', () => {

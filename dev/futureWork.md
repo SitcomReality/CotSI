@@ -34,10 +34,6 @@ concerns — right now the goal is expedient internal testing and iteration.
 - **`registerAction('inspect')`** (`bootstrap.js:32`) shows a hint toast instead
   of real inspection.
 - **Trading** remains placeholder per AGENTS.md.
-- **Design quirks to decide on:** mob fights only score exchange 1 (a mob's only
-  available faction is its own, so its exchange-2 pick is rejected as a repeat);
-  `recordPick`'s exchange-2 flip-back leaves `awaitingSide` on a side that already
-  picked (benign today, fragile).
 
 ## 3. Optional structural follow-ups (from audit §3/§5)
 

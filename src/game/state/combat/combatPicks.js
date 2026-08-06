@@ -17,10 +17,15 @@ export function recordPick(combat, side, factionIdx) {
   // 1. Must be a valid available faction
   if (!available.includes(factionIdx)) return false;
 
-  // 2. Entity must not have already picked this faction in any exchange
-  //    (no repeated faction across exchanges)
-  for (const exchange of combat.exchanges) {
-    if (exchange.picks[side] === factionIdx) return false;
+  // 2. No repeated faction across exchanges — skipped for single-faction
+  //    combatants (e.g. mobs, or a champion with one potency). With only one
+  //    available faction they can't vary their pick, and the guard would make
+  //    exchange 2 impossible: the pick is rejected, the exchange never scores,
+  //    and interactive fights stall at pick2.
+  if (available.length > 1) {
+    for (const exchange of combat.exchanges) {
+      if (exchange.picks[side] === factionIdx) return false;
+    }
   }
 
   // 3. Determine current exchange index from phase
@@ -33,10 +38,13 @@ export function recordPick(combat, side, factionIdx) {
   // 5. Write the pick
   exchange.picks[side] = factionIdx;
 
-  // 6. Switch awaitingSide to the other side (for the next pick call)
-  //    Exchange 1: first → second
-  //    Exchange 2: second → first
-  if (exchangeIdx === 0) {
+  // 6. Advance awaitingSide to whoever picks next in this exchange
+  //    (exchange 1: first → second; exchange 2: second → first). Once both
+  //    picks are in, no one is awaiting — leave it null instead of leaving it
+  //    on a side that already picked (the old flip-back state).
+  if (bothPicksIn(combat)) {
+    combat.awaitingSide = null;
+  } else if (exchangeIdx === 0) {
     combat.awaitingSide = side === 'first' ? 'second' : 'first';
   } else {
     combat.awaitingSide = side === 'second' ? 'first' : 'second';

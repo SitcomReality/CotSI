@@ -16,15 +16,16 @@ import {
 } from '../../../src/params/game/combatParams.js';
 
 /**
- * Mob-vs-mob fights score only exchange 1: a mob's only available faction is its
- * own, so its exchange-2 pick is rejected as a repeat. Each round therefore
- * contributes exactly one pair score.
+ * Mob-vs-mob fights score both exchanges: each mob's only available faction is
+ * its own, and the no-repeat guard is skipped for single-faction combatants
+ * (see combatPicks.recordPick).
  *
  * Round math for the two mob tests below:
  *   - mA (faction 0/Crucible, potency 5 at 0) vs mB (faction 3, potency 5 at 3)
- *   - exchange 1: beats(0,3) = no → mA 5; beats(3,0) = yes → mB floor(7.5) = 7
+ *   - each exchange: beats(0,3) = no → mA 5; beats(3,0) = yes → mB floor(7.5) = 7
+ *   - per round (2 exchanges): mA 10, mB 14 raw
  *   - round bonuses: Crucible −1 to mB's score; weather.score[3] = +4 to mB
- *   - damage each round: mB 10 − mA 5 = 5
+ *   - damage each round: mB 17 − mA 10 = 7
  */
 test('autoResolve: mob flees on round 2 without double-applying damage', () => {
   const mobA = makeMob({ id: 'mA', faction: 0, hp: 12, maxHp: 12, pos: { q: 0, r: 0 } });
@@ -36,12 +37,12 @@ test('autoResolve: mob flees on round 2 without double-applying damage', () => {
 
   const result = resolveCombatSilently(state, mobA, mobB);
 
-  // Round 1: 5 damage → mA 7 HP. Round 2: mA lost again → flees BEFORE damage,
-  // taking the round's 5 damage exactly once → 2 HP. (The old code applied the
-  // round damage AND the flee damage with re-bonused scores, leaving mA at 1.)
+  // Round 1: 7 damage → mA 5 HP. Round 2: mA lost again → flees BEFORE damage,
+  // taking the round's 7 damage exactly once, capped at FLEE_MIN_HP → 1 HP.
+  // (The old single-exchange code dealt 5 damage/round and left mA at 2.)
   assert.deepEqual(result, { winner: null, loser: null, rounds: 2, fled: 'attacker' });
   assert.equal(mobA.alive, true);
-  assert.equal(mobA.hp, 2, 'round damage applied exactly once');
+  assert.equal(mobA.hp, 1, 'round damage applied exactly once, capped at flee min HP');
   assert.equal(mobB.alive, true);
   assert.equal(mobB.hp, 20, 'winner never damaged');
 });
