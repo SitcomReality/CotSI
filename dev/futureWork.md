@@ -11,15 +11,6 @@ here.
 
 ## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
-### 4.7 Feature density tuning
-
-Phase E's density modulation changed effective spawn rates. Adjust each biome's
-`features[].threshold` values so tree/bush/knot densities match intended feel.
-Run feature spawn statistics across 10 seeds. (The fruit-tree fallthrough is
-DONE: if the fruit-tree rule matches but the climate gate fails, the tile retries
-the same roll against the remaining rules — covered by a regression test in
-`tests/game/terrainGen.test.js`.)
-
 ### 4.8 Snapshot range tightening
 
 Once thresholds are recalibrated, tighten the intentionally wide snapshot ranges:
