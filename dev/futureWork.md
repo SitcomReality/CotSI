@@ -26,10 +26,6 @@ Dev tools ship in the prod build (there is no build step to strip them):
 *Note:* The project is still in early development and these aren't immediate
 concerns — right now the goal is expedient internal testing and iteration.
 
-## 2. Placeholders that look like features (deferred — from audit §6)
-
-- **Trading** remains placeholder per AGENTS.md.
-
 ## 3. Optional structural follow-ups (from audit §3/§5)
 
 - **Combat round-driver de-duplication:** the round driver is independently
