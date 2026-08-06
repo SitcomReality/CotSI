@@ -28,8 +28,6 @@ concerns — right now the goal is expedient internal testing and iteration.
 
 ## 2. Placeholders that look like features (deferred — from audit §6)
 
-- **`registerAction('inspect')`** (`bootstrap.js:32`) shows a hint toast instead
-  of real inspection.
 - **Trading** remains placeholder per AGENTS.md.
 
 ## 3. Optional structural follow-ups (from audit §3/§5)
