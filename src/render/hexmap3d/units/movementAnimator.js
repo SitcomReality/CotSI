@@ -18,7 +18,8 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { toonMaterial } from '../scene/materials.js';
 import { getClock } from '../../../shared/clockScheduler.js';
-import { getChampionBodyGeo, getChampionHeadGeo } from './unitGeometries.js';
+import { geometryForShape } from '../features/descriptors/shapeFactories.js';
+import { CHAMPION_DESCRIPTOR } from '../features/descriptors/data/champions.js';
 import { getOutlineGeometry, outlineMaterial } from '../scene/outline.js';
 import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
 import {
@@ -31,6 +32,12 @@ import { MOVE_ANIM_DURATION, CHAMPION_HEIGHT_OFFSET, HEAD_BODY_OFFSET } from '..
 // Re-exported so existing callers importing MOVE_DURATION from this module
 // don't need to update their import paths.
 export { MOVE_DURATION } from './movementCurves.js';
+
+// The animating champion's temporary body/head meshes are built from the same
+// champion descriptor the static meshes use (descriptors/data/champions.js) —
+// one geometry source, shared via the shapeFactories cache.
+const CHAMPION_BODY_PART = CHAMPION_DESCRIPTOR.parts.find((p) => p.id === 'body');
+const CHAMPION_HEAD_PART = CHAMPION_DESCRIPTOR.parts.find((p) => p.id === 'head');
 
 // ─── Module state ────────────────────────────────────────────────────────────
 
@@ -130,8 +137,8 @@ export function queueOrStart(championId, fromPos, toPos, factionColorHex, durati
     color: 0xffe8c8,
   });
 
-  const body = new THREE.Mesh(getChampionBodyGeo(), bodyMat);
-  const head = new THREE.Mesh(getChampionHeadGeo(), headMat);
+  const body = new THREE.Mesh(geometryForShape(CHAMPION_BODY_PART.shape, CHAMPION_BODY_PART.params), bodyMat);
+  const head = new THREE.Mesh(geometryForShape(CHAMPION_HEAD_PART.shape, CHAMPION_HEAD_PART.params), headMat);
   body.castShadow = true;
   head.castShadow = true;
 

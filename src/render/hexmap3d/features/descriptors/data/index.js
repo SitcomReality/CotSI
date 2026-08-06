@@ -9,6 +9,10 @@
  *   - all 26 simple feature archetypes from FEATURE_VISUALS (simpleFeatures.js)
  *   - tree groves, solitary trees, the Elder Tree (trees.js)
  *   - hill mounds (hills.js), mountains (mountains.js), knots (knots.js)
+ *   - champion bases, 7 faction variants (bases.js — entity-driven)
+ *   - champions, per-faction variants (champions.js — entity-driven)
+ *   - mobs, per-archetype variants (mobs.js — entity-driven)
+ *   - traders (traders.js — entity-driven)
  *
  * Not yet migrated (parity gaps reported in the data files / futureWork.md):
  * fruit trees and painforest gnarled groves — their per-tree procedural
@@ -20,6 +24,10 @@ import { GROVE_DESCRIPTOR, TREE_DESCRIPTOR, LARGETREE_DESCRIPTOR } from './trees
 import { HILL_DESCRIPTOR } from './hills.js';
 import { MOUNTAIN_DESCRIPTOR } from './mountains.js';
 import { KNOT_DESCRIPTOR } from './knots.js';
+import { BASE_DESCRIPTOR } from './bases.js';
+import { CHAMPION_DESCRIPTOR } from './champions.js';
+import { MOB_DESCRIPTOR } from './mobs.js';
+import { TRADER_DESCRIPTOR } from './traders.js';
 
 /** Every migrated descriptor, in editor-display order. */
 export const ALL_DESCRIPTORS = [
@@ -30,6 +38,10 @@ export const ALL_DESCRIPTORS = [
   HILL_DESCRIPTOR,
   MOUNTAIN_DESCRIPTOR,
   KNOT_DESCRIPTOR,
+  BASE_DESCRIPTOR,
+  CHAMPION_DESCRIPTOR,
+  MOB_DESCRIPTOR,
+  TRADER_DESCRIPTOR,
 ];
 
 const byId = new Map(ALL_DESCRIPTORS.map((d) => [d.id, d]));

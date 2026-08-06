@@ -24,12 +24,6 @@ export {
 } from './tuftGeometries.js';
 
 export {
-  getBaseSpikeGeo,
-  getBaseRingGeo,
-  getBaseRingDotGeo,
-} from './baseGeometries.js';
-
-export {
   getSlabGeo,
   getDiscGeo,
   getOrbGeo,

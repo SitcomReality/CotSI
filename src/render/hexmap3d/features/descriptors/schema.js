@@ -2,7 +2,8 @@
  * schema.js — Pure descriptor schema for the geometry editor.
  *
  * A descriptor is the single source of truth for how a game object (feature,
- * decor, mountain) is composed and placed. It describes:
+ * decor, mountain, or an entity — base, champion, mob, trader) is composed and
+ * placed. It describes:
  *
  *   - shape parts (cylinder / cone / sphere / torus / box / dodecahedron /
  *     octahedron, plus bespoke shapes like the mountain pyramid) with their
@@ -12,9 +13,17 @@
  *   - size min/max — the per-item scale range (default 1..1) and finer
  *     variation ranges (canopy stretch, color jitter);
  *   - placement — how items sit inside the hex (center / scatter / ring);
+ *   - variants + variantRule — alternative part sets picked by rule
+ *     (hash/solitary/cluster for tile-driven objects; faction/archetype for
+ *     entities, whose variant ids match the entity's faction or archetype);
  *   - emphasis — what happens when something more important claims the hex
  *     center (decorEmphasis.js): dispersed to the edge, sunk flat, or hidden;
  *   - material — base color (and optional emissive for resource nodes).
+ *
+ * Parts carry a `color` for the instance-color path: an integer literal, or a
+ * named-color token ('factionBase' etc.) that entity records resolve from the
+ * entity's palette. Entity descriptors keep the material white so instance
+ * colors drive the look.
  *
  * The current game builds these objects from hard-coded constants scattered
  * across geometryParams.js, FEATURE_VISUALS, and the per-kind record builders.
@@ -122,8 +131,13 @@ export const SHAPE_TYPES = Object.freeze({
 
 // ── Enumerations and defaults ──────────────────────────────────────────────
 
-/** Content categories a descriptor can represent. */
-export const OBJECT_KINDS = Object.freeze(['feature', 'decor', 'mountain']);
+/**
+ * Content categories a descriptor can represent. Features, decor, and
+ * mountains are tile-driven (records from a tile hash); bases, champions,
+ * mobs, and traders are entity-driven (records from entity state, one per
+ * entity — see recordBuilder.recordsForEntity).
+ */
+export const OBJECT_KINDS = Object.freeze(['feature', 'decor', 'mountain', 'base', 'champion', 'mob', 'trader']);
 
 /**
  * Emphasis behavior — what the object does when the hex center is claimed by
@@ -194,6 +208,15 @@ function isPositiveNumber(v) {
 function isColorInt(v) {
   return Number.isInteger(v) && v >= 0 && v <= 0xffffff;
 }
+
+/**
+ * Named-color tokens for entity-driven parts. An entity part's `color` may be
+ * a token string instead of an integer; the entity record path
+ * (recordBuilder.recordsForEntity) resolves it from the entity's `colors` map
+ * (e.g. 'factionBase' / 'factionAccent' → the faction's palette entries).
+ */
+export const COLOR_TOKEN_PATTERN = /^[A-Za-z0-9_]+$/;
+const isColorToken = (v) => typeof v === 'string' && COLOR_TOKEN_PATTERN.test(v);
 
 const ID_PATTERN = /^[A-Za-z0-9_-]+$/;
 
@@ -354,9 +377,12 @@ export function validatePart(part, path, errors) {
   }
 
   if (part.transform !== undefined) validateTransform(part.transform, `${path}${label}`, errors);
-  if (part.color !== undefined && !isColorInt(part.color)) {
-    errors.push(`${path}${label}: color must be an integer 0..0xFFFFFF`);
+  if (part.color !== undefined && !isColorInt(part.color) && !isColorToken(part.color)) {
+    errors.push(`${path}${label}: color must be an integer 0..0xFFFFFF or a named-color token (${COLOR_TOKEN_PATTERN})`);
   }
+  // materialColor is baked into the per-descriptor material (materialForPart),
+  // which has no entity context — tokens are only valid on the instance-color
+  // path (part.color), so materialColor stays integer-only.
   if (part.materialColor !== undefined && !isColorInt(part.materialColor)) {
     errors.push(`${path}${label}: materialColor must be an integer 0..0xFFFFFF`);
   }
@@ -588,7 +614,7 @@ const OBJECT_KEYS = [
 ];
 
 /** How a descriptor's `variants` list is resolved to the parts of one item. */
-export const VARIANT_RULES = Object.freeze(['hash', 'solitary', 'cluster']);
+export const VARIANT_RULES = Object.freeze(['hash', 'solitary', 'cluster', 'faction', 'archetype']);
 
 /**
  * Validate a descriptor. Accepts raw (un-normalized) descriptors — optional

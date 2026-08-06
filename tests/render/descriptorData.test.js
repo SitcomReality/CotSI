@@ -59,10 +59,16 @@ test('every migrated descriptor validates and survives a JSON roundtrip', () => 
 
 const SNAPSHOT = JSON.parse(readFileSync(new URL('./fixtures/descriptorData.snap.json', import.meta.url), 'utf8'));
 
+// Entity descriptors (kind base/champion/mob/trader) are entity-driven — they
+// record via recordsForEntity, not the tile path — and are snapshot-tested in
+// descriptorEntity.test.js / descriptorBase.test.js.
+const ENTITY_KINDS = new Set(['base', 'champion', 'mob', 'trader']);
+
 test('descriptor→record output matches the committed golden snapshot', () => {
   const ids = new Set(ALL_DESCRIPTORS.map((d) => d.id));
   for (const id of Object.keys(SNAPSHOT)) assert.ok(ids.has(id), `snapshot has unknown id "${id}"`);
   for (const raw of ALL_DESCRIPTORS) {
+    if (ENTITY_KINDS.has(raw.kind)) continue;
     const d = normalizeDescriptor(raw);
     const records = recordsForDescriptor(d, tileFor(d), POS);
     assert.deepEqual(records, SNAPSHOT[raw.id].records, `${raw.id} drifted from golden snapshot`);
@@ -71,6 +77,7 @@ test('descriptor→record output matches the committed golden snapshot', () => {
 
 test('records are deterministic across calls', () => {
   for (const raw of ALL_DESCRIPTORS) {
+    if (ENTITY_KINDS.has(raw.kind)) continue;
     const d = normalizeDescriptor(raw);
     const tile = tileFor(d);
     assert.deepEqual(recordsForDescriptor(d, tile, POS), recordsForDescriptor(d, tile, POS), `${raw.id} non-deterministic`);
@@ -81,7 +88,8 @@ test('records are deterministic across calls', () => {
 
 test('simple features: one record, legacy scatter bounds', () => {
   for (const raw of ALL_DESCRIPTORS) {
-    if (raw.placement.mode !== 'scatter') continue; // trees use jitter placement
+    if (ENTITY_KINDS.has(raw.kind)) continue; // entity descriptors have no placement
+    if (raw.placement?.mode !== 'scatter') continue; // trees use jitter placement
     const d = normalizeDescriptor(raw);
     const [record] = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'plains' }, POS);
     assert.ok(record, `${raw.id} produced no records`);

@@ -3,26 +3,32 @@
  * game's descriptor pipeline.
  *
  * The editor loads ALL_DESCRIPTORS and the game consumes the same data via
- * descriptors/gameBuilder.js. This test builds one synthetic tile per
- * descriptor (a feature tile for each archetype, a grove forest tile, a hill
- * tile, a mountain tile, a knot tile) and asserts each object produces at
- * least one InstancedMesh with instances through the game path — the
- * "every existing object is loadable and renderable" half of the end-to-end
- * requirement, verified mechanically in Node.
+ * descriptors/gameBuilder.js (tile-driven) and the entity record path
+ * (recordBuilder.recordsForEntity — bases, and later champions/mobs/traders).
+ * This test builds one synthetic tile per tile-driven descriptor, and one
+ * synthetic entity per entity-driven descriptor, and asserts each object
+ * produces at least one InstancedMesh with instances — the "every existing
+ * object is loadable and renderable" half of the end-to-end requirement,
+ * verified mechanically in Node.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/features/descriptors/data/index.js';
 import { buildChunkDescriptorFeatureMeshes } from '../../src/render/hexmap3d/features/descriptors/gameBuilder.js';
+import { normalizeDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
+import { recordsForEntity } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
+import { buildDescriptorMeshes } from '../../src/render/hexmap3d/features/descriptors/meshAssembly.js';
 
-test('ALL_DESCRIPTORS covers every migrated object (26 features + 2 decor + mountain + knot)', () => {
-  assert.equal(ALL_DESCRIPTORS.length, 32);
+const ENTITY_KINDS = new Set(['base', 'champion', 'mob', 'trader']);
+
+test('ALL_DESCRIPTORS covers every migrated object (26 features + 2 decor + mountain + knot + base + champion + mob + trader)', () => {
+  assert.equal(ALL_DESCRIPTORS.length, 36);
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));
-  assert.ok(kinds.has('feature') && kinds.has('decor') && kinds.has('mountain'), 'all object kinds present');
+  assert.ok(kinds.has('feature') && kinds.has('decor') && kinds.has('mountain'), 'all tile-driven kinds present');
+  assert.ok(kinds.has('base') && kinds.has('champion') && kinds.has('mob') && kinds.has('trader'), 'all entity kinds present');
 });
 
-test('every descriptor renders an InstancedMesh through the game pipeline', () => {
-  // One distinct tile per descriptor; spread coords so no two tiles collide.
+test('every tile-driven descriptor renders an InstancedMesh through the game pipeline', () => {
   const tiles = [];
   let q = 0;
   let r = 0;
@@ -33,6 +39,7 @@ test('every descriptor renders an InstancedMesh through the game pipeline', () =
   };
 
   for (const d of ALL_DESCRIPTORS) {
+    if (ENTITY_KINDS.has(d.kind)) continue; // covered by the entity test below
     if (d.id === 'mountain') push({ terrain: 'mountain', mountainType: 'normal' });
     else if (d.id === 'grove') push({ terrain: 'forest', moisture: 0.6 });
     else if (d.id === 'hill') push({ terrain: 'hill' });
@@ -42,9 +49,10 @@ test('every descriptor renders an InstancedMesh through the game pipeline', () =
 
   const visible = new Set(tiles.map((t) => `${t.q},${t.r}`));
   const meshes = buildChunkDescriptorFeatureMeshes(tiles, visible, new Set());
-  assert.ok(meshes.length >= ALL_DESCRIPTORS.length, `at least one mesh per descriptor (got ${meshes.length})`);
+  assert.ok(meshes.length >= ALL_DESCRIPTORS.length - ENTITY_KINDS.size, 'at least one mesh per tile-driven descriptor');
 
   for (const d of ALL_DESCRIPTORS) {
+    if (ENTITY_KINDS.has(d.kind)) continue;
     const own = meshes.filter((m) => m.name.startsWith(`${d.id}-`));
     assert.ok(own.length >= 1, `${d.id} renders at least one mesh`);
     for (const mesh of own) {
@@ -60,4 +68,26 @@ test('every descriptor renders an InstancedMesh through the game pipeline', () =
   const knots = meshes.filter((m) => m.name.startsWith('knot-'));
   assert.equal(knots.length, 1, 'one knot mesh');
   assert.equal(meshes.filter((m) => m.name.startsWith('mountain-')).length, 1, 'one mountain mesh');
+});
+
+test('every entity descriptor renders an InstancedMesh through the entity path', () => {
+  const entity = {
+    faction: 'CRU',
+    archetype: 'bear',
+    scale: 1,
+    color: 0xffffff,
+    colors: { factionBase: 0x6e2e22, factionAccent: 0xb84530 },
+  };
+  const entities = ALL_DESCRIPTORS.filter((d) => ENTITY_KINDS.has(d.kind));
+  assert.ok(entities.length >= 1, 'at least one entity descriptor');
+  for (const d of entities) {
+    const normalized = normalizeDescriptor(d);
+    const records = recordsForEntity(normalized, entity, { x: 0, y: 1, z: 0 });
+    assert.ok(records.length >= 1, `${d.id} produces records for an entity`);
+    const meshes = buildDescriptorMeshes(normalized, records, d.id);
+    assert.ok(meshes.length >= 1, `${d.id} renders at least one mesh`);
+    for (const mesh of meshes) {
+      assert.ok(mesh.count >= 1, `${d.id} mesh "${mesh.name}" has instances`);
+    }
+  }
 });

@@ -84,10 +84,10 @@ test('shape registry covers the shapes the game currently builds', () => {
 });
 
 test('enumerations are exhaustive and frozen', () => {
-  assert.deepEqual(OBJECT_KINDS, ['feature', 'decor', 'mountain']);
+  assert.deepEqual(OBJECT_KINDS, ['feature', 'decor', 'mountain', 'base', 'champion', 'mob', 'trader']);
   assert.deepEqual(EMPHASIS_BEHAVIORS, ['none', 'dispersed', 'sunk', 'hidden']);
   assert.deepEqual(PLACEMENT_MODES, ['center', 'scatter', 'ring', 'jitter']);
-  assert.deepEqual(VARIANT_RULES, ['hash', 'solitary', 'cluster']);
+  assert.deepEqual(VARIANT_RULES, ['hash', 'solitary', 'cluster', 'faction', 'archetype']);
   assert.ok(Number.isInteger(SCHEMA_VERSION) && SCHEMA_VERSION >= 1);
 });
 
@@ -151,13 +151,26 @@ test('rejects duplicate part ids', () => {
 });
 
 test('rejects an invalid color', () => {
-  for (const bad of [-1, 0x1000000, 3.5, '0x4A7A3A']) {
+  for (const bad of [-1, 0x1000000, 3.5]) {
     const errors = validateDescriptor({
       ...BUSH,
       parts: [{ id: 'p', shape: 'sphere', color: bad }],
     });
     assert.ok(errors.some((e) => e.includes('color')), `expected color error for ${bad}`);
   }
+});
+
+test('rejects malformed named-color tokens and accepts well-formed ones', () => {
+  for (const bad of ['has space', 'has-dash', '', '☃']) {
+    const errors = validateDescriptor({
+      ...BUSH,
+      parts: [{ id: 'p', shape: 'sphere', color: bad }],
+    });
+    assert.ok(errors.some((e) => e.includes('color')), `expected color error for ${JSON.stringify(bad)}`);
+  }
+  // A well-formed token is valid — the entity record path resolves it from the
+  // entity's `colors` map.
+  assert.deepEqual(validateDescriptor({ ...BUSH, parts: [{ id: 'p', shape: 'sphere', color: 'factionBase' }] }), []);
 });
 
 test('rejects an invalid kind, missing parts, and unknown top-level fields', () => {

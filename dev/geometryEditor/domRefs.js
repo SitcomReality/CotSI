@@ -8,6 +8,8 @@ export function cacheDom() {
   els.objectSelect = document.getElementById('object-select');
   els.occupiedCheck = document.getElementById('occupied-check');
   els.rerollBtn = document.getElementById('reroll-btn');
+  els.occupiedRow = document.getElementById('occupied-row');
+  els.rerollRow = document.getElementById('reroll-row');
   els.info = document.getElementById('info');
   els.viewport = document.getElementById('viewport');
   els.canvas = document.getElementById('preview-canvas');

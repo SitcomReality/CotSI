@@ -16,8 +16,8 @@ export {
  * Feature geometry now comes from descriptor data (descriptors/gameBuilder.js)
  * for every migrated object — simple features, knots, mountains, hill mounds,
  * groves, solitary trees. The tree builder keeps only the legacy procedural
- * treatments (fruit trees, Painforest gnarled groves); baseMeshes stays
- * untouched (champion bases, out of scope).
+ * treatments (fruit trees, Painforest gnarled groves); baseMeshes renders
+ * champion bases through the same generic pipeline (descriptors/data/bases.js).
  */
 export function buildFeatureMeshes(state, visible) {
   const results = [];

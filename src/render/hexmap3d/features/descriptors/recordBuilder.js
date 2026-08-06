@@ -9,6 +9,13 @@
  * the same tile always produces the same records across chunk rebuilds — the
  * same guarantee the current per-kind builders rely on.
  *
+ * Entities (bases, champions, mobs, traders) are different: one entity per
+ * hex, placed at the center, with variants and colors driven by the entity's
+ * own state (faction, archetype, palette) rather than the tile hash. The
+ * `recordsForEntity` export below is that entity-driven record path — the seam
+ * the units/base builders use to render entities through the same generic
+ * mesh pipeline (meshAssembly.js).
+ *
  * This module is pure (no THREE) so the record math — cluster count, size
  * range, placement, and emphasis — is unit-testable in Node.
  *
@@ -114,6 +121,27 @@ function variantFor(descriptor, tile, tileH) {
   }
   const len = variants.length;
   return variants[((tileH % len) + len) % len];
+}
+
+/**
+ * Which variant's parts compose a single entity (base / champion / mob /
+ * trader). Variant ids match the entity attribute that selects them:
+ *   variantRule 'faction'    — variant id === entity.faction (e.g. 'CRU')
+ *   variantRule 'archetype'  — variant id === entity.archetype (e.g. 'bear')
+ * A missing match (or a rule the entity doesn't satisfy) falls back to the
+ * first variant so a partially-migrated descriptor still renders.
+ */
+function variantForEntity(descriptor, entity) {
+  const variants = descriptor.variants;
+  if (!variants || variants.length === 0) return null;
+  const rule = descriptor.variantRule;
+  if (rule === 'faction' && entity.faction) {
+    return variants.find((v) => v.id === entity.faction) ?? variants[0];
+  }
+  if (rule === 'archetype' && entity.archetype) {
+    return variants.find((v) => v.id === entity.archetype) ?? variants[0];
+  }
+  return variants[0];
 }
 
 /**
@@ -328,9 +356,12 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
     record.tiltAxis = placement.tiltAxis;
     record.tilt = placement.tilt;
   }
-  if (part.color !== undefined) {
+  if (part.color !== undefined && typeof part.color !== 'string') {
     record.color = jitteredColor(part.color, descriptor.variation.colorJitter, tileH, i);
   }
+  // String `color` values are named tokens for the entity record path
+  // (recordsForEntity) — the tile path has no entity to resolve them, so they
+  // are skipped here rather than fed into the color-jitter bit math.
 
   return record;
 }
@@ -367,4 +398,86 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
     }
   }
   return records;
+}
+
+// ── Entity-driven records ───────────────────────────────────────────────────
+
+/**
+ * Per-instance color for an entity part. Precedence:
+ *   part.color is a token string → entity.colors[token] (absent → no instance color)
+ *   part.color is an integer     → that literal color
+ *   part.color is undefined      → entity.color (the entity's default color)
+ * Entities are singletons with exact palette colors — no per-tile color jitter.
+ */
+function entityColorForPart(part, entity) {
+  const c = part.color;
+  if (typeof c === 'string') return entity.colors?.[c];
+  if (c !== undefined) return c;
+  return entity.color;
+}
+
+/**
+ * One instance record for an entity part. Mirrors recordForPart's conventions
+ * (scale/lift/localPos scaled by item scale, transforms pass through) but with
+ * no tile-hash draws: an entity is a single item at the hex center.
+ */
+function recordForEntityPart(part, entity, worldPos, itemScale) {
+  const t = part.transform;
+  const record = {
+    partId: part.id,
+    x: worldPos.x,
+    y: worldPos.y + t.y,
+    z: worldPos.z,
+    scale: itemScale * t.scaleXZ,
+    scaleY: itemScale * t.scaleY,
+  };
+
+  if (t.rotY) record.rotY = t.rotY;
+  if (t.lift) record.lift = t.lift * itemScale;
+  if (t.localPos) {
+    record.localPos = {
+      x: t.localPos.x * itemScale,
+      y: t.localPos.y * itemScale,
+      z: t.localPos.z * itemScale,
+    };
+  }
+  if (t.localAxis && t.localAngle !== undefined) {
+    record.localAxis = t.localAxis;
+    record.localAngle = t.localAngle;
+  }
+  if (t.tiltAxis && t.tilt !== undefined) {
+    record.tiltAxis = t.tiltAxis;
+    record.tilt = t.tilt;
+  }
+  const color = entityColorForPart(part, entity);
+  if (color !== undefined) record.color = color;
+
+  return record;
+}
+
+/**
+ * Generate instance records for one entity (base / champion / mob / trader)
+ * from a (normalized) descriptor — the entity-driven record path.
+ *
+ * An entity is a single item at the hex center: count is always 1, placement
+ * is center, and every decision (variant, color) comes from the entity's state
+ * rather than the tile hash. Callers pass world space position; the records
+ * flow through the same meshAssembly.buildDescriptorMeshes pipeline as tile
+ * records, so entities render as InstancedMeshes grouped per part.
+ *
+ * @param {object} descriptor - normalized descriptor
+ * @param {object} entity     - { faction?, archetype?, scale?, color?, colors? }
+ *                              where `colors` maps named-color tokens
+ *                              (part.color strings) to color integers
+ * @param {object} worldPos   - { x, y, z } hex center in world space (y = tile surface)
+ * @param {object} [displacement] - { hidden? } — entities are occupants, not
+ *                              displaced decor; only `hidden` applies today
+ * @returns {object[]} instance records tagged with partId ([] when hidden)
+ */
+export function recordsForEntity(descriptor, entity, worldPos, displacement = {}) {
+  if (displacement.hidden) return [];
+  const variant = variantForEntity(descriptor, entity);
+  const parts = (variant ?? descriptor).parts;
+  const itemScale = (entity.scale ?? 1) * descriptor.scale;
+  return parts.map((part) => recordForEntityPart(part, entity, worldPos, itemScale));
 }

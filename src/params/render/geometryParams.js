@@ -184,22 +184,6 @@ export const MOUNTAIN_SLOPE_SCALE_RANGE = 15;
 export const MOUNTAIN_NORMAL_SCALE = 0.9;
 export const MOUNTAIN_NORMAL_SCALE_RANGE = 25;
 
-// ── Base geometries (faction bases) ──
-export const BASE_TOWER = { bottomR: 0.22, topR: 0.25, height: 0.7, segments: 8 };
-export const BASE_CAP = { bottomR: 0.24, topR: 0.2, height: 0.15, segments: 8 };
-export const BASE_TOWER_Y_CENTER = 0.35;
-export const BASE_CAP_Y_CENTER = 0.75;
-export const BASE_CRU_SPIKE_Y = 0.15;
-export const BASE_HEART_DOME = { radius: 0.18, widthSegs: 6, heightSegs: 4, phiStart: 0, phiLength: Math.PI };
-export const BASE_MASK_SPIRE = { radius: 0.05, topRadius: 0.15, height: 6 };
-export const BASE_HOL_SPIKE = { radius: 0.04, height: 0.12, segments: 4 };
-export const BASE_SPIKE_RING_RADIUS = 0.28;
-export const BASE_SPIKE_TILT_AMOUNT = 0.3;
-
-export const BASE_SPIKE = { bottomR: 0.06, height: 0.10, segments: 4 };
-export const BASE_RING = { radius: 0.28, tube: 0.02, radialSegs: 6, tubularSegs: 12 };
-export const BASE_RING_DOT = { radius: 0.03, wSegs: 4, hSegs: 3 };
-
 // ── Simple-feature scatter jitter constants ──
 // Deterministic hash/scale constants that scatter simple features (and the
 // shared tuft geometry) across their hex in simpleFeatureMeshes.js.
@@ -219,15 +203,12 @@ export const KNOT_Y_OFFSET = 0.30;
 export const KNOT_EMISSIVE_INTENSITY = 0.4;
 
 // ── Unit geometries (champions, pieces, mobs) ──
-export const CHAMPION_BODY = { bottomR: 0.08, topR: 0.12, height: 0.5, segments: 8 };
-export const CHAMPION_HEAD = { radius: 0.1, wSegs: 8, hSegs: 6 };
-export const CHAMPION_BODY_Y_OFFSET = 0.15;
-export const CHAMPION_HEAD_Y_OFFSET = 0.45;
+// Champion body/head and the mob archetype bodies now live in the descriptor
+// data (features/descriptors/data/champions.js + mobs.js); only the icon-cap
+// and darken constants remain here.
 
-export const PIECE_BODY = { radiusX: 0.3, radiusY: 0.3, height: 0.10, segments: 16 };
 export const PIECE_CAP = { radiusX: 0.25, radiusY: 0.25, height: 0.025, segments: 24 };
-export const PIECE_BODY_Y_OFFSET = 0.05;
-export const PIECE_CAP_Y_OFFSET = 0.0645; // 0.05 + 0.0125 + 0.002
+export const PIECE_CAP_Y_OFFSET = 0.0645; // trader cap: 0.05 (coin centre) + 0.0125 + 0.002
 export const PIECE_CAP_SPACER = 0.002;
 
 export const PIECE_CAP_BG_COLOR = '#f0e8d0';
@@ -235,14 +216,5 @@ export const PIECE_ICON_COLOR = '#3a2a1a';
 export const PIECE_TEX_SIZE = 128;
 export const PIECE_BG_RADIUS_OFFSET = 2;
 
+/** Mob body tint — faction base color darkened channel-wise by this factor. */
 export const MOB_COLOR_DARKEN = 0.7;
-
-// Mob sizes (all as [radius, ...] or box dimensions)
-export const MOB_BEAR = { radius: 0.16, height: 0.18, bodyWidth: 0.28, segments: 6 };
-export const MOB_LEOPARD = { radius: 0.07, height: 0.10, bodyLength: 0.50, segments: 6 };
-export const MOB_SNAIL = { radius: 0.16, wSegs: 8, hSegs: 6, phiStart: 0, phiLength: Math.PI };
-export const MOB_TAPIR = { radius: 0.08, height: 0.18, bodyLength: 0.42, segments: 7 };
-export const MOB_MUSHROOM = { capRadius: 0.20, stemRadius: 0.14, segments: 8 };
-export const MOB_GOOSE = { radius: 0.07, height: 0.50, segments: 4 };
-export const MOB_SCORPION = { radius: 0.14, detail: 0 };
-export const MOB_DEFAULT = { radius: 0.1, topR: 0.14, height: 0.4, segments: 8 };

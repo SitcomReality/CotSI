@@ -99,9 +99,13 @@ The descriptor pipeline is live: the game's feature/decor meshes now resolve
 through `features/descriptors/` (data + recordBuilder + gameBuilder), and the
 editor (`dev/geometryEditor.html`) edits the same data. Migrated to descriptor
 data (see `src/render/hexmap3d/features/descriptors/data/`): all simple feature
-archetypes, tree groves, solitary + elder trees, hill mounds, mountains, knots.
-Reported parity gaps (stop-rule report) — the only content still on hard-coded
-builders (`features/trees/`):
+archetypes, tree groves, solitary + elder trees, hill mounds, mountains, knots,
+and the entity kinds — faction bases (7 faction variants), champions
+(per-faction variants), mobs (per-archetype variants incl. the tier-2 elder/queen),
+and traders. `baseMeshes.js` / `unitMeshes.js` / `unitGeometries.js` render these
+through the generic record → InstancedMesh pipeline.
+Reported parity gaps (stop-rule report) — content still on hard-coded builders
+(`features/trees/`):
 
 - **fruitTree** — the procedural fruit tree (`fruitTreeRecords.js`) grows 2–3
   snaking trunk segments, forked branches, and fruit, all per-tree hash-driven.
@@ -117,3 +121,14 @@ builders (`features/trees/`):
   builders tie the canopy bottom to the trunk top via the per-tree stretch draw.
   Canopy sits ~0.1 world units higher/lower relative to the trunk as stretch
   varies — visually identical at game scale.
+
+Entity-kind notes (by design, not regressions):
+
+- **2D icon caps** (`units/pieceIcons.js`) still render on top of mob/trader
+  bodies; they're destined to be replaced by full 3D geometry. Cap height rides
+  the top of each archetype's body part — an approximation (tall shapes like the
+  goose float the icon high; entity part `stretch` is ignored, entities have no
+  per-tile hash draws).
+- **Champion accents** are minimal per-faction placeholders (a small part per
+  faction); richer looks are authorable in the editor. Same for the tier-2 mob
+  accents (elder crown, queen gem).

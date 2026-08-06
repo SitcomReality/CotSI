@@ -5,37 +5,33 @@ import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileSurfaceY } from '../terrain/index.js';
 import {
-  CHAMPION_BODY_Y_OFFSET,
-  CHAMPION_HEAD_Y_OFFSET,
-  PIECE_BODY_Y_OFFSET,
+  PIECE_CAP,
   PIECE_CAP_Y_OFFSET,
+  PIECE_CAP_SPACER,
   MOB_COLOR_DARKEN,
 } from '../../../params/render/geometryParams.js';
 
 import {
-  getChampionBodyGeo,
-  getChampionHeadGeo,
-  getPieceBodyGeo,
   getPieceCapGeo,
 } from './unitGeometries.js';
 import { isAnimating } from './movementAnimator.js';
-import { hexToRgb } from './movementCurves.js';
 import {
   getPieceTexture,
   pieceIconForArchetype,
   traderPieceIconId,
 } from './pieceIcons.js';
 import { addOutlines } from '../scene/outline.js';
+import { normalizeDescriptor } from '../features/descriptors/schema.js';
+import { recordsForEntity } from '../features/descriptors/recordBuilder.js';
+import { buildDescriptorMeshes } from '../features/descriptors/meshAssembly.js';
+import { CHAMPION_DESCRIPTOR } from '../features/descriptors/data/champions.js';
+import { MOB_DESCRIPTOR, MOB_TIER2_VARIANTS } from '../features/descriptors/data/mobs.js';
+import { TRADER_DESCRIPTOR } from '../features/descriptors/data/traders.js';
 
-// ─── Shared unit materials (module-level, reused every rebuild) ─────────────
+// ─── Shared cap material (module-level, reused every rebuild) ───────────────
 // Unit meshes are rebuilt every render pass; these materials are built once
 // and marked shared so the per-frame disposal skips them (see sceneContext.disposeMesh).
-const CHAMPION_BODY_MAT = toonMaterial({});
-CHAMPION_BODY_MAT.userData.shared = true;
-const CHAMPION_HEAD_MAT = toonMaterial({ color: 0xffe8c8 });
-CHAMPION_HEAD_MAT.userData.shared = true;
-const PIECE_BODY_MAT = toonMaterial({});
-PIECE_BODY_MAT.userData.shared = true;
+// Entity bodies come from the shared descriptor cache (shapeFactories).
 const PIECE_CAP_FALLBACK_MAT = toonMaterial({ color: 0xf0e8d0 }); // plain parchment
 PIECE_CAP_FALLBACK_MAT.userData.shared = true;
 
@@ -53,16 +49,87 @@ function capMaterialFor(tex) {
   return mat;
 }
 
+const normalizedChampion = normalizeDescriptor(CHAMPION_DESCRIPTOR);
+const normalizedMob = normalizeDescriptor(MOB_DESCRIPTOR);
+const normalizedTrader = normalizeDescriptor(TRADER_DESCRIPTOR);
+
+const hexColor = (hex) => parseInt(hex.slice(1), 16);
+
+/** Darken an integer color channel-wise by `f` — the old piece-body tint was
+ *  `hexToRgb(fac.base).map(c => c * MOB_COLOR_DARKEN)`. */
+function darkenHex(hex, f) {
+  const ch = (shift) => Math.round(((hex >> shift) & 0xff) * f);
+  return (ch(16) << 16) | (ch(8) << 8) | ch(0);
+}
+
+/** Which mob variant a mob's state selects (tier-2 mobs get their own variant). */
+function mobVariantFor(mob) {
+  const shape = mob.archetypeName;
+  if (!shape) return 'default';
+  return mob.tier > 1 && MOB_TIER2_VARIANTS[shape] ? MOB_TIER2_VARIANTS[shape] : shape;
+}
+
+/** Map a champion onto the entity shape recordsForEntity expects. */
+function entityForChampion(champion) {
+  const fac = FACTIONS[champion.faction];
+  if (!fac) return null;
+  return {
+    faction: fac.short,
+    colors: { factionBase: hexColor(fac.base), factionAccent: hexColor(fac.color) },
+  };
+}
+
+/** Map a mob onto the entity shape recordsForEntity expects. */
+function entityForMob(mob) {
+  const fac = FACTIONS[mob.faction];
+  const fallback = 0x4c3f33; // the old piece-body fallback color [0.3, 0.25, 0.2]
+  const base = fac ? hexColor(fac.base) : fallback;
+  return {
+    archetype: mobVariantFor(mob),
+    scale: mob.visualScale ?? 1,
+    colors: {
+      factionBody: fac ? darkenHex(base, MOB_COLOR_DARKEN) : fallback,
+      factionAccent: fac ? hexColor(fac.color) : fallback,
+    },
+  };
+}
+
+/**
+ * Top of a part above the tile surface (geometry is centered on its origin).
+ * Cylinders/cones top out at y + height/2; spheres and polyhedra at y + radius.
+ * Used to park the icon cap on top of the 3D body — an approximation that is
+ * good enough while the caps are the temporary look (pieceIcons.js).
+ */
+function partTopY(part) {
+  const p = part.params ?? {};
+  if (part.shape === 'sphere' || part.shape === 'octahedron' || part.shape === 'dodecahedron') {
+    return part.transform.y + p.radius;
+  }
+  return part.transform.y + (p.height ?? 0) / 2;
+}
+
+/** Top of a variant's body (its first part) above the tile surface. */
+function variantBodyTop(descriptor, variantId) {
+  const variant = (descriptor.variants ?? []).find((v) => v.id === variantId);
+  const parts = variant?.parts ?? descriptor.parts;
+  const body = parts[0];
+  return body ? partTopY(body) : 0.1;
+}
+
 /**
  * Build unit meshes for all visible champions, mobs, and traders.
  *
- * Champions render as cylinder body + sphere head (unchanged).
- * Mobs and traders render as flat-cylinder "pieces" with baked SVG icon caps:
- *   - Body: thin CylinderGeometry with per-instance faction-tinted colour
- *   - Cap:  ultra-thin CylinderGeometry with a CanvasTexture bearing the icon
+ * All three entity types render through the descriptor pipeline:
+ *   - Champions (descriptors/data/champions.js): cylinder body + sphere head
+ *     per faction, instanced per part.
+ *   - Mobs (descriptors/data/mobs.js): a 3D body per archetype shape (7 shapes
+ *     + the tier-2 elder/queen variants), instanced per part.
+ *   - Traders (descriptors/data/traders.js): a flat coin body in teal.
  *
- * Mobs are grouped by archetype shape so each distinct type gets its own
- * body+capped InstancedMesh pair with the correct icon.
+ * Mobs and traders keep their baked SVG icon caps (pieceIcons.js — unchanged,
+ * destined to be replaced by full 3D geometry); each mob cap rides the top of
+ * its archetype's body and is grouped per shape so one InstancedMesh carries
+ * all instances of that icon.
  *
  * @param {Object} state   - Game state
  * @param {Set}    visible - Set of visible hex keys
@@ -72,11 +139,12 @@ export function buildUnitMeshes(state, visible) {
   const results = [];
 
   // ---- Collect instance data ----
-  const championBodyInstances = [];
-  const championHeadInstances = [];
-  /** @type {Map<string, Array<{x:number, y:number, z:number, scale:number, color:number[]}>>} */
-  const mobInstancesByShape = new Map();
-  const traderInstances = [];
+  const championRecords = [];
+  const mobRecords = [];
+  /** @type {Map<string, Array<{x:number, y:number, z:number, scale:number}>>} icon caps grouped by archetype shape */
+  const mobCapInstancesByShape = new Map();
+  const traderRecords = [];
+  const traderCapInstances = [];
 
   for (const key of visible) {
     const tile = state.tiles[key];
@@ -94,122 +162,79 @@ export function buildUnitMeshes(state, visible) {
     if (champ) {
       if (isAnimating(champ.id)) continue;
 
-      const fac = FACTIONS[champ.faction];
-      const color = fac ? hexToRgb(fac.base) : [0.5, 0.4, 0.3];
-      championBodyInstances.push({ x, y: surfaceY + CHAMPION_BODY_Y_OFFSET, z, color });
-      championHeadInstances.push({ x, y: surfaceY + CHAMPION_HEAD_Y_OFFSET, z, color: [1, 1, 1] });
+      const entity = entityForChampion(champ);
+      if (!entity) continue;
+      championRecords.push(...recordsForEntity(normalizedChampion, entity, { x, y: surfaceY, z }));
     } else if (mob) {
-      const fac = FACTIONS[mob.faction];
-      const color = fac ? hexToRgb(fac.base).map(c => c * MOB_COLOR_DARKEN) : [0.3, 0.25, 0.2];
-      const shapeKey = mob.archetypeName || 'default';
-      if (!mobInstancesByShape.has(shapeKey)) {
-        mobInstancesByShape.set(shapeKey, []);
+      const entity = entityForMob(mob);
+      mobRecords.push(...recordsForEntity(normalizedMob, entity, { x, y: surfaceY, z }));
+
+      // Icon cap on top of the 3D body — per-instance height so scaled mobs
+      // (tier-2 elders/queens) keep their cap on their head. Grouped by the
+      // archetype shape (the icon id), not the variant, so one mesh per icon.
+      const iconKey = mob.archetypeName || 'default';
+      if (!mobCapInstancesByShape.has(iconKey)) {
+        mobCapInstancesByShape.set(iconKey, []);
       }
-      mobInstancesByShape.get(shapeKey).push({
+      const capTop = variantBodyTop(normalizedMob, entity.archetype) * entity.scale;
+      mobCapInstancesByShape.get(iconKey).push({
         x,
-        y: surfaceY + PIECE_BODY_Y_OFFSET,       // body centre (body height 0.10)
+        y: surfaceY + capTop + (PIECE_CAP.height / 2) * entity.scale + PIECE_CAP_SPACER,
         z,
-        scale: mob.visualScale || 1.0,
-        color,
+        scale: entity.scale,
       });
     } else if (trader) {
-      traderInstances.push({ x, y: surfaceY + PIECE_BODY_Y_OFFSET, z, scale: 1.0, color: [0.29, 0.75, 0.6] });
+      traderRecords.push(...recordsForEntity(normalizedTrader, { scale: 1 }, { x, y: surfaceY, z }));
+      traderCapInstances.push({ x, y: surfaceY + PIECE_CAP_Y_OFFSET, z, scale: 1.0 });
     }
   }
 
-  // ---- Champion body InstancedMesh ----
-  if (championBodyInstances.length > 0) {
-    const mat = CHAMPION_BODY_MAT;
-    const im = new THREE.InstancedMesh(getChampionBodyGeo(), mat, championBodyInstances.length);
-    const dummy = new THREE.Object3D();
-    championBodyInstances.forEach((inst, i) => {
-      dummy.position.set(inst.x, inst.y, inst.z);
-      dummy.scale.setScalar(1.0);
-      dummy.updateMatrix();
-      im.setMatrixAt(i, dummy.matrix);
-      im.setColorAt(i, new THREE.Color(inst.color[0], inst.color[1], inst.color[2]));
-    });
-    im.instanceMatrix.needsUpdate = true;
-    im.instanceColor.needsUpdate = true;
-    im.castShadow = true;
-    im.name = 'championBodies';
-    results.push(im);
+  // ---- Entity bodies (descriptor pipeline) ----
+  if (championRecords.length > 0) {
+    results.push(...buildDescriptorMeshes(normalizedChampion, championRecords, 'champion'));
+  }
+  if (mobRecords.length > 0) {
+    results.push(...buildDescriptorMeshes(normalizedMob, mobRecords, 'mob'));
+  }
+  if (traderRecords.length > 0) {
+    results.push(...buildDescriptorMeshes(normalizedTrader, traderRecords, 'trader'));
   }
 
-  // ---- Champion heads InstancedMesh ----
-  if (championHeadInstances.length > 0) {
-    const mat = CHAMPION_HEAD_MAT;
-    const im = new THREE.InstancedMesh(getChampionHeadGeo(), mat, championHeadInstances.length);
-    const dummy = new THREE.Object3D();
-    championHeadInstances.forEach((inst, i) => {
-      dummy.position.set(inst.x, inst.y, inst.z);
-      dummy.scale.setScalar(1.0);
-      dummy.updateMatrix();
-      im.setMatrixAt(i, dummy.matrix);
-    });
-    im.instanceMatrix.needsUpdate = true;
-    im.castShadow = true;
-    im.name = 'championHeads';
-    results.push(im);
-  }
-
-  // ---- Mob piece meshes — body + cap per archetype shape ----
-  for (const [shapeKey, instances] of mobInstancesByShape) {
+  // ---- Mob + trader icon caps ----
+  for (const [iconKey, instances] of mobCapInstancesByShape) {
     if (instances.length === 0) continue;
-
-    _buildPiecePair(instances, pieceIconForArchetype(shapeKey), shapeKey, results);
+    _buildCapMesh(instances, pieceIconForArchetype(iconKey), iconKey, results);
   }
-
-  // ---- Trader piece meshes — body + cap ----
-  if (traderInstances.length > 0) {
-    _buildPiecePair(traderInstances, traderPieceIconId(), 'trader', results);
+  if (traderCapInstances.length > 0) {
+    _buildCapMesh(traderCapInstances, traderPieceIconId(), 'trader', results);
   }
 
   // Ink-outline twins for every unit mesh (see aestheticConventions §11).
   return results.flatMap(addOutlines);
 }
 
-// ─── Piece building helper ──────────────────────────────────────────────────
+// ─── Cap building helper ─────────────────────────────────────────────────────
 
 /**
- * Create a two-layer piece (body + cap) and push into results.
+ * Create an icon cap InstancedMesh (the flat icon disc on top of an entity)
+ * and push it into results.
  *
- * @param {Array}   instances  - Instance data with {x, y, z, scale, color}
+ * @param {Array}   instances  - Instance data with {x, y, z, scale} — y already
+ *                               includes the cap's rest height above the ground
  * @param {string}  iconId     - Piece icon ID (e.g. 'p-bear') or null for fallback
  * @param {string}  label      - Debug label for the mesh name
  * @param {Array}   results    - Output array to push InstancedMeshes into
  */
-function _buildPiecePair(instances, iconId, label, results) {
+function _buildCapMesh(instances, iconId, label, results) {
   const count = instances.length;
   const dummy = new THREE.Object3D();
 
-  // --- Body (faction-coloured coin edge) ---
-  const bodyMat = PIECE_BODY_MAT;
-  const bodyIm = new THREE.InstancedMesh(getPieceBodyGeo(), bodyMat, count);
-
-  instances.forEach((inst, i) => {
-    dummy.position.set(inst.x, inst.y, inst.z);
-    dummy.scale.setScalar(inst.scale);
-    dummy.updateMatrix();
-    bodyIm.setMatrixAt(i, dummy.matrix);
-    bodyIm.setColorAt(i, new THREE.Color(inst.color[0], inst.color[1], inst.color[2]));
-  });
-  bodyIm.instanceMatrix.needsUpdate = true;
-  bodyIm.instanceColor.needsUpdate = true;
-  bodyIm.castShadow = true;
-  bodyIm.name = `pieceBody_${label}`;
-  results.push(bodyIm);
-
-  // --- Cap (icon disc on top) ---
   const tex = iconId ? getPieceTexture(iconId) : null;
   const capMat = capMaterialFor(tex); // shared per icon texture (see above)
   const capIm = new THREE.InstancedMesh(getPieceCapGeo(), capMat, count);
 
-  // Cap Y is body centre + body half-height + cap half-height + tiny spacer
-  const capYOffset = PIECE_CAP_Y_OFFSET; // 0.0645 above body centre (0.050 + 0.0125 + 0.002)
-
   instances.forEach((inst, i) => {
-    dummy.position.set(inst.x, inst.y + capYOffset, inst.z);
+    dummy.position.set(inst.x, inst.y, inst.z);
     dummy.scale.setScalar(inst.scale);
     dummy.updateMatrix();
     capIm.setMatrixAt(i, dummy.matrix);

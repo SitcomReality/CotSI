@@ -61,10 +61,16 @@ function buildShape(type, params) {
  * white — e.g. tree canopies). Object-level emissive (resource nodes) passes
  * through.
  *
+ * Materials are cached per option-set and marked shared: unit meshes rebuild
+ * every render pass, and disposeMesh (sceneContext) skips shared materials, so
+ * identical parts must reuse one material instead of recreating it per frame.
+ *
  * @param {object} descriptor - normalized descriptor
  * @param {object} part       - descriptor part
  * @returns {THREE.MeshToonMaterial}
  */
+const materialCache = new Map();
+
 export function materialForPart(descriptor, part) {
   const material = descriptor.material;
   const opts = {};
@@ -78,5 +84,12 @@ export function materialForPart(descriptor, part) {
   }
   if (material.emissive !== undefined) opts.emissive = material.emissive;
   if (material.emissiveIntensity !== undefined) opts.emissiveIntensity = material.emissiveIntensity;
-  return toonMaterial(opts);
+  const key = JSON.stringify(opts);
+  let mat = materialCache.get(key);
+  if (!mat) {
+    mat = toonMaterial(opts);
+    mat.userData.shared = true;
+    materialCache.set(key, mat);
+  }
+  return mat;
 }

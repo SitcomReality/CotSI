@@ -19,6 +19,8 @@ import {
   validateDescriptor,
   normalizeDescriptor,
 } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
+import { ENTITY_KINDS } from '../entityView.js';
+import { FACTIONS } from '../../../src/game/rules/factionData.js';
 
 let els = null;
 let onEdit = () => {};
@@ -98,9 +100,58 @@ function mutate(fn) {
 
 // ── Object-level controls ───────────────────────────────────────────────────
 
+/**
+ * The parts array the editor edits. Entity kinds show one variant at a time
+ * (the preview renders that variant), so edits target the active variant's
+ * parts; tile-driven objects always edit the fallback `parts` list.
+ */
+function activeParts() {
+  const d = S.descriptor;
+  if (!ENTITY_KINDS.has(d.kind)) return d.parts;
+  const key = d.variantRule === 'faction' ? S.entity.faction : d.variantRule === 'archetype' ? S.entity.archetype : null;
+  const variant = key ? (d.variants ?? []).find((v) => v.id === key) : null;
+  return variant?.parts ?? d.parts;
+}
+
+/** Entity kinds: faction/archetype picker instead of cluster/size/placement. */
+function renderEntityControls(container) {
+  const d = S.descriptor;
+  const rule = d.variantRule;
+  const variants = d.variants ?? [];
+
+  if (rule === 'archetype' && variants.length === 1 && variants[0].id === 'trader') {
+    container.append(el('div', 'hint', 'Traders have a single fixed look — no variants to pick.'));
+    return;
+  }
+
+  const factionOptions = FACTIONS.map((f) => f.short);
+  container.append(row('Faction', selectInput(factionOptions, S.entity.faction, (v) => mutate(() => {
+    S.entity.faction = v;
+  }))));
+
+  if (rule === 'archetype' && variants.length > 0) {
+    const ids = variants.map((v) => v.id);
+    const current = ids.includes(S.entity.archetype) ? S.entity.archetype : ids[0];
+    container.append(row('Archetype', selectInput(ids, current, (v) => mutate(() => {
+      S.entity.archetype = v;
+    }))));
+    container.append(el('div', 'hint', 'Archetype picks the shape variant; faction picks the palette colors.'));
+  } else {
+    container.append(el('div', 'hint', 'Faction picks the variant and the palette colors.'));
+  }
+}
+
 function renderObjectControls(container) {
   container.textContent = '';
   const d = S.descriptor;
+
+  if (ENTITY_KINDS.has(d.kind)) {
+    container.append(el('div', 'info', `${d.kind} — entity-driven`));
+    renderEntityControls(container);
+    container.append(el('div', 'hint', 'Entities are singletons at the hex center — cluster/size/placement do not apply.'));
+    container.append(row('Material', colorInput(d.material.color, (v) => mutate(() => { d.material.color = v; }))));
+    return;
+  }
 
   container.append(row('Cluster rule', selectInput(['uniform', 'moisture'], d.cluster.rule, (v) => mutate(() => {
     d.cluster.rule = v;
@@ -169,6 +220,7 @@ function renderObjectControls(container) {
 function renderPartsList(container) {
   container.textContent = '';
   const d = S.descriptor;
+  const parts = activeParts();
 
   const addRow = el('div', 'control-row');
   const shapeSelect = selectInput(Object.keys(SHAPE_TYPES), Object.keys(SHAPE_TYPES)[0], () => {});
@@ -176,13 +228,13 @@ function renderPartsList(container) {
   addBtn.addEventListener('click', () => {
     const shape = shapeSelect.value;
     mutate(() => {
-      d.parts.push({ id: `part-${partCounter++}`, shape, params: { ...SHAPE_TYPES[shape].defaults } });
+      parts.push({ id: `part-${partCounter++}`, shape, params: { ...SHAPE_TYPES[shape].defaults } });
     });
   });
   addRow.append(shapeSelect, addBtn);
   container.append(addRow);
 
-  d.parts.forEach((part, i) => {
+  parts.forEach((part, i) => {
     const r = el('div', 'part-row' + (part.id === S.selectedPartId ? ' selected' : ''));
     const label = el('span', 'part-label', `${part.id} · ${part.shape}`);
     label.addEventListener('click', () => {
@@ -194,16 +246,16 @@ function renderPartsList(container) {
     const down = el('button', null, '↓');
     const remove = el('button', null, '✕');
     up.disabled = i === 0;
-    down.disabled = i === d.parts.length - 1;
-    remove.disabled = d.parts.length === 1;
+    down.disabled = i === parts.length - 1;
+    remove.disabled = parts.length === 1;
     up.addEventListener('click', () => mutate(() => {
-      [d.parts[i - 1], d.parts[i]] = [d.parts[i], d.parts[i - 1]];
+      [parts[i - 1], parts[i]] = [parts[i], parts[i - 1]];
     }));
     down.addEventListener('click', () => mutate(() => {
-      [d.parts[i + 1], d.parts[i]] = [d.parts[i], d.parts[i + 1]];
+      [parts[i + 1], parts[i]] = [parts[i], parts[i + 1]];
     }));
     remove.addEventListener('click', () => mutate(() => {
-      d.parts.splice(i, 1);
+      parts.splice(i, 1);
       if (S.selectedPartId === part.id) S.selectedPartId = null;
     }));
 
@@ -217,7 +269,7 @@ function renderPartsList(container) {
 function renderInspector(container) {
   container.textContent = '';
   const d = S.descriptor;
-  const part = d.parts.find((p) => p.id === S.selectedPartId);
+  const part = activeParts().find((p) => p.id === S.selectedPartId);
   if (!part) {
     container.append(el('div', 'hint', 'Select a part to edit its shape params and transform.'));
     return;
@@ -247,6 +299,9 @@ function renderInspector(container) {
 
   container.append(el('h3', 'section-title', 'Stretch variation'));
   container.append(el('div', 'hint', 'Per-axis variation ranges for this part; "follow object" uses the object-level ranges, "fixed" pins the axis at 1.'));
+  if (ENTITY_KINDS.has(d.kind)) {
+    container.append(el('div', 'hint', 'Entity parts ignore stretch variation — entities have no per-tile hash draws.'));
+  }
   for (const axis of ['y', 'xz']) {
     const current = part.stretch?.[axis];
     const mode = current === false ? 'fixed' : current ? 'custom' : 'follow';

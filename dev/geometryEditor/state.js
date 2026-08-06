@@ -15,6 +15,13 @@ export const S = {
   /** Whether the hex center is claimed by an occupant (displacement demo) */
   displaced: false,
 
+  /**
+   * Entity selection for entity-driven descriptors (base/champion/mob/trader).
+   * `faction` picks the faction variant + palette; `archetype` picks the shape
+   * variant for archetype-rule descriptors (mobs).
+   */
+  entity: { faction: 'CRU', archetype: null },
+
   /** Part id currently selected in the parts list, or null */
   selectedPartId: null,
 };
