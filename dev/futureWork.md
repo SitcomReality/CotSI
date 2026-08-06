@@ -28,10 +28,6 @@ concerns — right now the goal is expedient internal testing and iteration.
 
 ## 3. Optional structural follow-ups (from audit §3/§5)
 
-- **Combat round-driver de-duplication:** the round driver is independently
-  re-implemented in `combatFlow.runCombatFlow` and
-  `combatAutoResolve.resolveCombatSilently` — they once diverged on flee
-  ordering. Consider sharing one driver.
 - **Map settings sliders:** the setup screen's height/water/mountains sliders
   (`hv`/`wt`/`mt`) were removed in the §5 fragility-hardening pass — the new
   terrain pipeline doesn't consume `mapSettings` multipliers yet. Re-add the
