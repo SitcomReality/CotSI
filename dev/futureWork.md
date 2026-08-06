@@ -11,17 +11,6 @@ here.
 
 ## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
-### 4.9 Known limitations (Post-G, explicitly deferred)
-
-| Item | Notes |
-|------|-------|
-| Ecotone blending (smooth biome transitions) | Smoothstep at boundaries; nontrivial without breaking determinism |
-| Player terraforming | Requires modification overlay on deterministic base |
-| River tributaries and meandering | Current simple downhill trace is adequate for v1 |
-| Endorheic lake formation at river termini | Dead-end rivers at local minima are acceptable |
-| Supernatural biome gameplay mechanics | Design-dependent, not generation-dependent |
-| Quantile LUT normalization in runtime | Thresholds are absolute values tuned against raw distributions |
-
 ## 5. Terrain-gen: design notes for future reference
 
 - **Calibration is re-runnable** — `dev/analysis.html` has a "Derive Thresholds"
