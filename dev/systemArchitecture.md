@@ -112,9 +112,10 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `placement/epicenterPlacement.js` | Supernatural biome epicenter placement |
 | `postProcess/connectivityEnforcement.js` | Ensures passable-tile connectivity via Dijkstra |
 | `postProcess/spawnClearance.js` | Clears spawn-point tiles |
-| `postProcess/waterRules.js` | Water height rules: uniform stationary bodies, water below land, river-bed carving (+ riverCarved flag, downstream riverFlow) |
+| `postProcess/waterRules.js` | Water height rules: uniform stationary bodies, water below land, river-bed carving (+ downstream riverFlow) |
 | `rivers/riverMoisture.js` | Applies moisture boost from rivers |
 | `rivers/riverSources.js` | Selects river source points |
+| `rivers/riverTerrain.js` | Overrides traced river paths to real `river` terrain (clears features) |
 | `rivers/riverTrace.js` | River tracing algorithm |
 | `tagging/mountainTagging.js` | Mountain type tagging |
 | `tagging/waterTagging.js` | Water type tagging |
@@ -244,7 +245,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `interaction/panMath.js` | Camera pan boundary math |
 | `interaction/touchInput.js` | Touch input handler (mobile/tablet) |
 | `terrain/buildTerrainMesh.js` | Procedural terrain mesh geometry (vertex colours, damp-bank side tint) |
-| `terrain/buildWaterMesh.js` | Separate water mesh: own material, ripple + flow attributes, no blending (water terrain + carved rivers) |
+| `terrain/buildWaterMesh.js` | Separate water mesh: own material, ripple + flow attributes, no blending (water + river terrain) |
 | `terrain/cornerBlend.js` | Top-face corner color blending (soft biome transitions) |
 | `terrain/index.js` | Terrain module barrel (meshes + ground-level API) |
 | `terrain/tileColor.js` | Top-face color resolution (biome palette, lake/river color) |

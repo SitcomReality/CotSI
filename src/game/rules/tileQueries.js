@@ -21,6 +21,7 @@ export function nearestOpenKey(tiles, origin, usedSet, allowFeatureOverwrite = f
   const originKey = coordKey(origin);
   const originTile = tiles[originKey];
   if (originTile && TERRAIN[originTile.terrain].passable &&
+      !TERRAIN[originTile.terrain].avoidSpawn &&
       !usedSet.has(originKey) &&
       (allowFeatureOverwrite || !originTile.feature)) {
     return originKey;
@@ -31,7 +32,7 @@ export function nearestOpenKey(tiles, origin, usedSet, allowFeatureOverwrite = f
     for (const c of ring) {
       const ck = coordKey({ q: c.q + origin.q, r: c.r + origin.r });
       const t = tiles[ck];
-      if (!t || !TERRAIN[t.terrain].passable || usedSet.has(ck)) continue;
+      if (!t || !TERRAIN[t.terrain].passable || TERRAIN[t.terrain].avoidSpawn || usedSet.has(ck)) continue;
       if (!allowFeatureOverwrite && t.feature) continue;
       return ck;
     }
@@ -60,7 +61,7 @@ export function nearestOpenMultiRing(tiles, origin, usedSet, minClearRadius = 2)
   // Check origin first
   const originKey = coordKey(origin);
   const originTile = tiles[originKey];
-  if (originTile && TERRAIN[originTile.terrain].passable && !usedSet.has(originKey) && !originTile.feature) {
+  if (originTile && TERRAIN[originTile.terrain].passable && !TERRAIN[originTile.terrain].avoidSpawn && !usedSet.has(originKey) && !originTile.feature) {
     let clear = true;
     for (const off of clearOffsets) {
       const nk = coordKey({ q: off.q + origin.q, r: off.r + origin.r });
@@ -79,7 +80,7 @@ export function nearestOpenMultiRing(tiles, origin, usedSet, minClearRadius = 2)
     for (const c of ring) {
       const ck = coordKey({ q: c.q + origin.q, r: c.r + origin.r });
       const t = tiles[ck];
-      if (!t || !TERRAIN[t.terrain].passable || usedSet.has(ck) || t.feature) continue;
+      if (!t || !TERRAIN[t.terrain].passable || TERRAIN[t.terrain].avoidSpawn || usedSet.has(ck) || t.feature) continue;
 
       let clear = true;
       for (const off of clearOffsets) {

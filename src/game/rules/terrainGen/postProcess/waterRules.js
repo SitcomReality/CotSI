@@ -1,6 +1,5 @@
 import { coordKey, neighbors } from '../../../../engine/rules/hexGrid.js';
 import { WATER_LAND_GAP, RIVER_BED_DEPTH } from '../../../../params/game/worldParams.js';
-import { TERRAIN } from '../../terrainTypes.js';
 
 /**
  * waterRules.js — Post-classification invariants for water terrain.
@@ -9,7 +8,7 @@ import { TERRAIN } from '../../terrainTypes.js';
  *   1. Water is always lower than any adjacent land.
  *   2. Every water hex in a stationary (non-river) body sits at the same height.
  *
- * Rivers (isRiver tiles) are exempt from both rules — they are flowing water,
+ * Rivers (river terrain) are exempt from both rules — they are flowing water,
  * carved into recessed channels by carveRiverBeds() so they read as beds that
  * descend toward the water body they empty into.
  *
@@ -17,8 +16,9 @@ import { TERRAIN } from '../../terrainTypes.js';
  */
 
 /**
- * Whether a tile is water terrain (lakes, ocean, river-water tiles).
- * Ice is a frozen surface, not water — treated as land by these rules.
+ * Whether a tile is water terrain (lakes, ocean).
+ * Rivers are their own terrain type; ice is a frozen surface, not water —
+ * both are treated as non-stationary by these rules.
  */
 function isWater(tile) {
   return tile && tile.terrain === 'water';
@@ -28,12 +28,11 @@ function isWater(tile) {
  * Rule 2: flatten every stationary water body, then Rule 1: raise any land
  * that sits at or below the water level of an adjacent water tile.
  *
- * - Stationary bodies are maximal connected components of water tiles that are
- *   NOT rivers. Each component converges to the lowest current elevation in it,
- *   so a highland lake and the ocean may sit at different (physical) levels,
- *   but a body never has two heights.
- * - River tiles (isRiver) are skipped by the flood-fill (flowing water may vary)
- *   but still act as water for the lower-than-land check.
+ * - Stationary bodies are maximal connected components of water tiles. River
+ *   terrain breaks adjacency (a river between two lakes keeps them separate
+ *   bodies), and a river mouth is part of its body. Each component converges
+ *   to the lowest current elevation in it, so a highland lake and the ocean
+ *   may sit at different (physical) levels, but a body never has two heights.
  * - Only the display `tile.elevation` is touched; `elevationField` (the
  *   continuous [0,1] field) is left untouched.
  *
@@ -47,10 +46,10 @@ export function enforceWaterRules(tiles) {
   const visited = new Set();
   for (const key of keys) {
     const tile = tiles[key];
-    if (!isWater(tile) || tile.isRiver || visited.has(key)) continue;
+    if (!isWater(tile) || visited.has(key)) continue;
 
-    // BFS the stationary component (river water tiles break adjacency here —
-    // a river between two lakes keeps them separate bodies).
+    // BFS the stationary component (river terrain breaks adjacency here — a
+    // river between two lakes keeps them separate bodies).
     const component = [];
     const queue = [key];
     visited.add(key);
@@ -66,7 +65,7 @@ export function enforceWaterRules(tiles) {
         const nk = coordKey(n);
         if (visited.has(nk)) continue;
         const nb = tiles[nk];
-        if (isWater(nb) && !nb.isRiver) {
+        if (isWater(nb)) {
           visited.add(nk);
           queue.push(nk);
         }
@@ -87,7 +86,7 @@ export function enforceWaterRules(tiles) {
 
     for (const n of neighbors({ q: tile.q, r: tile.r })) {
       const nb = tiles[coordKey(n)];
-      if (!nb || isWater(nb) || nb.isRiver) continue;
+      if (!nb || isWater(nb) || nb.terrain === 'river') continue;
       if (nb.elevation <= waterElev + WATER_LAND_GAP) {
         nb.elevation = waterElev + WATER_LAND_GAP;
       }
@@ -106,9 +105,8 @@ export function enforceWaterRules(tiles) {
  * Constraints, applied walking the path backwards from the mouth:
  * - Water-terrain tiles on the path are not carved — they already sit at the
  *   enforced water level and simply set the terminal level for the channel.
- * - Impassable tiles (mountain, peak, floatingIsland) are not carved either —
- *   rivers are surface features of walkable terrain; hard rock and floating
- *   isles keep their elevation (the river overlay still marks the path).
+ * - Every other path tile is river terrain (applyRiverTerrain already replaced
+ *   whatever was there), so all of them are carved.
  * - Each carved tile's elevation = max(downstream carved elevation,
  *   minBankElev - RIVER_BED_DEPTH): carved to its bank depth, but never lower
  *   than the tile downstream of it, so the channel descends (or stays level)
@@ -116,8 +114,8 @@ export function enforceWaterRules(tiles) {
  * - Clamped to never go below the minimum elevation of any adjacent water tile
  *   (a channel must not dig under a neighbouring lake it is not the outlet of).
  *
- * Only `tile.elevation` is modified; terrain, isRiver flags, and fields are
- * left as-is. Deterministic and idempotent for identical paths.
+ * Only `tile.elevation` is modified; terrain, riverFlow, and fields are left
+ * as-is. Deterministic and idempotent for identical paths.
  *
  * @param {object}      tiles      - Flat tile map keyed by "q,r"
  * @param {Array<{q,r}[]>} riverPaths - Ordered river paths from traceRiver
@@ -136,11 +134,7 @@ export function carveRiverBeds(tiles, riverPaths) {
         continue;
       }
 
-      // Impassable terrain (mountain, peak, floatingIsland) keeps its elevation;
-      // it is transparent to the carve (the channel continues past it).
-      if (!TERRAIN[tile.terrain]?.passable) {
-        continue;
-      }
+      // Every other path tile is river terrain — all of them are carved.
 
       // Minimum elevation of adjacent non-river, non-water tiles (the banks).
       // A tile with no qualifying bank (fully hemmed by river/water) keeps the
@@ -160,7 +154,7 @@ export function carveRiverBeds(tiles, riverPaths) {
             minAdjWater = nb.elevation;
             hasAdjWater = true;
           }
-        } else if (!nb.isRiver) {
+        } else if (nb.terrain !== 'river') {
           if (hasBank) {
             if (nb.elevation < minBank) minBank = nb.elevation;
           } else {
@@ -179,9 +173,6 @@ export function carveRiverBeds(tiles, riverPaths) {
 
       const elev = Math.max(waterFloor, Math.max(bankTarget, floor));
       tile.elevation = elev;
-      // Mark the tile as carved channel floor — the renderer uses this flag to
-      // move river tiles onto the water mesh (river water never terrain-blends).
-      tile.riverCarved = true;
       downstreamElev = elev;
     }
   }
@@ -194,8 +185,8 @@ export function carveRiverBeds(tiles, riverPaths) {
  * tile is simply the hex-coordinate delta to the next tile in the path. The
  * renderer converts this to a world-space unit vector for the vertex-shader
  * flow waves (buildWaterMesh.js / waterMaterial). Water-terrain tiles (the
- * mouth, already part of a stationary body) and impassable path tiles get no
- * flow — they are not carved, so the field is meaningless there.
+ * mouth, already part of a stationary body) get no flow — they are not carved,
+ * so the field is meaningless there.
  *
  * Only sets `tile.riverFlow = { dq, dr }`; everything else is left as-is.
  * Deterministic and idempotent for identical paths.
@@ -209,7 +200,6 @@ export function assignRiverFlows(tiles, riverPaths) {
       const hex = path[i];
       const tile = tiles[coordKey(hex)];
       if (!tile || tile.terrain === 'water') continue;
-      if (!TERRAIN[tile.terrain]?.passable) continue;
 
       const next = path[i + 1];
       if (!next) continue;

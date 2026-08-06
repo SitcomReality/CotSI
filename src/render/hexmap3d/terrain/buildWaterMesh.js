@@ -9,8 +9,8 @@ import { makeTopColorResolver } from './tileColor.js';
 // vertices per hex, non-indexed). Water renders on its own mesh so it can have
 // a dedicated material (ripple + flow shader) and never shares corners/blending
 // with land — the no-blend rule is structural. The mesh carries water terrain
-// tiles (lakes, ocean) AND carved river channels (tile.riverCarved): rivers get
-// a downstream flow vector per vertex that the shader turns into traveling
+// tiles (lakes, ocean) AND river terrain (flowing channels): rivers get a
+// downstream flow vector per vertex that the shader turns into traveling
 // waves; still water gets zero flow.
 const VERTICES_PER_HEX = 54;
 
@@ -47,11 +47,11 @@ function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, vi
   const elev = resolveElev(tile, ELEVATION);
   const sideColor = topColor.map(c => c * SIDE_DARKEN_FACTOR);
 
-  // Downstream flow for carved river channels: unit world-space vector from
+  // Downstream flow for river terrain tiles: unit world-space vector from
   // this tile toward its next path tile (traceRiver order = source → mouth).
   // Still water gets zero flow and zero amplitude, so the shader terms no-op.
   let flowX = 0, flowZ = 0;
-  if (tile.riverCarved && tile.riverFlow) {
+  if (tile.terrain === 'river' && tile.riverFlow) {
     const from = hexCenter(tile.q, tile.r);
     const to = hexCenter(tile.q + tile.riverFlow.dq, tile.r + tile.riverFlow.dr);
     const dx = to.x - from.x;
@@ -62,7 +62,7 @@ function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, vi
       flowZ = dz / len;
     }
   }
-  const flowAmp = tile.riverCarved ? WATER_FLOW_AMP : 0;
+  const flowAmp = tile.terrain === 'river' ? WATER_FLOW_AMP : 0;
 
   const { x: cx, z: cz } = hexCenter(tile.q, tile.r);
   const corners = hexCornersXZ(cx, cz);
@@ -116,9 +116,9 @@ function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi, x, y, 
 
 /**
  * Build a merged BufferGeometry for the water tiles within a single chunk.
- * Water tiles — water terrain (lakes, ocean) plus carved river channels
- * (tile.riverCarved) — render here instead of the terrain mesh; land tiles
- * render via buildChunkTerrainMesh. Only explored tiles are drawn.
+ * Water tiles — water terrain (lakes, ocean) plus river terrain — render here
+ * instead of the terrain mesh; land tiles render via buildChunkTerrainMesh.
+ * Only explored tiles are drawn.
  *
  * @param {object[]} chunkTiles - Array of tile objects belonging to this chunk
  * @param {object}   state      - Game state (for biomePalettes lookup per tile)
@@ -130,7 +130,7 @@ export function buildChunkWaterMesh(chunkTiles, state, visible, explored) {
   const waterTiles = [];
   for (const tile of chunkTiles) {
     const key = `${tile.q},${tile.r}`;
-    if ((tile.terrain === 'water' || tile.riverCarved) && explored.has(key)) waterTiles.push(tile);
+    if ((tile.terrain === 'water' || tile.terrain === 'river') && explored.has(key)) waterTiles.push(tile);
   }
   if (waterTiles.length === 0) return null;
 

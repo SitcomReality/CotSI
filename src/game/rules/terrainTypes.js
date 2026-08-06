@@ -7,6 +7,8 @@
  *   label         – Display name
  *   passable      – Whether entities can occupy this tile
  *   movementCost  – Per-hex movement cost (Infinity for impassable; not yet consumed by movement logic)
+ *   avoidSpawn    – Optional: passable tiles that faction bases / champion starts /
+ *                   mobs / traders must never be placed on (e.g. rivers)
  *   mark          – ASCII symbol fallback
  */
 
@@ -24,6 +26,7 @@ export const TERRAIN = {
   water:         { fill:'#5f9ac1', ink:'#a0d0e8', label:'Broken water',    passable:false, movementCost:Infinity, mark:'~' },
   ice:           { fill:'#b8d8f0', ink:'#e0f0ff', label:'Frozen surface',  passable:false, movementCost:Infinity, mark:'❄' },
   beach:         { fill:'#e8d8a0', ink:'#f5ecd0', label:'Beach',           passable:true,  movementCost:1, mark:'∿' },
+  river:         { fill:'#5f9ac1', ink:'#a0d0e8', label:'River',           passable:true,  movementCost:3, avoidSpawn:true, mark:'≈' },
 };
 
 export const DEFAULT_FEATURES = [

@@ -23,7 +23,7 @@ import { FACTION_COUNT, MOB_BASE_POTENCY, MOB_OWN_FACTION_POTENCY_BONUS } from '
 export function createMobs({ tiles, rand, used, radius }) {
   const mobArchetypes = getArchetypesByType('mob');
   const passable = Object.keys(tiles).filter(
-    k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !used.has(k)
+    k => TERRAIN[tiles[k].terrain].passable && !TERRAIN[tiles[k].terrain].avoidSpawn && !tiles[k].feature && !used.has(k)
   );
   const mobCount = Math.max(MIN_MOB_COUNT, radius * MOB_COUNT_RADIUS_MULTIPLIER);
   const mobs = [];
@@ -80,7 +80,7 @@ export function createTraders({ tiles, rand, used, champions }) {
   const traders = [];
 
   const passable = Object.keys(tiles).filter(
-    k => TERRAIN[tiles[k].terrain].passable && !tiles[k].feature && !used.has(k)
+    k => TERRAIN[tiles[k].terrain].passable && !TERRAIN[tiles[k].terrain].avoidSpawn && !tiles[k].feature && !used.has(k)
   );
 
   for (let i = 0; i < NUM_TRADERS; i++) {

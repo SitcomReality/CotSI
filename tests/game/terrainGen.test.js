@@ -11,6 +11,7 @@ import { generateTiles } from '../../src/game/rules/terrainGen/flatGeneration.js
 import { generateChunkTiles } from '../../src/game/rules/terrainGen/chunkGeneration.js';
 import { computeRainShadow } from '../../src/game/rules/terrainGen/classification/moistureAdjustment.js';
 import { assignRiverFlows } from '../../src/game/rules/terrainGen/postProcess/waterRules.js';
+import { applyRiverTerrain } from '../../src/game/rules/terrainGen/rivers/riverTerrain.js';
 import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
 import { TERRAIN_ELEVATION } from '../../src/params/render/terrainParams.js';
 import { WATER_LAND_GAP } from '../../src/params/game/worldParams.js';
@@ -46,7 +47,6 @@ test('determinism: same seed → identical tile maps', () => {
     assert.equal(ta.biomeId, tb.biomeId, `biome differs at ${key}`);
     assert.equal(ta.elevation, tb.elevation, `elevation differs at ${key}`);
     assert.equal(ta.moisture, tb.moisture, `moisture differs at ${key}`);
-    assert.equal(ta.riverCarved ?? false, tb.riverCarved ?? false, `riverCarved differs at ${key}`);
     assert.deepEqual(ta.riverFlow ?? null, tb.riverFlow ?? null, `riverFlow differs at ${key}`);
   }
 });
@@ -129,12 +129,11 @@ test('per-tile invariants: known terrain, registered biome, fields in [0,1]', ()
       // its static table value.
       const expectedElev = biome.terrainElevation?.water ?? TERRAIN_ELEVATION.water;
       assert.ok(tile.elevation <= expectedElev, `water elevation raised above table at ${coordKey(tile)}`);
-    } else if (tile.isRiver) {
-      // Passable river tiles are carved into recessed channels below their
-      // banks (see the 'river carve' test); impassable river tiles keep their
-      // elevation. Either way the static table no longer pins them.
-      assert.ok(tile.elevation <= (biome.terrainElevation?.[tile.terrain] ?? TERRAIN_ELEVATION[tile.terrain]),
-        `river tile elevation raised above table at ${coordKey(tile)}`);
+    } else if (tile.terrain === 'river') {
+      // River elevation is owned by carveRiverBeds (carved below the banks —
+      // see the 'river carve' test); the static table value is only a
+      // transient and does not bound the final channel height.
+      assert.ok(TERRAIN[tile.terrain].passable, `river tile ${coordKey(tile)} must be passable`);
     } else {
       const expectedElev = biome.terrainElevation?.[tile.terrain] ?? TERRAIN_ELEVATION[tile.terrain];
       assert.equal(tile.elevation, expectedElev, `display elevation mismatch at ${coordKey(tile)}`);
@@ -209,11 +208,11 @@ test('water rule 2: adjacent stationary water tiles always share one height', ()
   const tiles = generateTiles('water-uniform-seed', RADIUS);
   let waterSeen = false;
   for (const tile of Object.values(tiles)) {
-    if (tile.terrain !== 'water' || tile.isRiver) continue;
+    if (tile.terrain !== 'water') continue;
     waterSeen = true;
     for (const n of neighbors({ q: tile.q, r: tile.r })) {
       const nb = tiles[coordKey(n)];
-      if (!nb || nb.terrain !== 'water' || nb.isRiver) continue;
+      if (!nb || nb.terrain !== 'water') continue;
       assert.equal(nb.elevation, tile.elevation,
         `adjacent stationary water heights differ at ${coordKey(tile)} (${tile.elevation}) ↔ ${coordKey(n)} (${nb.elevation})`);
     }
@@ -229,7 +228,7 @@ test('water rule 1: every water tile sits below any adjacent non-river land', ()
     waterSeen = true;
     for (const n of neighbors({ q: tile.q, r: tile.r })) {
       const nb = tiles[coordKey(n)];
-      if (!nb || nb.terrain === 'water' || nb.isRiver) continue;
+      if (!nb || nb.terrain === 'water' || nb.terrain === 'river') continue;
       assert.ok(nb.elevation > tile.elevation + WATER_LAND_GAP - 1e-9,
         `water ${coordKey(tile)} (${tile.elevation}) not below land ${coordKey(n)} (${nb.elevation})`);
     }
@@ -237,16 +236,12 @@ test('water rule 1: every water tile sits below any adjacent non-river land', ()
   assert.ok(waterSeen, 'expected at least one water tile');
 });
 
-test('river carve: passable river tiles recessed below banks, never below adjacent water', () => {
+test('river carve: river tiles recessed below banks, never below adjacent water', () => {
   const tiles = generateTiles('river-carve-seed', RADIUS);
-  const rivers = Object.values(tiles).filter((t) => t.isRiver && t.terrain !== 'water');
-  assert.ok(rivers.length > 0, 'expected at least one carved (land) river tile');
+  const rivers = Object.values(tiles).filter((t) => t.terrain === 'river');
+  assert.ok(rivers.length > 0, 'expected at least one river tile');
 
   for (const r of rivers) {
-    // Impassable river tiles (mountain/peak/floatingIsland) are not carved —
-    // they keep their elevation and only carry the river overlay.
-    if (!TERRAIN[r.terrain].passable) continue;
-
     let minBank = Infinity;
     let hasBank = false;
     let minAdjWater = Infinity;
@@ -257,7 +252,7 @@ test('river carve: passable river tiles recessed below banks, never below adjace
       if (nb.terrain === 'water') {
         if (nb.elevation < minAdjWater) minAdjWater = nb.elevation;
         hasAdjWater = true;
-      } else if (!nb.isRiver) {
+      } else if (nb.terrain !== 'river') {
         if (nb.elevation < minBank) minBank = nb.elevation;
         hasBank = true;
       }
@@ -276,36 +271,26 @@ test('river carve: passable river tiles recessed below banks, never below adjace
   }
 });
 
-test('river carve flag: carved tiles marked riverCarved, impassable/water never', () => {
-  const tiles = generateTiles('river-carve-flag-seed', RADIUS);
-  const carved = Object.values(tiles).filter((t) => t.riverCarved);
-  assert.ok(carved.length > 0, 'expected at least one carved river tile');
+test('river terrain: channels are passable and feature-free', () => {
+  const tiles = generateTiles('river-terrain-seed', RADIUS);
+  const rivers = Object.values(tiles).filter((t) => t.terrain === 'river');
+  assert.ok(rivers.length > 0, 'expected at least one river tile');
 
-  for (const c of carved) {
-    assert.equal(c.isRiver, true, `carved tile ${coordKey(c)} must be a river tile`);
-    assert.ok(TERRAIN[c.terrain].passable, `carved tile ${coordKey(c)} must be passable terrain`);
-  }
-
-  // Water terrain is never carved, and non-carved land river tiles are exactly
-  // the impassable path tiles (mountain/peak/floatingIsland) that keep their
-  // elevation and only carry the river overlay.
-  for (const t of Object.values(tiles)) {
-    if (t.terrain === 'water') {
-      assert.equal(t.riverCarved ?? false, false, `water tile ${coordKey(t)} must not be riverCarved`);
-    } else if (t.isRiver && !t.riverCarved) {
-      assert.equal(TERRAIN[t.terrain].passable, false,
-        `non-carved land river tile ${coordKey(t)} must be impassable`);
-    }
+  for (const r of rivers) {
+    assert.ok(TERRAIN[r.terrain].passable, `river tile ${coordKey(r)} must be passable`);
+    assert.equal(r.feature, null, `river tile ${coordKey(r)} must be feature-free (no trees/hills in the water)`);
+    assert.equal(r.riverCarved, undefined, `legacy riverCarved flag absent at ${coordKey(r)}`);
+    assert.equal(r.isRiver, undefined, `legacy isRiver flag absent at ${coordKey(r)}`);
   }
 });
 
-test('river flow: carved tiles carry a downstream hex delta along the path', () => {
+test('river flow: river tiles carry a downstream hex delta along the path', () => {
   const tiles = generateTiles('river-flow-seed', RADIUS);
   const flowing = Object.values(tiles).filter((t) => t.riverFlow);
   assert.ok(flowing.length > 0, 'expected at least one tile with riverFlow');
 
   for (const t of flowing) {
-    assert.equal(t.riverCarved, true, `flow only on carved tiles (${coordKey(t)})`);
+    assert.equal(t.terrain, 'river', `flow only on river tiles (${coordKey(t)})`);
     const { dq, dr } = t.riverFlow;
     assert.ok(
       neighbors({ q: t.q, r: t.r }).some((n) => n.q === t.q + dq && n.r === t.r + dr),
@@ -313,16 +298,13 @@ test('river flow: carved tiles carry a downstream hex delta along the path', () 
     );
     const next = tiles[coordKey({ q: t.q + dq, r: t.r + dr })];
     assert.ok(next, `downstream neighbor missing for ${coordKey(t)}`);
-    assert.ok(next.terrain === 'water' || next.isRiver,
+    assert.ok(next.terrain === 'water' || next.terrain === 'river',
       `downstream of ${coordKey(t)} must be water-ish (${next.terrain})`);
   }
 
-  // Impassable river tiles never carry flow.
-  for (const t of Object.values(tiles)) {
-    if (t.isRiver && t.terrain !== 'water' && !TERRAIN[t.terrain].passable) {
-      assert.equal(t.riverFlow, undefined, `impassable tile ${coordKey(t)} must have no flow`);
-    }
-  }
+  // A path can end at a local minimum with no water mouth, so its terminal
+  // river tile is flowless; the converse (flow only on river tiles) is already
+  // asserted in the loop above.
 });
 
 test('assignRiverFlows: hex delta points at the next path tile; tail gets none', () => {
@@ -345,14 +327,44 @@ test('assignRiverFlows: hex delta points at the next path tile; tail gets none',
   // The water tail (the mouth) is part of a stationary body — no flow field.
   assert.equal(tiles['3,0'].riverFlow, undefined);
 
-  // Impassable path tiles are skipped.
-  const rocky = {
-    '0,0': { q: 0, r: 0, terrain: 'plains' },
-    '1,0': { q: 1, r: 0, terrain: 'mountain' },
-    '2,0': { q: 2, r: 0, terrain: 'plains' },
+  // A path that never reaches water: the final river tile has no downstream
+  // next, so it gets no flow (traceRiver can stop at a local minimum).
+  const noMouth = {
+    '0,0': { q: 0, r: 0, terrain: 'river' },
+    '1,0': { q: 1, r: 0, terrain: 'river' },
   };
-  assignRiverFlows(rocky, [[{ q: 0, r: 0 }, { q: 1, r: 0 }, { q: 2, r: 0 }]]);
-  assert.equal(rocky['1,0'].riverFlow, undefined, 'impassable path tile gets no flow');
+  assignRiverFlows(noMouth, [[{ q: 0, r: 0 }, { q: 1, r: 0 }]]);
+  assert.deepEqual(noMouth['0,0'].riverFlow, { dq: 1, dr: 0 });
+  assert.equal(noMouth['1,0'].riverFlow, undefined, 'terminal river tile (no mouth) gets no flow');
+});
+
+test('applyRiverTerrain: path tiles become river and lose features; water mouths stay', () => {
+  const tiles = {
+    '0,0': { q: 0, r: 0, terrain: 'plains', feature: { kind: 'tree' } },
+    '1,0': { q: 1, r: 0, terrain: 'forest', feature: { kind: 'fruitTree' } },
+    '2,0': { q: 2, r: 0, terrain: 'mountain', feature: null },
+    '3,0': { q: 3, r: 0, terrain: 'water', feature: null },
+    '4,0': { q: 4, r: 0, terrain: 'plains', feature: { kind: 'tree' } },
+  };
+  applyRiverTerrain(tiles, [[
+    { q: 0, r: 0 },
+    { q: 1, r: 0 },
+    { q: 2, r: 0 },
+    { q: 3, r: 0 },
+  ]]);
+
+  // Rivers replace everything on their path, features included.
+  assert.equal(tiles['0,0'].terrain, 'river');
+  assert.equal(tiles['0,0'].feature, null);
+  assert.equal(tiles['1,0'].terrain, 'river');
+  assert.equal(tiles['1,0'].feature, null);
+  // Rivers replace impassable terrain too (a river through a mountain is a canyon).
+  assert.equal(tiles['2,0'].terrain, 'river');
+  // The water mouth stays part of its body.
+  assert.equal(tiles['3,0'].terrain, 'water');
+  // Tiles off the path are untouched.
+  assert.equal(tiles['4,0'].terrain, 'plains');
+  assert.equal(tiles['4,0'].feature.kind, 'tree');
 });
 
 // ---------------------------------------------------------------------------

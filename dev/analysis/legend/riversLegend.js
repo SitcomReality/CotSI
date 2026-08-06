@@ -37,7 +37,7 @@ export function buildRiversLegend(tiles, palette) {
   // First pass: collect river tile keys
   const riverKeySet = new Set();
   for (const tile of tiles) {
-    if (tile.isRiver) {
+    if (tile.terrain === 'river') {
       riverKeySet.add(coordKey(tile));
     }
   }

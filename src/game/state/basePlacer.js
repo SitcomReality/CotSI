@@ -24,7 +24,7 @@ export function placeBase(tiles, target, used, placedBaseKeys, minDist) {
 
   // Primary: ring-expanding search from target
   const checkBase = (tile, key) => {
-    if (!tile || !TERRAIN[tile.terrain].passable || used.has(key) || tile.feature) return false;
+    if (!tile || !TERRAIN[tile.terrain].passable || TERRAIN[tile.terrain].avoidSpawn || used.has(key) || tile.feature) return false;
     for (const placedKey of placedBaseKeys) {
       if (distance(parseKey(key), parseKey(placedKey)) < minDist) return false;
     }
@@ -51,7 +51,7 @@ export function placeBase(tiles, target, used, placedBaseKeys, minDist) {
     for (const c of ring) {
       const ck = coordKey({ q: c.q + target.q, r: c.r + target.r });
       tile = tiles[ck];
-      if (tile && TERRAIN[tile.terrain].passable && !used.has(ck) && !tile.feature) return ck;
+      if (tile && TERRAIN[tile.terrain].passable && !TERRAIN[tile.terrain].avoidSpawn && !used.has(ck) && !tile.feature) return ck;
     }
   }
 

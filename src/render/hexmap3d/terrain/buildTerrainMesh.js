@@ -52,8 +52,8 @@ function writeTileVertices(positions, colors, vi, tile, state, explored, topColo
   }
 
   // --- Side faces: 6 quads, each = 2 triangles (own darkened color, no blend) ---
-  // Sides that border water (lakes, ocean, carved river channels) pull toward a
-  // dark water color so shorelines and channel walls read as water-adjacent.
+  // Sides that border water (lakes, ocean, rivers) pull toward a dark water
+  // color so shorelines and channel walls read as water-adjacent.
   const nbrs = neighbors({ q: tile.q, r: tile.r });
   for (let i = 0; i < 6; i++) {
     const c0 = corners[i];
@@ -63,7 +63,7 @@ function writeTileVertices(positions, colors, vi, tile, state, explored, topColo
     const nbr = nbrs[SIDE_NEIGHBOR_INDEX[i]];
     const nbrKey = coordKey(nbr);
     const nbTile = state.tiles[nbrKey];
-    if (nbTile && explored.has(nbrKey) && (nbTile.terrain === 'water' || nbTile.riverCarved)) {
+    if (nbTile && explored.has(nbrKey) && (nbTile.terrain === 'water' || nbTile.terrain === 'river')) {
       quadColor = [
         sideColor[0] * (1 - SIDE_WATER_TINT_WEIGHT) + SIDE_WATER_TINT_COLOR[0] * SIDE_WATER_TINT_WEIGHT,
         sideColor[1] * (1 - SIDE_WATER_TINT_WEIGHT) + SIDE_WATER_TINT_COLOR[1] * SIDE_WATER_TINT_WEIGHT,
@@ -97,9 +97,9 @@ function addVertex(positions, colors, offset, x, y, z, color) {
 
 /**
  * Build a single merged BufferGeometry for all visible + explored hex tiles.
- * Water tiles (water terrain + carved river channels) are excluded — they
- * render via buildChunkWaterMesh on their own material (no terrain blending,
- * ripple + flow animation).
+ * Water tiles (water + river terrain) are excluded — they render via
+ * buildChunkWaterMesh on their own material (no terrain blending, ripple +
+ * flow animation).
  *
  * @param {Object} state    - Game state (G)
  * @param {Set}    visible  - Set of hex keys currently visible
@@ -110,7 +110,7 @@ export function buildTerrainMesh(state, visible, explored) {
   const tiles = Object.values(state.tiles);
 
   // Count how many tiles we'll render
-  const activeTiles = tiles.filter(t => explored.has(`${t.q},${t.r}`) && t.terrain !== 'water' && !t.riverCarved);
+  const activeTiles = tiles.filter(t => explored.has(`${t.q},${t.r}`) && t.terrain !== 'water' && t.terrain !== 'river');
   const tileCount = activeTiles.length;
 
   const positions = new Float32Array(tileCount * VERTICES_PER_HEX * 3);
@@ -136,9 +136,9 @@ export function buildTerrainMesh(state, visible, explored) {
 
 /**
  * Build a merged BufferGeometry for tiles within a single chunk.
- * Only tiles present in `explored` are rendered; water tiles (water terrain +
- * carved river channels) are excluded (they render via buildChunkWaterMesh on
- * their own material).
+ * Only tiles present in `explored` are rendered; water tiles (water + river
+ * terrain) are excluded (they render via buildChunkWaterMesh on their own
+ * material).
  *
  * @param {object[]} chunkTiles - Array of tile objects belonging to this chunk
  * @param {object}   state      - Game state (for biomePalettes lookup per tile)
@@ -150,7 +150,7 @@ export function buildChunkTerrainMesh(chunkTiles, state, visible, explored) {
   const activeTiles = [];
   for (const tile of chunkTiles) {
     const key = `${tile.q},${tile.r}`;
-    if (explored.has(key) && tile.terrain !== 'water' && !tile.riverCarved) activeTiles.push(tile);
+    if (explored.has(key) && tile.terrain !== 'water' && tile.terrain !== 'river') activeTiles.push(tile);
   }
   if (activeTiles.length === 0) return null;
 

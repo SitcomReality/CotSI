@@ -13,11 +13,6 @@ export const SIDE_DARKEN_FACTOR = 0.5;
 /** Lake color multipliers (applied to water tile base color). */
 export const LAKE_COLOR_MODULATION = { r: 0.7, g: 0.85, b: 0.9 };
 
-/** River overlay color (RGB 0-1) blended into top face of river-path tiles. */
-export const RIVER_OVERLAY_COLOR = [0.118, 0.471, 0.863];
-/** Blend weight for river overlay on top face (0 = no river, 1 = pure river color). */
-export const RIVER_OVERLAY_WEIGHT = 0.45;
-
 /**
  * Biome edge blending strength. Each top-face corner is pulled toward the
  * average color of the tiles sharing that corner (0 = no blending, 1 = corner
@@ -81,6 +76,7 @@ export const TERRAIN_COLOR = {
   water:         [0.373, 0.604, 0.757],  // #5f9ac1 — bright cyan-blue
   ice:           [0.649, 0.820, 0.957],  // #a6d1f4 — pale ice blue
   beach:         [0.910, 0.847, 0.627],  // #e8d8a0 — warm sand
+  river:         [0.176, 0.529, 0.902],  // RIVER_COLOR — flowing channel blue
 };
 
 /**
@@ -101,6 +97,9 @@ export const TERRAIN_ELEVATION = {
   floatingIsland: 2.5,
   water: -0.15,
   ice: -0.12,
+  // River's table value is transient — carveRiverBeds() sets the real channel
+  // elevation below the banks. This entry only keeps resolveElevation() quiet.
+  river: -0.05,
 };
 
 /**

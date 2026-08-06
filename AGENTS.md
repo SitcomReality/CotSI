@@ -10,7 +10,7 @@ CotSI is a browser-based hex-crawl strategy game, early in development. Seven fa
 
 **Test:** `python3 dev/check_imports.py` verifies all imports resolve and checks layer boundaries in `src/`. `python3 dev/check_analysis_imports.py` does the same for the standalone map analysis tool (`dev/analysis/`). Unit tests: `tests/run.sh` (or `node --test` from the repo root) runs the zero-dependency `node:test` suite covering the pure layers — `src/engine/rules/` and `src/game/rules/` (incl. terrain-gen pipeline). No other formal test runner. AI devs can't run the game; the user tests on request. Node is not on PATH in the VSCodium extension shell — use `/run/host/usr/bin/node` directly, or `tests/run.sh` (it handles the Flatpak fallback).
 
-**The User Can Help:** If there's ambiguity or confusion, ask questions. If there are complicated bugs, add console logs or debug features and the user will report results to help narrow it down.
+**The User Can Help:** If there's ambiguity or unclarified intent (especially regarding game design) ask questions. If there are complicated bugs, add console logs or debug features and the user will report results to help narrow it down.
 
 **Performance:** Always try to be mindful of performance impacts and consider what performance optimizations can be incorporated. `src/dev/performance/captureLogger.js` is used during in-game testing to gather detailed frame time data per system.
 
@@ -82,9 +82,9 @@ window.__gameState; // same object as G
 
 ---
 
-## The User
+## The User Wants To Help
 
-I'm SitcomReality, the creator. I read only English. I'm a competent coder but don't always remember every system detail — happy to clarify. For complex bugs, I prefer adding console logs to narrow things down; I'll test and report back. This is a collaborative process.
+If there are questions or ambiguities about design intent, always ask the user for clarification. If the user can provide feedback by testing in-game (including performance profiling or pasting any console logs added for debugging), they're happy to help.
 
 ---
 
@@ -96,10 +96,4 @@ Delegate to sub-agents as much as possible. Spawning agents to perform specific 
 
 ## Current Process Underway
 
-Deferred and future work is tracked in `dev/futureWork.md`, which now holds
-terrain-gen design notes and large-map future-scale reference only. The tracker's
-actionable sections (dev-tooling gating, placeholders, structural follow-ups,
-terrain-gen tuning) were cleared in Aug 2026: the feasible items were completed
-(rain shadow, combat pick quirks, `placeholderCypress` removal) and the rest were
-removed with written rationale. Every disposition is recorded in git history, as
-are the completed audit phases (§1, §3–§5, §7, §8).
+Deferred and future work is tracked in `dev/futureWork.md`.

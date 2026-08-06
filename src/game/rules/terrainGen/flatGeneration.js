@@ -11,6 +11,7 @@ import { enforceWaterRules, carveRiverBeds, assignRiverFlows } from './postProce
 import { selectRiverSources } from './rivers/riverSources.js';
 import { traceRiver } from './rivers/riverTrace.js';
 import { applyRiverMoistureBoost } from './rivers/riverMoisture.js';
+import { applyRiverTerrain } from './rivers/riverTerrain.js';
 import { classifyTerrain, resolveElevation } from './classification/terrainClassification.js';
 import { getArchetype } from '../archetypes.js';
 
@@ -72,7 +73,8 @@ export function generateTiles(seedText, radius, biomeDef = null) {
   const riverPaths = sources.map(source => traceRiver(source, fieldMap, provisionalWaterSet, { seed }));
 
   if (riverPaths.length > 0) {
-    // Apply moisture boost to river-affected tiles (mutates tile.baseMoisture + tile.moisture)
+    // Apply moisture boost to river-affected tiles (mutates tile.moisture;
+    // baseMoisture is preserved for seam-test recomputation)
     const boostedKeys = applyRiverMoistureBoost(tileList, riverPaths);
 
     // Re-classify terrain for river-affected tiles (fertile valleys)
@@ -92,15 +94,8 @@ export function generateTiles(seedText, radius, biomeDef = null) {
       tile.elevation = resolveElevation(terrain, archetypeDef);
     }
 
-    // Set isRiver flags on river-path tiles
-    for (const path of riverPaths) {
-      for (const hex of path) {
-        const tile = tiles[coordKey(hex)];
-        if (tile) {
-          tile.isRiver = true;
-        }
-      }
-    }
+    // Override river-path tiles to real river terrain (mouths stay water)
+    applyRiverTerrain(tiles, riverPaths);
 
     // Downstream flow direction per carved tile (for the animated river
     // surface) — paths are ordered source → mouth.
@@ -117,7 +112,7 @@ export function generateTiles(seedText, radius, biomeDef = null) {
   //      height, and guarantee water sits below adjacent land.
   //   2. carveRiverBeds     — recess river channels below their banks, using
   //      the now-final water levels as each river's terminal level.
-  // Rivers (isRiver) are exempt from both height rules' hard constraints.
+  // Rivers (river terrain) are exempt from both height rules' hard constraints.
   enforceWaterRules(tiles);
   carveRiverBeds(tiles, riverPaths);
 

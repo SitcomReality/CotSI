@@ -23,7 +23,7 @@
  * Not tested (neighbor-context-dependent post-processing, not pure per-tile):
  *   mountainType    — depends on neighbor terrain classification
  *   waterType       — depends on BFS to map edge
- *   isRiver         — trace result depends on full-map flow accumulation
+ *   river terrain   — trace result depends on full-map flow accumulation
  *   feature         — random spawn rolls, not field-invariant
  *
  * Pure: no DOM, no state, no side effects beyond console.assert.
@@ -89,7 +89,7 @@ export function runSeamTest(seedText = DEFAULT_SEED, radius = DEFAULT_RADIUS) {
     // ── Pass 1b: Build river-key set for moisture-boost accounting ────────
     const riverKeySet = new Set();
     for (const tile of tileEntries) {
-      if (tile.isRiver) riverKeySet.add(coordKey(tile));
+      if (tile.terrain === 'river') riverKeySet.add(coordKey(tile));
     }
 
     // ── Pass 2: Verify each non-supernatural tile ──────────────────────────

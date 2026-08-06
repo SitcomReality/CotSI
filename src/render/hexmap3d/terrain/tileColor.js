@@ -2,8 +2,6 @@ import {
   TERRAIN_COLOR,
   LAKE_COLOR_MODULATION,
   RIVER_COLOR,
-  RIVER_OVERLAY_COLOR,
-  RIVER_OVERLAY_WEIGHT,
 } from '../../../params/render/terrainParams.js';
 
 /**
@@ -21,10 +19,9 @@ export function makeTopColorResolver(state) {
     const pal = (tile.biomeId && state.biomePalettes?.get(tile.biomeId)) || {};
     const baseColor = pal[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
 
-    // Carved river channels are real water — a full river blue, independent of
-    // the underlying terrain palette. (The isRiver overlay below only applies
-    // to impassable land river tiles that stay on the terrain mesh.)
-    if (tile.riverCarved) {
+    // River terrain is real water — a full river blue, independent of the
+    // underlying terrain palette.
+    if (tile.terrain === 'river') {
       cache.set(key, RIVER_COLOR);
       return RIVER_COLOR;
     }
@@ -34,16 +31,7 @@ export function makeTopColorResolver(state) {
       ? [baseColor[0] * LAKE_COLOR_MODULATION.r, baseColor[1] * LAKE_COLOR_MODULATION.g, baseColor[2] * LAKE_COLOR_MODULATION.b]
       : baseColor;
 
-    // River overlay on top face only — blend river blue into the terrain color
-    const topColor = tile.isRiver
-      ? [
-          resolvedColor[0] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[0] * RIVER_OVERLAY_WEIGHT,
-          resolvedColor[1] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[1] * RIVER_OVERLAY_WEIGHT,
-          resolvedColor[2] * (1 - RIVER_OVERLAY_WEIGHT) + RIVER_OVERLAY_COLOR[2] * RIVER_OVERLAY_WEIGHT,
-        ]
-      : resolvedColor;
-
-    cache.set(key, topColor);
-    return topColor;
+    cache.set(key, resolvedColor);
+    return resolvedColor;
   };
 }

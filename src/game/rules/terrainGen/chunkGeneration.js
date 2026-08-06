@@ -145,7 +145,6 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
       moisture,
       temperature: fields.temperature,
       slope,
-      isRiver: false,
       rawLayers: fields.rawLayers,
       biomeId: hexBiomeId,
     });

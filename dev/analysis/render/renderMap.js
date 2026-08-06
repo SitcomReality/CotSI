@@ -94,7 +94,7 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
     // Find all river tiles and compute boost halo set
     const riverKeys = new Set();
     for (const key of tileKeys) {
-      if (tiles[key].isRiver) riverKeys.add(key);
+      if (tiles[key].terrain === 'river') riverKeys.add(key);
     }
 
     if (riverKeys.size > 0) {
