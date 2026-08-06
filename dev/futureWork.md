@@ -11,22 +11,6 @@ here.
 
 ## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
-### 4.6 Frequency & composite weight tuning
-
-Current frequencies target r=21. For other map sizes:
-
-| Field | r=7 | r=21 (current) | r=50 |
-|-------|-----|----------------|------|
-| `ELEVATION_DETAIL` | 0.030 | 0.020 | 0.012 |
-| `RIDGE` | 0.015 | 0.008 | 0.005 |
-| `MOISTURE` | 0.010 | 0.006 | 0.004 |
-| `REGION` | 0.004 | 0.0015 | 0.0008 |
-
-Composite weights (`detail × W_D + ridges × W_R`, currently 0.50/0.50): adjust for
-~30–40% of landmass with elevation variation, ~5–10% mountain/peak. Frequency
-tuning should be visual ("do the landmasses look right?"), not algorithmic —
-zero-crossing counting proved unreliable.
-
 ### 4.7 Feature density tuning
 
 Phase E's density modulation changed effective spawn rates. Adjust each biome's
