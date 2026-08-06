@@ -11,15 +11,6 @@ here.
 
 ## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
-### 4.2 Biome topological smoothing (optional)
-
-If playtesting shows single-hex biome speckles, apply a lightweight
-outlier-reassignment post-pass: for each tile whose biome differs from all 6
-neighbors AND the elevation difference is < 0.15 (no cliff), reassign to the
-majority neighbor biome. Guard with elevation cliff detection to preserve genuine
-transitions at mountain edges. Only implement if speckles are visibly
-distracting.
-
 ### 4.3 Domain warping (optional)
 
 If blob/camouflage noise artifacts persist after frequency tuning, apply
