@@ -11,22 +11,6 @@ here.
 
 ## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
-### 4.1 Threshold recalibration
-
-Target budgets for reference:
-
-| Terrain | Budget |
-|---------|--------|
-| Water | 8–15% |
-| Mountain | 5–10% |
-| Peak | 1–3% |
-| Floating island | 0–1% |
-| Forest | 15–25% |
-| Desert | 8–15% |
-| Marsh | 3–8% |
-| Hill | 10–18% |
-| Plateau | 3–8% |
-
 ### 4.2 Biome topological smoothing (optional)
 
 If playtesting shows single-hex biome speckles, apply a lightweight
