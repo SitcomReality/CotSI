@@ -96,8 +96,10 @@ Delegate to sub-agents as much as possible. Spawning agents to perform specific 
 
 ## Current Process Underway
 
-Deferred and future work is tracked in `dev/futureWork.md` (consolidated from the
-audit backlog and the terrain-gen / large-map trackers): deferred audit phases §2
-(dev-tooling gating) and §6 (placeholders), optional structural follow-ups,
-terrain-gen tuning, and large-map future-scale reference. Completed audit phases
-(§1, §3–§5, §7, §8) live in git history.
+Deferred and future work is tracked in `dev/futureWork.md`, which now holds
+terrain-gen design notes and large-map future-scale reference only. The tracker's
+actionable sections (dev-tooling gating, placeholders, structural follow-ups,
+terrain-gen tuning) were cleared in Aug 2026: the feasible items were completed
+(rain shadow, combat pick quirks, `placeholderCypress` removal) and the rest were
+removed with written rationale. Every disposition is recorded in git history, as
+are the completed audit phases (§1, §3–§5, §7, §8).
