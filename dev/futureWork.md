@@ -11,20 +11,6 @@ here.
 
 ## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
-### 4.8 Snapshot range tightening
-
-Once thresholds are recalibrated, tighten the intentionally wide snapshot ranges:
-
-| Terrain | Wide (current) | Tight (target) |
-|---------|----------------|----------------|
-| Water | 6–20% | 8–15% |
-| Mountain | 3–15% | 5–10% |
-| Peak | 0–5% | 1–3% |
-| Floating island | 0–2% | 0–1% |
-| Forest | 0–100% | 15–25% |
-| Desert | 0–100% | 8–15% |
-| Marsh | 0–100% | 3–8% |
-
 ### 4.9 Known limitations (Post-G, explicitly deferred)
 
 | Item | Notes |
