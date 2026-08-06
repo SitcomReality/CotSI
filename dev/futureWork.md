@@ -9,9 +9,7 @@ here.
 
 ---
 
-## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
-
-## 5. Terrain-gen: design notes for future reference
+## 2. Terrain-gen: design notes for future reference
 
 - **Calibration is re-runnable** — `dev/analysis.html` has a "Derive Thresholds"
   button and "Run Tests" button. Any change to noise output distributions
@@ -35,7 +33,7 @@ here.
   in-browser via "Run Batch Analysis", with a distribution histogram view +
   threshold overlay lines. All browser-based — no Node.js dependency.
 
-## 6. Large-map: reference & future scale (from largeMapRoadmap.md)
+## 3. Large-map: reference & future scale (from largeMapRoadmap.md)
 
 The large-map roadmap's phases 1–4 (algorithmic decoupling, chunk infrastructure,
 chunked rendering, scale-up) are complete; many values in the original (e.g. map
@@ -91,4 +89,4 @@ maps of any arbitrary size.
   fog (`sceneSetup.js`, 60–160). Shadows are radius dependent. A "conceptually
   infinite map" still needs terrain-gen's radius semantics removed (`worldShape`
   falloff, noise config scaled by 1/radius, latitude term, distance clamp) plus
-  camera-driven chunk streaming (see §6.1).
+  camera-driven chunk streaming (see §3.1).
