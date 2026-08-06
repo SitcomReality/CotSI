@@ -30,8 +30,9 @@ export function worldToScreen(camera, wx, wy, canvasWidth, canvasHeight) {
  */
 export function fitCameraToRadius(camera, radius, canvasWidth, canvasHeight) {
   const corner = hexToPixel(radius, radius, HEX_SIZE);
-  const mapWidth = Math.abs(corner.x) * 2 + HEX_SIZE * SQRT3;
-  const mapHeight = Math.abs(corner.y) * 2 + HEX_SIZE * 1.5;
+  // Flat-top hexes: width = 2·size (vertex to vertex), height = √3·size (flat to flat)
+  const mapWidth = Math.abs(corner.x) * 2 + HEX_SIZE * 2;
+  const mapHeight = Math.abs(corner.y) * 2 + HEX_SIZE * SQRT3;
 
   const pad = 24;
   const availW = canvasWidth - pad * 2;
