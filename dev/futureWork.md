@@ -9,24 +9,7 @@ here.
 
 ---
 
-## 1. Dev-tooling gating (deferred — from audit §2)
-
-Dev tools ship in the prod build (there is no build step to strip them):
-
-- `bootstrap.js` calls `enableAllMeasurements()` unconditionally — every named
-  measurement runs `performance.mark/measure` on each render frame, hover, and
-  pan in the shipped game.
-- Gate dev tools behind `?dev=1`/localStorage: the `bootstrap.js` dev side-effect
-  import, the `enableAllMeasurements()` call, `window.__perf`/`window.__devTools`
-  exposure, and `panel/init.js` auto-init. ~17 dev-coupling imports across
-  runtime/render/game become harmless without moving code. The capture harness
-  itself (`frameProfiler.js`) is already properly gated behind explicit
-  `startCapture`.
-
-*Note:* The project is still in early development and these aren't immediate
-concerns — right now the goal is expedient internal testing and iteration.
-
-## 4. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
+## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
 ### 4.1 Threshold recalibration
 
