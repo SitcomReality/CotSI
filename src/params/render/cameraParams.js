@@ -7,7 +7,7 @@ export const DEFAULT_FRUSTUM = 6;
 /** Absolute minimum frustum (closest zoom allowed). */
 export const ZOOM_MIN_FRUSTUM = 5;
 /** Absolute maximum frustum (farthest zoom allowed). */
-export const ZOOM_MAX_FRUSTUM = 15;
+export const ZOOM_MAX_FRUSTUM = 20;
 /** Fit-to-map margin multiplier. */
 export const FIT_MAP_MARGIN = 1.6;
 /** Max zoom-out margin multiplier. */

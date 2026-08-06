@@ -20,24 +20,36 @@ import { getArchetype } from '../archetypes.js';
  * Delegates to generateChunkTiles for each chunk in range and assembles
  * the results into a single flat object keyed by "q,r".
  *
+ * Global post-passes (rivers, connectivity, water rules) run over the
+ * assembled tiles as-is: with the default full chunk set they cover the whole
+ * map; with `opts.chunkKeys` (the lazy starting region) they cover just the
+ * generated chunks and stop gracefully at the region boundary.
+ *
  * @param {string}   seedText  - Seed string for reproducible generation
  * @param {number}   radius    - Hex map radius (center 0,0)
  * @param {object}   [biomeDef]- Single biome archetype definition, or null for multi-biome
+ * @param {object}   [opts]    - { chunkKeys?: Set<string> } restrict which chunks to generate
  * @returns {object} tiles keyed by "q,r"
  */
-export function generateTiles(seedText, radius, biomeDef = null) {
+export function generateTiles(seedText, radius, biomeDef = null, opts = {}) {
   startMeasure('genTiles');
 
-  // Determine which chunks intersect the map radius
-  const chunks = new Set();
-  for (let q = -radius; q <= radius; q++) {
-    for (let r = -radius; r <= radius; r++) {
-      const s = -q - r;
-      if (Math.abs(s) > radius) continue;
-      const { cq, cr } = tileToChunk(q, r);
-      chunks.add(`${cq},${cr}`);
-    }
-  }
+  // Determine which chunks to generate: all chunks intersecting the map
+  // radius, or an explicit subset (lazy starting region).
+  const chunks = opts.chunkKeys
+    ? opts.chunkKeys
+    : (() => {
+      const set = new Set();
+      for (let q = -radius; q <= radius; q++) {
+        for (let r = -radius; r <= radius; r++) {
+          const s = -q - r;
+          if (Math.abs(s) > radius) continue;
+          const { cq, cr } = tileToChunk(q, r);
+          set.add(`${cq},${cr}`);
+        }
+      }
+      return set;
+    })();
 
   const tiles = {};
   for (const ck of chunks) {

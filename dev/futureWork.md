@@ -45,22 +45,23 @@ The current game design (six other players to interact with) isn't mechanically
 compatible with truly infinite maps, but the goal is to support extremely large
 maps of any arbitrary size.
 
-- **Chunk manager (load / generate / evict)** — `src/game/state/chunkManager.js`:
-  pre-generate a buffer radius (e.g. 3 chunks ahead); evict chunks with no entity
-  for M turns (serialize deltas, drop from memory); regenerate from seed +
-  re-apply deltas on return.
+Implemented (2026-08): chunked storage (`src/game/state/chunkManager.js`) with
+lazy per-chunk generation from seed, a background buffer around the champion
+(clock-scheduled, `'bot'` speed group), eviction of empty chunks after a grace
+period (deltas extracted and re-applied on regen), and an eager starting region
+around spawns so global post-passes keep working. Rendering is bounded by the
+sight-5 render cap; the minimap is a fixed-pixel champion-centered window with
+a 1px/hex floor; spawn searches no longer scan the map (materialized-set
+guards + candidate pools). Remaining:
+
 - **Persistence** — save seed + list of dirty tiles with their deltas; everything
   else regenerates. Only the diff from procedural generation.
-- **Streaming** — background generation during idle frames via the clock
-  scheduler (`'bot'` speed group); smoothly add chunk meshes as they enter view.
 - **Infinite-appropriate AI** — local exploration biased toward resource
   gradients and away from recently visited areas; victory conditions may need
   rethinking.
 
 ### 1.2 What NOT to do (yet)
 
-- Don't premature-optimise the minimap — it works for now; chunk-based rendering
-  naturally limits what it needs to draw.
 - Don't add worker threads for generation — single-threaded JS with
   clock-scheduled chunk generation is sufficient for maps up to R=200.
 - Don't implement LOD unless profiling shows it's needed — InstancedMesh +
@@ -72,19 +73,12 @@ maps of any arbitrary size.
 
 ### 1.3 Still-open scale concerns
 
-- **Spawn placement scans** — `nearestOpenKey`/`nearestOpenMultiRing`
-  (`src/game/rules/tileQueries.js:18/55`, used by `championFactory.js` and
-  `basePlacer.js`) do radial distance-based searches that scale with map size.
-  Fine at r=21; would become startup bottlenecks at r=50+ — replace with
-  chunk-local placement if map sizes grow.
 - **Bot directionality** — bots radius-limit their targeting but have no global
   strategy. A simple bias toward unexplored tiles / nearest God's Knot / enemy
   prevents circle-wandering. Design task as much as performance; bots keep very
   basic behaviors for testing during dev.
-- **Minimap scalability** — at large sizes the minimap becomes too small to be
-  useful; consider a fixed-pixel local-area minimap if scale-up happens.
 - **Camera caps + fog are tuned to current map scale** — zoom is capped
-  (`ZOOM_MAX_FRUSTUM=15`, `DEFAULT_REFERENCE_FRUSTUM=40` in
+  (`ZOOM_MAX_FRUSTUM=20`, `DEFAULT_REFERENCE_FRUSTUM=40` in
   `src/params/render/cameraParams.js`), as are `CAMERA_FAR=200` and the scene
   fog (`sceneSetup.js`, 60–160). Shadows are radius dependent. A "conceptually
   infinite map" still needs terrain-gen's radius semantics removed (`worldShape`

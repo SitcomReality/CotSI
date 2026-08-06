@@ -5,6 +5,7 @@
  * from the chunked storage (state.chunks).
  */
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
+import { ensureChunkForTile } from './chunkManager.js';
 
 // ---------------------------------------------------------------------------
 // Low-level chunk access
@@ -12,6 +13,9 @@ import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/
 
 /**
  * Look up a tile by global coordinates.
+ * Lazily generates the containing chunk from the seed when an in-map tile is
+ * read before its chunk exists (generation on demand). Out-of-map tiles
+ * return undefined and never generate.
  * @param {object} state  - Game state with state.chunks Map
  * @param {number} q      - Global q coordinate
  * @param {number} r      - Global r coordinate
@@ -19,8 +23,12 @@ import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/
  */
 export function getTile(state, q, r) {
   const { cq, cr } = tileToChunk(q, r);
-  const chunk = state.chunks.get(chunkKey(cq, cr));
-  if (!chunk) return undefined;
+  const ck = chunkKey(cq, cr);
+  let chunk = state.chunks.get(ck);
+  if (!chunk) {
+    chunk = ensureChunkForTile(state, q, r);
+    if (!chunk) return undefined;
+  }
   const { lq, lr } = localCoord(cq, cr, q, r);
   return chunk.tiles.get(localKey(lq, lr));
 }
@@ -37,8 +45,13 @@ export function setTile(state, q, r, tileData) {
   const ck = chunkKey(cq, cr);
   let chunk = state.chunks.get(ck);
   if (!chunk) {
-    chunk = { tiles: new Map(), dirty: true, generated: true };
-    state.chunks.set(ck, chunk);
+    // Materialize the full base chunk first so a chunk is never left
+    // partially generated (a lone modified tile over a missing base).
+    chunk = ensureChunkForTile(state, q, r);
+    if (!chunk) {
+      chunk = { tiles: new Map(), dirty: true, generated: true };
+      state.chunks.set(ck, chunk);
+    }
   }
   const { lq, lr } = localCoord(cq, cr, q, r);
   chunk.tiles.set(localKey(lq, lr), tileData);

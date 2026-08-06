@@ -14,6 +14,7 @@ import { ensureCanvases, getVisibleMaskCanvas, getExploredMaskCanvas } from './f
 import { cameraHasChanged, resetFogMaskCameraHash } from './fogCameraTracker.js';
 import { startMeasure, endMeasure } from '../../dev/performance/index.js';
 import { FOG_BLUR_RADIUS } from '../../params/render/overlayParams.js';
+import { hexKeysWithinCap } from '../../engine/rules/sightCull.js';
 
 // Fog revision tracking for cache invalidation
 let _lastFogRevision = -1;
@@ -70,14 +71,18 @@ export function generateFogMasks(state, camera, overlayCanvas, visible, explored
   vCtx.clearRect(0, 0, cssW, cssH);
   eCtx.clearRect(0, 0, cssW, cssH);
 
-  // Draw all explored hexes — project both the top and bottom surfaces of each
-  // hex so the fog hole covers the full visible height of the hex body,
-  // preventing a dark fringe ("shadow") at the base of elevated tiles.
-  // Iterates the explored Set directly instead of scanning all tiles via
-  // Object.entries(state.tiles), which would trigger a full-map Proxy ownKeys.
-  for (const key of explored) {
+  // Draw fog holes. Sight-cap culling: with the camera locked to the
+  // champion's disc, nothing beyond the render cap can ever be on screen, so
+  // only explored hexes inside the cap need holes. Iterate the cap disc
+  // (≤91 hexes per living human) and membership-check the explored set —
+  // inverting the loop keeps this O(cap), never O(explored) on a large map.
+  // No living humans → empty cull set → spectator mode: reveal everything
+  // materialized.
+  const cullHexes = hexKeysWithinCap(state.champions);
+  const culled = cullHexes.size > 0;
+  const drawFogHex = (key) => {
     const tile = state.tiles[key];
-    if (!tile) continue;
+    if (!tile) return;
 
     const isVisible = visible.has(key);
     const { top: topCorners, bottom: bottomCorners } = getHexCornersWorld(tile.q, tile.r, tile.terrain);
@@ -88,11 +93,21 @@ export function generateFogMasks(state, camera, overlayCanvas, visible, explored
     // Need at least one valid projection that isn't off-screen
     const topOk = topPts && !isOffScreen(topPts, cssW, cssH);
     const botOk = bottomPts && !isOffScreen(bottomPts, cssW, cssH);
-    if (!topOk && !botOk) continue;
+    if (!topOk && !botOk) return;
 
     const ctx = isVisible ? vCtx : eCtx;
     if (topOk) drawHexPoly(ctx, topPts);
     if (botOk) drawHexPoly(ctx, bottomPts);
+  };
+
+  if (culled) {
+    for (const key of cullHexes) {
+      if (explored.has(key)) drawFogHex(key);
+    }
+  } else {
+    for (const key of explored) {
+      drawFogHex(key);
+    }
   }
 
   // Apply blur to both masks for soft edges.

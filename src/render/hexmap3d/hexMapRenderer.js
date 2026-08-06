@@ -18,6 +18,7 @@ import { getClock } from '../../shared/clockScheduler.js';
 import { OVERLAY_Z } from '../../params/ui/uiParams.js';
 import { shadowLightConfig } from '../shadowLightConfig.js';
 import { startMeasure, endMeasure } from '../../dev/performance/index.js';
+import { chunkKeysWithinCap } from '../../engine/rules/sightCull.js';
 
 // Re‑export symbols needed by external consumers
 export { getSceneContext } from './sceneContext.js';
@@ -97,9 +98,15 @@ export function renderHexMap3D(state, humanView) {
   // Track which chunk keys currently exist in state
   const currentChunkKeys = new Set(state.chunks.keys());
 
-  // Dispose chunks that no longer exist in state
+  // Sight-cap culling: only chunks intersecting the render-cap disc around a
+  // living human champion may keep meshes. No humans → spectator: render all.
+  const hasLivingHuman = state.champions.some(c => c.controller === 'human' && c.alive);
+  const cullChunkKeys = hasLivingHuman ? chunkKeysWithinCap(state.champions) : currentChunkKeys;
+
+  // Dispose chunk entries that no longer exist in state OR have left the
+  // sight cap (the champion moved away) — their geometry is never visible.
   forEachChunk((ck) => {
-    if (!currentChunkKeys.has(ck)) {
+    if (!currentChunkKeys.has(ck) || !cullChunkKeys.has(ck)) {
       disposeChunk(ck, ctx.scene);
     }
   });
@@ -109,6 +116,9 @@ export function renderHexMap3D(state, humanView) {
   // which does NOT dirty the affected chunks).
   startMeasure('mesh:chunks');
   for (const [ck, chunk] of state.chunks) {
+    // Outside the sight cap — nothing to build, even if explored
+    if (!cullChunkKeys.has(ck)) continue;
+
     const entry = getChunkEntry(ck);
     const chunkTiles = [...chunk.tiles.values()];
     const exploredCount = countExploredInChunk(chunkTiles, explored);

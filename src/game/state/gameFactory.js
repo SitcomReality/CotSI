@@ -11,6 +11,7 @@
  */
 import { makeRng, stringSeed } from '../../engine/rules/seededRng.js';
 import { generateTiles, ensureSpawnClearance } from '../rules/terrainGen/index.js';
+import { startingRegionChunkKeys } from '../rules/terrainGen/startingRegion.js';
 import { getArchetype } from '../rules/archetypes.js';
 import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { shuffle } from '../../engine/rules/shuffle.js';
@@ -23,7 +24,7 @@ import { rebuildSpatialIndex } from './spatialIndex.js';
 import { createTileProxy } from './tileProxy.js';
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
 import { startMeasure, endMeasure } from '../../dev/performance/index.js';
-import { spawnTarget } from './spawnPosition.js';
+import { computeSpawnTargets } from './spawnPosition.js';
 
 export function createGame({
   seed = 'glut-17',
@@ -37,28 +38,34 @@ export function createGame({
   // For single-biome mode, resolve once
   const singleBiomeDef = isMultiBiome ? null : (getArchetype(biome) || getArchetype('biome_default'));
 
-  // Generate flat tiles — biomeDef=null for multi-biome (per-hex assignment
-  // inside the generator), or a single biomeDef for single-biome mode
+  const rng = makeRng(seed);
+  const rand = () => rng();
+
+  // Precompute spawn targets with the same RNG draws the placement pass would
+  // use, so the eager starting region can be generated around the ACTUAL
+  // spawn positions before any tile queries run.
+  const { shuffledChamps, targets: spawnTargets } = computeSpawnTargets({ champions, rand, radius });
+
+  // Generate the starting region: all chunks touching the spawn discs, with
+  // the global post-passes (rivers, connectivity, water rules) applied within
+  // it. Everything beyond materializes lazily from the seed on demand.
+  // biomeDef=null for multi-biome (per-hex assignment inside the generator),
+  // or a single biomeDef for single-biome mode.
+  const regionChunkKeys = startingRegionChunkKeys(
+    spawnTargets.length > 0 ? spawnTargets : [{ q: 0, r: 0 }],
+    radius,
+  );
   const flatTiles = generateTiles(
     seed, radius,
     isMultiBiome ? null : singleBiomeDef,
+    { chunkKeys: regionChunkKeys },
   );
 
-  // Post-classification: clear passable terrain around faction spawn targets.
-  // Uses an independent RNG stream so the game-state RNG is unaffected.
+  // Post-classification: clear passable terrain around the actual faction
+  // spawn targets. Uses no RNG draws (targets already fixed above).
   if (isMultiBiome) {
-    const clearanceRng = makeRng(seed + ':clearance');
-    const clearanceRand = () => clearanceRng();
-    const championCount = champions.length;
-    const spawnTargets = [];
-    for (let i = 0; i < championCount; i++) {
-      spawnTargets.push(spawnTarget(i, championCount, clearanceRand, radius));
-    }
     ensureSpawnClearance(flatTiles, radius, spawnTargets);
   }
-
-  const rng = makeRng(seed);
-  const rand = () => rng();
 
   // Build biomePalettes: a Map of biomeId → palette for all biomes on this map
   const biomePalettes = new Map();
@@ -89,8 +96,11 @@ export function createGame({
     const ck = chunkKey(cq, cr);
     let chunk = state.chunks.get(ck);
     if (!chunk) {
-      // Inherit biomeId from the first tile
-      chunk = { tiles: new Map(), dirty: false, generated: true, biomeId: tile.biomeId || null };
+      // Inherit biomeId from the first tile; lastEntityDay anchors eviction.
+      chunk = {
+        tiles: new Map(), dirty: false, generated: true,
+        biomeId: tile.biomeId || null, lastEntityDay: state.day ?? 0,
+      };
       state.chunks.set(ck, chunk);
     }
     const { lq, lr } = localCoord(cq, cr, tile.q, tile.r);
@@ -104,7 +114,7 @@ export function createGame({
 
   // --- Place factions and build champion entries ---
   const { champions: champEntries, used } = createChampions({
-    tiles, champions, rand, radius,
+    tiles, champions: shuffledChamps, targets: spawnTargets, rand, radius,
   });
   state.champions = champEntries;
 
@@ -118,7 +128,7 @@ export function createGame({
 
   // --- Seed the map with mobs and traders ---
   state.mobs = createMobs({ tiles, rand, used, radius });
-  state.traders = createTraders({ tiles, rand, used, champions });
+  state.traders = createTraders({ tiles, rand, used, baseKeys: [...state._baseKeys] });
 
   // --- Turn order, herald, and first-turn setup ---
   state.currentOrder = shuffle(

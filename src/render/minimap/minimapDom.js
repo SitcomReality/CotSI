@@ -2,7 +2,8 @@
  * minimapDom.js — DOM creation and lifecycle for the minimap.
  *
  * Owns the wrapper div, two canvases (terrain + overlay), and their 2D contexts.
- * Inline styles match the game's visual style.
+ * Inline styles match the game's visual style. The minimap is display-only:
+ * pointer events pass through to the scene below.
  */
 
 // ---- Constants ----
@@ -23,9 +24,8 @@ export function getOverlayCtx() { return _overlayCtx; }
 /**
  * Create the minimap DOM element and its two canvases.
  * @param {HTMLElement} mountEl - The #mapMount element
- * @param {function} onClick - Callback fired with (pixelX, pixelY) on click
  */
-export function initMinimap(mountEl, onClick) {
+export function initMinimap(mountEl) {
   if (minimapEl) {
     // Already initialized — reuse
     return;
@@ -45,8 +45,7 @@ export function initMinimap(mountEl, onClick) {
     overflow: hidden;
     background: #080602;
     z-index: 5;
-    pointer-events: auto;
-    cursor: crosshair;
+    pointer-events: none;
   `;
 
   // Terrain canvas (background layer, re-rendered only on explored changes)
@@ -64,12 +63,6 @@ export function initMinimap(mountEl, onClick) {
   _overlayCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;';
   _overlayCtx = _overlayCanvas.getContext('2d');
   minimapEl.appendChild(_overlayCanvas);
-
-  // Click handler
-  _overlayCanvas.addEventListener('click', (e) => {
-    const rect = _overlayCanvas.getBoundingClientRect();
-    onClick(e.clientX - rect.left, e.clientY - rect.top);
-  });
 
   mountEl.appendChild(minimapEl);
 }

@@ -4,7 +4,7 @@
  * Owns the singleton `minimapInitialized` flag.
  * One-time 3D init lives in initMap3d.js; shared camera-focus in mapCamera.js.
  */
-import { renderHexMap3D } from '../render/hexmap3d/hexMapRenderer.js';
+import { renderHexMap3D, getSceneContext, centerCameraOnHex } from '../render/hexmap3d/hexMapRenderer.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { getHumanView } from '../game/state/fogOfWar.js';
 import { adjacentPassable } from '../game/state/championMovement.js';
@@ -16,7 +16,10 @@ import { startMeasure, endMeasure } from '../dev/performance/index.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
 import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
 import { clearDirtyFlags, markChunkDirty } from '../game/state/chunkDirtyTracking.js';
+import { ensureChunk, missingChunksAround } from '../game/state/chunkManager.js';
 import { occupiedKeys } from '../render/hexmap3d/features/decorEmphasis.js';
+import { getClock } from '../shared/clockScheduler.js';
+import { BACKGROUND_BUFFER_CHUNKS, BACKGROUND_GEN_SPREAD_MS } from '../params/game/worldParams.js';
 
 /** Whether the minimap has been initialized. */
 let minimapInitialized = false;
@@ -29,6 +32,20 @@ let minimapInitialized = false;
  * minimal rebuilds (only chunks whose occupancy actually changed).
  */
 let lastOccupantKeys = null;
+
+/**
+ * Last followed champion hex ("q,r"). The camera is locked to the champion:
+ * when the champion moves, the target snaps to follow (zoom preserved).
+ * Only the initial focus on a champion change is animated.
+ */
+let lastFollowedChampKey = null;
+
+/**
+ * Last hex the background pre-generation buffer was scheduled for. The buffer
+ * only needs refreshing when the champion's hex changes, so redundant task
+ * queues aren't scheduled on every refresh.
+ */
+let lastScheduledChampKey = null;
 
 function markOccupancyChunksDirty(state) {
   const current = occupiedKeys(state);
@@ -126,25 +143,48 @@ export function refreshMap() {
 
   // Initialize minimap on first render after game state is ready
   if (!minimapInitialized) {
-    initMinimap(mountEl, G.radius, getHumanView);
+    initMinimap(mountEl);
     minimapInitialized = true;
   }
 
   // Render minimap each refresh (caches internally)
   renderMinimap(G, humanView);
 
-  // Center camera on human champion at turn start (only when champion changes).
-  // Zooms to a fixed ~1200% zoom for an intimate, close-up view.
+  // Camera lock: the camera stays centered on the human champion. First time a
+  // champion takes the stage, animate the pan; after that, follow position
+  // changes by snapping the target (zoom preserved). The zoom-dependent pan
+  // constraint (updateCameraStartCenter) additionally confines any manual pan
+  // to the champion's sight disc, and max zoom-out is the disc itself — the
+  // view can never leave the champion's area.
   const ch = currentChamp();
-  if (ch && ch.controller === 'human' && ch.id !== getLastCenteredChampionId()) {
-    focusCameraOnHex(ch.pos.q, ch.pos.r);
-    setLastCenteredChampionId(ch.id);
-  }
-
-  // Update the zoom-dependent pan constraint anchor on every human turn start,
-  // even when the champion hasn't changed (e.g. day rollover with same champ).
   if (ch && ch.controller === 'human') {
+    if (ch.id !== getLastCenteredChampionId()) {
+      focusCameraOnHex(ch.pos.q, ch.pos.r);
+      setLastCenteredChampionId(ch.id);
+      lastFollowedChampKey = `${ch.pos.q},${ch.pos.r}`;
+    } else if (lastFollowedChampKey !== `${ch.pos.q},${ch.pos.r}`) {
+      const ctx3d = getSceneContext();
+      if (ctx3d) {
+        centerCameraOnHex(ctx3d.getCameraState(), ch.pos.q, ch.pos.r);
+        ctx3d.applyCamera();
+        lastFollowedChampKey = `${ch.pos.q},${ch.pos.r}`;
+      }
+    }
     updateCameraStartCenter(ch.pos.q, ch.pos.r);
+
+    // Background chunk pre-generation: keep a buffer of chunks around the
+    // champion materialized so in-refresh reads rarely trigger synchronous
+    // generation. Only re-scheduled when the champion's hex changes; tasks
+    // are spread across frames on the 'bot' speed group.
+    const chKey = `${ch.pos.q},${ch.pos.r}`;
+    if (lastScheduledChampKey !== chKey) {
+      lastScheduledChampKey = chKey;
+      const missing = missingChunksAround(G, ch.pos.q, ch.pos.r, BACKGROUND_BUFFER_CHUNKS);
+      const clock = getClock();
+      missing.forEach(({ cq, cr }, i) => {
+        clock.setTimeout(() => ensureChunk(G, cq, cr), i * BACKGROUND_GEN_SPREAD_MS, 'bot');
+      });
+    }
   }
 
   endMeasure('mapRefresh');
@@ -156,6 +196,8 @@ export function refreshMap() {
 export function resetMapInitialized() {
   minimapInitialized = false;
   lastOccupantKeys = null;
+  lastFollowedChampKey = null;
+  lastScheduledChampKey = null;
   disposeMinimap();
   resetInitFlags();
   resetCameraFocus();

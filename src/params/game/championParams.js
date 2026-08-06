@@ -24,3 +24,10 @@ export const VERDANT_MOVE_BONUS = 1;
 export const MIN_DAILY_MOVES = 1;
 /** Sight-range bonus when champion has the 'lens' artifact. */
 export const ARTIFACT_SIGHT_BONUS = 1;
+/**
+ * Hard render cap for sight, in hexes. No geometry — terrain, water,
+ * features, entities, or fog holes — is ever rendered beyond this distance
+ * from a living human champion, explored or not. This is a render bound only:
+ * it does not raise actual champion sight (base 2 + lens 1 → max 3).
+ */
+export const SIGHT_RENDER_CAP = 5;

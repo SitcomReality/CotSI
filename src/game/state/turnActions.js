@@ -19,10 +19,16 @@ import { processReverie } from './factionAbilities.js';
 import { resolvePendingDig } from './digSystem.js';
 import { processFirstTurnDraft } from './artifactDraft.js';
 import { ARTIFACT_LEDGER_GOLD, ARTIFACT_BANDAGE_HEAL } from '../../params/game/economyParams.js';
+import { evictChunks } from './chunkManager.js';
 
 export function beginTurn(state, champId) {
   const ch = getChampion(state, champId);
   if (!ch || !ch.alive) return;
+
+  // Lazy chunk lifecycle: touch occupancy timestamps and evict far chunks
+  // that have sat with no entities past the grace period.
+  evictChunks(state);
+
   ch.moves = dailyMoves(state, ch);
   ch.lastActionCombat = false;
   // Artifact passives

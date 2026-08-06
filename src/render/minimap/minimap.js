@@ -1,19 +1,18 @@
 /**
  * minimap.js — Public API for the 2D minimap overlay.
  *
- * Orchestrates the four sub-modules: DOM lifecycle, terrain layer, overlay layer,
- * and click handling. Exports the same public API as before.
+ * Orchestrates the three sub-modules: DOM lifecycle, terrain layer, and overlay
+ * layer. The minimap is not interactive — the camera is locked to the champion,
+ * so the window simply follows. Exports the same public API as before.
  */
 
 import { initMinimap as domInit, disposeMinimap as domDispose } from './minimapDom.js';
 import { renderTerrainLayer, resetTerrainCache } from './minimapTerrainLayer.js';
 import { renderOverlayLayer } from './minimapOverlayLayer.js';
-import { handleMinimapClick } from './minimapClickHandler.js';
 import { getSceneContext } from '../hexmap3d/hexMapRenderer.js';
 import { getClock } from '../../shared/clockScheduler.js';
 
 // ---- Module-level shared state ----
-let _getExploredForClick = null;
 let _cachedScale = 0;
 let _cachedOffsetX = 0;
 let _cachedOffsetZ = 0;
@@ -27,16 +26,9 @@ let _lastOverlayFingerprint = null;
 /**
  * Create the minimap DOM element and its two canvases.
  * @param {HTMLElement} mountEl - The #mapMount element
- * @param {number} radius - Map radius (for initial sizing context)
- * @param {function} [getExploredFn] - (gameState) => Set<string> for click handler
  */
-export function initMinimap(mountEl, radius, getExploredFn) {
-  if (getExploredFn) _getExploredForClick = getExploredFn;
-  domInit(mountEl, (mx, my) => {
-    if (_cachedScale > 0) {
-      handleMinimapClick(_lastG, mx, my, _cachedScale, _cachedOffsetX, _cachedOffsetZ, _getExploredForClick);
-    }
-  });
+export function initMinimap(mountEl) {
+  domInit(mountEl);
 
   // Register per-frame overlay redraw so the camera indicator follows
   // interactive pan/zoom without needing a full game-state refresh.
@@ -112,7 +104,6 @@ export function disposeMinimap() {
   }
   domDispose();
   resetTerrainCache();
-  _getExploredForClick = null;
   _cachedScale = 0;
   _cachedOffsetX = 0;
   _cachedOffsetZ = 0;

@@ -41,7 +41,10 @@ export function createInitialState({ seed, radius, biome, biomePalettes, tiles, 
     turnLock: false,
     _rng: rng,
     chunks: new Map(),
+    chunkDeltas: new Map(),
     spatialIndex: new Map(),
     _unripeTrees: new Set(),
+    _exploredSet: null,
+    _exploredBounds: null,
   };
 }

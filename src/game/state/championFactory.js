@@ -3,26 +3,28 @@
  * Orchestrates spawn positioning, base tile placement, and entity
  * construction for all champion factions.
  */
-import { FACTIONS, PALEY_CYCLES } from '../rules/factionData.js';
+import { FACTIONS } from '../rules/factionData.js';
 import { parseKey } from '../../engine/rules/hexGrid.js';
 import { nearestOpenKey } from '../rules/tileQueries.js';
-import { shuffle } from '../../engine/rules/shuffle.js';
-import { spawnTarget } from './spawnPosition.js';
 import { placeBase } from './basePlacer.js';
 import { startMeasure, endMeasure } from '../../dev/performance/index.js';
 import { CHAMPION_STARTING_HP, CHAMPION_MAX_HP, CHAMPION_BASE_MOVE, CHAMPION_SIGHT_RANGE, CHAMPION_STARTING_GOLD, MIN_BASE_DISTANCE_FLOOR, MIN_BASE_DISTANCE_RADIUS_FRACTION } from '../../params/game/championParams.js';
 import { FACTION_COUNT, DEFAULT_POTENCY, OWN_FACTION_POTENCY } from '../../params/game/factionParams.js';
-
 /**
  * Place champions on the map with even radial distribution.
  *
+ * Spawn targets are precomputed by computeSpawnTargets (gameFactory) so the
+ * eager starting region can be generated around them; this pass only runs
+ * placement (base, champion start) against the generated tiles.
+ *
  * @param {Object}  params.tiles      - The generated tile map keyed by "q,r"
- * @param {Array}   params.champions  - Champion configs from the setup screen
+ * @param {Array}   params.champions  - Champion configs in placement (shuffled) order
+ * @param {Array}   params.targets    - Precomputed spawn target per champion (parallel to champions)
  * @param {Function} params.rand      - Seeded RNG function returning [0, 1)
  * @param {number}  params.radius     - Map radius in hexes
  * @returns {{ champions: Array, used: Set<string>, placedBaseKeys: Set<string> }}
  */
-export function createChampions({ tiles, champions, rand, radius }) {
+export function createChampions({ tiles, champions, targets, rand, radius }) {
   startMeasure('placeChamps');
 
   const used = new Set();
@@ -30,29 +32,17 @@ export function createChampions({ tiles, champions, rand, radius }) {
   const N = champions.length;
   const minBaseDist = Math.max(MIN_BASE_DISTANCE_FLOOR, Math.floor(radius * MIN_BASE_DISTANCE_RADIUS_FRACTION));
 
-  // When all 7 factions are present, pick a random Paley cycle to determine
-  // angular positions. Each faction's clockwise neighbour on the map is then
-  // either a faction it beats (CW cycle) or one that beats it (CCW cycle),
-  // chosen 50/50.  Fall back to shuffle-index angles for partial games.
-  let angIdx = null;
-  if (N === FACTION_COUNT) {
-    const cycle = PALEY_CYCLES[Math.floor(rand() * PALEY_CYCLES.length)];
-    const rot = Math.floor(rand() * 7);
-    angIdx = new Array(7);
-    for (let j = 0; j < 7; j++) {
-      angIdx[cycle[(j + rot) % 7]] = j;
-    }
-  }
-
-  // Shuffle for base-placement order variety — does not affect angular positions
-  const shuffledChamps = shuffle([...champions], rand);
+  // Materialized hex keys of the eager starting region. Guarding the spawn
+  // searches with this set keeps them from triggering lazy chunk generation,
+  // so placement cost is bounded by the region, never the map radius.
+  const materialized = new Set(Object.keys(tiles));
 
   const championList = [];
 
   for (let i = 0; i < N; i++) {
-    const entry = shuffledChamps[i];
-    const target = spawnTarget(angIdx ? angIdx[entry.faction] : i, N, rand, radius);
-    const baseKey = placeBase(tiles, target, used, placedBaseKeys, minBaseDist);
+    const entry = champions[i];
+    const target = targets[i];
+    const baseKey = placeBase(tiles, target, used, placedBaseKeys, minBaseDist, materialized);
 
     // Place faction base
     used.add(baseKey);
@@ -61,7 +51,7 @@ export function createChampions({ tiles, champions, rand, radius }) {
     tiles[baseKey].feature = { kind: 'base', faction: entry.faction };
 
     // Place champion start adjacent to base
-    const startKey = nearestOpenKey(tiles, parseKey(baseKey), used, false);
+    const startKey = nearestOpenKey(tiles, parseKey(baseKey), used, false, materialized);
     used.add(startKey);
     const start = parseKey(startKey);
 

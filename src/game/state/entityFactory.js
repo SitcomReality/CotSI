@@ -4,15 +4,18 @@
  * mobs and traders on unclaimed passable tiles.
  */
 import { parseKey } from '../../engine/rules/hexGrid.js';
-import { TERRAIN } from '../rules/terrainTypes.js';
+import { collectSpawnCandidates } from '../rules/tileQueries.js';
 import { getArchetypesByType } from '../rules/archetypes.js';
 import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { traderStock } from '../rules/traderStock.js';
-import { MIN_MOB_COUNT, MOB_COUNT_RADIUS_MULTIPLIER, NUM_TRADERS, TRADER_MOVES_PER_DAY, MAX_SPAWN_SEARCH_RINGS, MOB_HP_VARIANCE_FRACTION } from '../../params/game/spawnParams.js';
+import { MIN_MOB_COUNT, MOB_COUNT_RADIUS_MULTIPLIER, NUM_TRADERS, TRADER_MOVES_PER_DAY, MOB_HP_VARIANCE_FRACTION } from '../../params/game/spawnParams.js';
 import { FACTION_COUNT, MOB_BASE_POTENCY, MOB_OWN_FACTION_POTENCY_BONUS } from '../../params/game/factionParams.js';
 
 /**
  * Create mobs on unclaimed passable tiles.
+ *
+ * Samples from the materialized spawn candidates (collectSpawnCandidates) —
+ * bounded by the generated region, never a full-map scan.
  *
  * @param {Object}   params.tiles  - Tile map keyed by "q,r"
  * @param {Function} params.rand   - Seeded RNG function returning [0, 1)
@@ -22,8 +25,8 @@ import { FACTION_COUNT, MOB_BASE_POTENCY, MOB_OWN_FACTION_POTENCY_BONUS } from '
  */
 export function createMobs({ tiles, rand, used, radius }) {
   const mobArchetypes = getArchetypesByType('mob');
-  const passable = Object.keys(tiles).filter(
-    k => TERRAIN[tiles[k].terrain].passable && !TERRAIN[tiles[k].terrain].avoidSpawn && !tiles[k].feature && !used.has(k)
+  const passable = collectSpawnCandidates(tiles).filter(
+    k => !tiles[k].feature && !used.has(k)
   );
   const mobCount = Math.max(MIN_MOB_COUNT, radius * MOB_COUNT_RADIUS_MULTIPLIER);
   const mobs = [];
@@ -70,17 +73,22 @@ export function createMobs({ tiles, rand, used, radius }) {
 /**
  * Create traders on unclaimed passable tiles.
  *
- * @param {Object}   params.tiles   - Tile map keyed by "q,r"
- * @param {Function} params.rand    - Seeded RNG function returning [0, 1)
- * @param {Set}      params.used    - Set of claimed hex keys (mutated in place)
- * @param {number}   params.champions - Original champion configs array (for targetBaseKey)
+ * Samples from the materialized spawn candidates (collectSpawnCandidates) —
+ * bounded by the generated region, never a full-map scan. `baseKeys` is the
+ * pre-built index of faction base keys (state._baseKeys), so no tile rescan is
+ * needed to pick trader targets.
+ *
+ * @param {Object}   params.tiles    - Tile map keyed by "q,r"
+ * @param {Function} params.rand     - Seeded RNG function returning [0, 1)
+ * @param {Set}      params.used     - Set of claimed hex keys (mutated in place)
+ * @param {Array}    params.baseKeys - Faction base hex keys (for targetBaseKey)
  * @returns {Array} trader entries
  */
-export function createTraders({ tiles, rand, used, champions }) {
+export function createTraders({ tiles, rand, used, baseKeys = [] }) {
   const traders = [];
 
-  const passable = Object.keys(tiles).filter(
-    k => TERRAIN[tiles[k].terrain].passable && !TERRAIN[tiles[k].terrain].avoidSpawn && !tiles[k].feature && !used.has(k)
+  const passable = collectSpawnCandidates(tiles).filter(
+    k => !tiles[k].feature && !used.has(k)
   );
 
   for (let i = 0; i < NUM_TRADERS; i++) {
@@ -91,8 +99,7 @@ export function createTraders({ tiles, rand, used, champions }) {
       id: `tr-${i}`,
       pos: parseKey(key),
       stock: traderStock(rand),
-      targetBaseKey:
-        Object.keys(tiles).filter(k => tiles[k].feature?.kind === 'base')[i % champions.length] || key,
+      targetBaseKey: (baseKeys.length ? baseKeys[i % baseKeys.length] : null) || key,
       movesPerDay: TRADER_MOVES_PER_DAY,
     });
   }
