@@ -11,19 +11,6 @@ here.
 
 ## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
-### 4.5 Connectivity tuning
-
-Spawn clearance and connectivity enforcement are implemented. Tune if needed:
-
-- **`SPAWN_CLEARANCE_RING`** (default 2): reduce to 1 if clearings feel too
-  large, increase to 3 if champions spawn next to impassable terrain.
-- **Bridging terrain-cost weights**: water→marsh: 1, ice→plains: 1, mountain→hill:
-  2, peak→hill: 4, floatingIsland: 100. Adjust if bridging produces unnatural
-  corridors.
-- **Water future-proofing**: when `TERRAIN[water].passable` becomes `true`
-  (variable movement costs), connectivity auto-resolves through water — no
-  bridging needed.
-
 ### 4.6 Frequency & composite weight tuning
 
 Current frequencies target r=21. For other map sizes:
