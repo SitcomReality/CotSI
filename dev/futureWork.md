@@ -28,11 +28,6 @@ concerns — right now the goal is expedient internal testing and iteration.
 
 ## 3. Optional structural follow-ups (from audit §3/§5)
 
-- **Map settings sliders:** the setup screen's height/water/mountains sliders
-  (`hv`/`wt`/`mt`) were removed in the §5 fragility-hardening pass — the new
-  terrain pipeline doesn't consume `mapSettings` multipliers yet. Re-add the
-  sliders when the pipeline has real knobs to expose (note also lives in
-  `gameMechanics.md`).
 - **Epicenter beach lookup chunk-seam inconsistency:** the chunk-local key→terrain
   index is O(1), but epicenter beach classification can differ across chunk seams
   — needs neighbor-chunk data to fully resolve. Documented deferred limitation.
