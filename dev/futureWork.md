@@ -31,8 +31,6 @@ concerns — right now the goal is expedient internal testing and iteration.
 - **`placeholderCypress`** archetype wired into terrain gen + rendered with cone
   stand-ins (`archetypeData/features.js:98`, `biomeDefault.js:31`,
   `biomeUnfinishedLands.js:43`, `featureVisuals.js:66`) — decide: ship or remove.
-- **Rain-shadow stub** still `return 0` (`moistureAdjustment.js:42`) — see §4.4
-  for the spec.
 - **`registerAction('inspect')`** (`bootstrap.js:32`) shows a hint toast instead
   of real inspection.
 - **Trading** remains placeholder per AGENTS.md.
@@ -95,18 +93,6 @@ const warpY = fbm2D(q * 0.02 + 100, r * 0.02 + 100, warpSeed) * 0.5;
 ```
 
 Only if artifacts are visible after all other tuning.
-
-### 4.4 Rain shadow
-
-Stub exists in `src/game/rules/terrainGen/classification/moistureAdjustment.js` —
-`computeRainShadow()` returns 0.
-
-Either implement: sample upwind elevation (wind direction: `{q: -1, r: 0}`, check
-distances 1–3), if upwind average > local elevation by at least 0.2, apply drying
-effect `(elevDiff - 0.2) × 0.3`. Apply in moisture pass:
-`moisture = clamp01(baseMoisture + coastalBoost - rainShadow)`.
-
-Or document as permanently deferred with rationale.
 
 ### 4.5 Connectivity tuning
 
@@ -201,11 +187,11 @@ The large-map roadmap's phases 1–4 (algorithmic decoupling, chunk infrastructu
 chunked rendering, scale-up) are complete; many values in the original (e.g. map
 sizes) are out of date. What remains below is reference and future-scale material.
 
-### 6.1 Infinite world — reference only, NOT to be implemented
+### 6.1 "Infinite" world (not actually infinite — more like "unknowably large")
 
-The current game design (six other players to interact with) isn't mechanically or
-conceptually compatible with truly infinite maps. Kept as reference in case any
-of the following ideas become useful:
+The current game design (six other players to interact with) isn't mechanically
+compatible with truly infinite maps, but the goal is to support extremely large
+maps of any arbitrary size.
 
 - **Chunk manager (load / generate / evict)** — `src/game/state/chunkManager.js`:
   pre-generate a buffer radius (e.g. 3 chunks ahead); evict chunks with no entity
@@ -227,8 +213,10 @@ of the following ideas become useful:
   clock-scheduled chunk generation is sufficient for maps up to R=200.
 - Don't implement LOD unless profiling shows it's needed — InstancedMesh +
   frustum culling handles R=100 comfortably.
-- **NO ACTUAL INFINITY** — massive maps are possible, but players having to find
-  each other is likely part of the design.
+- **NO ACTUAL INFINITY** — create systems with the perspective of "How would it
+  need to work if the map were infinite?" not to actually have infinite maps,
+  but to ensure our mechanics and rendering etc. work with any arbitrarily large
+  map size. Players eventually finding each other and fighting is core to design.
 
 ### 6.3 Still-open scale concerns
 

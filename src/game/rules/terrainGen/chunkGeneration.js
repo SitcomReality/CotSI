@@ -9,9 +9,9 @@ import {
 } from '../../../params/game/worldParams.js';
 import { getArchetype } from '../archetypes.js';
 import { getNoiseConfig, sampleBaseFields } from './fields/sampleBaseFields.js';
-import { computeSlope } from './fields/slopeComputation.js';
+import { computeSlope, clamp01 } from './fields/slopeComputation.js';
 import { isProvisionalWater, provisionalTerrainForRing } from './classification/provisionalWater.js';
-import { adjustMoisture } from './classification/moistureAdjustment.js';
+import { adjustMoisture, computeRainShadow } from './classification/moistureAdjustment.js';
 import { selectBiome } from './classification/biomeSelection.js';
 import { classifyTerrain, resolveElevation } from './classification/terrainClassification.js';
 import { applySupernaturalOverrides } from './placement/epicenterPlacement.js';
@@ -92,20 +92,22 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     }
   }
 
-  // --- Pass 2: Adjust moisture (core hexes, boosted by nearby water) ---
+  // --- Pass 2: Adjust moisture (core hexes, boosted by nearby water, dried by rain shadow) ---
+  // Missing border-ring entries are expected — default to sea level (0), which
+  // is never high enough upwind to cast a shadow.
+  const elevationAt = (nq, nr) => fieldMap.get(coordKey({ q: nq, r: nr }))?.elevation ?? SEA_LEVEL_ELEVATION;
   const adjustedMoistureMap = new Map();
   for (const key of coreSet) {
     const [q, r] = key.split(',').map(Number);
     const fields = fieldMap.get(key);
-    adjustedMoistureMap.set(key, adjustMoisture(q, r, fields.baseMoisture, fieldMap, provisionalWaterSet));
+    const coastal = adjustMoisture(q, r, fields.baseMoisture, fieldMap, provisionalWaterSet);
+    adjustedMoistureMap.set(key, clamp01(coastal - computeRainShadow(q, r, elevationAt)));
   }
 
   // --- Pass 3: Compute slope for core hexes ---
   const slopeMap = new Map();
   for (const key of coreSet) {
     const [q, r] = key.split(',').map(Number);
-    // Missing border-ring entries are expected — default to sea level
-    const elevationAt = (nq, nr) => fieldMap.get(coordKey({ q: nq, r: nr }))?.elevation ?? SEA_LEVEL_ELEVATION;
     slopeMap.set(key, computeSlope(q, r, elevationAt));
   }
 

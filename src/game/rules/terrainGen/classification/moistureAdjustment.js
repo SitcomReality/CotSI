@@ -1,6 +1,12 @@
 import { coordKey, hexesWithinRadius } from '../../../../engine/rules/hexGrid.js';
 import { clamp01 } from '../fields/slopeComputation.js';
-import { WATER_MOISTURE_BOOST } from '../../../../params/game/worldParams.js';
+import {
+  WATER_MOISTURE_BOOST,
+  RAIN_SHADOW_WIND,
+  RAIN_SHADOW_DISTANCES,
+  RAIN_SHADOW_ELEV_THRESHOLD,
+  RAIN_SHADOW_DRYING,
+} from '../../../../params/game/worldParams.js';
 
 /**
  * Boost moisture for land tiles near water.
@@ -28,16 +34,32 @@ export function adjustMoisture(q, r, baseMoisture, fieldMap, provisionalWaterSet
 }
 
 /**
- * Rain shadow drying effect — stub, deferred to Phase G.
+ * Rain shadow drying effect (futureWork.md §4.4).
  *
- * A real rain shadow requires: prevailing wind direction, cross-wind
- * elevation gradient sampling, and a decay function. Returns 0 for now.
+ * Samples elevation upwind of the tile (prevailing wind direction
+ * RAIN_SHADOW_WIND at each distance in RAIN_SHADOW_DISTANCES). If the upwind
+ * average rises at least RAIN_SHADOW_ELEV_THRESHOLD above the local
+ * elevation, the intervening ridge blocks moisture and the tile dries by
+ * (surplus - threshold) × RAIN_SHADOW_DRYING. A missing upwind hex defaults
+ * to sea level, which never casts a shadow. Result is clamped to [0, 1].
  *
- * @param {number}   _q           - Hex q coordinate
- * @param {number}   _r           - Hex r coordinate
- * @param {function} _elevationAt - (q, r) => elevation
- * @returns {number} 0
+ * @param {number}   q           - Hex q coordinate
+ * @param {number}   r           - Hex r coordinate
+ * @param {function} elevationAt - (q, r) => elevation
+ * @returns {number} drying amount in [0, 1]
  */
-export function computeRainShadow(_q, _r, _elevationAt) {
-  return 0;  // deferred to Phase G
+export function computeRainShadow(q, r, elevationAt) {
+  let upwindTotal = 0;
+  for (const distance of RAIN_SHADOW_DISTANCES) {
+    upwindTotal += elevationAt(
+      q + RAIN_SHADOW_WIND.dq * distance,
+      r + RAIN_SHADOW_WIND.dr * distance
+    );
+  }
+  const upwindAverage = upwindTotal / RAIN_SHADOW_DISTANCES.length;
+  const elevationDiff = upwindAverage - elevationAt(q, r);
+  if (elevationDiff < RAIN_SHADOW_ELEV_THRESHOLD) {
+    return 0;
+  }
+  return clamp01((elevationDiff - RAIN_SHADOW_ELEV_THRESHOLD) * RAIN_SHADOW_DRYING);
 }

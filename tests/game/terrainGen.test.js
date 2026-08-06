@@ -9,6 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateTiles } from '../../src/game/rules/terrainGen/flatGeneration.js';
 import { generateChunkTiles } from '../../src/game/rules/terrainGen/chunkGeneration.js';
+import { computeRainShadow } from '../../src/game/rules/terrainGen/classification/moistureAdjustment.js';
 import { assignRiverFlows } from '../../src/game/rules/terrainGen/postProcess/waterRules.js';
 import { TERRAIN } from '../../src/game/rules/terrainTypes.js';
 import { TERRAIN_ELEVATION } from '../../src/params/render/terrainParams.js';
@@ -352,4 +353,27 @@ test('assignRiverFlows: hex delta points at the next path tile; tail gets none',
   };
   assignRiverFlows(rocky, [[{ q: 0, r: 0 }, { q: 1, r: 0 }, { q: 2, r: 0 }]]);
   assert.equal(rocky['1,0'].riverFlow, undefined, 'impassable path tile gets no flow');
+});
+
+// ---------------------------------------------------------------------------
+// Rain shadow (classification/moistureAdjustment.js — futureWork.md §4.4)
+// ---------------------------------------------------------------------------
+
+test('rain shadow: upwind ridge ≥0.2 higher dries the leeward tile', () => {
+  // Local elevation 0.5; upwind q<0 ridge at 0.8 → diff 0.3 → (0.3−0.2)×0.3 = 0.03.
+  const elevationAt = (q) => (q < 0 ? 0.8 : 0.5);
+  const drying = computeRainShadow(0, 0, elevationAt);
+  assert.ok(Math.abs(drying - 0.03) < 1e-9, `expected ~0.03 drying, got ${drying}`);
+});
+
+test('rain shadow: upwind rise under the 0.2 threshold casts no shadow', () => {
+  const elevationAt = (q) => (q < 0 ? 0.6 : 0.5);
+  assert.equal(computeRainShadow(0, 0, elevationAt), 0);
+});
+
+test('rain shadow: shadow depends on the upwind average over distances 1–3', () => {
+  // A ridge only at distance 1 averages down to 0.63 with sea-level neighbors
+  // at distances 2–3 → diff 0.13 < 0.2 → no shadow from a single near peak.
+  const elevationAt = (q) => (q === -1 ? 0.9 : 0.5);
+  assert.equal(computeRainShadow(0, 0, elevationAt), 0);
 });

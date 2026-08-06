@@ -29,6 +29,15 @@ export const OCEAN_EDGE_BUFFER = 0.5;
 /** Moisture added per adjacent water tile (coastal boost, radius-2 scan). */
 export const WATER_MOISTURE_BOOST = 0.03;
 
+/** Rain shadow (computeRainShadow): prevailing wind direction (upwind offset per distance step). */
+export const RAIN_SHADOW_WIND = { dq: -1, dr: 0 };
+/** Rain shadow: distances (in hexes) sampled upwind. */
+export const RAIN_SHADOW_DISTANCES = [1, 2, 3];
+/** Rain shadow: minimum upwind-average elevation surplus before drying applies. */
+export const RAIN_SHADOW_ELEV_THRESHOLD = 0.2;
+/** Rain shadow: drying factor applied to the elevation surplus above the threshold. */
+export const RAIN_SHADOW_DRYING = 0.3;
+
 /** Base knot amount before variation. */
 export const KNOT_BASE_AMOUNT = 2;
 /** Scale factor for knot-amount variation formula. */
