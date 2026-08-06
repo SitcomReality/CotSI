@@ -85,6 +85,7 @@ window.__gameState; // same object as G
 ## The User Wants To Help
 
 If there are questions or ambiguities about design intent, always ask the user for clarification. If the user can provide feedback by testing in-game (including performance profiling or pasting any console logs added for debugging), they're happy to help.
+Always talk to the user in English.
 
 ---
 

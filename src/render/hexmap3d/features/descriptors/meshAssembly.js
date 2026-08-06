@@ -1,0 +1,46 @@
+/**
+ * meshAssembly.js — Assembles descriptor instance records into InstancedMeshes.
+ *
+ * The final leg of the descriptor pipeline: descriptor + records →
+ * one InstancedMesh per part geometry, exactly like the per-kind builders
+ * (e.g. buildTreeMeshes groups records by geo key). Records carry numeric
+ * colors; here they become THREE.Color instance colors.
+ */
+import * as THREE from '../../../../vendor/three.module.js';
+import { buildInstanced } from '../meshBuilder.js';
+import { geometryForShape, materialForPart } from './shapeFactories.js';
+
+/**
+ * Build one InstancedMesh per part geometry from collected records.
+ *
+ * @param {object} descriptor - normalized descriptor
+ * @param {object[]} records  - instance records from recordsForDescriptor
+ * @param {string} [meshPrefix] - prefix for mesh names (e.g. the object id)
+ * @returns {THREE.InstancedMesh[]} one mesh per part with any instances
+ */
+export function buildDescriptorMeshes(descriptor, records, meshPrefix = 'descriptor') {
+  const groups = {};
+  for (const record of records) {
+    (groups[record.partId] ?? (groups[record.partId] = [])).push(record);
+  }
+
+  const partById = new Map();
+  for (const part of descriptor.parts) partById.set(part.id, part);
+  for (const variant of descriptor.variants ?? []) {
+    for (const part of variant.parts) partById.set(part.id, part);
+  }
+
+  const results = [];
+  for (const [partId, instances] of Object.entries(groups)) {
+    const part = partById.get(partId);
+    if (!part || instances.length === 0) continue;
+
+    const geometry = geometryForShape(part.shape, part.params);
+    const material = materialForPart(descriptor, part);
+    const converted = instances.map((r) => (
+      r.color !== undefined ? { ...r, color: new THREE.Color(r.color) } : r
+    ));
+    results.push(buildInstanced(geometry, material, converted, `${meshPrefix}-${partId}`));
+  }
+  return results;
+}

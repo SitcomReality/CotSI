@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CotSI — Geometry Editor</title>
+  <link rel="stylesheet" href="./geometryEditor/styles/index.css">
+</head>
+<body>
+  <div id="geometry-root">
+    <!-- Controls panel -->
+    <div id="controls">
+      <h2>CotSI Geometry Editor</h2>
+
+      <div class="control-group">
+        <h3>Object</h3>
+        <div class="control-row">
+          <label for="object-select">Design</label>
+          <select id="object-select"></select>
+        </div>
+        <div class="control-row">
+          <label>
+            <input type="checkbox" id="occupied-check">
+            Occupied — center claimed
+          </label>
+        </div>
+        <div class="control-row">
+          <button id="reroll-btn">↻ Re-roll variation</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3>Edit Design</h3>
+        <div id="object-edit"></div>
+      </div>
+
+      <div class="control-group">
+        <h3>Parts</h3>
+        <div id="parts-edit"></div>
+      </div>
+
+      <div class="control-group">
+        <h3>Selected Part</h3>
+        <div id="part-inspector"></div>
+      </div>
+
+      <div class="control-group">
+        <h3>Project</h3>
+        <div class="control-row">
+          <button id="download-btn">⬇ Download JSON</button>
+        </div>
+        <div class="control-row">
+          <label for="load-file">Load JSON</label>
+          <input type="file" id="load-file" accept=".json,.txt">
+        </div>
+        <div id="load-error" class="info"></div>
+      </div>
+
+      <div class="control-group">
+        <h3>Preview</h3>
+        <div class="control-row hint">Drag to orbit · scroll to zoom</div>
+        <div id="info" class="info">Loading…</div>
+      </div>
+    </div>
+
+    <!-- 3D preview area -->
+    <div id="viewport">
+      <canvas id="preview-canvas"></canvas>
+    </div>
+  </div>
+
+  <script type="module" src="./geometryEditor/ui/main.js"></script>
+</body>
+</html>

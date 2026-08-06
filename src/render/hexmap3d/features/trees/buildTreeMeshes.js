@@ -18,17 +18,22 @@ import { collectInstances, buildInstanced } from '../meshBuilder.js';
 import { treeRecordsForTile, CLUSTER_TERRAINS } from './treeRecordsForTile.js';
 import { FRUIT_TREE_COLORS } from '../../../../params/render/geometryParams.js';
 
-const TREE_KINDS = new Set(['tree', 'fruitTree', 'largeTree']);
 const TRUNK_COLOR = 0x8B5E3C;
+const PAINFOREST_BIOME = 'biome_painforest';
 
 /**
- * A tile draws tree meshes when it carries a tree-family feature (solitary or
- * fruit tree) or when it's a woods tile with no feature — its default grove.
- * Any other feature (knot, base, slab…) claims the tile, so no grove.
+ * A tile draws legacy tree meshes for the two treatments still on the
+ * hard-coded builders (see treeRecordsForTile.js): a fruitTree feature on any
+ * terrain, and Painforest gnarled groves (forest/denseForest woods in the
+ * Painforest biome — a feature claim just disperses the grove). Everything
+ * else — non-Painforest groves, solitary trees, and the migrated
+ * simple/knot/mountain/hill content — resolves through descriptor data
+ * (descriptors/gameBuilder.js).
  */
 function isTreeTile(tile) {
-  if (tile.feature) return TREE_KINDS.has(tile.feature.kind);
-  return CLUSTER_TERRAINS.has(tile.terrain);
+  const kind = tile.feature?.kind;
+  if (kind === 'fruitTree') return true;
+  return CLUSTER_TERRAINS.has(tile.terrain) && tile.biomeId === PAINFOREST_BIOME;
 }
 
 function collectTreeInstances(tilesOrArray, visible, occupants) {

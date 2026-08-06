@@ -11,7 +11,7 @@
 - Map generation: `src/game/rules/terrainGen/` — chunked: `terrainGen/chunkGeneration.js`, flat: `terrainGen/flatGeneration.js` (terrain types in `src/game/rules/terrainTypes.js`)
 - Hex math: `src/engine/rules/hexGrid.js`
 - Feature geometry: `src/render/hexmap3d/features/geometries/` (one file per feature type)
-- Feature meshes: `src/render/hexmap3d/features/` (trees/, mountainMeshes.js, etc.)
+- Feature meshes: `src/render/hexmap3d/features/descriptors/` (descriptor data + generic builder — new simple features are added as data), legacy builders in `features/trees/`
 - Visibility/fog: `src/game/state/fogOfWar.js`
 
 ## Change Win Conditions

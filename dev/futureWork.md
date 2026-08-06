@@ -9,7 +9,7 @@ here.
 
 ---
 
-## 2. Terrain-gen: design notes for future reference
+## 0. Terrain-gen: design notes for future reference
 
 - **Calibration is re-runnable** — `dev/analysis.html` has a "Derive Thresholds"
   button and "Run Tests" button. Any change to noise output distributions
@@ -33,13 +33,13 @@ here.
   in-browser via "Run Batch Analysis", with a distribution histogram view +
   threshold overlay lines. All browser-based — no Node.js dependency.
 
-## 3. Large-map: reference & future scale (from largeMapRoadmap.md)
+## 1. Large-map: reference & future scale (from largeMapRoadmap.md)
 
 The large-map roadmap's phases 1–4 (algorithmic decoupling, chunk infrastructure,
 chunked rendering, scale-up) are complete; many values in the original (e.g. map
 sizes) are out of date. What remains below is reference and future-scale material.
 
-### 6.1 "Infinite" world (not actually infinite — more like "unknowably large")
+### 1.1 "Infinite" world (not actually infinite — more like "unknowably large")
 
 The current game design (six other players to interact with) isn't mechanically
 compatible with truly infinite maps, but the goal is to support extremely large
@@ -57,7 +57,7 @@ maps of any arbitrary size.
   gradients and away from recently visited areas; victory conditions may need
   rethinking.
 
-### 6.2 What NOT to do (yet)
+### 1.2 What NOT to do (yet)
 
 - Don't premature-optimise the minimap — it works for now; chunk-based rendering
   naturally limits what it needs to draw.
@@ -70,7 +70,7 @@ maps of any arbitrary size.
   but to ensure our mechanics and rendering etc. work with any arbitrarily large
   map size. Players eventually finding each other and fighting is core to design.
 
-### 6.3 Still-open scale concerns
+### 1.3 Still-open scale concerns
 
 - **Spawn placement scans** — `nearestOpenKey`/`nearestOpenMultiRing`
   (`src/game/rules/tileQueries.js:18/55`, used by `championFactory.js` and
@@ -90,3 +90,30 @@ maps of any arbitrary size.
   infinite map" still needs terrain-gen's radius semantics removed (`worldShape`
   falloff, noise config scaled by 1/radius, latitude term, distance clamp) plus
   camera-driven chunk streaming (see §3.1).
+
+---
+
+## 2. Geometry editor — deferred content (descriptor migration gaps)
+
+The descriptor pipeline is live: the game's feature/decor meshes now resolve
+through `features/descriptors/` (data + recordBuilder + gameBuilder), and the
+editor (`dev/geometryEditor.html`) edits the same data. Migrated to descriptor
+data (see `src/render/hexmap3d/features/descriptors/data/`): all simple feature
+archetypes, tree groves, solitary + elder trees, hill mounds, mountains, knots.
+Reported parity gaps (stop-rule report) — the only content still on hard-coded
+builders (`features/trees/`):
+
+- **fruitTree** — the procedural fruit tree (`fruitTreeRecords.js`) grows 2–3
+  snaking trunk segments, forked branches, and fruit, all per-tree hash-driven.
+  Beyond the static-parts descriptor model; keeps its hard-coded builder. To
+  migrate: add procedural/part-instancing to the descriptor model.
+- **painforest groves** — gnarled twisted trees (`gnarledTreeRecords.js`) replace
+  grove members in the Painforest biome. Keeps its hard-coded builder until
+  biome-driven variant selection or procedural parts exist.
+- **Mountain variant roll** — descriptors use the generic hash variant roll
+  (50/50 classic/offpeak); per-tile assignments may differ from the legacy
+  MOUNTAIN_HASH_SEEDS roll. The range reads identically.
+- **Tree canopy anchor** — descriptor canopies use a fixed lift; the legacy
+  builders tie the canopy bottom to the trunk top via the per-tree stretch draw.
+  Canopy sits ~0.1 world units higher/lower relative to the trunk as stretch
+  varies — visually identical at game scale.

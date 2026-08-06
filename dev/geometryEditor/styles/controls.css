@@ -1,0 +1,132 @@
+/* controls.css — editor control panel styling */
+#controls h2 {
+  font-size: 15px;
+  margin-bottom: 14px;
+  color: #f0f4f8;
+}
+
+.control-group {
+  margin-bottom: 18px;
+}
+
+.control-group h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8fa0b5;
+  margin-bottom: 8px;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.control-row label {
+  flex: 1;
+  font-size: 13px;
+}
+
+.control-row.hint {
+  color: #7c8a9c;
+  font-size: 12px;
+}
+
+select, button {
+  font-size: 13px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid #3a4656;
+  background: #232c38;
+  color: #d8dee8;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2c3745;
+}
+
+.info {
+  font-size: 12px;
+  color: #9fb0c4;
+  white-space: pre-line;
+}
+
+/* ── Editor panel — object/part editing ── */
+
+#object-edit input[type="number"],
+#part-inspector input[type="number"] {
+  width: 84px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #3a4656;
+  background: #232c38;
+  color: #d8dee8;
+  font-size: 12px;
+}
+
+#object-edit input[type="color"] {
+  width: 44px;
+  height: 26px;
+  padding: 1px;
+  border: 1px solid #3a4656;
+  border-radius: 4px;
+  background: #232c38;
+}
+
+#object-edit select,
+#parts-edit select,
+#part-inspector select {
+  max-width: 150px;
+}
+
+.part-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  margin-bottom: 4px;
+  border: 1px solid #2c3644;
+  border-radius: 4px;
+  background: #212a35;
+  cursor: pointer;
+}
+
+.part-row.selected {
+  border-color: #5a7a4a;
+  background: #26342a;
+}
+
+.part-label {
+  flex: 1;
+  font-size: 12px;
+}
+
+.part-row button {
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+.part-row button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.section-title {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8fa0b5;
+}
+
+.hint {
+  font-size: 12px;
+  color: #7c8a9c;
+}

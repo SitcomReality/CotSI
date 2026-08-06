@@ -211,22 +211,23 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `features/baseMeshes.js` | Faction base meshes (tower + faction decoration) |
 | `features/decorEmphasis.js` | De-emphasis state computation (dispersed/sunk/hidden) for displaced decorations |
 | `features/featureGeometries.js` | Feature-geometry barrel |
-| `features/featureMeshes.js` | Feature mesh barrel: dedicated builders + simpleFeatureMeshes |
-| `features/featureVisuals.js` | Visual registry: kind → geometry, material, scale |
-| `features/hillDecorMeshes.js` | Hill mound decoration meshes (sink de-emphasis) |
-| `features/knotMeshes.js` | Knot (resource node) meshes |
+| `features/featureMeshes.js` | Feature mesh barrel: legacy tree builder + descriptor-driven builder + bases |
 | `features/meshBuilder.js` | Shared InstancedMesh iteration + build utilities (per-instance scale/lean/color + tree-frame placement/orientation) |
-| `features/mountainMeshes.js` | Mountain cluster meshes |
-| `features/simpleFeatureMeshes.js` | Generic builder for features registered in FEATURE_VISUALS |
-| `features/trees/buildTreeMeshes.js` | Tree collection + InstancedMesh assembly; public entry points |
-| `features/trees/clusterTreeRecords.js` | Cluster (woods/forest) grove record generation — the terrain decoration on every forest/denseForest tile |
+| `features/decorEmphasis.js` | De-emphasis state computation (dispersed/sunk/hidden) for displaced decorations |
+| `features/descriptors/schema.js` | Descriptor JSON schema: shapes, cluster/size ranges, emphasis, validation + normalization |
+| `features/descriptors/recordBuilder.js` | Pure descriptor + tile → instance records (hash-driven determinism) |
+| `features/descriptors/shapeFactories.js` | Shape → THREE geometry + material factories |
+| `features/descriptors/meshAssembly.js` | Descriptor + records → one InstancedMesh per part geometry |
+| `features/descriptors/gameBuilder.js` | Game-side tile → descriptor resolution (features + grove/hill decor) + assembly |
+| `features/descriptors/data/` | Migrated descriptor data: simpleFeatures, trees, hills, mountains, knots |
+| `features/trees/buildTreeMeshes.js` | Legacy tree collection + InstancedMesh assembly (fruit tree, Painforest groves) |
+| `features/trees/clusterTreeRecords.js` | Cluster (woods/forest) grove record generation — legacy Painforest gnarled groves |
 | `features/trees/fruitTreeRecords.js` | Forest-family fruit tree records (terrain canopy + ripening fruit) |
 | `features/trees/gnarledTreeRecords.js` | Gnarled tree records (Painforest groves; the old fruit-tree geometry, parameterized) |
 | `features/trees/index.js` | Tree module barrel (re-exports buildTreeMeshes, buildChunkTreeMeshes) |
-| `features/trees/solitaryTreeRecords.js` | Solitary landmark tree record generation |
 | `features/trees/treeHash.js` | Deterministic per-tile / per-tree hashing |
 | `features/trees/treeParts.js` | Shared tree-part record + color helpers |
-| `features/trees/treeRecordsForTile.js` | Per-tile tree treatment dispatcher |
+| `features/trees/treeRecordsForTile.js` | Legacy per-tile tree dispatch (fruit tree + Painforest groves only) |
 | `features/trees/treeVariants.js` | Canopy variant selection + per-variant geometry |
 | `features/geometries/baseGeometries.js` | Base-terrain geometry constants and factories |
 | `features/geometries/hillDecorGeometries.js` | Hill mound decoration geometry |
