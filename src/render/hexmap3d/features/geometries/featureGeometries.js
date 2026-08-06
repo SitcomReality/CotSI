@@ -135,16 +135,6 @@ export function getObeliskGeo() {
 }
 
 // =========================================================================
-// Cypress — tall cone for placeholder cypress
-// =========================================================================
-
-let cypressGeo = null;
-export function getCypressGeo() {
-  if (!cypressGeo) { cypressGeo = new THREE.ConeGeometry(0.12, 0.22, 6); }
-  return cypressGeo;
-}
-
-// =========================================================================
 // Bigtree — large tree cone for peridexion tree
 // =========================================================================
 

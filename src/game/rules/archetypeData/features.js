@@ -95,14 +95,6 @@ defineArchetype('feature_foolsFire', {
   visual: { scale: 0.7 },
 });
 
-defineArchetype('feature_placeholderCypress', {
-  type: 'feature',
-  name: 'Placeholder Cypress',
-  archetypeShape: 'tree',
-  tags: ['unfinished'],
-  visual: { scale: 1.0 },
-});
-
 defineArchetype('feature_vegetableLamb', {
   type: 'feature',
   name: 'Vegetable Lamb of Tartary',

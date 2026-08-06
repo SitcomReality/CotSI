@@ -43,7 +43,6 @@ export {
   getVentGeo,
   getRingGeo,
   getObeliskGeo,
-  getCypressGeo,
   getBigtreeGeo,
   getSnowpersonGeo,
 } from './featureGeometries.js';

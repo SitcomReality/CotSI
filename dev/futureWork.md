@@ -28,9 +28,6 @@ concerns — right now the goal is expedient internal testing and iteration.
 
 ## 2. Placeholders that look like features (deferred — from audit §6)
 
-- **`placeholderCypress`** archetype wired into terrain gen + rendered with cone
-  stand-ins (`archetypeData/features.js:98`, `biomeDefault.js:31`,
-  `biomeUnfinishedLands.js:43`, `featureVisuals.js:66`) — decide: ship or remove.
 - **`registerAction('inspect')`** (`bootstrap.js:32`) shows a hint toast instead
   of real inspection.
 - **Trading** remains placeholder per AGENTS.md.

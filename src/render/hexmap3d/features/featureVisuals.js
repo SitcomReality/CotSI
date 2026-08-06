@@ -18,7 +18,6 @@ import {
   getSlabGeo,
   getDiscGeo,
   getOrbGeo,
-  getCypressGeo,
   getPlantGeo,
   getMonumentGeo,
   getBigtreeGeo,
@@ -63,12 +62,6 @@ export const FEATURE_VISUALS = {
     material: () => toonMaterial({ color: 0x40D0E0 }),
     meshName: 'feature-orb',
     scale: 0.7,
-  },
-  placeholderCypress: {
-    geometry: getCypressGeo,
-    material: () => toonMaterial({ color: 0x3A5A2A }),
-    meshName: 'feature-cypress',
-    scale: 1.0,
   },
   vegetableLamb: {
     geometry: getPlantGeo,

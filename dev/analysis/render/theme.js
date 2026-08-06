@@ -77,7 +77,6 @@ export const FEATURES = {
   palimpsestSlab:      { radius: 2.0, fill: '#c8c0a8' },
   volvelle:            { radius: 2.0, fill: '#d4b830' },
   foolsFire:           { radius: 1.5, fill: '#40d0e0' },
-  placeholderCypress:  { radius: 1.8, fill: '#3a5a2a' },
   vegetableLamb:       { radius: 1.8, fill: '#c0d8a0' },
   scoriaRose:          { radius: 1.5, fill: '#e87030' },
   waxbloom:            { radius: 1.5, fill: '#a0d8e8' },
