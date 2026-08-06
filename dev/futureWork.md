@@ -11,19 +11,6 @@ here.
 
 ## 2. Terrain-gen: tuning knobs & optional polish (from remaining_work.md)
 
-### 4.3 Domain warping (optional)
-
-If blob/camouflage noise artifacts persist after frequency tuning, apply
-low-amplitude domain warping to elevation coordinates:
-
-```js
-const warpX = fbm2D(q * 0.02, r * 0.02, warpSeed) * 0.5;   // 0.5–1.5 hex units
-const warpY = fbm2D(q * 0.02 + 100, r * 0.02 + 100, warpSeed) * 0.5;
-// Use warped coords for main elevation FBM
-```
-
-Only if artifacts are visible after all other tuning.
-
 ### 4.5 Connectivity tuning
 
 Spawn clearance and connectivity enforcement are implemented. Tune if needed:
