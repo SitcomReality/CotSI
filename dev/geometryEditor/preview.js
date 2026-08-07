@@ -21,10 +21,14 @@ let renderer = null;
 let scene = null;
 let camera = null;
 let objectGroup = null;
+let floorGroup = null;
 let dirty = true;
 
 /** Orbit state around TARGET: theta (yaw), phi (pitch), radius (zoom). */
 const orbit = { theta: Math.PI / 4, phi: Math.PI / 3.4, radius: 3.6 };
+
+/** Side length of the toggleable y=0 floor plane (world units). */
+const FLOOR_SIZE = 6;
 
 /**
  * Set up the preview scene on the given canvas element.
@@ -44,6 +48,8 @@ export function createPreview(canvas) {
   objectGroup = new THREE.Group();
   scene.add(objectGroup);
 
+  addFloorReference(scene);
+
   bindOrbit(canvas);
   resize();
   window.addEventListener('resize', resize);
@@ -54,6 +60,17 @@ export function createPreview(canvas) {
 /** Mark the scene dirty — renders on the next frame. */
 export function requestRender() {
   dirty = true;
+}
+
+/**
+ * Show or hide the y=0 floor reference plane. Useful for spotting features
+ * that are unintentionally buried below the ground surface.
+ * @param {boolean} visible
+ */
+export function setFloorVisible(visible) {
+  if (!floorGroup) return;
+  floorGroup.visible = visible;
+  requestRender();
 }
 
 /**
@@ -167,4 +184,37 @@ function addFloor(target) {
     new THREE.LineBasicMaterial({ color: 0x3a4a5c, transparent: true, opacity: 0.6 }),
   );
   target.add(ring);
+}
+
+/**
+ * Toggleable y=0 floor reference: an opaque plane plus grid lines. Hidden by
+ * default; setFloorVisible() controls it. The plane occludes anything on the
+ * far side (depth-tested, opaque), so viewed from above only the parts of an
+ * object that poke above ground are visible — anything below the floor is
+ * hidden behind the plane.
+ */
+function addFloorReference(target) {
+  floorGroup = new THREE.Group();
+  floorGroup.name = 'floor-reference';
+
+  // Opaque plane fill at y=0 — the ground surface. Depth writing stays on so
+  // geometry on the far side of the plane is obscured.
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(FLOOR_SIZE, FLOOR_SIZE),
+    new THREE.MeshBasicMaterial({
+      color: 0x4a6a8a,
+      side: THREE.DoubleSide,
+    }),
+  );
+  plane.rotation.x = -Math.PI / 2;
+  plane.position.y = -0.002;
+  floorGroup.add(plane);
+
+  // Grid lines just above the plane — the clear ground-level reference.
+  const grid = new THREE.GridHelper(FLOOR_SIZE, FLOOR_SIZE, 0x6a8aaa, 0x3a4a5c);
+  grid.position.y = 0.005;
+  floorGroup.add(grid);
+
+  floorGroup.visible = false;
+  target.add(floorGroup);
 }

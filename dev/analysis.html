@@ -64,25 +64,6 @@
         </div>
       </section>
 
-      <section class="control-group">
-        <h2>View</h2>
-        <div class="control-row">
-          <label for="view-mode">Mode</label>
-          <select id="view-mode" autocomplete="off">
-            <option value="terrain">Terrain</option>
-            <option value="biome">Biome regions</option>
-            <option value="elevation">Elevation (height)</option>
-            <option value="moisture">Moisture (adjusted)</option>
-            <option value="baseMoisture">Moisture (raw base)</option>
-            <option value="distributions">Distributions (histograms)</option>
-            <option value="density">Feature Density</option>
-            <option value="passability">Passability</option>
-            <option value="rivers">Rivers</option>
-            <option value="blank">No terrain</option>
-          </select>
-        </div>
-      </section>
-
       <details class="control-group collapsible" id="batch-panel">
         <summary>
           <span class="summary-title">Batch Analysis</span>
@@ -149,8 +130,25 @@
       <div id="loading">Generating...</div>
     </main>
 
-    <!-- Right sidebar: legend + entity toggles -->
+    <!-- Right sidebar: view mode + legend + entity toggles -->
     <aside id="sidebar">
+      <section class="sidebar-section">
+        <div class="control-row">
+          <select id="view-mode" autocomplete="off">
+            <option value="standard">Standard</option>
+            <option value="terrain">Terrain</option>
+            <option value="biome">Biome regions</option>
+            <option value="elevation">Elevation (height)</option>
+            <option value="moisture">Moisture (adjusted)</option>
+            <option value="baseMoisture">Moisture (raw base)</option>
+            <option value="distributions">Distributions (histograms)</option>
+            <option value="density">Feature Density</option>
+            <option value="passability">Passability</option>
+            <option value="rivers">Rivers</option>
+            <option value="blank">No terrain</option>
+          </select>
+        </div>
+      </section>
       <section class="sidebar-section">
         <h2>Legend</h2>
         <div id="legend">Generate a map to see the legend.</div>

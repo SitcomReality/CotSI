@@ -106,8 +106,10 @@ export const FEATURES = {
 export const RIVER_BOOST_RADIUS = 1;
 
 export const RIVER = {
-  /** Semi-transparent blue fill for moisture-boosted tiles (halo). */
-  boostColor: 'rgba(64, 160, 255, 0.12)',
+  /** Semi-transparent blue fill for moisture-boosted tiles (halo).
+   *  Drawn over the terrain fill, so the opacity must be high enough to read
+   *  against the single-biome terrain colours. */
+  boostColor: 'rgba(30, 130, 255, 0.40)',
   /** Brighter blue fill for river-path tiles. */
   pathColor: 'rgba(30, 120, 220, 0.7)',
 };

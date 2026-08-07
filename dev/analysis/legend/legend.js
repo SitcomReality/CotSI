@@ -68,7 +68,7 @@ export function paletteToCss(rgb) {
 /**
  * Update the legend DOM element for the given view mode.
  *
- * @param {'terrain'|'biome'|'elevation'|'moisture'|'baseMoisture'|'density'|'passability'|'rivers'|'blank'} mode
+ * @param {'standard'|'terrain'|'biome'|'elevation'|'moisture'|'baseMoisture'|'density'|'passability'|'rivers'|'blank'} mode
  */
 export function updateLegend(mode) {
   if (!els.legend) return;
@@ -100,7 +100,7 @@ export function updateLegend(mode) {
     );
     els.legend.innerHTML = buildBucketLegend(DENSITY_COLOR_STOPS, tiles, densityField);
 
-  } else if (mode === 'terrain') {
+  } else if (mode === 'terrain' || mode === 'standard') {
     const palette = S.lastResult.biomeDef?.palette || null;
     els.legend.innerHTML = buildTerrainLegend(tiles, palette);
 

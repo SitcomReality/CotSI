@@ -24,7 +24,7 @@ import { CULL_MARGIN, RIVER, RIVER_BOOST_RADIUS } from './theme.js';
  * @param {number} canvasWidth
  * @param {number} canvasHeight
  * @param {number} dpr             — device pixel ratio
- * @param {string} [viewMode]      — 'terrain' | 'biome' | 'elevation' | 'moisture' | 'passability' | 'blank'
+ * @param {string} [viewMode]      — 'standard' | 'terrain' | 'biome' | 'elevation' | 'moisture' | 'passability' | 'rivers' | 'blank'
  */
 export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, canvasHeight, dpr, viewMode) {
   const size = HEX_SIZE * camera.zoom;
@@ -77,7 +77,7 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
     // Frustum cull
     if (p.x < vpLeft || p.x > vpRight || p.y < vpTop || p.y > vpBottom) continue;
 
-    const fillColor = resolveFillColor(tile, viewMode, palettes);
+    const fillColor = resolveFillColor(tile, viewMode, palettes, options.defaultPalette);
 
     drawHexPath(ctx, p.x, p.y, HEX_SIZE * 0.95);
     ctx.fillStyle = fillColor;

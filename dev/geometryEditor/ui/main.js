@@ -7,7 +7,7 @@
 import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
 import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf } from '../sampleObjects.js';
-import { createPreview, showRecords } from '../preview.js';
+import { createPreview, showRecords, setFloorVisible } from '../preview.js';
 import { bindEditorPanel, refreshEditorPanel } from './editorPanel.js';
 import { recordsForDescriptor, recordsForEntity } from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
 import { ENTITY_KINDS, entityForSelection } from '../entityView.js';
@@ -185,6 +185,10 @@ function bindControls() {
   els.rerollBtn.addEventListener('click', () => {
     S.tileH = (S.tileH * 17 + 5) % 89;
     rebuild();
+  });
+
+  els.floorCheck.addEventListener('change', () => {
+    setFloorVisible(els.floorCheck.checked);
   });
 }
 

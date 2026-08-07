@@ -45,6 +45,9 @@ function getOptions() {
     showBases: els.toggleBases.checked,
     showFeatures: els.toggleFeatures.checked,
     palettes,
+    /** Default biome palette (or null) — the single-biome colour scheme used
+     *  by the terrain and rivers views, mirroring the legend swatches. */
+    defaultPalette: result?.biomeDef?.palette || null,
   };
 }
 
