@@ -101,7 +101,7 @@ export function spawnFeature(roll, terrain, density, features, options = {}) {
       case 'tree':
         return { kind: rule.kind, density };
       case 'fruitTree':
-        return { kind: 'fruitTree', nextFruitDay: 1, ripe: true, density };
+        return { kind: 'fruitTree', nextRewardDay: 1, ripe: true, density };
       case 'knot':
         return {
           kind: 'knot', mined: false, density,

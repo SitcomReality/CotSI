@@ -75,6 +75,7 @@ export function createChampions({ tiles, champions, targets, rand, radius }) {
       artifact: null,
       armor: 'worn linen',
       weapon: 'ash staff',
+      buffs: { attack: 0, defense: 0 },
       offeredArtifact: false,
       pendingDig: false,
       dispatchLedger: [],

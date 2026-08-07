@@ -50,7 +50,7 @@ test('resolvePendingDig: relic branch bumps relics, clears pending, logs', () =>
   assert.equal(champ.relics, 1);
   assert.equal(state.logs[0].category, 'economy');
   assert.ok(state.logs[0].plainText.includes('a relic'));
-  assert.equal(state.reward, undefined, 'bots get no reward modal');
+  assert.equal(state.reward, null, 'bots get no reward modal');
 });
 
 test('resolvePendingDig: human relic dig sets the treasure reward + ledger', () => {
@@ -86,7 +86,7 @@ test('resolvePendingDig: potency branch gains a random faction potency', () => {
   assert.equal(champ.relics, 0);
   assert.equal(champ.potencies[3], 2, 'potency 3 bumped (floor 0.5 × 7)');
   assert.ok(state.logs[0].plainText.includes('Archive potency'));
-  assert.equal(state.reward, undefined);
+  assert.equal(state.reward, null);
 });
 
 test('resolvePendingDig: gold branch grants base + roll + day scaling', () => {
@@ -98,7 +98,7 @@ test('resolvePendingDig: gold branch grants base + roll + day scaling', () => {
   // 7 + floor(0.5 × 12) + floor(1 / 7) = 7 + 6 + 0
   assert.equal(champ.gold, 13);
   assert.ok(state.logs[0].plainText.includes('13 gold'));
-  assert.equal(state.reward, undefined);
+  assert.equal(state.reward, null);
 });
 
 test('resolvePendingDig: gold scales with the day divisor', () => {

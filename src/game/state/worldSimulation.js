@@ -105,13 +105,13 @@ function runWorldTurn(state) {
   // mob harass
   runMobHarassment(state);
 
-  // regrow trees
-  for (const key of state._unripeTrees) {
+  // regrow features (moonberries, waxbloom, snowperson, ...)
+  for (const key of state._regrowingFeatures) {
     const t = state.tiles[key];
-    if (t?.feature?.kind === 'fruitTree' && t.feature.nextFruitDay != null && state.day >= t.feature.nextFruitDay) {
+    if (t?.feature && t.feature.nextRewardDay != null && state.day >= t.feature.nextRewardDay) {
       t.feature.ripe = true;
-      state._unripeTrees.delete(key);
-      // Feature state changed — rebuild the chunk so the ripened fruit shows.
+      state._regrowingFeatures.delete(key);
+      // Feature state changed — rebuild the chunk so the ready feature shows.
       markChunkDirty(state, t.q, t.r);
     }
   }

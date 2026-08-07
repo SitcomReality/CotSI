@@ -41,6 +41,54 @@ export const CHEST_GOLD_BASE = 10;
 export const CHEST_GOLD_VARIATION_SCALE = 15;
 export const CHEST_GOLD_VARIATION_MOD = 15;
 
+// ---- Map feature rewards (featureRewards.js) ----
+/** Regrow timer in days shared by all replenishable features. */
+export const FEATURE_REGROW_DAYS = 4;
+/** Relic granted by relic-direct features (Palimpsest Slab, Witness-Stone choice). */
+export const FEATURE_RELIC_AMOUNT = 1;
+/** Gold granted by Dustbleed Crystal (direct). */
+export const FEATURE_CRYSTAL_GOLD = 10;
+/** God's Knots granted by knot-direct features (Vegetable Lamb, Drowned Copyist). */
+export const FEATURE_KNOTS_AMOUNT = 2;
+/** HP granted by Vegetable Lamb (direct). */
+export const FEATURE_LAMB_HEAL = 6;
+/** Defense buff granted by Drowned Copyist (this turn). */
+export const FEATURE_COPYIST_DEFENSE = 2;
+/** Heal granted by Waxbloom (replenishable). */
+export const FEATURE_WAXBLOOM_HEAL = 10;
+/** Heal granted by Cinderbloom (replenishable). */
+export const FEATURE_CINDERBLOOM_HEAL = 6;
+/** Heal granted by Peridexion Tree (replenishable). */
+export const FEATURE_PERIDEXION_HEAL = 8;
+/** Defense buff granted by Peridexion Tree (this turn). */
+export const FEATURE_PERIDEXION_DEFENSE = 2;
+/** God's Knots granted by Scoria Rose (replenishable). */
+export const FEATURE_SCORIA_KNOTS = 2;
+/** Movement buff granted by Snowperson (this turn). */
+export const FEATURE_SNOWPERSON_MOVEMENT = 2;
+/** Defense buff granted by Saint's Rib (this turn). */
+export const FEATURE_RIBS_DEFENSE = 3;
+/** Attack/defense buff offered by Gilded Initial (this turn). */
+export const FEATURE_INITIAL_BUFF = 3;
+/** Attack buff granted by Censer Saint's blessing side (this turn). */
+export const FEATURE_CENSER_ATTACK = 4;
+/** HP cost of Censer Saint's blessing side (never fatal). */
+export const FEATURE_CENSER_HP_COST = 4;
+/** Gold offered as the safe side of most choices. */
+export const FEATURE_CHOICE_GOLD_STANDARD = 8;
+/** Gold offered by richer choice features (Ouroboros Loop, Errata Slip). */
+export const FEATURE_CHOICE_GOLD_RICH = 10;
+/** Gold offered by the Witness-Stone. */
+export const FEATURE_CHOICE_GOLD_WITNESS = 12;
+/** God's Knots offered by Screamroot's risky side. */
+export const FEATURE_SCREAMROOT_RISK_KNOTS = 6;
+/** HP cost of Screamroot's risky side (never fatal). */
+export const FEATURE_SCREAMROOT_HP_COST = 8;
+/** God's Knots offered by Screamroot's safe side. */
+export const FEATURE_SCREAMROOT_SAFE_KNOTS = 2;
+/** Movement offered as a choice side (Fool's-Fire, Half-Drawn Obelisk). */
+export const FEATURE_CHOICE_MOVEMENT = 2;
+
 // ---- Dig system ----
 /** Probability threshold for digging up a relic (0-1). */
 export const DIG_RELIC_CHANCE = 0.075;

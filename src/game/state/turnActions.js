@@ -30,6 +30,9 @@ export function beginTurn(state, champId) {
   evictChunks(state);
 
   ch.moves = dailyMoves(state, ch);
+  // Temporary buffs from map features expire when the champion's next turn
+  // begins ("until the end of the current turn").
+  ch.buffs = { attack: 0, defense: 0 };
   ch.lastActionCombat = false;
   // Artifact passives
   if (ch.artifact === 'ledger') {

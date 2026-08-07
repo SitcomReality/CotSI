@@ -89,9 +89,10 @@ export function makeState(overrides = {}) {
     weather: { potency: Array(7).fill(0), score: Array(7).fill(0), dayLength: 1 },
     day: 1,
     _rng: () => 0.5,
-    _unripeTrees: new Set(),
+    _regrowingFeatures: new Set(),
     winnerId: null,
     victoryReason: '',
+    reward: null,
     tiles: { '0,0': {}, '1,0': {}, '2,0': {} },
     ...overrides,
   };

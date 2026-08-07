@@ -3,6 +3,7 @@ import { findPath } from '../../engine/rules/pathfinding.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 import { movementRange } from './championMovement.js';
 import { occupiedByChampion, occupiedByMob, occupiedByTrader, getChampion } from './entityQueries.js';
+import { featureValueForBot } from './featureRewards.js';
 import { BOT_SEARCH_MOVE_MULTIPLIER, BOT_SEARCH_PADDING, BOT_TREE_HP_THRESHOLD, BOT_TREE_SCORE_INJURED, BOT_TREE_SCORE_HEALTHY, BOT_KNOT_SCORE, BOT_EXPLORE_BONUS, BOT_DISTANCE_DECAY, BOT_ATTACK_CHAMPION_HP_THRESHOLD, BOT_ATTACK_CHAMPION_CHANCE, BOT_ATTACK_MOB_HP_THRESHOLD, BOT_ATTACK_MOB_CHANCE } from '../../params/game/aiParams.js';
 
 export function botChooseTarget(state, champ){
@@ -18,6 +19,8 @@ export function botChooseTarget(state, champ){
     let score=0;
     if(tile.feature?.kind==='fruitTree' && tile.feature.ripe!==false) score += (champ.hp < BOT_TREE_HP_THRESHOLD ? BOT_TREE_SCORE_INJURED : BOT_TREE_SCORE_HEALTHY);
     if(tile.feature?.kind==='knot' && !tile.feature.mined) score += BOT_KNOT_SCORE;
+    // Reward-bearing features (featureRewards.js kinds); 0 for scenery or spent.
+    score += featureValueForBot(state, champ, tile);
     // Note: mob/trader hexes are not scorable — champions cannot pathfind
     // onto them. The bot attacks adjacent mobs directly (see runBotTurn).
     // Base-hex scoring is also removed: champions cannot occupy base hexes;

@@ -20,6 +20,15 @@ export const TYPE_META = {
   weapon:   { label: 'Weapon',   icon: 'i-weapon' },
   armor:    { label: 'Armor',    icon: 'i-armor' },
   knot:     { label: "God's Knot", icon: 'd-knot' },
+  // Map-feature reward badges (featureRewards.js choice cards).
+  relic:    { label: 'Relic',    icon: 'i-relic' },
+  potency:  { label: 'Potency',  icon: 'i-potency' },
+  gold:     { label: 'Gold',     icon: 'i-gold' },
+  move:     { label: 'Movement', icon: 'i-move' },
+  attack:   { label: 'Attack',   icon: 'i-attack' },
+  defense:  { label: 'Defense',  icon: 'i-armor' },
+  heal:     { label: 'Heal',     icon: 'i-heal' },
+  wound:    { label: 'Wound',    icon: 'i-attack' },
 };
 
 /**

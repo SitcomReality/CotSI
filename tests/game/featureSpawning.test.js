@@ -80,7 +80,7 @@ test('spawnFeature: fruitTree spawns with ripe state', () => {
   const f = spawnFeature(0.99, 'plains', 0, features);
   assert.equal(f.kind, 'fruitTree');
   assert.equal(f.ripe, true);
-  assert.equal(f.nextFruitDay, 1);
+  assert.equal(f.nextRewardDay, 1);
 });
 
 test('spawnFeature: unknown rule kind passes through with state', () => {

@@ -1,12 +1,14 @@
 /**
  * arrivalInteractions.js — Resource harvesting on champion arrival.
- * Handles fruit eating, knot mining, etc.
+ * Handles the legacy kinds (fruit eating, knot mining, chest opening) and
+ * delegates every other kind to the feature rewards engine (featureRewards.js).
  */
 import { coordKey } from '../../engine/rules/hexGrid.js';
 import { addLogEntry } from './gameLog.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
+import { interactWithFeature } from './featureRewards.js';
 import { FRUIT_HEAL_VERDANT, FRUIT_HEAL_STANDARD, FRUIT_REGROWTH_DAYS, KNOT_DEFAULT_AMOUNT, CHEST_GOLD_BASE } from '../../params/game/economyParams.js';
 import { FACTION_VERDANT } from '../../params/game/factionParams.js';
 import { markChunkDirty } from './chunkDirtyTracking.js';
@@ -15,12 +17,12 @@ export function interactOnArrival(state, champ) {
   const factionMap = buildChampionFactionMap(state.champions);
   const tile = state.tiles[coordKey(champ.pos)];
   if (tile.feature?.kind === 'fruitTree' && tile.feature.ripe !== false) {
-    if (!tile.feature.nextFruitDay || state.day >= tile.feature.nextFruitDay) {
+    if (!tile.feature.nextRewardDay || state.day >= tile.feature.nextRewardDay) {
       const heal = champ.faction === FACTION_VERDANT ? FRUIT_HEAL_VERDANT : FRUIT_HEAL_STANDARD;
       champ.hp = Math.min(champ.maxHp, champ.hp + heal);
-      tile.feature.nextFruitDay = state.day + FRUIT_REGROWTH_DAYS;
+      tile.feature.nextRewardDay = state.day + FRUIT_REGROWTH_DAYS;
       tile.feature.ripe = false;
-      state._unripeTrees.add(coordKey(champ.pos));
+      state._regrowingFeatures.add(coordKey(champ.pos));
       // Feature state changed — rebuild the chunk so the fruit regrow shows.
       markChunkDirty(state, tile.q, tile.r);
       addLogEntry(state, {
@@ -63,5 +65,10 @@ export function interactOnArrival(state, champ) {
     recordLedgerEntry(champ, `+${amt} gold — treasure chest`, 'gain', 'gold');
     // Feature removed — rebuild the chunk so decorations restore (de-emphasis).
     markChunkDirty(state, tile.q, tile.r);
+  }
+  // Every other kind is handled by the feature rewards engine (tree and bush
+  // are scenery and no-op inside).
+  if (tile.feature && tile.feature.kind !== 'fruitTree' && tile.feature.kind !== 'knot' && tile.feature.kind !== 'chest') {
+    interactWithFeature(state, champ, tile);
   }
 }

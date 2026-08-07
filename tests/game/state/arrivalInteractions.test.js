@@ -18,9 +18,9 @@ test('fruit tree: standard faction heals 18 HP and marks the tree spent', () => 
   interactOnArrival(state, champ);
 
   assert.equal(champ.hp, 23);
-  assert.equal(tile.feature.nextFruitDay, 5, 'day 1 + 4 regrowth days');
+  assert.equal(tile.feature.nextRewardDay, 5, 'day 1 + 4 regrowth days');
   assert.equal(tile.feature.ripe, false);
-  assert.ok(state._unripeTrees.has(here));
+  assert.ok(state._regrowingFeatures.has(here));
   assert.equal(state.logs[0].category, 'heal');
 });
 
@@ -57,7 +57,7 @@ test('fruit tree: spent fruit (ripe false) and unripe fruit heal nothing', () =>
   const unripe = makeChampion({ id: 'cB', pos: { q: 0, r: 0 }, hp: 5, maxHp: 100 });
   const unripeState = makeState({
     champions: [unripe],
-    tiles: { [here]: makeTile('plains', { feature: { kind: 'fruitTree', ripe: true, nextFruitDay: 10 } }) },
+    tiles: { [here]: makeTile('plains', { feature: { kind: 'fruitTree', ripe: true, nextRewardDay: 10 } }) },
   });
   interactOnArrival(unripeState, unripe);
   assert.equal(unripe.hp, 5, 'future fruit does not heal yet');

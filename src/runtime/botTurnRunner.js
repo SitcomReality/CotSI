@@ -58,99 +58,112 @@ export async function runBot() {
       action: 'deciding',
     });
 
-    const decision = aiDecide(G);
-    if (!decision || decision.action === 'end') {
-      clearGameContext();
-      _botFinishTurn();
-      endMeasure('runBot');
-      return;
-    }
-
-    if (
-      decision.action === 'attackChampion' ||
-      decision.action === 'attackMob'
-    ) {
-      // Set profiler context: bot attacking
-      setGameContext({
-        phase: 'bot_turn',
-        championId: ch.id,
-        championName: ch.name,
-        controller: 'bot',
-        action: 'attacking',
-      });
-
-      const target = decision.target;
-      const bothNonHuman =
-        ch.controller !== 'human' &&
-        (!target.controller || target.controller !== 'human');
-
-      if (bothNonHuman) {
-        resolveCombatSilently(G, ch, target);
-        clearGameContext();
-        _botFinishTurn();
-      } else {
-        startCombat(ch, target);
-        // hideBotIndicator is called in the combat flow's completion refresh
-      }
-      endMeasure('runBot');
-      return;
-    }
-
-    if (decision.action === 'move') {
-      const path = decision.path;
-      if (!path || !path.length) {
+    let decision = aiDecide(G);
+    while (decision) {
+      if (decision.action === 'end') {
         clearGameContext();
         _botFinishTurn();
         endMeasure('runBot');
         return;
       }
 
-      // Set profiler context: bot moving
-      setGameContext({
-        phase: 'bot_turn',
-        championId: ch.id,
-        championName: ch.name,
-        controller: 'bot',
-        action: 'moving',
-        detail: `pathlen=${path.length}`,
-      });
+      if (
+        decision.action === 'attackChampion' ||
+        decision.action === 'attackMob'
+      ) {
+        // Set profiler context: bot attacking
+        setGameContext({
+          phase: 'bot_turn',
+          championId: ch.id,
+          championName: ch.name,
+          controller: 'bot',
+          action: 'attacking',
+        });
 
-      const fac = FACTIONS[ch.faction];
+        const target = decision.target;
+        const bothNonHuman =
+          ch.controller !== 'human' &&
+          (!target.controller || target.controller !== 'human');
 
-      // Step one hex at a time, with movement animation between each.
-      for (let i = 0; i < path.length; i++) {
-        const hex = path[i];
-        const key = coordKey(hex);
-
-        // World-space origin before the state mutation
-        const fromTile = G.tiles[coordKey(ch.pos)];
-        const fromY = fromTile ? tileSurfaceY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
-        const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
-
-        moveChampion(G, ch, key, 1);
-
-        // World-space destination after mutation
-        const toTile = G.tiles[key];
-        const toY = toTile ? tileSurfaceY(toTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
-        const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
-
-        // Start the animation BEFORE refreshAll so isAnimating is true when
-        // buildUnitMeshes runs — the normal mesh skips this champion.
-        if (fac) {
-          queueMovement(ch.id, fromWorld, toWorld, fac.base, MOVE_DURATION);
+        if (bothNonHuman) {
+          resolveCombatSilently(G, ch, target);
+          clearGameContext();
+          _botFinishTurn();
+        } else {
+          startCombat(ch, target);
+          // hideBotIndicator is called in the combat flow's completion refresh
         }
-
-        refreshAll();
-
-        // Wait for the animation to complete before stepping to the next hex.
-        // +30ms cushion so the champion visibly "lands" before the next lift.
-        // 'animation' group: a 'bot'-group wait would never resolve while the
-        // bot group is paused, deadlocking the turn lock mid-move.
-        await getClock().wait(MOVE_DURATION + ANIMATION_CUSHION_MS, 'animation');
+        endMeasure('runBot');
+        return;
       }
 
-      clearGameContext();
-      _botFinishTurn();
+      if (decision.action === 'move') {
+        const path = decision.path;
+        if (!path || !path.length) {
+          clearGameContext();
+          _botFinishTurn();
+          endMeasure('runBot');
+          return;
+        }
+
+        // Set profiler context: bot moving
+        setGameContext({
+          phase: 'bot_turn',
+          championId: ch.id,
+          championName: ch.name,
+          controller: 'bot',
+          action: 'moving',
+          detail: `pathlen=${path.length}`,
+        });
+
+        const fac = FACTIONS[ch.faction];
+
+        // Step one hex at a time, with movement animation between each.
+        for (let i = 0; i < path.length; i++) {
+          const hex = path[i];
+          const key = coordKey(hex);
+
+          // World-space origin before the state mutation
+          const fromTile = G.tiles[coordKey(ch.pos)];
+          const fromY = fromTile ? tileSurfaceY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
+          const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
+
+          moveChampion(G, ch, key, 1);
+
+          // World-space destination after mutation
+          const toTile = G.tiles[key];
+          const toY = toTile ? tileSurfaceY(toTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
+          const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
+
+          // Start the animation BEFORE refreshAll so isAnimating is true when
+          // buildUnitMeshes runs — the normal mesh skips this champion.
+          if (fac) {
+            queueMovement(ch.id, fromWorld, toWorld, fac.base, MOVE_DURATION);
+          }
+
+          refreshAll();
+
+          // Wait for the animation to complete before stepping to the next hex.
+          // +30ms cushion so the champion visibly "lands" before the next lift.
+          // 'animation' group: a 'bot'-group wait would never resolve while the
+          // bot group is paused, deadlocking the turn lock mid-move.
+          await getClock().wait(MOVE_DURATION + ANIMATION_CUSHION_MS, 'animation');
+        }
+
+        // The bot may still have moves after arriving (e.g. from a movement-buff
+        // feature like the Snowperson). Decide again instead of ending the turn;
+        // each move decision consumes at least one move, so this terminates.
+        if (ch.moves > 0) {
+          decision = aiDecide(G);
+          continue;
+        }
+        clearGameContext();
+        _botFinishTurn();
+        endMeasure('runBot');
+        return;
+      }
+
+      break;
     }
 
     endMeasure('runBot');

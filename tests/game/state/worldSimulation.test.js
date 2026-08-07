@@ -214,21 +214,21 @@ test('world turn: lethal harassment records the death', () => {
 
 test('world turn: unripe fruit trees ripen on their due day', () => {
   const cA = makeChampion({ id: 'cA' });
-  const treeTile = makeTile('plains', { feature: { kind: 'fruitTree', ripe: false, nextFruitDay: 1 } });
+  const treeTile = makeTile('plains', { feature: { kind: 'fruitTree', ripe: false, nextRewardDay: 1 } });
   const state = makeState({
     champions: [cA],
     currentOrder: ['cA'],
     globalOrder: ['cA'],
     activeChampionId: 'cA',
     day: 1,
-    _unripeTrees: new Set(['0,0']),
+    _regrowingFeatures: new Set(['0,0']),
     tiles: { '0,0': treeTile },
   });
 
   advanceTurn(state);
 
   assert.equal(treeTile.feature.ripe, true);
-  assert.equal(state._unripeTrees.size, 0);
+  assert.equal(state._regrowingFeatures.size, 0);
 });
 
 test('world turn: traders step toward their target base', () => {

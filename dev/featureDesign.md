@@ -1,8 +1,8 @@
 # Feature Design — Taxonomy & Placement (DRAFT, pending review)
 
 Working design for the feature-system redesign. Companion to `src/game/rules/archetypeData/features.js`
-and the biome feature rules. Status: **design questions answered (Aug 2026)** — implementation
-proceeds in phases; the reward mechanics are still in progress (see §6).
+and the biome feature rules. Status: **design questions answered (Aug 2026)** — placement and
+rewards are implemented; visuals and balance remain to refine (§3a amounts are first-pass defaults).
 
 ---
 
@@ -23,9 +23,9 @@ proceeds in phases; the reward mechanics are still in progress (see §6).
   for now; visuals refined later).
 - **De-emphasis preserved.** A feature scoots to the hex edge when an occupant claims the center
   and persists as a reminder until collected. (Visual/spread refinement deferred.)
-- **Vocabulary:** one canonical name per thing (see `dev/namingConventions.md` §6). "Manuscript"
-  is extinct (Aug 2026): the plain tree is **Tree**, the heal tree is **Moonberry Tree** and its
-  fruit are *moonberries*.
+- **Vocabulary:** one canonical name per thing (see `dev/namingConventions.md` §6). The early
+  codex visual-theme word is extinct (Aug 2026): the plain tree is **Tree**, the heal tree is
+  **Moonberry Tree** and its fruit are *moonberries*.
 
 ## 2. Decisions locked (Aug 2026)
 
@@ -54,10 +54,57 @@ proceeds in phases; the reward mechanics are still in progress (see §6).
 | Replenishable | heal | HP, on a regrow timer | reward returns after N days | Moonberry Tree |
 | Replenishable | temp buff | bonus movement this turn / combat buff this turn | end of current turn | Snowperson, Gilded Initial |
 
-Mechanics already in code: knot mining + moonberry heal/regrow (`arrivalInteractions.js`), the
-reward-choice modal pipeline (`state.reward` → reward modal, used by artifact draft and digs),
-relic/potency/gold counters on champions. New systems needed: temp-buff state with end-of-turn
-expiry, and per-feature regrow timers where reuse makes sense.
+Mechanics in code (Aug 2026): knot mining + moonberry heal/regrow
+(`arrivalInteractions.js`), the reward-choice modal pipeline (`state.reward` →
+reward modal, used by artifact draft, digs, and map-feature choices), and the
+**rewards engine** (`src/game/state/featureRewards.js`) which implements every
+feature reward below: direct grants apply silently (log + ledger + consume),
+choice rewards open the modal for humans and apply a deterministic policy for
+bots, replenishable features go unripe on a shared 4-day regrow timer
+(`FEATURE_REGROW_DAYS`), and temp buffs (`champ.buffs.attack`/`.defense`,
+reset in `beginTurn`; `champ.moves` for movement) last until the champion's
+next turn start.
+
+## 3a. Reward amounts (final, Aug 2026)
+
+All amounts live in `economyParams.js` as `FEATURE_*` constants (tune here).
+
+| Kind | Class | Reward |
+|------|-------|--------|
+| palimpsestSlab | direct | +1 relic |
+| vegetableLamb | direct | +2 God's Knots, +6 HP |
+| dustbleedCrystal | direct | +10 gold, +1 random potency |
+| drownedCopyist | direct | +2 God's Knots, +2 defense this turn |
+| witnessStone | choice | +1 relic **or** +12 gold |
+| screamroot | choice | +6 God's Knots & −8 HP (never fatal) **or** +2 God's Knots |
+| nullLily / volvelle | choice | +1 potency of any of the 7 factions (pick) |
+| foolsFire / halfDrawnObelisk | choice | +2 movement this turn **or** +8 gold |
+| ouroborosLoop | choice | +1 relic **or** +10 gold |
+| errataSlip | choice | +1 random potency **or** +10 gold |
+| listenerLichen | choice | +1 random potency **or** +8 gold |
+| gildedInitial | choice | +3 attack this turn **or** +3 defense this turn |
+| censerSaint | choice | +4 attack this turn & −4 HP (never fatal) **or** +6 gold |
+| waxbloom | regrow | +10 HP |
+| cinderbloom | regrow | +6 HP |
+| scoriaRose | regrow | +2 God's Knots |
+| peridexionTree | regrow | +8 HP, +2 defense this turn |
+| snowperson | regrow | +2 movement this turn |
+| saintsRib | regrow | +3 defense this turn |
+
+Bot policy (`botFeatureChoice` in featureRewards.js): choice features never open
+a modal for bots — when hurt (≤ 60% HP) they take the conservative side (safe
+knots / gold / defense), when healthy the premium side (risky knots / relic /
+potency / movement / attack); potency picks roll a random faction like digs.
+Bots also score reward-bearing features as path targets (`featureValueForBot` +
+`BOT_FEATURE_SCORES` in aiParams.js) and re-decide after arriving with movement
+left over, so movement buffs are used.
+
+Note on the utility features (foolsFire, halfDrawnObelisk, ouroborosLoop,
+errataSlip, listenerLichen): decision 2 makes utility one side of a choice. The
+teleport / terrain-change / reveal / turn-return utilities themselves are not
+yet built, so their first-pass "utility" side is the movement or potency buff —
+the choice structure is in place and the utility mechanics can replace that
+side later.
 
 ## 4. Tiers & banding (placement rule)
 
@@ -96,15 +143,15 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 | fruitTree | Moonberry Tree | live | T1 | heal | replenishable | any | works today (18/34, 4d regrow) |
 | chest | Treasure Chest | live | T2 | gold, direct | finite | any | rectangle box descriptor; deterministic amount at spawn (10–24g) |
 | vegetableLamb | Vegetable Lamb | live | T2 | knots + small heal, direct | finite | sig (Untouched) | |
-| witnessStone | Witness-Stone | live | T3 | relic vs gold choice (candidate) | finite | shared (Untouched, Scorch) | |
-| screamroot | Screamroot | live | T3 | knots vs damage risk-reward choice | finite | shared (Untouched, Painforest, Mourning Marsh, Dustbleed) | first choice feature — in progress |
+| witnessStone | Witness-Stone | live | T3 | relic vs gold choice | finite | shared (Untouched, Scorch) | amounts in §3a |
+| screamroot | Screamroot | live | T3 | knots vs damage risk-reward choice | finite | shared (Untouched, Painforest, Mourning Marsh, Dustbleed) | implemented — see §3a |
 | palimpsestSlab | Palimpsest Slab | live | T3 | relic, direct | finite | shared (Untouched, Unfinished Lands) | first relic-on-map feature |
 | errataSlip | Errata Slip | live | T4 | utility (terrain change) **or** reward choice | finite | sig (Unfinished Lands) | utility-as-choice |
 | gildedInitial | Gilded Initial | live | T3 | tempbuff (combat this turn), choice of buff | replenishable | shared (Untouched, Unfinished Lands) | needs end-of-turn expiry |
 | halfDrawnObelisk | Half-Drawn Obelisk | live | T4 | utility (teleport) **or** reward choice | finite | sig (Unfinished Lands) | utility-as-choice |
-| volvelle | Volvelle | live | T3 | potency choice (which faction) | finite | sig (Brass Grave) | first choice feature — in progress |
-| censerSaint | Censer Saint | live | T3 | risk-reward choice (buff vs cost) | finite | sig (Brass Grave) | |
-| scoriaRose | Scoria Rose | live | T2 | knots, renewable (regrow) | replenishable | sig (Brass Grave) | reuse moonberry regrow timer |
+| volvelle | Volvelle | live | T3 | potency choice (which faction) | finite | sig (Brass Grave) | implemented — see §3a |
+| censerSaint | Censer Saint | live | T3 | risk-reward choice (buff vs cost) | finite | sig (Brass Grave) | implemented — see §3a |
+| scoriaRose | Scoria Rose | live | T2 | knots, renewable (regrow) | replenishable | sig (Brass Grave) | reuse moonberry regrow timer — done |
 | cinderbloom | Cinderbloom | live | T2 | renewable small heal vs overlap | replenishable | sig (Brass Grave) | overlaps Scoria Rose; revisit |
 | peridexionTree | Peridexion Tree | live | T3 | heal + tempbuff (combat this turn) | replenishable | sig (Painforest) | |
 | drownedCopyist | Drowned Copyist | live | T3 | knots + tempbuff, direct | finite | sig (Mourning Marsh) | |
@@ -115,7 +162,7 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 | waxbloom | Waxbloom | live | T2 | heal, renewable | replenishable | sig (Frigid Silence) | Frigid's signature |
 | listenerLichen | Listener Lichen | live | T3 | utility (reveal) **or** reward choice | finite | shared (Frigid Silence, Sere Wastes) | utility-as-choice |
 | snowperson | Snowperson | live | T2 | tempbuff (bonus movement this turn) | replenishable | sig (Tundra) | fun: snowperson grants a push |
-| nullLily | Null Lily | live | T3 | potency choice (which faction) | finite | sig (Unfinished Lands) | flagship choice feature — in progress |
+| nullLily | Null Lily | live | T3 | potency choice (which faction) | finite | sig (Unfinished Lands) | flagship choice feature — implemented, see §3a |
 | edenMushroom | Eden Mushroom | live | T2 | *open* | — | sig (Edenfall) | |
 | edenShroomlet | Shroomlet | live | T2 | *open* | — | sig (Edenfall) | |
 | ~~vine~~ | ~~Ground Vine~~ | deleted | — | — | — | — | no biome spawned it |
@@ -145,8 +192,8 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 2. **Utility features** — resolved: utility is one side of a choice for the features in question.
 3. **Negative features** — resolved: removed entirely (no obstacles).
 4. **First choice features** — resolved: Null Lily, Volvelle, Screamroot.
-5. **Amounts** — still open. Defaults can be cribbed from dig (`DIG_GOLD_BASE` 7 + 0–12), knot
-   (2–3), moonberry (18/34). Settle during the rewards phase with playtesting.
+5. **Amounts** — resolved (Aug 2026): see §3a. Defaults cribbed from dig and
+   knot; tune via `FEATURE_*` in economyParams.js.
 6. **Dead kinds** — resolved: `vine` and `largeTree` deleted.
 7. **Shared-feature dedup** — resolved: waxbloom and saintsRib became signatures; the rest stay
    shared only if mechanically distinct.

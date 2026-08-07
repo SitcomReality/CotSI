@@ -1,6 +1,7 @@
 import { openArtifactChoiceModal } from '../ui/modals/artifactChoiceModal.js';
 import { fillRewardModal } from '../ui/modals/rewardModal.js';
 import { currentChamp } from '../game/state/liveGame.js';
+import { applyFeatureChoice } from '../game/state/featureRewards.js';
 import { refreshAll } from './refreshAll.js';
 import { addLogEntry } from '../game/state/gameLog.js';
 import { LOG_CATEGORY } from '../game/rules/logGrammar.js';
@@ -10,10 +11,23 @@ import { buildChampionFactionMap, championSegment } from '../game/rules/logHelpe
  * Show whichever reward modal is pending on `G.reward`, if any.
  * Safe to call even when no reward exists (no-op).
  *
- * For generic rewards, passes structured entries (icon + label) through
- * to fillRewardModal. For artifact drafts, delegates to openArtifactChoiceModal.
+ * Three shapes: map-feature choices (type 'feature' — apply via
+ * applyFeatureChoice), artifact drafts (choices, no guaranteed — grant the
+ * artifact), and generic rewards (icon + label entries through fillRewardModal).
  */
 export function showPendingReward(G) {
+  // Map-feature choice: pick 1 of N offers; the tile feature is consumed on apply.
+  if (G.reward?.type === 'feature' && G.reward.choices?.length && !G.reward.guaranteed?.length) {
+    openArtifactChoiceModal(G.reward, (choice) => {
+      const ch = currentChamp();
+      if (!ch) return;
+      applyFeatureChoice(G, ch, choice, G.reward.tileKey);
+      G.reward = null;
+      refreshAll();
+    });
+    return;
+  }
+
   // Artifact draft: reward has choices and no guaranteed items.
   if (G.reward && G.reward.choices && !G.reward.guaranteed?.length) {
     openArtifactChoiceModal(G.reward, (choice) => {
