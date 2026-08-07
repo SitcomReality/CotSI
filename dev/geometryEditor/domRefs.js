@@ -22,4 +22,7 @@ export function cacheDom() {
   els.downloadBtn = document.getElementById('download-btn');
   els.loadFile = document.getElementById('load-file');
   els.loadError = document.getElementById('load-error');
+  els.newFeatureBtn = document.getElementById('new-feature-btn');
+  els.newDecorBtn = document.getElementById('new-decor-btn');
+  els.newMobBtn = document.getElementById('new-mob-btn');
 }

@@ -50,6 +50,17 @@
   background: color-mix(in srgb, var(--board-hi) 80%, var(--ink-mid));
 }
 
+/* Create-from-template buttons — accent-tinted so they read as "new". */
+.create-btn {
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-left: 3px solid var(--cerulean);
+  border-radius: var(--r-sm);
+  padding: 5px 8px;
+}
+
 /* ── Inspector header ─────────────────────────────────────────────────────── */
 
 .inspector-head {
@@ -183,6 +194,17 @@ button:disabled {
 
 #inspector input[type="number"] {
   width: 84px;
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--crease-bold);
+  background: var(--shadow);
+  color: var(--ink);
+  font-size: var(--fs-xs);
+}
+
+#inspector input[type="text"] {
+  flex: 1;
+  min-width: 0;
   padding: 4px 6px;
   border-radius: var(--r-sm);
   border: 1px solid var(--crease-bold);
