@@ -9,6 +9,8 @@
  *   - all 26 simple feature archetypes from FEATURE_VISUALS (simpleFeatures.js)
  *   - tree groves, solitary trees (trees.js)
  *   - hill mounds (hills.js), mountains (mountains.js), knots (knots.js)
+ *   - ground-level terrain decor (groundDecor.js): marsh reeds, plateau mound,
+ *     plains grass, desert scrub, beach driftwood
  *   - champion bases, 7 faction variants (bases.js — entity-driven)
  *   - champions, per-faction variants (champions.js — entity-driven)
  *   - mobs, per-archetype variants (mobs.js — entity-driven)
@@ -24,6 +26,13 @@ import { GROVE_DESCRIPTOR, TREE_DESCRIPTOR } from './trees.js';
 import { HILL_DESCRIPTOR } from './hills.js';
 import { MOUNTAIN_DESCRIPTOR } from './mountains.js';
 import { KNOT_DESCRIPTOR } from './knots.js';
+import {
+  PLAINS_GRASS_DESCRIPTOR,
+  MARSH_REEDS_DESCRIPTOR,
+  PLATEAU_MOUND_DESCRIPTOR,
+  DESERT_SCRUB_DESCRIPTOR,
+  BEACH_DRIFTWOOD_DESCRIPTOR,
+} from './groundDecor.js';
 import { BASE_DESCRIPTOR } from './bases.js';
 import { CHAMPION_DESCRIPTOR } from './champions.js';
 import { MOB_DESCRIPTOR } from './mobs.js';
@@ -36,6 +45,11 @@ export const ALL_DESCRIPTORS = [
   TREE_DESCRIPTOR,
   HILL_DESCRIPTOR,
   MOUNTAIN_DESCRIPTOR,
+  PLAINS_GRASS_DESCRIPTOR,
+  MARSH_REEDS_DESCRIPTOR,
+  PLATEAU_MOUND_DESCRIPTOR,
+  DESERT_SCRUB_DESCRIPTOR,
+  BEACH_DRIFTWOOD_DESCRIPTOR,
   KNOT_DESCRIPTOR,
   BASE_DESCRIPTOR,
   CHAMPION_DESCRIPTOR,

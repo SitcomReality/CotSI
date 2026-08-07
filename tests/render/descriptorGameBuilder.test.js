@@ -52,6 +52,11 @@ const TILES = [
   { q: 14, r: -8, terrain: 'forest', moisture: 0.7, feature: { kind: 'tree' } },
   // Dense wood grove — conical (tall) canopy variant.
   { q: 16, r: -5, terrain: 'denseForest', moisture: 0.7 },
+  // Ground decor: marsh reeds, plateau mound, desert scrub, beach driftwood.
+  { q: 18, r: -7, terrain: 'marsh' },
+  { q: 20, r: -9, terrain: 'plateau' },
+  { q: 22, r: -11, terrain: 'desert' },
+  { q: 24, r: -13, terrain: 'beach' },
 ];
 
 const OCCUPIED = new Set(['2,1', '8,-1', '-3,-4']);
@@ -78,7 +83,7 @@ const meshesStarting = (meshes, prefix) => meshes.filter((m) => m.name.startsWit
 test('resolveDescriptorForTile: feature vs decor vs legacy dispatch', () => {
   const bush = TILES[0];
   const res = resolveDescriptorForTile(bush, OCCUPIED);
-  assert.deepEqual(res.map((r) => r.descriptor.id), ['bush']);
+  assert.deepEqual(res.map((r) => r.descriptor.id), ['bush', 'plainsGrass']);
   assert.deepEqual(res[0].displacement, { displaced: false });
 
   // Occupied simple feature is displaced.
@@ -114,9 +119,47 @@ test('resolveDescriptorForTile: feature vs decor vs legacy dispatch', () => {
   assert.deepEqual(treeWoods.map((r) => r.descriptor.id), ['grove']);
   assert.deepEqual(treeWoods[0].displacement, { hidden: false, displaced: false });
 
-  // Painforest grove and fruitTree resolve to nothing (legacy builders).
+  // Painforest grove resolves to nothing (legacy builder); the fruit tree
+  // feature also resolves to nothing, but the fruit tile's terrain decor
+  // (plains grass) still resolves.
   assert.deepEqual(resolveDescriptorForTile(TILES[8], OCCUPIED), []);
-  assert.deepEqual(resolveDescriptorForTile(TILES[9], OCCUPIED), []);
+  assert.deepEqual(resolveDescriptorForTile(TILES[9], OCCUPIED).map((r) => r.descriptor.id), ['plainsGrass']);
+
+  // Ground decor: one descriptor per terrain.
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'marsh' }, new Set()).map((r) => r.descriptor.id), ['marshReeds']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plateau' }, new Set()).map((r) => r.descriptor.id), ['plateauMound']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plains' }, new Set()).map((r) => r.descriptor.id), ['plainsGrass']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'desert' }, new Set()).map((r) => r.descriptor.id), ['desertScrub']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'beach' }, new Set()).map((r) => r.descriptor.id), ['beachDriftwood']);
+
+  // Water, river, and ice stay bare — no terrain decor.
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'water' }, new Set()), []);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'river' }, new Set()), []);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'ice' }, new Set()), []);
+});
+
+test('one named decor per decor-producing terrain', () => {
+  const EXPECTED = {
+    plains: 'plainsGrass',
+    forest: 'grove',
+    denseForest: 'grove',
+    desert: 'desertScrub',
+    marsh: 'marshReeds',
+    hill: 'hill',
+    plateau: 'plateauMound',
+    mountain: 'mountain',
+    beach: 'beachDriftwood',
+  };
+  const isDecor = (r) => r.descriptor.kind === 'decor' || r.descriptor.kind === 'mountain';
+  for (const [terrain, decorId] of Object.entries(EXPECTED)) {
+    const decor = resolveDescriptorForTile({ q: 0, r: 0, terrain }, new Set()).filter(isDecor);
+    assert.equal(decor.length, 1, `${terrain} resolves exactly one decor`);
+    assert.equal(decor[0].descriptor.id, decorId, `${terrain} maps to ${decorId}`);
+  }
+  for (const terrain of ['water', 'river', 'ice']) {
+    const decor = resolveDescriptorForTile({ q: 0, r: 0, terrain }, new Set()).filter(isDecor);
+    assert.equal(decor.length, 0, `${terrain} stays bare`);
+  }
 });
 
 // ── Mesh assembly ───────────────────────────────────────────────────────────
@@ -202,6 +245,17 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   // the open-terrain lone tree, and each holds exactly one instance.
   assert.equal(meshesStarting(meshes, 'tree-').length, 2, 'only the open-terrain tree has tree- meshes');
 
+  // Ground decor: one cluster per terrain, one mesh per part.
+  const marsh = meshNamed(meshes, 'marshReeds-reed');
+  const plateau = meshNamed(meshes, 'plateauMound-mound');
+  const grass = meshNamed(meshes, 'plainsGrass-blade');
+  const scrub = meshNamed(meshes, 'desertScrub-scrub');
+  const driftwood = meshNamed(meshes, 'beachDriftwood-plank');
+  for (const m of [marsh, plateau, grass, scrub, driftwood]) {
+    assert.ok(m && m.count >= 1, `${m?.name ?? 'missing mesh'} renders at least one instance`);
+  }
+  assert.equal(plateau.count, 1, 'plateau mound is a single center-placed mound');
+
   // No legacy-only content leaks into descriptor meshes.
   assert.equal(meshesStarting(meshes, 'grove-').length, 3, 'only trunk + the two canopy variant meshes');
   assert.equal(meshesStarting(meshes, 'fruit').length, 0);
@@ -218,7 +272,9 @@ test('painforest and fruitTree tiles produce no descriptor meshes, but keep lega
   const fruit = TILES[9];
 
   const meshes = buildDescriptorFeatureMeshes({ tiles: new Map([[`${painforest.q},${painforest.r}`, painforest], [`${fruit.q},${fruit.r}`, fruit]]) }, new Set([`${painforest.q},${painforest.r}`, `${fruit.q},${fruit.r}`]), new Set());
-  assert.equal(meshes.length, 0, 'no descriptor meshes for legacy-only tiles');
+  assert.equal(meshesStarting(meshes, 'fruit-').length, 0, 'no descriptor meshes for the legacy fruit tree');
+  assert.equal(meshesStarting(meshes, 'tree-').length, 0, 'no descriptor meshes for the legacy painforest grove');
+  assert.ok(meshNamed(meshes, 'plainsGrass-blade'), 'the fruit tile terrain decor still renders');
 
   // Legacy paths still produce records (gnarled grove + fruit tree).
   const gnarled = treeRecordsForTile(painforest, centerOf(painforest), new Set());
@@ -305,9 +361,11 @@ test('legacy painforest grove renders out of sight; fruit trees stay hidden', ()
   const painMeshes = buildChunkFeatureMeshes([painforest], state, visible, explored);
   assert.ok(painMeshes.some((m) => m.name.startsWith('tree-')), 'painforest grove renders out of sight');
 
-  // The fruit tree (a feature) alone, out of sight, produces nothing.
+  // The fruit tree (a feature) alone, out of sight, produces nothing — only
+  // the tile's terrain decoration (plains grass) renders out of sight.
   const fruitMeshes = buildChunkFeatureMeshes([fruit], state, visible, explored);
-  assert.equal(fruitMeshes.length, 0, 'fruit tree hidden out of sight');
+  assert.equal(meshesStarting(fruitMeshes, 'fruit-').length, 0, 'fruit tree hidden out of sight');
+  assert.ok(fruitMeshes.some((m) => m.name.startsWith('plainsGrass-')), 'plains grass decor still renders out of sight');
 
   // Out-of-sight grove records ignore occupants: identical with or without one.
   const occupied = new Set([`${painforest.q},${painforest.r}`]);

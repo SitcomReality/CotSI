@@ -20,6 +20,10 @@
  *       hidden when an occupant and feature share the tile
  *     hill terrain                → hill descriptor; sunk below the surface
  *       when the center is claimed, hidden when occupant + feature share it
+ *     marsh/plateau/plains/desert/beach → ground decor descriptor
+ *       (groundDecor.js): the plateau mound sinks like the hill mound, the
+ *       clustered growth (reeds/grass/scrub/driftwood) disperses when the
+ *       center is claimed, hidden when occupant + feature share it
  *
  * Kept on the legacy tree builder (not migrated — see descriptors/data/):
  * fruitTree and Painforest gnarled groves. Champion bases stay on
@@ -36,6 +40,13 @@ import { HILL_DESCRIPTOR } from './data/hills.js';
 import { KNOT_DESCRIPTOR } from './data/knots.js';
 import { MOUNTAIN_DESCRIPTOR } from './data/mountains.js';
 import {
+  PLAINS_GRASS_DESCRIPTOR,
+  MARSH_REEDS_DESCRIPTOR,
+  PLATEAU_MOUND_DESCRIPTOR,
+  DESERT_SCRUB_DESCRIPTOR,
+  BEACH_DRIFTWOOD_DESCRIPTOR,
+} from './data/groundDecor.js';
+import {
   DECOR_STATE, DECORATION, decorState, isTileOccupied,
 } from '../decorEmphasis.js';
 
@@ -43,6 +54,20 @@ import {
 const GROVE_TERRAINS = new Set(['forest', 'denseForest']);
 /** Biome whose groves stay on the legacy gnarled-tree builder. */
 const PAINFOREST_BIOME = 'biome_painforest';
+
+/**
+ * The simple ground-level terrain decorations — one named decor per terrain,
+ * table-driven so a tile's decor comes from its terrain. Plateau mounds sink
+ * like hill mounds; the clustered growth (reeds, grass, scrub, driftwood)
+ * disperses when the hex center is claimed. Water, river, and ice stay bare.
+ */
+const SIMPLE_DECOR_BY_TERRAIN = new Map([
+  ['marsh', { descriptor: MARSH_REEDS_DESCRIPTOR, decoration: DECORATION.MARSH }],
+  ['plateau', { descriptor: PLATEAU_MOUND_DESCRIPTOR, decoration: DECORATION.PLATEAU }],
+  ['plains', { descriptor: PLAINS_GRASS_DESCRIPTOR, decoration: DECORATION.PLAINS }],
+  ['desert', { descriptor: DESERT_SCRUB_DESCRIPTOR, decoration: DECORATION.DESERT }],
+  ['beach', { descriptor: BEACH_DRIFTWOOD_DESCRIPTOR, decoration: DECORATION.BEACH }],
+]);
 
 /** True for a woods tile whose grove is migrated to descriptor data. */
 function isGroveTerrain(tile) {
@@ -148,6 +173,28 @@ function resolveHillForTile(tile, occupants, visible = true) {
 }
 
 /**
+ * The simple ground-level terrain decoration (marsh/plateau/plains/desert/
+ * beach), or null. Same visible-gating as the hill mound: out of sight the
+ * decor renders in its natural (unclaimed) state.
+ */
+function resolveSimpleDecorForTile(tile, occupants, visible = true) {
+  const entry = SIMPLE_DECOR_BY_TERRAIN.get(tile.terrain);
+  if (!entry) return null;
+  const mode = decorState({
+    hasOccupant: visible && isTileOccupied(occupants, tile),
+    hasFeature: visible && !!tile.feature,
+    decoration: entry.decoration,
+  });
+  return {
+    descriptor: normalizedDescriptor(entry.descriptor),
+    displacement: {
+      hidden: mode === DECOR_STATE.HIDDEN,
+      displaced: mode !== DECOR_STATE.NORMAL,
+    },
+  };
+}
+
+/**
  * Every descriptor resolution for one tile (features + terrain decorations),
  * or an empty array. Exported for tests and tooling.
  *
@@ -164,6 +211,7 @@ export function resolveDescriptorForTile(tile, occupants, visible = true) {
     resolveFeatureForTile(tile, occupants),
     resolveGroveForTile(tile, occupants, visible),
     resolveHillForTile(tile, occupants, visible),
+    resolveSimpleDecorForTile(tile, occupants, visible),
   ].filter(Boolean);
 }
 
@@ -214,6 +262,10 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
   );
   runPass(
     (tile) => resolveHillForTile(tile, occupants, visible.has(`${tile.q},${tile.r}`)),
+    decorVisible,
+  );
+  runPass(
+    (tile) => resolveSimpleDecorForTile(tile, occupants, visible.has(`${tile.q},${tile.r}`)),
     decorVisible,
   );
   return groups;

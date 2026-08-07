@@ -36,7 +36,7 @@ test('data covers every FEATURE_VISUALS kind plus decor/mountain/knot content', 
     'snowperson',
   ];
   for (const id of expectedSimple) assert.ok(ids.has(id), `missing simple feature "${id}"`);
-  for (const id of ['grove', 'tree', 'hill', 'mountain', 'knot']) {
+  for (const id of ['grove', 'tree', 'hill', 'mountain', 'knot', 'marshReeds', 'plateauMound', 'plainsGrass', 'desertScrub', 'beachDriftwood']) {
     assert.ok(ids.has(id), `missing migrated object "${id}"`);
   }
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));

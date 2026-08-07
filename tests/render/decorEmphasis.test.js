@@ -19,7 +19,7 @@ test('decorState: no decoration returns null regardless of occupants', () => {
 });
 
 test('decorState: unclaimed tile keeps its decoration at normal', () => {
-  for (const decoration of [DECORATION.GROVE, DECORATION.HILL]) {
+  for (const decoration of Object.values(DECORATION)) {
     assert.equal(
       decorState({ hasOccupant: false, hasFeature: false, decoration }),
       DECOR_STATE.NORMAL,
@@ -41,20 +41,22 @@ test('decorState: an occupant alone disperses the decoration', () => {
   );
 });
 
-test('decorState: hills sink instead of dispersing', () => {
+test('decorState: mounds sink, the clustered growth disperses', () => {
   for (const claimed of [
     { hasOccupant: false, hasFeature: true },
     { hasOccupant: true, hasFeature: false },
   ]) {
-    assert.equal(
-      decorState({ ...claimed, decoration: DECORATION.HILL }),
-      DECOR_STATE.SUNK,
-    );
+    for (const sunk of [DECORATION.HILL, DECORATION.PLATEAU]) {
+      assert.equal(decorState({ ...claimed, decoration: sunk }), DECOR_STATE.SUNK);
+    }
+    for (const dispersed of [DECORATION.GROVE, DECORATION.MARSH, DECORATION.PLAINS, DECORATION.DESERT, DECORATION.BEACH]) {
+      assert.equal(decorState({ ...claimed, decoration: dispersed }), DECOR_STATE.DISPERSED);
+    }
   }
 });
 
 test('decorState: occupant + feature hides the decoration (any kind)', () => {
-  for (const decoration of [DECORATION.GROVE, DECORATION.HILL]) {
+  for (const decoration of Object.values(DECORATION)) {
     assert.equal(
       decorState({ hasOccupant: true, hasFeature: true, decoration }),
       DECOR_STATE.HIDDEN,

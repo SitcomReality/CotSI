@@ -35,9 +35,17 @@ export const DECOR_STATE = Object.freeze({
 
 /** Terrain decoration kinds the rules know how to de-emphasize. */
 export const DECORATION = Object.freeze({
-  GROVE: 'grove', // forest/denseForest tree grove (spreads out)
-  HILL: 'hill',   // raised mound on hill terrain (sinks)
+  GROVE: 'grove',       // forest/denseForest tree grove (spreads out)
+  HILL: 'hill',         // raised mound on hill terrain (sinks)
+  PLATEAU: 'plateau',   // flat-top mound on plateau terrain (sinks)
+  MARSH: 'marsh',       // reed cluster on marsh (spreads out)
+  PLAINS: 'plains',     // grass blades on plains (spreads out)
+  DESERT: 'desert',     // scrub cluster on desert (spreads out)
+  BEACH: 'beach',       // driftwood on beach (spreads out)
 });
+
+/** Decorations that sink below the surface instead of spreading out. */
+const SUNK_DECORATIONS = new Set([DECORATION.HILL, DECORATION.PLATEAU]);
 
 /** Scale multiplier applied to dispersed items (cluster and single alike). */
 export const DISPERSED_SCALE = DECOR_DEEMPHASIS.scale;
@@ -56,7 +64,7 @@ export function decorState({ hasOccupant, hasFeature, decoration }) {
   if (!decoration) return null;
   if (hasOccupant && hasFeature) return DECOR_STATE.HIDDEN;
   if (hasOccupant || hasFeature) {
-    return decoration === DECORATION.HILL ? DECOR_STATE.SUNK : DECOR_STATE.DISPERSED;
+    return SUNK_DECORATIONS.has(decoration) ? DECOR_STATE.SUNK : DECOR_STATE.DISPERSED;
   }
   return DECOR_STATE.NORMAL;
 }
