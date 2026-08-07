@@ -24,4 +24,12 @@ export const S = {
 
   /** Part id currently selected in the parts list, or null */
   selectedPartId: null,
+
+  /**
+   * Selected variant id for tile-driven descriptors (features/decor/mountain)
+   * that define variants: the preview and parts list edit this variant.
+   * null → the first variant. Entity kinds ignore this — their variant comes
+   * from `entity` (faction/archetype).
+   */
+  variantId: null,
 };

@@ -109,16 +109,30 @@ function mutate(fn) {
 // ── Object-level controls ───────────────────────────────────────────────────
 
 /**
- * The parts array the editor edits. Entity kinds show one variant at a time
- * (the preview renders that variant), so edits target the active variant's
- * parts; tile-driven objects always edit the fallback `parts` list.
+ * The variant the editor is currently inspecting. Entity kinds derive it from
+ * the entity selection (faction/archetype); tile-driven objects use the
+ * variant picker (S.variantId), falling back to the first variant.
+ */
+export function activeVariant() {
+  const d = S.descriptor;
+  const variants = d.variants ?? [];
+  if (variants.length === 0) return null;
+  if (ENTITY_KINDS.has(d.kind)) {
+    const key = d.variantRule === 'faction' ? S.entity.faction : d.variantRule === 'archetype' ? S.entity.archetype : null;
+    return variants.find((v) => v.id === key) ?? variants[0];
+  }
+  return variants.find((v) => v.id === S.variantId) ?? variants[0];
+}
+
+/**
+ * The parts array the editor edits. Both the preview and the parts list use
+ * the active variant's parts, so what you edit is what you see — this fixes
+ * the grove/tree parts list showing only the fallback while the preview
+ * renders the variant. Descriptors without variants fall back to `parts`.
  */
 function activeParts() {
   const d = S.descriptor;
-  if (!ENTITY_KINDS.has(d.kind)) return d.parts;
-  const key = d.variantRule === 'faction' ? S.entity.faction : d.variantRule === 'archetype' ? S.entity.archetype : null;
-  const variant = key ? (d.variants ?? []).find((v) => v.id === key) : null;
-  return variant?.parts ?? d.parts;
+  return activeVariant()?.parts ?? d.parts;
 }
 
 /** Entity kinds: faction/archetype picker instead of cluster/size/placement. */
@@ -159,6 +173,14 @@ function renderObjectControls(container) {
     container.append(subheading('Material'));
     container.append(row('Color', colorInput(d.material.color, (v) => mutate(() => { d.material.color = v; }))));
     return;
+  }
+
+  if ((d.variants ?? []).length > 0) {
+    container.append(subheading('Variant'));
+    const ids = d.variants.map((v) => v.id);
+    const current = ids.includes(S.variantId) ? S.variantId : ids[0];
+    container.append(row('Variant', selectInput(ids, current, (v) => mutate(() => { S.variantId = v; }))));
+    container.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game the tile hash picks one; here you choose which to inspect.'));
   }
 
   container.append(subheading('Cluster'));
@@ -439,6 +461,7 @@ function bindProjectControls() {
         }
         S.descriptor = normalized;
         S.selectedPartId = null;
+        S.variantId = null;
         els.loadError.textContent = '';
         renderAll();
         onEdit();

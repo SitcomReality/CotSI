@@ -8,7 +8,7 @@ import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
 import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf } from '../sampleObjects.js';
 import { createPreview, showRecords, setFloorVisible } from '../preview.js';
-import { bindEditorPanel, refreshEditorPanel } from './editorPanel.js';
+import { bindEditorPanel, refreshEditorPanel, activeVariant } from './editorPanel.js';
 import { recordsForDescriptor, recordsForEntity } from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
 import { ENTITY_KINDS, entityForSelection } from '../entityView.js';
 
@@ -24,17 +24,6 @@ function isCustomDescriptor() {
   return !!S.descriptor && !SAMPLE_OBJECTS.some((d) => d.id === S.descriptor.id);
 }
 
-/** The variant currently shown in the preview — entity kinds pick by selection. */
-function activeVariant() {
-  const d = S.descriptor;
-  if (!d.variants || d.variants.length === 0) return null;
-  if (ENTITY_KINDS.has(d.kind)) {
-    const key = d.variantRule === 'faction' ? S.entity.faction : S.entity.archetype;
-    return d.variants.find((v) => v.id === key) ?? d.variants[0];
-  }
-  return d.variants[0];
-}
-
 /** Rebuild the preview from the current state (descriptor, entity/hash, displacement). */
 function rebuild() {
   if (!S.descriptor) return;
@@ -46,12 +35,12 @@ function rebuild() {
 
   // Items = records / parts-of-the-active-variant (variant objects have more
   // parts than the fallback `parts` list).
-  const active = activeVariant() ?? d;
+  const variant = activeVariant();
+  const active = variant ?? d;
   const parts = active.parts.length;
   const items = parts > 0 ? records.length / parts : 0;
 
   if (ENTITY_KINDS.has(d.kind)) {
-    const variant = activeVariant();
     els.info.textContent =
       `${d.displayName}\n` +
       `${items} × ${parts} part(s) = ${records.length} record(s)\n` +
@@ -61,7 +50,8 @@ function rebuild() {
     els.info.textContent =
       `${d.displayName}\n` +
       `${items} item(s) × ${parts} part(s) = ${records.length} instance record(s)\n` +
-      `hash ${S.tileH} · ${S.displaced ? 'occupied (displaced)' : 'normal'}`;
+      `hash ${S.tileH} · ${S.displaced ? 'occupied (displaced)' : 'normal'}` +
+      (variant ? ` · variant ${variant.id}` : '');
   }
 }
 
@@ -164,6 +154,7 @@ function bindControls() {
     if (!next) return;
     S.descriptor = next;
     S.selectedPartId = null; // the new object's parts start unselected
+    S.variantId = null;      // the new object's variant starts at the first
     // Keep the archetype selection valid for the new object (stale values fall
     // back to the first variant in the record path, but the browser should show
     // what the preview actually renders).
