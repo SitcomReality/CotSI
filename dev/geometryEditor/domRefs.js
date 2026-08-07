@@ -25,4 +25,5 @@ export function cacheDom() {
   els.newFeatureBtn = document.getElementById('new-feature-btn');
   els.newDecorBtn = document.getElementById('new-decor-btn');
   els.newMobBtn = document.getElementById('new-mob-btn');
+  els.collapseObjectsBtn = document.getElementById('collapse-objects-btn');
 }

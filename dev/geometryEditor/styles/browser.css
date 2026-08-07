@@ -40,6 +40,19 @@
   color: var(--ink-faint);
 }
 
+/* Collapse / expand all categories — folds the whole object list to its
+   summary rows so the column stops consuming vertical space. */
+.collapse-btn {
+  margin-left: auto;
+  padding: 1px 7px;
+  line-height: 1.2;
+  font-size: var(--fs-xs);
+  border: 1px solid var(--crease-bold);
+  border-radius: var(--r-sm);
+  background: var(--board-hi);
+  color: var(--ink-mid);
+}
+
 /* ── Category groups ─────────────────────────────────────────────────────── */
 
 #object-list {

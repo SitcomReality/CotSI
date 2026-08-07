@@ -166,6 +166,23 @@ function renderObjectList(filterText = '') {
   els.objectFilterCount.textContent = query
     ? `${matched} of ${BROWSABLE_TOTAL}`
     : `${BROWSABLE_TOTAL} objects`;
+  updateCollapseIcon();
+}
+
+/** Sync the collapse-toggle button with the current category states. */
+function updateCollapseIcon() {
+  const allCollapsed = OBJECT_CATEGORIES.every((c) => collapsedCategories.has(c.id));
+  els.collapseObjectsBtn.textContent = allCollapsed ? '▸' : '▾';
+  els.collapseObjectsBtn.title = allCollapsed ? 'Expand all categories' : 'Collapse all categories';
+}
+
+/** Collapse or expand every category at once — the whole list folds to its
+ *  summary rows so the browser column stops eating vertical space. */
+function toggleAllCategories() {
+  const allCollapsed = OBJECT_CATEGORIES.every((c) => collapsedCategories.has(c.id));
+  if (allCollapsed) collapsedCategories.clear();
+  else for (const c of OBJECT_CATEGORIES) collapsedCategories.add(c.id);
+  renderObjectList(els.objectFilter.value);
 }
 
 function populateObjects() {
@@ -173,6 +190,7 @@ function populateObjects() {
   els.objectFilter.addEventListener('input', () => {
     renderObjectList(els.objectFilter.value);
   });
+  els.collapseObjectsBtn.addEventListener('click', toggleAllCategories);
 }
 
 function bindControls() {
