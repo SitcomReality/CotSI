@@ -100,7 +100,7 @@ export function formatStats() {
  * Update the stats panel DOM with the current map's formatted stats.
  */
 export function updateStats() {
-  els.statsPanel.textContent = formatStats();
+  els.statsBody.textContent = formatStats();
 }
 
 // ─── Multi-seed stats ─────────────────────────────────────────────────────────

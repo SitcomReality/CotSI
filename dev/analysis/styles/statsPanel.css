@@ -1,21 +1,41 @@
-/* statsPanel.css — Stats panel highlights and metric display */
+/* statsPanel.css — Bottom analysis report: header strip + monospace body */
 
-.stat-section {
-  margin-bottom: 6px;
+#stats-panel {
+  grid-row: 2;
+  grid-column: 2 / 4;
+  background: var(--board);
+  border-top: 1px solid var(--crease);
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  min-height: 90px;
 }
 
-.stat-section .stat-label {
-  color: #888;
+.stats-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s1) var(--s4);
+  border-bottom: 1px solid var(--crease);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-faint);
+  background: var(--shadow);
 }
 
-.stat-section .stat-value {
-  color: #c0c8d0;
-}
-
-.stat-bar {
-  display: inline-block;
-  height: 10px;
-  border-radius: 2px;
-  vertical-align: middle;
-  margin-right: 4px;
+#stats-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--s2) var(--s4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+  white-space: pre-wrap;
+  line-height: var(--lh);
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
 }

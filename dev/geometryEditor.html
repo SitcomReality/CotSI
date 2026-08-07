@@ -9,11 +9,18 @@
 <body>
   <div id="geometry-root">
     <!-- Controls panel -->
-    <div id="controls">
-      <h2>CotSI Geometry Editor</h2>
+    <aside id="controls">
+      <header class="page-header">
+        <h1>CotSI Geometry Editor</h1>
+        <p class="page-subtitle">Descriptor preview &amp; editing</p>
+      </header>
 
-      <div class="control-group">
-        <h3>Object</h3>
+      <section class="control-group">
+        <h2>Object</h2>
+        <div class="filter-row">
+          <input type="text" id="object-filter" placeholder="Filter objects…" spellcheck="false" autocomplete="off">
+          <span class="filter-count" id="object-filter-count"></span>
+        </div>
         <div class="control-row">
           <label for="object-select">Design</label>
           <select id="object-select"></select>
@@ -27,25 +34,25 @@
         <div class="control-row" id="reroll-row">
           <button id="reroll-btn">↻ Re-roll variation</button>
         </div>
-      </div>
+      </section>
 
-      <div class="control-group">
-        <h3>Edit Design</h3>
+      <section class="control-group">
+        <h2>Edit Design</h2>
         <div id="object-edit"></div>
-      </div>
+      </section>
 
-      <div class="control-group">
-        <h3>Parts</h3>
+      <section class="control-group">
+        <h2>Parts</h2>
         <div id="parts-edit"></div>
-      </div>
+      </section>
 
-      <div class="control-group">
-        <h3>Selected Part</h3>
+      <section class="control-group">
+        <h2>Selected Part</h2>
         <div id="part-inspector"></div>
-      </div>
+      </section>
 
-      <div class="control-group">
-        <h3>Project</h3>
+      <section class="control-group">
+        <h2>Project</h2>
         <div class="control-row">
           <button id="download-btn">⬇ Download JSON</button>
         </div>
@@ -54,19 +61,19 @@
           <input type="file" id="load-file" accept=".json,.txt">
         </div>
         <div id="load-error" class="info"></div>
-      </div>
+      </section>
 
-      <div class="control-group">
-        <h3>Preview</h3>
+      <section class="control-group">
+        <h2>Preview</h2>
         <div class="control-row hint">Drag to orbit · scroll to zoom</div>
-        <div id="info" class="info">Loading…</div>
-      </div>
-    </div>
+        <div id="info" class="info info-panel">Loading…</div>
+      </section>
+    </aside>
 
     <!-- 3D preview area -->
-    <div id="viewport">
+    <main id="viewport">
       <canvas id="preview-canvas"></canvas>
-    </div>
+    </main>
   </div>
 
   <script type="module" src="./geometryEditor/ui/main.js"></script>

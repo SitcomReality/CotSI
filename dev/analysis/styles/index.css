@@ -1,6 +1,7 @@
 /* index.css — Barrel: imports all analysis page stylesheets.
-   Grouped by rate of change: reset -> layout -> components -> overrides. */
+   Game design tokens first, then page styles in rate-of-change order. */
 
+@import "../../../styles/abstracts/variables.css";
 @import "./reset.css";
 @import "./layout.css";
 @import "./controls.css";

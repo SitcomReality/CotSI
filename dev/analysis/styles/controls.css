@@ -1,51 +1,148 @@
-/* controls.css — Control panel headings, inputs, buttons, toggles, and loading indicator */
+/* controls.css — Left control panel: header, sections, form controls, buttons. */
 
-#controls h2 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #e0e0e0;
-  margin-bottom: 2px;
+/* ── Page header ─────────────────────────────────────────────────────────── */
+
+.page-header {
+  padding-bottom: var(--s3);
+  margin-bottom: var(--s1);
+  border-bottom: 1px solid var(--crease);
 }
 
-#controls h3 {
-  font-size: 13px;
-  font-weight: 600;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
+.page-header h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  letter-spacing: var(--ls-display);
+  color: var(--ink);
 }
+
+.page-subtitle {
+  margin-top: var(--s1);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
 
 .control-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s2);
 }
+
+.control-group h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-mid);
+  padding-bottom: var(--s1);
+  margin-bottom: var(--s1);
+  border-bottom: 1px solid var(--crease);
+}
+
+/* ── Collapsible sections (Batch Analysis) ───────────────────────────────── */
+
+.collapsible {
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  background: var(--board);
+  padding: var(--s2) var(--s3);
+}
+
+.collapsible summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  user-select: none;
+}
+
+.collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible summary::before {
+  content: '▸';
+  color: var(--ink-faint);
+  font-size: var(--fs-xs);
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.collapsible[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.summary-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink);
+}
+
+.summary-badge {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  background: var(--board-hi);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-pill);
+  padding: 1px var(--s2);
+}
+
+.batch-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin-top: var(--s3);
+  padding-top: var(--s2);
+  border-top: 1px solid var(--crease);
+}
+
+/* ── Control rows ────────────────────────────────────────────────────────── */
 
 .control-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
 }
 
 .control-row label {
   min-width: 80px;
-  font-size: 13px;
-  color: #aaa;
+  font-size: var(--fs-sm);
+  color: var(--ink-mid);
   flex-shrink: 0;
+}
+
+.control-row .check-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  cursor: pointer;
 }
 
 .control-row.nav-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--s1);
 }
 
 .control-row.nav-row button {
   flex: 1;
   text-align: center;
   padding: 5px 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .control-row.nav-row button.primary {
@@ -56,12 +153,12 @@
 .control-row input[type="number"],
 .control-row select {
   flex: 1;
-  background: #2a2a32;
-  border: 1px solid #444;
-  border-radius: 4px;
-  color: #e0e0e0;
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-radius: var(--r-sm);
+  color: var(--ink);
   padding: 5px 8px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-family: inherit;
 }
 
@@ -69,60 +166,82 @@
 .control-row input[type="number"]:focus,
 .control-row select:focus {
   outline: none;
-  border-color: #6a8abf;
+  border-color: var(--ink-mid);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-faint) 30%, transparent);
 }
 
 .control-row input[type="range"] {
   flex: 1;
-  accent-color: #6a8abf;
+  accent-color: var(--cerulean);
 }
 
 .slider-value {
   min-width: 32px;
   text-align: right;
-  font-size: 12px;
-  color: #999;
-  font-family: monospace;
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
 }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
 
 .btn-row {
   display: flex;
-  gap: 6px;
+  gap: var(--s1);
   flex-wrap: wrap;
 }
 
 button {
-  background: #3a3a48;
-  border: 1px solid #555;
-  border-radius: 4px;
-  color: #e0e0e0;
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-radius: var(--r-sm);
+  color: var(--ink);
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 button:hover {
-  background: #4a4a5a;
-  border-color: #777;
+  background: color-mix(in srgb, var(--board-hi) 80%, var(--ink-mid));
 }
 
+button:focus-visible {
+  outline: none;
+  border-color: var(--ink-mid);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-faint) 30%, transparent);
+}
+
+/* Secondary accent (Play, Run Batch, downloads) */
 button.primary {
-  background: #4a6a9a;
-  border-color: #6a8abf;
-  color: #fff;
+  background: color-mix(in srgb, var(--board-hi) 65%, var(--ink));
+  border-color: var(--crease-bold);
   font-weight: 600;
 }
 
 button.primary:hover {
-  background: #5a7aaa;
+  background: color-mix(in srgb, var(--board-hi) 50%, var(--ink));
+}
+
+/* The one true CTA on the page — gold per the gold-budget convention. */
+button.cta {
+  background: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--ink-line));
+  color: var(--ink-line);
+  font-weight: 700;
+}
+
+button.cta:hover {
+  background: var(--gold-hi);
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ── Toggles ─────────────────────────────────────────────────────────────── */
 
 .toggle-group {
   display: flex;
@@ -135,23 +254,23 @@ button:disabled {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #bbb;
+  color: var(--ink-mid);
   cursor: pointer;
 }
 
 .toggle-group input[type="checkbox"] {
-  accent-color: #6a8abf;
+  accent-color: var(--cerulean);
 }
 
-/* ── Loading indicator ─────────────────────────────────── */
+/* ── Loading indicator ─────────────────────────────────────────────────── */
 
 #loading {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 14px;
-  color: #888;
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
   pointer-events: none;
   display: none;
 }

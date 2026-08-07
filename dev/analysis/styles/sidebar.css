@@ -1,34 +1,46 @@
-/* sidebar.css — Right sidebar container and entity toggle controls */
-
-#sidebar h3 {
-  font-size: 12px;
-  font-weight: 600;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
+/* sidebar.css — Right sidebar: legend + entity overlay toggles */
 
 .sidebar-section {
   display: flex;
   flex-direction: column;
+  gap: var(--s2);
+}
+
+.sidebar-section h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-mid);
+  padding-bottom: var(--s1);
+  border-bottom: 1px solid var(--crease);
 }
 
 #entity-toggles {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s1);
 }
 
 #entity-toggles label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #bbb;
+  gap: var(--s2);
+  font-size: var(--fs-sm);
+  color: var(--ink-mid);
   cursor: pointer;
+  padding: var(--s1) var(--s2);
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+#entity-toggles label:hover {
+  background: var(--board);
+  border-color: var(--crease);
 }
 
 #entity-toggles input[type="checkbox"] {
-  accent-color: #6a8abf;
+  accent-color: var(--cerulean);
 }

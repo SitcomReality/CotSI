@@ -52,6 +52,9 @@ export function cacheDom() {
   els.btnExportPng = $('btn-export-png');
   els.btnExportJson = $('btn-export-json');
   els.statsPanel = $('stats-panel');
+  els.statsBody = $('stats-body');
+  els.headerSeed = $('header-seed');
+  els.headerRadius = $('header-radius');
   els.legend = $('legend');
   els.loading = $('loading');
   els.mapArea = $('map-area');
@@ -82,6 +85,7 @@ export function cacheDom() {
   els.batchProgress = $('batch-progress');
   els.btnDownloadLuts = $('btn-download-luts');
   els.btnDownloadBatchReport = $('btn-download-batch-report');
+  els.batchSummaryBadge = $('batch-summary-badge');
   els.legend = $('legend');
   els.loading = $('loading');
   els.mapArea = $('map-area');

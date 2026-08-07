@@ -6,7 +6,7 @@
  */
 import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
-import { SAMPLE_OBJECTS } from '../sampleObjects.js';
+import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf } from '../sampleObjects.js';
 import { createPreview, showRecords } from '../preview.js';
 import { bindEditorPanel, refreshEditorPanel } from './editorPanel.js';
 import { recordsForDescriptor, recordsForEntity } from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
@@ -64,18 +64,61 @@ function updateEntityMode() {
   els.rerollRow.style.display = entity ? 'none' : '';
 }
 
-function populateObjects() {
+/**
+ * Rebuild the object <select> options from SAMPLE_OBJECTS, grouped by category
+ * (Features / Terrain Decor / Faction / Creatures) and filtered by the search
+ * input. The custom (loaded) option is always kept on top.
+ */
+function renderObjectOptions(filterText = '') {
+  const query = filterText.trim().toLowerCase();
+  els.objectSelect.textContent = '';
+
   const custom = document.createElement('option');
   custom.value = '';
   custom.textContent = '— custom (loaded) —';
   els.objectSelect.appendChild(custom);
 
-  for (const descriptor of SAMPLE_OBJECTS) {
-    const opt = document.createElement('option');
-    opt.value = descriptor.id;
-    opt.textContent = descriptor.displayName;
-    els.objectSelect.appendChild(opt);
+  for (const category of OBJECT_CATEGORIES) {
+    const members = SAMPLE_OBJECTS
+      .filter((d) => categoryOf(d) === category)
+      .filter((d) => !query || d.displayName.toLowerCase().includes(query) || d.id.toLowerCase().includes(query))
+      .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+    if (members.length === 0) continue;
+
+    const group = document.createElement('optgroup');
+    group.label = `${category.label} (${members.length})`;
+    for (const descriptor of members) {
+      const opt = document.createElement('option');
+      opt.value = descriptor.id;
+      opt.textContent = descriptor.displayName;
+      group.appendChild(opt);
+    }
+    els.objectSelect.appendChild(group);
   }
+
+  // Restore the current selection when it survives the filter; otherwise fall
+  // back to the custom option (the preview keeps rendering S.descriptor).
+  const current = SAMPLE_OBJECTS.find((d) => d.id === S.descriptor?.id);
+  if (current && els.objectSelect.value !== current.id) {
+    const matching = [...els.objectSelect.options].find((o) => o.value === current.id);
+    if (matching) els.objectSelect.value = current.id;
+    else els.objectSelect.value = '';
+  }
+
+  const resultCount = [...els.objectSelect.options].filter((o) => o.value !== '').length;
+  if (els.objectFilterCount) {
+    els.objectFilterCount.textContent = query
+      ? `${resultCount} of ${SAMPLE_OBJECTS.length}`
+      : `${SAMPLE_OBJECTS.length} objects`;
+  }
+}
+
+function populateObjects() {
+  renderObjectOptions();
+  els.objectFilter.addEventListener('input', () => {
+    renderObjectOptions(els.objectFilter.value);
+  });
 }
 
 function bindControls() {

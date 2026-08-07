@@ -1,4 +1,6 @@
-/* index.css — barrel: imports all geometry-editor page stylesheets */
-@import url('./reset.css');
-@import url('./layout.css');
-@import url('./controls.css');
+/* index.css — barrel: imports all geometry-editor page stylesheets.
+   Game design tokens first, then page styles in rate-of-change order. */
+@import "../../../styles/abstracts/variables.css";
+@import "./reset.css";
+@import "./layout.css";
+@import "./controls.css";

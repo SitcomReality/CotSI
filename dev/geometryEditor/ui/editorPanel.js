@@ -41,6 +41,11 @@ function row(labelText, control) {
   return r;
 }
 
+/** Small uppercase sub-heading used to group dynamic field sets. */
+function subheading(labelText) {
+  return el('div', 'section-title', labelText);
+}
+
 function numberInput(value, { min, step = 0.01, onChange }) {
   const input = el('input');
   input.type = 'number';
@@ -146,14 +151,16 @@ function renderObjectControls(container) {
   const d = S.descriptor;
 
   if (ENTITY_KINDS.has(d.kind)) {
-    container.append(el('div', 'info', `${d.kind} — entity-driven`));
+    container.append(el('div', 'mode-banner', `${d.kind} — entity-driven`));
     renderEntityControls(container);
     container.append(el('div', 'hint', 'Entities are singletons at the hex center — cluster/size/placement do not apply.'));
-    container.append(row('Material', colorInput(d.material.color, (v) => mutate(() => { d.material.color = v; }))));
+    container.append(subheading('Material'));
+    container.append(row('Color', colorInput(d.material.color, (v) => mutate(() => { d.material.color = v; }))));
     return;
   }
 
-  container.append(row('Cluster rule', selectInput(['uniform', 'moisture'], d.cluster.rule, (v) => mutate(() => {
+  container.append(subheading('Cluster'));
+  container.append(row('Rule', selectInput(['uniform', 'moisture'], d.cluster.rule, (v) => mutate(() => {
     d.cluster.rule = v;
     if (v === 'moisture') {
       d.cluster.countsByTerrain ??= { forest: [3, 5], denseForest: [4, 7] };
@@ -167,17 +174,16 @@ function renderObjectControls(container) {
       .join(', ');
     container.append(el('div', 'hint', `Moisture-driven count (tiles without moisture default to mid-density). ${counts}.`));
   } else {
-    container.append(row('Cluster min', intInput(d.cluster.min, { min: 1, onChange: (v) => mutate(() => { d.cluster.min = v; }) })));
-    container.append(row('Cluster max', intInput(d.cluster.max, { min: 1, onChange: (v) => mutate(() => { d.cluster.max = Math.max(v, d.cluster.min); }) })));
+    container.append(row('Min', intInput(d.cluster.min, { min: 1, onChange: (v) => mutate(() => { d.cluster.min = v; }) })));
+    container.append(row('Max', intInput(d.cluster.max, { min: 1, onChange: (v) => mutate(() => { d.cluster.max = Math.max(v, d.cluster.min); }) })));
   }
-  container.append(row('Size min', numberInput(d.size.min, { min: 0.01, onChange: (v) => mutate(() => { d.size.min = v; }) })));
-  container.append(row('Size max', numberInput(d.size.max, { min: 0.01, onChange: (v) => mutate(() => { d.size.max = Math.max(v, d.size.min); }) })));
 
-  container.append(row('Emphasis', selectInput(EMPHASIS_BEHAVIORS, d.emphasis.behavior, (v) => mutate(() => {
-    d.emphasis.behavior = v;
-  }))));
+  container.append(subheading('Size'));
+  container.append(row('Min', numberInput(d.size.min, { min: 0.01, onChange: (v) => mutate(() => { d.size.min = v; }) })));
+  container.append(row('Max', numberInput(d.size.max, { min: 0.01, onChange: (v) => mutate(() => { d.size.max = Math.max(v, d.size.min); }) })));
 
-  container.append(row('Placement', selectInput(PLACEMENT_MODES, d.placement.mode, (v) => mutate(() => {
+  container.append(subheading('Placement'));
+  container.append(row('Mode', selectInput(PLACEMENT_MODES, d.placement.mode, (v) => mutate(() => {
     d.placement.mode = v;
     if (v === 'scatter') {
       d.placement.offsetMin ??= 0.15;
@@ -212,7 +218,13 @@ function renderObjectControls(container) {
     container.append(row('Tilt seed', intInput(d.placement.tiltSeed, { min: 0, onChange: (v) => mutate(() => { d.placement.tiltSeed = v; }) })));
   }
 
-  container.append(row('Material', colorInput(d.material.color, (v) => mutate(() => { d.material.color = v; }))));
+  container.append(subheading('Emphasis'));
+  container.append(row('Behavior', selectInput(EMPHASIS_BEHAVIORS, d.emphasis.behavior, (v) => mutate(() => {
+    d.emphasis.behavior = v;
+  }))));
+
+  container.append(subheading('Material'));
+  container.append(row('Color', colorInput(d.material.color, (v) => mutate(() => { d.material.color = v; }))));
 }
 
 // ── Part list (add / remove / reorder / select) ─────────────────────────────

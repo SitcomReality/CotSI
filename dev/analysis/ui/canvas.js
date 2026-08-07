@@ -21,10 +21,12 @@ export function setupCanvasInteraction() {
     const worldBefore = screenToWorld(S.camera, e.offsetX, e.offsetY, w, h);
     const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
     S.camera.zoom = Math.max(0.1, Math.min(10, S.camera.zoom * factor));
-    // Zoom toward cursor
+    // Zoom toward cursor: hold the world point under the cursor fixed.
+    // Camera must move by (worldAfter - worldBefore); the opposite sign
+    // pushes the map away from the cursor when zooming.
     const worldAfter = screenToWorld(S.camera, e.offsetX, e.offsetY, w, h);
-    S.camera.x += worldBefore.x - worldAfter.x;
-    S.camera.y += worldBefore.y - worldAfter.y;
+    S.camera.x += worldAfter.x - worldBefore.x;
+    S.camera.y += worldAfter.y - worldBefore.y;
     render();
   }, { passive: false });
 

@@ -25,6 +25,14 @@ export function getGenerationOptions() {
 // ── Calibration state ────────────────────────────────────────────────
 let _lastCalibration = null;
 
+/** Count of enabled batch-output checkboxes, shown in the panel summary badge. */
+function updateBatchBadge() {
+  if (!els.batchSummaryBadge) return;
+  const enabled = document.querySelectorAll('.batch-outputs input[type="checkbox"]:checked').length;
+  const total = document.querySelectorAll('.batch-outputs input[type="checkbox"]').length;
+  els.batchSummaryBadge.textContent = `${enabled} of ${total} outputs`;
+}
+
 // ─── Batch analysis ───────────────────────────────────────────────────
 
 /**
@@ -112,7 +120,7 @@ export async function runBatchAnalysis() {
     _lastCalibration = result.calibration;
 
     // ── Format and display the report ──────────────────────────────────
-    els.statsPanel.textContent = formatBatchReport(result, { ...options, multiBiome: genOptions.multiBiome });
+    els.statsBody.textContent = formatBatchReport(result, { ...options, multiBiome: genOptions.multiBiome });
 
     // ── Enable download buttons if thresholds were derived ─────────────
     if (result.calibration) {
@@ -121,7 +129,7 @@ export async function runBatchAnalysis() {
     // Batch report button always enabled after a run
     els.btnDownloadBatchReport.disabled = false;
   } catch (err) {
-    els.statsPanel.textContent = `Batch analysis error:\n${err.message}\n${err.stack || ''}`;
+    els.statsBody.textContent = `Batch analysis error:\n${err.message}\n${err.stack || ''}`;
   } finally {
     progressBar.hide();
     els.btnBatchRun.disabled = false;
@@ -144,7 +152,7 @@ function downloadLUTs() {
 }
 
 function downloadBatchReport() {
-  const text = els.statsPanel.textContent;
+  const text = els.statsBody.textContent;
   if (!text || text === 'Loading...') return;
   const blob = new Blob([text], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
@@ -168,11 +176,23 @@ export function bindBatchControls() {
 
   // Toggle all / deselect all batch outputs
   if (els.btnBatchToggleAll) {
-    els.btnBatchToggleAll.addEventListener('click', () => setAllBatchOutputs(true));
+    els.btnBatchToggleAll.addEventListener('click', () => {
+      setAllBatchOutputs(true);
+      updateBatchBadge();
+    });
   }
   if (els.btnBatchDeselectAll) {
-    els.btnBatchDeselectAll.addEventListener('click', () => setAllBatchOutputs(false));
+    els.btnBatchDeselectAll.addEventListener('click', () => {
+      setAllBatchOutputs(false);
+      updateBatchBadge();
+    });
   }
+
+  // Summary badge stays in sync with the output checkboxes
+  for (const cb of document.querySelectorAll('.batch-outputs input[type="checkbox"]')) {
+    cb.addEventListener('change', updateBatchBadge);
+  }
+  updateBatchBadge();
 
   // Download LUTs / batch report
   if (els.btnDownloadLuts) {

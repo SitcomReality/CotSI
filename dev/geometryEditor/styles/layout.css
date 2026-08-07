@@ -1,20 +1,23 @@
 /* layout.css — two-column page grid: controls left, 3D viewport right */
 #geometry-root {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 300px 1fr;
   height: 100vh;
 }
 
 #controls {
   overflow-y: auto;
-  padding: 16px 14px;
-  border-right: 1px solid #2c3644;
-  background: #1e252f;
+  padding: var(--s4) var(--s4) var(--s6);
+  border-right: 1px solid var(--crease);
+  background: var(--shadow);
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
 }
 
 #viewport {
   position: relative;
   min-width: 0;
+  background: var(--abyss);
 }
 
 #preview-canvas {

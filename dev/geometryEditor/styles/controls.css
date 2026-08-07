@@ -1,82 +1,175 @@
-/* controls.css — editor control panel styling */
-#controls h2 {
-  font-size: 15px;
-  margin-bottom: 14px;
-  color: #f0f4f8;
+/* controls.css — editor control panel styling (token-driven).
+   Follows the game's aesthetic conventions: dark proscenium chrome,
+   Rubik display headings, Outfit body, ink-faint tertiary text,
+   state via glow (box-shadow) rather than CSS outline. */
+
+/* ── Page header ──────────────────────────────────────────────────────────── */
+
+.page-header {
+  padding-bottom: var(--s3);
+  margin-bottom: var(--s4);
+  border-bottom: 1px solid var(--crease);
 }
+
+.page-header h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  letter-spacing: var(--ls-display);
+  color: var(--ink);
+}
+
+.page-subtitle {
+  margin-top: var(--s1);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+/* ── Sections ─────────────────────────────────────────────────────────────── */
 
 .control-group {
-  margin-bottom: 18px;
+  margin-bottom: var(--s5);
 }
 
-.control-group h3 {
-  font-size: 12px;
+.control-group h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #8fa0b5;
-  margin-bottom: 8px;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-mid);
+  padding-bottom: var(--s1);
+  margin-bottom: var(--s3);
+  border-bottom: 1px solid var(--crease);
 }
+
+/* ── Control rows ─────────────────────────────────────────────────────────── */
 
 .control-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
 }
 
 .control-row label {
   flex: 1;
-  font-size: 13px;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-mid);
 }
 
 .control-row.hint {
-  color: #7c8a9c;
-  font-size: 12px;
+  color: var(--ink-faint);
+  font-size: var(--fs-xs);
 }
 
-select, button {
-  font-size: 13px;
+/* ── Object filter ────────────────────────────────────────────────────────── */
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+
+.filter-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-count {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+/* ── Form controls ────────────────────────────────────────────────────────── */
+
+select, button, input[type="text"], input[type="number"], input[type="file"] {
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-radius: var(--r-sm);
   padding: 5px 8px;
-  border-radius: 4px;
-  border: 1px solid #3a4656;
-  background: #232c38;
-  color: #d8dee8;
+}
+
+select {
+  max-width: 100%;
+}
+
+select:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: none;
+  border-color: var(--ink-mid);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-faint) 30%, transparent);
 }
 
 button {
   cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
 button:hover {
-  background: #2c3745;
+  background: color-mix(in srgb, var(--board-hi) 80%, var(--ink-mid));
 }
 
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── Info / hint text ─────────────────────────────────────────────────────── */
+
 .info {
-  font-size: 12px;
-  color: #9fb0c4;
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
   white-space: pre-line;
 }
 
-/* ── Editor panel — object/part editing ── */
+.hint {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+/* ── Preview readout ──────────────────────────────────────────────────────── */
+
+.info-panel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: var(--lh);
+  color: var(--ink-mid);
+  background: var(--board);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  padding: var(--s2) var(--s3);
+  white-space: pre-line;
+}
+
+/* ── Dynamic editor panel ─────────────────────────────────────────────────── */
 
 #object-edit input[type="number"],
 #part-inspector input[type="number"] {
   width: 84px;
   padding: 4px 6px;
-  border-radius: 4px;
-  border: 1px solid #3a4656;
-  background: #232c38;
-  color: #d8dee8;
-  font-size: 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--crease-bold);
+  background: var(--shadow);
+  color: var(--ink);
+  font-size: var(--fs-xs);
 }
 
 #object-edit input[type="color"] {
   width: 44px;
   height: 26px;
   padding: 1px;
-  border: 1px solid #3a4656;
-  border-radius: 4px;
-  background: #232c38;
+  border: 1px solid var(--crease-bold);
+  border-radius: var(--r-sm);
+  background: var(--shadow);
 }
 
 #object-edit select,
@@ -85,48 +178,69 @@ button:hover {
   max-width: 150px;
 }
 
+/* Sub-headings inside the dynamic panels (Cluster, Size, Placement, …) */
+.section-title {
+  margin-top: var(--s3);
+  margin-bottom: var(--s1);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-faint);
+}
+
+/* Entity-mode callout */
+.mode-banner {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-left: 3px solid var(--cerulean);
+  border-radius: var(--r-sm);
+  padding: var(--s2) var(--s3);
+  margin-bottom: var(--s3);
+}
+
+/* ── Part list ────────────────────────────────────────────────────────────── */
+
 .part-row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 6px;
-  margin-bottom: 4px;
-  border: 1px solid #2c3644;
-  border-radius: 4px;
-  background: #212a35;
+  gap: var(--s1);
+  padding: var(--s1) var(--s2);
+  margin-bottom: var(--s1);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  background: var(--board);
   cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.part-row:hover {
+  background: var(--board-hi);
 }
 
 .part-row.selected {
-  border-color: #5a7a4a;
-  background: #26342a;
+  border-color: var(--gold);
+  background: var(--board-hi);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 35%, transparent);
 }
 
 .part-label {
   flex: 1;
-  font-size: 12px;
+  min-width: 0;
+  font-size: var(--fs-xs);
 }
 
 .part-row button {
   padding: 1px 6px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 
-.part-row button:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
+/* ── Project errors ───────────────────────────────────────────────────────── */
 
-.section-title {
-  margin-top: 10px;
-  margin-bottom: 4px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #8fa0b5;
-}
-
-.hint {
-  font-size: 12px;
-  color: #7c8a9c;
+#load-error {
+  color: var(--crimson);
 }

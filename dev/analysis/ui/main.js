@@ -37,6 +37,8 @@ function loadAndDisplay(seedText) {
       const genOptions = getGenerationOptions();
       const result = generateSingleSeed(seedText, radius, biomeDef, genOptions);
       S.lastResult = result;
+      els.headerSeed.textContent = seedText;
+      els.headerRadius.textContent = String(radius);
 
       renderAndFit();
       updateStats();

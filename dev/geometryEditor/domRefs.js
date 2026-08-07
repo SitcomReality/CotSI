@@ -6,6 +6,8 @@ export const els = {};
 
 export function cacheDom() {
   els.objectSelect = document.getElementById('object-select');
+  els.objectFilter = document.getElementById('object-filter');
+  els.objectFilterCount = document.getElementById('object-filter-count');
   els.occupiedCheck = document.getElementById('occupied-check');
   els.rerollBtn = document.getElementById('reroll-btn');
   els.occupiedRow = document.getElementById('occupied-row');

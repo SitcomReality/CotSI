@@ -7,12 +7,13 @@
 import { generateTiles } from '../../../src/game/rules/terrainGen/index.js';
 import { makeRng } from '../../../src/engine/rules/seededRng.js';
 import { createChampions } from '../../../src/game/state/championFactory.js';
+import { computeSpawnTargets } from '../../../src/game/state/spawnPosition.js';
 import { createMobs, createTraders } from '../../../src/game/state/entityFactory.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
 
 /**
  * Default champion config: one per faction, in faction order.
- * The shuffle in createChampions will randomize them per-seed deterministically.
+ * computeSpawnTargets shuffles them per-seed deterministically.
  */
 export const DEFAULT_CHAMPIONS = [
   { faction: 0 }, { faction: 1 }, { faction: 2 },
@@ -39,8 +40,15 @@ export function generateSingleSeed(seedText, radius, biomeDef, params = {}) {
   const rng = makeRng(seedText);
   const rand = () => rng();
 
+  // Precompute spawn targets with the same RNG draws the placement pass would
+  // use, mirroring gameFactory.js (the chunked generation update moved the
+  // shuffle + angular positions here).
+  const { shuffledChamps, targets: spawnTargets } = computeSpawnTargets({
+    champions: DEFAULT_CHAMPIONS, rand, radius,
+  });
+
   const { champions, used } = createChampions({
-    tiles, champions: DEFAULT_CHAMPIONS, rand, radius,
+    tiles, champions: shuffledChamps, targets: spawnTargets, rand, radius,
   });
 
   const baseKeys = new Set();

@@ -1,4 +1,6 @@
-/* entityKey.css — Entity key swatches in toggle labels */
+/* entityKey.css — Entity key swatches in toggle labels.
+   Marker colors mirror the map render (entityMarkers.js) — do not change them;
+   only the ink-outline chrome is tokenized here. */
 
 .entity-key {
   display: inline-flex;
@@ -17,7 +19,7 @@
   height: 10px;
   border-radius: 50%;
   background: #6a8abf;
-  border: 2px solid #fff;
+  border: 2px solid var(--ink-line);
 }
 
 /* Mob marker */
@@ -28,6 +30,7 @@
   height: 8px;
   border-radius: 50%;
   background: #8B6914;
+  border: 2px solid var(--ink-line);
 }
 
 /* Trader marker */
@@ -38,6 +41,7 @@
   height: 9px;
   border-radius: 50%;
   background: #20b2aa;
+  border: 2px solid var(--ink-line);
 }
 
 /* Base marker */
@@ -47,7 +51,7 @@
   width: 9px;
   height: 9px;
   background: #6a8abf;
-  border: 1.5px solid #fff;
+  border: 1.5px solid var(--ink-line);
 }
 
 /* Feature marker (two dots) */
@@ -61,6 +65,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
+  border: 1px solid var(--ink-line);
 }
 .entity-key[data-entity="feature"]::before {
   background: #2d5a1e;
@@ -68,5 +73,3 @@
 .entity-key[data-entity="feature"]::after {
   background: #c8a832;
 }
-
-

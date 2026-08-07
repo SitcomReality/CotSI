@@ -8,9 +8,9 @@
 
 html, body {
   height: 100%;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
-  color: #d0d0d0;
-  background: #1a1a1f;
+  color: var(--ink);
+  background: var(--abyss);
   overflow: hidden;
 }

@@ -28,6 +28,8 @@ function doGenerate(seedText) {
   const multiBiome = els.multiBiomeCheck.checked;
   const result = generateSingleSeed(seedText, radius, biomeDef, { multiBiome });
   S.lastResult = result;
+  els.headerSeed.textContent = seedText;
+  els.headerRadius.textContent = String(radius);
 }
 
 /**
