@@ -28,6 +28,13 @@
  *   sunk      — shrink and descend below the tile surface (hill mounds);
  *   hidden    — not rendered at all;
  *   none      — stays put (mountains).
+ *
+ * Grounding: every record bakes the part shape's base offset (shapeBaseOffset
+ * in schema.js, scaled by the record's Y scale) into `y`, so a part's lowest
+ * vertex always lands at worldPos.y + transform.y + lift (+ localPos.y) — the
+ * bottom-anchored convention where y = 0 / lift = 0 sits flush on the surface.
+ * Stretch and scaleY therefore grow a part upward from its base, never below
+ * it. Both the tile path and the entity path apply the same rule.
  */
 import { tileHash, treeHash, frac, lerp, clamp01 } from '../trees/treeHash.js';
 import {
@@ -48,6 +55,7 @@ import {
   TREE_FOREST_TALL_THRESHOLD,
   TREE_VARIANT_THRESHOLDS,
 } from '../../../../params/render/geometryParams.js';
+import { shapeBaseOffset } from './schema.js';
 
 // Ring-scatter constants mirror TREE_VARIATION.ringJitter / angleJitter in
 // geometryParams.js (0.15 × ring width jitter, ±0.7 rad angular scatter).
@@ -331,10 +339,15 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
     ? itemScale * scaleMul * t.scaleY * lerp(bucket.min, bucket.max, frac(treeHash(tileH, i + 3)))
     : itemScale * scaleMul * jitterScale * t.scaleY * stretchForAxis(part, descriptor, 'y', tileH, i);
 
+  // Bottom-anchored grounding: bake the shape's base offset (scaled by the
+  // record's Y scale) into the pivot, so the part's lowest vertex lands at
+  // worldPos.y + t.y + lift regardless of scaleY/stretch — y = 0 / lift = 0
+  // sits flush on the surface, and stretch grows the part upward from there.
+  const base = shapeBaseOffset(part.shape, part.params);
   const record = {
     partId: part.id,
     x: worldPos.x + placement.dx,
-    y: worldPos.y + t.y + (disp?.yOffset ?? 0),
+    y: worldPos.y + t.y + base * sy + (disp?.yOffset ?? 0),
     z: worldPos.z + placement.dz,
     scale: sx,
     scaleY: sy,
@@ -430,10 +443,13 @@ function entityColorForPart(part, entity) {
  */
 function recordForEntityPart(part, entity, worldPos, itemScale) {
   const t = part.transform;
+  // Same bottom-anchored grounding as the tile path (no stretch for entities):
+  // the part's lowest vertex lands at worldPos.y + t.y + lift.
+  const base = shapeBaseOffset(part.shape, part.params);
   const record = {
     partId: part.id,
     x: worldPos.x,
-    y: worldPos.y + t.y,
+    y: worldPos.y + t.y + base * (itemScale * t.scaleY),
     z: worldPos.z,
     scale: itemScale * t.scaleX,
     scaleY: itemScale * t.scaleY,

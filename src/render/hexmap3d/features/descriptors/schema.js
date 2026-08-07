@@ -169,7 +169,7 @@ export const EMPHASIS_BEHAVIORS = Object.freeze(['none', 'dispersed', 'sunk', 'h
 export const PLACEMENT_MODES = Object.freeze(['center', 'scatter', 'ring', 'jitter']);
 
 /** Bump when the descriptor shape changes in a breaking way. */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /**
  * Defaults for optional object-level fields. Values mirror the current game
@@ -191,9 +191,12 @@ export const OBJECT_DEFAULTS = Object.freeze({
 
 /**
  * Defaults for a part's transform — the instance-record extras in
- * meshBuilder.js. `y` raises the whole object above the tile surface (e.g.
- * knots hover at KNOT_Y_OFFSET); `lift` raises the part in its own frame;
- * `localPos` overrides `lift` with a full local offset. Angles are radians.
+ * meshBuilder.js. `y` / `lift` are the height of the part's BOTTOM above the
+ * placement surface: 0 = sitting flush on the ground (see shapeBaseOffset for
+ * how the record path anchors vertically-centered primitives). `lift` raises
+ * the part in its own frame (pre-scale, so it is the same bottom-height
+ * measure under stretch); `localPos` overrides `lift` with a full local
+ * offset. Angles are radians.
  * scaleX/scaleY/scaleZ are the part's independent non-uniform scale (base 1);
  * a legacy `scaleXZ` input resolves to scaleX + scaleZ on normalize.
  */
@@ -205,6 +208,59 @@ export const PART_TRANSFORM_DEFAULTS = Object.freeze({
   scaleY: 1,
   scaleZ: 1,
 });
+
+/**
+ * Vertical distance from a shape's origin to its lowest vertex, in world units
+ * (pre-scale), for a part with the given params.
+ *
+ * Three.js primitives (cylinder, cone, sphere, box, torus, polyhedra) are
+ * vertically CENTERED at the origin, so their base offset is half their
+ * vertical extent (a cylinder of height 0.4 spans -0.2..+0.2 around the
+ * origin); custom bottom-anchored geometries (mountain pyramid, lathe profile)
+ * start at y=0 and offset to 0. `recordBuilder` bakes `baseOffset * sy` (sy =
+ * the record's Y scale, including stretch) into the record y, so every part's
+ * lowest point lands at `transform.y + lift (+ localPos.y)` — the
+ * bottom-anchored convention: y = 0 / lift = 0 sits flush on the surface, and
+ * stretch grows a part upward from the ground instead of from its center.
+ *
+ * Spheres are theta-aware: the polar range [thetaStart, thetaStart+thetaLength]
+ * places the lowest vertex at r·cos(thetaEnd), or at y = -r when the range
+ * covers the south pole — a full sphere offsets by its radius, while the hill
+ * mound's top hemisphere (thetaLength π/2) starts at y=0 and offsets to 0.
+ * The azimuth (phi) range never affects the vertical extent.
+ *
+ * @param {string} shape  - key of SHAPE_TYPES
+ * @param {object} params - normalized shape params (defaults applied)
+ * @returns {number} base offset in world units (pre-scale)
+ */
+export function shapeBaseOffset(shape, params) {
+  switch (shape) {
+    case 'cylinder':
+    case 'cone':
+      return params.height / 2;
+    case 'box':
+      return params.height / 2;
+    case 'cube':
+      return params.size / 2;
+    case 'sphere':
+    case 'spheroid': {
+      const r = params.radius;
+      const thetaEnd = (params.thetaStart ?? 0) + (params.thetaLength ?? Math.PI);
+      const lowest = thetaEnd >= Math.PI ? -r : r * Math.cos(thetaEnd);
+      return -lowest;
+    }
+    case 'torus':
+      return params.tube;
+    case 'dodecahedron':
+    case 'octahedron':
+      return params.radius;
+    case 'mountain':
+    case 'lathe':
+      return 0; // bottom-anchored geometry — the base ring / profile starts at y=0
+    default:
+      return 0;
+  }
+}
 
 // ── Type helpers ───────────────────────────────────────────────────────────
 
@@ -714,7 +770,19 @@ const LEGACY_SHAPE_NAMES = Object.freeze({
   snowperson: 'lathe',
 });
 
-function normalizePart(part) {
+/**
+ * Normalize one part. `legacyGrounding` migrates pre-v3 vertical placement (see
+ * normalizeDescriptor): files authored before the bottom-anchored convention
+ * encoded `transform.y` as the part's CENTER height. The record path bakes the
+ * shape's base offset × Y scale into `y` (recordBuilder), which compensates a
+ * matching `base × scaleY` subtraction from `transform.y` exactly at scale 1 —
+ * so the migration pulls the base out of the authored center height and the
+ * part renders at the same height (its lowest vertex lands at the old center
+ * height, and stretch grows it upward from there instead of from its center).
+ * `lift` / `localPos.y` are pure offsets and stay as authored. Idempotent:
+ * only schemaVersion < SCHEMA_VERSION triggers it.
+ */
+function normalizePart(part, legacyGrounding = false) {
   if (!isPlainObject(part)) return part;
   const shapeName = LEGACY_SHAPE_NAMES[part.shape] ?? part.shape;
   const shape = SHAPE_TYPES[shapeName];
@@ -741,6 +809,12 @@ function normalizePart(part) {
     delete stretch.xz;
     out.stretch = stretch;
   }
+
+  // Legacy (pre-v3) grounding migration — see the function docstring.
+  if (legacyGrounding) {
+    const base = shapeBaseOffset(out.shape, out.params);
+    out.transform.y -= base * (out.transform.scaleY ?? 1);
+  }
   return out;
 }
 
@@ -759,6 +833,11 @@ function normalizePart(part) {
 export function normalizeDescriptor(def) {
   const out = cloneJson(isPlainObject(def) ? def : {});
 
+  // Pre-v3 files encoded `transform.y` as the part's center height; the
+  // bottom-anchored convention reads it as bottom height, so old files are
+  // migrated per part (see normalizePart). Captured before schemaVersion is
+  // rewritten, so re-normalizing a v3 document never migrates twice.
+  const legacyGrounding = (out.schemaVersion ?? 1) < SCHEMA_VERSION;
   out.schemaVersion = SCHEMA_VERSION;
   out.scale = out.scale ?? OBJECT_DEFAULTS.scale;
   out.variantRule = out.variantRule ?? 'hash';
@@ -798,11 +877,11 @@ export function normalizeDescriptor(def) {
   out.emphasis = { ...OBJECT_DEFAULTS.emphasis, ...(isPlainObject(out.emphasis) ? out.emphasis : {}) };
   out.material = { ...OBJECT_DEFAULTS.material, ...(isPlainObject(out.material) ? out.material : {}) };
 
-  out.parts = (Array.isArray(out.parts) ? out.parts : []).map(normalizePart);
+  out.parts = (Array.isArray(out.parts) ? out.parts : []).map((p) => normalizePart(p, legacyGrounding));
   if (Array.isArray(out.variants)) {
     out.variants = out.variants.map((variant) => {
       const v = { ...variant };
-      v.parts = (Array.isArray(variant.parts) ? variant.parts : []).map(normalizePart);
+      v.parts = (Array.isArray(variant.parts) ? variant.parts : []).map((p) => normalizePart(p, legacyGrounding));
       return v;
     });
   }

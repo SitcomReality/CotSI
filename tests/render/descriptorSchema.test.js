@@ -15,6 +15,7 @@ import {
   validateDescriptor,
   validateShapeParams,
   normalizeDescriptor,
+  shapeBaseOffset,
 } from '../../src/render/hexmap3d/features/descriptors/schema.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
@@ -215,6 +216,7 @@ test('normalizeDescriptor fills every optional default', () => {
     id: 'foo',
     kind: 'feature',
     displayName: 'Foo',
+    schemaVersion: 3, // current convention — no legacy grounding migration
     parts: [{ id: 'p', shape: 'sphere' }],
   });
   assert.equal(normalized.schemaVersion, SCHEMA_VERSION);
@@ -367,6 +369,7 @@ test('normalizeDescriptor resolves legacy scaleXZ/stretchXZ into independent axe
     id: 'legacy-scaled',
     kind: 'feature',
     displayName: 'Legacy Scaled',
+    schemaVersion: 3, // scaleXZ resolution is unconditional; skip the v3 grounding migration
     variation: { stretchY: [0.85, 1.3], stretchXZ: [0.9, 1.15] },
     parts: [
       { id: 'p', shape: 'box', transform: { scaleXZ: 1.6 } },
@@ -396,4 +399,96 @@ test('independent per-axis transform scales validate', () => {
   assert.equal(d.parts[0].transform.scaleX, 2);
   assert.equal(d.parts[0].transform.scaleZ, 0.5);
   assert.ok(validateDescriptor({ ...d, parts: [{ id: 'p', shape: 'cube', transform: { scaleX: 0 } }] }).length > 0);
+});
+
+// ── Bottom-anchored grounding (v3): shapeBaseOffset + legacy migration ───────
+
+test('shapeBaseOffset is half the vertical extent for centered primitives', () => {
+  // cylinder / cone / box / cube: half the vertical dimension.
+  assert.equal(shapeBaseOffset('cylinder', { height: 0.4 }), 0.2);
+  assert.equal(shapeBaseOffset('cone', { height: 0.72 }), 0.36);
+  assert.equal(shapeBaseOffset('box', { height: 0.05 }), 0.025);
+  assert.equal(shapeBaseOffset('cube', { size: 0.3 }), 0.15);
+  // torus / polyhedra: lowest vertex below the origin at the tube / radius.
+  assert.equal(shapeBaseOffset('torus', { tube: 0.02 }), 0.02);
+  assert.equal(shapeBaseOffset('dodecahedron', { radius: 0.08 }), 0.08);
+  assert.equal(shapeBaseOffset('octahedron', { radius: 0.2 }), 0.2);
+  // Bottom-anchored bespoke geometries sit on y=0 already.
+  assert.equal(shapeBaseOffset('mountain', { variant: 'classic' }), 0);
+  assert.equal(shapeBaseOffset('lathe', {}), 0);
+});
+
+test('shapeBaseOffset is theta-aware for spheres', () => {
+  // Full sphere: lowest vertex at the south pole (y = -r).
+  assert.equal(shapeBaseOffset('sphere', { radius: 0.3 }), 0.3);
+  // Top hemisphere (the hill mound): lowest vertex at the equator (y = 0 —
+  // cos(π/2) is 6e-17, so compare within float tolerance).
+  assert.ok(Math.abs(shapeBaseOffset('sphere', { radius: 0.42, thetaLength: Math.PI / 2 })) < 1e-9);
+  // Partial sweep stopping short of the south pole: lowest vertex at
+  // r·cos(thetaEnd) — positive when thetaEnd < π/2, negative below it.
+  const partial = shapeBaseOffset('sphere', { radius: 0.16, thetaLength: 0.55 * Math.PI });
+  assert.ok(Math.abs(partial - 0.16 * -Math.cos(0.55 * Math.PI)) < 1e-9);
+  // Spheroid is a stretchable sphere — same rule (full sphere here).
+  assert.equal(shapeBaseOffset('spheroid', { radius: 0.3 }), 0.3);
+});
+
+test('pre-v3 descriptors migrate transform.y to the bottom-anchored convention', () => {
+  // v1 cylinder (default height 0.4): transform y encoded the part's CENTER
+  // height. Migration subtracts base (0.2) × scaleY — the exact term the record
+  // path bakes back in — so y=0.3 → 0.1, position-preserving at scale 1.
+  const legacy = normalizeDescriptor({
+    id: 'legacy-grounding',
+    kind: 'feature',
+    displayName: 'Legacy Grounding',
+    parts: [
+      { id: 'p', shape: 'cylinder', transform: { y: 0.3, lift: 0.1, scaleY: 1 } },
+    ],
+  });
+  assert.equal(legacy.schemaVersion, SCHEMA_VERSION);
+  assert.ok(Math.abs(legacy.parts[0].transform.y - 0.1) < 1e-9);
+  // lift / localPos are pure offsets in the bottom-anchored convention — untouched.
+  assert.equal(legacy.parts[0].transform.lift, 0.1);
+  // A per-part scaleY scales the base offset with it (the tall trunk rule).
+  const scaled = normalizeDescriptor({
+    id: 'legacy-scaled-grounding',
+    kind: 'feature',
+    displayName: 'Legacy Scaled Grounding',
+    parts: [
+      { id: 'p', shape: 'sphere', params: { radius: 0.3 }, transform: { y: 0.7, scaleY: 2 } },
+    ],
+  });
+  assert.ok(Math.abs(scaled.parts[0].transform.y - (0.7 - 0.3 * 2)) < 1e-9);
+  // localPos.y stays as authored.
+  const local = normalizeDescriptor({
+    id: 'legacy-local-grounding',
+    kind: 'feature',
+    displayName: 'Legacy Local Grounding',
+    parts: [
+      { id: 'p', shape: 'cone', transform: { localPos: { x: 0.5, y: 0.4, z: 0.25 } } },
+    ],
+  });
+  assert.equal(local.parts[0].transform.localPos.x, 0.5);
+  assert.equal(local.parts[0].transform.localPos.y, 0.4);
+  assert.equal(local.parts[0].transform.localPos.z, 0.25);
+});
+
+test('grounding migration is idempotent and never re-runs on v3 documents', () => {
+  const legacy = {
+    id: 'legacy-grove',
+    kind: 'decor',
+    displayName: 'Legacy Grove',
+    parts: [
+      { id: 'trunk', shape: 'cylinder', transform: { lift: 0.16 } },
+      { id: 'canopy', shape: 'sphere', params: { radius: 0.3 }, transform: { lift: 0.5 } },
+    ],
+  };
+  const once = normalizeDescriptor(legacy);
+  // The authored center height (lift only) becomes a negative bottom y equal to
+  // the shape base, with lift preserved — so the render is unchanged at scale 1.
+  assert.equal(once.parts[0].transform.y, -0.2);
+  assert.equal(once.parts[0].transform.lift, 0.16);
+  assert.equal(once.parts[1].transform.y, -0.3);
+  assert.equal(once.parts[1].transform.lift, 0.5);
+  // Re-normalizing the migrated document (now schemaVersion 3) changes nothing.
+  assert.deepEqual(normalizeDescriptor(once), once);
 });

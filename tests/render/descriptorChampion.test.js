@@ -61,7 +61,7 @@ test('golden snapshot: CRU champion (body + head + top spike)', () => {
   const records = recordsForEntity(normalizeDescriptor(CHAMPION_DESCRIPTOR), ENTITY('CRU'), POS);
   assert.deepEqual(records, [
     { partId: 'body', x: 0, y: 0.15, z: 0, scale: 1, scaleY: 1, color: 0x6e2e22 },
-    { partId: 'head', x: 0, y: 0.45, z: 0, scale: 1, scaleY: 1 }, // skin tone is materialColor — no instance color
+    { partId: 'head', x: 0, y: 0.44999999999999996, z: 0, scale: 1, scaleY: 1 }, // skin tone is materialColor — no instance color; 1-ulp drift from the v3 grounding round-trip (0.45 − 0.3 + 0.3)
     { partId: 'spikeTop', x: 0, y: 0.58, z: 0, scale: 1, scaleY: 1, color: 0xb84530 },
   ]);
 });

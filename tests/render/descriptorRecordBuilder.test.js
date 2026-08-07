@@ -21,6 +21,7 @@ const BUSH = normalizeDescriptor({
   id: 'bush',
   kind: 'feature',
   displayName: 'Scrub Bush',
+  schemaVersion: 3, // current convention — lift/transform values are bottom-height
   scale: 1.5,
   placement: { mode: 'scatter' },
   emphasis: { behavior: 'dispersed' },
@@ -35,6 +36,7 @@ const GROVE = normalizeDescriptor({
   id: 'grove-forest',
   kind: 'decor',
   displayName: 'Forest Grove',
+  schemaVersion: 3, // current convention — lift/transform values are bottom-height
   cluster: { min: 3, max: 5 },
   size: { min: 1.3, max: 1.5 },
   variation: { stretchY: [0.85, 1.3], stretchXZ: [0.9, 1.15], colorJitter: 0.05 },

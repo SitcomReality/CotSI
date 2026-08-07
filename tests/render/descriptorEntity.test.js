@@ -21,7 +21,7 @@ const POS = { x: 5, y: 1.0, z: -2 };
 // factions, plus the faction's decoration (replacement semantics, like tree
 // variants; the top-level `parts` are the fallback when no variant matches).
 const BASE_DESCRIPTOR = {
-  schemaVersion: 1,
+  schemaVersion: 3,
   id: 'base',
   kind: 'base',
   displayName: 'Faction Base',
@@ -29,32 +29,33 @@ const BASE_DESCRIPTOR = {
   material: { color: 0xffffff },
   parts: [
     { id: 'tower', shape: 'cylinder', params: { bottomR: 0.16, topR: 0.14, height: 0.5, segments: 6 }, color: 'factionBase' },
-    { id: 'cap', shape: 'cylinder', params: { bottomR: 0.18, topR: 0.18, height: 0.08, segments: 6 }, transform: { lift: 0.5 }, color: 'factionBase' },
-    { id: 'deco', shape: 'cone', params: { bottomR: 0.1, height: 0.2, radialSegs: 5, heightSegs: 1 }, transform: { lift: 0.5 }, color: 'factionAccent' },
+    { id: 'cap', shape: 'cylinder', params: { bottomR: 0.18, topR: 0.18, height: 0.08, segments: 6 }, transform: { lift: 0.46 }, color: 'factionBase' },
+    { id: 'deco', shape: 'cone', params: { bottomR: 0.1, height: 0.2, radialSegs: 5, heightSegs: 1 }, transform: { lift: 0.4 }, color: 'factionAccent' },
   ],
   variants: [
     {
       id: 'CRU',
       parts: [
         { id: 'tower', shape: 'cylinder', params: { bottomR: 0.16, topR: 0.14, height: 0.5, segments: 6 }, color: 'factionBase' },
-        { id: 'cap', shape: 'cylinder', params: { bottomR: 0.18, topR: 0.18, height: 0.08, segments: 6 }, transform: { lift: 0.5 }, color: 'factionBase' },
-        { id: 'deco', shape: 'cone', params: { bottomR: 0.1, height: 0.2, radialSegs: 5, heightSegs: 1 }, transform: { lift: 0.5 }, color: 'factionAccent' },
+        { id: 'cap', shape: 'cylinder', params: { bottomR: 0.18, topR: 0.18, height: 0.08, segments: 6 }, transform: { lift: 0.46 }, color: 'factionBase' },
+        { id: 'deco', shape: 'cone', params: { bottomR: 0.1, height: 0.2, radialSegs: 5, heightSegs: 1 }, transform: { lift: 0.4 }, color: 'factionAccent' },
       ],
     },
     {
       id: 'VER',
       parts: [
         { id: 'tower', shape: 'cylinder', params: { bottomR: 0.16, topR: 0.14, height: 0.5, segments: 6 }, color: 'factionBase' },
-        { id: 'cap', shape: 'cylinder', params: { bottomR: 0.18, topR: 0.18, height: 0.08, segments: 6 }, transform: { lift: 0.5 }, color: 'factionBase' },
-        { id: 'deco', shape: 'torus', params: { radius: 0.1, tube: 0.02, radialSegs: 4, tubularSegs: 8, arc: Math.PI * 2 }, transform: { lift: 0.5, rotY: Math.PI / 4 }, color: 'factionAccent' },
+        { id: 'cap', shape: 'cylinder', params: { bottomR: 0.18, topR: 0.18, height: 0.08, segments: 6 }, transform: { lift: 0.46 }, color: 'factionBase' },
+        { id: 'deco', shape: 'torus', params: { radius: 0.1, tube: 0.02, radialSegs: 4, tubularSegs: 8, arc: Math.PI * 2 }, transform: { lift: 0.46, rotY: Math.PI / 4 }, color: 'factionAccent' },
       ],
     },
   ],
 };
 
-// Synthetic mob: shared fallback body, per-archetype body variant.
+// Synthetic mob: shared fallback body, per-archetype body variant. Vertical
+// offsets are bottom heights (v3 convention): no transform = flush on the ground.
 const MOB_DESCRIPTOR = {
-  schemaVersion: 1,
+  schemaVersion: 3,
   id: 'mob',
   kind: 'mob',
   displayName: 'Mob',
@@ -131,10 +132,11 @@ test('recordsForEntity is a single center-placed item with variant parts', () =>
     assert.equal(r.x, POS.x);
     assert.equal(r.z, POS.z);
   }
-  // Cap and deco sit on the tower via lift; the base record sits at the surface.
-  assert.equal(records[0].y, POS.y);
+  // Cap and deco sit on the tower via lift; the tower's bottom sits at the
+  // surface — its record y carries the baked base offset (height 0.5 / 2).
+  assert.equal(records[0].y, POS.y + 0.25);
   assert.equal(records[0].lift, undefined);
-  assert.equal(records[1].lift, 0.5);
+  assert.equal(records[1].lift, 0.46);
 });
 
 test('variant rule "faction" picks the variant matching entity.faction', () => {
@@ -193,15 +195,15 @@ test('recordsForEntity is deterministic and honors hidden displacement', () => {
 test('golden snapshot: CRU base records match exactly', () => {
   const records = recordsForEntity(normalizeDescriptor(BASE_DESCRIPTOR), CRU_ENTITY, POS);
   assert.deepEqual(records, [
-    { partId: 'tower', x: 5, y: 1.0, z: -2, scale: 1, scaleY: 1, color: 0x224466 },
-    { partId: 'cap', x: 5, y: 1.0, z: -2, scale: 1, scaleY: 1, lift: 0.5, color: 0x224466 },
-    { partId: 'deco', x: 5, y: 1.0, z: -2, scale: 1, scaleY: 1, lift: 0.5, color: 0xd8b830 },
+    { partId: 'tower', x: 5, y: 1.25, z: -2, scale: 1, scaleY: 1, color: 0x224466 },
+    { partId: 'cap', x: 5, y: 1.04, z: -2, scale: 1, scaleY: 1, lift: 0.46, color: 0x224466 },
+    { partId: 'deco', x: 5, y: 1.1, z: -2, scale: 1, scaleY: 1, lift: 0.4, color: 0xd8b830 },
   ]);
 });
 
 test('golden snapshot: snail mob records match exactly', () => {
   const records = recordsForEntity(normalizeDescriptor(MOB_DESCRIPTOR), { archetype: 'snail', scale: 0.9 }, POS);
   assert.deepEqual(records, [
-    { partId: 'body', x: 5, y: 1.0, z: -2, scale: 0.9, scaleY: 0.9, color: 0xc0d8a0 },
+    { partId: 'body', x: 5, y: 1.108, z: -2, scale: 0.9, scaleY: 0.9, color: 0xc0d8a0 },
   ]);
 });
