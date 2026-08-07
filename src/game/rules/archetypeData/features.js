@@ -29,14 +29,6 @@ defineArchetype('feature_tree', {
   visual: { scale: 1.0 },
 });
 
-defineArchetype('feature_largeTree', {
-  type: 'feature',
-  name: 'Elder Tree',
-  archetypeShape: 'tree',
-  tags: ['forest'],
-  visual: { scale: 1.8 },
-});
-
 defineArchetype('feature_fruitTree', {
   type: 'feature',
   name: 'Moonberry Tree',
@@ -67,14 +59,6 @@ defineArchetype('feature_bush', {
   archetypeShape: 'tuft',
   tags: ['plains', 'forest', 'hill'],
   visual: { scale: 1.5 },
-});
-
-defineArchetype('feature_vine', {
-  type: 'feature',
-  name: 'Ground Vine',
-  archetypeShape: 'tuft',
-  tags: ['forest', 'marsh'],
-  visual: { scale: 0.8 },
 });
 
 // ── Tier 1: Unique mechanics, strong theme ─────────────────────────────────────
@@ -133,14 +117,6 @@ defineArchetype('feature_errataSlip', {
   archetypeShape: 'slab',
   tags: ['unfinished'],
   visual: { scale: 1.2 },
-});
-
-defineArchetype('feature_redLetterBramble', {
-  type: 'feature',
-  name: 'Red-Letter Bramble',
-  archetypeShape: 'bush',
-  tags: ['any'],
-  visual: { scale: 1.3 },
 });
 
 // ── Tier 2: Strong but simpler, or modest overlap ──────────────────────────────
@@ -231,14 +207,6 @@ defineArchetype('feature_cinderbloom', {
   archetypeShape: 'plant',
   tags: ['brass_grave'],
   visual: { scale: 0.8 },
-});
-
-defineArchetype('feature_brassLungVent', {
-  type: 'feature',
-  name: 'Brass Lung Vent',
-  archetypeShape: 'vent',
-  tags: ['brass_grave'],
-  visual: { scale: 1.0 },
 });
 
 defineArchetype('feature_ouroborosLoop', {

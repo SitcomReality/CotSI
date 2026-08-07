@@ -7,7 +7,7 @@
  *
  * Migrated content:
  *   - all 26 simple feature archetypes from FEATURE_VISUALS (simpleFeatures.js)
- *   - tree groves, solitary trees, the Elder Tree (trees.js)
+ *   - tree groves, solitary trees (trees.js)
  *   - hill mounds (hills.js), mountains (mountains.js), knots (knots.js)
  *   - champion bases, 7 faction variants (bases.js — entity-driven)
  *   - champions, per-faction variants (champions.js — entity-driven)
@@ -20,7 +20,7 @@
  * hard-coded builders.
  */
 import { SIMPLE_FEATURE_DESCRIPTORS } from './simpleFeatures.js';
-import { GROVE_DESCRIPTOR, TREE_DESCRIPTOR, LARGETREE_DESCRIPTOR } from './trees.js';
+import { GROVE_DESCRIPTOR, TREE_DESCRIPTOR } from './trees.js';
 import { HILL_DESCRIPTOR } from './hills.js';
 import { MOUNTAIN_DESCRIPTOR } from './mountains.js';
 import { KNOT_DESCRIPTOR } from './knots.js';
@@ -34,7 +34,6 @@ export const ALL_DESCRIPTORS = [
   ...SIMPLE_FEATURE_DESCRIPTORS,
   GROVE_DESCRIPTOR,
   TREE_DESCRIPTOR,
-  LARGETREE_DESCRIPTOR,
   HILL_DESCRIPTOR,
   MOUNTAIN_DESCRIPTOR,
   KNOT_DESCRIPTOR,

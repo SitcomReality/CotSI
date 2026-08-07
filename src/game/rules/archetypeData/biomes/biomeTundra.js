@@ -31,10 +31,9 @@ defineArchetype('biome_tundra', {
   },
 
   // Tundra: sparse — cold stunts growth.
-  // Snowperson at rare threshold (unique decorative feature, non-functional).
+  // Snowperson at rare threshold (Tundra's signature feature).
   features: [
     { kind: 'snowperson',     threshold: 0.97, compare: 'gt', terrainExclude: [] },
-    { kind: 'waxbloom',       threshold: 0.94, compare: 'gt', terrainExclude: [] },
     { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [] },
     { kind: 'knot',           threshold: 0.05, compare: 'lt' },
   ],

@@ -50,7 +50,6 @@ export const TREE_VARIATION = {
 export const TREE_SOLITARY = {
   tree:      { scale: 1.15, stretchY: 1.1,  stretchXZ: 1.05, lean: 0.02 },
   fruitTree: { scale: 1.1,  stretchY: 1.2,  stretchXZ: 1.1,  lean: 0.015 },
-  largeTree: { scale: 1.8,  stretchY: 1.3,  stretchXZ: 1.15, trunkStretch: 1.2, lean: 0.0 },
 };
 
 /** Canopy palette — applied per instance (material stays white). */
@@ -58,7 +57,6 @@ export const TREE_CANOPY_COLORS = {
   round: 0x3CB371,
   tall:  0x2E8B57,
   wide:  0x66CDAA,
-  large: 0x9ACD32, // Elder Tree — golden-green landmark
   fruit: 0x7CB342, // Fruit Tree — warm green
   painforest: 0x2E5D2E, // Painforest grove — dark twisted foliage
 };

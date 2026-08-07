@@ -40,7 +40,6 @@ export function spawnFeature(roll, terrain, density, features) {
 
     switch (rule.kind) {
       case 'tree':
-      case 'largeTree':
         return { kind: rule.kind, density };
       case 'fruitTree':
         return { kind: 'fruitTree', nextFruitDay: 1, ripe: true, density };
@@ -56,8 +55,6 @@ export function spawnFeature(roll, terrain, density, features) {
         };
       case 'bush':
         return { kind: 'bush', density };
-      case 'vine':
-        return { kind: 'vine', density };
       default: {
         const feature = { kind: rule.kind, density };
         if (rule.state) Object.assign(feature, rule.state);

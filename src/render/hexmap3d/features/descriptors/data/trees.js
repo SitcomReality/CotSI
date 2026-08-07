@@ -9,8 +9,6 @@
  *   - tree      — the solitary open-terrain tree (solitaryTreeRecords.js):
  *                 canopy variant by terrain + coord hash (treeVariant), small
  *                 offset from the hex center, fixed per-kind lean.
- *   - largeTree — the Elder Tree landmark: always the round canopy, bigger,
- *                 with a thicker trunk and no lean.
  *
  * Trunk part: cylinder, planted at the surface. Canopy parts carry the
  * per-variant leaf color as an instance color (the game's canopy material is
@@ -139,36 +137,6 @@ export const TREE_DESCRIPTOR = {
         { ...TRUNK_PART, stretch: { y: false, xz: false } },
         { ...WIDE_CANOPY, stretch: { y: { min: 1.1, max: 1.1, seed: 4 }, xz: { min: 1.05, max: 1.05, seed: 5 } } },
       ],
-    },
-  ],
-};
-
-/** Elder Tree landmark — always the round canopy, big, thick-trunked, upright. */
-export const LARGETREE_DESCRIPTOR = {
-  schemaVersion: 1,
-  id: 'largeTree',
-  kind: 'feature',
-  displayName: 'Elder Tree',
-  scale: 1.8, // TREE_SOLITARY.largeTree.scale
-  placement: {
-    mode: 'jitter',
-    offset: 0.08,
-    tiltMin: 0, tiltMax: 0, // TREE_SOLITARY.largeTree.lean = 0
-    tiltSeed: 1,
-  },
-  emphasis: { behavior: 'dispersed' },
-  material: { color: 0x8b5e3c },
-  parts: [
-    {
-      ...TRUNK_PART,
-      transform: { lift: 0.2, scaleY: 1.2 }, // trunkStretch 1.2 (taller trunk)
-      stretch: { y: false, xz: false },
-    },
-    {
-      ...ROUND_CANOPY,
-      transform: { lift: 0.6 }, // canopyY 0.5 × trunkStretch 1.2 ≈ real 0.69 center
-      stretch: { y: { min: 1.3, max: 1.3, seed: 4 }, xz: { min: 1.15, max: 1.15, seed: 5 } }, // stretchY 1.3 / XZ 1.15
-      color: 0x9acd32, // TREE_CANOPY_COLORS.large
     },
   ],
 };

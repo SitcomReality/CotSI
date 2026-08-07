@@ -10,7 +10,7 @@
  * A tile may resolve to several objects, one group per descriptor:
  *   feature (claims the hex center; gated on the visible set):
  *     knot feature (unmined)      → knot descriptor
- *     tree / largeTree on open terrain → solitary tree descriptor
+ *     tree on open terrain → solitary tree descriptor
  *     any other kind with a descriptor → that descriptor (26 simple archetypes)
  *   terrain decoration (composes with the feature above; also rendered on
  *   explored-but-out-of-sight tiles, where it shows its unoccupied state):
@@ -89,8 +89,8 @@ function resolveFeatureForTile(tile, occupants) {
     return { descriptor: normalizedDescriptor(KNOT_DESCRIPTOR), displacement: { displaced: occupied } };
   }
   if (kind === 'fruitTree') return null; // legacy tree builder
-  if (kind === 'tree' || kind === 'largeTree') {
-    // On woods these are the grove (or the legacy Painforest grove) — the
+  if (kind === 'tree') {
+    // On woods this is the grove (or the legacy Painforest grove) — the
     // solitary landmark renders only on open terrain.
     if (isWoodsTerrain(tile)) return null;
     return { descriptor: normalizedDescriptor(descriptorById(kind)), displacement: { displaced: occupied } };

@@ -197,9 +197,7 @@ test('terrain effects: base, fruit tree, vegetation, and knot lines', () => {
   assert.equal(textFor(at({ kind: 'fruitTree', ripe: true }), makeChamp()), 'Standing on Plains. Moonberries hang here.');
   assert.equal(textFor(at({ kind: 'fruitTree', ripe: false }), makeChamp()), 'Standing on Plains. The berries here are spent.');
   assert.equal(textFor(at({ kind: 'tree' }), makeChamp()), 'Standing on Plains. A tree stands here.');
-  assert.equal(textFor(at({ kind: 'largeTree' }), makeChamp()), 'Standing on Plains. A massive tree stands here.');
   assert.equal(textFor(at({ kind: 'bush' }), makeChamp()), 'Standing on Plains. Dense underbrush crowds the hex.');
-  assert.equal(textFor(at({ kind: 'vine' }), makeChamp()), 'Standing on Plains. Thick vines carpet the ground.');
   assert.equal(textFor(at({ kind: 'knot', mined: false }), makeChamp()), "Standing on Plains. An unmined God's Knot glimmers.");
   // Mined knot → no glimmer suffix.
   assert.equal(textFor(at({ kind: 'knot', mined: true }), makeChamp()), 'Standing on Plains.');

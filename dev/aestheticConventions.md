@@ -487,8 +487,7 @@ decoration, not a feature:
 - Each tree in a cluster still varies slightly — size, trunk height, leaf
   height/width, rotation, leaf color — and **leans slightly away from the hex
   center** (a cartoony bouquet/grove silhouette)
-- Individual trees on open ground are landmarks: `largeTree` (Elder Tree) is
-  big with a golden-green canopy, and a lone `tree` on plains/hill/marsh is
+- Individual trees on open ground are landmarks: a lone `tree` on plains/hill/marsh is
   larger than a grove member
 
 **Interactives take the hex center; decorations step aside.** Priority is

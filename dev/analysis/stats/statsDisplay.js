@@ -61,7 +61,7 @@ export function formatStats() {
   }
 
   lines.push('');
-  lines.push(`Features:  trees=${featCounts.trees}  fruit=${featCounts.fruitTrees}  large=${featCounts.largeTrees}  knots=${featCounts.knots}  bases=${featCounts.bases}  bushes=${featCounts.bushes}  vines=${featCounts.vines}`);
+  lines.push(`Features:  trees=${featCounts.trees}  fruit=${featCounts.fruitTrees}  knots=${featCounts.knots}  bases=${featCounts.bases}  bushes=${featCounts.bushes}  chests=${featCounts.chests}`);
   lines.push(`Mountains: total=${mtStats.total}  peaks=${mtStats.peaks}  slopes=${mtStats.slopes}  isolated=${mtStats.isolated}`);
   lines.push(`Water:     total=${wtStats.total}  lakes=${wtStats.lakes}  oceans=${wtStats.oceans}`);
   lines.push('');

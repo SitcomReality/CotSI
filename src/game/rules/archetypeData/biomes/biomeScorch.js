@@ -30,8 +30,6 @@ defineArchetype('biome_scorch', {
   // Scorch: sparse trees, rare fruit trees, scattered knots
   // Note: fruitTree must come before tree (higher threshold = rarer, first-match-wins)
   features: [
-    // Low-roll hazard (narrow lt before broader knot)
-    { kind: 'redLetterBramble', threshold: 0.01, compare: 'lt', terrainExclude: ['water', 'ice'] },
     // High-roll features — rarest first
     { kind: 'fruitTree', threshold: 0.980, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'saintsRib', threshold: 0.965, compare: 'gt', terrainExclude: [] },

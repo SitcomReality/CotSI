@@ -15,7 +15,7 @@ Waxbloom — Heal + small reveal. Cold flame that warms and lights the way. Perf
 
 Errata Slip — Terrain change. Thematically perfect for Unfinished Lands (editor's correction pinned to reality). High wiring cost — terrain rerolls are invasive. Gate behind very-rare and implement last. Worth doing for the "wow" factor.
 
-Red-Letter Bramble — Damage hazard. The game has no common hazards. This uses the existing bush mesh tinted near-black with emissive-red thorns. Fills a real design gap at very low cost.
+Red-Letter Bramble — ~~Damage hazard~~ — **cut (Aug 2026):** no obstacles in the game; purely negative tiles were removed.
 
 Tier 2: Strong but not as cool, or modest overlap
 Gilded Initial — Beautiful theme (illuminated capital letter), buff mechanic. Fits Untouched and Unfinished Lands. Moderate wiring (buff system), but the visual would be iconic. Worth doing after the buff pipeline exists.
@@ -24,7 +24,7 @@ Peridexion Tree — Bestiary reference, heal+buff. The shadow-of-the-peridexion 
 
 Listener Lichen — Ear-shaped lichen that reveals tiles. Good for Frigid Silence and Sere Wastes. Similar to Palimpsest Slab mechanically — could share a regrowth/reveal code path.
 
-Saint's Rib — Enormous bone arc granting defense. Very cool visual, low mechanical cost. Gives Sere Wastes and Scorch something monumental and strange.
+Saint's Rib — Enormous bone arc granting defense. Very cool visual, low mechanical cost. Now Scorch's signature feature.
 
 Drowned Copyist — One-shot harvest+buff. Perfect theme for Mourning Marsh. A more elaborate knot: you get knots + a temporary defense buff, then it's inert but still blocks digging.
 
@@ -40,10 +40,10 @@ Witness-Stone / Choir Stone — Both are reveal/buff standing stones with cooldo
 
 Cinderbloom — Overlaps heavily with Scoria Rose (Brass Grave fiery plant) but they could be more or less common or exclusive to certain biomes, with their slight mechanical distinction (renewable resource vs. one-shot buff) making the biomes more thematic.
 
-Brass Lung Vent — Debuff hazard. Overlaps with Red-Letter Bramble's "hazard" role but exclusive to Brass Grave where brambles won't (or are unlikely to?) grow.
+Brass Lung Vent — ~~Debuff hazard~~ — **cut (Aug 2026):** no obstacles in the game; purely negative tiles were removed.
 
 Ouroboros Loop — Returns you to where you started your turn. Fun concept but niche — the tactical use case is narrow. Very thematic for Sere Wastes. Could save for later.
 
 ---------
 
-Dead code to reclaim: vine (exists in spawnFeature, used by no biome) — replace it with one of these; largeTree (exists in spawner and renderer, used by no biome) — could becomeidexion Tree by giving it a buff interaction.
+Cleared out (Aug 2026): the dead kinds `vine` and `largeTree` (defined but never spawned) and the obstacle features (Red-Letter Bramble, Brass Lung Vent) were **deleted** — see `dev/featureDesign.md` §2 for the locked decisions.

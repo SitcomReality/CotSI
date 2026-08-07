@@ -41,7 +41,7 @@ const TILES = [
   // Hill with an occupant — mound sinks below the surface.
   { q: 8, r: -1, terrain: 'hill' },
   // Hill + feature + occupant — mound hidden, feature displaced.
-  { q: -3, r: -4, terrain: 'hill', feature: { kind: 'vine' } },
+  { q: -3, r: -4, terrain: 'hill', feature: { kind: 'chest' } },
   // Painforest grove — legacy gnarled builder, NOT descriptor data.
   { q: 10, r: 4, terrain: 'forest', biomeId: 'biome_painforest', moisture: 0.6 },
   // Fruit tree on plains — legacy builder, NOT descriptor data.
@@ -50,8 +50,6 @@ const TILES = [
   { q: 12, r: 6, terrain: 'plains', feature: { kind: 'tree' } },
   // `tree` on woods IS the grove (no solitary tree mesh).
   { q: 14, r: -8, terrain: 'forest', moisture: 0.7, feature: { kind: 'tree' } },
-  // Elder Tree landmark on open terrain.
-  { q: -9, r: 1, terrain: 'plains', feature: { kind: 'largeTree' } },
 ];
 
 const OCCUPIED = new Set(['2,1', '8,-1', '-3,-4']);
@@ -106,7 +104,7 @@ test('resolveDescriptorForTile: feature vs decor vs legacy dispatch', () => {
   const hill = resolveDescriptorForTile(TILES[6], OCCUPIED);
   assert.deepEqual(hill[0].displacement, { hidden: false, displaced: true });
   const hiddenHill = resolveDescriptorForTile(TILES[7], OCCUPIED);
-  assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['vine', 'hill']);
+  assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['chest', 'hill']);
   assert.deepEqual(hiddenHill[1].displacement, { hidden: true, displaced: false });
 
   // `tree` on woods is the grove — no solitary tree descriptor.
@@ -128,7 +126,7 @@ const closeTo = (a, b, eps = 1e-4) => Math.abs(a - b) < eps;
 test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct content', () => {
   const meshes = buildDescriptorFeatureMeshes({ tiles: new Map(TILES.map((t) => [`${t.q},${t.r}`, t])) }, VISIBLE, OCCUPIED);
 
-  // Simple features: bush ×2 (one displaced), vine ×1.
+  // Simple features: bush ×2 (one displaced), chest ×1 (displaced).
   const bush = meshNamed(meshes, 'bush-body');
   assert.ok(bush, 'bush-body mesh present');
   assert.equal(bush.count, 2);
@@ -151,12 +149,12 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   const b0 = centerOf(TILES[0]);
   assert.ok(Math.hypot(other.x - b0.x, other.z - b0.z) < 0.6, 'normal bush near its hex center');
 
-  // Vine on the hidden-hill tile is present and displaced (hill mound is not).
-  const vine = meshNamed(meshes, 'vine-body');
-  assert.ok(vine && vine.count === 1, 'vine-body present with one instance');
-  const vCenter = centerOf(TILES[7]);
-  const vPos = instInfo(vine, 0);
-  assert.ok(closeTo(vPos.x, vCenter.x + anchor.dx) && closeTo(vPos.z, vCenter.z + anchor.dz), 'vine displaced');
+  // Chest on the hidden-hill tile is present and displaced (hill mound is not).
+  const chest = meshNamed(meshes, 'chest-body');
+  assert.ok(chest && chest.count === 1, 'chest-body present with one instance');
+  const cCenter = centerOf(TILES[7]);
+  const cPos = instInfo(chest, 0);
+  assert.ok(closeTo(cPos.x, cCenter.x + anchor.dx) && closeTo(cPos.z, cCenter.z + anchor.dz), 'chest displaced');
 
   // Grove: trunk/canopy counts match (one pair per tree).
   const groveTrunk = meshNamed(meshes, 'grove-trunk');
@@ -188,11 +186,9 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   assert.ok(closeTo(hillPos.y, tileSurfaceY(TILES[6]) + sunk.yOffset), 'sunk hill descends below the surface');
   assert.ok(closeTo(hillPos.sx, sunk.scale), 'sunk hill shrinks');
 
-  // Solitary tree + Elder Tree on open terrain.
+  // Solitary tree on open terrain.
   assert.equal(meshNamed(meshes, 'tree-trunk')?.count, 1);
   assert.equal(meshNamed(meshes, 'tree-canopy')?.count, 1);
-  assert.equal(meshNamed(meshes, 'largeTree-trunk')?.count, 1);
-  assert.equal(meshNamed(meshes, 'largeTree-canopy')?.count, 1);
 
   // `tree` on woods produced no solitary tree mesh: the two tree- meshes are
   // the open-terrain lone tree, and each holds exactly one instance.
@@ -234,7 +230,7 @@ test('resolveDescriptorForTile: decor is unoccupied while out of sight', () => {
 
   // Occupant + feature hill out of sight: full mound, not hidden.
   const hiddenHill = resolveDescriptorForTile(TILES[7], OCCUPIED, false);
-  assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['vine', 'hill']);
+  assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['chest', 'hill']);
   assert.deepEqual(hiddenHill[1].displacement, { hidden: false, displaced: false });
 
   // Knot on forest out of sight: the knot still resolves (collect-time gating
@@ -260,13 +256,12 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
   const decor = new Set([...visible, ...explored]);
   const meshes = buildChunkDescriptorFeatureMeshes(TILES, visible, OCCUPIED, decor);
 
-  // Features stay invisible out of sight: the second bush, the knot, the vine,
-  // the solitary tree, the Elder Tree, and the fruit tree all disappear.
+  // Features stay invisible out of sight: the second bush, the knot, the chest,
+  // the solitary tree, and the fruit tree all disappear.
   assert.equal(meshNamed(meshes, 'bush-body').count, 1, 'only the visible bush renders');
   assert.equal(meshesStarting(meshes, 'knot-').length, 0, 'knot hidden out of sight');
-  assert.equal(meshNamed(meshes, 'vine-body'), null, 'vine hidden out of sight');
+  assert.equal(meshNamed(meshes, 'chest-body'), null, 'chest hidden out of sight');
   assert.equal(meshNamed(meshes, 'tree-trunk'), null, 'solitary tree hidden out of sight');
-  assert.equal(meshNamed(meshes, 'largeTree-trunk'), null, 'elder tree hidden out of sight');
   assert.equal(meshesStarting(meshes, 'fruit').length, 0, 'fruit tree hidden out of sight');
 
   // Terrain decorations render out of sight: the mountain ...

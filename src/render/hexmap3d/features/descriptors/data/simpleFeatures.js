@@ -14,7 +14,7 @@
  * Values are JSON-safe (colors as integers). Part ids match the archetype id.
  */
 
-// Shared leaf shape — the tuft cone (bush, vine, bramble).
+// Shared leaf shape — the tuft cone (bush).
 const TUFT_PART = {
   id: 'tuft',
   shape: 'cone',
@@ -68,8 +68,6 @@ export const SIMPLE_FEATURE_DESCRIPTORS = [
   simpleFeature('chest', 'Treasure Chest', { id: 'body', shape: 'box', params: { width: 0.22, height: 0.12, depth: 0.15 } }, 0xc8a020, 1.0),
 
   simpleFeature('bush', 'Scrub Bush', TUFT_PART, 0x4a7a3a, 1.5),
-  simpleFeature('vine', 'Ground Vine', TUFT_PART, 0x5a9a4a, 0.8),
-  simpleFeature('redLetterBramble', 'Red-Letter Bramble', TUFT_PART, 0x1a1010, 1.3),
 
   simpleFeature('palimpsestSlab', 'Palimpsest Slab', SLAB_PART, 0xc8c0a8, 1.0),
   simpleFeature('errataSlip', 'Errata Slip', SLAB_PART, 0xf0e8d0, 1.2),
@@ -97,7 +95,6 @@ export const SIMPLE_FEATURE_DESCRIPTORS = [
   simpleFeature('drownedCopyist', 'Drowned Copyist', { id: 'body', shape: 'cylinder', params: { bottomR: 0.04, topR: 0.06, height: 0.25, segments: 5 } }, 0x405868, 1.2),
   simpleFeature('censerSaint', 'Censer Saint', { id: 'body', shape: 'cone', params: { bottomR: 0.08, height: 0.14, radialSegs: 6, heightSegs: 1 } }, 0xb89840, 1.1),
   simpleFeature('halfDrawnObelisk', 'Half-Drawn Obelisk', { id: 'body', shape: 'cone', params: { bottomR: 0.04, height: 0.28, radialSegs: 4, heightSegs: 1 } }, 0xa0a098, 1.8),
-  simpleFeature('brassLungVent', 'Brass-Lung Vent', { id: 'body', shape: 'cylinder', params: { bottomR: 0.1, topR: 0.06, height: 0.08, segments: 6 } }, 0xa08050, 1.0),
 
   simpleFeature('snowperson', 'Snowperson', { id: 'body', shape: 'snowperson', params: {} }, 0xf0f4f8, 1.0),
 ];

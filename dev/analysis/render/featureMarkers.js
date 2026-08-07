@@ -10,7 +10,7 @@ import { FEATURES } from './theme.js';
 /**
  * Draw all visible features on the map.
  *
- * Supported kinds: tree, fruitTree, largeTree, knot, bush, vine.
+ * Supported kinds: tree, fruitTree, knot, bush, chest.
  * Unknown kinds are silently skipped.
  *
  * @param {CanvasRenderingContext2D} ctx
@@ -41,15 +41,6 @@ export function drawFeatures(ctx, tiles, tileKeys) {
       ctx.lineTo(p.x + cfg.crossLen, p.y);
       ctx.moveTo(p.x, p.y - cfg.crossLen);
       ctx.lineTo(p.x, p.y + cfg.crossLen);
-      ctx.stroke();
-    }
-
-    // vine overlay: ring stroke
-    if (tile.feature.kind === 'vine' && cfg.ringStroke) {
-      ctx.strokeStyle = cfg.ringStroke;
-      ctx.lineWidth = cfg.ringWidth;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, cfg.radius, 0, Math.PI * 2);
       ctx.stroke();
     }
   }

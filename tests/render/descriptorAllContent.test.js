@@ -21,8 +21,8 @@ import { buildDescriptorMeshes } from '../../src/render/hexmap3d/features/descri
 
 const ENTITY_KINDS = new Set(['base', 'champion', 'mob', 'trader']);
 
-test('ALL_DESCRIPTORS covers every migrated object (27 features + 2 decor + mountain + knot + base + champion + mob + trader)', () => {
-  assert.equal(ALL_DESCRIPTORS.length, 37);
+test('ALL_DESCRIPTORS covers every migrated object (23 features + 2 decor + mountain + knot + base + champion + mob + trader)', () => {
+  assert.equal(ALL_DESCRIPTORS.length, 33);
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));
   assert.ok(kinds.has('feature') && kinds.has('decor') && kinds.has('mountain'), 'all tile-driven kinds present');
   assert.ok(kinds.has('base') && kinds.has('champion') && kinds.has('mob') && kinds.has('trader'), 'all entity kinds present');
@@ -44,7 +44,7 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
     else if (d.id === 'grove') push({ terrain: 'forest', moisture: 0.6 });
     else if (d.id === 'hill') push({ terrain: 'hill' });
     else if (d.id === 'knot') push({ terrain: 'forest', feature: { kind: 'knot' } });
-    else push({ terrain: 'plains', feature: { kind: d.id } }); // tree/largeTree/simple features
+    else push({ terrain: 'plains', feature: { kind: d.id } }); // tree/simple features
   }
 
   const visible = new Set(tiles.map((t) => `${t.q},${t.r}`));

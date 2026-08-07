@@ -1,8 +1,8 @@
 # Feature Design — Taxonomy & Placement (DRAFT, pending review)
 
 Working design for the feature-system redesign. Companion to `src/game/rules/archetypeData/features.js`
-and the biome feature rules. Status: **draft for review** — nothing here is final until the user
-signs off; rows marked *open* are explicit questions.
+and the biome feature rules. Status: **design questions answered (Aug 2026)** — implementation
+proceeds in phases; the reward mechanics are still in progress (see §6).
 
 ---
 
@@ -27,21 +27,39 @@ signs off; rows marked *open* are explicit questions.
   is extinct (Aug 2026): the plain tree is **Tree**, the heal tree is **Moonberry Tree** and its
   fruit are *moonberries*.
 
-## 2. Reward classes
+## 2. Decisions locked (Aug 2026)
+
+1. **Scorch signature — Saint's Rib.** Removed from Sere Wastes; Ouroboros Loop stays Sere's
+   signature. Every biome now has exactly one exclusive signature.
+2. **Utility features become one side of a choice.** Features whose old design was pure utility
+   (Half-Drawn Obelisk, Fool's-Fire, Ouroboros Loop, Errata Slip, Listener Lichen) offer the
+   utility **or** a reward (e.g. "reveal area **or** take gold"). No pure-utility rewards.
+3. **No obstacles.** Red-Letter Bramble and Brass Lung Vent are **deleted** (Aug 2026). Purely
+   negative tiles don't make exploration more interesting on a random map — they're just annoying.
+4. **First choice features:** Null Lily (potency pick), Volvelle (potency pick), Screamroot
+   (risk-reward). Implemented via the existing `state.reward` artifact-draft-style modal.
+5. **Dead kinds deleted (Aug 2026):** `vine` and `largeTree` (scenery-only kinds with no biome
+   rule) are removed from code, tests, and the analysis tool.
+6. **Shared-feature dedup.** Waxbloom is Frigid Silence's exclusive (removed from Tundra);
+   Saint's Rib is Scorch's exclusive. The remaining shared/any features stay only because they
+   are mechanically and thematically distinct: chest = gold, Moonberry Tree = heal, God's Knot =
+   resources, Tree/Bush = scenery. The player-facing feature suite stays small and memorable.
+
+## 3. Reward classes
 
 | Class | Subclass | Grants | Expiry | Example |
 |-------|----------|--------|--------|---------|
-| Finite | direct | relics / gold / knots / potency, fixed amounts | consumed on use (one-shot) | God's Knot |
-| Finite | choice | pick 1 of 2–3 offers (relic vs gold vs potency…) | consumed on pick | *open — first candidates below* |
+| Finite | direct | relics / gold / knots / potency, fixed amounts | consumed on use (one-shot) | God's Knot, Treasure Chest |
+| Finite | choice | pick 1 of 2–3 offers (relic vs gold vs potency…) | consumed on pick | Null Lily, Volvelle, Screamroot |
 | Replenishable | heal | HP, on a regrow timer | reward returns after N days | Moonberry Tree |
-| Replenishable | temp buff | bonus movement this turn / combat buff this turn | end of current turn | *open — candidates below* |
+| Replenishable | temp buff | bonus movement this turn / combat buff this turn | end of current turn | Snowperson, Gilded Initial |
 
 Mechanics already in code: knot mining + moonberry heal/regrow (`arrivalInteractions.js`), the
 reward-choice modal pipeline (`state.reward` → reward modal, used by artifact draft and digs),
 relic/potency/gold counters on champions. New systems needed: temp-buff state with end-of-turn
 expiry, and per-feature regrow timers where reuse makes sense.
 
-## 3. Tiers & banding (placement rule)
+## 4. Tiers & banding (placement rule)
 
 | Tier | Meaning | Center bias | Examples |
 |------|---------|-------------|----------|
@@ -51,85 +69,76 @@ expiry, and per-feature regrow timers where reuse makes sense.
 | T4 | Very rare, richest center rewards | center only | *open — likely a small set of choice landmarks* |
 
 Banding is a placement-density function of distance from map center, applied per tier (details in
-the terrain-gen phase). Scenery (trees, bushes, vines) is not tiered — it is decor, not collectible.
+the terrain-gen phase). Scenery (trees, bushes) is not tiered — it is decor, not collectible.
 
-## 4. Archetype mapping (DRAFT)
+## 5. Archetype mapping (DRAFT)
 
-Legend: status — **live** (a biome spawns it) / **dead** (defined, no biome rule). Reward:
+Legend: status — **live** (a biome spawns it) / **deleted** (removed Aug 2026). Reward:
 **direct** / **choice** / **heal** / **tempbuff**. Scope: **any** (any biome) / **sig** (signature,
 exclusive) / **shared** (multiple biomes, not exclusive).
 
 | Kind | Name | Status | Tier | Reward | Class | Scope | Notes |
 |------|------|--------|------|--------|-------|-------|-------|
 | tree | Tree | live | — | none (scenery) | — | any | grove/solitary decor |
-| largeTree | Elder Tree | dead | — | none (scenery) | — | — | no biome spawns it; keep as decor variant or reclaim later |
 | bush | Scrub Bush | live | — | none (scenery) | — | any | |
-| vine | Ground Vine | dead | — | none (scenery) | — | — | no biome spawns it; reclaim candidate |
 | knot | God's Knot | live | T1 | knots, direct | finite | any | works today |
 | fruitTree | Moonberry Tree | live | T1 | heal | replenishable | any | works today (18/34, 4d regrow) |
-| chest | Treasure Chest | **live (Aug 2026)** | T2 | gold, direct | finite | any | rectangle box descriptor; deterministic amount at spawn (10–24g) |
+| chest | Treasure Chest | live | T2 | gold, direct | finite | any | rectangle box descriptor; deterministic amount at spawn (10–24g) |
 | vegetableLamb | Vegetable Lamb | live | T2 | knots + small heal, direct | finite | sig (Untouched) | |
-| witnessStone | Witness-Stone | live | T3 | *open*: relic direct vs relic/gold choice | finite | shared (Untouched, Scorch) | dedup question |
-| screamroot | Screamroot | live | T3 | *open*: knots vs damage risk-reward choice | finite | shared (Untouched, Painforest, Mourning Marsh) | risk-reward fits "choice" |
+| witnessStone | Witness-Stone | live | T3 | relic vs gold choice (candidate) | finite | shared (Untouched, Scorch) | |
+| screamroot | Screamroot | live | T3 | knots vs damage risk-reward choice | finite | shared (Untouched, Painforest, Mourning Marsh, Dustbleed) | first choice feature — in progress |
 | palimpsestSlab | Palimpsest Slab | live | T3 | relic, direct | finite | shared (Untouched, Unfinished Lands) | first relic-on-map feature |
-| errataSlip | Errata Slip | live | T4 | *open* (was: terrain change) | — | sig (Unfinished Lands) | utility not in reward palette; re-map or defer |
+| errataSlip | Errata Slip | live | T4 | utility (terrain change) **or** reward choice | finite | sig (Unfinished Lands) | utility-as-choice |
 | gildedInitial | Gilded Initial | live | T3 | tempbuff (combat this turn), choice of buff | replenishable | shared (Untouched, Unfinished Lands) | needs end-of-turn expiry |
-| halfDrawnObelisk | Half-Drawn Obelisk | live | T4 | *open* (was: teleport) | — | sig (Unfinished Lands) | same utility question as errataSlip |
-| volvelle | Volvelle | live | T3 | *open*: potency choice (which faction) | finite | sig (Brass Grave) | natural artifact-style choice |
-| censerSaint | Censer Saint | live | T3 | *open*: risk-reward choice (buff vs cost) | finite | sig (Brass Grave) | |
+| halfDrawnObelisk | Half-Drawn Obelisk | live | T4 | utility (teleport) **or** reward choice | finite | sig (Unfinished Lands) | utility-as-choice |
+| volvelle | Volvelle | live | T3 | potency choice (which faction) | finite | sig (Brass Grave) | first choice feature — in progress |
+| censerSaint | Censer Saint | live | T3 | risk-reward choice (buff vs cost) | finite | sig (Brass Grave) | |
 | scoriaRose | Scoria Rose | live | T2 | knots, renewable (regrow) | replenishable | sig (Brass Grave) | reuse moonberry regrow timer |
-| cinderbloom | Cinderbloom | live | T2 | *open*: renewable small heal vs overlap | replenishable | sig (Brass Grave) | overlaps Scoria Rose; dedup question |
-| brassLungVent | Brass Lung Vent | live | T3 | *open*: hazard/cost, not a reward | — | sig (Brass Grave) | negative feature — keep? re-map? |
+| cinderbloom | Cinderbloom | live | T2 | renewable small heal vs overlap | replenishable | sig (Brass Grave) | overlaps Scoria Rose; revisit |
 | peridexionTree | Peridexion Tree | live | T3 | heal + tempbuff (combat this turn) | replenishable | sig (Painforest) | |
 | drownedCopyist | Drowned Copyist | live | T3 | knots + tempbuff, direct | finite | sig (Mourning Marsh) | |
-| foolsFire | Fool's-Fire | live | T3 | *open*: utility (teleport) vs choice | — | sig (Mourning Marsh) | utility question |
-| ouroborosLoop | Ouroboros Loop | live | T4 | *open*: utility (turn-return) | — | sig (Sere Wastes) | utility question |
-| saintsRib | Saint's Rib | live | T3 | tempbuff (combat this turn) | replenishable | shared (Sere Wastes, Scorch) | dedup: make Scorch's signature? |
-| redLetterBramble | Red-Letter Bramble | live | T2 | *open*: hazard/cost | — | shared (Sere Wastes, Scorch) | negative feature question |
-| dustbleedCrystal | Dustbleed Crystal | live | T2 | *open*: gold vs potency direct | finite | sig (Dustbleed) | |
-| waxbloom | Waxbloom | live | T2 | heal, renewable | replenishable | shared (Frigid Silence, Tundra) | dedup: keep Frigid's signature |
-| listenerLichen | Listener Lichen | live | T3 | *open*: utility (reveal) vs potency choice | — | shared (Frigid Silence, Sere Wastes) | utility question |
-| snowperson | Snowperson | live | T2 | *open*: tempbuff (bonus movement this turn) | replenishable | sig (Tundra) | fun: snowperson grants a push |
-| nullLily | Null Lily | live | T3 | potency choice (which faction) | finite | sig (Unfinished Lands) | the flagship choice feature |
+| foolsFire | Fool's-Fire | live | T3 | utility (teleport) **or** reward choice | finite | sig (Mourning Marsh) | utility-as-choice |
+| ouroborosLoop | Ouroboros Loop | live | T4 | utility (turn-return) **or** reward choice | finite | sig (Sere Wastes) | utility-as-choice |
+| saintsRib | Saint's Rib | live | T3 | tempbuff (combat this turn) | replenishable | sig (Scorch) | Scorch's signature |
+| dustbleedCrystal | Dustbleed Crystal | live | T2 | gold vs potency direct | finite | sig (Dustbleed) | |
+| waxbloom | Waxbloom | live | T2 | heal, renewable | replenishable | sig (Frigid Silence) | Frigid's signature |
+| listenerLichen | Listener Lichen | live | T3 | utility (reveal) **or** reward choice | finite | shared (Frigid Silence, Sere Wastes) | utility-as-choice |
+| snowperson | Snowperson | live | T2 | tempbuff (bonus movement this turn) | replenishable | sig (Tundra) | fun: snowperson grants a push |
+| nullLily | Null Lily | live | T3 | potency choice (which faction) | finite | sig (Unfinished Lands) | flagship choice feature — in progress |
+| edenMushroom | Eden Mushroom | live | T2 | *open* | — | sig (Edenfall) | |
+| edenShroomlet | Shroomlet | live | T2 | *open* | — | sig (Edenfall) | |
+| ~~vine~~ | ~~Ground Vine~~ | deleted | — | — | — | — | no biome spawned it |
+| ~~largeTree~~ | ~~Elder Tree~~ | deleted | — | — | — | — | no biome spawned it |
+| ~~redLetterBramble~~ | ~~Red-Letter Bramble~~ | deleted | — | — | — | — | obstacle — removed per decision 3 |
+| ~~brassLungVent~~ | ~~Brass Lung Vent~~ | deleted | — | — | — | — | obstacle — removed per decision 3 |
 
-## 5. Biome signatures (one exclusive per biome)
+## 6. Biome signatures (one exclusive per biome — all satisfied Aug 2026)
 
 | Biome | Signature | Status |
 |-------|-----------|--------|
-| Untouched (default) | Vegetable Lamb | exclusive already |
-| Painforest | Peridexion Tree | exclusive already |
-| Edenfall | Eden Mushroom / Eden Shroomlet | exclusive already (two-feature set) |
-| Brass Grave | Volvelle (candidate) | exclusive already |
-| Unfinished Lands | Half-Drawn Obelisk (candidate) | exclusive already |
-| Sere Wastes | Ouroboros Loop (candidate) | exclusive already |
-| Mourning Marsh | Drowned Copyist (candidate) | exclusive already |
-| Frigid Silence | Waxbloom (candidate) | **shared with Tundra — needs dedup** |
-| Tundra | Snowperson | exclusive already |
-| Dustbleed | Dustbleed Crystal | exclusive already |
-| Scorch | **none today — needs one** | candidate: Saint's Rib (pull from Sere) or Witness-Stone (pull from Untouched) |
+| Untouched (default) | Vegetable Lamb | exclusive |
+| Painforest | Peridexion Tree | exclusive |
+| Edenfall | Eden Mushroom / Eden Shroomlet | exclusive (two-feature set) |
+| Brass Grave | Volvelle | exclusive |
+| Unfinished Lands | Half-Drawn Obelisk | exclusive |
+| Sere Wastes | Ouroboros Loop | exclusive |
+| Mourning Marsh | Drowned Copyist | exclusive |
+| Frigid Silence | Waxbloom | exclusive (removed from Tundra) |
+| Tundra | Snowperson | exclusive |
+| Dustbleed | Dustbleed Crystal | exclusive |
+| Scorch | Saint's Rib | exclusive (moved from Sere Wastes) |
 
-## 6. Open questions for review
+## 7. Resolved design questions
 
-1. **Scorch signature** — Scorch currently has no exclusive feature. Pull Saint's Rib from Sere
-   Wastes, pull Witness-Stone from Untouched, or invent one?
-2. **Utility features** (Half-Drawn Obelisk, Fool's-Fire, Ouroboros Loop, Errata Slip, Listener
-   Lichen): keep them as pure utility (contradicts "every feature grants a reward"), re-map them
-   to reward classes, or make the utility itself one side of a choice (e.g. "reveal area **or** take
-   gold")?
-3. **Negative features** (Red-Letter Bramble, Brass Lung Vent): hazards aren't rewards. Keep as
-   obstacles (spawned by design, not by reward logic), re-map, or cut?
-4. **First choice features** — which 2–3 features get the artifact-draft treatment first? Natural
-   candidates: Null Lily (potency pick), Volvelle (potency pick), Screamroot (risk-reward),
-   Witness-Stone (relic vs gold).
-5. **Amounts** — treasure chest gold, renewable knot/heal amounts, and temp-buff magnitudes are
-   all unset. Defaults can be cribbed from dig (`DIG_GOLD_BASE` 7 + 0–12), knot (2–3), moonberry
-   (18/34).
-6. **Dead kinds** — `vine` and `largeTree` are defined but never spawned. Reclaim as features,
-   keep as scenery, or delete?
-7. **Shared-feature dedup** — waxbloom, saintsRib, listenerLichen, screamroot, witnessStone,
-   gildedInitial, redLetterBramble, errataSlip… currently span multiple biomes. Decide which become
-   exclusives (signatures) and which stay shared non-signatures.
-8. **Known UI-naming debt** — `mapTooltip.js` displays raw feature kinds (`◈ chest`), not the
-   canonical display names. Applies to all features equally (incl. a pre-existing `tree` vs
-   `fruitTree` 🍃 bug at line 40). To fix in a UI pass: kind→display-name map (ui/ cannot import
-   game/rules, so this needs a data bridge or a ui-side registry).
+1. **Scorch signature** — resolved: Saint's Rib (moved from Sere Wastes).
+2. **Utility features** — resolved: utility is one side of a choice for the features in question.
+3. **Negative features** — resolved: removed entirely (no obstacles).
+4. **First choice features** — resolved: Null Lily, Volvelle, Screamroot.
+5. **Amounts** — still open. Defaults can be cribbed from dig (`DIG_GOLD_BASE` 7 + 0–12), knot
+   (2–3), moonberry (18/34). Settle during the rewards phase with playtesting.
+6. **Dead kinds** — resolved: `vine` and `largeTree` deleted.
+7. **Shared-feature dedup** — resolved: waxbloom and saintsRib became signatures; the rest stay
+   shared only if mechanically distinct.
+8. **UI-naming debt** — done (Aug 2026): `mapTooltip.js` displays canonical display names via the
+   archetype registry (`getArchetype` → `feature_${kind}` with fallback); the `tree` vs `fruitTree`
+   tooltip bug is fixed.

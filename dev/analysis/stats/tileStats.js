@@ -45,11 +45,10 @@ export function terrainDistribution(tiles) {
 export function featureCounts(tiles) {
   let trees = 0;
   let fruitTrees = 0;
-  let largeTrees = 0;
   let knots = 0;
   let bases = 0;
   let bushes = 0;
-  let vines = 0;
+  let chests = 0;
 
   for (const key of Object.keys(tiles)) {
     const f = tiles[key].feature;
@@ -57,15 +56,14 @@ export function featureCounts(tiles) {
     switch (f.kind) {
       case 'tree': trees++; break;
       case 'fruitTree': fruitTrees++; break;
-      case 'largeTree': largeTrees++; break;
       case 'knot': knots++; break;
       case 'base': bases++; break;
       case 'bush': bushes++; break;
-      case 'vine': vines++; break;
+      case 'chest': chests++; break;
     }
   }
 
-  return { trees, fruitTrees, largeTrees, knots, bases, bushes, vines };
+  return { trees, fruitTrees, knots, bases, bushes, chests };
 }
 
 export function mountainAnalysis(tiles) {

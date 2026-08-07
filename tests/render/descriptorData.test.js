@@ -28,15 +28,15 @@ const tileFor = (d) => TILES[d.id] ?? { q: 3, r: -2, terrain: 'plains' };
 test('data covers every FEATURE_VISUALS kind plus decor/mountain/knot content', () => {
   const ids = new Set(ALL_DESCRIPTORS.map((d) => d.id));
   const expectedSimple = [
-    'chest', 'bush', 'vine', 'redLetterBramble', 'palimpsestSlab', 'errataSlip', 'volvelle',
+    'chest', 'bush', 'palimpsestSlab', 'errataSlip', 'volvelle',
     'foolsFire', 'ouroborosLoop', 'saintsRib', 'vegetableLamb', 'scoriaRose',
     'waxbloom', 'screamroot', 'nullLily', 'cinderbloom', 'gildedInitial',
     'peridexionTree', 'edenMushroom', 'listenerLichen', 'edenShroomlet',
     'witnessStone', 'drownedCopyist', 'censerSaint', 'halfDrawnObelisk',
-    'brassLungVent', 'snowperson',
+    'snowperson',
   ];
   for (const id of expectedSimple) assert.ok(ids.has(id), `missing simple feature "${id}"`);
-  for (const id of ['grove', 'tree', 'largeTree', 'hill', 'mountain', 'knot']) {
+  for (const id of ['grove', 'tree', 'hill', 'mountain', 'knot']) {
     assert.ok(ids.has(id), `missing migrated object "${id}"`);
   }
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));
@@ -141,11 +141,6 @@ test('solitary tree: canopy variant parts + jitter placement + per-kind lean', (
   assert.ok(record.partId === 'trunk' && canopy.partId === 'canopy');
   assert.equal(canopy.color, 0x3cb371, 'plains (3,-2) rolls the round variant');
   assert.ok(Math.abs(record.tilt - 0.02) < 1e-9, 'solitary lean 0.02');
-  // Large tree: fixed round canopy, thicker trunk, no lean.
-  const large = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'largeTree'));
-  const [ltrunk, lcanopy] = recordsForDescriptor(large, { q: 3, r: -2, terrain: 'plains' }, POS);
-  assert.equal(lcanopy.color, 0x9acd32);
-  assert.equal(ltrunk.scaleY, 1.8 * 1.2); // scale × trunkStretch 1.2
 });
 
 test('mountain: per-variant part ids and mountainType-driven scaleY', () => {
