@@ -23,6 +23,7 @@ import {
 } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
 import { ENTITY_KINDS } from '../entityView.js';
 import { FACTIONS } from '../../../src/game/rules/factionData.js';
+import { listArchetypes, getArchetype } from '../../../src/game/rules/archetypes.js';
 
 let els = null;
 let onEdit = () => {};
@@ -75,16 +76,28 @@ function intInput(value, { min, onChange }) {
   return input;
 }
 
+/**
+ * Dropdown. Options are plain strings (label = value) or { value, label }
+ * pairs (e.g. biome ids with friendly labels).
+ */
 function selectInput(options, value, onChange) {
   const select = el('select');
   for (const opt of options) {
-    const o = el('option', null, opt);
-    o.value = opt;
+    const o = el('option', null, typeof opt === 'string' ? opt : opt.label);
+    o.value = typeof opt === 'string' ? opt : opt.value;
     select.appendChild(o);
   }
   select.value = value;
   select.addEventListener('change', () => onChange(select.value));
   return select;
+}
+
+/** Biome options for the preview-tile selector: none + every registered biome. */
+function biomeSelectOptions() {
+  return [
+    { value: '', label: '— none (default colors)' },
+    ...listArchetypes('biome').map((id) => ({ value: id, label: getArchetype(id)?.name ?? id })),
+  ];
 }
 
 function colorInput(value, onChange) {
@@ -202,6 +215,9 @@ function renderObjectControls(container) {
     container.append(row('Variant', selectInput(ids, current, (v) => mutate(() => { S.variantId = v; }))));
     container.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game the tile hash picks one; here you choose which to inspect.'));
   }
+
+  container.append(row('Biome', selectInput(biomeSelectOptions(), S.biomeId ?? '', (v) => mutate(() => { S.biomeId = v || null; }))));
+  container.append(el('div', 'hint', 'Preview-tile biome: per-part biomeScale (stunted Tundra trees, small Painforest groves) and biome-color influence (Edenfall purple leaves).'));
 
   container.append(subheading('Cluster'));
   container.append(row('Rule', selectInput(['uniform', 'moisture'], d.cluster.rule, (v) => mutate(() => {

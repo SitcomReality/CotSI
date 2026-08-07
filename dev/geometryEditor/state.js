@@ -16,6 +16,13 @@ export const S = {
   displaced: false,
 
   /**
+   * Biome id for the preview tile (e.g. 'biome_edenfall'), or null for a plain
+   * tile. Sets the per-part biomeScale (stunted Tundra trees, small Painforest
+   * groves) and the biome-color influence preview (Edenfall purple leaves).
+   */
+  biomeId: null,
+
+  /**
    * Entity selection for entity-driven descriptors (base/champion/mob/trader).
    * `faction` picks the faction variant + palette; `archetype` picks the shape
    * variant for archetype-rule descriptors (mobs).

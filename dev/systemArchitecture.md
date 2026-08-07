@@ -218,16 +218,14 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `features/descriptors/recordBuilder.js` | Pure descriptor + tile → instance records (hash-driven determinism) |
 | `features/descriptors/shapeFactories.js` | Shape → THREE geometry + material factories |
 | `features/descriptors/meshAssembly.js` | Descriptor + records → one InstancedMesh per part geometry |
-| `features/descriptors/gameBuilder.js` | Game-side tile → descriptor resolution (features + grove/hill decor) + assembly |
+| `features/descriptors/gameBuilder.js` | Game-side tile → descriptor resolution (features + grove/hill decor, incl. the Painforest grove variant) + assembly |
 | `features/descriptors/data/` | Migrated descriptor data: simpleFeatures, trees, hills, mountains, knots |
-| `features/trees/buildTreeMeshes.js` | Legacy tree collection + InstancedMesh assembly (fruit tree, Painforest groves) |
-| `features/trees/clusterTreeRecords.js` | Cluster (woods/forest) grove record generation — legacy Painforest gnarled groves |
+| `features/trees/buildTreeMeshes.js` | Legacy tree collection + InstancedMesh assembly (fruit tree only) |
 | `features/trees/fruitTreeRecords.js` | Forest-family fruit tree records (terrain canopy + ripening fruit) |
-| `features/trees/gnarledTreeRecords.js` | Gnarled tree records (Painforest groves; the old fruit-tree geometry, parameterized) |
 | `features/trees/index.js` | Tree module barrel (re-exports buildTreeMeshes, buildChunkTreeMeshes) |
 | `features/trees/treeHash.js` | Deterministic per-tile / per-tree hashing |
 | `features/trees/treeParts.js` | Shared tree-part record + color helpers |
-| `features/trees/treeRecordsForTile.js` | Legacy per-tile tree dispatch (fruit tree + Painforest groves only) |
+| `features/trees/treeRecordsForTile.js` | Legacy per-tile tree dispatch (fruit tree only — groves are descriptor data) |
 | `features/trees/treeVariants.js` | Canopy variant selection + per-variant geometry |
 | `features/geometries/baseGeometries.js` | Base-terrain geometry constants and factories |
 | `features/geometries/hillDecorGeometries.js` | Hill mound decoration geometry |

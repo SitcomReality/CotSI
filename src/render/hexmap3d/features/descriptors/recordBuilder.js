@@ -67,7 +67,7 @@ const RING_ANGLE_JITTER = 0.7;
  *   uniform  — roll in [cluster.min, cluster.max] from the tile hash.
  *              Tile hashes can be negative (hex coords), so the roll is
  *              normalized to a non-negative index.
- *   moisture — the clusterTreeRecords rule: count scales with the tile's
+ *   moisture — the legacy cluster-grove rule: count scales with the tile's
  *              moisture between `countsByTerrain[terrain]` min/max, plus a
  *              per-tile hash jitter of ±`jitter`. Replicates the game's
  *              clusterCount() verbatim, including the JS `%` sign quirk on
@@ -99,15 +99,28 @@ function itemCount(descriptor, tile, tileH) {
  * shape by terrain + coord hash, matching lone trees on open ground.
  *
  * variantRule 'cluster' — replicate clusterVariant(): denseForest groves are
- * conical (tall) pines, everything else round.
+ * conical (tall) pines, everything else round. Painforest woods (forest or
+ * denseForest) grow the gnarled `painforest` variant instead — the biome
+ * override takes precedence over the terrain canopy family.
  *
  * When the rule names an id the descriptor does not define, fall back to the
  * hash roll so a partially-migrated descriptor still renders.
  */
-function variantFor(descriptor, tile, tileH) {
+const PAINFOREST_BIOME = 'biome_painforest';
+
+/**
+ * @param {string|null} [explicitId] - variant id override (the geometry
+ *        editor's variant picker): when the descriptor defines it, that
+ *        variant wins over the rule; a stale id falls through to the rule.
+ */
+function variantFor(descriptor, tile, tileH, explicitId = null) {
   const variants = descriptor.variants;
   if (!variants || variants.length === 0) return null;
   const byId = (id) => variants.find((v) => v.id === id) ?? null;
+  if (explicitId) {
+    const forced = byId(explicitId);
+    if (forced) return forced;
+  }
   const rule = descriptor.variantRule;
   if (rule === 'solitary') {
     const hash = ((tile.q * TREE_VARIANT_HASH_SEEDS[0] + tile.r * TREE_VARIANT_HASH_SEEDS[1]) * TREE_VARIANT_HASH_SEEDS[2]) % TREE_VARIANT_HASH_SEEDS[3];
@@ -124,6 +137,9 @@ function variantFor(descriptor, tile, tileH) {
     return byId(id) ?? variants[((tileH % variants.length) + variants.length) % variants.length];
   }
   if (rule === 'cluster') {
+    if (tile.biomeId === PAINFOREST_BIOME) {
+      return byId('painforest') ?? variants[((tileH % variants.length) + variants.length) % variants.length];
+    }
     const id = tile.terrain === 'denseForest' ? 'tall' : 'round';
     return byId(id) ?? variants[((tileH % variants.length) + variants.length) % variants.length];
   }
@@ -374,12 +390,12 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
   const rotY = t.rotY + (placement.rotY ?? 0);
   if (rotY) record.rotY = rotY;
 
-  if (t.lift) record.lift = t.lift * itemScale * scaleMul * jitterScale;
+  if (t.lift) record.lift = t.lift * itemScale * scaleMul * jitterScale * biomeFactor;
   if (t.localPos) {
     record.localPos = {
-      x: t.localPos.x * itemScale,
-      y: t.localPos.y * itemScale,
-      z: t.localPos.z * itemScale,
+      x: t.localPos.x * itemScale * biomeFactor,
+      y: t.localPos.y * itemScale * biomeFactor,
+      z: t.localPos.z * itemScale * biomeFactor,
     };
   }
   if (t.localAxis && t.localAngle !== undefined) {
@@ -427,14 +443,16 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
  * @param {object} [biomeTint] - { primary, accent } blended biome color tuples
  *        (biomeTint.js); parts with a `biomeColor` influence mix toward it.
  *        null/undefined keeps every part's default color.
+ * @param {string|null} [variantId] - variant id override (the geometry
+ *        editor's variant picker); null lets the variantRule decide.
  * @returns {object[]} instance records tagged with partId ([] when hidden)
  */
-export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null) {
+export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null) {
   if (displacement.hidden) return [];
   const count = itemCount(descriptor, tile, tileH);
   if (displacement.displaced && descriptor.emphasis.behavior === 'hidden') return [];
 
-  const variant = variantFor(descriptor, tile, tileH);
+  const variant = variantFor(descriptor, tile, tileH, variantId);
   const parts = (variant ?? descriptor).parts;
   const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile) : null;
   const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);

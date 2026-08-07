@@ -15,9 +15,10 @@
  *   terrain decoration (composes with the feature above; also rendered on
  *   explored-but-out-of-sight tiles, where it shows its unoccupied state):
  *     mountain terrain            → mountain descriptor (emphasis 'none')
- *     forest/denseForest (non-Painforest) → grove descriptor; dispersed to a
- *       ring near the hex edge when a non-tree feature claims the center,
- *       hidden when an occupant and feature share the tile
+ *     forest/denseForest          → grove descriptor; the Painforest biome
+ *       picks its gnarled `painforest` variant. Dispersed to a ring near the
+ *       hex edge when a non-tree feature claims the center, hidden when an
+ *       occupant and feature share the tile
  *     hill terrain                → hill descriptor; sunk below the surface
  *       when the center is claimed, hidden when occupant + feature share it
  *     marsh/plateau/plains/desert/beach → ground decor descriptor
@@ -25,9 +26,9 @@
  *       clustered growth (reeds/grass/scrub/driftwood) disperses when the
  *       center is claimed, hidden when occupant + feature share it
  *
- * Kept on the legacy tree builder (not migrated — see descriptors/data/):
- * fruitTree and Painforest gnarled groves. Champion bases stay on
- * baseMeshes.js (out of scope).
+ * Kept on the legacy tree builder (not migrated — procedural, see
+ * descriptors/data/): fruitTree. Champion bases stay on baseMeshes.js
+ * (out of scope).
  */
 
 import { collectInstances } from '../meshBuilder.js';
@@ -54,8 +55,15 @@ import {
 
 /** Terrains whose default look is a scattered tree grove. */
 const GROVE_TERRAINS = new Set(['forest', 'denseForest']);
-/** Biome whose groves stay on the legacy gnarled-tree builder. */
-const PAINFOREST_BIOME = 'biome_painforest';
+
+/**
+ * True for a woods tile: the grove is the terrain decoration (descriptor
+ * data — Painforest woods pick the gnarled `painforest` grove variant via
+ * recordBuilder's cluster rule).
+ */
+function isWoodsTerrain(tile) {
+  return GROVE_TERRAINS.has(tile.terrain);
+}
 
 /**
  * The simple ground-level terrain decorations — one named decor per terrain,
@@ -70,16 +78,6 @@ const SIMPLE_DECOR_BY_TERRAIN = new Map([
   ['desert', { descriptor: DESERT_SCRUB_DESCRIPTOR, decoration: DECORATION.DESERT }],
   ['beach', { descriptor: BEACH_DRIFTWOOD_DESCRIPTOR, decoration: DECORATION.BEACH }],
 ]);
-
-/** True for a woods tile whose grove is migrated to descriptor data. */
-function isGroveTerrain(tile) {
-  return GROVE_TERRAINS.has(tile.terrain) && tile.biomeId !== PAINFOREST_BIOME;
-}
-
-/** True for any woods tile (descriptor grove or legacy Painforest grove). */
-function isWoodsTerrain(tile) {
-  return GROVE_TERRAINS.has(tile.terrain);
-}
 
 /**
  * Normalize a raw descriptor once per id. The data files ship schema-level
@@ -136,7 +134,7 @@ function resolveFeatureForTile(tile, occupants) {
  * the hex.
  */
 function resolveGroveForTile(tile, occupants, visible = true) {
-  if (!isGroveTerrain(tile)) return null;
+  if (!isWoodsTerrain(tile)) return null;
   const kind = tile.feature?.kind;
   if (kind === 'fruitTree') return null; // fruit tree claims the tile — no grove
   const mode = decorState({

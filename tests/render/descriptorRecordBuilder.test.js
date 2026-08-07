@@ -373,6 +373,30 @@ test('biomeScale composes with the item scale and per-axis stretch', () => {
   assert.ok(Math.abs(record.scaleY - 1.5 * 1.1 * 0.85) < 1e-9, `y scale ${record.scaleY}`);
 });
 
+test('biomeScale scales localPos and lift rigidly (the gnarled painforest stack)', () => {
+  const stack = normalizeDescriptor({
+    id: 'biome-stack',
+    kind: 'decor',
+    displayName: 'Biome Stack',
+    placement: { mode: 'center' },
+    size: { min: 1, max: 1 },
+    parts: [
+      { id: 'trunk', shape: 'cylinder' },
+      { id: 'ball', shape: 'sphere', transform: { lift: 0.5, localPos: { x: 0.02, y: 0.4, z: 0.05 } }, biomeScale: { biome_painforest: 0.55 } },
+    ],
+  });
+  // Painforest: every local offset scales with the part (× 0.55), so the
+  // branch/canopy stack stays rigid at the smaller member size.
+  const [, painBall] = recordsForDescriptor(stack, { q: 3, r: -2, terrain: 'forest', biomeId: 'biome_painforest' }, POS);
+  assert.ok(Math.abs(painBall.localPos.y - 0.4 * 0.55) < 1e-9, `painforest localPos.y ${painBall.localPos.y}`);
+  assert.ok(Math.abs(painBall.localPos.x - 0.02 * 0.55) < 1e-9, `painforest localPos.x ${painBall.localPos.x}`);
+  assert.ok(Math.abs(painBall.lift - 0.5 * 0.55) < 1e-9, `painforest lift ${painBall.lift}`);
+  // Without the biome the stack keeps its authored offsets.
+  const [, plainBall] = recordsForDescriptor(stack, { q: 3, r: -2, terrain: 'forest' }, POS);
+  assert.ok(Math.abs(plainBall.localPos.y - 0.4) < 1e-9, `plain localPos.y ${plainBall.localPos.y}`);
+  assert.ok(Math.abs(plainBall.lift - 0.5) < 1e-9, `plain lift ${plainBall.lift}`);
+});
+
 // ── Legacy scatter parity (M4: simple-feature migration) ───────────────────
 
 test('scatter placement replicates jitterForTile() exactly', () => {
@@ -416,7 +440,7 @@ test('scatter scale keeps the displaced feature readable (× DISPERSED_SCALE)', 
 
 // ── Moisture-driven cluster (M4: grove migration) ──────────────────────────
 
-/** Grove with the legacy moisture rule (clusterTreeRecords.js). */
+/** Grove with the legacy moisture rule (the old cluster-grove builder). */
 const GROVE_MOIST = normalizeDescriptor({
   id: 'grove-moist',
   kind: 'decor',
@@ -504,7 +528,7 @@ test('variantRule solitary matches treeVariant(terrain, q, r)', () => {
   }
 });
 
-test('variantRule cluster picks tall for denseForest, round otherwise', () => {
+test('variantRule cluster picks tall for denseForest, round otherwise; painforest overrides', () => {
   const grove = normalizeDescriptor({
     id: 'grove-variants',
     kind: 'decor',
@@ -516,11 +540,40 @@ test('variantRule cluster picks tall for denseForest, round otherwise', () => {
     variants: [
       { id: 'round', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-round', shape: 'sphere' }] },
       { id: 'tall', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-tall', shape: 'cone' }] },
+      { id: 'painforest', parts: [{ id: 'trunk-gnarled', shape: 'cylinder' }, { id: 'canopy-gnarled', shape: 'sphere' }] },
     ],
   });
-  const idsFor = (terrain) => new Set(recordsForDescriptor(grove, { q: 4, r: 4, terrain }, POS).map((r) => r.partId));
-  assert.ok(idsFor('denseForest').has('canopy-tall') && !idsFor('denseForest').has('canopy-round'));
-  assert.ok(idsFor('forest').has('canopy-round') && !idsFor('forest').has('canopy-tall'));
+  const idsFor = (tile) => new Set(recordsForDescriptor(grove, tile, POS).map((r) => r.partId));
+  assert.ok(idsFor({ q: 4, r: 4, terrain: 'denseForest' }).has('canopy-tall') && !idsFor({ q: 4, r: 4, terrain: 'denseForest' }).has('canopy-round'));
+  assert.ok(idsFor({ q: 4, r: 4, terrain: 'forest' }).has('canopy-round') && !idsFor({ q: 4, r: 4, terrain: 'forest' }).has('canopy-tall'));
+  // Painforest woods always grow the gnarled variant — on forest AND denseForest.
+  for (const terrain of ['forest', 'denseForest']) {
+    const ids = idsFor({ q: 4, r: 4, terrain, biomeId: 'biome_painforest' });
+    assert.ok(ids.has('canopy-gnarled'), `${terrain} painforest picks the gnarled variant`);
+    assert.ok(!ids.has('canopy-round') && !ids.has('canopy-tall'));
+  }
+});
+
+test('an explicit variant id forces the variant (the editor variant picker)', () => {
+  const grove = normalizeDescriptor({
+    id: 'grove-override',
+    kind: 'decor',
+    displayName: 'Grove',
+    variantRule: 'cluster',
+    cluster: { min: 2, max: 2 },
+    placement: { mode: 'ring' },
+    parts: [{ id: 'trunk', shape: 'cylinder' }],
+    variants: [
+      { id: 'round', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-round', shape: 'sphere' }] },
+      { id: 'tall', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-tall', shape: 'cone' }] },
+    ],
+  });
+  const tile = { q: 4, r: 4, terrain: 'forest' }; // would pick 'round' by rule
+  const forced = new Set(recordsForDescriptor(grove, tile, POS, undefined, {}, null, 'tall').map((r) => r.partId));
+  assert.ok(forced.has('canopy-tall') && !forced.has('canopy-round'), 'explicit id wins over the rule');
+  // A stale id (variant removed while editing) falls through to the rule.
+  const fallback = new Set(recordsForDescriptor(grove, tile, POS, undefined, {}, null, 'nope').map((r) => r.partId));
+  assert.ok(fallback.has('canopy-round') && !fallback.has('canopy-tall'));
 });
 
 // ── Per-part stretch (M4: trunk vs canopy stretch ranges) ──────────────────

@@ -16,8 +16,10 @@ import { normalizeDescriptor } from '../../src/render/hexmap3d/features/descript
 import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/features/descriptors/data/index.js';
 import { MOB_TIER2_VARIANTS } from '../../src/render/hexmap3d/features/descriptors/data/mobs.js';
 import { listArchetypes, getArchetype } from '../../src/game/rules/archetypes.js';
-// Side-effect import: registers the mob archetypes the rows below enumerate.
+// Side-effect imports: register the mob archetypes the rows below enumerate and
+// the biome archetypes the biome preview selector enumerates.
 import '../../src/game/rules/archetypeData/mobs.js';
+import '../../src/game/rules/archetypeData/biomes/index.js';
 
 /** All migrated descriptors, normalized. */
 export const SAMPLE_OBJECTS = ALL_DESCRIPTORS.map(normalizeDescriptor);

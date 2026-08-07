@@ -2,7 +2,7 @@
  * trees.js — Descriptor data for the tree content.
  *
  * Migrated 1:1 from the tree builders (trees/):
- *   - grove     — the woods terrain decoration (clusterTreeRecords.js):
+ *   - grove     — the woods terrain decoration (the old cluster-grove builder):
  *                 moisture-driven count, ring placement with outward lean,
  *                 per-tree size/stretch variation, round (forest) vs tall
  *                 (denseForest) canopy variants.
@@ -37,15 +37,22 @@
  * the default colors (biomeTint.js returns no tint for them).
  *
  * Per-biome size (biomeScale): trees are stunted on Tundra (×0.85) — the
- * mechanism the other biomes can reuse per part.
+ * mechanism the other biomes can reuse per part. The painforest variant uses
+ * it too (×0.55): Painforest grove members are smaller gnarled trees
+ * (PAINFOREST_GROVE_SCALE), and the multiplier keeps the branch/canopy stack
+ * rigid (localPos/lift scale with the part).
+ *
+ * Painforest groves render as the `painforest` variant below — a static
+ * gnarled-look tree (snaking two-segment trunk, steep bare branch, dark
+ * leaf ball) chosen for any forest/denseForest tile in the Painforest biome
+ * (recordBuilder's cluster rule). Painforest is a default-tint biome, so the
+ * dark foliage keeps its default color.
  *
  * NOT migrated (reported parity gap, see dev/futureWork.md):
- *   - fruitTree  — the procedural fruit tree (fruitTreeRecords.js) grows 2–3
- *                  snaking trunk segments, forked branches, and fruit, all
- *                  per-tree hash-driven — beyond the static-parts model.
- *   - painforest groves — gnarled twisted trees (gnarledTreeRecords.js).
- * Both keep their hard-coded builders until the descriptor model grows
- * procedural parts.
+ *   - fruitTree — the procedural fruit tree (fruitTreeRecords.js) grows 2–3
+ *     snaking trunk segments, forked branches, and fruit, all per-tree
+ *     hash-driven — beyond the static-parts model. It stays on its legacy
+ *     builder.
  */
 
 const TRUNK_PARAMS = { bottomR: 0.08, topR: 0.1, height: 0.4, segments: 6 };
@@ -96,6 +103,58 @@ const WIDE_CANOPY = {
   biomeScale: { biome_tundra: 0.85 },
 };
 
+/**
+ * Painforest grove members — a static gnarled-look tree in the shape of the
+ * old procedural gnarled-tree silhouette: a snaking two-segment
+ * trunk (base leans one way, the upper segment bends back), one steep bare
+ * branch, and a dark leaf ball on the tip. Unique part ids per variant (the
+ * mesh assembler resolves each record's part by id). Every part carries
+ * biomeScale { biome_painforest: 0.55 } — PAINFOREST_GROVE_SCALE, the smaller
+ * member size that also keeps the localPos stack proportional. Painforest is a
+ * default-tint biome, so the dark foliage color is the default (no
+ * biomeColor).
+ */
+const GNARLED_TRUNK_BASE = {
+  id: 'trunk-gnarled-base',
+  shape: 'cylinder',
+  params: { bottomR: 0.13, topR: 0.08, height: 0.3, segments: 5 },
+  transform: { localAxis: { x: 1, y: 0, z: 0 }, localAngle: 0.12 }, // lean ~7°
+  stretch: { y: { min: 0.9, max: 1.15, seed: 6 }, xz: false },
+  biomeScale: { biome_painforest: 0.55 },
+};
+const GNARLED_TRUNK_UPPER = {
+  id: 'trunk-gnarled-upper',
+  shape: 'cylinder',
+  params: { bottomR: 0.08, topR: 0.05, height: 0.24, segments: 5 },
+  transform: {
+    localPos: { x: 0, y: 0.3, z: 0.02 }, // rides the base trunk top
+    localAxis: { x: 1, y: 0, z: 0 },
+    localAngle: -0.15, // bends back against the base lean — the snake
+  },
+  stretch: { y: { min: 0.9, max: 1.15, seed: 6 }, xz: false },
+  biomeScale: { biome_painforest: 0.55 },
+};
+const GNARLED_BRANCH = {
+  id: 'branch-gnarled',
+  shape: 'cylinder',
+  params: { bottomR: 0.045, topR: 0.025, height: 0.3, segments: 5 },
+  transform: {
+    localPos: { x: 0.02, y: 0.52, z: 0.03 }, // forks from the upper trunk top
+    localAxis: { x: 1, y: 0, z: 0 },
+    localAngle: 0.7, // steep fork
+  },
+  stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, xz: false },
+  biomeScale: { biome_painforest: 0.55 },
+};
+const GNARLED_CANOPY = {
+  id: 'canopy-gnarled',
+  shape: 'sphere',
+  params: { radius: 0.26, wSegs: 6, hSegs: 4 },
+  transform: { localPos: { x: 0.02, y: 0.78, z: 0.21 } }, // ball on the branch tip
+  color: 0x2e5d2e, // TREE_CANOPY_COLORS.painforest — dark twisted foliage
+  biomeScale: { biome_painforest: 0.55 },
+};
+
 /** The woods grove — the terrain decoration for forest/denseForest tiles. */
 export const GROVE_DESCRIPTOR = {
   schemaVersion: 3,
@@ -122,6 +181,15 @@ export const GROVE_DESCRIPTOR = {
   variants: [
     { id: 'round', parts: [{ ...TRUNK_PART }, { ...ROUND_CANOPY }] },
     { id: 'tall', parts: [{ ...TRUNK_PART, transform: { scaleY: 0.8 } }, { ...TALL_CANOPY }] },
+    {
+      id: 'painforest',
+      parts: [
+        { ...GNARLED_TRUNK_BASE },
+        { ...GNARLED_TRUNK_UPPER },
+        { ...GNARLED_BRANCH },
+        { ...GNARLED_CANOPY },
+      ],
+    },
   ],
 };
 

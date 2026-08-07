@@ -15,41 +15,30 @@ import {
   getFruitTreeAppleGeo,
 } from '../geometries/index.js';
 import { collectInstances, buildInstanced } from '../meshBuilder.js';
-import { treeRecordsForTile, CLUSTER_TERRAINS } from './treeRecordsForTile.js';
+import { treeRecordsForTile } from './treeRecordsForTile.js';
 import { FRUIT_TREE_COLORS } from '../../../../params/render/geometryParams.js';
 
 const TRUNK_COLOR = 0x8B5E3C;
-const PAINFOREST_BIOME = 'biome_painforest';
 
 /**
- * A tile draws legacy tree meshes for the two treatments still on the
+ * A tile draws legacy tree meshes for the one treatment still on the
  * hard-coded builders (see treeRecordsForTile.js): a fruitTree feature on any
- * terrain, and Painforest gnarled groves (forest/denseForest woods in the
- * Painforest biome — a feature claim just disperses the grove). Everything
- * else — non-Painforest groves, solitary trees, and the migrated
- * simple/knot/mountain/hill content — resolves through descriptor data
- * (descriptors/gameBuilder.js).
+ * terrain. Everything else — groves on any woods (including the Painforest
+ * gnarled variant), solitary trees, and the migrated simple/knot/mountain/hill
+ * content — resolves through descriptor data (descriptors/gameBuilder.js).
  */
 function isTreeTile(tile) {
-  const kind = tile.feature?.kind;
-  if (kind === 'fruitTree') return true;
-  return CLUSTER_TERRAINS.has(tile.terrain) && tile.biomeId === PAINFOREST_BIOME;
+  return tile.feature?.kind === 'fruitTree';
 }
 
 /**
- * Collect legacy tree records. The gnarled Painforest grove is terrain
- * decoration, so it is gated on `decorVisible` (visible ∪ explored) and
- * renders unoccupied out of sight; fruit trees are features and stay gated on
- * `visible`.
+ * Collect legacy tree records (fruit trees). They are features and stay gated
+ * on `visible`.
  */
-function collectTreeInstances(tilesOrArray, visible, occupants, decorVisible = visible) {
+function collectTreeInstances(tilesOrArray, visible, occupants) {
   return collectInstances(
-    tilesOrArray, decorVisible,
-    (tile) => {
-      const kind = tile.feature?.kind;
-      if (kind === 'fruitTree') return visible.has(`${tile.q},${tile.r}`);
-      return isTreeTile(tile);
-    },
+    tilesOrArray, visible,
+    (tile) => isTreeTile(tile),
     (tile, worldPos) => treeRecordsForTile(tile, worldPos, occupants, visible.has(`${tile.q},${tile.r}`)),
   );
 }
@@ -96,13 +85,10 @@ function buildMeshesFromInstances(instances) {
  * @param {object} state - Game state (state.tiles Map)
  * @param {Set<string>} visible - Set of "q,r" keys currently visible
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
- * @param {Set<string>} [decorVisible=visible] - gate for the gnarled grove
- *        terrain decoration (visible ∪ explored); fruit trees stay gated on
- *        `visible`
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildTreeMeshes(state, visible, occupants, decorVisible = visible) {
-  return buildMeshesFromInstances(collectTreeInstances(state.tiles, visible, occupants, decorVisible));
+export function buildTreeMeshes(state, visible, occupants) {
+  return buildMeshesFromInstances(collectTreeInstances(state.tiles, visible, occupants));
 }
 
 /**
@@ -110,11 +96,8 @@ export function buildTreeMeshes(state, visible, occupants, decorVisible = visibl
  * @param {object[]} chunkTiles - Array of tile objects in this chunk
  * @param {Set<string>} visible - Set of hex keys currently visible
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
- * @param {Set<string>} [decorVisible=visible] - gate for the gnarled grove
- *        terrain decoration (visible ∪ explored); fruit trees stay gated on
- *        `visible`
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildChunkTreeMeshes(chunkTiles, visible, occupants, decorVisible = visible) {
-  return buildMeshesFromInstances(collectTreeInstances(chunkTiles, visible, occupants, decorVisible));
+export function buildChunkTreeMeshes(chunkTiles, visible, occupants) {
+  return buildMeshesFromInstances(collectTreeInstances(chunkTiles, visible, occupants));
 }

@@ -10,11 +10,36 @@ import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf, MOB_ROWS, BROWSABLE_TOTA
 import { createPreview, showRecords, setFloorVisible } from '../preview.js';
 import { bindEditorPanel, refreshEditorPanel, activeVariant } from './editorPanel.js';
 import { recordsForDescriptor, recordsForEntity } from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
+import { biomeTintForTile } from '../../../src/render/hexmap3d/features/biomeTint.js';
+import { listArchetypes, getArchetype } from '../../../src/game/rules/archetypes.js';
 import { ENTITY_KINDS, entityForSelection } from '../entityView.js';
 
 /** The tile the preview renders on — a stable hex with a hash. */
 const PREVIEW_TILE = { q: 1, r: 0, terrain: 'forest' };
 const ORIGIN = { x: 0, y: 0, z: 0 };
+
+/**
+ * The preview tile, with the editor's selected biome applied (S.biomeId).
+ * A null biome keeps a plain tile — default part colors and full sizes.
+ */
+function previewTile() {
+  return S.biomeId ? { ...PREVIEW_TILE, biomeId: S.biomeId } : PREVIEW_TILE;
+}
+
+/** Biome signature colors (biome id → { primary, accent }), for the preview
+ *  tint. The single preview tile has no neighbors, so the tint is the biome's
+ *  own colors — no blending to show here. */
+const biomeColors = new Map(
+  listArchetypes('biome')
+    .map((id) => [id, getArchetype(id)?.colors])
+    .filter(([, colors]) => colors?.primary && colors?.accent),
+);
+
+/** The biome tint for the preview tile, or null (default colors). */
+function previewTint(tile) {
+  if (!S.biomeId) return null;
+  return biomeTintForTile(tile, new Map([['1,0', tile]]), biomeColors, null);
+}
 
 /** Categories the user collapsed; browser re-renders preserve the choice. */
 const collapsedCategories = new Set();
@@ -28,9 +53,10 @@ function isCustomDescriptor() {
 function rebuild() {
   if (!S.descriptor) return;
   const d = S.descriptor;
+  const tile = previewTile();
   const records = ENTITY_KINDS.has(d.kind)
     ? recordsForEntity(d, entityForSelection(S.entity.faction, S.entity.archetype), ORIGIN)
-    : recordsForDescriptor(d, PREVIEW_TILE, ORIGIN, S.tileH, { displaced: S.displaced });
+    : recordsForDescriptor(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId);
   showRecords(d, records);
 
   // Items = records / parts-of-the-active-variant (variant objects have more
@@ -39,6 +65,7 @@ function rebuild() {
   const active = variant ?? d;
   const parts = active.parts.length;
   const items = parts > 0 ? records.length / parts : 0;
+  const biome = S.biomeId ? getArchetype(S.biomeId)?.name : null;
 
   if (ENTITY_KINDS.has(d.kind)) {
     els.info.textContent =
@@ -51,7 +78,8 @@ function rebuild() {
       `${d.displayName}\n` +
       `${items} item(s) × ${parts} part(s) = ${records.length} instance record(s)\n` +
       `hash ${S.tileH} · ${S.displaced ? 'occupied (displaced)' : 'normal'}` +
-      (variant ? ` · variant ${variant.id}` : '');
+      (variant ? ` · variant ${variant.id}` : '') +
+      (biome ? ` · biome ${biome}` : '');
   }
 }
 

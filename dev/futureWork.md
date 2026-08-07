@@ -105,9 +105,6 @@ Reported parity gaps (stop-rule report) — content still on hard-coded builders
   snaking trunk segments, forked branches, and fruit, all per-tree hash-driven.
   Beyond the static-parts descriptor model; keeps its hard-coded builder. To
   migrate: add procedural/part-instancing to the descriptor model.
-- **painforest groves** — gnarled twisted trees (`gnarledTreeRecords.js`) replace
-  grove members in the Painforest biome. Keeps its hard-coded builder until
-  biome-driven variant selection or procedural parts exist.
 - **Mountain variant roll** — descriptors use the generic hash variant roll
   (50/50 classic/offpeak); per-tile assignments may differ from the legacy
   MOUNTAIN_HASH_SEEDS roll. The range reads identically.

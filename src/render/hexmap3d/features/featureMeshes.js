@@ -25,8 +25,8 @@ function decorGate(visible, explored) {
  *
  * Feature geometry now comes from descriptor data (descriptors/gameBuilder.js)
  * for every migrated object — simple features, knots, mountains, hill mounds,
- * groves, solitary trees. The tree builder keeps only the legacy procedural
- * treatments (fruit trees, Painforest gnarled groves); baseMeshes renders
+ * groves (including the Painforest gnarled variant), solitary trees. The tree
+ * builder keeps only the legacy procedural fruit tree; baseMeshes renders
  * champion bases through the same generic pipeline (descriptors/data/bases.js).
  */
 export function buildFeatureMeshes(state, visible, explored = new Set()) {
@@ -34,7 +34,7 @@ export function buildFeatureMeshes(state, visible, explored = new Set()) {
   const occupants = occupiedKeys(state);
   const decor = decorGate(visible, explored);
 
-  results.push(...buildTreeMeshes(state, visible, occupants, decor));
+  results.push(...buildTreeMeshes(state, visible, occupants));
   results.push(...buildDescriptorFeatureMeshes(state, visible, occupants, decor));
   results.push(...buildBaseMeshes(state, visible));
 
@@ -56,7 +56,7 @@ export function buildChunkFeatureMeshes(chunkTiles, state, visible, explored = n
   const occupants = occupiedKeys(state);
   const decor = decorGate(visible, explored);
 
-  results.push(...buildChunkTreeMeshes(chunkTiles, visible, occupants, decor));
+  results.push(...buildChunkTreeMeshes(chunkTiles, visible, occupants));
   results.push(...buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decor, state.biomeColors ?? null));
   results.push(...buildChunkBaseMeshes(chunkTiles, visible));
 
