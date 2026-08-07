@@ -6,7 +6,7 @@
  */
 import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
-import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf } from '../sampleObjects.js';
+import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf, MOB_ROWS, BROWSABLE_TOTAL } from '../sampleObjects.js';
 import { createPreview, showRecords, setFloorVisible } from '../preview.js';
 import { bindEditorPanel, refreshEditorPanel, activeVariant } from './editorPanel.js';
 import { recordsForDescriptor, recordsForEntity } from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
@@ -74,12 +74,21 @@ function objectItem(descriptor, selected) {
   return btn;
 }
 
+/** One mob row — labelled with the friendly name, carries the descriptor-side
+ *  variant id so the click handler can load the generic mob descriptor with
+ *  that archetype selected. */
+function mobObjectItem(row, selected) {
+  const btn = objectItem({ id: 'mob', displayName: row.displayName }, selected);
+  btn.dataset.mob = row.variantId;
+  return btn;
+}
+
 /**
- * A collapsible category group. Collapse state is tracked in
+ * A collapsible shell (details/summary + count). Collapse state is tracked in
  * `collapsedCategories` so re-renders (filter, selection) preserve it;
  * searching forces every group open so matches are never hidden.
  */
-function categoryGroup(category, members, selectedId, query) {
+function collapsibleShell(category, count, query) {
   const group = document.createElement('details');
   group.className = 'category';
   if (query) {
@@ -95,21 +104,26 @@ function categoryGroup(category, members, selectedId, query) {
 
   const head = document.createElement('summary');
   head.textContent = category.label;
-  const count = document.createElement('span');
-  count.className = 'category-count';
-  count.textContent = String(members.length);
-  head.append(count);
+  const countEl = document.createElement('span');
+  countEl.className = 'category-count';
+  countEl.textContent = String(count);
+  head.append(countEl);
   group.append(head);
+  return group;
+}
 
+function categoryGroup(category, members, selectedId, query) {
+  const group = collapsibleShell(category, members.length, query);
   for (const d of members) group.append(objectItem(d, d.id === selectedId));
   return group;
 }
 
 /**
- * Rebuild the object browser from SAMPLE_OBJECTS, grouped by category
- * (Features / Terrain Decor / Faction / Creatures) and filtered by the search
- * input. The custom (loaded) item is pinned on top while the current descriptor
- * is not one of the samples.
+ * Rebuild the object browser, grouped by category (Features / Terrain Decor /
+ * Mobs / Faction / Creatures) and filtered by the search input. The Mobs
+ * category renders one row per type from MOB_ROWS instead of the single generic
+ * mob descriptor. The custom (loaded) item is pinned on top while the current
+ * descriptor is not one of the samples.
  */
 function renderObjectList(filterText = '') {
   const query = filterText.trim().toLowerCase();
@@ -124,6 +138,21 @@ function renderObjectList(filterText = '') {
   const selectedId = S.descriptor?.id ?? null;
   let matched = 0;
   for (const category of OBJECT_CATEGORIES) {
+    if (category.id === 'mob') {
+      const rows = MOB_ROWS.filter(
+        (r) => !query || r.displayName.toLowerCase().includes(query) || r.id.toLowerCase().includes(query),
+      );
+      if (rows.length === 0) continue;
+      matched += rows.length;
+      const group = collapsibleShell(category, rows.length, query);
+      const mobSelected = S.descriptor?.id === 'mob' && S.entity.archetype != null;
+      for (const row of rows) {
+        group.append(mobObjectItem(row, mobSelected && S.entity.archetype === row.variantId));
+      }
+      els.objectList.append(group);
+      continue;
+    }
+
     const members = SAMPLE_OBJECTS
       .filter((d) => categoryOf(d) === category)
       .filter((d) => !query || d.displayName.toLowerCase().includes(query) || d.id.toLowerCase().includes(query))
@@ -135,8 +164,8 @@ function renderObjectList(filterText = '') {
   }
 
   els.objectFilterCount.textContent = query
-    ? `${matched} of ${SAMPLE_OBJECTS.length}`
-    : `${SAMPLE_OBJECTS.length} objects`;
+    ? `${matched} of ${BROWSABLE_TOTAL}`
+    : `${BROWSABLE_TOTAL} objects`;
 }
 
 function populateObjects() {
@@ -149,7 +178,24 @@ function populateObjects() {
 function bindControls() {
   els.objectList.addEventListener('click', (e) => {
     const item = e.target.closest('.dobj-item');
-    if (!item || item.dataset.value === '') return; // custom row is already active
+    if (!item) return;
+    if (item.dataset.mob) {
+      const row = MOB_ROWS.find((r) => r.variantId === item.dataset.mob);
+      const mob = SAMPLE_OBJECTS.find((d) => d.id === 'mob');
+      if (!row || !mob) return;
+      // Deep copy — the shared mob descriptor must not carry edits across rows.
+      S.descriptor = JSON.parse(JSON.stringify(mob));
+      S.descriptor.displayName = row.displayName;
+      S.selectedPartId = null;
+      S.variantId = null;
+      S.entity.archetype = row.variantId;
+      updateEntityMode();
+      refreshEditorPanel();
+      rebuild();
+      renderObjectList(els.objectFilter.value);
+      return;
+    }
+    if (item.dataset.value === '') return; // custom row is already active
     const next = SAMPLE_OBJECTS.find((d) => d.id === item.dataset.value);
     if (!next) return;
     S.descriptor = next;
