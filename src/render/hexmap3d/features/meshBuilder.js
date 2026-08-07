@@ -64,8 +64,10 @@ export function collectInstances(tilesOrArray, visible, matchFn, collectFn) {
  * @param {THREE.Material}       material  - Shared material
  * @param {object[]}             instances - Instance records { x, y, z, scale?, rotY? }
  *                                           Optional per-instance extras:
+ *                                           - scaleX   — non-uniform X scale (defaults to `scaleXZ`/`scale`)
  *                                           - scaleY   — non-uniform Y scale (defaults to `scale`)
- *                                           - scaleXZ  — non-uniform X/Z scale (defaults to `scale`)
+ *                                           - scaleZ   — non-uniform Z scale (defaults to `scaleXZ`/`scale`)
+ *                                           - scaleXZ  — legacy combined X/Z scale (defaults to `scale`)
  *                                           - lift     — local-space height above the pivot
  *                                           - localPos — { x, y, z } placement in the tree frame
  *                                                       (overrides `lift` when present)
@@ -106,9 +108,9 @@ export function buildInstanced(geometry, material, instances, meshName, opts = {
   for (let i = 0; i < instances.length; i++) {
     const inst = instances[i];
     const s = inst.scale ?? 1.0;
-    const sx = inst.scaleXZ ?? s;
+    const sx = inst.scaleX ?? inst.scaleXZ ?? s;
     const sy = inst.scaleY ?? s;
-    const sz = inst.scaleXZ ?? s;
+    const sz = inst.scaleZ ?? inst.scaleXZ ?? s;
 
     // Local placement in the tree frame (default: plain lift above the pivot).
     const lx = inst.localPos ? inst.localPos.x : 0;

@@ -170,3 +170,56 @@ test('knot hovers at KNOT_Y_OFFSET and hill mound is a flattened hemisphere', ()
   assert.ok(sunk[0].y < POS.y);
   assert.ok(sunk[0].scale < 1);
 });
+
+// ── Per-axis scale ─────────────────────────────────────────────────────────
+
+test('independent scaleX/scaleZ flow into records (scaleZ only when different)', () => {
+  const d = normalizeDescriptor({
+    id: 'axisscaled',
+    kind: 'feature',
+    displayName: 'Axis Scaled',
+    parts: [{ id: 'p', shape: 'cube', transform: { scaleX: 2, scaleY: 3, scaleZ: 0.5 } }],
+  });
+  const [record] = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'plains' }, POS);
+  assert.equal(record.scale, 2);      // X scale stays in `scale`
+  assert.equal(record.scaleY, 3);
+  assert.equal(record.scaleZ, 0.5);
+});
+
+test('symmetric parts emit no scaleZ (record shape unchanged)', () => {
+  const d = normalizeDescriptor({
+    id: 'symmetric',
+    kind: 'feature',
+    displayName: 'Symmetric',
+    parts: [{ id: 'p', shape: 'sphere' }],
+  });
+  const [record] = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'plains' }, POS);
+  assert.deepEqual(Object.keys(record).sort(), ['partId', 'scale', 'scaleY', 'x', 'y', 'z']);
+});
+
+test('per-axis stretch variation applies to x/y/z with legacy-identical seeds', () => {
+  const d = normalizeDescriptor({
+    id: 'stretch-axes',
+    kind: 'feature',
+    displayName: 'Stretch Axes',
+    variation: { stretchY: [1.1, 1.1], stretchX: [1.2, 1.2], stretchZ: [0.9, 0.9] },
+    parts: [{ id: 'p', shape: 'cube' }],
+  });
+  const [record] = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'plains' }, POS);
+  assert.equal(record.scale, 1.2);
+  assert.equal(record.scaleY, 1.1);
+  assert.equal(record.scaleZ, 0.9);
+});
+
+test('part.stretch pins axes at 1 via false (x/y/z)', () => {
+  const d = normalizeDescriptor({
+    id: 'pin',
+    kind: 'feature',
+    displayName: 'Pin',
+    parts: [{ id: 'p', shape: 'sphere', stretch: { y: { min: 1.5, max: 1.5 }, x: false, z: false } }],
+  });
+  const [record] = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'plains' }, POS);
+  assert.equal(record.scale, 1);
+  assert.equal(record.scaleY, 1.5);
+  assert.equal(record.scaleZ, undefined);
+});

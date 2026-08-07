@@ -229,7 +229,7 @@ test('normalizeDescriptor fills every optional default', () => {
     phiStart: 0, phiLength: Math.PI * 2, thetaStart: 0, thetaLength: Math.PI,
   });
   // Transform defaults filled.
-  assert.deepEqual(normalized.parts[0].transform, { y: 0, lift: 0, rotY: 0, scaleXZ: 1, scaleY: 1 });
+  assert.deepEqual(normalized.parts[0].transform, { y: 0, lift: 0, rotY: 0, scaleX: 1, scaleY: 1, scaleZ: 1 });
 });
 
 test('normalizeDescriptor fills per-mode placement fields', () => {
@@ -318,7 +318,10 @@ test('part.stretch validates ranges and axes', () => {
   };
   assert.deepEqual(validateDescriptor(ok), []);
   assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', stretch: { y: { min: 1.2, max: 0.9 } } }] }).length > 0);
-  assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', stretch: { z: false } }] }).length > 0);
+  // x/y/z are the canonical axes (xz is the accepted legacy alias).
+  assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', stretch: { z: { min: 1, max: 2 } } }] }).length === 0);
+  assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', stretch: { x: false } }] }).length === 0);
+  assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', stretch: { w: false } }] }).length > 0);
   assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', stretch: { y: { min: 1, max: 2, seed: -1 } } }] }).length > 0);
   assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', materialColor: 0xffffff }] }).length === 0);
   assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', materialColor: 0x1000000 }] }).length > 0);
@@ -357,4 +360,40 @@ test('normalizeDescriptor remaps legacy shape names (knot → octahedron, snowpe
   // only in normalizeDescriptor (old JSON is normalized before validation).
   assert.ok(validateDescriptor({ ...BUSH, parts: [{ id: 'p', shape: 'knot' }] }).some((e) => e.includes('unknown shape "knot"')));
   assert.ok(validateDescriptor({ ...BUSH, parts: [{ id: 'p', shape: 'snowperson' }] }).some((e) => e.includes('unknown shape "snowperson"')));
+});
+
+test('normalizeDescriptor resolves legacy scaleXZ/stretchXZ into independent axes', () => {
+  const legacy = normalizeDescriptor({
+    id: 'legacy-scaled',
+    kind: 'feature',
+    displayName: 'Legacy Scaled',
+    variation: { stretchY: [0.85, 1.3], stretchXZ: [0.9, 1.15] },
+    parts: [
+      { id: 'p', shape: 'box', transform: { scaleXZ: 1.6 } },
+      { id: 'q', shape: 'box', transform: { scaleXZ: 1.6, scaleX: 2 }, stretch: { y: { min: 0.9, max: 1.2 }, xz: false } },
+    ],
+  });
+  // transform.scaleXZ → scaleX + scaleZ; an explicit scaleX wins.
+  assert.deepEqual(legacy.parts[0].transform, { y: 0, lift: 0, rotY: 0, scaleX: 1.6, scaleY: 1, scaleZ: 1.6 });
+  assert.equal(legacy.parts[1].transform.scaleX, 2);
+  assert.equal(legacy.parts[1].transform.scaleZ, 1.6);
+  assert.ok(!('scaleXZ' in legacy.parts[0].transform));
+  // variation.stretchXZ → stretchX + stretchZ (explicit per-axis ranges win).
+  assert.deepEqual(legacy.variation, { stretchY: [0.85, 1.3], stretchX: [0.9, 1.15], stretchZ: [0.9, 1.15], colorJitter: 0 });
+  // part.stretch.xz → x + z (false pins both).
+  assert.deepEqual(legacy.parts[1].stretch, { y: { min: 0.9, max: 1.2 }, x: false, z: false });
+  assert.deepEqual(validateDescriptor(legacy), []);
+});
+
+test('independent per-axis transform scales validate', () => {
+  const d = normalizeDescriptor({
+    id: 'stretched',
+    kind: 'feature',
+    displayName: 'Stretched',
+    parts: [{ id: 'p', shape: 'cube', transform: { scaleX: 2, scaleZ: 0.5 } }],
+  });
+  assert.deepEqual(validateDescriptor(d), []);
+  assert.equal(d.parts[0].transform.scaleX, 2);
+  assert.equal(d.parts[0].transform.scaleZ, 0.5);
+  assert.ok(validateDescriptor({ ...d, parts: [{ id: 'p', shape: 'cube', transform: { scaleX: 0 } }] }).length > 0);
 });

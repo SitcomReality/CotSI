@@ -288,18 +288,21 @@ function jitteredColor(base, jitter, tileH, i) {
 /**
  * Stretch multiplier for one axis of a part. The part's own `stretch` override
  * wins; `false` pins the axis at 1 (no stretch); otherwise the object-level
- * `variation.stretchY/XZ` applies with the default hash seeds (4 for Y, 5 for
- * XZ), matching treeVariation() in clusterTreeRecords.js.
+ * `variation.stretchX/Y/Z` applies. Default hash seeds: 4 for Y, 5 for X and Z
+ * — X and Z share the legacy stretchXZ seed, so split-axis descriptors draw
+ * the same XZ value the old combined axis did; decorrelate with per-part seeds.
  */
+const STRETCH_SEEDS = Object.freeze({ x: 5, y: 4, z: 5 });
+
 function stretchForAxis(part, descriptor, axis, tileH, i) {
   const partStretch = part.stretch?.[axis];
   if (partStretch === false) return 1;
   const v = descriptor.variation;
   if (partStretch) {
-    return lerp(partStretch.min, partStretch.max, frac(treeHash(tileH, partStretch.seed ?? (axis === 'y' ? 4 : 5))));
+    return lerp(partStretch.min, partStretch.max, frac(treeHash(tileH, partStretch.seed ?? STRETCH_SEEDS[axis])));
   }
-  const pair = axis === 'y' ? v.stretchY : v.stretchXZ;
-  return lerp(pair[0], pair[1], frac(treeHash(tileH, axis === 'y' ? 4 : 5)));
+  const pair = v[`stretch${axis.toUpperCase()}`];
+  return lerp(pair[0], pair[1], frac(treeHash(tileH, STRETCH_SEEDS[axis])));
 }
 
 /**
@@ -314,8 +317,11 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
   const jitterScale = placement.scaleMul ?? 1;
 
   // Per-part non-uniform scale, then the per-axis stretch (part override or
-  // the object's variation ranges), then the scatter size jitter.
-  const sx = itemScale * scaleMul * jitterScale * t.scaleXZ * stretchForAxis(part, descriptor, 'xz', tileH, i);
+  // the object's variation ranges), then the scatter size jitter. X and Z are
+  // independent; symmetric parts emit no scaleZ (meshBuilder falls back to
+  // `scale`), so existing records are unchanged.
+  const sx = itemScale * scaleMul * jitterScale * t.scaleX * stretchForAxis(part, descriptor, 'x', tileH, i);
+  const sz = itemScale * scaleMul * jitterScale * t.scaleZ * stretchForAxis(part, descriptor, 'z', tileH, i);
   // Mountain-type height rule: scaleY comes from the tile's mountainType tag
   // (peak/slope/normal) instead of the stretch ranges — the mountainMeshes
   // builder's mountainScale(). Item scale stays 1 on XZ.
@@ -333,6 +339,7 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
     scale: sx,
     scaleY: sy,
   };
+  if (sz !== sx) record.scaleZ = sz;
 
   const rotY = t.rotY + (placement.rotY ?? 0);
   if (rotY) record.rotY = rotY;
@@ -428,9 +435,10 @@ function recordForEntityPart(part, entity, worldPos, itemScale) {
     x: worldPos.x,
     y: worldPos.y + t.y,
     z: worldPos.z,
-    scale: itemScale * t.scaleXZ,
+    scale: itemScale * t.scaleX,
     scaleY: itemScale * t.scaleY,
   };
+  if (t.scaleZ !== t.scaleX) record.scaleZ = itemScale * t.scaleZ;
 
   if (t.rotY) record.rotY = t.rotY;
   if (t.lift) record.lift = t.lift * itemScale;

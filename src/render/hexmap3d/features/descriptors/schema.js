@@ -175,13 +175,15 @@ export const SCHEMA_VERSION = 2;
  * Defaults for optional object-level fields. Values mirror the current game
  * constants in geometryParams.js so a bare descriptor reproduces current
  * content (cluster 1 = a single item, size 1..1 = no scale variation, etc.).
+ * Stretch variation is per-axis now: stretchY (Y), stretchX (X), stretchZ (Z);
+ * a legacy `stretchXZ` input resolves to stretchX + stretchZ on normalize.
  */
 export const OBJECT_DEFAULTS = Object.freeze({
   schemaVersion: SCHEMA_VERSION,
   scale: 1,
   cluster: { min: 1, max: 1, rule: 'uniform' },
   size: { min: 1, max: 1 },
-  variation: { stretchY: [1, 1], stretchXZ: [1, 1], colorJitter: 0 },
+  variation: { stretchY: [1, 1], stretchX: [1, 1], stretchZ: [1, 1], colorJitter: 0 },
   placement: { mode: 'center' },
   emphasis: { behavior: 'none' },
   material: { color: 0xffffff },
@@ -192,14 +194,16 @@ export const OBJECT_DEFAULTS = Object.freeze({
  * meshBuilder.js. `y` raises the whole object above the tile surface (e.g.
  * knots hover at KNOT_Y_OFFSET); `lift` raises the part in its own frame;
  * `localPos` overrides `lift` with a full local offset. Angles are radians.
- * scaleXZ/scaleY are the part's non-uniform scale (base 1).
+ * scaleX/scaleY/scaleZ are the part's independent non-uniform scale (base 1);
+ * a legacy `scaleXZ` input resolves to scaleX + scaleZ on normalize.
  */
 export const PART_TRANSFORM_DEFAULTS = Object.freeze({
   y: 0,
   lift: 0,
   rotY: 0,
-  scaleXZ: 1,
+  scaleX: 1,
   scaleY: 1,
+  scaleZ: 1,
 });
 
 // ── Type helpers ───────────────────────────────────────────────────────────
@@ -289,7 +293,7 @@ export function validateShapeParams(shapeType, params) {
 }
 
 const TRANSFORM_NUMBER_KEYS = ['y', 'lift', 'rotY', 'localAngle', 'tilt'];
-const TRANSFORM_SCALE_KEYS = ['scaleXZ', 'scaleY'];
+const TRANSFORM_SCALE_KEYS = ['scaleX', 'scaleY', 'scaleZ', 'scaleXZ'];
 const TRANSFORM_VEC3_KEYS = ['localPos', 'localAxis'];
 const TRANSFORM_VEC2_KEYS = ['tiltAxis'];
 
@@ -335,18 +339,19 @@ export function validateTransform(transform, path, errors) {
 
 const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch'];
 
-const STRETCH_AXES = ['y', 'xz'];
+const STRETCH_AXES = ['x', 'y', 'z', 'xz']; // 'xz' is the legacy combined axis
 
 /**
  * Validate a part's optional `stretch` overrides — per-axis variation ranges
- * that replace the object-level `variation.stretchY/XZ` for this part only.
+ * that replace the object-level `variation.stretchX/Y/Z` for this part only.
  * Each axis is either `false` (no stretch — that axis stays at 1) or
  * `{ min, max, seed? }` (draw from this range using the given sub-hash seed;
- * defaults to the object-variation seeds 4 for Y / 5 for XZ).
+ * defaults to the object-variation seeds: 4 for Y, 5 for X and Z). The legacy
+ * `xz` axis is accepted and resolved to x + z on normalize.
  */
 function validateStretch(stretch, path, errors) {
   if (!isPlainObject(stretch)) {
-    errors.push(`${path}: must be an object { y, xz } of ranges or false`);
+    errors.push(`${path}: must be an object { x, y, z } of ranges or false`);
     return;
   }
   for (const key of Object.keys(stretch)) {
@@ -527,7 +532,7 @@ function validateRangePair(pair, path, errors) {
   }
 }
 
-const VARIATION_KEYS = ['stretchY', 'stretchXZ', 'colorJitter'];
+const VARIATION_KEYS = ['stretchY', 'stretchX', 'stretchZ', 'stretchXZ', 'colorJitter'];
 
 function validateVariation(variation, path, errors) {
   if (variation === undefined) return;
@@ -539,6 +544,8 @@ function validateVariation(variation, path, errors) {
     if (!VARIATION_KEYS.includes(key)) errors.push(`${path}: unknown field "${key}"`);
   }
   validateRangePair(variation.stretchY, `${path}.stretchY`, errors);
+  validateRangePair(variation.stretchX, `${path}.stretchX`, errors);
+  validateRangePair(variation.stretchZ, `${path}.stretchZ`, errors);
   validateRangePair(variation.stretchXZ, `${path}.stretchXZ`, errors);
   if (variation.colorJitter !== undefined && !isNonNegativeNumber(variation.colorJitter)) {
     errors.push(`${path}.colorJitter: must be >= 0`);
@@ -715,7 +722,25 @@ function normalizePart(part) {
   const transform = isPlainObject(part.transform) ? part.transform : {};
   const out = { ...part, shape: shapeName };
   out.params = shape ? { ...shape.defaults, ...params } : { ...params };
-  out.transform = { ...PART_TRANSFORM_DEFAULTS, ...transform };
+
+  // Resolve the legacy combined XZ scale into independent scaleX/scaleZ
+  // (an explicit per-axis scale wins over the legacy value).
+  const merged = { ...PART_TRANSFORM_DEFAULTS, ...transform };
+  if (transform.scaleXZ !== undefined) {
+    if (!('scaleX' in transform)) merged.scaleX = transform.scaleXZ;
+    if (!('scaleZ' in transform)) merged.scaleZ = transform.scaleXZ;
+  }
+  delete merged.scaleXZ;
+  out.transform = merged;
+
+  // Resolve the legacy combined stretch axis `xz` into x + z (false pins both).
+  if (isPlainObject(out.stretch) && out.stretch.xz !== undefined) {
+    const stretch = { ...out.stretch };
+    if (stretch.x === undefined) stretch.x = stretch.xz;
+    if (stretch.z === undefined) stretch.z = stretch.xz;
+    delete stretch.xz;
+    out.stretch = stretch;
+  }
   return out;
 }
 
@@ -746,7 +771,15 @@ export function normalizeDescriptor(def) {
     out.cluster.jitter = out.cluster.jitter ?? 1;
   }
   out.size = { ...OBJECT_DEFAULTS.size, ...(isPlainObject(out.size) ? out.size : {}) };
-  out.variation = { ...OBJECT_DEFAULTS.variation, ...(isPlainObject(out.variation) ? out.variation : {}) };
+  const rawVariation = isPlainObject(out.variation) ? out.variation : {};
+  // Resolve the legacy combined stretchXZ into independent stretchX/stretchZ
+  // before the defaults merge (an explicit per-axis range wins).
+  if (rawVariation.stretchXZ !== undefined) {
+    if (rawVariation.stretchX === undefined) rawVariation.stretchX = rawVariation.stretchXZ;
+    if (rawVariation.stretchZ === undefined) rawVariation.stretchZ = rawVariation.stretchXZ;
+    delete rawVariation.stretchXZ;
+  }
+  out.variation = { ...OBJECT_DEFAULTS.variation, ...rawVariation };
   out.placement = { ...OBJECT_DEFAULTS.placement, ...(isPlainObject(out.placement) ? out.placement : {}) };
   if (out.placement.mode === 'scatter') {
     out.placement.offsetMin = out.placement.offsetMin ?? 0.15;
