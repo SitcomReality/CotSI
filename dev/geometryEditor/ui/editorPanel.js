@@ -17,6 +17,7 @@ import {
   SHAPE_TYPES,
   EMPHASIS_BEHAVIORS,
   PLACEMENT_MODES,
+  PART_TRANSFORM_DEFAULTS,
   validateDescriptor,
   normalizeDescriptor,
 } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
@@ -241,7 +242,14 @@ function renderPartsList(container) {
   addBtn.addEventListener('click', () => {
     const shape = shapeSelect.value;
     mutate(() => {
-      parts.push({ id: `part-${partCounter++}`, shape, params: { ...SHAPE_TYPES[shape].defaults } });
+      // Must carry a full transform — recordForPart reads part.transform and
+      // normalizePart (schema.js) is what guarantees it for loaded JSON.
+      parts.push({
+        id: `part-${partCounter++}`,
+        shape,
+        params: { ...SHAPE_TYPES[shape].defaults },
+        transform: { ...PART_TRANSFORM_DEFAULTS },
+      });
     });
   });
   addRow.append(shapeSelect, addBtn);
