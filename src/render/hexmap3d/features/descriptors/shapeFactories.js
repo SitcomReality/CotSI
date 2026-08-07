@@ -9,7 +9,7 @@
  * record generation (recordBuilder.js) stays pure.
  */
 import * as THREE from '../../../../vendor/three.module.js';
-import { getMountainGeo, getKnotGeo, getSnowpersonGeo } from '../geometries/index.js';
+import { getMountainGeo, getSnowpersonGeo as getLatheGeo } from '../geometries/index.js';
 import { toonMaterial } from '../../scene/materials.js';
 
 const geometryCache = new Map();
@@ -46,10 +46,12 @@ function buildShape(type, params) {
       return new THREE.OctahedronGeometry(params.radius, params.detail);
     case 'mountain':
       return getMountainGeo(params.variant);
-    case 'knot':
-      return getKnotGeo();
-    case 'snowperson':
-      return getSnowpersonGeo();
+    case 'cube':
+      return new THREE.BoxGeometry(params.size, params.size, params.size);
+    case 'spheroid':
+      return new THREE.SphereGeometry(params.radius, params.wSegs, params.hSegs);
+    case 'lathe':
+      return getLatheGeo();
     default:
       throw new Error(`descriptor: unknown shape type "${type}"`);
   }

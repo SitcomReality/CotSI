@@ -1,10 +1,14 @@
 /**
  * knots.js — Descriptor data for the knot feature.
  *
- * Migrated from knotMeshes.js: one bespoke lathe knot per tile, hovering at
+ * Migrated from knotMeshes.js: one octahedron per tile, hovering at
  * KNOT_Y_OFFSET (transform y), emissive purple material. Displaced to the
  * corner anchor when an occupant shares the hex (defensive — knots are mined
  * on arrival). The mined filter stays in the game-side builder.
+ *
+ * The former bespoke `knot` shape always rendered an octahedron
+ * (knotGeometries.js → OctahedronGeometry(KNOT_RADIUS, 0)); it is now the
+ * standard `octahedron` shape at the same radius, so the render is unchanged.
  */
 
 export const KNOT_DESCRIPTOR = {
@@ -22,8 +26,8 @@ export const KNOT_DESCRIPTOR = {
   parts: [
     {
       id: 'knot',
-      shape: 'knot',
-      params: {},
+      shape: 'octahedron',
+      params: { radius: 0.2, detail: 0 }, // KNOT_RADIUS
       transform: { y: 0.3 }, // KNOT_Y_OFFSET
     },
   ],

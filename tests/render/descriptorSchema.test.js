@@ -71,16 +71,24 @@ const GROVE = {
 
 test('shape registry covers the shapes the game currently builds', () => {
   for (const type of [
-    'cylinder', 'cone', 'sphere', 'torus', 'box',
-    'dodecahedron', 'octahedron', 'mountain', 'knot', 'snowperson',
+    'cylinder', 'cone', 'sphere', 'spheroid', 'torus', 'box', 'cube',
+    'dodecahedron', 'octahedron', 'mountain', 'lathe',
   ]) {
     assert.ok(SHAPE_TYPES[type], `missing shape type "${type}"`);
   }
   // Bespoke shapes with no editable params must still validate.
   assert.equal(validateShapeParams('mountain', { variant: 'offpeak' }).length, 0);
   assert.equal(validateShapeParams('mountain', { variant: 'flat' }).length, 1);
-  assert.equal(validateShapeParams('knot', {}).length, 0);
-  assert.equal(validateShapeParams('snowperson', {}).length, 0);
+  assert.equal(validateShapeParams('lathe', {}).length, 0);
+  // The stretchable primitives validate their params.
+  assert.equal(validateShapeParams('cube', { size: 0.5 }).length, 0);
+  assert.equal(validateShapeParams('cube', { size: 0 }).length, 1);
+  assert.equal(validateShapeParams('spheroid', { radius: 0.4, wSegs: 8, hSegs: 4 }).length, 0);
+  assert.equal(validateShapeParams('spheroid', { radius: -1 }).length, 1);
+  // Legacy shape names are gone from the registry — normalizeDescriptor
+  // remaps them for old JSON (see the normalization test below).
+  assert.ok(!SHAPE_TYPES.knot);
+  assert.ok(!SHAPE_TYPES.snowperson);
 });
 
 test('enumerations are exhaustive and frozen', () => {
@@ -328,4 +336,25 @@ test('variantRule accepts only known rules and normalizes to hash', () => {
   assert.ok(validateDescriptor({ ...d, variantRule: 'solitary' }).length === 0);
   assert.ok(validateDescriptor({ ...d, variantRule: 'cluster' }).length === 0);
   assert.ok(validateDescriptor({ ...d, variantRule: 'terrain' }).length > 0);
+});
+
+test('normalizeDescriptor remaps legacy shape names (knot → octahedron, snowperson → lathe)', () => {
+  const legacy = {
+    id: 'legacy',
+    kind: 'feature',
+    displayName: 'Legacy',
+    parts: [{ id: 'a', shape: 'knot', params: {} }],
+    variants: [{ id: 'v', parts: [{ id: 'b', shape: 'snowperson', params: {} }] }],
+  };
+  const normalized = normalizeDescriptor(legacy);
+  assert.equal(normalized.parts[0].shape, 'octahedron');
+  // Params seeded from the octahedron registry defaults (the knot shape was
+  // always an octahedron at KNOT_RADIUS = 0.2).
+  assert.deepEqual(normalized.parts[0].params, { radius: 0.2, detail: 0 });
+  assert.equal(normalized.variants[0].parts[0].shape, 'lathe');
+  assert.deepEqual(validateDescriptor(normalized), []);
+  // The strict validator still rejects the legacy names — remapping happens
+  // only in normalizeDescriptor (old JSON is normalized before validation).
+  assert.ok(validateDescriptor({ ...BUSH, parts: [{ id: 'p', shape: 'knot' }] }).some((e) => e.includes('unknown shape "knot"')));
+  assert.ok(validateDescriptor({ ...BUSH, parts: [{ id: 'p', shape: 'snowperson' }] }).some((e) => e.includes('unknown shape "snowperson"')));
 });

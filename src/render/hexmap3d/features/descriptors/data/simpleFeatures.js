@@ -96,5 +96,5 @@ export const SIMPLE_FEATURE_DESCRIPTORS = [
   simpleFeature('censerSaint', 'Censer Saint', { id: 'body', shape: 'cone', params: { bottomR: 0.08, height: 0.14, radialSegs: 6, heightSegs: 1 } }, 0xb89840, 1.1),
   simpleFeature('halfDrawnObelisk', 'Half-Drawn Obelisk', { id: 'body', shape: 'cone', params: { bottomR: 0.04, height: 0.28, radialSegs: 4, heightSegs: 1 } }, 0xa0a098, 1.8),
 
-  simpleFeature('snowperson', 'Snowperson', { id: 'body', shape: 'snowperson', params: {} }, 0xf0f4f8, 1.0),
+  simpleFeature('snowperson', 'Snowperson', { id: 'body', shape: 'lathe', params: {} }, 0xf0f4f8, 1.0),
 ];

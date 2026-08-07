@@ -6,8 +6,9 @@
  * placed. It describes:
  *
  *   - shape parts (cylinder / cone / sphere / torus / box / dodecahedron /
- *     octahedron, plus bespoke shapes like the mountain pyramid) with their
- *     dimensions and per-part transforms — the same fields the mesh builders
+ *     octahedron / cube / spheroid, plus bespoke shapes like the mountain
+ *     pyramid and the lathe solid of revolution) with their dimensions and
+ *     per-part transforms — the same fields the mesh builders
  *     write into instance records (see meshBuilder.js);
  *   - cluster min/max — how many items share a hex (default 1);
  *   - size min/max — the per-item scale range (default 1..1) and finer
@@ -79,6 +80,16 @@ export const SHAPE_TYPES = Object.freeze({
       phiStart: 0, phiLength: Math.PI * 2, thetaStart: 0, thetaLength: Math.PI,
     }),
   },
+  spheroid: {
+    // A stretchable sphere: non-uniform elongation comes from the part's
+    // transform scale (scaleX/scaleY/scaleZ), so the params stay simple.
+    params: {
+      radius: { type: 'number', min: 0.001 },
+      wSegs: { type: 'int', min: 3 },
+      hSegs: { type: 'int', min: 2 },
+    },
+    defaults: Object.freeze({ radius: 0.3, wSegs: 6, hSegs: 4 }),
+  },
   torus: {
     params: {
       radius: { type: 'number', min: 0.001 },
@@ -96,6 +107,14 @@ export const SHAPE_TYPES = Object.freeze({
       depth: { type: 'number', min: 0.001 },
     },
     defaults: Object.freeze({ width: 0.25, height: 0.05, depth: 0.18 }),
+  },
+  cube: {
+    // A regular cube; non-uniform elongation is a transform-scale concern
+    // (scaleX/scaleY/scaleZ), keeping the part itself a true cube.
+    params: {
+      size: { type: 'number', min: 0.001 },
+    },
+    defaults: Object.freeze({ size: 0.3 }),
   },
   dodecahedron: {
     params: {
@@ -117,13 +136,9 @@ export const SHAPE_TYPES = Object.freeze({
     },
     defaults: Object.freeze({ variant: 'classic' }),
   },
-  knot: {
-    // Bespoke lathe geometry (knotGeometries.js) — no editable dimensions.
-    params: {},
-    defaults: Object.freeze({}),
-  },
-  snowperson: {
-    // Bespoke lathe geometry (featureGeometries.js) — no editable dimensions.
+  lathe: {
+    // Bespoke solid of revolution (featureGeometries.js — the former
+    // "snowperson" shape) — no editable dimensions.
     params: {},
     defaults: Object.freeze({}),
   },
@@ -154,7 +169,7 @@ export const EMPHASIS_BEHAVIORS = Object.freeze(['none', 'dispersed', 'sunk', 'h
 export const PLACEMENT_MODES = Object.freeze(['center', 'scatter', 'ring', 'jitter']);
 
 /** Bump when the descriptor shape changes in a breaking way. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /**
  * Defaults for optional object-level fields. Values mirror the current game
@@ -681,12 +696,24 @@ export function validateDescriptor(def) {
 
 // ── Normalization ──────────────────────────────────────────────────────────
 
+/**
+ * Legacy shape names accepted from older descriptor JSON. `knot` always
+ * rendered as an octahedron (knotGeometries.js) and the snowperson lathe is
+ * now simply `lathe`; remapping lets old downloads keep loading through
+ * normalizeDescriptor.
+ */
+const LEGACY_SHAPE_NAMES = Object.freeze({
+  knot: 'octahedron',
+  snowperson: 'lathe',
+});
+
 function normalizePart(part) {
   if (!isPlainObject(part)) return part;
-  const shape = SHAPE_TYPES[part.shape];
+  const shapeName = LEGACY_SHAPE_NAMES[part.shape] ?? part.shape;
+  const shape = SHAPE_TYPES[shapeName];
   const params = isPlainObject(part.params) ? part.params : {};
   const transform = isPlainObject(part.transform) ? part.transform : {};
-  const out = { ...part };
+  const out = { ...part, shape: shapeName };
   out.params = shape ? { ...shape.defaults, ...params } : { ...params };
   out.transform = { ...PART_TRANSFORM_DEFAULTS, ...transform };
   return out;
