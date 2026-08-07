@@ -2,7 +2,9 @@
  * knots.js — Descriptor data for the knot feature.
  *
  * Migrated from knotMeshes.js: one octahedron per tile, hovering at
- * KNOT_Y_OFFSET (transform y), emissive purple material. Displaced to the
+ * KNOT_Y_OFFSET (transform y — a bottom height under the v3 grounding
+ * convention: center sits at KNOT_Y_OFFSET + KNOT_RADIUS, so the knot floats
+ * 0.1 above the surface), emissive purple material. Displaced to the
  * corner anchor when an occupant shares the hex (defensive — knots are mined
  * on arrival). The mined filter stays in the game-side builder.
  *
@@ -12,7 +14,7 @@
  */
 
 export const KNOT_DESCRIPTOR = {
-  schemaVersion: 1,
+  schemaVersion: 3,
   id: 'knot',
   kind: 'feature',
   displayName: 'Knot',
@@ -28,7 +30,7 @@ export const KNOT_DESCRIPTOR = {
       id: 'knot',
       shape: 'octahedron',
       params: { radius: 0.2, detail: 0 }, // KNOT_RADIUS
-      transform: { y: 0.3 }, // KNOT_Y_OFFSET
+      transform: { y: 0.1 }, // KNOT_Y_OFFSET − KNOT_RADIUS: floats 0.1 above the surface
     },
   ],
 };

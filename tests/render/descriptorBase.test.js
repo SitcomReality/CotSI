@@ -68,7 +68,7 @@ test('golden snapshot: CRU base (tower + cap + 6 leaning spikes)', () => {
     ...Array.from({ length: 6 }, (_, i) => {
       const a = (Math.PI * 2 / 6) * i;
       return {
-        partId: `spike${i}`, x: 0, y: 0.15, z: 0, scale: 1, scaleY: 1,
+        partId: `spike${i}`, x: 0, y: 0.15000000000000002, z: 0, scale: 1, scaleY: 1, // y = 0.1 bottom + 0.05 base (1-ulp drift)
         localPos: { x: Math.cos(a) * 0.28, y: 0, z: Math.sin(a) * 0.28 },
         tiltAxis: { x: Math.sin(a), z: -Math.cos(a) },
         tilt: 0.3,
@@ -88,7 +88,7 @@ test('golden snapshot: REV base (tower + cap + flat ring) and HOL base (inverted
 
   const hol = recordsForEntity(normalizeDescriptor(BASE_DESCRIPTOR), ENTITY('HOL'), POS);
   assert.deepEqual(hol[2], {
-    partId: 'hangSpike', x: 0, y: 0.07, z: 0, scale: 1, scaleY: 1,
+    partId: 'hangSpike', x: 0, y: 0.06999999999999999, z: 0, scale: 1, scaleY: 1, // y = 0.01 bottom + 0.06 base (1-ulp drift)
     localAxis: { x: 1, y: 0, z: 0 }, localAngle: Math.PI, color: 0xd8b830,
   });
 });

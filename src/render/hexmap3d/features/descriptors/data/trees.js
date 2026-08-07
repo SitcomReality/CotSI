@@ -10,12 +10,17 @@
  *                 canopy variant by terrain + coord hash (treeVariant), small
  *                 offset from the hex center, fixed per-kind lean.
  *
- * Trunk part: cylinder, planted at the surface. Canopy parts carry the
- * per-variant leaf color as an instance color (the game's canopy material is
- * white; per-tree colors arrive per instance). Stretch ranges reproduce
- * treeVariation(): trunk stretches on Y only (trunkStretch, hash seed 6);
- * canopies stretch on both axes (seeds 4/5). The tall variant's trunk is
- * shortened (trunkScale 0.8) so it stays buried in the cone's fat lower part.
+ * Trunk part: cylinder, planted flush at the surface (no transform = bottom
+ * height 0). Canopy parts carry the per-variant leaf color as an instance
+ * color (the game's canopy material is white; per-tree colors arrive per
+ * instance). Stretch ranges reproduce treeVariation(): trunk stretches on Y
+ * only (trunkStretch, hash seed 6); canopies stretch on both axes (seeds 4/5).
+ * The tall variant's trunk is shortened (trunkScale 0.8) so it stays hidden in
+ * the cone's fat lower part.
+ *
+ * Canopy `lift` values are bottom heights (schema v3): each keeps its old
+ * center height — lift = old center − shape base (round sphere r 0.3: 0.5 →
+ * 0.2; tall cone h 0.72: 0.58 → 0.22; wide cone h 0.3: 0.45 → 0.3).
  *
  * NOT migrated (reported parity gap, see dev/futureWork.md):
  *   - fruitTree  — the procedural fruit tree (fruitTreeRecords.js) grows 2–3
@@ -33,7 +38,6 @@ const TRUNK_PART = {
   id: 'trunk',
   shape: 'cylinder',
   params: { ...TRUNK_PARAMS },
-  transform: { lift: 0.16 },
   stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, xz: false },
 };
 
@@ -47,7 +51,7 @@ const ROUND_CANOPY = {
   id: 'canopy',
   shape: 'sphere',
   params: { radius: 0.3, wSegs: 6, hSegs: 4 },
-  transform: { lift: 0.5 },
+  transform: { lift: 0.2 },
   stretch: CANOPY_STRETCH,
   color: 0x3cb371,
 };
@@ -55,7 +59,7 @@ const TALL_CANOPY = {
   id: 'canopy',
   shape: 'cone',
   params: { bottomR: 0.25, height: 0.72, radialSegs: 6, heightSegs: 2 },
-  transform: { lift: 0.58 },
+  transform: { lift: 0.22 },
   stretch: CANOPY_STRETCH,
   color: 0x2e8b57,
 };
@@ -63,14 +67,14 @@ const WIDE_CANOPY = {
   id: 'canopy',
   shape: 'cone',
   params: { bottomR: 0.45, height: 0.3, radialSegs: 6, heightSegs: 1 },
-  transform: { lift: 0.45 },
+  transform: { lift: 0.3 },
   stretch: CANOPY_STRETCH,
   color: 0x66cdaa,
 };
 
 /** The woods grove — the terrain decoration for forest/denseForest tiles. */
 export const GROVE_DESCRIPTOR = {
-  schemaVersion: 1,
+  schemaVersion: 3,
   id: 'grove',
   kind: 'decor',
   displayName: 'Tree Grove',
@@ -93,13 +97,13 @@ export const GROVE_DESCRIPTOR = {
   parts: [{ ...TRUNK_PART }],
   variants: [
     { id: 'round', parts: [{ ...TRUNK_PART }, { ...ROUND_CANOPY }] },
-    { id: 'tall', parts: [{ ...TRUNK_PART, transform: { lift: 0.16, scaleY: 0.8 } }, { ...TALL_CANOPY }] },
+    { id: 'tall', parts: [{ ...TRUNK_PART, transform: { scaleY: 0.8 } }, { ...TALL_CANOPY }] },
   ],
 };
 
 /** Solitary open-terrain tree — variant by terrain + coord hash (treeVariant). */
 export const TREE_DESCRIPTOR = {
-  schemaVersion: 1,
+  schemaVersion: 3,
   id: 'tree',
   kind: 'feature',
   displayName: 'Tree',
@@ -127,7 +131,7 @@ export const TREE_DESCRIPTOR = {
     {
       id: 'tall',
       parts: [
-        { ...TRUNK_PART, transform: { lift: 0.16, scaleY: 0.8 }, stretch: { y: false, xz: false } },
+        { ...TRUNK_PART, transform: { scaleY: 0.8 }, stretch: { y: false, xz: false } },
         { ...TALL_CANOPY, stretch: { y: { min: 1.1, max: 1.1, seed: 4 }, xz: { min: 1.05, max: 1.05, seed: 5 } } },
       ],
     },

@@ -9,7 +9,7 @@
  */
 
 export const HILL_DESCRIPTOR = {
-  schemaVersion: 1,
+  schemaVersion: 3,
   id: 'hill',
   kind: 'decor',
   displayName: 'Hill Mound',

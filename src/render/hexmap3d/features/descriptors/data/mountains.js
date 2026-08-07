@@ -17,7 +17,7 @@
  */
 
 export const MOUNTAIN_DESCRIPTOR = {
-  schemaVersion: 1,
+  schemaVersion: 3,
   id: 'mountain',
   kind: 'mountain',
   displayName: 'Mountain',

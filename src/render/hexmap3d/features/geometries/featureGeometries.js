@@ -155,13 +155,14 @@ export function getSnowpersonGeo() {
     const segments = 10;
     for (let i = 0; i <= segments; i++) {
       const a = (i / segments) * Math.PI;
-      // Body: radius 0.10 centered at y=0.08
+      // Body: radius 0.10 centered at y=0.10 (bottom at exactly 0 — the lathe
+      // is a bottom-anchored geometry, so the record path adds no base offset)
       const bodyR = Math.sin(a) * 0.10;
-      const bodyY = -Math.cos(a) * 0.10 + 0.08;
-      // Head: radius 0.06 centered at y=0.26
+      const bodyY = -Math.cos(a) * 0.10 + 0.10;
+      // Head: radius 0.06 centered at y=0.28
       const headA = Math.max(0, Math.min(Math.PI, a * 1.8 - 0.6));
       const headR = Math.sin(headA) * 0.06;
-      const headY = -Math.cos(headA) * 0.06 + 0.26;
+      const headY = -Math.cos(headA) * 0.06 + 0.28;
       // Blend body into head in the middle zone
       const t = Math.max(0, Math.min(1, (a - 0.7) / 1.0));
       pts.push(new THREE.Vector2(

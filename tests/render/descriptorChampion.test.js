@@ -60,9 +60,9 @@ test('every faction variant has exactly one accent part with a unique id', () =>
 test('golden snapshot: CRU champion (body + head + top spike)', () => {
   const records = recordsForEntity(normalizeDescriptor(CHAMPION_DESCRIPTOR), ENTITY('CRU'), POS);
   assert.deepEqual(records, [
-    { partId: 'body', x: 0, y: 0.15, z: 0, scale: 1, scaleY: 1, color: 0x6e2e22 },
-    { partId: 'head', x: 0, y: 0.44999999999999996, z: 0, scale: 1, scaleY: 1 }, // skin tone is materialColor — no instance color; 1-ulp drift from the v3 grounding round-trip (0.45 − 0.3 + 0.3)
-    { partId: 'spikeTop', x: 0, y: 0.58, z: 0, scale: 1, scaleY: 1, color: 0xb84530 },
+    { partId: 'body', x: 0, y: 0.25, z: 0, scale: 1, scaleY: 1, color: 0x6e2e22 }, // flush bottom (0) + 0.25 base
+    { partId: 'head', x: 0, y: 0.44999999999999996, z: 0, scale: 1, scaleY: 1 }, // skin tone is materialColor — no instance color; 1-ulp drift from the v3 grounding round-trip (0.35 + 0.1)
+    { partId: 'spikeTop', x: 0, y: 0.5800000000000001, z: 0, scale: 1, scaleY: 1, color: 0xb84530 }, // y = 0.55 bottom + 0.03 base (1-ulp drift)
   ]);
 });
 

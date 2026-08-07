@@ -11,6 +11,9 @@
  * Features are displaced to the shared corner anchor when an occupant claims
  * the hex center (emphasis 'dispersed'), matching simpleFeatureMeshes.js.
  *
+ * Parts carry no transform: under the v3 bottom-anchored grounding convention
+ * an untransformed part sits flush on the ground (its lowest vertex at y=0).
+ *
  * Values are JSON-safe (colors as integers). Part ids match the archetype id.
  */
 
@@ -49,7 +52,7 @@ const BIGTREE_PART = {
  */
 function simpleFeature(id, displayName, part, color, scale) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 3,
     id,
     kind: 'feature',
     displayName,

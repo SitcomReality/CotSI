@@ -32,12 +32,12 @@ const ACCENT_COLOR = 'factionAccent';
 // ── The seven archetype bodies (baseline) ────────────────────────────────────
 // Each body part id is unique to its variant so variant-specific geometry can
 // diverge without meshAssembly merging two shapes under one part id.
+// Bodies have no transform — y = 0 bottom height, sitting flush on the ground.
 
 const DEFAULT_BODY = {
   id: 'defaultBody',
   shape: 'cylinder',
   params: { bottomR: 0.1, topR: 0.14, height: 0.4, segments: 8 },
-  transform: { y: 0.2 },
   color: BODY_COLOR,
 };
 
@@ -45,7 +45,6 @@ const BEAR_BODY = {
   id: 'bearBody',
   shape: 'cylinder',
   params: { bottomR: 0.16, topR: 0.18, height: 0.28, segments: 6 },
-  transform: { y: 0.14 },
   color: BODY_COLOR,
 };
 
@@ -53,7 +52,6 @@ const LEOPARD_BODY = {
   id: 'leopardBody',
   shape: 'cylinder',
   params: { bottomR: 0.07, topR: 0.1, height: 0.5, segments: 6 },
-  transform: { y: 0.25 },
   color: BODY_COLOR,
 };
 
@@ -64,7 +62,6 @@ const SNAIL_BODY = {
     radius: 0.16, wSegs: 8, hSegs: 6,
     phiStart: 0, phiLength: Math.PI, thetaStart: 0, thetaLength: Math.PI * 0.55,
   },
-  transform: { y: 0.025 },
   color: BODY_COLOR,
 };
 
@@ -72,7 +69,6 @@ const TAPIR_BODY = {
   id: 'tapirBody',
   shape: 'cylinder',
   params: { bottomR: 0.08, topR: 0.18, height: 0.42, segments: 7 },
-  transform: { y: 0.21 },
   color: BODY_COLOR,
 };
 
@@ -80,7 +76,6 @@ const MUSHROOM_BODY = {
   id: 'mushroomBody',
   shape: 'cone',
   params: { bottomR: 0.2, height: 0.14, radialSegs: 8, heightSegs: 1 },
-  transform: { y: 0.07 },
   color: BODY_COLOR,
 };
 
@@ -88,7 +83,6 @@ const GOOSE_BODY = {
   id: 'gooseBody',
   shape: 'cone',
   params: { bottomR: 0.07, height: 0.5, radialSegs: 4, heightSegs: 1 },
-  transform: { y: 0.25 },
   color: BODY_COLOR,
 };
 
@@ -96,7 +90,6 @@ const SCORPION_BODY = {
   id: 'scorpionBody',
   shape: 'octahedron',
   params: { radius: 0.14, detail: 0 },
-  transform: { y: 0.14 },
   color: BODY_COLOR,
 };
 
@@ -106,7 +99,6 @@ const BEAR_ELDER_BODY = {
   id: 'bearElderBody',
   shape: 'cylinder',
   params: { bottomR: 0.16, topR: 0.18, height: 0.28, segments: 6 },
-  transform: { y: 0.14 },
   color: BODY_COLOR,
 };
 
@@ -114,7 +106,7 @@ const ELDER_CROWN = {
   id: 'elderCrown',
   shape: 'cone',
   params: { bottomR: 0.03, height: 0.05, radialSegs: 4, heightSegs: 1 },
-  transform: { y: 0.3 },
+  transform: { y: 0.275 },
   color: ACCENT_COLOR,
 };
 
@@ -122,7 +114,6 @@ const SCORPION_QUEEN_BODY = {
   id: 'scorpionQueenBody',
   shape: 'octahedron',
   params: { radius: 0.14, detail: 0 },
-  transform: { y: 0.14 },
   color: BODY_COLOR,
 };
 
@@ -130,7 +121,7 @@ const QUEEN_GEM = {
   id: 'queenGem',
   shape: 'sphere',
   params: { radius: 0.04, wSegs: 6, hSegs: 4 },
-  transform: { y: 0.3 },
+  transform: { y: 0.26 },
   color: ACCENT_COLOR,
 };
 
@@ -161,7 +152,7 @@ export const MOB_TIER2_VARIANTS = Object.freeze({
 
 /** The mob descriptor — top-level parts are the unknown-shape fallback. */
 export const MOB_DESCRIPTOR = {
-  schemaVersion: 1,
+  schemaVersion: 3,
   id: 'mob',
   kind: 'mob',
   displayName: 'Mob',

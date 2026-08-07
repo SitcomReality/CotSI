@@ -91,7 +91,7 @@ test('golden snapshot: elder bear (body + accent crown)', () => {
   const records = recordsForEntity(normalizeDescriptor(MOB_DESCRIPTOR), ENTITY('bear-elder'), POS);
   assert.deepEqual(records, [
     { partId: 'bearElderBody', x: 0, y: 0.14, z: 0, scale: 1, scaleY: 1, color: 0x4d2018 },
-    { partId: 'elderCrown', x: 0, y: 0.3, z: 0, scale: 1, scaleY: 1, color: 0xb84530 },
+    { partId: 'elderCrown', x: 0, y: 0.30000000000000004, z: 0, scale: 1, scaleY: 1, color: 0xb84530 }, // y = 0.275 bottom + 0.025 base (1-ulp drift)
   ]);
 });
 
