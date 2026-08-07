@@ -96,6 +96,8 @@ export const FEATURES = {
   ouroborosLoop:       { radius: 2.0, fill: '#c8a020' },
   dustbleedCrystal:    { radius: 2.0, fill: '#40c8b8' },  // turquoise crystal
   snowperson:          { radius: 2.0, fill: '#f0f4f8' },  // white snow figure
+  edenMushroom:        { radius: 2.5, fill: '#8a6a9a' },  // giant violet cap
+  edenShroomlet:       { radius: 1.4, fill: '#b89a6a' },  // small cluster
 };
 
 // ── River overlay ──────────────────────────────────────────────────────────
