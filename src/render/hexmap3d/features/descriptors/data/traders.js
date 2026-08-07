@@ -19,13 +19,12 @@ const TRADER_BODY = {
   id: 'traderBody',
   shape: 'cylinder',
   params: { bottomR: 0.3, topR: 0.3, height: 0.1, segments: 16 },
-  transform: { y: 0.05 },
   color: 0x4abf99, // teal [0.29, 0.75, 0.6]
 };
 
 /** The trader descriptor — one fixed look. */
 export const TRADER_DESCRIPTOR = {
-  schemaVersion: 1,
+  schemaVersion: 3,
   id: 'trader',
   kind: 'trader',
   displayName: 'Trader',
