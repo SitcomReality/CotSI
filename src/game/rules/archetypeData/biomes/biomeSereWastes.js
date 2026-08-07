@@ -36,6 +36,8 @@ defineArchetype('biome_sere_wastes', {
     { kind: 'saintsRib',         threshold: 0.975, compare: 'gt', terrainExclude: [] },
     { kind: 'ouroborosLoop',     threshold: 0.970, compare: 'gt', terrainExclude: [] },
     { kind: 'tree',              threshold: 0.965, compare: 'gt', terrainExclude: ['forest', 'denseForest'] },
+    // Treasure chest — any-biome collectible
+    { kind: 'chest',             threshold: 0.900, compare: 'gt', terrainExclude: [] },
     // Low-roll hazards (narrow lt before broader knot)
     { kind: 'redLetterBramble',  threshold: 0.01, compare: 'lt', terrainExclude: ['water', 'ice'] },
     { kind: 'listenerLichen',    threshold: 0.025, compare: 'lt', terrainExclude: ['desert'] },

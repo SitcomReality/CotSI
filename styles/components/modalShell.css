@@ -8,7 +8,7 @@
    Fixed full-screen overlay with a translucent sepia background and blur.
    Hidden by default; shown via JS display:flex.
    The dark sepia glaze evokes candlelit illumination, matching the
-   manuscript-tabletop aesthetic.
+   codex-tabletop aesthetic.
    ──── z-index is set high enough to sit above the game map (z=10) and
    all UI panels (z=20–30). Modal cards themselves may need additional
    stacking context via z-index if they contain positioned children.

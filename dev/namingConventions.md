@@ -29,7 +29,7 @@ The following words are banned in file and directory names:
 
 Name the thing by what it does: `hexGrid.js` not `hexUtils.js`, `endTurn.js` not `turnController.js`, `combatUiState.js` not `combatStateManager.js`, `turnActions.js` not `turnLogic.js`.
 
-Never re-use terminology for two different purposes: `Verdant` is a faction so that word can never be used to describe terrain, `tokens` are an internal name for a UI element so `game pieces` are used for the small flat cylinders of mobs.
+Never re-use terminology for two different purposes: `Verdant` is a faction so that word can never be used to describe terrain, `tokens` are an internal name for a UI element so `game pieces` are used for the small flat cylinders of mobs. See §6 for the full vocabulary rules.
 
 ---
 
@@ -70,3 +70,14 @@ Every user-initiated action flows through this pipeline:
 No step is skippable in new code. The UI never calls `game/state/` directly; render never imports `game/state/`. All coordination goes through `runtime/`.
 
 **Honest status:** the current codebase does not fully comply — see `dev/systemArchitecture.md` §6 Boundary Debt. New code must follow the pipeline; existing violations are paid down over time.
+
+---
+
+## 6. Vocabulary — One Name Per Thing
+
+Everything the player can see or interact with has exactly one canonical name, used in UI text and code alike. This is a hard rule, not a style preference.
+
+- **One name per thing.** A thing's display name is its only name. Log lines, tooltips, dispatch reports, faction traits, tests, and docs all quote the canonical name verbatim. Code identifiers may stay technical (`fruitTree`), but user-facing text never invents synonyms.
+- **Names are unique codebase-wide.** If a name is already in use, it is not available. `token` belongs to the CSS design-token system, so the game's flat markers are `game pieces` — and no game content may ever be called a token.
+- **The archetype registry is the source of truth.** Display names live in the `defineArchetype(...)` `name` field (`feature_fruitTree` → "Moonberry Tree", `feature_knot` → "God's Knot"). Renderer descriptors and UI copy mirror these names. When a name changes, change the archetype, every quoted string, tests, and docs together — then finish with a repo-wide grep for the old name.
+- **Words are owned by their strongest user.** `Verdant` is a faction, so no terrain is verdant. `Manuscript` was an early visual-theme word and is banned outright (extinguished Aug 2026): the plain grove tree is "Tree", and the heal-giving tree is "Moonberry Tree", whose fruit are *moonberries*.

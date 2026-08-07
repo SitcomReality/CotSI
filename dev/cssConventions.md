@@ -35,7 +35,7 @@ styles/
 │   ├── heptagramWidget.css, tooltip.css, mapControls.css, fog.css, tile.css,
 │   │   bot-indicator.css
 │   ├── championDetail.css
-│   ├── potencies.css, swatch.css, manuscriptPanel.css
+│   ├── potencies.css, swatch.css, panel.css
 │   ├── note.css, forms.css, textTreatment.css
 │   ├── hud.css, paleyCrossHighlight.css
 │   ├── devTools.css, devToolsContent.css
@@ -61,7 +61,7 @@ Group	Order	Purpose
 Use bare @import "path" (no url()). All imports live in codex.css or barrel files.
 Naming Conventions
 
-    File names: lowerCamelCase.css. When a JS module has a companion stylesheet they share the same base name (e.g. combatModal.js ↔ combatModal.css). Visual‑only files are named for the concern (manuscriptPanel.css).
+    File names: lowerCamelCase.css. When a JS module has a companion stylesheet they share the same base name (e.g. combatModal.js ↔ combatModal.css). Visual‑only files are named for the concern (panel.css).
 
     Banned file names: utilities, common, helpers, misc, overrides, styles. Do not create these.
 

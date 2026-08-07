@@ -28,7 +28,7 @@ const tileFor = (d) => TILES[d.id] ?? { q: 3, r: -2, terrain: 'plains' };
 test('data covers every FEATURE_VISUALS kind plus decor/mountain/knot content', () => {
   const ids = new Set(ALL_DESCRIPTORS.map((d) => d.id));
   const expectedSimple = [
-    'bush', 'vine', 'redLetterBramble', 'palimpsestSlab', 'errataSlip', 'volvelle',
+    'chest', 'bush', 'vine', 'redLetterBramble', 'palimpsestSlab', 'errataSlip', 'volvelle',
     'foolsFire', 'ouroborosLoop', 'saintsRib', 'vegetableLamb', 'scoriaRose',
     'waxbloom', 'screamroot', 'nullLily', 'cinderbloom', 'gildedInitial',
     'peridexionTree', 'edenMushroom', 'listenerLichen', 'edenShroomlet',

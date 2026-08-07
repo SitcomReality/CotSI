@@ -21,7 +21,7 @@
         - Panel content (championPanel, headerPanel, logPanel) next
         - Widgets and overlays (heptagram, tooltip, mapControls, fog, tile) next
         - Detail views and shared pieces (championDetail, artifactChoice,
-          potencies, swatch, manuscriptPanel, note, forms) next
+          potencies, swatch, panel, note, forms) next
         - HUD and decorative elements (hud, paleyCrossHighlight) last
    ════════════════════════════════════════════════════════════════════════════ */
 @import "./components/button.css";
@@ -48,7 +48,7 @@
 
 @import "./components/potencies.css";
 @import "./components/swatch.css";
-@import "./components/manuscriptPanel.css";
+@import "./components/panel.css";
 @import "./components/note.css";
 @import "./components/forms.css";
 @import "./components/textTreatment.css";

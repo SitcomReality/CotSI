@@ -25,6 +25,7 @@ defineArchetype('biome_default', {
     { kind: 'tree',               threshold: 0.935, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     { kind: 'vegetableLamb',      threshold: 0.925, compare: 'gt', terrainExclude: ['desert'] },
     { kind: 'witnessStone',       threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
+    { kind: 'chest',              threshold: 0.900, compare: 'gt', terrainExclude: [] },
     { kind: 'screamroot',         threshold: 0.890, compare: 'gt', terrainExclude: ['desert'] },
     { kind: 'palimpsestSlab',     threshold: 0.875, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
     { kind: 'gildedInitial',      threshold: 0.865, compare: 'gt', terrainExclude: ['desert', 'marsh'] },

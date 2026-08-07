@@ -86,7 +86,7 @@ const ICON_SVG = {
 /** Background fill colour for piece cap — warm parchment matching the UI aesthetic. */
 const CAP_BG = PIECE_CAP_BG_COLOR;
 
-/** Icon stroke colour — dark manuscript brown. */
+/** Icon stroke colour — dark ink brown. */
 const ICON_COLOR = PIECE_ICON_COLOR;
 
 /** Texture size in pixels (square).  128 is enough for GPU-friendly mipmapping. */

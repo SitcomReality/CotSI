@@ -64,8 +64,11 @@ function simpleFeature(id, displayName, part, color, scale) {
 
 /** Every simple feature archetype, keyed by its FEATURE_VISUALS kind. */
 export const SIMPLE_FEATURE_DESCRIPTORS = [
+  // Treasure chest — any-biome gold collectible (simple box; visuals refined later)
+  simpleFeature('chest', 'Treasure Chest', { id: 'body', shape: 'box', params: { width: 0.22, height: 0.12, depth: 0.15 } }, 0xc8a020, 1.0),
+
   simpleFeature('bush', 'Scrub Bush', TUFT_PART, 0x4a7a3a, 1.5),
-  simpleFeature('vine', 'Thorn Vine', TUFT_PART, 0x5a9a4a, 0.8),
+  simpleFeature('vine', 'Ground Vine', TUFT_PART, 0x5a9a4a, 0.8),
   simpleFeature('redLetterBramble', 'Red-Letter Bramble', TUFT_PART, 0x1a1010, 1.3),
 
   simpleFeature('palimpsestSlab', 'Palimpsest Slab', SLAB_PART, 0xc8c0a8, 1.0),

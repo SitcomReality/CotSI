@@ -1,4 +1,4 @@
-// Deterministic RNG + seeded noise — manuscript codex style
+// Deterministic RNG + seeded noise — codex style
 export function stringSeed(value){
   let hash = 2166136261 >>> 0;
   for(let i=0;i<value.length;i++){

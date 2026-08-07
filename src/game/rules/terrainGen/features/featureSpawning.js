@@ -1,6 +1,9 @@
 import {
   KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_SCALE, KNOT_AMOUNT_VARIATION_MOD,
 } from '../../../../params/game/worldParams.js';
+import {
+  CHEST_GOLD_BASE, CHEST_GOLD_VARIATION_SCALE, CHEST_GOLD_VARIATION_MOD,
+} from '../../../../params/game/economyParams.js';
 
 /**
  * Attempt to spawn a feature on a tile.
@@ -45,6 +48,11 @@ export function spawnFeature(roll, terrain, density, features) {
         return {
           kind: 'knot', mined: false, density,
           amount: KNOT_BASE_AMOUNT + Math.floor(roll * KNOT_AMOUNT_VARIATION_SCALE) % KNOT_AMOUNT_VARIATION_MOD,
+        };
+      case 'chest':
+        return {
+          kind: 'chest', density,
+          amount: CHEST_GOLD_BASE + Math.floor(roll * CHEST_GOLD_VARIATION_SCALE) % CHEST_GOLD_VARIATION_MOD,
         };
       case 'bush':
         return { kind: 'bush', density };

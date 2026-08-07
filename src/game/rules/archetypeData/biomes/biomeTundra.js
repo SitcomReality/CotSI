@@ -35,6 +35,7 @@ defineArchetype('biome_tundra', {
   features: [
     { kind: 'snowperson',     threshold: 0.97, compare: 'gt', terrainExclude: [] },
     { kind: 'waxbloom',       threshold: 0.94, compare: 'gt', terrainExclude: [] },
+    { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [] },
     { kind: 'knot',           threshold: 0.05, compare: 'lt' },
   ],
 

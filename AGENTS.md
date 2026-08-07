@@ -56,6 +56,8 @@ window.__gameState; // same object as G
 - `index.js` only as a zero-logic barrel re-export
 - Hex coords: `{ q, r }` objects, `"q,r"` string keys
 
+**Vocabulary:** One canonical name per thing, used in UI and code alike; names are unique codebase-wide (`token` is reserved for CSS design tokens — the game's markers are "game pieces"). Canonical display names live in the archetype registry. Full rules: `dev/namingConventions.md` §6.
+
 **UI interactions:**
 - `data-action="foo"` on elements, register via `registerAction('foo', handler)` from `src/shared/actionBus.js`
 - Dynamic DOM with `h()` from `src/ui/domBuilder.js`, not `innerHTML`

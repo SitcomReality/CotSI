@@ -3,7 +3,7 @@
 
    Structural only — no visual styling (colors, borders, backgrounds,
    shadows, typography). Visual panel styling lives in
-   components/manuscriptPanel.css.
+   components/panel.css.
 
    Classes here are utility-like: they handle the common patterns of
    viewport-constrained panels with scrollable inner content areas.

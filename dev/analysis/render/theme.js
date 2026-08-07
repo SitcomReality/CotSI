@@ -70,6 +70,7 @@ export const FEATURES = {
   fruitTree: { radius: 1.8, fill: '#3a8a2a', crossStroke: '#60c040', crossWidth: 0.8, crossLen: 1.2 },
   largeTree: { radius: 2.5, fill: '#1d4a0e' },
   knot:      { radius: 1.8, fill: '#c8a832' },
+  chest:     { radius: 1.8, fill: '#c8a020' },
   bush:      { radius: 1.2, fill: '#5a8a3a' },
   vine:      { radius: 1.0, fill: '#4a7a2a', ringStroke: '#6aaa4a', ringWidth: 0.5 },
 

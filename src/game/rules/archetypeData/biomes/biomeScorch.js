@@ -36,6 +36,8 @@ defineArchetype('biome_scorch', {
     { kind: 'fruitTree', threshold: 0.980, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'saintsRib', threshold: 0.965, compare: 'gt', terrainExclude: [] },
     { kind: 'tree',      threshold: 0.945, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
+    // Treasure chest — any-biome collectible
+    { kind: 'chest',     threshold: 0.900, compare: 'gt', terrainExclude: [] },
     // Resources
     { kind: 'knot',      threshold: 0.038, compare: 'lt' },
   ],

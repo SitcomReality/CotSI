@@ -3,7 +3,6 @@
    Vellum-panel look with border, shadow, and inset highlight.
    ========================================================================= */
 
-.manuscript-panel,
 .panel {
   background: var(--panel);
   border: var(--edge) solid var(--panel-border);

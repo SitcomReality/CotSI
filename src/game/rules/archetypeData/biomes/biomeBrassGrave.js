@@ -37,6 +37,8 @@ defineArchetype('biome_brass_grave', {
     // Decorative features
     { kind: 'scoriaRose',     threshold: 0.95, compare: 'gt', terrainExclude: ['ice'] },
     { kind: 'cinderbloom',    threshold: 0.92, compare: 'gt', terrainExclude: ['ice'] },
+    // Treasure chest — any-biome collectible
+    { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [] },
     // Hazard (narrow lt before broader knot)
     { kind: 'brassLungVent',  threshold: 0.02, compare: 'lt', terrainExclude: [] },
     // Resources

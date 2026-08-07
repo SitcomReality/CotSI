@@ -194,8 +194,8 @@ test('terrain effects: base, fruit tree, vegetation, and knot lines', () => {
   assert.ok(textFor(at({ kind: 'base', faction: 3 }), makeChamp({ faction: 0 })).includes(
     'Archive base — potency may be bought here.'
   ));
-  assert.equal(textFor(at({ kind: 'fruitTree', ripe: true }), makeChamp()), 'Standing on Plains. Manuscript fruit hangs here.');
-  assert.equal(textFor(at({ kind: 'fruitTree', ripe: false }), makeChamp()), 'Standing on Plains. The fruit here is spent.');
+  assert.equal(textFor(at({ kind: 'fruitTree', ripe: true }), makeChamp()), 'Standing on Plains. Moonberries hang here.');
+  assert.equal(textFor(at({ kind: 'fruitTree', ripe: false }), makeChamp()), 'Standing on Plains. The berries here are spent.');
   assert.equal(textFor(at({ kind: 'tree' }), makeChamp()), 'Standing on Plains. A tree stands here.');
   assert.equal(textFor(at({ kind: 'largeTree' }), makeChamp()), 'Standing on Plains. A massive tree stands here.');
   assert.equal(textFor(at({ kind: 'bush' }), makeChamp()), 'Standing on Plains. Dense underbrush crowds the hex.');

@@ -34,6 +34,13 @@ export const FRUIT_REGROWTH_DAYS = 4;
 /** Default God's Knot amount on a tile. */
 export const KNOT_DEFAULT_AMOUNT = 2;
 
+// ---- Treasure chests ----
+/** Base gold granted by a treasure chest. */
+export const CHEST_GOLD_BASE = 10;
+/** Random extra gold spread: floor(roll * CHEST_GOLD_VARIATION_SCALE) % CHEST_GOLD_VARIATION_MOD. */
+export const CHEST_GOLD_VARIATION_SCALE = 15;
+export const CHEST_GOLD_VARIATION_MOD = 15;
+
 // ---- Dig system ----
 /** Probability threshold for digging up a relic (0-1). */
 export const DIG_RELIC_CHANCE = 0.075;

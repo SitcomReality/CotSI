@@ -12,7 +12,7 @@
  *
  * Adding a new simple feature:
  *   1. Add its defineArchetype call here
- *   2. Add an entry to src/render/hexmap3d/features/featureVisuals.js
+ *   2. Add an entry to src/render/hexmap3d/features/descriptors/data/simpleFeatures.js
  *   3. Add a biome rule referencing its kind
  *   4. Add an entry to dev/analysis/render/theme.js FEATURES table
  */
@@ -23,7 +23,7 @@ import { defineArchetype } from '../archetypes.js';
 
 defineArchetype('feature_tree', {
   type: 'feature',
-  name: 'Manuscript Tree',
+  name: 'Tree',
   archetypeShape: 'tree',
   tags: ['forest', 'plains'],
   visual: { scale: 1.0 },
@@ -39,7 +39,7 @@ defineArchetype('feature_largeTree', {
 
 defineArchetype('feature_fruitTree', {
   type: 'feature',
-  name: 'Fruit Tree',
+  name: 'Moonberry Tree',
   archetypeShape: 'tree',
   tags: ['forest', 'plains'],
   visual: { scale: 1.0 },
@@ -49,6 +49,14 @@ defineArchetype('feature_knot', {
   type: 'feature',
   name: "God's Knot",
   archetypeShape: 'knot',
+  tags: ['any'],
+  visual: { scale: 1.0 },
+});
+
+defineArchetype('feature_chest', {
+  type: 'feature',
+  name: 'Treasure Chest',
+  archetypeShape: 'box',
   tags: ['any'],
   visual: { scale: 1.0 },
 });

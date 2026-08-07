@@ -1,5 +1,5 @@
 Tier 1: Unique mechanics, strong theme, fills a real gap
-Palimpsest Slab — Reveal. Perfectly on-theme (palimpsest = overwritten manuscript), uses a simple read/unread state machine. Gives Untouched and Unfinished Lands a feature with genuine exploration utility. Low wiring cost: one reveal-radius call into the existing fog-of-war system, one cooldown timer copied from fruit-tree regrowth.
+Palimpsest Slab — Reveal. Perfectly on-theme (palimpsest = overwritten page), uses a simple read/unread state machine. Gives Untouched and Unfinished Lands a feature with genuine exploration utility. Low wiring cost: one reveal-radius call into the existing fog-of-war system, one cooldown timer copied from moonberry-tree regrowth.
 
 Volvelle — Buff (sight+attack). An astrolabe that "computes you" — extremely thematic for Brass Grave (brass instruments, buried computation). Fills that biome's void with something scarce, valuable, and weird. Moderate wiring cost (apply temporary stats to champion), but the pattern is reusable across all buff features that follow.
 
@@ -7,7 +7,7 @@ Fool's-Fire — Teleport. Will-o'-wisp that displaces you to a random adjacent h
 
 Placeholder Cypress — Decorative block. Wireframe checker-tree. Gives Unfinished Lands its own filler flora so it stops looking like an empty knot field. Uses existing tree geometry, just different material. Very low cost.
 
-Vegetable Lamb of Tartary — Harvest (knots + heal). Medieval bestiary reference — perfect for the manuscript theme. One-shot harvest like a knot but with a minor heal attached. Low wiring cost: copy the knot mining logic, add a small heal.
+Vegetable Lamb of Tartary — Harvest (knots + heal). Medieval bestiary reference — perfect for the codex theme. One-shot harvest like a knot but with a minor heal attached. Low wiring cost: copy the knot mining logic, add a small heal.
 
 Scoria Rose — Renewable knot. Renewable resource using fruit-tree's ripe/unripe state machine. Gives Brass Grave a recurring economic feature. Very low wiring cost.
 

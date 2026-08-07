@@ -36,6 +36,7 @@ defineArchetype('biome_dustbleed', {
   features: [
     { kind: 'dustbleedCrystal', threshold: 0.94, compare: 'gt', terrainExclude: [] },
     { kind: 'screamroot',       threshold: 0.96, compare: 'gt', terrainExclude: [] },
+    { kind: 'chest',            threshold: 0.90, compare: 'gt', terrainExclude: [] },
     { kind: 'knot',             threshold: 0.04, compare: 'lt' },
   ],
 

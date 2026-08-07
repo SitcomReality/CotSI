@@ -29,6 +29,7 @@ defineArchetype('biome_painforest', {
   features: [
     { kind: 'fruitTree',       threshold: 0.930, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'peridexionTree',  threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
+    { kind: 'chest',           threshold: 0.900, compare: 'gt', terrainExclude: [] },
     { kind: 'screamroot',      threshold: 0.890, compare: 'gt', terrainExclude: ['desert'] },
     { kind: 'tree',            threshold: 0.860, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     { kind: 'bush',            threshold: 0.060, compare: 'lt', terrainExclude: ['desert', 'marsh'] },

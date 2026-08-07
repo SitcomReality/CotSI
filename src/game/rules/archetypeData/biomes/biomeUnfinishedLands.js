@@ -1,6 +1,6 @@
 /**
  * biomeUnfinishedLands.js — 'Unfinished Lands' biome.
- * Supernatural half-formed terrain with incomplete rock, manuscript features, and desaturated palette.
+ * Supernatural half-formed terrain with incomplete rock, unfinished features, and desaturated palette.
  */
 
 import { defineArchetype } from '../../archetypes.js';
@@ -40,6 +40,7 @@ defineArchetype('biome_unfinished_lands', {
     { kind: 'palimpsestSlab',   threshold: 0.96, compare: 'gt', terrainExclude: [] },
     { kind: 'halfDrawnObelisk', threshold: 0.95, compare: 'gt', terrainExclude: [] },
     { kind: 'nullLily',         threshold: 0.93, compare: 'gt', terrainExclude: [] },
+    { kind: 'chest',            threshold: 0.90, compare: 'gt', terrainExclude: [] },
     { kind: 'knot',             threshold: 0.03, compare: 'lt' },
   ],
 

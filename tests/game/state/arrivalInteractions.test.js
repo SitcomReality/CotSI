@@ -97,6 +97,28 @@ test('knot: already-mined knots are skipped', () => {
   assert.equal(state.logs.length, 0);
 });
 
+test('chest: grants gold and clears the feature', () => {
+  const champ = makeChampion({ id: 'cA', pos: { q: 0, r: 0 }, gold: 0 });
+  const tile = makeTile('plains', { feature: { kind: 'chest', amount: 12 } });
+  const state = makeState({ champions: [champ], tiles: { [here]: tile } });
+
+  interactOnArrival(state, champ);
+
+  assert.equal(champ.gold, 12);
+  assert.equal(tile.feature, null);
+  assert.equal(state.logs[0].category, 'economy');
+});
+
+test('chest: uses CHEST_GOLD_BASE when the tile has no amount', () => {
+  const champ = makeChampion({ id: 'cA', pos: { q: 0, r: 0 }, gold: 0 });
+  const tile = makeTile('plains', { feature: { kind: 'chest' } });
+  const state = makeState({ champions: [champ], tiles: { [here]: tile } });
+
+  interactOnArrival(state, champ);
+
+  assert.equal(champ.gold, 10, 'CHEST_GOLD_BASE');
+});
+
 test('plain tile: arrival is a no-op', () => {
   const champ = makeChampion({ id: 'cA', pos: { q: 0, r: 0 }, hp: 5, knot: 0 });
   const state = makeState({ champions: [champ], tiles: { [here]: makeTile() } });

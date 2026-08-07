@@ -1,12 +1,20 @@
 import { svgIcon } from './svgIcon.js';
 import { TERRAIN } from '../game/rules/terrainTypes.js';
 import { FACTIONS } from '../game/rules/factionData.js';
+import { getArchetype } from '../game/rules/archetypes.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { getHumanView } from '../game/state/fogOfWar.js';
 import { movementRange } from '../game/state/championMovement.js';
 import { h } from './domBuilder.js';
 
 const maybe = (test, ...args) => test ? args : [];
+
+/** Canonical display name for a feature kind, from the archetype registry
+ *  (src/game/rules/archetypeData/features.js). Kinds without an archetype
+ *  (e.g. 'base') fall back to the raw kind. */
+function featureName(kind) {
+  return getArchetype(`feature_${kind}`)?.name ?? kind;
+}
 
 export function getTooltipContent(gameState, key, activeChampion) {
   const t = gameState.tiles[key];
@@ -35,9 +43,9 @@ export function getTooltipContent(gameState, key, activeChampion) {
   /* ---- feature ---- */
   let featureDesc = '';
   if (t.feature) {
-    featureDesc = `◈ ${t.feature.kind}`;
+    featureDesc = `◈ ${featureName(t.feature.kind)}`;
     if (t.feature.kind === 'knot' && !t.feature.mined) featureDesc += ` (${t.feature.amount})`;
-    if (t.feature.kind === 'tree' && t.feature.ripe !== false) featureDesc += ' 🍃';
+    if (t.feature.kind === 'fruitTree' && t.feature.ripe !== false) featureDesc += ' 🍃';
   }
 
   /* ---- build fragment ---- */
