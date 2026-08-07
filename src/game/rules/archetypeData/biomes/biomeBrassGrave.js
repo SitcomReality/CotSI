@@ -53,6 +53,13 @@ defineArchetype('biome_brass_grave', {
     ice:      [0.600, 0.680, 0.720],  // cold brass-teal
     beach:    [0.780, 0.680, 0.480],  // warm brass-tinged sand
   },
+  // Biome signature colors for terrain-decor tinting (decor-consolidation):
+  // primary is the biome's hue, accent its secondary highlight; decor parts
+  // sample these via a per-part influence parameter, blended across hexes.
+  colors: {
+    primary: [0.710, 0.630, 0.420], // #b5a16b — warm brass
+    accent: [0.600, 0.680, 0.720],  // #99adb8 — cold patina teal
+  },
   terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid'],
 });

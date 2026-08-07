@@ -49,6 +49,13 @@ defineArchetype('biome_frigid_silence', {
     ice:           [0.680, 0.780, 0.850],  // pale frost
     beach:         [0.680, 0.650, 0.580],  // cold pale grey sand
   },
+  // Biome signature colors for terrain-decor tinting (decor-consolidation):
+  // primary is the biome's hue, accent its secondary highlight; decor parts
+  // sample these via a per-part influence parameter, blended across hexes.
+  colors: {
+    primary: [0.580, 0.620, 0.550], // #949e8c — frost-bleached grey-green
+    accent: [0.680, 0.780, 0.850],  // #adc7d9 — pale frost
+  },
   terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['temperate', 'snowy'],
 

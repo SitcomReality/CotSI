@@ -48,6 +48,13 @@ defineArchetype('biome_painforest', {
     water:         [0.300, 0.550, 0.700],  // deeper blue
     beach:         [0.650, 0.550, 0.380],  // mossy green-tinged sand
   },
+  // Biome signature colors for terrain-decor tinting (decor-consolidation):
+  // primary is the biome's hue, accent its secondary highlight; decor parts
+  // sample these via a per-part influence parameter, blended across hexes.
+  colors: {
+    primary: [0.380, 0.620, 0.280], // #619e47 — deep rich green
+    accent: [0.160, 0.420, 0.380],  // #296b61 — dark teal
+  },
   terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['rainy', 'temperate'],
 

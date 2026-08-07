@@ -82,10 +82,27 @@ export function createGame({
     biomePalettes.set(biome, singleBiomeDef.palette);
   }
 
+  // Build biomeColors: biomeId → { primary, accent } — the signature colors
+  // that tint terrain decor (per-part influence + neighbor blending, render
+  // layer). Mirrors the biomePalettes collection.
+  const biomeColors = new Map();
+  for (const [, tile] of Object.entries(flatTiles)) {
+    if (tile.biomeId && !biomeColors.has(tile.biomeId)) {
+      const def = getArchetype(tile.biomeId);
+      if (def?.colors?.primary && def.colors?.accent) {
+        biomeColors.set(tile.biomeId, def.colors);
+      }
+    }
+  }
+  // Fallback: if no tile has a biomeId (single-biome mode), use the resolved biomeDef
+  if (biomeColors.size === 0 && singleBiomeDef?.colors) {
+    biomeColors.set(biome, singleBiomeDef.colors);
+  }
+
   // --- Build the bare state skeleton ---
   const state = createInitialState({
     seed, radius, biome,
-    biomePalettes,
+    biomePalettes, biomeColors,
     tiles: flatTiles, objectives, rng,
   });
   startMeasure('createGame');

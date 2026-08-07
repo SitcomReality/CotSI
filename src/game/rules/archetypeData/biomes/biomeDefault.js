@@ -44,6 +44,13 @@ defineArchetype('biome_default', {
     water:         [0.373, 0.604, 0.757],  // bright cyan-blue
     beach:         [0.878, 0.824, 0.627],  // warm golden sand
   },
+  // Biome signature colors for terrain-decor tinting (decor-consolidation):
+  // primary is the biome's hue, accent its secondary highlight; decor parts
+  // sample these via a per-part influence parameter, blended across hexes.
+  colors: {
+    primary: [0.455, 0.678, 0.365], // #74ad5d — vibrant meadow green
+    accent: [0.839, 0.694, 0.357],  // #d6b15b — warm golden sand
+  },
   terrainTags: ['plains', 'beach', 'forest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['temperate', 'rainy'],
 

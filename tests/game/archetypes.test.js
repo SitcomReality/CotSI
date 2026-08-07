@@ -29,6 +29,18 @@ test('real registry: biome_default is the catch-all (no climateRange)', () => {
   assert.equal(def.climateRange, undefined, 'biome_default should have no climateRange');
 });
 
+test('real registry: every biome defines primary + accent colors', () => {
+  for (const biomeId of [...BIOME_PRIORITY_ORDER, ...SUPERNATURAL_BIOMES]) {
+    const def = getArchetype(biomeId);
+    const { primary, accent } = def.colors ?? {};
+    assert.ok(Array.isArray(primary) && primary.length === 3, `${biomeId} primary must be an [r,g,b] tuple`);
+    assert.ok(Array.isArray(accent) && accent.length === 3, `${biomeId} accent must be an [r,g,b] tuple`);
+    for (const c of [...primary, ...accent]) {
+      assert.ok(Number.isFinite(c) && c >= 0 && c <= 1, `${biomeId} color component ${c} out of [0,1]`);
+    }
+  }
+});
+
 test('real registry: every archetype has a type field', () => {
   for (const name of listArchetypes()) {
     const def = getArchetype(name);

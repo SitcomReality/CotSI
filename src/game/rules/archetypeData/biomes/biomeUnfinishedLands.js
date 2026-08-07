@@ -53,6 +53,13 @@ defineArchetype('biome_unfinished_lands', {
     ice:      [0.650, 0.680, 0.720],  // pale teal
     beach:    [0.750, 0.700, 0.620],  // faded half-formed sand
   },
+  // Biome signature colors for terrain-decor tinting (decor-consolidation):
+  // primary is the biome's hue, accent its secondary highlight; decor parts
+  // sample these via a per-part influence parameter, blended across hexes.
+  colors: {
+    primary: [0.940, 0.740, 0.800], // #f0bdcc — light pink
+    accent: [0.300, 0.850, 1.000],  // #4dd9ff — electric blue
+  },
   terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid', 'temperate'],
 });
