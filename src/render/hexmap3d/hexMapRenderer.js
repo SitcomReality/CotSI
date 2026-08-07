@@ -140,8 +140,10 @@ export function renderHexMap3D(state, humanView) {
       // buildChunkFeatureMeshes, so it is disposed with the chunk)
       const sparkles = buildChunkWaterSparkles(chunkTiles, state, visible, explored);
 
-      // Build feature meshes for this chunk
-      const features = buildChunkFeatureMeshes(chunkTiles, state, visible);
+      // Build feature meshes for this chunk. `explored` lets terrain
+      // decorations (mountain, hill mound, grove) render on explored tiles
+      // that are out of sight — features, bases, and units stay visible-gated.
+      const features = buildChunkFeatureMeshes(chunkTiles, state, visible, explored);
 
       if (terrain || water || sparkles || features.length > 0) {
         const group = new THREE.Group();

@@ -35,11 +35,14 @@ const PAINFOREST_BIOME = 'biome_painforest';
  * @param {object} tile      - Tile with `terrain`, `biomeId`, `feature`, `q`, `r`
  * @param {object} worldPos  - { x, y, z } hex center in world space
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
+ * @param {boolean} [visible=true] - whether the tile is currently visible;
+ *        when false the grove renders unoccupied (occupants and features are
+ *        not rendered out of sight, so nothing displaces it)
  */
-export function treeRecordsForTile(tile, worldPos, occupants) {
+export function treeRecordsForTile(tile, worldPos, occupants, visible = true) {
   const kind = tile.feature?.kind;
   const tileH = tileHash(tile);
-  const occupied = isTileOccupied(occupants, tile);
+  const occupied = visible && isTileOccupied(occupants, tile);
 
   // ── Painforest woods: the gnarled grove is the default look ──
   if (CLUSTER_TERRAINS.has(tile.terrain) && tile.biomeId === PAINFOREST_BIOME) {
@@ -49,8 +52,9 @@ export function treeRecordsForTile(tile, worldPos, occupants) {
       return clusterTreeRecords([], tile, worldPos, tileH, mode);
     }
     if (kind === 'fruitTree') return fruitTreeRecords(tile, worldPos, featureState({ hasOccupant: occupied }));
-    // Any other feature claims the center — grove disperses.
-    const mode = decorState({ hasOccupant: occupied, hasFeature: true, decoration: DECORATION.GROVE });
+    // Any other feature claims the center — grove disperses (out of sight the
+    // feature is invisible, so the grove stays in its unoccupied state).
+    const mode = decorState({ hasOccupant: occupied, hasFeature: visible, decoration: DECORATION.GROVE });
     return clusterTreeRecords([], tile, worldPos, tileH, mode);
   }
 

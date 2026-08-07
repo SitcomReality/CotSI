@@ -225,6 +225,94 @@ test('painforest and fruitTree tiles produce no descriptor meshes, but keep lega
   assert.ok(fruitRecords.some((r) => r.geo === 'fruit-apple'), 'fruit tree still emits fruit');
 });
 
+// ── Explored-but-out-of-sight terrain decoration ───────────────────────────
+
+test('resolveDescriptorForTile: decor is unoccupied while out of sight', () => {
+  // Occupied hill out of sight: full mound — no sinking.
+  const hill = resolveDescriptorForTile(TILES[6], OCCUPIED, false);
+  assert.deepEqual(hill[0].displacement, { hidden: false, displaced: false });
+
+  // Occupant + feature hill out of sight: full mound, not hidden.
+  const hiddenHill = resolveDescriptorForTile(TILES[7], OCCUPIED, false);
+  assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['vine', 'hill']);
+  assert.deepEqual(hiddenHill[1].displacement, { hidden: false, displaced: false });
+
+  // Knot on forest out of sight: the knot still resolves (collect-time gating
+  // hides it), but the grove is unoccupied instead of dispersed.
+  const knot = resolveDescriptorForTile(TILES[3], OCCUPIED, false);
+  assert.deepEqual(knot.map((r) => r.descriptor.id), ['knot', 'grove']);
+  assert.deepEqual(knot[1].displacement, { hidden: false, displaced: false });
+
+  // Mountain out of sight resolves as always (emphasis 'none').
+  const mountain = resolveDescriptorForTile(TILES[5], OCCUPIED, false);
+  assert.deepEqual(mountain.map((r) => r.descriptor.id), ['mountain']);
+
+  // Default (visible) behavior unchanged: occupied hill still sinks.
+  const visibleHill = resolveDescriptorForTile(TILES[6], OCCUPIED);
+  assert.deepEqual(visibleHill[0].displacement, { hidden: false, displaced: true });
+});
+
+test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', () => {
+  // Only the (0,0) bush and (4,-3) plain grove are visible; every other tile
+  // is explored but out of sight.
+  const explored = new Set(TILES.map((t) => `${t.q},${t.r}`));
+  const visible = new Set(['0,0', '4,-3']);
+  const decor = new Set([...visible, ...explored]);
+  const meshes = buildChunkDescriptorFeatureMeshes(TILES, visible, OCCUPIED, decor);
+
+  // Features stay invisible out of sight: the second bush, the knot, the vine,
+  // the solitary tree, the Elder Tree, and the fruit tree all disappear.
+  assert.equal(meshNamed(meshes, 'bush-body').count, 1, 'only the visible bush renders');
+  assert.equal(meshesStarting(meshes, 'knot-').length, 0, 'knot hidden out of sight');
+  assert.equal(meshNamed(meshes, 'vine-body'), null, 'vine hidden out of sight');
+  assert.equal(meshNamed(meshes, 'tree-trunk'), null, 'solitary tree hidden out of sight');
+  assert.equal(meshNamed(meshes, 'largeTree-trunk'), null, 'elder tree hidden out of sight');
+  assert.equal(meshesStarting(meshes, 'fruit').length, 0, 'fruit tree hidden out of sight');
+
+  // Terrain decorations render out of sight: the mountain ...
+  const mountains = meshesStarting(meshes, 'mountain-');
+  assert.equal(mountains.length, 1);
+  assert.equal(mountains[0].count, 1);
+
+  // ... and both hill mounds, at full size — even though (8,-1) has an
+  // occupant and (-3,-4) an occupant + feature (unoccupied = full mound).
+  const hill = meshNamed(meshes, 'hill-mound');
+  assert.equal(hill.count, 2, 'both hill mounds render out of sight');
+  for (let i = 0; i < hill.count; i++) {
+    const p = instInfo(hill, i);
+    assert.ok(closeTo(p.sx, 1), `hill mound ${i} at full scale (got ${p.sx})`);
+    assert.ok(closeTo(p.y, tileSurfaceY(TILES[6])), `hill mound ${i} at the surface (got ${p.y})`);
+  }
+
+  // All four non-Painforest woods tiles render their grove (the visible plain
+  // grove, the two knot tiles, and the `tree`-on-woods tile).
+  const groveTrunk = meshNamed(meshes, 'grove-trunk');
+  assert.ok(groveTrunk, 'grove meshes present');
+  assert.ok(groveTrunk.count >= 4, `grove covers the explored woods tiles (got ${groveTrunk.count})`);
+});
+
+test('legacy painforest grove renders out of sight; fruit trees stay hidden', () => {
+  const painforest = TILES[8];
+  const fruit = TILES[9];
+  const explored = new Set([`${painforest.q},${painforest.r}`, `${fruit.q},${fruit.r}`]);
+  const visible = new Set();
+  const state = { tiles: new Map(), champions: [], mobs: [], traders: [] };
+
+  // The gnarled grove is terrain decoration — it renders out of sight.
+  const painMeshes = buildChunkFeatureMeshes([painforest], state, visible, explored);
+  assert.ok(painMeshes.some((m) => m.name.startsWith('tree-')), 'painforest grove renders out of sight');
+
+  // The fruit tree (a feature) alone, out of sight, produces nothing.
+  const fruitMeshes = buildChunkFeatureMeshes([fruit], state, visible, explored);
+  assert.equal(fruitMeshes.length, 0, 'fruit tree hidden out of sight');
+
+  // Out-of-sight grove records ignore occupants: identical with or without one.
+  const occupied = new Set([`${painforest.q},${painforest.r}`]);
+  const plain = treeRecordsForTile(painforest, centerOf(painforest), new Set(), false);
+  const withOccupant = treeRecordsForTile(painforest, centerOf(painforest), occupied, false);
+  assert.deepEqual(plain, withOccupant, 'out-of-sight grove records ignore occupants');
+});
+
 // ── Barrel smoke (featureMeshes.js wiring) ─────────────────────────────────
 
 test('buildChunkFeatureMeshes still wires tree + descriptor + base + outlines', () => {

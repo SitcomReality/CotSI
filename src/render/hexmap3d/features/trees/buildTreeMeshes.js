@@ -36,10 +36,21 @@ function isTreeTile(tile) {
   return CLUSTER_TERRAINS.has(tile.terrain) && tile.biomeId === PAINFOREST_BIOME;
 }
 
-function collectTreeInstances(tilesOrArray, visible, occupants) {
+/**
+ * Collect legacy tree records. The gnarled Painforest grove is terrain
+ * decoration, so it is gated on `decorVisible` (visible ∪ explored) and
+ * renders unoccupied out of sight; fruit trees are features and stay gated on
+ * `visible`.
+ */
+function collectTreeInstances(tilesOrArray, visible, occupants, decorVisible = visible) {
   return collectInstances(
-    tilesOrArray, visible, isTreeTile,
-    (tile, worldPos) => treeRecordsForTile(tile, worldPos, occupants),
+    tilesOrArray, decorVisible,
+    (tile) => {
+      const kind = tile.feature?.kind;
+      if (kind === 'fruitTree') return visible.has(`${tile.q},${tile.r}`);
+      return isTreeTile(tile);
+    },
+    (tile, worldPos) => treeRecordsForTile(tile, worldPos, occupants, visible.has(`${tile.q},${tile.r}`)),
   );
 }
 
@@ -85,10 +96,13 @@ function buildMeshesFromInstances(instances) {
  * @param {object} state - Game state (state.tiles Map)
  * @param {Set<string>} visible - Set of "q,r" keys currently visible
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
+ * @param {Set<string>} [decorVisible=visible] - gate for the gnarled grove
+ *        terrain decoration (visible ∪ explored); fruit trees stay gated on
+ *        `visible`
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildTreeMeshes(state, visible, occupants) {
-  return buildMeshesFromInstances(collectTreeInstances(state.tiles, visible, occupants));
+export function buildTreeMeshes(state, visible, occupants, decorVisible = visible) {
+  return buildMeshesFromInstances(collectTreeInstances(state.tiles, visible, occupants, decorVisible));
 }
 
 /**
@@ -96,8 +110,11 @@ export function buildTreeMeshes(state, visible, occupants) {
  * @param {object[]} chunkTiles - Array of tile objects in this chunk
  * @param {Set<string>} visible - Set of hex keys currently visible
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
+ * @param {Set<string>} [decorVisible=visible] - gate for the gnarled grove
+ *        terrain decoration (visible ∪ explored); fruit trees stay gated on
+ *        `visible`
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildChunkTreeMeshes(chunkTiles, visible, occupants) {
-  return buildMeshesFromInstances(collectTreeInstances(chunkTiles, visible, occupants));
+export function buildChunkTreeMeshes(chunkTiles, visible, occupants, decorVisible = visible) {
+  return buildMeshesFromInstances(collectTreeInstances(chunkTiles, visible, occupants, decorVisible));
 }
