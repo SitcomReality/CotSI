@@ -333,36 +333,59 @@ function renderPartInspector(container, part) {
   container.append(row('Y', numberInput(t.y, { onChange: (v) => mutate(() => { t.y = v; }) })));
   container.append(row('Lift', numberInput(t.lift, { onChange: (v) => mutate(() => { t.lift = v; }) })));
   container.append(row('rotY (rad)', numberInput(t.rotY, { onChange: (v) => mutate(() => { t.rotY = v; }) })));
-  container.append(row('scaleXZ', numberInput(t.scaleXZ, { min: 0.01, onChange: (v) => mutate(() => { t.scaleXZ = v; }) })));
+
+  container.append(subheading('Scale'));
+  container.append(el('div', 'hint', 'Independent per-axis scale — stretch or squash the part on any axis (base 1).'));
+  container.append(row('scaleX', numberInput(t.scaleX, { min: 0.01, onChange: (v) => mutate(() => { t.scaleX = v; }) })));
   container.append(row('scaleY', numberInput(t.scaleY, { min: 0.01, onChange: (v) => mutate(() => { t.scaleY = v; }) })));
+  container.append(row('scaleZ', numberInput(t.scaleZ, { min: 0.01, onChange: (v) => mutate(() => { t.scaleZ = v; }) })));
+
+  container.append(subheading('Rotation'));
+  container.append(el('div', 'hint', 'localAxis + localAngle rotate the part around any axis in its own frame; tilt leans it in world space. Angles in radians.'));
+  const localAxis = t.localAxis ?? { x: 0, y: 1, z: 0 };
+  container.append(row('localAxis X', numberInput(localAxis.x, { onChange: (v) => mutate(() => { t.localAxis = { ...(t.localAxis ?? { y: 1 }), x: v }; }) })));
+  container.append(row('localAxis Y', numberInput(localAxis.y, { onChange: (v) => mutate(() => { t.localAxis = { ...(t.localAxis ?? {}), y: v }; }) })));
+  container.append(row('localAxis Z', numberInput(localAxis.z, { onChange: (v) => mutate(() => { t.localAxis = { ...(t.localAxis ?? {}), z: v }; }) })));
+  container.append(row('localAngle (rad)', numberInput(t.localAngle ?? 0, { onChange: (v) => mutate(() => { t.localAngle = v; t.localAxis ??= { x: 0, y: 1, z: 0 }; }) })));
+  const tiltAxis = t.tiltAxis ?? { x: 0, z: 1 };
+  container.append(row('tiltAxis X', numberInput(tiltAxis.x, { onChange: (v) => mutate(() => { t.tiltAxis = { ...(t.tiltAxis ?? { z: 1 }), x: v }; }) })));
+  container.append(row('tiltAxis Z', numberInput(tiltAxis.z, { onChange: (v) => mutate(() => { t.tiltAxis = { ...(t.tiltAxis ?? {}), z: v }; }) })));
+  container.append(row('tilt (rad)', numberInput(t.tilt ?? 0, { onChange: (v) => mutate(() => { t.tilt = v; t.tiltAxis ??= { x: 0, z: 1 }; }) })));
 
   container.append(subheading('Stretch variation'));
   container.append(el('div', 'hint', 'Per-axis variation ranges for this part; "follow object" uses the object-level ranges, "fixed" pins the axis at 1.'));
   if (ENTITY_KINDS.has(d.kind)) {
     container.append(el('div', 'hint', 'Entity parts ignore stretch variation — entities have no per-tile hash draws.'));
   }
-  for (const axis of ['y', 'xz']) {
+  const STRETCH_SEED_DEFAULTS = { x: 5, y: 4, z: 5 };
+  for (const axis of ['x', 'y', 'z']) {
     const current = part.stretch?.[axis];
     const mode = current === false ? 'fixed' : current ? 'custom' : 'follow';
     const modeSelect = selectInput(['follow', 'fixed', 'custom'], mode, (m) => mutate(() => {
       if (m === 'fixed') part.stretch = { ...part.stretch, [axis]: false };
-      else if (m === 'custom') part.stretch = { ...part.stretch, [axis]: { min: 0.9, max: 1.1, seed: axis === 'y' ? 4 : 5 } };
+      else if (m === 'custom') part.stretch = { ...part.stretch, [axis]: { min: 0.9, max: 1.1, seed: STRETCH_SEED_DEFAULTS[axis] } };
       else {
         part.stretch = { ...part.stretch };
         delete part.stretch[axis];
         if (Object.keys(part.stretch).length === 0) delete part.stretch;
       }
     }));
-    const rowEl = el('div', 'control-row');
-    rowEl.append(el('label', null, `stretch ${axis}`), modeSelect);
+    // Two-line layout: mode on the first line, the min/max/seed inputs below —
+    // the row no longer overflows the 310px inspector column.
+    const stretchRow = el('div', 'stretch-row');
+    const modeLine = el('div', 'control-row');
+    modeLine.append(el('label', null, `stretch ${axis}`), modeSelect);
+    stretchRow.append(modeLine);
     if (current && current !== false) {
-      rowEl.append(
+      const inputsLine = el('div', 'stretch-inputs');
+      inputsLine.append(
         numberInput(current.min, { min: 0.01, onChange: (v) => mutate(() => { current.min = v; }) }),
         numberInput(current.max, { min: 0.01, onChange: (v) => mutate(() => { current.max = v; }) }),
-        intInput(current.seed ?? (axis === 'y' ? 4 : 5), { min: 0, onChange: (v) => mutate(() => { current.seed = v; }) }),
+        intInput(current.seed ?? STRETCH_SEED_DEFAULTS[axis], { min: 0, onChange: (v) => mutate(() => { current.seed = v; }) }),
       );
+      stretchRow.append(inputsLine);
     }
-    container.append(rowEl);
+    container.append(stretchRow);
   }
 }
 
@@ -405,12 +428,16 @@ function bindProjectControls() {
     reader.onload = () => {
       try {
         const parsed = JSON.parse(reader.result);
-        const errors = validateDescriptor(parsed);
+        // Normalize first — legacy shape names (knot/snowperson) and the legacy
+        // scaleXZ/stretchXZ fields resolve in normalizeDescriptor, so validation
+        // runs on the canonical result and old downloads still load.
+        const normalized = normalizeDescriptor(parsed);
+        const errors = validateDescriptor(normalized);
         if (errors.length > 0) {
           els.loadError.textContent = `Invalid descriptor:\n${errors.join('\n')}`;
           return;
         }
-        S.descriptor = normalizeDescriptor(parsed);
+        S.descriptor = normalized;
         S.selectedPartId = null;
         els.loadError.textContent = '';
         renderAll();
