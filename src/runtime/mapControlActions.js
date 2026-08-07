@@ -4,7 +4,7 @@
  * 3D camera controls and the zoom readout. Imported for side effects by
  * runtime/bootstrap.js.
  */
-import { getSceneContext, zoomCamera, resetCamera, animateCenterOnHex } from '../render/hexmap3d/hexMapRenderer.js';
+import { getSceneContext, zoomCamera, chaseCameraToHex } from '../render/hexmap3d/hexMapRenderer.js';
 import { refreshZoomDisplay } from './zoomDisplay.js';
 import { currentChamp } from '../game/state/liveGame.js';
 import { registerAction } from '../shared/actionBus.js';
@@ -26,19 +26,11 @@ registerAction('zoomOut', () => {
   refreshZoomDisplay();
 });
 
-registerAction('resetCamera', () => {
-  const ctx = getSceneContext();
-  if (!ctx) return;
-  resetCamera(ctx.getCameraState());
-  ctx.applyCamera();
-  refreshZoomDisplay();
-});
-
 registerAction('centerChampion', () => {
   const ch = currentChamp();
   if (!ch) return;
   const ctx = getSceneContext();
   if (!ctx) return;
-  animateCenterOnHex(ctx.getCameraState(), ctx.applyCamera, ch.pos.q, ch.pos.r);
+  chaseCameraToHex(ctx.getCameraState(), ctx.applyCamera, ch.pos.q, ch.pos.r);
   refreshZoomDisplay();
 });

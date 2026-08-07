@@ -200,7 +200,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `hexWorldSpace.js` | Hex coordinate -> world-space position conversion |
 | `sceneContext.js` | Scene, camera, renderer creation and access |
 | `scene/cameraCentering.js` | Camera centering/animation on a target hex |
-| `scene/cameraPanMath.js` | Camera pan math (delta, bounds) |
+| `scene/cameraPanMath.js` | Camera pan math (delta, champion-relative constraint) |
 | `scene/cameraState.js` | Camera state: position, target, zoom level |
 | `scene/cameraZoomMath.js` | Camera zoom math (levels, smoothing) |
 | `scene/lightSetup.js` | Scene lighting (ambient, directional) |

@@ -2,14 +2,19 @@
  * Smooth camera pan animation using the shared clock scheduler.
  *
  * Animates the camera target from its current position to a hex tile's
- * position using cubic ease-out interpolation. Supports cancellation of
- * in-flight animations.
+ * position. Two motion styles share one cancellation slot:
+ *
+ * - `animateCenterOnHex`: fixed-duration cubic ease-out pan (used for the
+ *   initial focus when a champion takes the stage).
+ * - `chaseCameraToHex`: frame-rate independent exponential smoothing
+ *   (a damped chase) — the camera glides toward the target with a brisk start
+ *   that eases in, decoupled from any unit movement animation timing.
  */
 
 import { getClock } from '../../../shared/clockScheduler.js';
 import { resetFogMaskCameraHash } from '../../overlays/fogCameraTracker.js';
 import { hexCenter } from '../hexWorldSpace.js';
-import { PAN_ANIMATION_DURATION } from '../../../params/render/cameraParams.js';
+import { PAN_ANIMATION_DURATION, CAMERA_CHASE_TAU, CAMERA_CHASE_EPSILON, CAMERA_CHASE_MAX_DT_MS } from '../../../params/render/cameraParams.js';
 
 /** Currently active camera pan animation stop function, if any. */
 let _panStopFn = null;
@@ -80,4 +85,61 @@ export function cancelCameraPan() {
     _panStopFn();
     _panStopFn = null;
   }
+}
+
+/**
+ * Chase the camera toward a hex position with frame-rate independent
+ * exponential smoothing (a damped chase). Preserves the current zoom level.
+ *
+ * Unlike `animateCenterOnHex`, there is no fixed duration — the camera
+ * starts fast and eases into the target, settling just after a champion
+ * movement lands. It is decoupled from movement-animation timing on purpose:
+ * the camera and the champion should never move in rigid lock-step.
+ *
+ * If called while a previous pan animation is still running, the old one is
+ * cancelled and the camera continues from its current position.
+ *
+ * @param {object} state - camera state
+ * @param {function} applyFn - function to call each frame to sync the
+ *                             Three.js camera (e.g. `ctx.applyCamera`)
+ * @param {number} q - hex column coordinate
+ * @param {number} r - hex row coordinate
+ * @returns {void}
+ */
+export function chaseCameraToHex(state, applyFn, q, r) {
+  // Cancel any in-flight animation first
+  if (_panStopFn) {
+    _panStopFn();
+    _panStopFn = null;
+  }
+
+  const { x: toX, z: toZ } = hexCenter(q, r);
+  if (Math.hypot(toX - state.targetX, toZ - state.targetZ) < CAMERA_CHASE_EPSILON) return;
+
+  let lastTime = null;
+  _panStopFn = getClock().onTick((timestamp) => {
+    const now = timestamp ?? performance.now();
+    const dtMs = lastTime == null ? 0 : Math.min(now - lastTime, CAMERA_CHASE_MAX_DT_MS);
+    lastTime = now;
+
+    if (dtMs > 0) {
+      // Exponential approach factor: k = 1 - e^(-dt/tau). Frame-rate independent.
+      const k = 1 - Math.exp(-(dtMs / 1000) / CAMERA_CHASE_TAU);
+      state.targetX += (toX - state.targetX) * k;
+      state.targetZ += (toZ - state.targetZ) * k;
+    }
+    applyFn();
+
+    if (Math.hypot(toX - state.targetX, toZ - state.targetZ) < CAMERA_CHASE_EPSILON) {
+      // Snap to the exact target to avoid floating-point drift, then
+      // invalidate the fog mask camera hash so the overlay regenerates
+      // masks from the final camera position on the next frame.
+      state.targetX = toX;
+      state.targetZ = toZ;
+      applyFn();
+      resetFogMaskCameraHash();
+      _panStopFn();
+      _panStopFn = null;
+    }
+  });
 }

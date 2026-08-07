@@ -33,9 +33,9 @@ export function initMap3D(mountEl, gameState) {
       setShadowMapExtent(ctx.lights.directional, gameState.radius);
     }
 
-    // Auto-fit camera to map size so the full map is visible at start
+    // Auto-fit camera to the sight-disc view so the zoom range is set
     if (gameState.radius) {
-      fitCameraToMap(ctx.getCameraState(), gameState.radius);
+      fitCameraToMap(ctx.getCameraState());
       ctx.applyCamera();
     }
 

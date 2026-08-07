@@ -1,6 +1,7 @@
 import { panCamera } from '../scene/cameraPanMath.js';
 import { zoomCamera } from '../scene/cameraZoomMath.js';
 import { screenToWorldPan } from './panMath.js';
+import { cancelCameraPan } from '../scene/panAnimation.js';
 
 /**
  * Create touch event handlers for a given map interaction context.
@@ -40,6 +41,9 @@ export function createTouchHandlers(ctx) {
     if (!state) return;
 
     if (e.touches.length === 1 && !ctx.isPanning) {
+      // User is taking manual control — stop any camera chase so it doesn't
+      // fight the drag.
+      cancelCameraPan();
       const dx = e.touches[0].clientX - ctx.lastPointerX;
       const dy = e.touches[0].clientY - ctx.lastPointerY;
       ctx.lastPointerX = e.touches[0].clientX;

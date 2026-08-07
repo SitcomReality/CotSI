@@ -51,17 +51,18 @@ export const ZOOM_OUT_FACTOR = 1.25;
 /** Wheel zoom factor per scroll step. */
 export const ZOOM_STEP_FACTOR = 1.1; // zoom-in uses 1/ZOOM_STEP_FACTOR
 
-/** Epsilon for sin(pitch) — treats near-zero pitch as flat. */
-export const PITCH_EPSILON = 0.01;
 /** Epsilon for degenerate pan vectors. */
 export const PAN_EPSILON = 0.001;
-/** Fallback margin fraction when pitch/yaw unknown. */
-export const FALLBACK_MARGIN_FRACTION = 0.2;
-/** Clamp margin to this fraction of map half-dimension. */
-export const PAN_MARGIN_CLAMP = 0.9;
 
 /** Default camera-pan animation duration (ms). */
 export const PAN_ANIMATION_DURATION = 200;
+
+/** Camera chase smoothing time constant (seconds). Smaller = snappier. */
+export const CAMERA_CHASE_TAU = 0.2;
+/** Camera chase arrival threshold (world units) — snaps to target below this. */
+export const CAMERA_CHASE_EPSILON = 0.02;
+/** Camera chase max per-frame delta (ms) — clamps long frame gaps. */
+export const CAMERA_CHASE_MAX_DT_MS = 64;
 
 /** Shadow camera initial frustum (±). */
 export const SHADOW_INITIAL_FRUSTUM = 15;

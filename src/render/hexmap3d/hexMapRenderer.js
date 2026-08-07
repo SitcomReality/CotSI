@@ -24,10 +24,10 @@ import { chunkKeysWithinCap } from '../../engine/rules/sightCull.js';
 export { getSceneContext } from './sceneContext.js';
 export { tileTopY, tileSurfaceY, HEX_THICKNESS } from './terrain/index.js';
 export { hexCenter, hexCornersXZ, hexCenter3D } from './hexWorldSpace.js';
-export { resetCamera, zoomCamera, fitCameraToMap } from './scene/cameraZoomMath.js';
-export { setPanBounds, setCameraStartCenter } from './scene/cameraPanMath.js';
-export { centerCameraOnHex, centerOnHexWithFitCamera, centerOnHexWithSightZoom, centerOnHexWithFixedZoom } from './scene/cameraCentering.js';
-export { animateCenterOnHex, cancelCameraPan } from './scene/panAnimation.js';
+export { zoomCamera, fitCameraToMap } from './scene/cameraZoomMath.js';
+export { setCameraStartCenter } from './scene/cameraPanMath.js';
+export { centerOnHexWithFitCamera, centerOnHexWithSightZoom, centerOnHexWithFixedZoom } from './scene/cameraCentering.js';
+export { animateCenterOnHex, chaseCameraToHex, cancelCameraPan } from './scene/panAnimation.js';
 
 // Global unit meshes (units are few, not worth chunking yet)
 let unitMeshes = [];

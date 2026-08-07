@@ -27,7 +27,7 @@ document.addEventListener('click', (e) => {
 // Keyboard shortcuts (optional, will be added later)
 window.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return;
-  const map = { ' ': 'endTurn', 'c': 'centerChampion', 'r': 'resetCamera',
+  const map = { ' ': 'endTurn', 'c': 'centerChampion',
                 '+': 'zoomIn', '=': 'zoomIn', '-': 'zoomOut', '_': 'zoomOut' };
   const action = map[e.key];
   if (action && handlers[action]) {

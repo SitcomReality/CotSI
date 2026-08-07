@@ -4,7 +4,7 @@
  * Owns the singleton `minimapInitialized` flag.
  * One-time 3D init lives in initMap3d.js; shared camera-focus in mapCamera.js.
  */
-import { renderHexMap3D, getSceneContext, centerCameraOnHex } from '../render/hexmap3d/hexMapRenderer.js';
+import { renderHexMap3D, getSceneContext, chaseCameraToHex } from '../render/hexmap3d/hexMapRenderer.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { getHumanView } from '../game/state/fogOfWar.js';
 import { adjacentPassable } from '../game/state/championMovement.js';
@@ -35,8 +35,9 @@ let lastOccupantKeys = null;
 
 /**
  * Last followed champion hex ("q,r"). The camera is locked to the champion:
- * when the champion moves, the target snaps to follow (zoom preserved).
- * Only the initial focus on a champion change is animated.
+ * when the champion moves, the target chases smoothly to follow (zoom
+ * preserved). Only the initial focus on a champion change uses the
+ * fixed-duration pan.
  */
 let lastFollowedChampKey = null;
 
@@ -152,7 +153,7 @@ export function refreshMap() {
 
   // Camera lock: the camera stays centered on the human champion. First time a
   // champion takes the stage, animate the pan; after that, follow position
-  // changes by snapping the target (zoom preserved). The zoom-dependent pan
+  // changes with a damped chase (zoom preserved). The zoom-dependent pan
   // constraint (updateCameraStartCenter) additionally confines any manual pan
   // to the champion's sight disc, and max zoom-out is the disc itself — the
   // view can never leave the champion's area.
@@ -165,8 +166,7 @@ export function refreshMap() {
     } else if (lastFollowedChampKey !== `${ch.pos.q},${ch.pos.r}`) {
       const ctx3d = getSceneContext();
       if (ctx3d) {
-        centerCameraOnHex(ctx3d.getCameraState(), ch.pos.q, ch.pos.r);
-        ctx3d.applyCamera();
+        chaseCameraToHex(ctx3d.getCameraState(), ctx3d.applyCamera, ch.pos.q, ch.pos.r);
         lastFollowedChampKey = `${ch.pos.q},${ch.pos.r}`;
       }
     }

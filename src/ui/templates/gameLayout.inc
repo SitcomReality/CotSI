@@ -95,9 +95,6 @@
         <button class="btn map-btn" id="zoomOut" data-action="zoomOut" title="Zoom Out (Mouse Wheel)">
           <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/actions.svg#i-zoomout"/></svg>
         </button>
-        <button class="btn map-btn" id="zoomReset" data-action="resetCamera" title="Reset View">
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/actions.svg#i-center"/></svg>
-        </button>
         <button class="btn map-btn" id="centerChampion" data-action="centerChampion" title="Center on Champion (C)">
           <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons/decor.svg#d-seal"/></svg>
         </button>

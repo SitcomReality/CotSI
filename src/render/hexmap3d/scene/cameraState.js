@@ -32,7 +32,6 @@ export function createCameraState(aspect) {
     pitch: CAMERA_PITCH,
     yaw: CAMERA_YAW,       // ~30° (south-west looking north-east)
     distance: CAMERA_DISTANCE,
-    mapRadius: null,        // set by fitCameraToMap
     maxFrustumSize: null,   // set by fitCameraToMap — zoom upper bound
     referenceFrustum: null, // set by fitCameraToMap — anchors zoom percentage
     startCenter: null,      // { startX, startZ } — zoom-dependent pan constraint anchor

@@ -9,7 +9,7 @@ import { G } from '../game/state/liveGame.js';
 import { registerAction } from '../shared/actionBus.js';
 import { openDispatchModal } from '../ui/modals/dispatchModal.js';
 import { hideModal } from '../ui/modals/modalShell.js';
-import { getSceneContext, centerCameraOnHex } from '../render/hexmap3d/hexMapRenderer.js';
+import { getSceneContext, chaseCameraToHex } from '../render/hexmap3d/hexMapRenderer.js';
 import { refreshAll } from './refreshAll.js';
 
 /**
@@ -23,14 +23,13 @@ import { refreshAll } from './refreshAll.js';
 export function showPendingDispatch(state) {
   if (!state?.dispatch) return false;
 
-  // Non-interactive prelude: bring the active champion on screen first, so
-  // the dispatch effectively appears instantly over the right place.
+  // Non-interactive prelude: glide the active champion on screen first, so the
+  // dispatch appears over the right place.
   const champ = state.champions.find((c) => c.id === state.dispatch.championId);
   if (champ) {
     const ctx = getSceneContext();
     if (ctx) {
-      centerCameraOnHex(ctx.getCameraState(), champ.pos.q, champ.pos.r);
-      ctx.applyCamera();
+      chaseCameraToHex(ctx.getCameraState(), ctx.applyCamera, champ.pos.q, champ.pos.r);
     }
   }
 

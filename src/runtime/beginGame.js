@@ -61,8 +61,8 @@ export function __beginGame(config) {
 
       const ctx3d = getSceneContext();
       if (ctx3d) {
-        // On game restart, re-fit the camera to the new map's size
-        fitCameraToMap(ctx3d.getCameraState(), game.radius);
+        // On game restart, re-fit the camera to the sight-disc view
+        fitCameraToMap(ctx3d.getCameraState());
         ctx3d.applyCamera();
       }
       bindHeaderEvents(() => G);

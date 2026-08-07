@@ -51,7 +51,7 @@ export function addLights(scene, { shadows = false } = {}) {
  * the frustum directly from the map's world extent rather than deriving
  * values from the main camera's view.
  *
- * Call this ONCE from initMap3D, after fitCameraToMap is known.
+ * Call this ONCE from initMap3D with the map's radius.
  *
  * @param {THREE.DirectionalLight} light
  * @param {number} mapRadius - Map radius in hexes
@@ -59,7 +59,7 @@ export function addLights(scene, { shadows = false } = {}) {
 export function setShadowMapExtent(light, mapRadius) {
   if (!light.castShadow) return;
 
-  // Map world extent (see cameraZoomMath.js fitCameraToMap).
+  // Map world extent (full map diameter in world units).
   const mapWidth  = Math.sqrt(3) * mapRadius * 2;  // ~3.464 * radius
   const mapHeight = 1.5 * mapRadius * 2;            // 3 * radius
   const mapExtent = Math.max(mapWidth, mapHeight);

@@ -6,9 +6,8 @@
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
 import { movementRange, moveChampion, adjacentPassable } from '../game/state/championMovement.js';
-import { getSceneContext, animateCenterOnHex, tileSurfaceY } from '../render/hexmap3d/hexMapRenderer.js';
+import { tileSurfaceY } from '../render/hexmap3d/hexMapRenderer.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
-import { updateCameraStartCenter } from './mapCamera.js';
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { parseKey, distance, coordKey } from '../engine/rules/hexGrid.js';
@@ -88,14 +87,8 @@ export function onHexClick(key) {
       queueMovement(ch.id, fromWorld, toWorld, fac.base, MOVE_DURATION);
     }
     refreshAll();
-    // Recenter camera on the champion's new position
-    const ctx3d = getSceneContext();
-    if (ctx3d) {
-      // Match camera pan duration to unit movement animation so both land together.
-      animateCenterOnHex(ctx3d.getCameraState(), ctx3d.applyCamera, ch.pos.q, ch.pos.r, MOVE_DURATION);
-    }
-    // Update the zoom-dependent pan constraint to the champion's new position.
-    updateCameraStartCenter(ch.pos.q, ch.pos.r);
+    // Camera follow is handled inside refreshMap (damped chase toward the
+    // champion's new hex); the pan-constraint anchor is updated there too.
     if (ch.moves <= 0) pulseEnd();
   }
 }

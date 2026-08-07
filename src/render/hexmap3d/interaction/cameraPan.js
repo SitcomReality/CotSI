@@ -2,6 +2,7 @@ import { panCamera } from '../scene/cameraPanMath.js';
 import { screenToWorldPan } from './panMath.js';
 import { hideTooltip } from './hoverTooltip.js';
 import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
+import { cancelCameraPan } from '../scene/panAnimation.js';
 /**
  * Create pan handlers for shift+drag and middle-button drag.
  *
@@ -14,6 +15,9 @@ import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
 export function createPanHandlers(canvas, getCameraState, applyCamera, shared) {
   function onPointerDown(e) {
     if (e.shiftKey || e.button === 1) {
+      // User is taking manual control — stop any camera chase so it doesn't
+      // fight the drag.
+      cancelCameraPan();
       shared.isPanning = true;
       shared.lastPointerX = e.clientX;
       shared.lastPointerY = e.clientY;

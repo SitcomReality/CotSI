@@ -11,7 +11,8 @@ import { DEFAULT_REFERENCE_FRUSTUM } from '../params/render/cameraParams.js';
 
 /**
  * Update the zoom percentage display in the HUD.
- * Percentage is map-relative: 100% = full-map view (referenceFrustum).
+ * Percentage is sight-disc-relative: 100% = the full sight-disc view
+ * (referenceFrustum).
  * Falls back to the legacy hardcoded 40 when no reference is available.
  */
 export function refreshZoomDisplay() {

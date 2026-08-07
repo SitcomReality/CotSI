@@ -1,12 +1,13 @@
 /**
- * Pure zoom, fit-to-map, and camera-reset logic.
+ * Pure zoom and fit-to-sight-disc logic for the orthographic camera.
  *
- * Zoom percentage is map-relative: 100% = fit the full map in the viewport.
+ * Zoom percentage is anchored to the sight-disc view: 100% = the full
+ * render-cap disc framed (the champion's hex plus SIGHT_RENDER_CAP rings).
  * `referenceFrustum` (set by fitCameraToMap) anchors the percentage so the
  * same 400% zoom means the same visual framing on every map size.
  */
 
-import { setPanBounds, panCamera } from './cameraPanMath.js';
+import { panCamera } from './cameraPanMath.js';
 
 import { DEFAULT_FRUSTUM, ZOOM_MIN_FRUSTUM, ZOOM_MAX_FRUSTUM, SIGHT_ZOOM_MARGIN } from '../../../params/render/cameraParams.js';
 import { SIGHT_RENDER_CAP } from '../../../params/game/championParams.js';
@@ -16,18 +17,17 @@ import { SIGHT_RENDER_CAP } from '../../../params/game/championParams.js';
  *
  * The map can never be fully seen — the camera is locked to the champion and
  * max zoom-out is "just far enough" to frame the whole render-cap disc (the
- * champion's hex plus SIGHT_RENDER_CAP rings). This replaces the old
- * fit-to-map framing: `referenceFrustum` (the 100% zoom anchor) now means
- * "the full sight view", so the zoom percentage stays meaningful on maps of
- * any size.
+ * champion's hex plus SIGHT_RENDER_CAP rings). `referenceFrustum` (the 100%
+ * zoom anchor) means "the full sight view", so the zoom percentage stays
+ * meaningful on maps of any size. Deliberately independent of the map's size
+ * and position: the camera behaves identically everywhere on the map.
  *
  * NOTE: the visible ground extent equals `frustumSize / sin(pitch)`
  * (the orthographic frustum is foreshortened at the isometric angle).
  * To show a desired world extent we multiply by sin(pitch).
  * @param {object} state - camera state
- * @param {number} radius - map radius in hexes (kept for pan bounds only)
  */
-export function fitCameraToMap(state, radius) {
+export function fitCameraToMap(state) {
   // World extent (diameter) of the render-cap disc in hexes
   const sightExtent = Math.sqrt(3) * SIGHT_RENDER_CAP * 2;
 
@@ -38,17 +38,15 @@ export function fitCameraToMap(state, radius) {
   const refWorldExtent = sightExtent * margin;
   const referenceFrustum = sinPitch > 0.01 ? refWorldExtent * sinPitch : refWorldExtent;
 
-  state.mapRadius = radius;
   state.referenceFrustum = referenceFrustum;
   state.maxFrustumSize = Math.max(DEFAULT_FRUSTUM, Math.min(ZOOM_MAX_FRUSTUM, referenceFrustum));
   // Start at the reference (100% = full sight-disc view)
   state.frustumSize = Math.max(DEFAULT_FRUSTUM, Math.min(state.maxFrustumSize ?? ZOOM_MAX_FRUSTUM, referenceFrustum));
-  setPanBounds(state, radius);
 }
 
 /**
  * Zoom: multiply frustum size by factor, clamped.
- * Uses the map-aware `maxFrustumSize` when available (set by fitCameraToMap).
+ * Uses the sight-disc-aware `maxFrustumSize` when available (set by fitCameraToMap).
  * @param {object} state - camera state
  * @param {number} factor - zoom multiplier (>1 zooms out, <1 zooms in)
  */
@@ -58,20 +56,4 @@ export function zoomCamera(state, factor) {
   // Re-clamp camera target: zooming out tightens the zoom-dependent constraint,
   // so the current pan position may need to be pulled back toward startCenter.
   panCamera(state, 0, 0);
-}
-
-/**
- * Reset to the fit-to-map view centered on origin.
- * Uses the stored mapRadius when available; otherwise falls back
- * to DEFAULT_FRUSTUM at origin.
- * @param {object} state - camera state
- */
-export function resetCamera(state) {
-  if (state.mapRadius != null) {
-    fitCameraToMap(state, state.mapRadius);
-  } else {
-    state.frustumSize = DEFAULT_FRUSTUM;
-    state.targetX = 0;
-    state.targetZ = 0;
-  }
 }
