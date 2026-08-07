@@ -71,8 +71,6 @@ export const TERRAIN_COLOR = {
   desert:        [0.839, 0.694, 0.357],  // #d6b15b — warm golden sand
   marsh:         [0.506, 0.600, 0.404],  // #819967 — murky vibrant marsh
   mountain:      [0.529, 0.486, 0.416],  // #877c6a — rocky warm gray
-  peak:          [0.690, 0.729, 0.784],  // #b0b8c8 — pale snowy rock
-  floatingIsland:[0.753, 0.847, 0.910],  // #c0d8e8 — pale cyan-white
   water:         [0.373, 0.604, 0.757],  // #5f9ac1 — bright cyan-blue
   ice:           [0.649, 0.820, 0.957],  // #a6d1f4 — pale ice blue
   beach:         [0.910, 0.847, 0.627],  // #e8d8a0 — warm sand
@@ -91,10 +89,8 @@ export const TERRAIN_ELEVATION = {
   marsh: -0.05,
   beach: -0.05,
   hill: 0.25,
-  plateau: 0.10,
-  mountain: 0.6,
-  peak: 1.0,
-  floatingIsland: 2.5,
+  plateau: 0.35,
+  mountain: 0.85,
   water: -0.15,
   ice: -0.12,
   // River's table value is transient — carveRiverBeds() sets the real channel

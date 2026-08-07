@@ -6,7 +6,7 @@ export function tagMountainType(tile, tileLookup) {
   let mtCount = 0;
   for (const n of nbrs) {
     const nTile = tileLookup(n.q, n.r);
-    if (nTile && (nTile.terrain === 'mountain' || nTile.terrain === 'peak' || nTile.terrain === 'floatingIsland')) {
+    if (nTile && nTile.terrain === 'mountain') {
       mtCount++;
     }
   }

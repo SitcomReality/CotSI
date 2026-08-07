@@ -87,11 +87,11 @@ export function formatConfigSection(seedCount, radii, baseSeed = 'glut-17', mult
   const ruleLabels = {
     waterMaxElevation:        'waterMaxElevation',
     mountainThreshold:        'mountainThreshold',
-    peakThreshold:            'peakThreshold',
-    floatingIslandThreshold:  'floatingIslandThreshold',
+    plateauThreshold:         'plateauThreshold',
     marshMaxElevation:        'marshMaxElevation',
     hillElevationMin:         'hillElevationMin',
     plateauSlopeMin:          'plateauSlopeMin',
+    plateauSlopeMax:          'plateauSlopeMax',
     hillSlopeMin:             'hillSlopeMin',
     forestMinMoisture:        'forestMinMoisture',
     denseForestMinMoisture:   'denseForestMinMoisture',

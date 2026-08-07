@@ -41,14 +41,11 @@ defineArchetype('biome_default', {
     hill:          [0.545, 0.659, 0.388],  // olive-green
     plateau:       [0.604, 0.565, 0.471],  // warm grey
     mountain:      [0.529, 0.486, 0.416],  // rocky warm gray
-    peak:          [0.690, 0.729, 0.784],  // pale snowy rock
-    floatingIsland:[0.753, 0.847, 0.910],  // pale cyan-white
     water:         [0.373, 0.604, 0.757],  // bright cyan-blue
     beach:         [0.878, 0.824, 0.627],  // warm golden sand
   },
-  terrainTags: ['plains', 'beach', 'forest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['temperate', 'rainy'],
 
   terrainElevation: null,
-  supportsFloatingIslands: false,
 });

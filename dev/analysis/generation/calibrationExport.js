@@ -67,8 +67,7 @@ export function formatCalibrationReport(result) {
   const entries = [
     { label: 'waterMaxElevation',      key: 'waterMaxElevation',      color: '#5f9ac1' },
     { label: 'mountainThreshold',       key: 'mountainThreshold',       color: '#877c6a' },
-    { label: 'peakThreshold',           key: 'peakThreshold',           color: '#b0b8c8' },
-    { label: 'floatingIslandThreshold', key: 'floatingIslandThreshold', color: '#c0d8e8' },
+    { label: 'plateauThreshold',        key: 'plateauThreshold',        color: '#9a9078' },
     { label: 'hillElevationMin',        key: 'hillElevationMin',        color: '#aaa' },
     { label: 'marshMaxElevation',       key: 'marshMaxElevation',       color: '#819967' },
     { label: 'forestMinMoisture',       key: 'forestMinMoisture',       color: '#4b8e41' },

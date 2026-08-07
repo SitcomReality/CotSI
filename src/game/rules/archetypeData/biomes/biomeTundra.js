@@ -27,7 +27,7 @@ defineArchetype('biome_tundra', {
     marshMinMoisture:       0.30,
     marshMaxElevation:      0.50,
     freezeTempMax:          0.60,
-    mountainThreshold:      0.52,
+    mountainThreshold:      0.62,
   },
 
   // Tundra: sparse — cold stunts growth.
@@ -47,14 +47,12 @@ defineArchetype('biome_tundra', {
     hill:          [0.620, 0.680, 0.620],  // snow-dusted hill
     plateau:       [0.680, 0.700, 0.680],  // snowy plateau
     mountain:      [0.580, 0.600, 0.620],  // cold grey rock
-    peak:          [0.750, 0.820, 0.880],  // bright snow peak
     water:         [0.350, 0.520, 0.580],  // cold blue
     ice:           [0.720, 0.820, 0.880],  // pale ice
     beach:         [0.750, 0.720, 0.650],  // frost-bleached pale sand
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['snowy', 'temperate'],
 
   terrainElevation: null,
-  supportsFloatingIslands: false,
 });

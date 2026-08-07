@@ -6,8 +6,6 @@ const PASSEABLE_DEMOTION = {
   water: 'marsh',
   ice: 'plains',
   mountain: 'hill',
-  peak: 'hill',
-  floatingIsland: 'hill',
 };
 
 export { PASSEABLE_DEMOTION };

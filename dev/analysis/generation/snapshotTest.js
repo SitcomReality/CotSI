@@ -23,30 +23,25 @@ const TEST_RADIUS = 21;
 
 /**
  * Tolerance ranges for terrain distribution percentages.
- * Recalibrated against 250-seed × 4-radius batch (Ontology, 2026-07-30).
- * Reference: R21 batch mean ± ~3σ, with generous buffer for per-seed variance.
+ * Recalibrated after the peak/floatingIsland removal (2026-08-07): measured
+ * across 20 seeds × r14/r21 multi-biome generation, the same run that derived
+ * the thresholds in worldParams.js. Generous buffer for per-seed variance —
+ * a regression catcher, not fine-tuning.
  *
- * Calibration source: batch_report_2026-07-30T15-46-38.460Z — R21 terrain distribution:
- *   Forest       mean 23.9%, min 18.6%, max 28.5%
- *   DenseForest  mean 16.8%, min  9.9%, max 20.8%
- *   Desert       mean  3.7%, min  2.0%, max 10.1%
- *   Plains       mean 16.3%, min 10.4%, max 22.9%
- *   Mountain     mean  6.0%, min  3.1%, max  8.8%
- *   Peak         mean  2.4%, min  0.9%, max  4.2%
- *   Hill         mean 16.9%, min 11.5%, max 23.5%
- *   Water        mean 11.2%, min  7.0%, max 17.0%
- *   Ice          mean  1.7%, min  0.3%, max  4.0%
+ * Measured R21 distribution (20 seeds, incl. montane plateauSlopeMax=0.95 gate):
+ *   Forest      15.6%   DenseForest 13.4%   Desert   7.8%
+ *   Plains      14.7%   Hill        14.9%   Plateau  5.9%
+ *   Mountain     1.9%   Water       10.8%   Ice      1.9%
  */
 const TOLERANCE = {
   water:          { min: 0.06, max: 0.18, label: 'water' },
-  mountain:       { min: 0.02, max: 0.10, label: 'mountain' },
-  peak:           { min: 0.00, max: 0.05, label: 'peak' },
-  floatingIsland: { min: 0.00, max: 0.02, label: 'floatingIsland' },
-  forest:         { min: 0.15, max: 0.30, label: 'forest' },
-  denseForest:    { min: 0.08, max: 0.23, label: 'denseForest' },
-  desert:         { min: 0.01, max: 0.11, label: 'desert' },
-  plains:         { min: 0.08, max: 0.24, label: 'plains' },
-  hill:           { min: 0.10, max: 0.24, label: 'hill' },
+  mountain:       { min: 0.005, max: 0.06, label: 'mountain' },
+  plateau:        { min: 0.03, max: 0.16, label: 'plateau' },
+  forest:         { min: 0.10, max: 0.22, label: 'forest' },
+  denseForest:    { min: 0.08, max: 0.19, label: 'denseForest' },
+  desert:         { min: 0.02, max: 0.13, label: 'desert' },
+  plains:         { min: 0.08, max: 0.21, label: 'plains' },
+  hill:           { min: 0.08, max: 0.20, label: 'hill' },
   ice:            { min: 0.00, max: 0.05, label: 'ice' },
 };
 

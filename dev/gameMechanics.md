@@ -82,7 +82,6 @@ See `src/game/rules/archetypeData/biomes/` for exact definitions.
 | `weatherAffinity` | `string[]` | Placeholder for future weather system. |
 | `terrainElevation` | `{terrain: number}` | (optional) Per-terrain Y-offset overrides. |
 | `moistureBias` | number | (optional) Additive offset to raw moisture noise, clamped. |
-| `supportsFloatingIslands` | boolean | (optional) Whether this biome can generate floating-island terrain. |
 
 ### Feature kinds
 
@@ -112,7 +111,6 @@ defineArchetype('biome_my_new_biome', {
   weatherAffinity: ['temperate'],
   terrainElevation: null,
   moistureBias: 0,
-  supportsFloatingIslands: false,
 });
 ```
 

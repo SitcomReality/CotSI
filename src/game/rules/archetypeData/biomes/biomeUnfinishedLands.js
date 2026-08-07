@@ -26,7 +26,6 @@ defineArchetype('biome_unfinished_lands', {
   // Raw, half-formed terrain: lots of mountains, barren, incomplete
   terrainRules: {
     mountainThreshold:      0.44,
-    peakThreshold:          0.55,
     hillElevationMin:       0.08,
     forestMinMoisture:      0.80,
     denseForestMinMoisture: 0.90,
@@ -50,11 +49,10 @@ defineArchetype('biome_unfinished_lands', {
     hill:     [0.580, 0.550, 0.520],  // washed grey-brown
     plateau:  [0.550, 0.520, 0.500],  // unfinished grey
     mountain: [0.520, 0.500, 0.480],  // pale incomplete rock
-    peak:     [0.680, 0.700, 0.720],  // cold pale
     water:    [0.400, 0.480, 0.580],  // desaturated blue
     ice:      [0.650, 0.680, 0.720],  // pale teal
     beach:    [0.750, 0.700, 0.620],  // faded half-formed sand
   },
-  terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid', 'temperate'],
 });

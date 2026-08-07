@@ -63,8 +63,9 @@ test('seed variance: different seeds produce different maps', () => {
 });
 
 test('terrain budget: wide snapshot ranges hold at r=14', () => {
-  // Wide ranges from dev/futureWork.md §4.8 — tight ranges
-  // come later once thresholds are recalibrated.
+  // Ranges recalibrated 2026-08-07 after the peak/floatingIsland removal
+  // (mountain is now the scarce capstone; plateau fills the former highland
+  // band). Mirrors the TOLERANCE ranges in dev/analysis/generation/snapshotTest.js.
   for (const seed of ['budget-a', 'budget-b', 'budget-c']) {
     const tiles = generateTiles(seed, RADIUS);
     const total = Object.keys(tiles).length;
@@ -74,13 +75,10 @@ test('terrain budget: wide snapshot ranges hold at r=14', () => {
     assert.ok(water >= 0.06 && water <= 0.20, `seed ${seed} water ${water.toFixed(3)} out of [6%,20%]`);
 
     const mountain = pct(tiles, 'mountain');
-    assert.ok(mountain >= 0.03 && mountain <= 0.15, `seed ${seed} mountain ${mountain.toFixed(3)} out of [3%,15%]`);
+    assert.ok(mountain >= 0 && mountain <= 0.06, `seed ${seed} mountain ${mountain.toFixed(3)} out of [0%,6%]`);
 
-    const peak = pct(tiles, 'peak');
-    assert.ok(peak >= 0 && peak <= 0.05, `seed ${seed} peak ${peak.toFixed(3)} out of [0%,5%]`);
-
-    const island = pct(tiles, 'floatingIsland');
-    assert.ok(island >= 0 && island <= 0.02, `seed ${seed} floatingIsland ${island.toFixed(3)} out of [0%,2%]`);
+    const plateau = pct(tiles, 'plateau');
+    assert.ok(plateau >= 0.03 && plateau <= 0.18, `seed ${seed} plateau ${plateau.toFixed(3)} out of [3%,18%]`);
   }
 });
 

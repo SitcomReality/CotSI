@@ -9,8 +9,6 @@ const BRIDGE_COST = {
   water: 1,
   ice: 1,
   mountain: 2,
-  peak: 4,
-  // floatingIsland omitted → defaults to 100 (avoid)
 };
 
 /**

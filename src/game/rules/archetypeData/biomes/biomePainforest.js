@@ -1,6 +1,6 @@
 /**
  * biomePainforest.js — 'Painforest' biome.
- * Wet temperate biome with abundant fruit trees, deep lush greenery, and floating islands.
+ * Wet temperate biome with abundant fruit trees and deep lush greenery.
  */
 
 import { defineArchetype } from '../../archetypes.js';
@@ -22,7 +22,7 @@ defineArchetype('biome_painforest', {
     desertMaxMoisture: 0.08,
     marshMinMoisture: 0.50,
     marshMaxElevation: 0.40,
-    mountainThreshold: 0.55,
+    mountainThreshold: 0.65,
   },
 
   // Painforest: abundant fruit trees + decorative trees + bushes on low-moisture tiles
@@ -45,12 +45,10 @@ defineArchetype('biome_painforest', {
     hill:          [0.400, 0.580, 0.300],  // mossy green
     plateau:       [0.500, 0.520, 0.430],  // mossy grey
     mountain:      [0.480, 0.520, 0.450],  // mossy gray
-    peak:          [0.650, 0.700, 0.750],  // moss-snow blend
-    floatingIsland:[0.650, 0.750, 0.800],  // greenish float
     water:         [0.300, 0.550, 0.700],  // deeper blue
     beach:         [0.650, 0.550, 0.380],  // mossy green-tinged sand
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['rainy', 'temperate'],
 
   terrainElevation: {
@@ -58,5 +56,4 @@ defineArchetype('biome_painforest', {
     denseForest: 0.25,
     marsh: -0.08,
   },
-  supportsFloatingIslands: false,
 });

@@ -30,7 +30,7 @@ defineArchetype('biome_edenfall', {
     desertMaxMoisture:      0.15,
     marshMinMoisture:       0.60,
     marshMaxElevation:      0.35,
-    mountainThreshold:      0.50,
+    mountainThreshold:      0.60,
     waterMaxElevation:      0.10,
   },
 
@@ -57,16 +57,14 @@ defineArchetype('biome_edenfall', {
     hill:          [0.500, 0.320, 0.520],  // purple-tinted hill
     plateau:       [0.550, 0.420, 0.560],  // pale purple plateau
     mountain:      [0.480, 0.380, 0.500],  // purplish rock
-    peak:          [0.650, 0.580, 0.720],  // pale purple snow
     water:         [0.300, 0.380, 0.600],  // deep blue-purple
     beach:         [0.700, 0.550, 0.600],  // purple-tinted sand
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['temperate', 'rainy'],
 
   terrainElevation: {
     forest: 0.20,
     denseForest: 0.30,
   },
-  supportsFloatingIslands: false,
 });

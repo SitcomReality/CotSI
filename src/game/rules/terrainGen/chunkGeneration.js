@@ -178,7 +178,7 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
   };
 
   for (const [, tile] of tileMap) {
-    if (tile.terrain === 'mountain' || tile.terrain === 'peak') {
+    if (tile.terrain === 'mountain') {
       tagMountainType(tile, tileLookup);
     }
   }

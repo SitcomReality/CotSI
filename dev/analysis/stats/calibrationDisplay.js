@@ -88,9 +88,8 @@ export function formatHistogramReport(hists, seedText, radius) {
 
   lines.push('--- Noted uses ---');
   lines.push('waterMaxElevation (p12)     → target ~0.12');
-  lines.push('mountainThreshold (p90)     → top 10% elevation');
-  lines.push('peakThreshold (p97)         → top 3% elevation');
-  lines.push('floatingIsland (p99.5)      → top 0.5% elevation');
+  lines.push('mountainThreshold (p97)     → top ~3% elevation');
+  lines.push('plateauThreshold (p90)      → top ~10% elevation');
   lines.push('');
 
   return lines.join('\n');

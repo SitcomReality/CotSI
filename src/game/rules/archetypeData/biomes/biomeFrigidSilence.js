@@ -45,14 +45,12 @@ defineArchetype('biome_frigid_silence', {
     hill:          [0.520, 0.580, 0.480],  // cold olive
     plateau:       [0.550, 0.560, 0.520],  // pale grey-green
     mountain:      [0.500, 0.520, 0.500],  // cold grey
-    peak:          [0.650, 0.720, 0.780],  // bright frost
     water:         [0.350, 0.500, 0.620],  // cold blue
     ice:           [0.680, 0.780, 0.850],  // pale frost
     beach:         [0.680, 0.650, 0.580],  // cold pale grey sand
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['temperate', 'snowy'],
 
   terrainElevation: null,
-  supportsFloatingIslands: false,
 });

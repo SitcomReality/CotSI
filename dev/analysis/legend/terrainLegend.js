@@ -12,7 +12,7 @@ import { countByTile, formatCount, paletteToCss } from './legend.js';
 
 // ─── Terrain display order ────────────────────────────────────────────────
 
-export const TERRAIN_ORDER = ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water', 'ice', 'river'];
+export const TERRAIN_ORDER = ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice', 'river'];
 
 /**
  * Build HTML for terrain palette legend items.

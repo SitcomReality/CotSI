@@ -24,7 +24,7 @@ defineArchetype('biome_brass_grave', {
   },
 
   terrainRules: {
-    mountainThreshold:  0.52,
+    mountainThreshold:  0.62,
     forestMinMoisture:  0.92,
     desertMaxMoisture:  0.35,
     waterMaxElevation:  0.06,
@@ -49,11 +49,10 @@ defineArchetype('biome_brass_grave', {
     hill:     [0.620, 0.550, 0.370],  // brass-toned brown
     plateau:  [0.550, 0.480, 0.380],  // dark oxidized brass
     mountain: [0.580, 0.450, 0.320],  // dark oxidized brass
-    peak:     [0.750, 0.680, 0.550],  // pale brass highlight
     water:    [0.350, 0.450, 0.500],  // murky metallic blue
     ice:      [0.600, 0.680, 0.720],  // cold brass-teal
     beach:    [0.780, 0.680, 0.480],  // warm brass-tinged sand
   },
-  terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'peak', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid'],
 });

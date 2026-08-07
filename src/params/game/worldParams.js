@@ -167,11 +167,13 @@ export const SEA_LEVEL_ELEVATION = 0;
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_TERRAIN_RULES = {
-  // Elevation thresholds — derived from 500-seed × 4-radius batch (batch 011, moisture k/radius scaling)
+  // Elevation thresholds — derived from 500-seed × 4-radius batch (batch 011,
+  // moisture k/radius scaling). peak/floatingIsland removed 2026-08-07:
+  // mountainThreshold moved to p97 (new capstone) and plateauThreshold added
+  // at p90 (highland floor) — see dev/calibration_v1.json.
   waterMaxElevation:        0.1200, // p12 — ~12% water coverage
-  mountainThreshold:        0.4800, // p90 — top 10% elevation
-  peakThreshold:            0.5800, // p97 — top 3% elevation (subset of mountain)
-  floatingIslandThreshold:  0.6600, // p99.5 — top 0.5% elevation
+  mountainThreshold:        0.5600, // p97 — top ~3% elevation (mountain capstone)
+  plateauThreshold:         0.4800, // p90 — highland floor for plateau
   marshMaxElevation:        0.2400, // p35
   hillElevationMin:         0.3200, // p55
 
@@ -179,6 +181,13 @@ export const DEFAULT_TERRAIN_RULES = {
   // plateauSlopeMin raised from 0.40→0.50 to convert some steep mountain tiles
   // to flat high-elevation plateau, targeting 2-3% plateau coverage.
   plateauSlopeMin:          0.50,
+  // plateauSlopeMax gates the mid-highland plateau band (added 2026-08-07 with
+  // the montane-forest change): gentler than the top-band split, so the
+  // steepest high slopes fall through to montane forest/desert/hill while flat
+  // and gently-sloped highlands stay plateau. 0.95 sits just under the slope
+  // clamp (1.0) — measured 5.9% plateau / ~60% of the mid-band admitted, with
+  // the near-max steepness ~30% falling through to montane forest.
+  plateauSlopeMax:          0.95,
   hillSlopeMin:             0.25,
 
   // Moisture thresholds — derived from batch 011 (moisture k/radius scaling)

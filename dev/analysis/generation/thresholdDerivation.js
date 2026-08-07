@@ -58,9 +58,8 @@ export function generateSeeds(baseSeed, count) {
  *   Field       | Threshold               | Target percentile
  *   ------------|-------------------------|------------------
  *   Elevation   | waterMaxElevation       | p12  (12th %ile)
- *   Elevation   | mountainThreshold       | p90  (top 10%)
- *   Elevation   | peakThreshold           | p97  (top 3%)
- *   Elevation   | floatingIslandThreshold | p99.5 (top 0.5%)
+ *   Elevation   | mountainThreshold       | p97  (top ~3% — capstone)
+ *   Elevation   | plateauThreshold        | p90  (top ~10% — highland floor)
  *   Elevation   | hillElevationMin        | p55
  *   Elevation   | marshMaxElevation       | p35
  *   Moisture    | forestMinMoisture       | p72
@@ -84,22 +83,16 @@ function buildThresholds(pooledElev, pooledMoist, pooledTemp) {
       description: '12th percentile — ~12% water coverage',
     },
     mountainThreshold: {
-      value: percentileFromHistogram(pooledElev, 0.90),
-      targetPercentile: 90,
-      field: 'elevation',
-      description: '90th percentile — top 10% elevation',
-    },
-    peakThreshold: {
       value: percentileFromHistogram(pooledElev, 0.97),
       targetPercentile: 97,
       field: 'elevation',
-      description: '97th percentile — top 3% elevation',
+      description: '97th percentile — top ~3% elevation (mountain capstone)',
     },
-    floatingIslandThreshold: {
-      value: percentileFromHistogram(pooledElev, 0.995),
-      targetPercentile: 99.5,
+    plateauThreshold: {
+      value: percentileFromHistogram(pooledElev, 0.90),
+      targetPercentile: 90,
       field: 'elevation',
-      description: '99.5th percentile — top 0.5% elevation',
+      description: '90th percentile — highland floor for plateau',
     },
     hillElevationMin: {
       value: percentileFromHistogram(pooledElev, 0.55),

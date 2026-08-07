@@ -20,7 +20,7 @@ defineArchetype('biome_sere_wastes', {
   },
 
   terrainRules: {
-    mountainThreshold: 0.50,
+    mountainThreshold: 0.60,
     waterMaxElevation: 0.04,
     waterMinMoisture: 0.70,
     forestMinMoisture: 0.85,
@@ -51,17 +51,14 @@ defineArchetype('biome_sere_wastes', {
     hill:          [0.580, 0.480, 0.300],  // reddish tan
     plateau:       [0.620, 0.540, 0.420],  // warm pale grey
     mountain:      [0.580, 0.440, 0.350],  // warm reddish rock
-    peak:          [0.720, 0.680, 0.600],  // dusty pale
-    floatingIsland:[0.750, 0.700, 0.650],  // dusty float
     water:         [0.300, 0.520, 0.680],  // pale desert blue
     beach:         [0.880, 0.750, 0.520],  // bleached golden sand
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'peak', 'floatingIsland', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['arid', 'temperate'],
 
   terrainElevation: {
     mountain: 0.75,
     plains: 0.05,
   },
-  supportsFloatingIslands: false,
 });

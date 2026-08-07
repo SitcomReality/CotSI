@@ -39,7 +39,7 @@ test('TERRAIN: every entry has required fields', () => {
 test('TERRAIN: known terrain set is present', () => {
   const expected = [
     'plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau',
-    'mountain', 'peak', 'floatingIsland', 'water', 'ice', 'beach',
+    'mountain', 'water', 'ice', 'beach',
   ];
   for (const name of expected) {
     assert.ok(TERRAIN[name], `missing terrain: ${name}`);

@@ -68,9 +68,8 @@ def print_rules_override(calib):
     # Elevation-derived (sorted in same order as worldParams.js)
     elev_order = [
         ("waterMaxElevation",         "p12 target"),
-        ("mountainThreshold",         "p90 target"),
-        ("peakThreshold",             "p97 target"),
-        ("floatingIslandThreshold",   "p99.5 target"),
+        ("mountainThreshold",         "p97 target"),
+        ("plateauThreshold",          "p90 target"),
         ("hillElevationMin",          "p55 target"),
         ("marshMaxElevation",         "p35 target"),
     ]

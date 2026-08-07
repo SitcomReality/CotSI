@@ -22,8 +22,7 @@ function isAdjacentToWater(q, r, lookup) {
 /**
  * Determine terrain type from elevation, moisture, temperature, slope, and biome rules.
  *
- * Temperature gates: cold water → ice. Peaks have no temperature variant yet
- * (a snow-capped peak terrain was promised but never implemented).
+ * Temperature gates: cold water → ice.
  * Slope discriminates mountain vs plateau vs hill.
  * Tree line prevents forests above treeLineMax.
  * Uses DEFAULT_TERRAIN_RULES merged with biome-specific terrainRules.
@@ -57,18 +56,15 @@ export function classifyTerrain(elevation, moisture, temperature, slope, biomeDe
     if (isAdjacentToWater(q, r, tileLookup)) return 'beach';
   }
 
-  // Floating islands: separate phenomenon, not a mountain subtype
-  if (elevation > R.floatingIslandThreshold) return 'floatingIsland';
-
-  // Mountain vs plateau: slope discriminates.
-  // Peaks are a capstone within mountains — every peak is also above
-  // mountainThreshold, guaranteeing mountain >= peak in area.
+  // Mountains cap the elevation range (steep highland); plateaus are flat
+  // highlands that also fill the band where mountains used to begin, so the
+  // high-elevation region reads as open plateau rather than impassable peaks.
+  // The mid-band plateau is gated by plateauSlopeMax: the steepest high slopes
+  // fall through to montane forest/desert/hill instead of flat-topping.
   if (elevation > R.mountainThreshold) {
-    if (elevation > R.peakThreshold) {
-      return 'peak';
-    }
     return slope > R.plateauSlopeMin ? 'mountain' : 'plateau';
   }
+  if (elevation > R.plateauThreshold && slope <= R.plateauSlopeMax) return 'plateau';
 
   const belowTreeLine = elevation < R.treeLineMax;
 
