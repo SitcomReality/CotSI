@@ -39,6 +39,8 @@ import { GROVE_DESCRIPTOR } from './data/trees.js';
 import { HILL_DESCRIPTOR } from './data/hills.js';
 import { KNOT_DESCRIPTOR } from './data/knots.js';
 import { MOUNTAIN_DESCRIPTOR } from './data/mountains.js';
+import { biomeTintForTile } from '../biomeTint.js';
+import { coordKey } from '../../../../engine/rules/hexGrid.js';
 import {
   PLAINS_GRASS_DESCRIPTOR,
   MARSH_REEDS_DESCRIPTOR,
@@ -226,14 +228,34 @@ export function resolveDescriptorForTile(tile, occupants, visible = true) {
  * pass stays gated on `visible`. While a tile is out of sight its decor
  * resolves unoccupied (the resolvers receive `visible = false`).
  *
+ * Per-part biome tints are computed once per tile (cached per call): the
+ * tile's neighbor-blended biome colors (biomeTint.js), gated on the same
+ * `decorVisible` set — the decor analogue of the terrain blend's `explored`.
+ *
  * @param {Map|object[]} tilesOrArray - state.tiles Map or chunkTiles array
  * @param {Set<string>}  visible      - Set of "q,r" keys currently visible
  * @param {Set<string>}  occupants    - "q,r" keys of tiles with an occupant
  * @param {Set<string>}  [decorVisible=visible] - gate for terrain decorations
+ * @param {Map|null}     [biomeColors] - biome id → { primary, accent }; when
+ *        absent every part keeps its default color (no biome tint)
  * @returns {Map<string, object[]>} descriptor id → instance records
  */
-function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible = visible) {
+function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible = visible, biomeColors = null) {
   const groups = new Map();
+  // Tile lookup for the tint's neighbor averaging — the Map is used as-is, an
+  // array chunk becomes a Map (neighbors outside the chunk are simply skipped).
+  const tilesByKey = tilesOrArray instanceof Map
+    ? tilesOrArray
+    : new Map(tilesOrArray.map((t) => [coordKey(t), t]));
+
+  const tintCache = new Map();
+  const tintFor = (tile) => {
+    const key = coordKey(tile);
+    if (!tintCache.has(key)) {
+      tintCache.set(key, biomeTintForTile(tile, tilesByKey, biomeColors, decorVisible));
+    }
+    return tintCache.get(key);
+  };
 
   const runPass = (resolve, gate) => {
     collectInstances(
@@ -241,7 +263,7 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
       (tile) => resolve(tile) !== null,
       (tile, worldPos) => {
         const { descriptor, displacement } = resolve(tile);
-        const records = recordsForDescriptor(descriptor, tile, worldPos, undefined, displacement);
+        const records = recordsForDescriptor(descriptor, tile, worldPos, undefined, displacement, tintFor(tile));
         if (records.length === 0) return null;
         let list = groups.get(descriptor.id);
         if (!list) {
@@ -283,7 +305,7 @@ function buildGroups(groups) {
 
 /**
  * Build descriptor-driven feature InstancedMeshes for the current full state.
- * @param {object} state - Game state (state.tiles Map)
+ * @param {object} state - Game state (state.tiles Map, state.biomeColors Map)
  * @param {Set<string>} visible - Set of "q,r" keys currently visible
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
  * @param {Set<string>} [decorVisible=visible] - gate for terrain decorations
@@ -291,7 +313,7 @@ function buildGroups(groups) {
  * @returns {THREE.InstancedMesh[]}
  */
 export function buildDescriptorFeatureMeshes(state, visible, occupants, decorVisible = visible) {
-  return buildGroups(collectDescriptorRecords(state.tiles, visible, occupants, decorVisible));
+  return buildGroups(collectDescriptorRecords(state.tiles, visible, occupants, decorVisible, state.biomeColors ?? null));
 }
 
 /**
@@ -301,8 +323,11 @@ export function buildDescriptorFeatureMeshes(state, visible, occupants, decorVis
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
  * @param {Set<string>} [decorVisible=visible] - gate for terrain decorations
  *        (visible ∪ explored); features stay gated on `visible`
+ * @param {Map|null} [biomeColors] - biome id → { primary, accent } (state
+ *        carries it; the chunk entry point has no state, so callers pass it —
+ *        see featureMeshes.js). Absent = default part colors, no biome tint.
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decorVisible = visible) {
-  return buildGroups(collectDescriptorRecords(chunkTiles, visible, occupants, decorVisible));
+export function buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decorVisible = visible, biomeColors = null) {
+  return buildGroups(collectDescriptorRecords(chunkTiles, visible, occupants, decorVisible, biomeColors));
 }

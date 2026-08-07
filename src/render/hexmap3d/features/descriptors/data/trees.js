@@ -28,6 +28,17 @@
  * last variant's geometry (the cone) win for every canopy record — the round
  * grove bug this naming exists to prevent.
  *
+ * Biome tint (biomeColor): canopies carry a per-part influence so groves take
+ * the biome's color — the round canopy leans on the primary color (Edenfall's
+ * purple leaves), the tall conical canopy on the accent (Tundra's near-white
+ * snow pines); trunks stay brown (no biomeColor). The actual tint is the
+ * tile's neighbor-blended biome color (biomeTint.js), so an Edenfall grove
+ * beside Painforest reads diluted purple. Untouched and Painforest tiles keep
+ * the default colors (biomeTint.js returns no tint for them).
+ *
+ * Per-biome size (biomeScale): trees are stunted on Tundra (×0.85) — the
+ * mechanism the other biomes can reuse per part.
+ *
  * NOT migrated (reported parity gap, see dev/futureWork.md):
  *   - fruitTree  — the procedural fruit tree (fruitTreeRecords.js) grows 2–3
  *                  snaking trunk segments, forked branches, and fruit, all
@@ -45,6 +56,7 @@ const TRUNK_PART = {
   shape: 'cylinder',
   params: { ...TRUNK_PARAMS },
   stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, xz: false },
+  biomeScale: { biome_tundra: 0.85 }, // stunted Tundra trees (applies to groves + solitary trees)
 };
 
 /** Canopy stretch: object-level leaf variation on both axes (seeds 4/5). */
@@ -60,6 +72,8 @@ const ROUND_CANOPY = {
   transform: { lift: 0.2 },
   stretch: CANOPY_STRETCH,
   color: 0x3cb371,
+  biomeColor: { source: 'primary', influence: 0.8 }, // Edenfall's purple leaves
+  biomeScale: { biome_tundra: 0.85 },
 };
 const TALL_CANOPY = {
   id: 'canopy-tall',
@@ -68,6 +82,8 @@ const TALL_CANOPY = {
   transform: { lift: 0.22 },
   stretch: CANOPY_STRETCH,
   color: 0x2e8b57,
+  biomeColor: { source: 'accent', influence: 0.7 }, // Tundra's near-white snow pines
+  biomeScale: { biome_tundra: 0.85 },
 };
 const WIDE_CANOPY = {
   id: 'canopy-wide',
@@ -76,6 +92,8 @@ const WIDE_CANOPY = {
   transform: { lift: 0.3 },
   stretch: CANOPY_STRETCH,
   color: 0x66cdaa,
+  biomeColor: { source: 'primary', influence: 0.8 },
+  biomeScale: { biome_tundra: 0.85 },
 };
 
 /** The woods grove — the terrain decoration for forest/denseForest tiles. */

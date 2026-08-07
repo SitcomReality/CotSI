@@ -7,6 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
 import { recordsForDescriptor } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
+import { biomeTintForTile } from '../../src/render/hexmap3d/features/biomeTint.js';
 import { DISPERSED_SCALE, sunkTransform, dispersedSingleOffset } from '../../src/render/hexmap3d/features/decorEmphasis.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
@@ -256,6 +257,120 @@ test('color jitter produces per-instance colors; zero jitter keeps the base', ()
     const jCh = (b.color >> ch) & 0xff;
     assert.ok(Math.abs(jCh - baseCh) <= Math.ceil(baseCh * 0.05), `channel ${ch} out of jitter band`);
   }
+});
+
+// ── Biome tint (M5: per-part biome color influence) ─────────────────────────
+
+/** Center-placed part with a half-strength primary tint (no color jitter). */
+const TINTED = normalizeDescriptor({
+  id: 'tinted',
+  kind: 'decor',
+  displayName: 'Tinted',
+  placement: { mode: 'center' },
+  parts: [
+    { id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'primary', influence: 0.5 } },
+  ],
+});
+
+const EDEN_TILE = { q: 3, r: -2, terrain: 'forest', biomeId: 'biome_edenfall' };
+const RED_TINT = { primary: [1, 0, 0], accent: [0, 1, 0] };
+
+test('biome tint mixes the default color toward the tint by influence', () => {
+  // 0xffffff pulled halfway to pure red: r stays 255, g and b halve → 0xff8080.
+  const [record] = recordsForDescriptor(TINTED, EDEN_TILE, POS, undefined, {}, RED_TINT);
+  assert.equal(record.color, 0xff8080);
+
+  const full = normalizeDescriptor({
+    id: 'tinted-full',
+    kind: 'decor',
+    displayName: 'Tinted Full',
+    placement: { mode: 'center' },
+    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'primary', influence: 1 } }],
+  });
+  assert.equal(recordsForDescriptor(full, EDEN_TILE, POS, undefined, {}, RED_TINT)[0].color, 0xff0000);
+
+  // Influence 0 is the "default color" strength.
+  const none = normalizeDescriptor({
+    id: 'tinted-none',
+    kind: 'decor',
+    displayName: 'Tinted None',
+    placement: { mode: 'center' },
+    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'primary', influence: 0 } }],
+  });
+  assert.equal(recordsForDescriptor(none, EDEN_TILE, POS, undefined, {}, RED_TINT)[0].color, 0xffffff);
+});
+
+test('biome tint uses the accent source when named', () => {
+  const accent = normalizeDescriptor({
+    id: 'tinted-accent',
+    kind: 'decor',
+    displayName: 'Tinted Accent',
+    placement: { mode: 'center' },
+    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'accent', influence: 1 } }],
+  });
+  const [record] = recordsForDescriptor(accent, EDEN_TILE, POS, undefined, {}, RED_TINT);
+  assert.equal(record.color, 0x00ff00);
+});
+
+test('no biomeTint keeps the default color', () => {
+  const [record] = recordsForDescriptor(TINTED, EDEN_TILE, POS);
+  assert.equal(record.color, 0xffffff);
+});
+
+test('Untouched/Painforest tiles keep default colors end to end', () => {
+  // biomeTintForTile returns null for Painforest tiles, so the record keeps
+  // the default part color even with biome colors present.
+  const pain = { q: 3, r: -2, terrain: 'forest', biomeId: 'biome_painforest' };
+  const tiles = new Map([['3,-2', pain]]);
+  const colors = new Map([['biome_painforest', { primary: [0.38, 0.62, 0.28], accent: [0.16, 0.42, 0.38] }]]);
+  assert.equal(biomeTintForTile(pain, tiles, colors), null);
+  const [record] = recordsForDescriptor(TINTED, pain, POS, undefined, {}, biomeTintForTile(pain, tiles, colors));
+  assert.equal(record.color, 0xffffff);
+});
+
+// ── Per-biome size (M5: biomeScale) ─────────────────────────────────────────
+
+const SCALED = normalizeDescriptor({
+  id: 'biome-scaled',
+  kind: 'decor',
+  displayName: 'Biome Scaled',
+  placement: { mode: 'center' },
+  size: { min: 1, max: 1 },
+  parts: [
+    { id: 'p', shape: 'sphere', biomeScale: { biome_tundra: 0.85 } },
+  ],
+});
+
+test('biomeScale multiplies the part scale on matching tiles only', () => {
+  const tundra = recordsForDescriptor(SCALED, { q: 3, r: -2, terrain: 'plains', biomeId: 'biome_tundra' }, POS);
+  assert.ok(Math.abs(tundra[0].scale - 0.85) < 1e-9, `tundra scale ${tundra[0].scale}`);
+  assert.ok(Math.abs(tundra[0].scaleY - 0.85) < 1e-9, `tundra scaleY ${tundra[0].scaleY}`);
+
+  for (const tile of [
+    { q: 3, r: -2, terrain: 'plains', biomeId: 'biome_edenfall' },
+    { q: 3, r: -2, terrain: 'plains' },
+  ]) {
+    const [record] = recordsForDescriptor(SCALED, tile, POS);
+    assert.equal(record.scale, 1, `scale for ${tile.biomeId ?? 'no biome'}`);
+    assert.equal(record.scaleY, 1);
+  }
+});
+
+test('biomeScale composes with the item scale and per-axis stretch', () => {
+  const composed = normalizeDescriptor({
+    id: 'biome-composed',
+    kind: 'decor',
+    displayName: 'Biome Composed',
+    scale: 1.5,
+    placement: { mode: 'center' },
+    variation: { stretchY: [1.1, 1.1] },
+    size: { min: 1, max: 1 },
+    parts: [{ id: 'p', shape: 'sphere', biomeScale: { biome_tundra: 0.85 } }],
+  });
+  const [record] = recordsForDescriptor(composed, { q: 3, r: -2, terrain: 'plains', biomeId: 'biome_tundra' }, POS);
+  // XZ: 1.5 × 1 × 0.85; Y: 1.5 × 1.1 × 0.85.
+  assert.ok(Math.abs(record.scale - 1.5 * 0.85) < 1e-9, `x scale ${record.scale}`);
+  assert.ok(Math.abs(record.scaleY - 1.5 * 1.1 * 0.85) < 1e-9, `y scale ${record.scaleY}`);
 });
 
 // ── Legacy scatter parity (M4: simple-feature migration) ───────────────────

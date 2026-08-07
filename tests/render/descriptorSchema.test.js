@@ -492,3 +492,53 @@ test('grounding migration is idempotent and never re-runs on v3 documents', () =
   // Re-normalizing the migrated document (now schemaVersion 3) changes nothing.
   assert.deepEqual(normalizeDescriptor(once), once);
 });
+
+// ── M5 schema extensions: biomeColor + biomeScale ───────────────────────────
+
+test('part.biomeColor validates and passes through normalization', () => {
+  const ok = {
+    id: 't',
+    kind: 'decor',
+    displayName: 'T',
+    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'primary', influence: 0.8 } }],
+  };
+  assert.deepEqual(validateDescriptor(ok), []);
+  const normalized = normalizeDescriptor(ok);
+  assert.deepEqual(normalized.parts[0].biomeColor, { source: 'primary', influence: 0.8 });
+  assert.deepEqual(validateDescriptor(normalized), []);
+  // Accent source and the influence edges (0 = default color, 1 = full tint)
+  // are valid.
+  assert.deepEqual(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'accent', influence: 0 } }] }), []);
+  assert.deepEqual(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'accent', influence: 1 } }] }), []);
+});
+
+test('part.biomeColor rejects bad sources, out-of-range influence, and bad shapes', () => {
+  const base = { id: 't', kind: 'decor', displayName: 'T', parts: [{ id: 'p', shape: 'sphere' }] };
+  for (const bad of ['lime', '', 'Primary']) {
+    const errors = validateDescriptor({ ...base, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: bad, influence: 0.5 } }] });
+    assert.ok(errors.some((e) => e.includes('source')), `source ${JSON.stringify(bad)}`);
+  }
+  for (const inf of [-0.1, 1.5, 'half']) {
+    const errors = validateDescriptor({ ...base, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'primary', influence: inf } }] });
+    assert.ok(errors.length > 0, `influence ${JSON.stringify(inf)}`);
+  }
+  assert.ok(validateDescriptor({ ...base, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'primary', influence: 0.5, colour: 1 } }] })
+    .some((e) => e.includes('unknown field "colour"')));
+  assert.ok(validateDescriptor({ ...base, parts: [{ id: 'p', shape: 'sphere', biomeColor: 'purple' }] }).length > 0);
+});
+
+test('part.biomeScale validates per-biome factors and passes through', () => {
+  const ok = {
+    id: 's',
+    kind: 'decor',
+    displayName: 'S',
+    parts: [{ id: 'p', shape: 'sphere', biomeScale: { biome_tundra: 0.85, biome_edenfall: 1.1 } }],
+  };
+  assert.deepEqual(validateDescriptor(ok), []);
+  assert.deepEqual(normalizeDescriptor(ok).parts[0].biomeScale, { biome_tundra: 0.85, biome_edenfall: 1.1 });
+  for (const bad of [0, -1, 'big']) {
+    const errors = validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', biomeScale: { biome_tundra: bad } }] });
+    assert.ok(errors.length > 0, `factor ${JSON.stringify(bad)}`);
+  }
+  assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', biomeScale: 'all' }] }).length > 0);
+});

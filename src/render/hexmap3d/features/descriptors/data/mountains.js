@@ -13,6 +13,12 @@
  * (50/50 mix), not the legacy MOUNTAIN_HASH_SEEDS — per-tile assignments may
  * differ from the old render, but the range reads the same.
  *
+ * Biome tint: the mountain geometry carries per-vertex colors
+ * (mountainGeometries.js) — the material is white with vertexColors on, so a
+ * near-white instance color is the identity multiplier and keeps the current
+ * rock look; the small primary influence (0.25) tints the rock subtly toward
+ * the tile's blended biome color via instanceColor × vertexColors.
+ *
  * Emphasis 'none': mountains are never displaced.
  */
 
@@ -32,9 +38,9 @@ export const MOUNTAIN_DESCRIPTOR = {
   },
   placement: { mode: 'center' },
   emphasis: { behavior: 'none' },
-  parts: [{ id: 'peak-classic', shape: 'mountain', params: { variant: 'classic' } }],
+  parts: [{ id: 'peak-classic', shape: 'mountain', params: { variant: 'classic' }, color: 0xffffff, biomeColor: { source: 'primary', influence: 0.25 } }],
   variants: [
-    { id: 'classic', parts: [{ id: 'peak-classic', shape: 'mountain', params: { variant: 'classic' } }] },
-    { id: 'offpeak', parts: [{ id: 'peak-offpeak', shape: 'mountain', params: { variant: 'offpeak' } }] },
+    { id: 'classic', parts: [{ id: 'peak-classic', shape: 'mountain', params: { variant: 'classic' }, color: 0xffffff, biomeColor: { source: 'primary', influence: 0.25 } }] },
+    { id: 'offpeak', parts: [{ id: 'peak-offpeak', shape: 'mountain', params: { variant: 'offpeak' }, color: 0xffffff, biomeColor: { source: 'primary', influence: 0.25 } }] },
   ],
 };

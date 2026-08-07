@@ -294,6 +294,20 @@ function jitteredColor(base, jitter, tileH, i) {
 }
 
 /**
+ * Mix a default color toward a biome tint tuple (0-1 channels) by `influence`,
+ * as an integer — the per-part `biomeColor` rule: influence 0 keeps the default
+ * color, 1 fully replaces it with the blended biome color. Per-channel rounding
+ * matches jitteredColor.
+ */
+function mixTowardColor(base, tint, influence) {
+  const ch = (v) => Math.max(0, Math.min(255, Math.round(v)));
+  const r = ch(((base >> 16) & 0xff) * (1 - influence) + tint[0] * 255 * influence);
+  const g = ch(((base >> 8) & 0xff) * (1 - influence) + tint[1] * 255 * influence);
+  const b = ch((base & 0xff) * (1 - influence) + tint[2] * 255 * influence);
+  return (r << 16) | (g << 8) | b;
+}
+
+/**
  * Stretch multiplier for one axis of a part. The part's own `stretch` override
  * wins; `false` pins the axis at 1 (no stretch); otherwise the object-level
  * `variation.stretchX/Y/Z` applies. Default hash seeds: 4 for Y, 5 for X and Z
@@ -319,25 +333,28 @@ function stretchForAxis(part, descriptor, axis, tileH, i) {
  * whole item scales rigidly — the same convention addTreeRecords uses when it
  * bakes the tree scale into the canopy lift.
  */
-function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp) {
+function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint) {
   const t = part.transform;
   const scaleMul = disp?.scaleMul ?? 1;
   const jitterScale = placement.scaleMul ?? 1;
+  // Per-biome size factor — stunts (or grows) the part on tiles of specific
+  // biomes (part.biomeScale[biomeId], e.g. Tundra's stunted trees).
+  const biomeFactor = part.biomeScale?.[tile.biomeId] ?? 1;
 
   // Per-part non-uniform scale, then the per-axis stretch (part override or
   // the object's variation ranges), then the scatter size jitter. X and Z are
   // independent; symmetric parts emit no scaleZ (meshBuilder falls back to
   // `scale`), so existing records are unchanged.
-  const sx = itemScale * scaleMul * jitterScale * t.scaleX * stretchForAxis(part, descriptor, 'x', tileH, i);
-  const sz = itemScale * scaleMul * jitterScale * t.scaleZ * stretchForAxis(part, descriptor, 'z', tileH, i);
+  const sx = itemScale * scaleMul * jitterScale * t.scaleX * stretchForAxis(part, descriptor, 'x', tileH, i) * biomeFactor;
+  const sz = itemScale * scaleMul * jitterScale * t.scaleZ * stretchForAxis(part, descriptor, 'z', tileH, i) * biomeFactor;
   // Mountain-type height rule: scaleY comes from the tile's mountainType tag
   // (peak/slope/normal) instead of the stretch ranges — the mountainMeshes
   // builder's mountainScale(). Item scale stays 1 on XZ.
   const byType = descriptor.size.byMountainType;
   const bucket = byType?.[tile.mountainType];
   const sy = bucket
-    ? itemScale * scaleMul * t.scaleY * lerp(bucket.min, bucket.max, frac(treeHash(tileH, i + 3)))
-    : itemScale * scaleMul * jitterScale * t.scaleY * stretchForAxis(part, descriptor, 'y', tileH, i);
+    ? itemScale * scaleMul * t.scaleY * lerp(bucket.min, bucket.max, frac(treeHash(tileH, i + 3))) * biomeFactor
+    : itemScale * scaleMul * jitterScale * t.scaleY * stretchForAxis(part, descriptor, 'y', tileH, i) * biomeFactor;
 
   // Bottom-anchored grounding: bake the shape's base offset (scaled by the
   // record's Y scale) into the pivot, so the part's lowest vertex lands at
@@ -383,6 +400,19 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
   // (recordsForEntity) — the tile path has no entity to resolve them, so they
   // are skipped here rather than fed into the color-jitter bit math.
 
+  // Per-part biome tint: pull the (already jittered) default toward the tile's
+  // blended biome color by `biomeColor.influence` (0 = default, 1 = full tint).
+  // `biomeTint` is null when the tile has no tint (biomeTint.js returns null
+  // for Untouched/Painforest tiles and for tiles with no known biome colors),
+  // which keeps the default color.
+  if (part.biomeColor && biomeTint && record.color !== undefined) {
+    const influence = Math.min(1, Math.max(0, part.biomeColor.influence ?? 0));
+    const tint = biomeTint[part.biomeColor.source];
+    if (influence > 0 && tint) {
+      record.color = mixTowardColor(record.color, tint, influence);
+    }
+  }
+
   return record;
 }
 
@@ -394,9 +424,12 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
  * @param {object} worldPos   - { x, y, z } hex center in world space (y = tile surface)
  * @param {number} [tileH]    - precomputed tile hash (defaults to tileHash(tile))
  * @param {object} [displacement] - { displaced?: boolean, hidden?: boolean }
+ * @param {object} [biomeTint] - { primary, accent } blended biome color tuples
+ *        (biomeTint.js); parts with a `biomeColor` influence mix toward it.
+ *        null/undefined keeps every part's default color.
  * @returns {object[]} instance records tagged with partId ([] when hidden)
  */
-export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}) {
+export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null) {
   if (displacement.hidden) return [];
   const count = itemCount(descriptor, tile, tileH);
   if (displacement.displaced && descriptor.emphasis.behavior === 'hidden') return [];
@@ -414,7 +447,7 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
     const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, frac(treeHash(tileH, i + 3)));
     const placement = itemPlacement(descriptor, i, count, tileH, disp, jitter);
     for (const part of parts) {
-      records.push(recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp));
+      records.push(recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint));
     }
   }
   return records;

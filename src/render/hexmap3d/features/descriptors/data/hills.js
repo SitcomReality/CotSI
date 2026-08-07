@@ -15,7 +15,7 @@ export const HILL_DESCRIPTOR = {
   displayName: 'Hill Mound',
   placement: { mode: 'center' },
   emphasis: { behavior: 'sunk' },
-  material: { color: 0x7a8f5a }, // HILL_DECOR.color
+  material: { color: 0xffffff }, // turf rides the instance-color path (part.color)
   parts: [
     {
       id: 'mound',
@@ -27,6 +27,8 @@ export const HILL_DESCRIPTOR = {
         thetaLength: Math.PI / 2, // top hemisphere
       },
       transform: { scaleY: 0.28 / 0.42 }, // HILL_DECOR.height / radius flattening
+      color: 0x7a8f5a, // HILL_DECOR.color
+      biomeColor: { source: 'primary', influence: 0.3 }, // subtle biome tint on the turf
     },
   ],
 };

@@ -393,9 +393,54 @@ export function validateTransform(transform, path, errors) {
   }
 }
 
-const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch'];
+const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale'];
 
 const STRETCH_AXES = ['x', 'y', 'z', 'xz']; // 'xz' is the legacy combined axis
+
+/**
+ * Biome tint sources a part may pull from. `primary` tints toward the biome's
+ * primary color, `accent` toward its accent color (e.g. Tundra leaves use the
+ * near-white accent to read as snow). The influence strength is 0..1, where 0
+ * keeps the part's default color (also the behavior in Untouched and
+ * Painforest, whose tiles never tint).
+ */
+const BIOME_COLOR_SOURCES = ['primary', 'accent'];
+
+/**
+ * Validate a part's `biomeColor` — the per-part biome tint: which biome color
+ * it targets and how strongly the tile's blended biome color replaces the
+ * part's default color. Optional; absent = no biome tint.
+ */
+function validateBiomeColor(biomeColor, path, errors) {
+  if (!isPlainObject(biomeColor)) {
+    errors.push(`${path}: must be an object { source, influence }`);
+    return;
+  }
+  for (const key of Object.keys(biomeColor)) {
+    if (key !== 'source' && key !== 'influence') errors.push(`${path}: unknown field "${key}"`);
+  }
+  if (biomeColor.source !== undefined && !BIOME_COLOR_SOURCES.includes(biomeColor.source)) {
+    errors.push(`${path}.source: must be one of ${BIOME_COLOR_SOURCES.join(', ')}`);
+  }
+  if (biomeColor.influence !== undefined && !(isFiniteNumber(biomeColor.influence) && biomeColor.influence >= 0 && biomeColor.influence <= 1)) {
+    errors.push(`${path}.influence: must be a number in [0, 1]`);
+  }
+}
+
+/**
+ * Validate a part's `biomeScale` — optional per-biome size factors: a map of
+ * biome id → positive multiplier applied to the part's scale on tiles of that
+ * biome (e.g. Tundra's stunted trees). Optional; absent = scale 1 everywhere.
+ */
+function validateBiomeScale(biomeScale, path, errors) {
+  if (!isPlainObject(biomeScale)) {
+    errors.push(`${path}: must be an object of biome id → positive number`);
+    return;
+  }
+  for (const [biomeId, factor] of Object.entries(biomeScale)) {
+    if (!isPositiveNumber(factor)) errors.push(`${path}.${biomeId}: must be a positive number`);
+  }
+}
 
 /**
  * Validate a part's optional `stretch` overrides — per-axis variation ranges
@@ -463,6 +508,8 @@ export function validatePart(part, path, errors) {
     errors.push(`${path}${label}: materialColor must be an integer 0..0xFFFFFF`);
   }
   if (part.stretch !== undefined) validateStretch(part.stretch, `${path}${label}.stretch`, errors);
+  if (part.biomeColor !== undefined) validateBiomeColor(part.biomeColor, `${path}${label}.biomeColor`, errors);
+  if (part.biomeScale !== undefined) validateBiomeScale(part.biomeScale, `${path}${label}.biomeScale`, errors);
   for (const key of Object.keys(part)) {
     if (!PART_KEYS.includes(key)) errors.push(`${path}${label}: unknown field "${key}"`);
   }
