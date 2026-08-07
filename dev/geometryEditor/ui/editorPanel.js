@@ -371,9 +371,10 @@ function renderPartInspector(container, part) {
   }
 
   container.append(subheading('Transform'));
+  container.append(el('div', 'hint', 'Y / Lift are bottom heights — 0 = sitting on the ground. The part\'s lowest vertex lands at Y + Lift (+ localPos.y).'));
   const t = part.transform;
-  container.append(row('Y', numberInput(t.y, { onChange: (v) => mutate(() => { t.y = v; }) })));
-  container.append(row('Lift', numberInput(t.lift, { onChange: (v) => mutate(() => { t.lift = v; }) })));
+  container.append(row('Y (bottom height)', numberInput(t.y, { onChange: (v) => mutate(() => { t.y = v; }) })));
+  container.append(row('Lift (bottom height)', numberInput(t.lift, { onChange: (v) => mutate(() => { t.lift = v; }) })));
   container.append(row('rotY (rad)', numberInput(t.rotY, { onChange: (v) => mutate(() => { t.rotY = v; }) })));
 
   container.append(subheading('Scale'));
