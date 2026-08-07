@@ -11,6 +11,7 @@ import {
   biomeDistribution,
   terrainDistribution,
   featureCounts,
+  featureTierBands,
   mountainAnalysis,
   waterAnalysis,
   entityStats,
@@ -62,6 +63,15 @@ export function formatStats() {
 
   lines.push('');
   lines.push(`Features:  trees=${featCounts.trees}  fruit=${featCounts.fruitTrees}  knots=${featCounts.knots}  bases=${featCounts.bases}  bushes=${featCounts.bushes}  chests=${featCounts.chests}`);
+
+  // Feature composition by distance band (featureDesign.md §3 — tiered placement)
+  const tierBands = featureTierBands(tiles, radius);
+  lines.push('Feature tiers by band (inner/mid/outer = thirds of the radius):');
+  for (const b of tierBands) {
+    const rate = b.passable > 0 ? (b.features / b.passable * 100).toFixed(1) : '0.0';
+    lines.push(`  ${b.label.padEnd(6)} T1=${String(b.counts.T1).padStart(3)} T2=${String(b.counts.T2).padStart(3)} T3=${String(b.counts.T3).padStart(3)} T4=${String(b.counts.T4).padStart(3)}   feat/hex ${rate}%`);
+  }
+
   lines.push(`Mountains: total=${mtStats.total}  peaks=${mtStats.peaks}  slopes=${mtStats.slopes}  isolated=${mtStats.isolated}`);
   lines.push(`Water:     total=${wtStats.total}  lakes=${wtStats.lakes}  oceans=${wtStats.oceans}`);
   lines.push('');

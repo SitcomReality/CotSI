@@ -32,13 +32,13 @@ defineArchetype('biome_brass_grave', {
 
   features: [
     // Rare unique features
-    { kind: 'volvelle',       threshold: 0.99, compare: 'gt', terrainExclude: [] },
-    { kind: 'censerSaint',    threshold: 0.98, compare: 'gt', terrainExclude: [] },
+    { kind: 'volvelle',       threshold: 0.99, compare: 'gt', terrainExclude: [], tier: 'T3' },
+    { kind: 'censerSaint',    threshold: 0.98, compare: 'gt', terrainExclude: [], tier: 'T3' },
     // Decorative features
-    { kind: 'scoriaRose',     threshold: 0.95, compare: 'gt', terrainExclude: ['ice'] },
-    { kind: 'cinderbloom',    threshold: 0.92, compare: 'gt', terrainExclude: ['ice'] },
+    { kind: 'scoriaRose',     threshold: 0.95, compare: 'gt', terrainExclude: ['ice'], tier: 'T2' },
+    { kind: 'cinderbloom',    threshold: 0.92, compare: 'gt', terrainExclude: ['ice'], tier: 'T2' },
     // Treasure chest — any-biome collectible
-    { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [] },
+    { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
     // Resources
     { kind: 'knot',           threshold: 0.08, compare: 'lt' },
   ],

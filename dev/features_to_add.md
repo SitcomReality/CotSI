@@ -1,4 +1,4 @@
-Tier 1: Unique mechanics, strong theme, fills a real gap
+Group 1: Unique mechanics, strong theme, fills a real gap
 Palimpsest Slab — Reveal. Perfectly on-theme (palimpsest = overwritten page), uses a simple read/unread state machine. Gives Untouched and Unfinished Lands a feature with genuine exploration utility. Low wiring cost: one reveal-radius call into the existing fog-of-war system, one cooldown timer copied from moonberry-tree regrowth.
 
 Volvelle — Buff (sight+attack). An astrolabe that "computes you" — extremely thematic for Brass Grave (brass instruments, buried computation). Fills that biome's void with something scarce, valuable, and weird. Moderate wiring cost (apply temporary stats to champion), but the pattern is reusable across all buff features that follow.
@@ -17,7 +17,7 @@ Errata Slip — Terrain change. Thematically perfect for Unfinished Lands (edito
 
 Red-Letter Bramble — ~~Damage hazard~~ — **cut (Aug 2026):** no obstacles in the game; purely negative tiles were removed.
 
-Tier 2: Strong but not as cool, or modest overlap
+Group 2: Strong but not as cool, or modest overlap
 Gilded Initial — Beautiful theme (illuminated capital letter), buff mechanic. Fits Untouched and Unfinished Lands. Moderate wiring (buff system), but the visual would be iconic. Worth doing after the buff pipeline exists.
 
 Peridexion Tree — Bestiary reference, heal+buff. The shadow-of-the-peridexion defense buff is a nice twist. Overlaps somewhat with fruit trees mechanically but the added buff makes it distinct.

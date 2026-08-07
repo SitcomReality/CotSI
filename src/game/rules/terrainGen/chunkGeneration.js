@@ -18,7 +18,7 @@ import { applySupernaturalOverrides } from './placement/epicenterPlacement.js';
 import { tagMountainType } from './tagging/mountainTagging.js';
 import { waterTypeForTile } from './tagging/waterTagging.js';
 import { featureDensity, canSpawnFruitTree } from './features/featureDensity.js';
-import { spawnFeature } from './features/featureSpawning.js';
+import { centerDistance01, spawnFeature } from './features/featureSpawning.js';
 
 /**
  * Generate all global (q, r) coordinates within a chunk expanded by ringWidth.
@@ -200,7 +200,12 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
       tile.terrain, tile.elevationField, tile.moisture, tile.slope, treeLineMax
     );
     const roll = seededNoise(seed, tile.q, tile.r, NOISE_CHANNEL_FEATURES);
-    let feature = spawnFeature(roll, tile.terrain, density, features);
+    // Tiered banding context: distance from map center + per-rule gate rolls.
+    const spawnOptions = {
+      seed, q: tile.q, r: tile.r,
+      dist01: centerDistance01(tile.q, tile.r, radius),
+    };
+    let feature = spawnFeature(roll, tile.terrain, density, features, spawnOptions);
 
     // Fruit tree climate gate: if conditions aren't suitable, fall through to
     // the remaining feature rules with the same roll (keeps determinism) so a
@@ -209,7 +214,8 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
       if (!canSpawnFruitTree(tile.elevationField, tile.moisture, treeLineMax)) {
         feature = spawnFeature(
           roll, tile.terrain, density,
-          features.filter((rule) => rule.kind !== 'fruitTree')
+          features.filter((rule) => rule.kind !== 'fruitTree'),
+          spawnOptions
         );
       }
     }

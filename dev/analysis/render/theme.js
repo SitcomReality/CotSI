@@ -72,7 +72,7 @@ export const FEATURES = {
   chest:     { radius: 1.8, fill: '#c8a020' },
   bush:      { radius: 1.2, fill: '#5a8a3a' },
 
-  // Tier 1 features
+  // Group 1 features
   palimpsestSlab:      { radius: 2.0, fill: '#c8c0a8' },
   volvelle:            { radius: 2.0, fill: '#d4b830' },
   foolsFire:           { radius: 1.5, fill: '#40d0e0' },
@@ -81,7 +81,7 @@ export const FEATURES = {
   waxbloom:            { radius: 1.5, fill: '#a0d8e8' },
   errataSlip:          { radius: 2.0, fill: '#f0e8d0' },
 
-  // Tier 2 features
+  // Group 2 features
   gildedInitial:       { radius: 2.5, fill: '#d8b830' },
   peridexionTree:      { radius: 2.5, fill: '#1a5a0a' },
   listenerLichen:      { radius: 1.5, fill: '#80c0a0' },

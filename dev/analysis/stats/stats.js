@@ -11,6 +11,7 @@ export {
   biomeDistribution,
   terrainDistribution,
   featureCounts,
+  featureTierBands,
   mountainAnalysis,
   waterAnalysis,
 } from './tileStats.js';

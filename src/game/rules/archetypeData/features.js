@@ -61,7 +61,7 @@ defineArchetype('feature_bush', {
   visual: { scale: 1.5 },
 });
 
-// ── Tier 1: Unique mechanics, strong theme ─────────────────────────────────────
+// ── Group 1: Unique mechanics, strong theme ─────────────────────────────────────
 
 defineArchetype('feature_palimpsestSlab', {
   type: 'feature',
@@ -119,7 +119,7 @@ defineArchetype('feature_errataSlip', {
   visual: { scale: 1.2 },
 });
 
-// ── Tier 2: Strong but simpler, or modest overlap ──────────────────────────────
+// ── Group 2: Strong but simpler, or modest overlap ──────────────────────────────
 
 defineArchetype('feature_gildedInitial', {
   type: 'feature',

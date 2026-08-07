@@ -36,10 +36,10 @@ defineArchetype('biome_edenfall', {
 
   features: [
     // Giant mushrooms — rarest first
-    { kind: 'edenMushroom',          threshold: 0.970, compare: 'gt', terrainExclude: ['desert', 'marsh'] },
-    { kind: 'edenShroomlet',         threshold: 0.920, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'edenMushroom',          threshold: 0.970, compare: 'gt', terrainExclude: ['desert', 'marsh'], tier: 'T2' },
+    { kind: 'edenShroomlet',         threshold: 0.920, compare: 'gt', terrainExclude: ['desert'], tier: 'T2' },
     // Treasure chest — any-biome collectible
-    { kind: 'chest',                 threshold: 0.900, compare: 'gt', terrainExclude: [] },
+    { kind: 'chest',                 threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     // Standard features
     { kind: 'fruitTree',             threshold: 0.890, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'tree',                  threshold: 0.830, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },

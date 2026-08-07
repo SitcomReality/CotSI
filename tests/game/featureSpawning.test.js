@@ -4,9 +4,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnFeature } from '../../src/game/rules/terrainGen/features/featureSpawning.js';
+import { spawnFeature, tierAcceptance, centerDistance01 } from '../../src/game/rules/terrainGen/features/featureSpawning.js';
 import { canSpawnFruitTree, featureDensity } from '../../src/game/rules/terrainGen/features/featureDensity.js';
-import { KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_MOD } from '../../src/params/game/worldParams.js';
+import { KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_MOD, FEATURE_TIERS } from '../../src/params/game/worldParams.js';
 
 test('spawnFeature: returns null when no rule matches', () => {
   const features = [{ kind: 'tree', threshold: 0.9, compare: 'gt' }];
@@ -110,4 +110,89 @@ test('featureDensity: forest is denser with more moisture', () => {
   const dry = featureDensity('forest', 0.2, 0.75, 0.05, 0.6);
   const wet = featureDensity('forest', 0.2, 1.0, 0.05, 0.6);
   assert.ok(wet >= dry, 'wetter forest should have density ≥ drier forest');
+});
+
+// ── Tiered + banded placement (featureDesign.md §3) ───────────────────────
+
+test('tierAcceptance: T1 is uniform, T2/T3 ramp toward the center', () => {
+  const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} ≈ ${b}`);
+  // T1 (the default tier) accepts everywhere.
+  assert.equal(tierAcceptance('T1', 0, FEATURE_TIERS), 1);
+  assert.equal(tierAcceptance('T1', 0.5, FEATURE_TIERS), 1);
+  assert.equal(tierAcceptance('T1', 1, FEATURE_TIERS), 1);
+  // T2: gate 0.55 at the edge, linear to 1.0 at the center.
+  near(tierAcceptance('T2', 1, FEATURE_TIERS), 0.55);
+  near(tierAcceptance('T2', 0.5, FEATURE_TIERS), 0.775);
+  assert.equal(tierAcceptance('T2', 0, FEATURE_TIERS), 1);
+  // T3 ramps harder: gate 0.2 at the edge.
+  near(tierAcceptance('T3', 1, FEATURE_TIERS), 0.2);
+  near(tierAcceptance('T3', 0.5, FEATURE_TIERS), 0.6);
+  assert.equal(tierAcceptance('T3', 0, FEATURE_TIERS), 1);
+});
+
+test('tierAcceptance: T4 is center-only', () => {
+  const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} ≈ ${b}`);
+  assert.equal(tierAcceptance('T4', 0.6, FEATURE_TIERS), 0, 'beyond the inner radius');
+  assert.equal(tierAcceptance('T4', 0.5, FEATURE_TIERS), 0, 'at the inner boundary');
+  near(tierAcceptance('T4', 0.25, FEATURE_TIERS), 0.5);
+  assert.equal(tierAcceptance('T4', 0, FEATURE_TIERS), 1);
+});
+
+test('tierAcceptance: missing or unknown tier behaves as T1', () => {
+  assert.equal(tierAcceptance(undefined, 1, FEATURE_TIERS), 1);
+  assert.equal(tierAcceptance('T9', 1, FEATURE_TIERS), 1);
+  assert.equal(tierAcceptance('T9', 0, FEATURE_TIERS), 1);
+});
+
+test('centerDistance01: normalized distance from the map center', () => {
+  assert.equal(centerDistance01(0, 0, 14), 0);
+  assert.equal(centerDistance01(14, 0, 14), 1);
+  assert.equal(centerDistance01(0, 14, 14), 1);
+  assert.equal(centerDistance01(7, 7, 14), 1, 'corner hex sits at distance 14');
+  assert.equal(centerDistance01(7, 0, 14), 0.5);
+  assert.equal(centerDistance01(7, 0, 0), 0, 'zero radius guards the division');
+});
+
+test('spawnFeature: a T4 rule never fires beyond its inner radius', () => {
+  const features = [{ kind: 'ouroborosLoop', threshold: 0.999, compare: 'gt', tier: 'T4' }];
+  for (let s = 0; s < 200; s++) {
+    const f = spawnFeature(0.9999, 'plains', 0, features, { seed: s, q: s, r: 2 * s, dist01: 0.8 });
+    assert.equal(f, null, `T4 rule must not spawn at dist01 0.8 (seed ${s})`);
+  }
+});
+
+test('spawnFeature: a rejected tier gate falls through to a lower-priority rule', () => {
+  // At the edge the T3 gate (0.2) rejects the rule ~80% of the time; the
+  // lower-priority T1 rule then gets its chance with the same roll. Every
+  // tree win proves the fallthrough.
+  const features = [
+    { kind: 'foolsFire', threshold: 0.5, compare: 'gt', tier: 'T3' },
+    { kind: 'tree', threshold: 0.5, compare: 'gt' },
+  ];
+  let treeWins = 0;
+  for (let s = 0; s < 300; s++) {
+    const f = spawnFeature(0.9, 'plains', 0, features, { seed: s, q: s, r: s * 3, dist01: 1 });
+    if (f?.kind === 'tree') treeWins++;
+  }
+  assert.ok(treeWins > 100, `expected the fallback tree to win often at the edge (got ${treeWins})`);
+});
+
+test('spawnFeature: T3 fires far more at the center than at the edge', () => {
+  const features = [{ kind: 'foolsFire', threshold: 0.5, compare: 'gt', tier: 'T3' }];
+  let center = 0;
+  let edge = 0;
+  for (let s = 0; s < 400; s++) {
+    if (spawnFeature(0.9, 'plains', 0, features, { seed: s, q: s, r: 0, dist01: 0 })) center++;
+    if (spawnFeature(0.9, 'plains', 0, features, { seed: s, q: s, r: 0, dist01: 1 })) edge++;
+  }
+  assert.equal(center, 400, 'gate 1 at the center → the rule always matches');
+  assert.ok(edge < center * 0.5, `edge fires should be ~20% of the center (got ${edge})`);
+});
+
+test('spawnFeature: without options the tier gate is skipped (legacy behavior)', () => {
+  const features = [{ kind: 'foolsFire', threshold: 0.5, compare: 'gt', tier: 'T4' }];
+  for (let s = 0; s < 50; s++) {
+    assert.equal(spawnFeature(0.9, 'plains', 0, features)?.kind, 'foolsFire',
+      'no options → no gating → the rule behaves as T1');
+  }
 });

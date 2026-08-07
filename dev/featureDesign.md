@@ -66,7 +66,18 @@ expiry, and per-feature regrow timers where reuse makes sense.
 | T1 | Common, small direct rewards | uniform | God's Knot, Moonberry Tree |
 | T2 | Uncommon, moderate direct | mild ramp toward center | Treasure Chest, Vegetable Lamb, renewable knot/heal |
 | T3 | Rare, choices / relics / potencies / temp buffs | strong center bias (rare near edge) | Palimpsest Slab, Null Lily, Saint's Rib |
-| T4 | Very rare, richest center rewards | center only | *open — likely a small set of choice landmarks* |
+| T4 | Very rare, richest center rewards | center only | Errata Slip, Ouroboros Loop, Half-Drawn Obelisk |
+
+**Implemented (Aug 2026)** in `featureSpawning.js` + `FEATURE_TIERS` (worldParams.js):
+each tier gates its rules by normalized distance from the map center; a rejected
+gate falls through to the next rule, so more common features fill the edge.
+Concrete values: `T1 {gate 1.0}`, `T2 {gate 0.55}`, `T3 {gate 0.2}`, `T4 {gate 0,
+inner 0.5}` — i.e. T2/T3 ramp linearly to full acceptance at the center, and T4
+spawns only inside the inner half of the map. Rules carry their tier on the
+biome feature rule (`tier: 'T3'`); rules without one behave as T1 (scenery and
+knot/moonberry are untiered). The per-rule gate rolls use their own noise
+channel (`NOISE_CHANNEL_FEATURE_TIER` + rule index), so gating is deterministic
+and independent of the spawn roll.
 
 Banding is a placement-density function of distance from map center, applied per tier (details in
 the terrain-gen phase). Scenery (trees, bushes) is not tiered — it is decor, not collectible.

@@ -19,6 +19,8 @@ export const MAX_LOG_ENTRIES = 100;
 
 /** Noise channel index for feature sprinkling. */
 export const NOISE_CHANNEL_FEATURES = 4;
+/** Noise channel base for tiered feature-placement gating (per-rule salt = base + rule index). */
+export const NOISE_CHANNEL_FEATURE_TIER = 5;
 /** Mountain peak classification: minimum mountain-neighbor count (out of 6). */
 export const MOUNTAIN_PEAK_MIN_NEIGHBORS = 4;
 /** Water-type classification: max BFS depth for lake-vs-ocean check. */
@@ -220,6 +222,25 @@ export const FEATURE_DENSITY = {
   marshMoistFactor:    0.4,  // marsh density: moisture × this
   desertMoistFactor:   0.15, // desert density: moisture × this
   fruitTreeMinMoisture: 0.60, // fruit-tree climate gate
+};
+
+// ---------------------------------------------------------------------------
+// Tiered + banded feature placement (featureSpawning.js; featureDesign.md §3)
+// Better features are more frequent toward the map center. Each tier gates its
+// features by distance from the map center:
+//   gate  — acceptance probability at the map edge (0 = never at the edge);
+//           ramps linearly to 1.0 at the center.
+//   inner — fraction of the map radius inside which the tier can spawn at all
+//           (1.0 = everywhere). Outside `inner` the gate is 0.
+// T1 is uniform (gate 1.0); T2 ramps mildly; T3 ramps strongly; T4 spawns
+// only inside the inner half of the map. Rules without a `tier` field are T1.
+// ---------------------------------------------------------------------------
+
+export const FEATURE_TIERS = {
+  T1: { gate: 1.0, inner: 1.0 },
+  T2: { gate: 0.55, inner: 1.0 },
+  T3: { gate: 0.2, inner: 1.0 },
+  T4: { gate: 0.0, inner: 0.5 },
 };
 
 // ---------------------------------------------------------------------------

@@ -9,6 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateTiles } from '../../src/game/rules/terrainGen/flatGeneration.js';
 import { generateChunkTiles } from '../../src/game/rules/terrainGen/chunkGeneration.js';
+import { centerDistance01 } from '../../src/game/rules/terrainGen/features/featureSpawning.js';
 import { computeRainShadow } from '../../src/game/rules/terrainGen/classification/moistureAdjustment.js';
 import { assignRiverFlows } from '../../src/game/rules/terrainGen/postProcess/waterRules.js';
 import { applyRiverTerrain } from '../../src/game/rules/terrainGen/rivers/riverTerrain.js';
@@ -198,6 +199,50 @@ test('spawn-range hexes are all within the disc', () => {
     const [q, r] = key.split(',').map(Number);
     assert.ok(distance({ q, r }, { q: 0, r: 0 }) <= RADIUS, `tile ${key} outside radius`);
   }
+});
+
+test('tiered placement: T4 signature features spawn only inside the inner half', () => {
+  // ouroborosLoop is Sere Wastes' T4 signature — center-only by the banding
+  // rule. It must never appear on a tile beyond half the map radius.
+  const biomeDef = getArchetype('biome_sere_wastes');
+  const tiles = generateTiles('tier-t4-seed', RADIUS, biomeDef);
+  let inner = 0;
+  for (const key of Object.keys(tiles)) {
+    if (tiles[key].feature?.kind !== 'ouroborosLoop') continue;
+    const [q, r] = key.split(',').map(Number);
+    const d01 = centerDistance01(q, r, RADIUS);
+    assert.ok(d01 <= 0.5, `T4 ouroborosLoop must stay inside the inner half (${key} at ${d01.toFixed(2)})`);
+    inner++;
+  }
+  assert.ok(inner > 0, 'expected at least one ouroborosLoop inside the inner half');
+});
+
+test('tiered placement: better features concentrate near the map center', () => {
+  // Synthetic biome with identical thresholds — the only difference is the
+  // tier. The T3 feature should be far more center-heavy than the T1 one.
+  const biomeDef = {
+    id: 'test_tiers',
+    terrainRules: {},
+    features: [
+      { kind: 'foolsFire', threshold: 0.5, compare: 'gt', tier: 'T3' },
+      { kind: 'tree', threshold: 0.5, compare: 'gt' },
+    ],
+  };
+  const radius = 12;
+  const tiles = generateTiles('tier-concentration-seed', radius, biomeDef);
+  let centerFire = 0, outerFire = 0, centerTree = 0, outerTree = 0;
+  for (const key of Object.keys(tiles)) {
+    const [q, r] = key.split(',').map(Number);
+    const kind = tiles[key].feature?.kind;
+    const center = centerDistance01(q, r, radius) <= 0.5;
+    if (kind === 'foolsFire') center ? centerFire++ : outerFire++;
+    else if (kind === 'tree') center ? centerTree++ : outerTree++;
+  }
+  const fireRatio = centerFire / Math.max(1, outerFire);
+  const treeRatio = centerTree / Math.max(1, outerTree);
+  assert.ok(fireRatio > treeRatio,
+    `T3 center:outer ${centerFire}:${outerFire} (${fireRatio.toFixed(2)}) should beat ` +
+    `T1 ${centerTree}:${outerTree} (${treeRatio.toFixed(2)})`);
 });
 
 // ---------------------------------------------------------------------------

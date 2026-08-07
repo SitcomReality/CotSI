@@ -35,12 +35,12 @@ defineArchetype('biome_unfinished_lands', {
   },
 
   features: [
-    { kind: 'errataSlip',       threshold: 0.99, compare: 'gt', terrainExclude: [] },
-    { kind: 'gildedInitial',    threshold: 0.98, compare: 'gt', terrainExclude: [] },
-    { kind: 'palimpsestSlab',   threshold: 0.96, compare: 'gt', terrainExclude: [] },
-    { kind: 'halfDrawnObelisk', threshold: 0.95, compare: 'gt', terrainExclude: [] },
-    { kind: 'nullLily',         threshold: 0.93, compare: 'gt', terrainExclude: [] },
-    { kind: 'chest',            threshold: 0.90, compare: 'gt', terrainExclude: [] },
+    { kind: 'errataSlip',       threshold: 0.99, compare: 'gt', terrainExclude: [], tier: 'T4' },
+    { kind: 'gildedInitial',    threshold: 0.98, compare: 'gt', terrainExclude: [], tier: 'T3' },
+    { kind: 'palimpsestSlab',   threshold: 0.96, compare: 'gt', terrainExclude: [], tier: 'T3' },
+    { kind: 'halfDrawnObelisk', threshold: 0.95, compare: 'gt', terrainExclude: [], tier: 'T4' },
+    { kind: 'nullLily',         threshold: 0.93, compare: 'gt', terrainExclude: [], tier: 'T3' },
+    { kind: 'chest',            threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'knot',             threshold: 0.03, compare: 'lt' },
   ],
 

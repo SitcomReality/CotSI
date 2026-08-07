@@ -30,9 +30,9 @@ defineArchetype('biome_frigid_silence', {
 
   // Frigid: very sparse — cold stunts growth
   features: [
-    { kind: 'waxbloom',       threshold: 0.97, compare: 'gt', terrainExclude: [] },
-    { kind: 'listenerLichen', threshold: 0.94, compare: 'gt', terrainExclude: [] },
-    { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [] },
+    { kind: 'waxbloom',       threshold: 0.97, compare: 'gt', terrainExclude: [], tier: 'T2' },
+    { kind: 'listenerLichen', threshold: 0.94, compare: 'gt', terrainExclude: [], tier: 'T3' },
+    { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'knot',           threshold: 0.05, compare: 'lt' },
   ],
 
