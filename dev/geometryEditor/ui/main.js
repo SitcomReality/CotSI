@@ -16,6 +16,14 @@ import { ENTITY_KINDS, entityForSelection } from '../entityView.js';
 const PREVIEW_TILE = { q: 1, r: 0, terrain: 'forest' };
 const ORIGIN = { x: 0, y: 0, z: 0 };
 
+/** Categories the user collapsed; browser re-renders preserve the choice. */
+const collapsedCategories = new Set();
+
+/** True while the loaded descriptor came from JSON, not a built-in sample. */
+function isCustomDescriptor() {
+  return !!S.descriptor && !SAMPLE_OBJECTS.some((d) => d.id === S.descriptor.id);
+}
+
 /** The variant currently shown in the preview — entity kinds pick by selection. */
 function activeVariant() {
   const d = S.descriptor;
@@ -64,20 +72,67 @@ function updateEntityMode() {
   els.rerollRow.style.display = entity ? 'none' : '';
 }
 
+// ── Object browser ──────────────────────────────────────────────────────────
+
+/** One row in the object list. `descriptor` only needs id + displayName. */
+function objectItem(descriptor, selected) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'dobj-item' + (selected ? ' selected' : '');
+  btn.dataset.value = descriptor.id;
+  btn.textContent = descriptor.displayName;
+  return btn;
+}
+
 /**
- * Rebuild the object <select> options from SAMPLE_OBJECTS, grouped by category
- * (Features / Terrain Decor / Faction / Creatures) and filtered by the search
- * input. The custom (loaded) option is always kept on top.
+ * A collapsible category group. Collapse state is tracked in
+ * `collapsedCategories` so re-renders (filter, selection) preserve it;
+ * searching forces every group open so matches are never hidden.
  */
-function renderObjectOptions(filterText = '') {
+function categoryGroup(category, members, selectedId, query) {
+  const group = document.createElement('details');
+  group.className = 'category';
+  if (query) {
+    collapsedCategories.delete(category.id);
+    group.open = true;
+  } else {
+    group.open = !collapsedCategories.has(category.id);
+  }
+  group.addEventListener('toggle', () => {
+    if (group.open) collapsedCategories.delete(category.id);
+    else collapsedCategories.add(category.id);
+  });
+
+  const head = document.createElement('summary');
+  head.textContent = category.label;
+  const count = document.createElement('span');
+  count.className = 'category-count';
+  count.textContent = String(members.length);
+  head.append(count);
+  group.append(head);
+
+  for (const d of members) group.append(objectItem(d, d.id === selectedId));
+  return group;
+}
+
+/**
+ * Rebuild the object browser from SAMPLE_OBJECTS, grouped by category
+ * (Features / Terrain Decor / Faction / Creatures) and filtered by the search
+ * input. The custom (loaded) item is pinned on top while the current descriptor
+ * is not one of the samples.
+ */
+function renderObjectList(filterText = '') {
   const query = filterText.trim().toLowerCase();
-  els.objectSelect.textContent = '';
+  els.objectList.textContent = '';
 
-  const custom = document.createElement('option');
-  custom.value = '';
-  custom.textContent = '— custom (loaded) —';
-  els.objectSelect.appendChild(custom);
+  if (isCustomDescriptor()) {
+    const custom = objectItem({ id: '', displayName: 'Custom (loaded)' }, true);
+    custom.classList.add('custom');
+    els.objectList.append(custom);
+  }
 
+  const selectedId = S.descriptor?.id ?? null;
+  let matched = 0;
   for (const category of OBJECT_CATEGORIES) {
     const members = SAMPLE_OBJECTS
       .filter((d) => categoryOf(d) === category)
@@ -85,47 +140,32 @@ function renderObjectOptions(filterText = '') {
       .sort((a, b) => a.displayName.localeCompare(b.displayName));
 
     if (members.length === 0) continue;
-
-    const group = document.createElement('optgroup');
-    group.label = `${category.label} (${members.length})`;
-    for (const descriptor of members) {
-      const opt = document.createElement('option');
-      opt.value = descriptor.id;
-      opt.textContent = descriptor.displayName;
-      group.appendChild(opt);
-    }
-    els.objectSelect.appendChild(group);
+    matched += members.length;
+    els.objectList.append(categoryGroup(category, members, selectedId, query));
   }
 
-  // Restore the current selection when it survives the filter; otherwise fall
-  // back to the custom option (the preview keeps rendering S.descriptor).
-  const current = SAMPLE_OBJECTS.find((d) => d.id === S.descriptor?.id);
-  if (current && els.objectSelect.value !== current.id) {
-    const matching = [...els.objectSelect.options].find((o) => o.value === current.id);
-    if (matching) els.objectSelect.value = current.id;
-    else els.objectSelect.value = '';
-  }
-
-  const resultCount = [...els.objectSelect.options].filter((o) => o.value !== '').length;
-  if (els.objectFilterCount) {
-    els.objectFilterCount.textContent = query
-      ? `${resultCount} of ${SAMPLE_OBJECTS.length}`
-      : `${SAMPLE_OBJECTS.length} objects`;
-  }
+  els.objectFilterCount.textContent = query
+    ? `${matched} of ${SAMPLE_OBJECTS.length}`
+    : `${SAMPLE_OBJECTS.length} objects`;
 }
 
 function populateObjects() {
-  renderObjectOptions();
+  renderObjectList();
   els.objectFilter.addEventListener('input', () => {
-    renderObjectOptions(els.objectFilter.value);
+    renderObjectList(els.objectFilter.value);
   });
 }
 
 function bindControls() {
-  els.objectSelect.addEventListener('change', () => {
-    S.descriptor = SAMPLE_OBJECTS.find((d) => d.id === els.objectSelect.value) ?? SAMPLE_OBJECTS[0];
+  els.objectList.addEventListener('click', (e) => {
+    const item = e.target.closest('.dobj-item');
+    if (!item || item.dataset.value === '') return; // custom row is already active
+    const next = SAMPLE_OBJECTS.find((d) => d.id === item.dataset.value);
+    if (!next) return;
+    S.descriptor = next;
+    S.selectedPartId = null; // the new object's parts start unselected
     // Keep the archetype selection valid for the new object (stale values fall
-    // back to the first variant in the record path, but the select should show
+    // back to the first variant in the record path, but the browser should show
     // what the preview actually renders).
     if (ENTITY_KINDS.has(S.descriptor.kind)) {
       const ids = (S.descriptor.variants ?? []).map((v) => v.id);
@@ -134,6 +174,7 @@ function bindControls() {
     updateEntityMode();
     refreshEditorPanel();
     rebuild();
+    renderObjectList(els.objectFilter.value);
   });
 
   els.occupiedCheck.addEventListener('change', () => {
@@ -152,10 +193,10 @@ function init() {
   populateObjects();
   bindControls();
   S.descriptor = SAMPLE_OBJECTS[0];
-  els.objectSelect.value = S.descriptor.id;
+  renderObjectList();
   updateEntityMode();
   createPreview(els.canvas);
-  bindEditorPanel(els, rebuild);
+  bindEditorPanel(els, rebuild, () => renderObjectList(els.objectFilter.value));
   rebuild();
 }
 

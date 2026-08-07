@@ -1,17 +1,11 @@
-/* controls.css — editor control panel styling (token-driven).
+/* controls.css — form controls + contextual inspector styling (token-driven).
    Follows the game's aesthetic conventions: dark proscenium chrome,
    Rubik display headings, Outfit body, ink-faint tertiary text,
    state via glow (box-shadow) rather than CSS outline. */
 
-/* ── Page header ──────────────────────────────────────────────────────────── */
+/* ── Chrome header ────────────────────────────────────────────────────────── */
 
-.page-header {
-  padding-bottom: var(--s3);
-  margin-bottom: var(--s4);
-  border-bottom: 1px solid var(--crease);
-}
-
-.page-header h1 {
+.chrome-title h1 {
   font-family: var(--font-display);
   font-size: var(--fs-lg);
   font-weight: 700;
@@ -25,22 +19,75 @@
   color: var(--ink-faint);
 }
 
-/* ── Sections ─────────────────────────────────────────────────────────────── */
-
-.control-group {
-  margin-bottom: var(--s5);
+.chrome-actions {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s1);
 }
 
-.control-group h2 {
-  font-family: var(--font-display);
+.chrome-actions-row {
+  display: flex;
+  gap: var(--s2);
+}
+
+/* Load JSON is a styled label wrapping a hidden file input. */
+.load-btn {
+  display: inline-flex;
+  align-items: center;
   font-size: var(--fs-sm);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: var(--ls-cap);
-  color: var(--ink-mid);
-  padding-bottom: var(--s1);
+  color: var(--ink);
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-radius: var(--r-sm);
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.load-btn:hover {
+  background: color-mix(in srgb, var(--board-hi) 80%, var(--ink-mid));
+}
+
+/* ── Inspector header ─────────────────────────────────────────────────────── */
+
+.inspector-head {
+  padding-bottom: var(--s2);
   margin-bottom: var(--s3);
   border-bottom: 1px solid var(--crease);
+}
+
+.inspector-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.inspector-meta {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+.breadcrumb {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--s1);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--cerulean);
+  font-size: var(--fs-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.breadcrumb:hover {
+  background: transparent;
+  color: var(--ink);
 }
 
 /* ── Control rows ─────────────────────────────────────────────────────────── */
@@ -62,27 +109,6 @@
 .control-row.hint {
   color: var(--ink-faint);
   font-size: var(--fs-xs);
-}
-
-/* ── Object filter ────────────────────────────────────────────────────────── */
-
-.filter-row {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  margin-bottom: var(--s2);
-}
-
-.filter-row input {
-  flex: 1;
-  min-width: 0;
-}
-
-.filter-count {
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--ink-faint);
 }
 
 /* ── Form controls ────────────────────────────────────────────────────────── */
@@ -136,24 +162,9 @@ button:disabled {
   color: var(--ink-faint);
 }
 
-/* ── Preview readout ──────────────────────────────────────────────────────── */
+/* ── Inspector field sizing ───────────────────────────────────────────────── */
 
-.info-panel {
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  line-height: var(--lh);
-  color: var(--ink-mid);
-  background: var(--board);
-  border: 1px solid var(--crease);
-  border-radius: var(--r-sm);
-  padding: var(--s2) var(--s3);
-  white-space: pre-line;
-}
-
-/* ── Dynamic editor panel ─────────────────────────────────────────────────── */
-
-#object-edit input[type="number"],
-#part-inspector input[type="number"] {
+#inspector input[type="number"] {
   width: 84px;
   padding: 4px 6px;
   border-radius: var(--r-sm);
@@ -163,7 +174,7 @@ button:disabled {
   font-size: var(--fs-xs);
 }
 
-#object-edit input[type="color"] {
+#inspector input[type="color"] {
   width: 44px;
   height: 26px;
   padding: 1px;
@@ -172,9 +183,8 @@ button:disabled {
   background: var(--shadow);
 }
 
-#object-edit select,
-#parts-edit select,
-#part-inspector select {
+#inspector select,
+#parts-edit select {
   max-width: 150px;
 }
 
@@ -242,5 +252,7 @@ button:disabled {
 /* ── Project errors ───────────────────────────────────────────────────────── */
 
 #load-error {
+  max-width: 300px;
   color: var(--crimson);
+  text-align: right;
 }

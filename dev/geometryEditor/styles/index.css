@@ -3,4 +3,6 @@
 @import "../../../styles/abstracts/variables.css";
 @import "./reset.css";
 @import "./layout.css";
+@import "./browser.css";
 @import "./controls.css";
+@import "./overlay.css";

@@ -8,72 +8,63 @@
 </head>
 <body>
   <div id="geometry-root">
-    <!-- Controls panel -->
-    <aside id="controls">
-      <header class="page-header">
+    <!-- Top chrome: title + project actions (never scrolls away) -->
+    <header id="chrome">
+      <div class="chrome-title">
         <h1>CotSI Geometry Editor</h1>
         <p class="page-subtitle">Descriptor preview &amp; editing</p>
-      </header>
-
-      <section class="control-group">
-        <h2>Object</h2>
-        <div class="filter-row">
-          <input type="text" id="object-filter" placeholder="Filter objects…" spellcheck="false" autocomplete="off">
-          <span class="filter-count" id="object-filter-count"></span>
-        </div>
-        <div class="control-row">
-          <label for="object-select">Design</label>
-          <select id="object-select"></select>
-        </div>
-        <div class="control-row" id="occupied-row">
-          <label>
-            <input type="checkbox" id="occupied-check">
-            Occupied — center claimed
+      </div>
+      <div class="chrome-actions">
+        <div class="chrome-actions-row">
+          <button id="download-btn">⬇ Download JSON</button>
+          <label class="load-btn">
+            Load JSON
+            <input type="file" id="load-file" accept=".json,.txt" hidden>
           </label>
         </div>
-        <div class="control-row" id="reroll-row">
-          <button id="reroll-btn">↻ Re-roll variation</button>
-        </div>
-      </section>
+        <div id="load-error" class="info"></div>
+      </div>
+    </header>
 
-      <section class="control-group">
-        <h2>Edit Design</h2>
-        <div id="object-edit"></div>
-      </section>
+    <!-- Object + parts browser -->
+    <aside id="browser">
+      <div class="browser-head">
+        <h2>Objects</h2>
+        <span class="filter-count" id="object-filter-count"></span>
+      </div>
+      <div class="filter-row">
+        <input type="text" id="object-filter" placeholder="Filter objects…" spellcheck="false" autocomplete="off">
+      </div>
+      <nav id="object-list" aria-label="Object designs"></nav>
 
-      <section class="control-group">
+      <section class="parts-section">
         <h2>Parts</h2>
         <div id="parts-edit"></div>
       </section>
-
-      <section class="control-group">
-        <h2>Selected Part</h2>
-        <div id="part-inspector"></div>
-      </section>
-
-      <section class="control-group">
-        <h2>Project</h2>
-        <div class="control-row">
-          <button id="download-btn">⬇ Download JSON</button>
-        </div>
-        <div class="control-row">
-          <label for="load-file">Load JSON</label>
-          <input type="file" id="load-file" accept=".json,.txt">
-        </div>
-        <div id="load-error" class="info"></div>
-      </section>
-
-      <section class="control-group">
-        <h2>Preview</h2>
-        <div class="control-row hint">Drag to orbit · scroll to zoom</div>
-        <div id="info" class="info info-panel">Loading…</div>
-      </section>
     </aside>
 
+    <!-- Contextual inspector: object-level design or selected-part params -->
+    <main id="inspector"></main>
+
     <!-- 3D preview area -->
-    <main id="viewport">
+    <section id="viewport">
       <canvas id="preview-canvas"></canvas>
-    </main>
+
+      <div id="preview-tools">
+        <label id="occupied-row">
+          <input type="checkbox" id="occupied-check">
+          Occupied — center claimed
+        </label>
+        <div id="reroll-row">
+          <button id="reroll-btn">↻ Re-roll variation</button>
+        </div>
+      </div>
+
+      <div id="preview-hud">
+        <div class="hint">Drag to orbit · scroll to zoom</div>
+        <div id="info" class="info info-panel">Loading…</div>
+      </div>
+    </section>
   </div>
 
   <script type="module" src="./geometryEditor/ui/main.js"></script>

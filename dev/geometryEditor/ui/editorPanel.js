@@ -1,12 +1,13 @@
 /**
  * editorPanel.js — Editing controls for the geometry editor page.
  *
- * Renders the object-level fields (cluster min/max, size min/max, emphasis
- * behavior, placement mode + per-mode params, material color), the part list
- * (add / remove / reorder / select), and an inspector for the selected part
- * (shape params + transform). Every change mutates S.descriptor (normalized)
- * in place, then calls onEdit() so the preview rebuilds, and re-renders the
- * panel.
+ * Renders a contextual inspector into `#inspector`: object-level fields
+ * (cluster min/max, size min/max, emphasis behavior, placement mode + per-mode
+ * params, material color, or the entity faction/archetype pickers) when no
+ * part is selected, and the selected part's shape params + transform when one
+ * is. The parts list (add / remove / reorder / select) lives in `#parts-edit`.
+ * Every change mutates S.descriptor (normalized) in place, then calls onEdit()
+ * so the preview rebuilds, and re-renders the panel.
  *
  * Shape params come straight from the SHAPE_TYPES registry, so the editor
  * always offers exactly the fields the generic builder understands.
@@ -24,6 +25,7 @@ import { FACTIONS } from '../../../src/game/rules/factionData.js';
 
 let els = null;
 let onEdit = () => {};
+let onLoaded = () => {};
 let partCounter = 1;
 
 // ── Tiny DOM helpers ────────────────────────────────────────────────────────
@@ -147,7 +149,6 @@ function renderEntityControls(container) {
 }
 
 function renderObjectControls(container) {
-  container.textContent = '';
   const d = S.descriptor;
 
   if (ENTITY_KINDS.has(d.kind)) {
@@ -276,18 +277,36 @@ function renderPartsList(container) {
   });
 }
 
-// ── Part inspector (shape params + transform) ───────────────────────────────
+// ── Inspector (object-level OR selected-part fields) ────────────────────────
 
-function renderInspector(container) {
-  container.textContent = '';
+/** Inspector header for object-level editing: name + id/kind meta. */
+function renderObjectHeader(container) {
   const d = S.descriptor;
-  const part = activeParts().find((p) => p.id === S.selectedPartId);
-  if (!part) {
-    container.append(el('div', 'hint', 'Select a part to edit its shape params and transform.'));
-    return;
-  }
+  const head = el('div', 'inspector-head');
+  head.append(el('div', 'inspector-title', d.displayName));
+  head.append(el('div', 'inspector-meta', `${d.id} · ${d.kind}`));
+  container.append(head);
+}
 
-  container.append(el('div', 'info', `${part.id} — ${part.shape}`));
+/** Inspector header for part editing: breadcrumb back to the object. */
+function renderPartHeader(container, part) {
+  const d = S.descriptor;
+  const head = el('div', 'inspector-head');
+  const back = el('button', 'breadcrumb', `← ${d.displayName}`);
+  back.type = 'button';
+  back.title = 'Back to object-level controls';
+  back.addEventListener('click', () => {
+    S.selectedPartId = null;
+    renderAll();
+  });
+  head.append(back);
+  head.append(el('div', 'inspector-title', `${part.id} · ${part.shape}`));
+  container.append(head);
+}
+
+function renderPartInspector(container, part) {
+  const d = S.descriptor;
+  renderPartHeader(container, part);
   const shape = SHAPE_TYPES[part.shape];
 
   for (const [key, rule] of Object.entries(shape.params)) {
@@ -301,7 +320,7 @@ function renderInspector(container) {
     }
   }
 
-  container.append(el('h3', 'section-title', 'Transform'));
+  container.append(subheading('Transform'));
   const t = part.transform;
   container.append(row('Y', numberInput(t.y, { onChange: (v) => mutate(() => { t.y = v; }) })));
   container.append(row('Lift', numberInput(t.lift, { onChange: (v) => mutate(() => { t.lift = v; }) })));
@@ -309,7 +328,7 @@ function renderInspector(container) {
   container.append(row('scaleXZ', numberInput(t.scaleXZ, { min: 0.01, onChange: (v) => mutate(() => { t.scaleXZ = v; }) })));
   container.append(row('scaleY', numberInput(t.scaleY, { min: 0.01, onChange: (v) => mutate(() => { t.scaleY = v; }) })));
 
-  container.append(el('h3', 'section-title', 'Stretch variation'));
+  container.append(subheading('Stretch variation'));
   container.append(el('div', 'hint', 'Per-axis variation ranges for this part; "follow object" uses the object-level ranges, "fixed" pins the axis at 1.'));
   if (ENTITY_KINDS.has(d.kind)) {
     container.append(el('div', 'hint', 'Entity parts ignore stretch variation — entities have no per-tile hash draws.'));
@@ -339,6 +358,25 @@ function renderInspector(container) {
   }
 }
 
+/**
+ * Render the contextual inspector: the selected part's fields when one is
+ * selected, otherwise the object-level design controls.
+ */
+function renderInspector(container) {
+  container.textContent = '';
+  const d = S.descriptor;
+  if (!d) return;
+
+  const part = activeParts().find((p) => p.id === S.selectedPartId);
+  if (part) {
+    renderPartInspector(container, part);
+    return;
+  }
+
+  renderObjectHeader(container);
+  renderObjectControls(container);
+}
+
 // ── Project save / load ─────────────────────────────────────────────────────
 
 function bindProjectControls() {
@@ -366,10 +404,10 @@ function bindProjectControls() {
         }
         S.descriptor = normalizeDescriptor(parsed);
         S.selectedPartId = null;
-        els.objectSelect.value = ''; // no longer a built-in sample
         els.loadError.textContent = '';
         renderAll();
         onEdit();
+        onLoaded(); // object browser shows the Custom (loaded) item
       } catch (err) {
         els.loadError.textContent = `Load failed: ${err.message}`;
       }
@@ -382,19 +420,20 @@ function bindProjectControls() {
 // ── Public API ──────────────────────────────────────────────────────────────
 
 function renderAll() {
-  renderObjectControls(els.objectEdit);
   renderPartsList(els.partsEdit);
-  renderInspector(els.partInspector);
+  renderInspector(els.inspector);
 }
 
 /**
  * Bind the editing panel to its DOM containers and the preview rebuild hook.
- * @param {object} elsRef - the editor's DOM refs (objectEdit, partsEdit, partInspector, downloadBtn, loadFile, loadError)
+ * @param {object} elsRef - the editor's DOM refs (inspector, partsEdit, downloadBtn, loadFile, loadError)
  * @param {Function} onEditFn - () => void; rebuilds the preview from S.descriptor
+ * @param {Function} onLoadedFn - () => void; called after a JSON load succeeds (re-renders the object browser)
  */
-export function bindEditorPanel(elsRef, onEditFn) {
+export function bindEditorPanel(elsRef, onEditFn, onLoadedFn = () => {}) {
   els = elsRef;
   onEdit = onEditFn;
+  onLoaded = onLoadedFn;
   bindProjectControls();
   renderAll();
 }

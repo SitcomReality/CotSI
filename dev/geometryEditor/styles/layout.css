@@ -1,20 +1,53 @@
-/* layout.css — two-column page grid: controls left, 3D viewport right */
+/* layout.css — three-pane page grid: browser | inspector | 3D viewport,
+   with a chrome header spanning the two left panes. Each pane scrolls on its
+   own, so a tall editing section can't push the rest off-screen. */
 #geometry-root {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 230px 310px 1fr;
+  grid-template-rows: auto 1fr;
   height: 100vh;
 }
 
-#controls {
-  overflow-y: auto;
-  padding: var(--s4) var(--s4) var(--s6);
-  border-right: 1px solid var(--crease);
+#chrome {
+  grid-column: 1 / 3;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s3) var(--s4);
   background: var(--shadow);
+  border-right: 1px solid var(--crease);
+  border-bottom: 1px solid var(--crease);
+  min-width: 0;
+}
+
+#browser {
+  grid-column: 1;
+  grid-row: 2;
+  overflow-y: auto;
+  padding: var(--s3) var(--s3) var(--s6);
+  background: var(--shadow);
+  border-right: 1px solid var(--crease);
+  min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
+}
+
+#inspector {
+  grid-column: 2;
+  grid-row: 2;
+  overflow-y: auto;
+  padding: var(--s3) var(--s4) var(--s6);
+  background: var(--shadow);
+  border-right: 1px solid var(--crease);
+  min-width: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--crease-bold) transparent;
 }
 
 #viewport {
+  grid-column: 3;
+  grid-row: 1 / 3;
   position: relative;
   min-width: 0;
   background: var(--abyss);

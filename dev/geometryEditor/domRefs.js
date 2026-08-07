@@ -5,7 +5,7 @@
 export const els = {};
 
 export function cacheDom() {
-  els.objectSelect = document.getElementById('object-select');
+  els.objectList = document.getElementById('object-list');
   els.objectFilter = document.getElementById('object-filter');
   els.objectFilterCount = document.getElementById('object-filter-count');
   els.occupiedCheck = document.getElementById('occupied-check');
@@ -16,9 +16,8 @@ export function cacheDom() {
   els.viewport = document.getElementById('viewport');
   els.canvas = document.getElementById('preview-canvas');
 
-  els.objectEdit = document.getElementById('object-edit');
+  els.inspector = document.getElementById('inspector');
   els.partsEdit = document.getElementById('parts-edit');
-  els.partInspector = document.getElementById('part-inspector');
   els.downloadBtn = document.getElementById('download-btn');
   els.loadFile = document.getElementById('load-file');
   els.loadError = document.getElementById('load-error');

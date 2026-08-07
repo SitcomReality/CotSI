@@ -1,0 +1,144 @@
+/* browser.css — object + parts navigation pane (left column).
+   Follows the game's aesthetic conventions: dark proscenium chrome, uppercase
+   display subheads, selection via gold backlight glow, chevron disclosure
+   like the analysis page's collapsible panels. */
+
+/* ── Browser header + search ─────────────────────────────────────────────── */
+
+.browser-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+
+.browser-head h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-mid);
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+
+.filter-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-count {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+/* ── Category groups ─────────────────────────────────────────────────────── */
+
+#object-list {
+  margin-bottom: var(--s4);
+}
+
+.category {
+  border-top: 1px solid var(--crease);
+}
+
+.category + .category {
+  margin-top: var(--s1);
+}
+
+.category summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s1) var(--s2);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-faint);
+  user-select: none;
+}
+
+.category summary::-webkit-details-marker {
+  display: none;
+}
+
+.category summary::before {
+  content: '▸';
+  font-size: var(--fs-xs);
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.category[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.category-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+/* ── Object items ────────────────────────────────────────────────────────── */
+
+.dobj-item {
+  display: block;
+  width: 100%;
+  padding: 3px var(--s2) 3px var(--s4);
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-mid);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.dobj-item:hover {
+  background: var(--board-hi);
+  color: var(--ink);
+}
+
+.dobj-item.selected {
+  color: var(--ink);
+  background: var(--board-hi);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent);
+}
+
+/* The loaded-from-JSON item — pinned above the samples, slightly distinct. */
+.dobj-item.custom {
+  padding-left: var(--s2);
+  font-style: italic;
+  color: var(--ink);
+}
+
+/* ── Parts section ───────────────────────────────────────────────────────── */
+
+.parts-section {
+  border-top: 1px solid var(--crease);
+  padding-top: var(--s3);
+}
+
+.parts-section h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-mid);
+  margin-bottom: var(--s2);
+}

@@ -1,0 +1,74 @@
+/* overlay.css — viewport overlays: preview tools (top-left) + HUD (bottom-left).
+   Containers are click-through so orbit-drag works anywhere on the canvas;
+   interactive children re-enable pointer events. */
+
+#preview-tools,
+#preview-hud {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ── Preview tools (occupied toggle + re-roll) ───────────────────────────── */
+
+#preview-tools {
+  top: var(--s3);
+  left: var(--s3);
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+#preview-tools label,
+#preview-tools button {
+  pointer-events: auto;
+}
+
+#preview-tools label {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+  background: color-mix(in srgb, var(--shadow) 85%, transparent);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  padding: 4px var(--s2);
+  cursor: pointer;
+  user-select: none;
+}
+
+#preview-tools label:hover {
+  color: var(--ink);
+}
+
+#preview-tools input[type="checkbox"] {
+  accent-color: var(--cerulean);
+}
+
+/* ── HUD (orbit hint + record readout) ───────────────────────────────────── */
+
+#preview-hud {
+  bottom: var(--s3);
+  left: var(--s3);
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+#preview-hud .hint {
+  color: var(--ink-faint);
+  text-shadow: 0 1px 2px var(--abyss);
+}
+
+#preview-hud .info-panel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: var(--lh);
+  color: var(--ink-mid);
+  background: color-mix(in srgb, var(--shadow) 85%, transparent);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  padding: var(--s2) var(--s3);
+  white-space: pre-line;
+}

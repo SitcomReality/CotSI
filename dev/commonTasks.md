@@ -16,7 +16,7 @@
 
 ## Add a New Feature via the Geometry Editor
 
-1. Serve the repo root (`python3 -m http.server`) and open `dev/geometryEditor.html`. Pick a similar object in the object select, or edit any descriptor into your shape (parts, cluster/size ranges, emphasis, material). Use **Occupied** to preview the displaced state.
+1. Serve the repo root (`python3 -m http.server`) and open `dev/geometryEditor.html`. Pick a similar object in the object list, or edit any descriptor into your shape (parts, cluster/size ranges, emphasis, material). Use **Occupied** to preview the displaced state.
 2. **Download JSON** — saves `<id>.descriptor.json` (the full descriptor).
 3. Add the gameplay archetype if needed: entry in `src/game/rules/archetypeData/features.js` whose `kind` matches the descriptor `id`.
 4. Register the descriptor in `src/render/hexmap3d/features/descriptors/data/` — the JSON is JSON-safe, so paste it as a JS object literal into a data file (single-part features can use the `simpleFeature()` helper in `simpleFeatures.js`), then import it and add it to `ALL_DESCRIPTORS` in `data/index.js`.
@@ -26,7 +26,7 @@
 
 Entities (faction bases, champions, mobs, traders) are entity-driven descriptors: one object per hex, placed at the center, with variants and colors picked from entity state instead of the tile hash. The editor supports them the same way as features:
 
-1. Open `dev/geometryEditor.html`. Pick the entity in the object select — the occupied/re-roll controls disappear (entities are occupants, not displaced decor) and an **Entity** panel appears.
+1. Open `dev/geometryEditor.html`. Pick the entity in the object list — the occupied/re-roll controls disappear (entities are occupants, not displaced decor) and an **Entity** panel appears.
 2. Pick the variant: **Faction** (bases/champions — also sets the palette colors) and/or **Archetype** (mobs — picks the shape variant). Traders have one fixed look.
 3. Edit parts as usual — edits target the active variant's parts (the parts the preview shows). Entity parts ignore stretch variation (no per-tile hash draws).
 4. **Download JSON** — the export includes the full descriptor with all variants, so it is drop-in compatible with the data files.
