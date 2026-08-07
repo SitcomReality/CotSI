@@ -22,6 +22,12 @@
  * center height — lift = old center − shape base (round sphere r 0.3: 0.5 →
  * 0.2; tall cone h 0.72: 0.58 → 0.22; wide cone h 0.3: 0.45 → 0.3).
  *
+ * Canopy part ids are unique per variant (canopy-round / canopy-tall /
+ * canopy-wide) per the convention documented in data/mountains.js: the mesh
+ * assembler resolves each record's part by id, so shared ids would let the
+ * last variant's geometry (the cone) win for every canopy record — the round
+ * grove bug this naming exists to prevent.
+ *
  * NOT migrated (reported parity gap, see dev/futureWork.md):
  *   - fruitTree  — the procedural fruit tree (fruitTreeRecords.js) grows 2–3
  *                  snaking trunk segments, forked branches, and fruit, all
@@ -48,7 +54,7 @@ const CANOPY_STRETCH = {
 };
 
 const ROUND_CANOPY = {
-  id: 'canopy',
+  id: 'canopy-round',
   shape: 'sphere',
   params: { radius: 0.3, wSegs: 6, hSegs: 4 },
   transform: { lift: 0.2 },
@@ -56,7 +62,7 @@ const ROUND_CANOPY = {
   color: 0x3cb371,
 };
 const TALL_CANOPY = {
-  id: 'canopy',
+  id: 'canopy-tall',
   shape: 'cone',
   params: { bottomR: 0.25, height: 0.72, radialSegs: 6, heightSegs: 2 },
   transform: { lift: 0.22 },
@@ -64,7 +70,7 @@ const TALL_CANOPY = {
   color: 0x2e8b57,
 };
 const WIDE_CANOPY = {
-  id: 'canopy',
+  id: 'canopy-wide',
   shape: 'cone',
   params: { bottomR: 0.45, height: 0.3, radialSegs: 6, heightSegs: 1 },
   transform: { lift: 0.3 },

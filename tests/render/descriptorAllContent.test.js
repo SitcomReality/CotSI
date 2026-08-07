@@ -63,8 +63,8 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
   // Grove parts pair up (one canopy per trunk); knot hovers; mountain is a
   // single hex-tiling mesh.
   const groveTrunk = meshes.find((m) => m.name === 'grove-trunk');
-  const groveCanopy = meshes.find((m) => m.name === 'grove-canopy');
-  assert.ok(groveTrunk && groveCanopy && groveTrunk.count === groveCanopy.count, 'grove trunk/canopy pair');
+  const groveCanopyRound = meshes.find((m) => m.name === 'grove-canopy-round');
+  assert.ok(groveTrunk && groveCanopyRound && groveTrunk.count === groveCanopyRound.count, 'grove trunk/canopy pair');
   const knots = meshes.filter((m) => m.name.startsWith('knot-'));
   assert.equal(knots.length, 1, 'one knot mesh');
   assert.equal(meshes.filter((m) => m.name.startsWith('mountain-')).length, 1, 'one mountain mesh');

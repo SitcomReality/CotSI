@@ -138,7 +138,7 @@ test('grove: moisture-driven count, ring placement, dispersed ring + shrink', ()
 test('solitary tree: canopy variant parts + jitter placement + per-kind lean', () => {
   const tree = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'tree'));
   const [record, canopy] = recordsForDescriptor(tree, { q: 3, r: -2, terrain: 'plains' }, POS);
-  assert.ok(record.partId === 'trunk' && canopy.partId === 'canopy');
+  assert.ok(record.partId === 'trunk' && canopy.partId === 'canopy-round');
   assert.equal(canopy.color, 0x3cb371, 'plains (3,-2) rolls the round variant');
   assert.ok(Math.abs(record.tilt - 0.02) < 1e-9, 'solitary lean 0.02');
 });

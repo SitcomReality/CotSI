@@ -50,6 +50,8 @@ const TILES = [
   { q: 12, r: 6, terrain: 'plains', feature: { kind: 'tree' } },
   // `tree` on woods IS the grove (no solitary tree mesh).
   { q: 14, r: -8, terrain: 'forest', moisture: 0.7, feature: { kind: 'tree' } },
+  // Dense wood grove — conical (tall) canopy variant.
+  { q: 16, r: -5, terrain: 'denseForest', moisture: 0.7 },
 ];
 
 const OCCUPIED = new Set(['2,1', '8,-1', '-3,-4']);
@@ -156,12 +158,16 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   const cPos = instInfo(chest, 0);
   assert.ok(closeTo(cPos.x, cCenter.x + anchor.dx) && closeTo(cPos.z, cCenter.z + anchor.dz), 'chest displaced');
 
-  // Grove: trunk/canopy counts match (one pair per tree).
+  // Grove: one canopy per trunk; the round (forest) and tall (denseForest)
+  // variants each render their own geometry — round is a sphere, tall a cone.
   const groveTrunk = meshNamed(meshes, 'grove-trunk');
-  const groveCanopy = meshNamed(meshes, 'grove-canopy');
-  assert.ok(groveTrunk && groveCanopy, 'grove trunk + canopy meshes');
-  assert.equal(groveTrunk.count, groveCanopy.count, 'one canopy per trunk');
-  assert.ok(groveTrunk.count >= 4, `grove covers 4 woods tiles (got ${groveTrunk.count})`);
+  const groveCanopyRound = meshNamed(meshes, 'grove-canopy-round');
+  const groveCanopyTall = meshNamed(meshes, 'grove-canopy-tall');
+  assert.ok(groveTrunk && groveCanopyRound && groveCanopyTall, 'grove trunk + per-variant canopy meshes');
+  assert.equal(groveTrunk.count, groveCanopyRound.count + groveCanopyTall.count, 'one canopy per trunk');
+  assert.ok(groveCanopyRound.geometry instanceof THREE.SphereGeometry, 'round grove canopy is a sphere');
+  assert.ok(groveCanopyTall.geometry instanceof THREE.ConeGeometry, 'tall grove canopy is a cone');
+  assert.ok(groveTrunk.count >= 5, `grove covers 5 woods tiles (got ${groveTrunk.count})`);
 
   // Knot: exactly one (the mined one is skipped), hovering at KNOT_Y_OFFSET.
   const knots = meshesStarting(meshes, 'knot-');
@@ -186,16 +192,18 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   assert.ok(closeTo(hillPos.y, tileSurfaceY(TILES[6]) + sunk.yOffset), 'sunk hill descends below the surface');
   assert.ok(closeTo(hillPos.sx, sunk.scale), 'sunk hill shrinks');
 
-  // Solitary tree on open terrain.
+  // Solitary tree on open terrain — trunk + its hash-chosen canopy variant.
   assert.equal(meshNamed(meshes, 'tree-trunk')?.count, 1);
-  assert.equal(meshNamed(meshes, 'tree-canopy')?.count, 1);
+  const treeCanopy = meshesStarting(meshes, 'tree-canopy-');
+  assert.equal(treeCanopy.length, 1, 'one solitary-tree canopy variant');
+  assert.equal(treeCanopy[0].count, 1);
 
   // `tree` on woods produced no solitary tree mesh: the two tree- meshes are
   // the open-terrain lone tree, and each holds exactly one instance.
   assert.equal(meshesStarting(meshes, 'tree-').length, 2, 'only the open-terrain tree has tree- meshes');
 
   // No legacy-only content leaks into descriptor meshes.
-  assert.equal(meshesStarting(meshes, 'grove-').length, 2, 'only trunk + canopy grove meshes');
+  assert.equal(meshesStarting(meshes, 'grove-').length, 3, 'only trunk + the two canopy variant meshes');
   assert.equal(meshesStarting(meshes, 'fruit').length, 0);
 });
 
@@ -279,11 +287,11 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
     assert.ok(closeTo(p.y, tileSurfaceY(TILES[6])), `hill mound ${i} at the surface (got ${p.y})`);
   }
 
-  // All four non-Painforest woods tiles render their grove (the visible plain
-  // grove, the two knot tiles, and the `tree`-on-woods tile).
+  // All five non-Painforest woods tiles render their grove (the visible plain
+  // grove, the two knot tiles, the `tree`-on-woods tile, and the dense wood).
   const groveTrunk = meshNamed(meshes, 'grove-trunk');
   assert.ok(groveTrunk, 'grove meshes present');
-  assert.ok(groveTrunk.count >= 4, `grove covers the explored woods tiles (got ${groveTrunk.count})`);
+  assert.ok(groveTrunk.count >= 5, `grove covers the explored woods tiles (got ${groveTrunk.count})`);
 });
 
 test('legacy painforest grove renders out of sight; fruit trees stay hidden', () => {
