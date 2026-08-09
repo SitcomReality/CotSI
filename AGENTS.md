@@ -80,6 +80,7 @@ window.__gameState; // same object as G
 | `dev/cssConventions.md` | CSS structure, naming, spacing scale, barrel pattern |
 | `dev/aestheticConventions.md` | Visual design system (aspirational, evolving) |
 | `dev/clockScheduler.md` | Clock API reference — all timer/scheduling patterns |
+| `dev/descriptorAuthoring.md` | How to author descriptor data (object geometry): schema, randomization, rendering, worked examples |
 | `dev/gameMechanics.md` | Combat round flow, turn order, biome system |
 | `dev/commonTasks.md` | How-to recipes for common changes |
 | `dev/analysis.html` | Standalone map-gen analysis tool (not part of the game) |
