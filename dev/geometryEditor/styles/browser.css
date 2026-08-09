@@ -1,9 +1,10 @@
-/* browser.css — object + parts navigation pane (left column).
-   Follows the game's aesthetic conventions: dark proscenium chrome, uppercase
-   display subheads, selection via gold backlight glow, chevron disclosure
-   like the analysis page's collapsible panels. */
+/* browser.css — floating object browser panel (left of the page, under the
+   chrome bar). Follows the game's aesthetic conventions: dark proscenium
+   chrome, uppercase display subheads, selection via gold backlight glow,
+   chevron disclosure like the analysis page's collapsible panels. The search
+   input lives in the header; this panel holds the grouped object list. */
 
-/* ── Browser header + search ─────────────────────────────────────────────── */
+/* ── Panel head ───────────────────────────────────────────────────────────── */
 
 .browser-head {
   display: flex;
@@ -21,43 +22,15 @@
   color: var(--ink-mid);
 }
 
-.filter-row {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  margin-bottom: var(--s3);
-}
-
-.filter-row input {
-  flex: 1;
-  min-width: 0;
-}
-
 .filter-count {
   flex-shrink: 0;
+  margin-left: auto;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--ink-faint);
 }
 
-/* Collapse / expand all categories — folds the whole object list to its
-   summary rows so the column stops consuming vertical space. */
-.collapse-btn {
-  margin-left: auto;
-  padding: 1px 7px;
-  line-height: 1.2;
-  font-size: var(--fs-xs);
-  border: 1px solid var(--crease-bold);
-  border-radius: var(--r-sm);
-  background: var(--board-hi);
-  color: var(--ink-mid);
-}
-
 /* ── Category groups ─────────────────────────────────────────────────────── */
-
-#object-list {
-  margin-bottom: var(--s4);
-}
 
 .category {
   border-top: 1px solid var(--crease);
@@ -137,21 +110,4 @@
   padding-left: var(--s2);
   font-style: italic;
   color: var(--ink);
-}
-
-/* ── Parts section ───────────────────────────────────────────────────────── */
-
-.parts-section {
-  border-top: 1px solid var(--crease);
-  padding-top: var(--s3);
-}
-
-.parts-section h2 {
-  font-family: var(--font-display);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: var(--ls-cap);
-  color: var(--ink-mid);
-  margin-bottom: var(--s2);
 }

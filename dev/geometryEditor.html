@@ -8,45 +8,36 @@
 </head>
 <body>
   <div id="geometry-root">
-    <!-- Top chrome: title + project actions (never scrolls away) -->
+    <!-- Slim action bar: project actions on the left, object search + browser
+         toggle on the right. Page identity stays in the browser tab; #load-error
+         drops below the bar so messages never change the header height. -->
     <header id="chrome">
-      <div class="chrome-title">
-        <h1>CotSI Geometry Editor</h1>
-        <p class="page-subtitle">Descriptor preview &amp; editing</p>
-      </div>
       <div class="chrome-actions">
-        <div class="chrome-actions-row">
-          <button id="download-btn">⬇ Download JSON</button>
-          <label class="load-btn">
-            Load JSON
-            <input type="file" id="load-file" accept=".json,.txt" hidden>
-          </label>
-        </div>
-        <div class="chrome-actions-row">
-          <button id="new-feature-btn" class="create-btn" type="button">＋ Feature</button>
-          <button id="new-decor-btn" class="create-btn" type="button">＋ Decor</button>
-          <button id="new-mob-btn" class="create-btn" type="button">＋ Mob</button>
-        </div>
-        <div id="load-error" class="info"></div>
+        <button id="download-btn" type="button">⬇ Download</button>
+        <label class="load-btn">
+          Load
+          <input type="file" id="load-file" accept=".json,.txt" hidden>
+        </label>
+        <button id="new-feature-btn" class="create-btn" type="button">＋ Feature</button>
+        <button id="new-decor-btn" class="create-btn" type="button">＋ Decor</button>
+        <button id="new-mob-btn" class="create-btn" type="button">＋ Mob</button>
       </div>
+      <div class="chrome-search">
+        <input type="text" id="object-filter" placeholder="Filter objects…" spellcheck="false" autocomplete="off">
+        <button id="browser-toggle" type="button" aria-expanded="false" aria-controls="browser" title="Show object browser">▸</button>
+      </div>
+      <div id="load-error" class="info" role="alert"></div>
     </header>
 
-    <!-- Object + parts browser -->
-    <aside id="browser">
+    <!-- Floating object browser: hidden until toggled from the header, then
+         overlays the inspector/viewport (fixed, left-anchored under the bar).
+         The search input lives in the header — focusing it opens this panel. -->
+    <aside id="browser" class="floating">
       <div class="browser-head">
         <h2>Objects</h2>
         <span class="filter-count" id="object-filter-count"></span>
-        <button id="collapse-objects-btn" class="collapse-btn" type="button" title="Collapse all categories"></button>
-      </div>
-      <div class="filter-row">
-        <input type="text" id="object-filter" placeholder="Filter objects…" spellcheck="false" autocomplete="off">
       </div>
       <nav id="object-list" aria-label="Object designs"></nav>
-
-      <section class="parts-section">
-        <h2>Parts</h2>
-        <div id="parts-edit"></div>
-      </section>
     </aside>
 
     <!-- Contextual inspector: object-level design or selected-part params -->
@@ -75,6 +66,12 @@
         <div id="info" class="info info-panel">Loading…</div>
       </div>
     </section>
+
+    <!-- Floating parts popover: anchored to the "Parts (n)" button in the
+         inspector header, holds the add/remove/reorder/select parts list. -->
+    <div id="parts-popover" class="floating" role="region" aria-label="Parts list">
+      <div id="parts-edit"></div>
+    </div>
   </div>
 
   <script type="module" src="./geometryEditor/ui/main.js"></script>

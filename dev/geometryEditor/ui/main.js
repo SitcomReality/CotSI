@@ -2,13 +2,15 @@
  * main.js — Entry point for the geometry editor page.
  *
  * Wires the controls panel to the preview: object selection, the occupied
- * (displacement) toggle, and re-rolling the per-tile variation hash.
+ * (displacement) toggle, and re-rolling the per-tile variation hash. Also owns
+ * the floating object browser overlay (open/close, outside-click, Escape) and
+ * keeps the --chrome-h anchor used by the floating panels in sync.
  */
 import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
 import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf, MOB_ROWS, BROWSABLE_TOTAL } from '../sampleObjects.js';
 import { createPreview, showRecords, setFloorVisible } from '../preview.js';
-import { bindEditorPanel, refreshEditorPanel, activeVariant } from './editorPanel.js';
+import { bindEditorPanel, refreshEditorPanel, activeVariant, closePartsPopover } from './editorPanel.js';
 import { recordsForDescriptor, recordsForEntity } from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
 import { biomeTintForTile } from '../../../src/render/hexmap3d/features/biomeTint.js';
 import { listArchetypes, getArchetype } from '../../../src/game/rules/archetypes.js';
@@ -194,23 +196,22 @@ function renderObjectList(filterText = '') {
   els.objectFilterCount.textContent = query
     ? `${matched} of ${BROWSABLE_TOTAL}`
     : `${BROWSABLE_TOTAL} objects`;
-  updateCollapseIcon();
 }
 
-/** Sync the collapse-toggle button with the current category states. */
-function updateCollapseIcon() {
-  const allCollapsed = OBJECT_CATEGORIES.every((c) => collapsedCategories.has(c.id));
-  els.collapseObjectsBtn.textContent = allCollapsed ? '▸' : '▾';
-  els.collapseObjectsBtn.title = allCollapsed ? 'Expand all categories' : 'Collapse all categories';
-}
+// ── Floating object browser ─────────────────────────────────────────────────
 
-/** Collapse or expand every category at once — the whole list folds to its
- *  summary rows so the browser column stops eating vertical space. */
-function toggleAllCategories() {
-  const allCollapsed = OBJECT_CATEGORIES.every((c) => collapsedCategories.has(c.id));
-  if (allCollapsed) collapsedCategories.clear();
-  else for (const c of OBJECT_CATEGORIES) collapsedCategories.add(c.id);
-  renderObjectList(els.objectFilter.value);
+/** Whether the floating object browser is currently shown. */
+let browserOpen = false;
+
+/** Show or hide the floating browser panel and sync the header toggle. */
+function setBrowserOpen(open) {
+  browserOpen = open;
+  if (open) syncChromeHeight(); // the anchor may have drifted since last time
+  els.browser.classList.toggle('open', open);
+  els.browserToggle.classList.toggle('open', open);
+  els.browserToggle.textContent = open ? '▾' : '▸';
+  els.browserToggle.title = open ? 'Hide object browser' : 'Show object browser';
+  els.browserToggle.setAttribute('aria-expanded', String(open));
 }
 
 function populateObjects() {
@@ -218,7 +219,43 @@ function populateObjects() {
   els.objectFilter.addEventListener('input', () => {
     renderObjectList(els.objectFilter.value);
   });
-  els.collapseObjectsBtn.addEventListener('click', toggleAllCategories);
+  // The header toggle is the whole-panel switch; per-category collapse is
+  // still preserved by the details rows inside the list itself.
+  els.browserToggle.addEventListener('click', () => setBrowserOpen(!browserOpen));
+  // Focusing the search (tab or click) opens the browser — the filter is only
+  // useful while the list is visible.
+  els.objectFilter.addEventListener('focus', () => {
+    if (!browserOpen) setBrowserOpen(true);
+  });
+}
+
+/** Keep --chrome-h in sync so the floating panels anchor exactly under the bar. */
+function syncChromeHeight() {
+  document.documentElement.style.setProperty('--chrome-h', `${els.chrome.offsetHeight}px`);
+}
+
+/**
+ * Global overlay choreography. The browser closes on outside clicks and Escape,
+ * but clicks on its own controls (toggle, filter) or on the parts popover /
+ * its toggle are never treated as "outside" — the two overlays coexist.
+ */
+function bindOverlays() {
+  document.addEventListener('pointerdown', (e) => {
+    if (!browserOpen) return;
+    const t = e.target instanceof Element ? e.target : null;
+    if (!t) return;
+    if (t.closest('#browser')) return;
+    if (t.closest('#browser-toggle') || t.closest('#object-filter')) return;
+    if (t.closest('#parts-popover') || t.closest('.parts-toggle')) return;
+    setBrowserOpen(false);
+  });
+
+  // Escape dismisses the topmost overlay first: the parts popover, then the browser.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (closePartsPopover()) return;
+    setBrowserOpen(false);
+  });
 }
 
 function bindControls() {
@@ -277,8 +314,12 @@ function bindControls() {
 
 function init() {
   cacheDom();
+  syncChromeHeight();
   populateObjects();
   bindControls();
+  bindOverlays();
+  window.addEventListener('resize', syncChromeHeight);
+  window.addEventListener('load', syncChromeHeight); // fonts can shift the bar
   S.descriptor = SAMPLE_OBJECTS[0];
   renderObjectList();
   updateEntityMode();

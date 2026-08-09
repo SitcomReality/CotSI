@@ -1,9 +1,19 @@
-/* layout.css — three-pane page grid: browser | inspector | 3D viewport,
-   with a chrome header spanning the two left panes. Each pane scrolls on its
-   own, so a tall editing section can't push the rest off-screen. */
+/* layout.css — two-pane page grid: inspector | 3D viewport under a slim
+   chrome header spanning both. The object browser and parts popover are
+   fixed-position overlays anchored under the header (see .floating), so the
+   grid never reserves space for them. Each pane scrolls on its own, so a tall
+   editing section can't push the rest off-screen. */
+
+/* The header's rendered height — main.js (syncChromeHeight) re-measures it so
+   the floating panels anchor exactly under the bar; this is a fallback until
+   the first measurement. */
+:root {
+  --chrome-h: 32px;
+}
+
 #geometry-root {
   display: grid;
-  grid-template-columns: 230px 310px 1fr;
+  grid-template-columns: 310px 1fr;
   grid-template-rows: auto 1fr;
   height: 100vh;
 }
@@ -11,30 +21,19 @@
 #chrome {
   grid-column: 1 / 3;
   grid-row: 1;
+  position: relative; /* anchors #load-error just below the bar */
   display: flex;
   align-items: center;
-  gap: var(--s4);
-  padding: var(--s3) var(--s4);
+  flex-wrap: wrap; /* falls back to a two-row cluster on narrow windows */
+  gap: var(--s1) var(--s3);
+  padding: var(--s1) var(--s2);
   background: var(--shadow);
-  border-right: 1px solid var(--crease);
   border-bottom: 1px solid var(--crease);
   min-width: 0;
 }
 
-#browser {
-  grid-column: 1;
-  grid-row: 2;
-  overflow-y: auto;
-  padding: var(--s3) var(--s3) var(--s6);
-  background: var(--shadow);
-  border-right: 1px solid var(--crease);
-  min-width: 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--crease-bold) transparent;
-}
-
 #inspector {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 2;
   overflow-y: auto;
   padding: var(--s3) var(--s4) var(--s6);
@@ -46,8 +45,8 @@
 }
 
 #viewport {
-  grid-column: 3;
-  grid-row: 1 / 3;
+  grid-column: 2;
+  grid-row: 2; /* below the full-width chrome bar — the header spans both columns */
   position: relative;
   min-width: 0;
   background: var(--abyss);
@@ -57,4 +56,54 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* ── Floating overlay panels (object browser + parts popover) ─────────────── */
+
+/* Shared shell: fixed, under the header, above the panes, hidden by default.
+   Closed panels are invisible and click-transparent but still out of flow, so
+   the grid keeps exactly two columns. */
+.floating {
+  position: fixed;
+  top: calc(var(--chrome-h) + var(--s1));
+  bottom: var(--s1);
+  z-index: var(--z-modal);
+  background: var(--shadow);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease),
+    visibility var(--dur-fast);
+}
+
+.floating.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* The object browser hugs the left edge, same width the old grid column had. */
+#browser {
+  right: 0;
+  width: 230px;
+  overflow-y: auto;
+  padding: var(--s3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
+}
+
+/* The parts popover is anchored to its toggle button at open time (inline
+   left/top set by editorPanel.js); these are the pre-anchor defaults. */
+#parts-popover {
+  left: var(--s1);
+  width: 250px;
+  overflow-y: auto;
+  padding: var(--s2);
 }

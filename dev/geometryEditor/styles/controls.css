@@ -3,33 +3,13 @@
    Rubik display headings, Outfit body, ink-faint tertiary text,
    state via glow (box-shadow) rather than CSS outline. */
 
-/* ── Chrome header ────────────────────────────────────────────────────────── */
-
-.chrome-title h1 {
-  font-family: var(--font-display);
-  font-size: var(--fs-lg);
-  font-weight: 700;
-  letter-spacing: var(--ls-display);
-  color: var(--ink);
-}
-
-.page-subtitle {
-  margin-top: var(--s1);
-  font-size: var(--fs-xs);
-  color: var(--ink-faint);
-}
+/* ── Chrome header (slim action bar) ───────────────────────────────────────── */
 
 .chrome-actions {
-  margin-left: auto;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: var(--s1);
-}
-
-.chrome-actions-row {
-  display: flex;
-  gap: var(--s2);
+  min-width: 0;
 }
 
 /* Load JSON is a styled label wrapping a hidden file input. */
@@ -61,12 +41,55 @@
   padding: 5px 8px;
 }
 
+/* All header controls are compact so the bar stays one slim row. */
+#chrome button,
+#chrome .load-btn {
+  padding: 3px 6px;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+.chrome-search {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.chrome-search input {
+  width: 180px;
+}
+
+/* Project errors drop below the bar (absolute) so they never change its height. */
+#load-error {
+  position: absolute;
+  top: 100%;
+  right: var(--s3);
+  z-index: var(--z-toast);
+  max-width: 320px;
+  color: var(--crimson);
+  text-align: right;
+  background: var(--shadow);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  padding: var(--s1) var(--s2);
+}
+
 /* ── Inspector header ─────────────────────────────────────────────────────── */
 
 .inspector-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s2);
   padding-bottom: var(--s2);
   margin-bottom: var(--s3);
   border-bottom: 1px solid var(--crease);
+}
+
+.inspector-head-main {
+  min-width: 0;
 }
 
 .inspector-title {
@@ -81,6 +104,19 @@
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--ink-faint);
+}
+
+/* "Parts (n)" — opens the floating parts popover from the inspector head. */
+.parts-toggle {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+.parts-toggle[aria-expanded="true"] {
+  border-color: var(--cerulean);
 }
 
 .breadcrumb {
@@ -200,6 +236,18 @@ button:disabled {
   background: var(--shadow);
   color: var(--ink);
   font-size: var(--fs-xs);
+  /* Native spinners off — replaced by the .num-step −/+ buttons, so the
+     fields render identically across browsers (Firefox's differ). In Firefox
+     `appearance` maps to -moz-appearance, so the -moz declaration must come
+     last to win. */
+  appearance: none;
+  -moz-appearance: textfield;
+}
+
+#inspector input[type="number"]::-webkit-outer-spin-button,
+#inspector input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 #inspector input[type="text"] {
@@ -222,12 +270,66 @@ button:disabled {
   background: var(--shadow);
 }
 
-#inspector select,
-#parts-edit select {
+#inspector select {
   max-width: 150px;
 }
 
-/* Sub-headings inside the dynamic panels (Cluster, Size, Placement, …) */
+/* ── Number steppers ──────────────────────────────────────────────────────── */
+
+/* Wrapper draws the field outline so input + −/+ buttons read as one control;
+   the input inside sheds its own border and background. */
+.num-step {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--crease-bold);
+  border-radius: var(--r-sm);
+  background: var(--shadow);
+  overflow: hidden;
+}
+
+.num-step input[type="number"] {
+  flex: 1;
+  width: 84px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Keyboard focus lights the whole wrapper (the input's own ring is clipped). */
+.num-step:focus-within {
+  border-color: var(--ink-mid);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-faint) 30%, transparent);
+}
+
+.num-step-btn {
+  padding: 0 var(--s1);
+  border: none;
+  border-radius: 0;
+  background: var(--board-hi);
+  color: var(--ink-mid);
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+}
+
+.num-step-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--board-hi) 80%, var(--ink-mid));
+  color: var(--ink);
+}
+
+/* Three stepped inputs share the stretch-variation line — shrink each so the
+   row still fits the inspector column. */
+#inspector .stretch-inputs .num-step input[type="number"] {
+  width: 36px;
+  padding: 4px 2px;
+}
+
+.stretch-inputs .num-step-btn {
+  padding: 0 4px;
+}
+
+/* ── Sub-headings inside the dynamic panels (Cluster, Size, Placement, …) ── */
+
 .section-title {
   margin-top: var(--s3);
   margin-bottom: var(--s1);
@@ -252,7 +354,31 @@ button:disabled {
   margin-bottom: var(--s3);
 }
 
-/* ── Part list ────────────────────────────────────────────────────────────── */
+/* ── Parts popover list ───────────────────────────────────────────────────── */
+
+/* Add part: shape select + button stay on one compact line. */
+.part-add-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  flex-wrap: nowrap;
+  margin-bottom: var(--s2);
+}
+
+.part-add-row select {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  padding: 2px 4px;
+  font-size: var(--fs-xs);
+}
+
+.part-add-row button {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
 
 .part-row {
   display: flex;
@@ -286,12 +412,4 @@ button:disabled {
 .part-row button {
   padding: 1px 6px;
   font-size: var(--fs-xs);
-}
-
-/* ── Project errors ───────────────────────────────────────────────────────── */
-
-#load-error {
-  max-width: 300px;
-  color: var(--crimson);
-  text-align: right;
 }

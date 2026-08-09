@@ -5,6 +5,9 @@
 export const els = {};
 
 export function cacheDom() {
+  els.chrome = document.getElementById('chrome');
+  els.browser = document.getElementById('browser');
+  els.browserToggle = document.getElementById('browser-toggle');
   els.objectList = document.getElementById('object-list');
   els.objectFilter = document.getElementById('object-filter');
   els.objectFilterCount = document.getElementById('object-filter-count');
@@ -18,6 +21,7 @@ export function cacheDom() {
   els.canvas = document.getElementById('preview-canvas');
 
   els.inspector = document.getElementById('inspector');
+  els.partsPopover = document.getElementById('parts-popover');
   els.partsEdit = document.getElementById('parts-edit');
   els.downloadBtn = document.getElementById('download-btn');
   els.loadFile = document.getElementById('load-file');
@@ -25,5 +29,4 @@ export function cacheDom() {
   els.newFeatureBtn = document.getElementById('new-feature-btn');
   els.newDecorBtn = document.getElementById('new-decor-btn');
   els.newMobBtn = document.getElementById('new-mob-btn');
-  els.collapseObjectsBtn = document.getElementById('collapse-objects-btn');
 }

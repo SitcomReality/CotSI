@@ -5,9 +5,11 @@
  * (cluster min/max, size min/max, emphasis behavior, placement mode + per-mode
  * params, material color, or the entity faction/archetype pickers) when no
  * part is selected, and the selected part's shape params + transform when one
- * is. The parts list (add / remove / reorder / select) lives in `#parts-edit`.
- * Every change mutates S.descriptor (normalized) in place, then calls onEdit()
- * so the preview rebuilds, and re-renders the panel.
+ * is. The parts list (add / remove / reorder / select) lives in a floating
+ * popover opened from the "Parts (n)" button in the inspector head. Number
+ * fields ship with custom −/+ steppers. Every change mutates S.descriptor
+ * (normalized) in place, then calls onEdit() so the preview rebuilds, and
+ * re-renders the panel.
  *
  * Shape params come straight from the SHAPE_TYPES registry, so the editor
  * always offers exactly the fields the generic builder understands.
@@ -50,17 +52,23 @@ function subheading(labelText) {
   return el('div', 'section-title', labelText);
 }
 
+/**
+ * A number input wrapped in the custom −/+ stepper shell (see stepperWrap).
+ * The wrapper is what rows append; manual typing still works and both paths
+ * fire the same onChange, so the mutate() flow applies to stepper edits too.
+ */
 function numberInput(value, { min, step = 0.01, onChange }) {
   const input = el('input');
   input.type = 'number';
   input.value = String(value);
   input.step = String(step);
   if (min !== undefined) input.min = String(min);
-  input.addEventListener('change', () => {
+  const commit = () => {
     const v = parseFloat(input.value);
     if (Number.isFinite(v)) onChange(v);
-  });
-  return input;
+  };
+  input.addEventListener('change', commit);
+  return stepperWrap(input, commit);
 }
 
 function intInput(value, { min, onChange }) {
@@ -69,11 +77,60 @@ function intInput(value, { min, onChange }) {
   input.value = String(value);
   input.step = '1';
   if (min !== undefined) input.min = String(min);
-  input.addEventListener('change', () => {
+  const commit = () => {
     const v = parseInt(input.value, 10);
     if (Number.isInteger(v)) onChange(v);
-  });
-  return input;
+  };
+  input.addEventListener('change', commit);
+  return stepperWrap(input, commit);
+}
+
+/**
+ * Wrap a number input in a .num-step shell with − / + buttons. Stepping uses
+ * the input's `step` (default 1), clamps to min/max, and fires the same change
+ * path as manual editing. The bound button (at min / max) is disabled, and
+ * both buttons follow the input's disabled state.
+ */
+function stepperWrap(input, commit) {
+  const wrap = el('div', 'num-step');
+  const minus = el('button', 'num-step-btn', '−');
+  const plus = el('button', 'num-step-btn', '+');
+  minus.type = 'button';
+  plus.type = 'button';
+  minus.setAttribute('aria-label', 'Decrease value');
+  plus.setAttribute('aria-label', 'Increase value');
+
+  const step = (dir) => {
+    if (input.disabled) return;
+    const min = input.min === '' ? null : parseFloat(input.min);
+    const max = input.max === '' ? null : parseFloat(input.max);
+    const stepSize = parseFloat(input.step) || 1;
+    const decimals = (String(stepSize).split('.')[1] || '').length;
+    const base = Number.isFinite(input.valueAsNumber) ? input.valueAsNumber : (min ?? 0);
+    let next = base + dir * stepSize;
+    if (min !== null && next < min) next = min;
+    if (max !== null && next > max) next = max;
+    input.value = String(Number(next.toFixed(decimals)));
+    syncButtons();
+    commit();
+  };
+
+  const syncButtons = () => {
+    const value = input.valueAsNumber;
+    const min = input.min === '' ? null : parseFloat(input.min);
+    const max = input.max === '' ? null : parseFloat(input.max);
+    minus.disabled = input.disabled || (Number.isFinite(value) && min !== null && value <= min);
+    plus.disabled = input.disabled || (Number.isFinite(value) && max !== null && value >= max);
+  };
+
+  minus.addEventListener('click', () => step(-1));
+  plus.addEventListener('click', () => step(1));
+  input.addEventListener('input', syncButtons);
+  input.addEventListener('change', syncButtons);
+  syncButtons();
+
+  wrap.append(minus, input, plus);
+  return wrap;
 }
 
 /**
@@ -294,7 +351,7 @@ function renderPartsList(container) {
   const d = S.descriptor;
   const parts = activeParts();
 
-  const addRow = el('div', 'control-row');
+  const addRow = el('div', 'part-add-row');
   const shapeSelect = selectInput(Object.keys(SHAPE_TYPES), Object.keys(SHAPE_TYPES)[0], () => {});
   const addBtn = el('button', null, '+ Add part');
   addBtn.addEventListener('click', () => {
@@ -343,21 +400,94 @@ function renderPartsList(container) {
   });
 }
 
+// ── Parts popover (floating, anchored to the inspector-head toggle) ─────────
+
+let partsPopoverOpen = false;
+let partsToggleEl = null;
+
+/** "Parts (n)" toggle in the inspector head — opens the floating parts list. */
+function partsButton() {
+  const parts = activeParts();
+  const btn = el('button', 'parts-toggle', `Parts (${parts.length})`);
+  btn.type = 'button';
+  btn.title = 'Edit the parts list';
+  btn.addEventListener('click', togglePartsPopover);
+  partsToggleEl = btn;
+  return btn;
+}
+
+function setPartsPopover(open) {
+  partsPopoverOpen = open;
+  els.partsPopover.classList.toggle('open', open);
+  if (partsToggleEl) partsToggleEl.setAttribute('aria-expanded', String(open));
+  if (open) anchorPartsPopover();
+}
+
+/** Drop the popover from the toggle button, clamped to the viewport. */
+function anchorPartsPopover() {
+  const rect = partsToggleEl?.getBoundingClientRect();
+  if (!rect) return;
+  const gap = 4;
+  const width = els.partsPopover.offsetWidth;
+  els.partsPopover.style.top = `${rect.bottom + gap}px`;
+  els.partsPopover.style.left = `${Math.max(gap, Math.min(rect.left, window.innerWidth - width - gap))}px`;
+}
+
+function togglePartsPopover() {
+  setPartsPopover(!partsPopoverOpen);
+}
+
+/**
+ * Close the popover. Returns true when it was open — lets the shared Escape
+ * handler in main.js dismiss overlays topmost-first.
+ */
+export function closePartsPopover() {
+  if (!partsPopoverOpen) return false;
+  setPartsPopover(false);
+  return true;
+}
+
+function bindPartsPopover() {
+  // Outside click closes the popover — clicks on the popover itself, its
+  // toggle, or the object browser's UI never dismiss it (the two overlays
+  // coexist).
+  document.addEventListener('pointerdown', (e) => {
+    if (!partsPopoverOpen) return;
+    const t = e.target instanceof Element ? e.target : null;
+    if (!t) return;
+    if (t.closest('#parts-popover')) return;
+    if (partsToggleEl && t.closest('.parts-toggle')) return;
+    if (t.closest('#browser') || t.closest('#browser-toggle') || t.closest('#object-filter')) return;
+    setPartsPopover(false);
+  });
+  // Re-anchor after a resize so the popover stays attached to its button.
+  window.addEventListener('resize', () => {
+    if (partsPopoverOpen) anchorPartsPopover();
+  });
+}
+
 // ── Inspector (object-level OR selected-part fields) ────────────────────────
+
+/** Inspector head: title/meta (and optional breadcrumb) + the Parts toggle. */
+function inspectorHead(title, meta, back) {
+  const head = el('div', 'inspector-head');
+  const main = el('div', 'inspector-head-main');
+  if (back) main.append(back);
+  main.append(el('div', 'inspector-title', title));
+  if (meta) main.append(el('div', 'inspector-meta', meta));
+  head.append(main, partsButton());
+  return head;
+}
 
 /** Inspector header for object-level editing: name + id/kind meta. */
 function renderObjectHeader(container) {
   const d = S.descriptor;
-  const head = el('div', 'inspector-head');
-  head.append(el('div', 'inspector-title', d.displayName));
-  head.append(el('div', 'inspector-meta', `${d.id} · ${d.kind}`));
-  container.append(head);
+  container.append(inspectorHead(d.displayName, `${d.id} · ${d.kind}`));
 }
 
 /** Inspector header for part editing: breadcrumb back to the object. */
 function renderPartHeader(container, part) {
   const d = S.descriptor;
-  const head = el('div', 'inspector-head');
   const back = el('button', 'breadcrumb', `← ${d.displayName}`);
   back.type = 'button';
   back.title = 'Back to object-level controls';
@@ -365,9 +495,7 @@ function renderPartHeader(container, part) {
     S.selectedPartId = null;
     renderAll();
   });
-  head.append(back);
-  head.append(el('div', 'inspector-title', `${part.id} · ${part.shape}`));
-  container.append(head);
+  container.append(inspectorHead(`${part.id} · ${part.shape}`, null, back));
 }
 
 function renderPartInspector(container, part) {
@@ -613,7 +741,7 @@ function renderAll() {
 
 /**
  * Bind the editing panel to its DOM containers and the preview rebuild hook.
- * @param {object} elsRef - the editor's DOM refs (inspector, partsEdit, downloadBtn, loadFile, loadError)
+ * @param {object} elsRef - the editor's DOM refs (inspector, partsEdit, partsPopover, downloadBtn, loadFile, loadError)
  * @param {Function} onEditFn - () => void; rebuilds the preview from S.descriptor
  * @param {Function} onLoadedFn - () => void; called after a JSON load succeeds (re-renders the object browser)
  */
@@ -621,6 +749,7 @@ export function bindEditorPanel(elsRef, onEditFn, onLoadedFn = () => {}) {
   els = elsRef;
   onEdit = onEditFn;
   onLoaded = onLoadedFn;
+  bindPartsPopover();
   bindProjectControls();
   renderAll();
 }
