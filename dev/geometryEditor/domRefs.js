@@ -15,6 +15,8 @@ export function cacheDom() {
   els.rerollBtn = document.getElementById('reroll-btn');
   els.occupiedRow = document.getElementById('occupied-row');
   els.rerollRow = document.getElementById('reroll-row');
+  els.biomeSelect = document.getElementById('biome-select');
+  els.biomeRow = document.getElementById('biome-row');
   els.floorCheck = document.getElementById('floor-check');
   els.info = document.getElementById('info');
   els.viewport = document.getElementById('viewport');

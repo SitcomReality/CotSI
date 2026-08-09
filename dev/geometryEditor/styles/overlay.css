@@ -8,7 +8,7 @@
   pointer-events: none;
 }
 
-/* ── Preview tools (occupied toggle + re-roll) ───────────────────────────── */
+/* ── Preview tools (biome picker + occupied toggle + re-roll) ─────────────── */
 
 #preview-tools {
   top: var(--s3);
@@ -19,7 +19,8 @@
 }
 
 #preview-tools label,
-#preview-tools button {
+#preview-tools button,
+#preview-tools select {
   pointer-events: auto;
 }
 
@@ -43,6 +44,24 @@
 
 #preview-tools input[type="checkbox"] {
   accent-color: var(--cerulean);
+}
+
+/* The biome picker sits inside its pill label; keep it compact so the tools
+   row stays one line, and let it participate in the pill's hover state. */
+#preview-tools select {
+  background: color-mix(in srgb, var(--abyss) 40%, transparent);
+  color: var(--ink);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  padding: 2px var(--s1);
+  max-width: 150px;
+}
+
+#preview-tools select:focus-visible {
+  outline: none;
+  border-color: var(--ink-mid);
 }
 
 /* ── HUD (orbit hint + record readout) ───────────────────────────────────── */

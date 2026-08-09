@@ -44,6 +44,21 @@ function previewTint(tile) {
   return biomeTintForTile(tile, new Map([['1,0', tile]]), biomeColors, null);
 }
 
+/** Fill the preview-tile biome selector: none + every registered biome. */
+function populateBiomeSelect() {
+  const options = [
+    { value: '', label: '— none (default colors)' },
+    ...listArchetypes('biome').map((id) => ({ value: id, label: getArchetype(id)?.name ?? id })),
+  ];
+  els.biomeSelect.replaceChildren(...options.map((o) => {
+    const opt = document.createElement('option');
+    opt.value = o.value;
+    opt.textContent = o.label;
+    return opt;
+  }));
+  els.biomeSelect.value = S.biomeId ?? '';
+}
+
 /** Categories the user collapsed; browser re-renders preserve the choice. */
 const collapsedCategories = new Set();
 
@@ -86,9 +101,10 @@ function rebuild() {
   }
 }
 
-/** Hide the tile-hash controls (occupied / re-roll) for entity-driven objects. */
+/** Hide the tile-preview controls (biome / occupied / re-roll) for entity-driven objects. */
 function updateEntityMode() {
   const entity = ENTITY_KINDS.has(S.descriptor?.kind);
+  els.biomeRow.style.display = entity ? 'none' : '';
   els.occupiedRow.style.display = entity ? 'none' : '';
   els.rerollRow.style.display = entity ? 'none' : '';
 }
@@ -301,6 +317,11 @@ function bindControls() {
     rebuild();
   });
 
+  els.biomeSelect.addEventListener('change', () => {
+    S.biomeId = els.biomeSelect.value || null;
+    rebuild();
+  });
+
   els.rerollBtn.addEventListener('click', () => {
     S.tileH = (S.tileH * 17 + 5) % 89;
     rebuild();
@@ -314,6 +335,7 @@ function bindControls() {
 function init() {
   cacheDom();
   syncChromeHeight();
+  populateBiomeSelect();
   populateObjects();
   bindControls();
   bindOverlays();
@@ -323,7 +345,10 @@ function init() {
   renderObjectList();
   updateEntityMode();
   createPreview(els.canvas);
-  bindEditorPanel(els, rebuild, () => renderObjectList(els.objectFilter.value));
+  bindEditorPanel(els, rebuild, () => {
+    renderObjectList(els.objectFilter.value);
+    updateEntityMode(); // a loaded entity JSON must hide the tile-preview controls
+  });
   rebuild();
 }
 

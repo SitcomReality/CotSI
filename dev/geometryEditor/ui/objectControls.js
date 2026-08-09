@@ -2,7 +2,7 @@
  * objectControls.js — Object-level design fields for the geometry editor.
  *
  * Renders into `#inspector-body` when no part is selected: name, variant /
- * entity pickers, biome, cluster, size, placement and emphasis.
+ * entity pickers, cluster, size, placement and emphasis.
  * Entity-driven objects swap the cluster/size/placement fields for a
  * faction/archetype picker. `ctx` supplies `mutate()` (and `onLoaded()` for
  * renames, which also refresh the object browser).
@@ -26,15 +26,6 @@ import {
 import { ENTITY_KINDS } from '../entityView.js';
 import { SAMPLE_OBJECTS } from '../sampleObjects.js';
 import { FACTIONS } from '../../../src/game/rules/factionData.js';
-import { listArchetypes, getArchetype } from '../../../src/game/rules/archetypes.js';
-
-/** Biome options for the preview-tile selector: none + every registered biome. */
-function biomeSelectOptions() {
-  return [
-    { value: '', label: '— none (default colors)' },
-    ...listArchetypes('biome').map((id) => ({ value: id, label: getArchetype(id)?.name ?? id })),
-  ];
-}
 
 /** Entity kinds: faction/archetype picker instead of cluster/size/placement. */
 function renderEntityControls(container, ctx) {
@@ -121,9 +112,6 @@ export function renderObjectControls(container, ctx) {
     container.append(row('Variant', selectInput(ids, current, (v) => ctx.mutate(() => { S.variantId = v; }))));
     container.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game the tile hash picks one; here you choose which to inspect.'));
   }
-
-  container.append(row('Biome', selectInput(biomeSelectOptions(), S.biomeId ?? '', (v) => ctx.mutate(() => { S.biomeId = v || null; }))));
-  container.append(el('div', 'hint', 'Preview-tile biome: per-part biomeScale (stunted Tundra trees, small Painforest groves) and biome-color influence (Edenfall purple leaves).'));
 
   container.append(subheading('Cluster'));
   container.append(row('Rule', selectInput(['uniform', 'moisture'], d.cluster.rule, (v) => ctx.mutate(() => {
