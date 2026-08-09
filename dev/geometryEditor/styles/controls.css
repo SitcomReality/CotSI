@@ -106,8 +106,34 @@
   color: var(--ink-faint);
 }
 
-/* "Parts (n)" — opens the floating parts popover from the inspector head. */
-.parts-toggle {
+/* ── Parts list (sidebar section above the design fields) ─────────────────── */
+
+/* The section stays in normal flow: expanded rows push #inspector-body down
+   the column (and the sidebar scrolls once the column overflows). */
+#parts-edit {
+  padding-bottom: var(--s3);
+  margin-bottom: var(--s3);
+  border-bottom: 1px solid var(--crease);
+}
+
+.parts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+
+.parts-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Expand/collapse toggle for the parts rows — sits in the section head, next
+   to the always-visible add row. */
+.parts-collapse {
   flex-shrink: 0;
   padding: 2px 6px;
   font-family: var(--font-mono);
@@ -115,7 +141,7 @@
   white-space: nowrap;
 }
 
-.parts-toggle[aria-expanded="true"] {
+.parts-collapse[aria-expanded="true"] {
   border-color: var(--cerulean);
 }
 
@@ -354,7 +380,7 @@ button:disabled {
   margin-bottom: var(--s3);
 }
 
-/* ── Parts popover list ───────────────────────────────────────────────────── */
+/* ── Parts rows (add / select / reorder / remove) ─────────────────────────── */
 
 /* Add part: shape select + button stay on one compact line. */
 .part-add-row {
@@ -365,7 +391,9 @@ button:disabled {
   margin-bottom: var(--s2);
 }
 
-.part-add-row select {
+/* The shape select fills the row — scoped under #parts-edit so it beats the
+   generic #inspector select cap (the add row needs the full column width). */
+#parts-edit .part-add-row select {
   flex: 1;
   min-width: 0;
   max-width: none;

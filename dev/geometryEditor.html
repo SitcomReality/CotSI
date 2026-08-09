@@ -40,8 +40,13 @@
       <nav id="object-list" aria-label="Object designs"></nav>
     </aside>
 
-    <!-- Contextual inspector: object-level design or selected-part params -->
-    <main id="inspector"></main>
+    <!-- Left sidebar: the parts list sits at the top, above the contextual
+         design fields. Its rows expand/collapse in normal flow, pushing the
+         fields (#inspector-body) down. -->
+    <main id="inspector">
+      <section id="parts-edit" aria-label="Parts list"></section>
+      <section id="inspector-body" aria-label="Design fields"></section>
+    </main>
 
     <!-- 3D preview area -->
     <section id="viewport">
@@ -66,12 +71,6 @@
         <div id="info" class="info info-panel">Loading…</div>
       </div>
     </section>
-
-    <!-- Floating parts popover: anchored to the "Parts (n)" button in the
-         inspector header, holds the add/remove/reorder/select parts list. -->
-    <div id="parts-popover" class="floating" role="region" aria-label="Parts list">
-      <div id="parts-edit"></div>
-    </div>
   </div>
 
   <script type="module" src="./geometryEditor/ui/main.js"></script>

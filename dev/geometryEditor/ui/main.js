@@ -10,7 +10,7 @@ import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
 import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf, MOB_ROWS, BROWSABLE_TOTAL } from '../sampleObjects.js';
 import { createPreview, showRecords, setFloorVisible } from '../preview.js';
-import { bindEditorPanel, refreshEditorPanel, activeVariant, closePartsPopover } from './editorPanel.js';
+import { bindEditorPanel, refreshEditorPanel, activeVariant } from './editorPanel.js';
 import { recordsForDescriptor, recordsForEntity } from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
 import { biomeTintForTile } from '../../../src/render/hexmap3d/features/biomeTint.js';
 import { listArchetypes, getArchetype } from '../../../src/game/rules/archetypes.js';
@@ -236,8 +236,8 @@ function syncChromeHeight() {
 
 /**
  * Global overlay choreography. The browser closes on outside clicks and Escape,
- * but clicks on its own controls (toggle, filter) or on the parts popover /
- * its toggle are never treated as "outside" — the two overlays coexist.
+ * but clicks on its own controls (toggle, filter) are never treated as
+ * "outside". The parts list is no longer an overlay — it lives in the sidebar.
  */
 function bindOverlays() {
   document.addEventListener('pointerdown', (e) => {
@@ -246,14 +246,12 @@ function bindOverlays() {
     if (!t) return;
     if (t.closest('#browser')) return;
     if (t.closest('#browser-toggle') || t.closest('#object-filter')) return;
-    if (t.closest('#parts-popover') || t.closest('.parts-toggle')) return;
     setBrowserOpen(false);
   });
 
-  // Escape dismisses the topmost overlay first: the parts popover, then the browser.
+  // Escape dismisses the object browser.
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    if (closePartsPopover()) return;
     setBrowserOpen(false);
   });
 }

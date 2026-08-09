@@ -1,8 +1,10 @@
 /* layout.css — two-pane page grid: inspector | 3D viewport under a slim
-   chrome header spanning both. The object browser and parts popover are
-   fixed-position overlays anchored under the header (see .floating), so the
-   grid never reserves space for them. Each pane scrolls on its own, so a tall
-   editing section can't push the rest off-screen. */
+   chrome header spanning both. The object browser is a fixed-position overlay
+   anchored under the header (see .floating), so the grid never reserves space
+   for it. Each pane scrolls on its own, so a tall editing section can't push
+   the rest off-screen. The parts list lives inside the inspector column
+   (#parts-edit at the top), where its expanded rows push the design fields
+   down in normal flow. */
 
 /* The header's rendered height — main.js (syncChromeHeight) re-measures it so
    the floating panels anchor exactly under the bar; this is a fallback until
@@ -58,7 +60,7 @@
   height: 100%;
 }
 
-/* ── Floating overlay panels (object browser + parts popover) ─────────────── */
+/* ── Floating overlay panel (object browser) ───────────────────────────────── */
 
 /* Shared shell: fixed, under the header, above the panes, hidden by default.
    Closed panels are invisible and click-transparent but still out of flow, so
@@ -97,13 +99,4 @@
   padding: var(--s3);
   scrollbar-width: thin;
   scrollbar-color: var(--crease-bold) transparent;
-}
-
-/* The parts popover is anchored to its toggle button at open time (inline
-   left/top set by editorPanel.js); these are the pre-anchor defaults. */
-#parts-popover {
-  left: var(--s1);
-  width: 250px;
-  overflow-y: auto;
-  padding: var(--s2);
 }

@@ -1,15 +1,17 @@
 /**
  * editorPanel.js — Editing controls for the geometry editor page.
  *
- * Renders a contextual inspector into `#inspector`: object-level fields
- * (cluster min/max, size min/max, emphasis behavior, placement mode + per-mode
- * params, material color, or the entity faction/archetype pickers) when no
- * part is selected, and the selected part's shape params + transform when one
- * is. The parts list (add / remove / reorder / select) lives in a floating
- * popover opened from the "Parts (n)" button in the inspector head. Number
- * fields ship with custom −/+ steppers. Every change mutates S.descriptor
- * (normalized) in place, then calls onEdit() so the preview rebuilds, and
- * re-renders the panel.
+ * Renders a contextual inspector into `#inspector`: the parts list (add /
+ * remove / reorder / select) in the `#parts-edit` section at the top, and
+ * object-level fields (cluster min/max, size min/max, emphasis behavior,
+ * placement mode + per-mode params, material color, or the entity
+ * faction/archetype pickers) in `#inspector-body` below when no part is
+ * selected, and the selected part's shape params + transform when one is.
+ * The parts list expands/collapses in normal flow — expanded rows push the
+ * design fields down the sidebar — while its add button stays visible either
+ * way. Number fields ship with custom −/+ steppers. Every change mutates
+ * S.descriptor (normalized) in place, then calls onEdit() so the preview
+ * rebuilds, and re-renders the panel.
  *
  * Shape params come straight from the SHAPE_TYPES registry, so the editor
  * always offers exactly the fields the generic builder understands.
@@ -346,11 +348,33 @@ function renderObjectControls(container) {
 
 // ── Part list (add / remove / reorder / select) ─────────────────────────────
 
+/** Whether the parts list rows are expanded (collapsed hides just the rows). */
+let partsListExpanded = true;
+
 function renderPartsList(container) {
   container.textContent = '';
   const d = S.descriptor;
   const parts = activeParts();
 
+  // Header: "Parts (n)" + the expand/collapse toggle — always visible, so the
+  // list can be reopened without hunting for a button further down the panel.
+  const head = el('div', 'parts-head');
+  head.append(el('span', 'parts-title', `Parts (${parts.length})`));
+  const toggle = el('button', 'parts-collapse', partsListExpanded ? '▾' : '▸');
+  toggle.type = 'button';
+  toggle.title = partsListExpanded ? 'Collapse the parts list' : 'Expand the parts list';
+  toggle.setAttribute('aria-label', toggle.title);
+  toggle.setAttribute('aria-expanded', String(partsListExpanded));
+  toggle.setAttribute('aria-controls', 'parts-list');
+  toggle.addEventListener('click', () => {
+    partsListExpanded = !partsListExpanded;
+    renderAll();
+  });
+  head.append(toggle);
+  container.append(head);
+
+  // Add part: shape select + button stay on one compact line, and remain
+  // visible even while the list is collapsed.
   const addRow = el('div', 'part-add-row');
   const shapeSelect = selectInput(Object.keys(SHAPE_TYPES), Object.keys(SHAPE_TYPES)[0], () => {});
   const addBtn = el('button', null, '+ Add part');
@@ -370,112 +394,53 @@ function renderPartsList(container) {
   addRow.append(shapeSelect, addBtn);
   container.append(addRow);
 
-  parts.forEach((part, i) => {
-    const r = el('div', 'part-row' + (part.id === S.selectedPartId ? ' selected' : ''));
-    const label = el('span', 'part-label', `${part.id} · ${part.shape}`);
-    label.addEventListener('click', () => {
-      S.selectedPartId = part.id;
-      renderAll();
+  // Rows only when expanded — they sit in normal flow, pushing the design
+  // fields (#inspector-body) down the sidebar.
+  const list = el('div', 'parts-list');
+  list.id = 'parts-list';
+  if (partsListExpanded) {
+    parts.forEach((part, i) => {
+      const r = el('div', 'part-row' + (part.id === S.selectedPartId ? ' selected' : ''));
+      const label = el('span', 'part-label', `${part.id} · ${part.shape}`);
+      label.addEventListener('click', () => {
+        S.selectedPartId = part.id;
+        renderAll();
+      });
+
+      const up = el('button', null, '↑');
+      const down = el('button', null, '↓');
+      const remove = el('button', null, '✕');
+      up.disabled = i === 0;
+      down.disabled = i === parts.length - 1;
+      remove.disabled = parts.length === 1;
+      up.addEventListener('click', () => mutate(() => {
+        [parts[i - 1], parts[i]] = [parts[i], parts[i - 1]];
+      }));
+      down.addEventListener('click', () => mutate(() => {
+        [parts[i + 1], parts[i]] = [parts[i], parts[i + 1]];
+      }));
+      remove.addEventListener('click', () => mutate(() => {
+        parts.splice(i, 1);
+        if (S.selectedPartId === part.id) S.selectedPartId = null;
+      }));
+
+      r.append(label, up, down, remove);
+      list.append(r);
     });
-
-    const up = el('button', null, '↑');
-    const down = el('button', null, '↓');
-    const remove = el('button', null, '✕');
-    up.disabled = i === 0;
-    down.disabled = i === parts.length - 1;
-    remove.disabled = parts.length === 1;
-    up.addEventListener('click', () => mutate(() => {
-      [parts[i - 1], parts[i]] = [parts[i], parts[i - 1]];
-    }));
-    down.addEventListener('click', () => mutate(() => {
-      [parts[i + 1], parts[i]] = [parts[i], parts[i + 1]];
-    }));
-    remove.addEventListener('click', () => mutate(() => {
-      parts.splice(i, 1);
-      if (S.selectedPartId === part.id) S.selectedPartId = null;
-    }));
-
-    r.append(label, up, down, remove);
-    container.append(r);
-  });
-}
-
-// ── Parts popover (floating, anchored to the inspector-head toggle) ─────────
-
-let partsPopoverOpen = false;
-let partsToggleEl = null;
-
-/** "Parts (n)" toggle in the inspector head — opens the floating parts list. */
-function partsButton() {
-  const parts = activeParts();
-  const btn = el('button', 'parts-toggle', `Parts (${parts.length})`);
-  btn.type = 'button';
-  btn.title = 'Edit the parts list';
-  btn.addEventListener('click', togglePartsPopover);
-  partsToggleEl = btn;
-  return btn;
-}
-
-function setPartsPopover(open) {
-  partsPopoverOpen = open;
-  els.partsPopover.classList.toggle('open', open);
-  if (partsToggleEl) partsToggleEl.setAttribute('aria-expanded', String(open));
-  if (open) anchorPartsPopover();
-}
-
-/** Drop the popover from the toggle button, clamped to the viewport. */
-function anchorPartsPopover() {
-  const rect = partsToggleEl?.getBoundingClientRect();
-  if (!rect) return;
-  const gap = 4;
-  const width = els.partsPopover.offsetWidth;
-  els.partsPopover.style.top = `${rect.bottom + gap}px`;
-  els.partsPopover.style.left = `${Math.max(gap, Math.min(rect.left, window.innerWidth - width - gap))}px`;
-}
-
-function togglePartsPopover() {
-  setPartsPopover(!partsPopoverOpen);
-}
-
-/**
- * Close the popover. Returns true when it was open — lets the shared Escape
- * handler in main.js dismiss overlays topmost-first.
- */
-export function closePartsPopover() {
-  if (!partsPopoverOpen) return false;
-  setPartsPopover(false);
-  return true;
-}
-
-function bindPartsPopover() {
-  // Outside click closes the popover — clicks on the popover itself, its
-  // toggle, or the object browser's UI never dismiss it (the two overlays
-  // coexist).
-  document.addEventListener('pointerdown', (e) => {
-    if (!partsPopoverOpen) return;
-    const t = e.target instanceof Element ? e.target : null;
-    if (!t) return;
-    if (t.closest('#parts-popover')) return;
-    if (partsToggleEl && t.closest('.parts-toggle')) return;
-    if (t.closest('#browser') || t.closest('#browser-toggle') || t.closest('#object-filter')) return;
-    setPartsPopover(false);
-  });
-  // Re-anchor after a resize so the popover stays attached to its button.
-  window.addEventListener('resize', () => {
-    if (partsPopoverOpen) anchorPartsPopover();
-  });
+  }
+  container.append(list);
 }
 
 // ── Inspector (object-level OR selected-part fields) ────────────────────────
 
-/** Inspector head: title/meta (and optional breadcrumb) + the Parts toggle. */
+/** Inspector head: title/meta (and optional breadcrumb back to the object). */
 function inspectorHead(title, meta, back) {
   const head = el('div', 'inspector-head');
   const main = el('div', 'inspector-head-main');
   if (back) main.append(back);
   main.append(el('div', 'inspector-title', title));
   if (meta) main.append(el('div', 'inspector-meta', meta));
-  head.append(main, partsButton());
+  head.append(main);
   return head;
 }
 
@@ -578,7 +543,8 @@ function renderPartInspector(container, part) {
 
 /**
  * Render the contextual inspector: the selected part's fields when one is
- * selected, otherwise the object-level design controls.
+ * selected, otherwise the object-level design controls. The parts list above
+ * (#parts-edit) renders separately.
  */
 function renderInspector(container) {
   container.textContent = '';
@@ -736,12 +702,12 @@ function createObject(kind) {
 
 function renderAll() {
   renderPartsList(els.partsEdit);
-  renderInspector(els.inspector);
+  renderInspector(els.inspectorBody);
 }
 
 /**
  * Bind the editing panel to its DOM containers and the preview rebuild hook.
- * @param {object} elsRef - the editor's DOM refs (inspector, partsEdit, partsPopover, downloadBtn, loadFile, loadError)
+ * @param {object} elsRef - the editor's DOM refs (partsEdit, inspectorBody, downloadBtn, loadFile, loadError)
  * @param {Function} onEditFn - () => void; rebuilds the preview from S.descriptor
  * @param {Function} onLoadedFn - () => void; called after a JSON load succeeds (re-renders the object browser)
  */
@@ -749,7 +715,6 @@ export function bindEditorPanel(elsRef, onEditFn, onLoadedFn = () => {}) {
   els = elsRef;
   onEdit = onEditFn;
   onLoaded = onLoadedFn;
-  bindPartsPopover();
   bindProjectControls();
   renderAll();
 }

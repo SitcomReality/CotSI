@@ -21,7 +21,7 @@ export function cacheDom() {
   els.canvas = document.getElementById('preview-canvas');
 
   els.inspector = document.getElementById('inspector');
-  els.partsPopover = document.getElementById('parts-popover');
+  els.inspectorBody = document.getElementById('inspector-body');
   els.partsEdit = document.getElementById('parts-edit');
   els.downloadBtn = document.getElementById('download-btn');
   els.loadFile = document.getElementById('load-file');
