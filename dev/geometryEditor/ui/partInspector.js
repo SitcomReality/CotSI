@@ -68,14 +68,17 @@ export function renderPartInspector(container, part, ctx) {
 
   container.append(subheading('Rotation'));
   container.append(el('div', 'hint', 'localAxis + localAngle rotate the part around any axis in its own frame; tilt leans it in world space. Angles in radians.'));
-  const localAxis = t.localAxis ?? { x: 0, y: 1, z: 0 };
-  container.append(row('localAxis X', numberInput(localAxis.x, { onChange: (v) => ctx.mutate(() => { t.localAxis = { ...(t.localAxis ?? { y: 1 }), x: v }; }) })));
-  container.append(row('localAxis Y', numberInput(localAxis.y, { onChange: (v) => ctx.mutate(() => { t.localAxis = { ...(t.localAxis ?? {}), y: v }; }) })));
-  container.append(row('localAxis Z', numberInput(localAxis.z, { onChange: (v) => ctx.mutate(() => { t.localAxis = { ...(t.localAxis ?? {}), z: v }; }) })));
+  // Merge the loaded vec over defaults so a missing or partial localAxis still
+  // renders every field, and each edit writes a complete vector back (a sparse
+  // write would blank the sibling fields on the next render).
+  const localAxis = { x: 0, y: 1, z: 0, ...(t.localAxis ?? {}) };
+  container.append(row('localAxis X', numberInput(localAxis.x, { onChange: (v) => ctx.mutate(() => { t.localAxis = { ...localAxis, x: v }; }) })));
+  container.append(row('localAxis Y', numberInput(localAxis.y, { onChange: (v) => ctx.mutate(() => { t.localAxis = { ...localAxis, y: v }; }) })));
+  container.append(row('localAxis Z', numberInput(localAxis.z, { onChange: (v) => ctx.mutate(() => { t.localAxis = { ...localAxis, z: v }; }) })));
   container.append(row('localAngle (rad)', numberInput(t.localAngle ?? 0, { onChange: (v) => ctx.mutate(() => { t.localAngle = v; t.localAxis ??= { x: 0, y: 1, z: 0 }; }) })));
-  const tiltAxis = t.tiltAxis ?? { x: 0, z: 1 };
-  container.append(row('tiltAxis X', numberInput(tiltAxis.x, { onChange: (v) => ctx.mutate(() => { t.tiltAxis = { ...(t.tiltAxis ?? { z: 1 }), x: v }; }) })));
-  container.append(row('tiltAxis Z', numberInput(tiltAxis.z, { onChange: (v) => ctx.mutate(() => { t.tiltAxis = { ...(t.tiltAxis ?? {}), z: v }; }) })));
+  const tiltAxis = { x: 0, z: 1, ...(t.tiltAxis ?? {}) };
+  container.append(row('tiltAxis X', numberInput(tiltAxis.x, { onChange: (v) => ctx.mutate(() => { t.tiltAxis = { ...tiltAxis, x: v }; }) })));
+  container.append(row('tiltAxis Z', numberInput(tiltAxis.z, { onChange: (v) => ctx.mutate(() => { t.tiltAxis = { ...tiltAxis, z: v }; }) })));
   container.append(row('tilt (rad)', numberInput(t.tilt ?? 0, { onChange: (v) => ctx.mutate(() => { t.tilt = v; t.tiltAxis ??= { x: 0, z: 1 }; }) })));
 
   container.append(subheading('Stretch variation'));
