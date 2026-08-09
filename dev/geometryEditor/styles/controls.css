@@ -76,6 +76,11 @@
   padding: var(--s1) var(--s2);
 }
 
+/* Save success reuses the same slot but reads as positive (growth accent). */
+#load-error.ok {
+  color: var(--verdigris);
+}
+
 /* ── Inspector header ─────────────────────────────────────────────────────── */
 
 .inspector-head {

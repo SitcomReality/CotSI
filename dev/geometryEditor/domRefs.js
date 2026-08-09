@@ -24,6 +24,7 @@ export function cacheDom() {
   els.inspectorBody = document.getElementById('inspector-body');
   els.partsEdit = document.getElementById('parts-edit');
   els.downloadBtn = document.getElementById('download-btn');
+  els.saveBtn = document.getElementById('save-btn');
   els.loadFile = document.getElementById('load-file');
   els.loadError = document.getElementById('load-error');
   els.newFeatureBtn = document.getElementById('new-feature-btn');

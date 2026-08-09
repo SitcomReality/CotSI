@@ -16,11 +16,13 @@
 
 ## Add a New Feature via the Geometry Editor
 
-1. Serve the repo root (`python3 -m http.server`) and open `dev/geometryEditor.html`. Pick a similar object in the object list, or edit any descriptor into your shape (parts, cluster/size ranges, emphasis, material). Use **Occupied** to preview the displaced state.
-2. **Download JSON** — saves `<id>.descriptor.json` (the full descriptor).
-3. Add the gameplay archetype if needed: entry in `src/game/rules/archetypeData/features.js` whose `kind` matches the descriptor `id`.
-4. Register the descriptor in `src/render/hexmap3d/features/descriptors/data/` — the JSON is JSON-safe, so paste it as a JS object literal into a data file (single-part features can use the `simpleFeature()` helper in `simpleFeatures.js`), then import it and add it to `ALL_DESCRIPTORS` in `data/index.js`.
-5. Done — the editor list and the in-game renderer both read `data/index.js`, so no builder code is needed. Contract: descriptor `id` === archetype `kind` (the renderer resolves `tile.feature.kind` → `descriptorById(id)` in `gameBuilder.js`).
+1. Start the save server: `dev/geometryEditor/saveServer.sh` (serves the repo at `127.0.0.1:8000`, including the save endpoint). Open `dev/geometryEditor.html` from any dev server — Live Server works too; the Save button probes the page's own origin first, then falls back to `127.0.0.1:8000`. Pick a similar object in the object list, or build from ＋ Feature (parts, cluster/size ranges, emphasis, material). Use **Occupied** to preview the displaced state.
+2. Give the object a real **ID** (the ID field under Object — new objects start with a session id) and a name.
+3. **Save** — validates, strips defaults, writes `data/<id>.js`, and registers it in `data/index.js`. Both are immediately live: refresh the game to see the object.
+4. Add the gameplay archetype if needed: entry in `src/game/rules/archetypeData/features.js` whose `kind` matches the descriptor `id`.
+5. Done — no builder code; the generic descriptor pipeline renders whatever the data defines. Contract: descriptor `id` === archetype `kind` (the renderer resolves `tile.feature.kind` → `descriptorById(id)` in `gameBuilder.js`). Reload the editor page to browse a newly saved object.
+
+**Download JSON** remains as a portable fallback (`<id>.descriptor.json`).
 
 ## Edit an Entity (Base / Champion / Mob / Trader) via the Geometry Editor
 
@@ -29,9 +31,8 @@ Entities (faction bases, champions, mobs, traders) are entity-driven descriptors
 1. Open `dev/geometryEditor.html`. Pick the entity in the object list — the occupied/re-roll controls disappear (entities are occupants, not displaced decor) and an **Entity** panel appears.
 2. Pick the variant: **Faction** (bases/champions — also sets the palette colors) and/or **Archetype** (mobs — picks the shape variant). Traders have one fixed look.
 3. Edit parts as usual — edits target the active variant's parts (the parts the preview shows). Entity parts ignore stretch variation (no per-tile hash draws).
-4. **Download JSON** — the export includes the full descriptor with all variants, so it is drop-in compatible with the data files.
-5. Register the change in `src/render/hexmap3d/features/descriptors/data/` — paste the JSON into the matching data file (`bases.js` / `champions.js` / `mobs.js` / `traders.js`) and rebuild the file's variant map (e.g. new mob archetype → new entry in `MOB_VARIANTS`, plus a `MOB_TIER2_VARIANTS` entry if it is a tier-2 mob). No builder code — `baseMeshes.js` / `unitMeshes.js` render whatever the descriptors define.
-6. Variant contract for entities: variant `id` === the selecting field (`variantRule 'faction'` → the faction short, `'archetype'` → the archetype shape key from `mob.archetypeName`). Unknown selections fall back to the first variant. Part ids must stay unique across variants — meshAssembly groups records by part id, so two variants sharing an id merge into one geometry.
+4. **Save** — works for champions and traders (plain descriptor files). Bases and mobs are **table-driven** (`bases.js` / `mobs.js` derive their descriptor from variant maps the game imports) — Save rejects them with a 409; hand-edit those two files until the maps are decoupled.
+5. Variant contract for entities: variant `id` === the selecting field (`variantRule 'faction'` → the faction short, `'archetype'` → the archetype shape key from `mob.archetypeName`). Unknown selections fall back to the first variant. Part ids must stay unique across variants — meshAssembly groups records by part id, so two variants sharing an id merge into one geometry.
 
 ## Change Win Conditions
 

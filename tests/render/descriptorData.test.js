@@ -94,8 +94,8 @@ test('simple features: one record, legacy scatter bounds', () => {
     const [record] = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'plains' }, POS);
     assert.ok(record, `${raw.id} produced no records`);
     // Legacy scatter size jitter: scale = descriptor.scale × [0.8, 0.99].
-    assert.ok(record.scale >= raw.scale * 0.8 - 1e-9, `${raw.id} scale ${record.scale} < ${raw.scale}*0.8`);
-    assert.ok(record.scale <= raw.scale * 0.99 + 1e-9, `${raw.id} scale ${record.scale} > ${raw.scale}*0.99`);
+    assert.ok(record.scale >= d.scale * 0.8 - 1e-9, `${raw.id} scale ${record.scale} < ${d.scale}*0.8`);
+    assert.ok(record.scale <= d.scale * 0.99 + 1e-9, `${raw.id} scale ${record.scale} > ${d.scale}*0.99`);
     // Scatter offset stays within the hex (≤ 0.3).
     const dist = Math.hypot(record.x - POS.x, record.z - POS.z);
     assert.ok(dist <= 0.3 + 1e-9, `${raw.id} scatter dist ${dist}`);

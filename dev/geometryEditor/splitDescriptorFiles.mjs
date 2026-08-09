@@ -1,0 +1,230 @@
+#!/usr/bin/env node
+/**
+ * splitDescriptorFiles.mjs — One-time migration: split the multi-descriptor
+ * data files into one file per descriptor.
+ *
+ * simpleFeatures.js (26 descriptors), trees.js (2) and groundDecor.js (5) are
+ * replaced by per-object files — `data/<id>.js` exporting `<ID>_DESCRIPTOR`
+ * (the per-object convention documented in data/index.js) — and the barrel
+ * (data/index.js) is regenerated with those imports plus the new
+ * DESCRIPTOR_SOURCES map (the ids whose home file keeps its non-conventional
+ * name: hills/mountains/knots/champions/traders/bases/mobs).
+ *
+ * The table-driven entity files (bases.js, mobs.js) are NOT split — their
+ * descriptors are derived from BASE_VARIANTS / MOB_VARIANTS tables the rest of
+ * the game imports.
+ *
+ * Safety: the script writes the new files, re-imports the regenerated barrel
+ * and asserts every descriptor is byte-identical (after normalizeDescriptor)
+ * to the pre-split value, and only then deletes the old files. On failure it
+ * exits non-zero with the old files intact.
+ *
+ * Run once from the repo root:
+ *   /run/host/usr/bin/node dev/geometryEditor/splitDescriptorFiles.mjs
+ */
+import { readFile, writeFile, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import assert from 'node:assert/strict';
+
+import { normalizeDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
+import { emitDescriptorModule, descriptorExportName } from './emitDescriptor.js';
+import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/features/descriptors/data/index.js';
+import { SIMPLE_FEATURE_DESCRIPTORS } from '../../src/render/hexmap3d/features/descriptors/data/simpleFeatures.js';
+import { GROVE_DESCRIPTOR, TREE_DESCRIPTOR } from '../../src/render/hexmap3d/features/descriptors/data/trees.js';
+import {
+  PLAINS_GRASS_DESCRIPTOR,
+  MARSH_REEDS_DESCRIPTOR,
+  PLATEAU_MOUND_DESCRIPTOR,
+  DESERT_SCRUB_DESCRIPTOR,
+  BEACH_DRIFTWOOD_DESCRIPTOR,
+} from '../../src/render/hexmap3d/features/descriptors/data/groundDecor.js';
+
+const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..');
+const DATA_DIR = path.join(ROOT, 'src', 'render', 'hexmap3d', 'features', 'descriptors', 'data');
+
+/** The ids being split into per-object files. */
+const SPLIT_IDS = new Set(
+  [
+    ...SIMPLE_FEATURE_DESCRIPTORS,
+    GROVE_DESCRIPTOR,
+    TREE_DESCRIPTOR,
+    PLAINS_GRASS_DESCRIPTOR,
+    MARSH_REEDS_DESCRIPTOR,
+    PLATEAU_MOUND_DESCRIPTOR,
+    DESERT_SCRUB_DESCRIPTOR,
+    BEACH_DRIFTWOOD_DESCRIPTOR,
+  ].map((d) => d.id),
+);
+
+/** Ids whose home file keeps its non-conventional name (mirrors DESCRIPTOR_SOURCES). */
+const FIXED_FILES = Object.freeze({
+  hill: 'hills.js',
+  mountain: 'mountains.js',
+  knot: 'knots.js',
+  champion: 'champions.js',
+  trader: 'traders.js',
+  base: 'bases.js',
+  mob: 'mobs.js',
+});
+
+/** The old files the split replaces. */
+const OLD_FILES = ['simpleFeatures.js', 'trees.js', 'groundDecor.js'];
+
+/** gameBuilder.js imports two of the split files directly — rewrite them to the
+ *  per-object files during the migration. */
+const GAME_BUILDER_PATH = path.join(
+  ROOT, 'src', 'render', 'hexmap3d', 'features', 'descriptors', 'gameBuilder.js');
+const IMPORT_RE = (file) => new RegExp(`import \\{([^}]*)\\} from '\\./data/${file}';`, 'g');
+
+function rewriteGameBuilder(source) {
+  let out = source;
+  for (const oldFile of OLD_FILES) {
+    out = out.replace(IMPORT_RE(oldFile), (match, clause) => {
+      const names = clause.split(',').map((s) => s.trim()).filter(Boolean);
+      return names.map((name) => {
+        const id = EXPORT_TO_ID.get(name);
+        assert.ok(id, `export "${name}" from data/${oldFile} has no descriptor id`);
+        return `import { ${name} } from './data/${id}.js';`;
+      }).join('\n');
+    });
+  }
+  return out;
+}
+
+// ── Barrel generation ────────────────────────────────────────────────────────
+
+function barrelSource(descriptors) {
+  const imports = new Map(); // file → [export names]
+  for (const d of descriptors) {
+    const file = SPLIT_IDS.has(d.id) ? `${d.id}.js` : FIXED_FILES[d.id];
+    const name = descriptorExportName(d.id);
+    if (!imports.has(file)) imports.set(file, []);
+    imports.get(file).push(name);
+  }
+  const importLines = [...imports.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([file, names]) => `import { ${names.join(', ')} } from './${file}';`);
+
+  const arrayLines = descriptors.map((d) => `  ${descriptorExportName(d.id)},`).join('\n');
+  const sourceLines = Object.entries(FIXED_FILES).map(([id, file]) => `  ${id}: '${file}',`).join('\n');
+
+  return `/**
+ * data/index.js — Barrel for the descriptor data.
+ *
+ * Every game object lives here as a descriptor, one file per object: descriptor
+ * id \`knot\` → \`data/knot.js\` exporting \`KNOT_DESCRIPTOR\` (see
+ * descriptorExportName in dev/geometryEditor/emitDescriptor.js). Files are
+ * generated by the geometry editor (dev/geometryEditor.html → Save) — see
+ * DESCRIPTOR_SOURCES below for the ids whose home file keeps an older name.
+ *
+ * Descriptors are raw JSON literals with only non-default fields;
+ * gameBuilder.js / the editor normalize them on load (normalizeDescriptor).
+ * The table-driven entity files (bases.js, mobs.js) keep their variant tables
+ * (BASE_VARIANTS / MOB_VARIANTS / MOB_TIER2_VARIANTS) — their descriptors are
+ * derived from those tables and are NOT edited through the editor yet.
+ *
+ * Not descriptor-driven (parity gaps, see dev/futureWork.md): fruit trees and
+ * painforest gnarled groves keep their hard-coded builders.
+ */
+${importLines.join('\n')}
+
+/** Every descriptor, in editor-display order. */
+export const ALL_DESCRIPTORS = [
+${arrayLines}
+];
+
+/**
+ * Descriptors whose home file is not the per-id convention (\`<id>.js\`).
+ * The save server uses this to find an existing object's file; everything not
+ * listed here follows the convention.
+ */
+export const DESCRIPTOR_SOURCES = Object.freeze({
+${sourceLines}
+});
+
+const byId = new Map(ALL_DESCRIPTORS.map((d) => [d.id, d]));
+
+/** Look up a descriptor by id, or null. */
+export function descriptorById(id) {
+  return byId.get(id) ?? null;
+}
+`;
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
+
+const oldBarrelPath = path.join(DATA_DIR, 'index.js');
+
+/** Export name → descriptor id, for rewriting importers of the split files. */
+const EXPORT_TO_ID = new Map(ALL_DESCRIPTORS.map((d) => [descriptorExportName(d.id), d.id]));
+
+// Sanity: the barrel we regenerate must still match the loaded ALL_DESCRIPTORS
+// (guards against a stale module cache after a previous partial run).
+const loaded = new Set(ALL_DESCRIPTORS.map((d) => d.id));
+for (const [id, file] of Object.entries(FIXED_FILES)) {
+  assert.ok(loaded.has(id), `fixed-file id "${id}" missing from ALL_DESCRIPTORS`);
+  const p = path.join(DATA_DIR, file);
+  assert.ok(existsSync(p), `expected home file ${file} for "${id}"`);
+}
+for (const file of OLD_FILES) {
+  const p = path.join(DATA_DIR, file);
+  if (!existsSync(p)) {
+    console.error(`old file ${file} already gone — re-running after a partial split?`);
+    process.exit(1);
+  }
+}
+
+const expected = ALL_DESCRIPTORS.map((d) => [d.id, normalizeDescriptor(d)]);
+
+// 1. Write the per-object files.
+for (const d of ALL_DESCRIPTORS) {
+  if (!SPLIT_IDS.has(d.id)) continue;
+  const text = emitDescriptorModule(d);
+  const target = path.join(DATA_DIR, `${d.id}.js`);
+  if (existsSync(target)) {
+    const current = await readFile(target, 'utf8');
+    assert.equal(current, text, `existing ${d.id}.js differs from the generated form`);
+  }
+  await writeFile(target, text);
+  console.log(`wrote data/${d.id}.js`);
+}
+
+// 2. Regenerate the barrel + the gameBuilder imports of the split files.
+const newBarrel = barrelSource(ALL_DESCRIPTORS);
+await writeFile(oldBarrelPath, newBarrel);
+console.log('wrote data/index.js');
+
+const gameBuilderPath = GAME_BUILDER_PATH;
+const oldGameBuilder = await readFile(gameBuilderPath, 'utf8');
+const newGameBuilder = rewriteGameBuilder(oldGameBuilder);
+if (newGameBuilder !== oldGameBuilder) {
+  await writeFile(gameBuilderPath, newGameBuilder);
+  console.log('wrote gameBuilder.js (rewrote imports of the split files)');
+}
+
+// 3. Self-check: re-import the regenerated barrel (fresh specifier) and verify
+//    every descriptor round-trips to the exact pre-split value.
+const fresh = await import(pathToFileURL(oldBarrelPath).href + '?verify=' + Date.now());
+assert.equal(fresh.ALL_DESCRIPTORS.length, expected.length, 'descriptor count changed');
+for (let i = 0; i < expected.length; i += 1) {
+  const [id, before] = expected[i];
+  const after = normalizeDescriptor(fresh.ALL_DESCRIPTORS[i]);
+  assert.deepEqual(after, before, `descriptor "${id}" changed by the split`);
+  assert.equal(fresh.ALL_DESCRIPTORS[i].id, id, `descriptor order changed at ${i}`);
+}
+assert.deepEqual(Object.keys(fresh.DESCRIPTOR_SOURCES).sort(), Object.keys(FIXED_FILES).sort());
+console.log(`verify: ${expected.length} descriptors round-trip identically`);
+
+// The rewritten gameBuilder must resolve and load in the new graph.
+await import(pathToFileURL(gameBuilderPath).href + '?verify=' + Date.now());
+console.log('verify: gameBuilder.js imports resolve');
+
+// 4. Remove the old files only now that the new graph is verified.
+for (const file of OLD_FILES) {
+  await rm(path.join(DATA_DIR, file));
+  console.log(`removed data/${file}`);
+}
+
+console.log('split complete — run check_imports.py, check_geometry_editor_imports.py and tests/run.sh');

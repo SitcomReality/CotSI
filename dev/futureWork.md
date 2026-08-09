@@ -190,3 +190,15 @@ Entity-kind notes (by design, not regressions):
 - **Champion accents** are minimal per-faction placeholders; richer looks
   are authorable in the editor. Same for tier-2 mob accents (elder crown,
   queen gem).
+
+**Editor write-back is live** — the editor saves objects straight into
+`descriptors/data/` via `dev/geometryEditor/saveServer.sh` (one file per
+object, generated; convention documented in `data/index.js`). Remaining
+editor gaps:
+
+- **Table-driven entity save** — `bases.js` / `mobs.js` derive their
+  descriptor from variant maps the game imports; the save endpoint rejects
+  them until the maps are decoupled from the descriptor.
+- **3D gizmo** — direct transform manipulation in the preview (deferred).
+- **Diff-on-save** — the confirm dialog shows the target file only; a
+  before/after descriptor diff would catch accidental drift.

@@ -36,19 +36,17 @@ import { buildDescriptorMeshes } from './meshAssembly.js';
 import { recordsForDescriptor } from './recordBuilder.js';
 import { normalizeDescriptor } from './schema.js';
 import { descriptorById } from './data/index.js';
-import { GROVE_DESCRIPTOR } from './data/trees.js';
+import { GROVE_DESCRIPTOR } from './data/grove.js';
 import { HILL_DESCRIPTOR } from './data/hills.js';
 import { KNOT_DESCRIPTOR } from './data/knots.js';
 import { MOUNTAIN_DESCRIPTOR } from './data/mountains.js';
 import { biomeTintForTile } from '../biomeTint.js';
 import { coordKey } from '../../../../engine/rules/hexGrid.js';
-import {
-  PLAINS_GRASS_DESCRIPTOR,
-  MARSH_REEDS_DESCRIPTOR,
-  PLATEAU_MOUND_DESCRIPTOR,
-  DESERT_SCRUB_DESCRIPTOR,
-  BEACH_DRIFTWOOD_DESCRIPTOR,
-} from './data/groundDecor.js';
+import { PLAINS_GRASS_DESCRIPTOR } from './data/plainsGrass.js';
+import { MARSH_REEDS_DESCRIPTOR } from './data/marshReeds.js';
+import { PLATEAU_MOUND_DESCRIPTOR } from './data/plateauMound.js';
+import { DESERT_SCRUB_DESCRIPTOR } from './data/desertScrub.js';
+import { BEACH_DRIFTWOOD_DESCRIPTOR } from './data/beachDriftwood.js';
 import {
   DECOR_STATE, DECORATION, decorState, isTileOccupied,
 } from '../decorEmphasis.js';
