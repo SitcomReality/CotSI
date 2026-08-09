@@ -2,7 +2,7 @@
  * objectControls.js — Object-level design fields for the geometry editor.
  *
  * Renders into `#inspector-body` when no part is selected: name, variant /
- * entity pickers, biome, cluster, size, placement, emphasis and material.
+ * entity pickers, biome, cluster, size, placement and emphasis.
  * Entity-driven objects swap the cluster/size/placement fields for a
  * faction/archetype picker. `ctx` supplies `mutate()` (and `onLoaded()` for
  * renames, which also refresh the object browser).
@@ -16,7 +16,6 @@ import {
   selectInput,
   numberInput,
   intInput,
-  colorInput,
 } from './formControls.js';
 import { inspectorHead } from './inspectorHead.js';
 import { activeVariant } from './variantQuery.js';
@@ -112,8 +111,6 @@ export function renderObjectControls(container, ctx) {
     container.append(el('div', 'mode-banner', `${d.kind} — entity-driven`));
     renderEntityControls(container, ctx);
     container.append(el('div', 'hint', 'Entities are singletons at the hex center — cluster/size/placement do not apply.'));
-    container.append(subheading('Material'));
-    container.append(row('Color', colorInput(d.material.color, (v) => ctx.mutate(() => { d.material.color = v; }))));
     return;
   }
 
@@ -191,7 +188,4 @@ export function renderObjectControls(container, ctx) {
   container.append(row('Behavior', selectInput(EMPHASIS_BEHAVIORS, d.emphasis.behavior, (v) => ctx.mutate(() => {
     d.emphasis.behavior = v;
   }))));
-
-  container.append(subheading('Material'));
-  container.append(row('Color', colorInput(d.material.color, (v) => ctx.mutate(() => { d.material.color = v; }))));
 }

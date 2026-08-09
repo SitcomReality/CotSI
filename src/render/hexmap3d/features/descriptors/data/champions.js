@@ -3,9 +3,9 @@
  *
  * Migrated from unitMeshes.js: the champion is a cylinder body + sphere head.
  * The body is faction-colored (the 'factionBase' token, resolved from the
- * champion's faction palette); the head is a fixed skin tone (part
- * materialColor 0xffe8c8 — a material color, not an instance color, exactly
- * like the old CHAMPION_HEAD_MAT).
+ * champion's faction palette); the head is a fixed skin tone — a literal part
+ * color 0xffe8c8, the old CHAMPION_HEAD_MAT (v4 merged materialColor into
+ * `color`).
  *
  * Vertical offsets are bottom heights (schema v3): no transform = flush on the
  * ground. The body sits flush; the head and accents keep their old center
@@ -33,7 +33,7 @@ const HEAD = {
   shape: 'sphere',
   params: { radius: 0.1, wSegs: 8, hSegs: 6 },
   transform: { y: 0.35 },
-  materialColor: 0xffe8c8,
+  color: 0xffe8c8, // skin tone — was the v3 materialColor (CHAMPION_HEAD_MAT)
 };
 
 /** One small accent part per faction, sitting on/around the head. */
@@ -54,12 +54,11 @@ export const CHAMPION_VARIANTS = Object.fromEntries(
 
 /** The champion descriptor — top-level parts are the CRU fallback. */
 export const CHAMPION_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'champion',
   kind: 'champion',
   displayName: 'Champion',
   variantRule: 'faction',
-  material: { color: 0xffffff },
   parts: CHAMPION_VARIANTS.CRU,
   variants: Object.entries(CHAMPION_VARIANTS).map(([id, parts]) => ({ id, parts })),
 };

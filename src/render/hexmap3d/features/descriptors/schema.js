@@ -19,12 +19,16 @@
  *     entities, whose variant ids match the entity's faction or archetype);
  *   - emphasis — what happens when something more important claims the hex
  *     center (decorEmphasis.js): dispersed to the edge, sunk flat, or hidden;
- *   - material — base color (and optional emissive for resource nodes).
+ *   - material — optional emissive for resource-node glow (v4 has no
+ *     object-level base color; each part carries its own).
  *
- * Parts carry a `color` for the instance-color path: an integer literal, or a
- * named-color token ('factionBase' etc.) that entity records resolve from the
- * entity's palette. Entity descriptors keep the material white so instance
- * colors drive the look.
+ * Parts carry a `color` for the instance-color path: an integer literal for
+ * tile-driven objects (subject to the per-tile color jitter and biome tint),
+ * or a named-color token ('factionBase' etc.) that entity records resolve from
+ * the entity's palette. The shared toon material stays white; instance colors
+ * drive the look. The v3 `materialColor` per-part field is migrated into
+ * `color` on normalize (and the v3 object-level `material.color` is pushed
+ * into every part that lacks one).
  *
  * The current game builds these objects from hard-coded constants scattered
  * across geometryParams.js, FEATURE_VISUALS, and the per-kind record builders.
@@ -154,6 +158,11 @@ export const SHAPE_TYPES = Object.freeze({
  */
 export const OBJECT_KINDS = Object.freeze(['feature', 'decor', 'mountain', 'base', 'champion', 'mob', 'trader']);
 
+/** Kinds driven by entity state (recordsForEntity) — their instance colors
+ *  come from the entity (part token / entity.color), never from the object
+ *  material, so the v4 material-color migration skips them. */
+const ENTITY_DRIVEN_KINDS = new Set(['base', 'champion', 'mob', 'trader']);
+
 /**
  * Emphasis behavior — what the object does when the hex center is claimed by
  * something more important (an occupant or feature). Mirrors decorEmphasis.js:
@@ -168,8 +177,12 @@ export const EMPHASIS_BEHAVIORS = Object.freeze(['none', 'dispersed', 'sunk', 'h
 /** How items of a cluster sit inside the hex. */
 export const PLACEMENT_MODES = Object.freeze(['center', 'scatter', 'ring', 'jitter']);
 
-/** Bump when the descriptor shape changes in a breaking way. */
-export const SCHEMA_VERSION = 3;
+/**
+ * Bump when the descriptor shape changes in a breaking way. v4 removed the
+ * object-level material color and the per-part materialColor — every part now
+ * carries its own `color`; normalizeDescriptor migrates v3 files.
+ */
+export const SCHEMA_VERSION = 4;
 
 /**
  * Defaults for optional object-level fields. Values mirror the current game
@@ -186,7 +199,7 @@ export const OBJECT_DEFAULTS = Object.freeze({
   variation: { stretchY: [1, 1], stretchX: [1, 1], stretchZ: [1, 1], colorJitter: 0 },
   placement: { mode: 'center' },
   emphasis: { behavior: 'none' },
-  material: { color: 0xffffff },
+  material: {}, // emissive only — colors live on the parts (v4)
 });
 
 /**
@@ -501,9 +514,9 @@ export function validatePart(part, path, errors) {
   if (part.color !== undefined && !isColorInt(part.color) && !isColorToken(part.color)) {
     errors.push(`${path}${label}: color must be an integer 0..0xFFFFFF or a named-color token (${COLOR_TOKEN_PATTERN})`);
   }
-  // materialColor is baked into the per-descriptor material (materialForPart),
-  // which has no entity context — tokens are only valid on the instance-color
-  // path (part.color), so materialColor stays integer-only.
+  // materialColor is legacy (v3): normalizeDescriptor merges it into `color`,
+  // which is why it stays integer-only here (the material path never resolves
+  // tokens). Accepted so old downloads still validate; never emitted by Save.
   if (part.materialColor !== undefined && !isColorInt(part.materialColor)) {
     errors.push(`${path}${label}: materialColor must be an integer 0..0xFFFFFF`);
   }
@@ -715,7 +728,7 @@ function validateEmphasis(emphasis, path, errors) {
   }
 }
 
-const MATERIAL_KEYS = ['color', 'emissive', 'emissiveIntensity'];
+const MATERIAL_KEYS = ['emissive', 'emissiveIntensity'];
 
 function validateMaterial(material, path, errors) {
   if (material === undefined) return;
@@ -726,7 +739,6 @@ function validateMaterial(material, path, errors) {
   for (const key of Object.keys(material)) {
     if (!MATERIAL_KEYS.includes(key)) errors.push(`${path}: unknown field "${key}"`);
   }
-  if (material.color !== undefined && !isColorInt(material.color)) errors.push(`${path}.color: must be an integer 0..0xFFFFFF`);
   if (material.emissive !== undefined && !isColorInt(material.emissive)) errors.push(`${path}.emissive: must be an integer 0..0xFFFFFF`);
   if (material.emissiveIntensity !== undefined && !isNonNegativeNumber(material.emissiveIntensity)) {
     errors.push(`${path}.emissiveIntensity: must be >= 0`);
@@ -838,6 +850,14 @@ function normalizePart(part, legacyGrounding = false) {
   const out = { ...part, shape: shapeName };
   out.params = shape ? { ...shape.defaults, ...params } : { ...params };
 
+  // v3 → v4: `materialColor` merges into the single per-part `color`. A literal
+  // `color` wins when both are present — the old instance-color path already
+  // overrode the material color visually. Idempotent: v4 parts carry neither.
+  if (out.materialColor !== undefined) {
+    if (out.color === undefined) out.color = out.materialColor;
+    delete out.materialColor;
+  }
+
   // Resolve the legacy combined XZ scale into independent scaleX/scaleZ
   // (an explicit per-axis scale wins over the legacy value).
   const merged = { ...PART_TRANSFORM_DEFAULTS, ...transform };
@@ -880,11 +900,17 @@ function normalizePart(part, legacyGrounding = false) {
 export function normalizeDescriptor(def) {
   const out = cloneJson(isPlainObject(def) ? def : {});
 
-  // Pre-v3 files encoded `transform.y` as the part's center height; the
-  // bottom-anchored convention reads it as bottom height, so old files are
-  // migrated per part (see normalizePart). Captured before schemaVersion is
-  // rewritten, so re-normalizing a v3 document never migrates twice.
-  const legacyGrounding = (out.schemaVersion ?? 1) < SCHEMA_VERSION;
+  // v3 → v4: object-level material color moves onto each part that has no
+  // color of its own (the material color was the render fallback for those
+  // parts). Captured from the RAW material before the defaults merge below.
+  const legacyMaterialColor = isPlainObject(out.material) ? out.material.color : undefined;
+
+  // Files older than v3 encoded `transform.y` as the part's CENTER height; the
+  // bottom-anchored convention reads it as bottom height, so only pre-v3 files
+  // are migrated per part (see normalizePart). This floor is a constant on
+  // purpose: bumping SCHEMA_VERSION (e.g. v4's color migration) must not
+  // re-apply the grounding migration to v3+ files.
+  const legacyGrounding = (out.schemaVersion ?? 1) < 3;
   out.schemaVersion = SCHEMA_VERSION;
   out.scale = out.scale ?? OBJECT_DEFAULTS.scale;
   out.variantRule = out.variantRule ?? 'hash';
@@ -931,6 +957,25 @@ export function normalizeDescriptor(def) {
       v.parts = (Array.isArray(variant.parts) ? variant.parts : []).map((p) => normalizePart(p, legacyGrounding));
       return v;
     });
+  }
+
+  // v3 → v4 color migration: push the object's material color into every part
+  // that lacks an explicit color, then drop it from the material. Entity parts
+  // are skipped for the push — their instance color comes from the entity
+  // (token or the entity.color fallback), so the material color never rendered
+  // for them — but material.color is removed for every kind. Idempotent: a v4
+  // file has no material.color, so the push no-ops.
+  if (legacyMaterialColor !== undefined) {
+    if (!ENTITY_DRIVEN_KINDS.has(out.kind)) {
+      const push = (part) => {
+        if (part.color === undefined) part.color = legacyMaterialColor;
+      };
+      for (const part of out.parts) push(part);
+      for (const variant of out.variants ?? []) {
+        for (const part of variant.parts) push(part);
+      }
+    }
+    if (isPlainObject(out.material)) delete out.material.color;
   }
 
   return out;

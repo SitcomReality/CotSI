@@ -5,7 +5,7 @@
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const GROVE_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'grove',
   kind: 'decor',
   displayName: 'Tree Grove',
@@ -15,7 +15,6 @@ export const GROVE_DESCRIPTOR = {
   variantRule: 'cluster',
   placement: { mode: 'ring' },
   emphasis: { behavior: 'dispersed' },
-  material: { color: 0x8b5e3c },
   parts: [
     {
       id: 'trunk',
@@ -26,6 +25,7 @@ export const GROVE_DESCRIPTOR = {
         z: false,
       },
       biomeScale: { biome_tundra: 0.85 },
+      color: 0x8b5e3c,
     },
   ],
   variants: [
@@ -41,6 +41,7 @@ export const GROVE_DESCRIPTOR = {
             z: false,
           },
           biomeScale: { biome_tundra: 0.85 },
+          color: 0x8b5e3c,
         },
         {
           id: 'canopy-round',
@@ -70,6 +71,7 @@ export const GROVE_DESCRIPTOR = {
           },
           biomeScale: { biome_tundra: 0.85 },
           transform: { scaleY: 0.8 },
+          color: 0x8b5e3c,
         },
         {
           id: 'canopy-tall',
@@ -100,6 +102,7 @@ export const GROVE_DESCRIPTOR = {
             z: false,
           },
           biomeScale: { biome_painforest: 0.55 },
+          color: 0x8b5e3c,
         },
         {
           id: 'trunk-gnarled-upper',
@@ -116,6 +119,7 @@ export const GROVE_DESCRIPTOR = {
             z: false,
           },
           biomeScale: { biome_painforest: 0.55 },
+          color: 0x8b5e3c,
         },
         {
           id: 'branch-gnarled',
@@ -132,6 +136,7 @@ export const GROVE_DESCRIPTOR = {
             z: false,
           },
           biomeScale: { biome_painforest: 0.55 },
+          color: 0x8b5e3c,
         },
         {
           id: 'canopy-gnarled',

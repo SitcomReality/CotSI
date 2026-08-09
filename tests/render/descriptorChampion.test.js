@@ -61,7 +61,7 @@ test('golden snapshot: CRU champion (body + head + top spike)', () => {
   const records = recordsForEntity(normalizeDescriptor(CHAMPION_DESCRIPTOR), ENTITY('CRU'), POS);
   assert.deepEqual(records, [
     { partId: 'body', x: 0, y: 0.25, z: 0, scale: 1, scaleY: 1, color: 0x6e2e22 }, // flush bottom (0) + 0.25 base
-    { partId: 'head', x: 0, y: 0.44999999999999996, z: 0, scale: 1, scaleY: 1 }, // skin tone is materialColor — no instance color; 1-ulp drift from the v3 grounding round-trip (0.35 + 0.1)
+    { partId: 'head', x: 0, y: 0.44999999999999996, z: 0, scale: 1, scaleY: 1, color: 0xffe8c8 }, // skin tone — a literal instance color in v4; 1-ulp drift from the v3 grounding round-trip (0.35 + 0.1)
     { partId: 'spikeTop', x: 0, y: 0.5800000000000001, z: 0, scale: 1, scaleY: 1, color: 0xb84530 }, // y = 0.55 bottom + 0.03 base (1-ulp drift)
   ]);
 });
@@ -117,13 +117,15 @@ test('buildUnitMeshes renders champions through the descriptor pipeline', () => 
   assert.equal(byName('champion-gem').length, 1, 'MSK accent present');
   assert.equal(byName('champion-halo').length, 0, 'no unselected-faction accents');
 
-  // Body mesh: white material + instance color per champion; head: skin-tone material.
+  // Body and head meshes: white material + per-instance colors (the head's
+  // skin tone is a literal instance color in v4 — materialColor is gone).
   const body = byName('champion-body')[0];
   const head = byName('champion-head')[0];
   assert.equal(body.count, 2, 'one body instance per champion');
   assert.equal(body.material.color.getHex(), 0xffffff);
   assert.ok(body.instanceColor, 'body carries per-instance faction colors');
-  assert.equal(head.material.color.getHex(), 0xffe8c8, 'head keeps the skin-tone material');
+  assert.equal(head.material.color.getHex(), 0xffffff, 'head material is white; the skin tone is an instance color');
+  assert.ok(head.instanceColor, 'head carries the skin-tone instance color');
   assert.equal(head.count, 2);
 
   // Accents carry the faction accent color (CRU spike at index 0, MSK gem at

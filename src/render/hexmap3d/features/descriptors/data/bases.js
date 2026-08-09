@@ -119,12 +119,11 @@ export const BASE_VARIANTS = {
 
 /** The base descriptor — top-level parts are the CRU fallback. */
 export const BASE_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'base',
   kind: 'base',
   displayName: 'Faction Base',
   variantRule: 'faction',
-  material: { color: 0xffffff },
   parts: BASE_VARIANTS.CRU,
   variants: Object.entries(BASE_VARIANTS).map(([id, parts]) => ({ id, parts })),
 };

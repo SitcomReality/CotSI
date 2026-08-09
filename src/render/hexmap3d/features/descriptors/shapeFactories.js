@@ -58,10 +58,12 @@ function buildShape(type, params) {
 }
 
 /**
- * Toon material for a part. The part's own materialColor wins; otherwise the
- * object's material.color applies (the instance-color path keeps the material
- * white — e.g. tree canopies). Object-level emissive (resource nodes) passes
- * through.
+ * Toon material for a part — always white: instance colors (record.color from
+ * recordBuilder) carry the look, so a shared white material stays the single
+ * cache entry per option-set. Mountain geometry carries per-vertex colors
+ * (mountainGeometries.js) — keep the material white and let vertex colors drive
+ * the look, matching the game's MOUNTAIN_MATERIAL. Object-level emissive
+ * (resource nodes) passes through.
  *
  * Materials are cached per option-set and marked shared: unit meshes rebuild
  * every render pass, and disposeMesh (sceneContext) skips shared materials, so
@@ -77,12 +79,7 @@ export function materialForPart(descriptor, part) {
   const material = descriptor.material;
   const opts = {};
   if (part.shape === 'mountain') {
-    // Mountain geometry carries per-vertex colors (mountainGeometries.js) —
-    // keep the material white and let vertex colors drive the look, matching
-    // the game's MOUNTAIN_MATERIAL.
     opts.vertexColors = true;
-  } else {
-    opts.color = part.materialColor ?? material.color;
   }
   if (material.emissive !== undefined) opts.emissive = material.emissive;
   if (material.emissiveIntensity !== undefined) opts.emissiveIntensity = material.emissiveIntensity;

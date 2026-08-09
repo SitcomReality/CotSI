@@ -152,12 +152,11 @@ export const MOB_TIER2_VARIANTS = Object.freeze({
 
 /** The mob descriptor — top-level parts are the unknown-shape fallback. */
 export const MOB_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'mob',
   kind: 'mob',
   displayName: 'Mob',
   variantRule: 'archetype',
-  material: { color: 0xffffff },
   parts: MOB_VARIANTS.default,
   variants: Object.entries(MOB_VARIANTS).map(([id, parts]) => ({ id, parts })),
 };

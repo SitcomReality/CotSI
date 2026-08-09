@@ -62,6 +62,7 @@ export function renderPartsList(container, ctx) {
         shape,
         params: { ...SHAPE_TYPES[shape].defaults },
         transform: { ...PART_TRANSFORM_DEFAULTS },
+        color: 0xffffff,
       });
     });
   });

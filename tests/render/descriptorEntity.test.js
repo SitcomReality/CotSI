@@ -26,7 +26,6 @@ const BASE_DESCRIPTOR = {
   kind: 'base',
   displayName: 'Faction Base',
   variantRule: 'faction',
-  material: { color: 0xffffff },
   parts: [
     { id: 'tower', shape: 'cylinder', params: { bottomR: 0.16, topR: 0.14, height: 0.5, segments: 6 }, color: 'factionBase' },
     { id: 'cap', shape: 'cylinder', params: { bottomR: 0.18, topR: 0.18, height: 0.08, segments: 6 }, transform: { lift: 0.46 }, color: 'factionBase' },
@@ -60,7 +59,6 @@ const MOB_DESCRIPTOR = {
   kind: 'mob',
   displayName: 'Mob',
   variantRule: 'archetype',
-  material: { color: 0xffffff },
   parts: [
     { id: 'body', shape: 'cylinder', params: { bottomR: 0.14, topR: 0.1, height: 0.22, segments: 5 }, color: 'factionBase' },
   ],

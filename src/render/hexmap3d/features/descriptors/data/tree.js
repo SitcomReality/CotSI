@@ -5,7 +5,7 @@
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const TREE_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'tree',
   kind: 'feature',
   displayName: 'Tree',
@@ -13,13 +13,13 @@ export const TREE_DESCRIPTOR = {
   variantRule: 'solitary',
   placement: { mode: 'jitter', tiltMin: 0.02, tiltMax: 0.02 },
   emphasis: { behavior: 'dispersed' },
-  material: { color: 0x8b5e3c },
   parts: [
     {
       id: 'trunk',
       shape: 'cylinder',
       stretch: { y: false, x: false, z: false },
       biomeScale: { biome_tundra: 0.85 },
+      color: 0x8b5e3c,
     },
   ],
   variants: [
@@ -31,6 +31,7 @@ export const TREE_DESCRIPTOR = {
           shape: 'cylinder',
           stretch: { y: false, x: false, z: false },
           biomeScale: { biome_tundra: 0.85 },
+          color: 0x8b5e3c,
         },
         {
           id: 'canopy-round',
@@ -56,6 +57,7 @@ export const TREE_DESCRIPTOR = {
           stretch: { y: false, x: false, z: false },
           biomeScale: { biome_tundra: 0.85 },
           transform: { scaleY: 0.8 },
+          color: 0x8b5e3c,
         },
         {
           id: 'canopy-tall',
@@ -80,6 +82,7 @@ export const TREE_DESCRIPTOR = {
           shape: 'cylinder',
           stretch: { y: false, x: false, z: false },
           biomeScale: { biome_tundra: 0.85 },
+          color: 0x8b5e3c,
         },
         {
           id: 'canopy-wide',

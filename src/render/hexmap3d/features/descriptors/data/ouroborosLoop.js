@@ -5,15 +5,14 @@
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const OUROBOROS_LOOP_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'ouroborosLoop',
   kind: 'feature',
   displayName: 'Ouroboros Loop',
   scale: 1.2,
   placement: { mode: 'scatter' },
   emphasis: { behavior: 'dispersed' },
-  material: { color: 0xc8a020 },
   parts: [
-    { id: 'body', shape: 'torus' },
+    { id: 'body', shape: 'torus', color: 0xc8a020 },
   ],
 };

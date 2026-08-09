@@ -5,14 +5,13 @@
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const SNOWPERSON_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'snowperson',
   kind: 'feature',
   displayName: 'Snowperson',
   placement: { mode: 'scatter' },
   emphasis: { behavior: 'dispersed' },
-  material: { color: 0xf0f4f8 },
   parts: [
-    { id: 'body', shape: 'lathe' },
+    { id: 'body', shape: 'lathe', color: 0xf0f4f8 },
   ],
 };

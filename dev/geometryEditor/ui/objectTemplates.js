@@ -39,12 +39,11 @@ export function newObjectTemplate(kind) {
       id: `new_feature_${suffix}`,
       kind: 'feature',
       displayName: 'New Feature',
-      parts: [templatePart('body', 'cube', { size: 0.3 }, { y: 0.15 })],
+      parts: [templatePart('body', 'cube', { size: 0.3 }, { y: 0.15 }, 0x8a5a2b)],
       cluster: { min: 1, max: 1, rule: 'uniform' },
       size: { min: 1, max: 1 },
       placement: { mode: 'center' },
       emphasis: { behavior: 'none' },
-      material: { color: 0x8a5a2b },
     };
   }
   if (kind === 'decor') {
@@ -52,12 +51,11 @@ export function newObjectTemplate(kind) {
       id: `new_decor_${suffix}`,
       kind: 'decor',
       displayName: 'New Decor',
-      parts: [templatePart('body', 'spheroid', { radius: 0.2 }, { y: 0.2 })],
+      parts: [templatePart('body', 'spheroid', { radius: 0.2 }, { y: 0.2 }, 0x6b7a5a)],
       cluster: { min: 1, max: 1, rule: 'uniform' },
       size: { min: 1, max: 1 },
       placement: { mode: 'jitter' },
       emphasis: { behavior: 'dispersed' },
-      material: { color: 0x6b7a5a },
     };
   }
   // mob — entity-driven, one archetype variant; colored through the palette.
@@ -66,7 +64,6 @@ export function newObjectTemplate(kind) {
     kind: 'mob',
     displayName: 'New Mob',
     variantRule: 'archetype',
-    material: { color: 0xffffff },
     parts: [templatePart('newMobBody', 'spheroid', { radius: 0.15 }, { y: 0.15 }, 'factionBody')],
     variants: [{
       id: 'newmob',

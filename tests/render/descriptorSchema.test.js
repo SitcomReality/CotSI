@@ -29,13 +29,13 @@ const BUSH = {
   size: { min: 0.8, max: 1.0 },
   placement: { mode: 'scatter', offsetMin: 0.15, offsetMax: 0.3 },
   emphasis: { behavior: 'dispersed' },
-  material: { color: 0x4a7a3a },
   parts: [
     {
       id: 'tuft',
       shape: 'cone',
       params: { bottomR: 0.04, height: 0.06, radialSegs: 3, heightSegs: 1 },
       transform: { y: 0, lift: 0.03, scaleXZ: 1, scaleY: 1 },
+      color: 0x4a7a3a,
     },
   ],
 };
@@ -50,7 +50,6 @@ const GROVE = {
   variation: { stretchY: [0.85, 1.3], stretchXZ: [0.9, 1.15], colorJitter: 0.05 },
   placement: { mode: 'ring', ringMin: 0.18, ringMax: 0.55, leanMin: 0.045, leanMax: 0.12 },
   emphasis: { behavior: 'dispersed' },
-  material: { color: 0xffffff },
   parts: [
     {
       id: 'trunk',
@@ -223,7 +222,7 @@ test('normalizeDescriptor fills every optional default', () => {
   assert.deepEqual(normalized.cluster, { min: 1, max: 1, rule: 'uniform' }); // default = single item
   assert.deepEqual(normalized.size, { min: 1, max: 1 });    // default = no size variation
   assert.deepEqual(normalized.emphasis, { behavior: 'none' });
-  assert.deepEqual(normalized.material, { color: 0xffffff });
+  assert.deepEqual(normalized.material, {}); // v4: no object-level base color
   assert.equal(normalized.scale, 1);
   // Shape params seeded from the registry defaults.
   assert.deepEqual(normalized.parts[0].params, {
@@ -491,6 +490,78 @@ test('grounding migration is idempotent and never re-runs on v3 documents', () =
   assert.equal(once.parts[1].transform.lift, 0.5);
   // Re-normalizing the migrated document (now schemaVersion 3) changes nothing.
   assert.deepEqual(normalizeDescriptor(once), once);
+});
+
+// ── v4: per-part colors ─────────────────────────────────────────────────────
+
+test('v3 material.color is pushed into parts lacking a color and dropped', () => {
+  const v3 = {
+    schemaVersion: 3,
+    id: 'v3color',
+    kind: 'feature',
+    displayName: 'V3 Color',
+    material: { color: 0x8b5e3c },
+    parts: [
+      { id: 'trunk', shape: 'cylinder' },
+      { id: 'canopy', shape: 'sphere', color: 0x3cb371 }, // explicit color wins
+    ],
+    variants: [
+      { id: 'tall', parts: [{ id: 'trunk', shape: 'cylinder' }] },
+    ],
+  };
+  const n = normalizeDescriptor(v3);
+  assert.equal(n.schemaVersion, SCHEMA_VERSION);
+  assert.deepEqual(n.material, {}, 'object material keeps no base color');
+  assert.equal(n.parts[0].color, 0x8b5e3c, 'colorless part inherits the material color');
+  assert.equal(n.parts[1].color, 0x3cb371, 'explicit part color wins over the push');
+  assert.equal(n.variants[0].parts[0].color, 0x8b5e3c, 'variant parts get the push too');
+  assert.deepEqual(validateDescriptor(n), []);
+});
+
+test('v3 materialColor merges into color; a literal color wins', () => {
+  const v3 = {
+    schemaVersion: 3,
+    id: 'v3mat',
+    kind: 'feature',
+    displayName: 'V3 Material Color',
+    parts: [
+      { id: 'head', shape: 'sphere', materialColor: 0xffe8c8 },
+      { id: 'body', shape: 'cylinder', materialColor: 0x224466, color: 0x112233 },
+    ],
+  };
+  const n = normalizeDescriptor(v3);
+  assert.equal(n.parts[0].color, 0xffe8c8, 'materialColor migrates into color');
+  assert.equal(n.parts[1].color, 0x112233, 'an explicit color beats materialColor');
+  assert.ok(!('materialColor' in n.parts[0]), 'materialColor is gone from normalized parts');
+  assert.deepEqual(validateDescriptor(n), []);
+});
+
+test('v4 color migration is idempotent', () => {
+  const v3 = {
+    schemaVersion: 3,
+    id: 'v3idem',
+    kind: 'feature',
+    displayName: 'V3 Idempotent',
+    material: { color: 0x7c3fb1 },
+    parts: [{ id: 'knot', shape: 'octahedron', materialColor: 0x7c3fb1 }],
+  };
+  const once = normalizeDescriptor(v3);
+  assert.equal(once.parts[0].color, 0x7c3fb1);
+  assert.deepEqual(normalizeDescriptor(once), once, 're-normalizing a v4 document is a no-op');
+});
+
+test('entity kinds skip the material-color push (entity color fallback stays)', () => {
+  const v3 = {
+    schemaVersion: 3,
+    id: 'v3entity',
+    kind: 'mob',
+    displayName: 'V3 Entity',
+    material: { color: 0xffffff },
+    parts: [{ id: 'body', shape: 'sphere' }], // colorless — falls back to entity.color
+  };
+  const n = normalizeDescriptor(v3);
+  assert.deepEqual(n.material, {});
+  assert.equal(n.parts[0].color, undefined, 'entity parts never inherit the material color');
 });
 
 // ── M5 schema extensions: biomeColor + biomeScale ───────────────────────────

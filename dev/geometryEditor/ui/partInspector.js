@@ -15,6 +15,7 @@ import {
   numberInput,
   intInput,
   selectInput,
+  colorInput,
 } from './formControls.js';
 import { inspectorHead } from './inspectorHead.js';
 import { SHAPE_TYPES } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
@@ -51,6 +52,42 @@ export function renderPartInspector(container, part, ctx) {
     } else {
       container.append(row(key, numberInput(current, { min: rule.min, onChange: (v) => ctx.mutate(() => { part.params[key] = v; }) })));
     }
+  }
+
+  container.append(subheading('Color'));
+  container.append(el('div', 'hint', 'Every part has its own color — the object has no base color (v4).'));
+  if (ENTITY_KINDS.has(d.kind)) {
+    const TOKENS = ['factionBase', 'factionAccent', 'factionBody'];
+    const isToken = typeof part.color === 'string' && TOKENS.includes(part.color);
+    const current = isToken ? part.color : 'custom';
+    container.append(row('Color', selectInput([...TOKENS, 'custom'], current, (v) => ctx.mutate(() => {
+      if (v === 'custom') part.color = typeof part.color === 'number' ? part.color : 0xffffff;
+      else part.color = v;
+    }))));
+    if (!isToken) {
+      container.append(row('Custom color', colorInput(typeof part.color === 'number' ? part.color : 0xffffff, (v) => ctx.mutate(() => { part.color = v; }))));
+    }
+  } else {
+    container.append(row('Color', colorInput(part.color ?? 0xffffff, (v) => ctx.mutate(() => { part.color = v; }))));
+  }
+
+  container.append(subheading('Biome tint'));
+  container.append(el('div', 'hint', 'Tints this part toward the tile\'s blended biome color. Applies only to parts with a literal color; Untouched and Painforest tiles never tint.'));
+  const biome = part.biomeColor;
+  const source = biome?.source ?? '';
+  container.append(row('Source', selectInput(
+    [{ value: '', label: '— none' }, { value: 'primary', label: 'primary' }, { value: 'accent', label: 'accent' }],
+    source,
+    (v) => ctx.mutate(() => {
+      if (!v) {
+        if (part.biomeColor) delete part.biomeColor;
+      } else {
+        part.biomeColor = { source: v, influence: part.biomeColor?.influence ?? 0.5 };
+      }
+    }),
+  )));
+  if (biome?.source) {
+    container.append(row('Influence', numberInput(biome.influence ?? 0.5, { min: 0, step: 0.1, onChange: (v) => ctx.mutate(() => { biome.influence = Math.max(0, Math.min(1, v)); }) })));
   }
 
   container.append(subheading('Transform'));

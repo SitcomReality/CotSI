@@ -5,19 +5,19 @@
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const HALF_DRAWN_OBELISK_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'halfDrawnObelisk',
   kind: 'feature',
   displayName: 'Half-Drawn Obelisk',
   scale: 1.8,
   placement: { mode: 'scatter' },
   emphasis: { behavior: 'dispersed' },
-  material: { color: 0xa0a098 },
   parts: [
     {
       id: 'body',
       shape: 'cone',
       params: { bottomR: 0.04, height: 0.28, radialSegs: 4, heightSegs: 1 },
+      color: 0xa0a098,
     },
   ],
 };

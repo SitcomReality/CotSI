@@ -24,12 +24,11 @@ const TRADER_BODY = {
 
 /** The trader descriptor — one fixed look. */
 export const TRADER_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'trader',
   kind: 'trader',
   displayName: 'Trader',
   variantRule: 'archetype',
-  material: { color: 0xffffff },
   parts: [TRADER_BODY],
   variants: [{ id: 'trader', parts: [TRADER_BODY] }],
 };

@@ -5,15 +5,14 @@
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const EDEN_SHROOMLET_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'edenShroomlet',
   kind: 'feature',
   displayName: 'Eden Shroomlet',
   scale: 1.2,
   placement: { mode: 'scatter' },
   emphasis: { behavior: 'dispersed' },
-  material: { color: 0xa060c0 },
   parts: [
-    { id: 'body', shape: 'dodecahedron' },
+    { id: 'body', shape: 'dodecahedron', color: 0xa060c0 },
   ],
 };

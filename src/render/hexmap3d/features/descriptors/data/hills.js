@@ -9,13 +9,12 @@
  */
 
 export const HILL_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'hill',
   kind: 'decor',
   displayName: 'Hill Mound',
   placement: { mode: 'center' },
   emphasis: { behavior: 'sunk' },
-  material: { color: 0xffffff }, // turf rides the instance-color path (part.color)
   parts: [
     {
       id: 'mound',
