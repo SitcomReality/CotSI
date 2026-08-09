@@ -5,7 +5,7 @@
 // ── Fog of war ──
 export const CAMERA_HASH_PRECISION = 10;
 export const FOG_BLUR_RADIUS = 12;
-export const EXPLORED_PUNCH_ALPHA = 0.70;
+export const EXPLORED_PUNCH_ALPHA = 0.30;
 export const OFFSCREEN_CULL_MARGIN_PX = 100;
 
 // ── Interaction highlights (hover, trade ring) ──
