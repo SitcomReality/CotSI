@@ -107,9 +107,9 @@ export function spawnFeature(roll, terrain, density, features, options = {}) {
           kind: 'knot', mined: false, density,
           amount: KNOT_BASE_AMOUNT + Math.floor(roll * KNOT_AMOUNT_VARIATION_SCALE) % KNOT_AMOUNT_VARIATION_MOD,
         };
-      case 'chest':
+      case 'treasureChest':
         return {
-          kind: 'chest', density,
+          kind: 'treasureChest', density,
           amount: CHEST_GOLD_BASE + Math.floor(roll * CHEST_GOLD_VARIATION_SCALE) % CHEST_GOLD_VARIATION_MOD,
         };
       case 'bush':

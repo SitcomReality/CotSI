@@ -45,7 +45,7 @@ defineArchetype('feature_knot', {
   visual: { scale: 1.0 },
 });
 
-defineArchetype('feature_chest', {
+defineArchetype('feature_treasureChest', {
   type: 'feature',
   name: 'Treasure Chest',
   archetypeShape: 'box',

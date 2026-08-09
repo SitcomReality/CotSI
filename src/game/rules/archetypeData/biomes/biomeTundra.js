@@ -34,7 +34,7 @@ defineArchetype('biome_tundra', {
   // Snowperson at rare threshold (Tundra's signature feature).
   features: [
     { kind: 'snowperson',     threshold: 0.97, compare: 'gt', terrainExclude: [], tier: 'T2' },
-    { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
+    { kind: 'treasureChest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'knot',           threshold: 0.05, compare: 'lt' },
   ],
 

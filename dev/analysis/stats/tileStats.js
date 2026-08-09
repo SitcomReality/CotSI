@@ -76,7 +76,7 @@ export function featureCounts(tiles) {
       case 'knot': knots++; break;
       case 'base': bases++; break;
       case 'bush': bushes++; break;
-      case 'chest': chests++; break;
+      case 'treasureChest': chests++; break;
     }
   }
 

@@ -1,6 +1,6 @@
 /**
  * arrivalInteractions.js — Resource harvesting on champion arrival.
- * Handles the legacy kinds (fruit eating, knot mining, chest opening) and
+ * Handles the legacy kinds (fruit eating, knot mining, treasure chest opening) and
  * delegates every other kind to the feature rewards engine (featureRewards.js).
  */
 import { coordKey } from '../../engine/rules/hexGrid.js';
@@ -51,7 +51,7 @@ export function interactOnArrival(state, champ) {
     // Feature removed — rebuild the chunk so decorations restore (de-emphasis).
     markChunkDirty(state, tile.q, tile.r);
   }
-  if (tile.feature?.kind === 'chest') {
+  if (tile.feature?.kind === 'treasureChest') {
     const amt = tile.feature.amount || CHEST_GOLD_BASE;
     champ.gold += amt;
     tile.feature = null;
@@ -68,7 +68,7 @@ export function interactOnArrival(state, champ) {
   }
   // Every other kind is handled by the feature rewards engine (tree and bush
   // are scenery and no-op inside).
-  if (tile.feature && tile.feature.kind !== 'fruitTree' && tile.feature.kind !== 'knot' && tile.feature.kind !== 'chest') {
+  if (tile.feature && tile.feature.kind !== 'fruitTree' && tile.feature.kind !== 'knot' && tile.feature.kind !== 'treasureChest') {
     interactWithFeature(state, champ, tile);
   }
 }

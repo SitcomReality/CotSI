@@ -69,7 +69,7 @@ export const FEATURES = {
   tree:      { radius: 1.5, fill: '#2d5a1e' },
   fruitTree: { radius: 1.8, fill: '#3a8a2a', crossStroke: '#60c040', crossWidth: 0.8, crossLen: 1.2 },
   knot:      { radius: 1.8, fill: '#c8a832' },
-  chest:     { radius: 1.8, fill: '#c8a020' },
+  treasureChest: { radius: 1.8, fill: '#c8a020' },
   bush:      { radius: 1.2, fill: '#5a8a3a' },
 
   // Group 1 features

@@ -299,8 +299,8 @@ test('featureValueForBot: base value, spent gate, and heal bonus', () => {
     'heal kind (22) + injury bonus (10)');
   assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'waxbloom', ripe: false } })), 0,
     'spent features are not targets');
-  assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'chest' } })), 34,
-    'chest base value');
+  assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'treasureChest' } })), 34,
+    'treasure chest base value');
   assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'tree' } })), 0,
     'scenery is not a target');
   assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'unknownKind' } })), 0,

@@ -90,7 +90,7 @@ See `src/game/rules/archetypeData/biomes/` for exact definitions.
 | `fruitTree` | resource | Heals on arrival, regrows after `FRUIT_REGROWTH_DAYS` | Forest-family tree, visible ripening fruit (red ripe / green unripe) |
 | `tree` | flora | Decorative only | Tree mesh |
 | `knot` | resource | Mined on arrival for Knot currency | Knot mesh |
-| `chest` | resource | Gold on arrival (10–24g), consumed | Rectangle box descriptor |
+| `treasureChest` | resource | Gold on arrival (10–24g), consumed | Rectangle box descriptor |
 | `bush` | flora | Decorative only | Tuft geometry, green, 1.5x |
 
 ### Adding a New Biome

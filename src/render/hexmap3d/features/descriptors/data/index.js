@@ -21,7 +21,7 @@ import { BEACH_DRIFTWOOD_DESCRIPTOR } from './beachDriftwood.js';
 import { BUSH_DESCRIPTOR } from './bush.js';
 import { CENSER_SAINT_DESCRIPTOR } from './censerSaint.js';
 import { CHAMPION_DESCRIPTOR } from './champions.js';
-import { CHEST_DESCRIPTOR } from './chest.js';
+import { TREASURE_CHEST_DESCRIPTOR } from './treasureChest.js';
 import { CINDERBLOOM_DESCRIPTOR } from './cinderbloom.js';
 import { DESERT_SCRUB_DESCRIPTOR } from './desertScrub.js';
 import { DROWNED_COPYIST_DESCRIPTOR } from './drownedCopyist.js';
@@ -57,7 +57,7 @@ import { WITNESS_STONE_DESCRIPTOR } from './witnessStone.js';
 
 /** Every descriptor, in editor-display order. */
 export const ALL_DESCRIPTORS = [
-  CHEST_DESCRIPTOR,
+  TREASURE_CHEST_DESCRIPTOR,
   BUSH_DESCRIPTOR,
   PALIMPSEST_SLAB_DESCRIPTOR,
   ERRATA_SLIP_DESCRIPTOR,

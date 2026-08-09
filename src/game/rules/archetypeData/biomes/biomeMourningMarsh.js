@@ -36,7 +36,7 @@ defineArchetype('biome_mourning_marsh', {
     { kind: 'foolsFire',      threshold: 0.98, compare: 'gt', terrainExclude: [], tier: 'T3' },
     { kind: 'drownedCopyist', threshold: 0.96, compare: 'gt', terrainExclude: [], tier: 'T3' },
     { kind: 'screamroot',     threshold: 0.93, compare: 'gt', terrainExclude: [], tier: 'T3' },
-    { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
+    { kind: 'treasureChest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'knot',           threshold: 0.04, compare: 'lt' },
   ],
 

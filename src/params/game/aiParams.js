@@ -17,7 +17,7 @@ export const BOT_TREE_SCORE_HEALTHY = 10;
 export const BOT_KNOT_SCORE = 32;
 /** Base bot target score per reward-bearing feature kind (featureRewards.js). */
 export const BOT_FEATURE_SCORES = {
-  chest: 34,
+  treasureChest: 34,
   nullLily: 34,
   volvelle: 32,
   witnessStone: 30,

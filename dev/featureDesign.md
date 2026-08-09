@@ -141,7 +141,7 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 | bush | Scrub Bush | live | — | none (scenery) | — | any | |
 | knot | God's Knot | live | T1 | knots, direct | finite | any | works today |
 | fruitTree | Moonberry Tree | live | T1 | heal | replenishable | any | works today (18/34, 4d regrow) |
-| chest | Treasure Chest | live | T2 | gold, direct | finite | any | rectangle box descriptor; deterministic amount at spawn (10–24g) |
+| treasureChest | Treasure Chest | live | T2 | gold, direct | finite | any | rectangle box descriptor; deterministic amount at spawn (10–24g) |
 | vegetableLamb | Vegetable Lamb | live | T2 | knots + small heal, direct | finite | sig (Untouched) | |
 | witnessStone | Witness-Stone | live | T3 | relic vs gold choice | finite | shared (Untouched, Scorch) | amounts in §3a |
 | screamroot | Screamroot | live | T3 | knots vs damage risk-reward choice | finite | shared (Untouched, Painforest, Mourning Marsh, Dustbleed) | implemented — see §3a |

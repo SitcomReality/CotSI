@@ -41,7 +41,7 @@ const TILES = [
   // Hill with an occupant — mound sinks below the surface.
   { q: 8, r: -1, terrain: 'hill' },
   // Hill + feature + occupant — mound hidden, feature displaced.
-  { q: -3, r: -4, terrain: 'hill', feature: { kind: 'chest' } },
+  { q: -3, r: -4, terrain: 'hill', feature: { kind: 'treasureChest' } },
   // Painforest grove — descriptor data (the gnarled `painforest` variant).
   { q: 10, r: 4, terrain: 'forest', biomeId: 'biome_painforest', moisture: 0.6 },
   // Fruit tree on plains — legacy builder, NOT descriptor data.
@@ -111,7 +111,7 @@ test('resolveDescriptorForTile: feature vs decor vs legacy dispatch', () => {
   const hill = resolveDescriptorForTile(TILES[6], OCCUPIED);
   assert.deepEqual(hill[0].displacement, { hidden: false, displaced: true });
   const hiddenHill = resolveDescriptorForTile(TILES[7], OCCUPIED);
-  assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['chest', 'hill']);
+  assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['treasureChest', 'hill']);
   assert.deepEqual(hiddenHill[1].displacement, { hidden: true, displaced: false });
 
   // `tree` on woods is the grove — no solitary tree descriptor.
@@ -196,8 +196,8 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   assert.ok(Math.hypot(other.x - b0.x, other.z - b0.z) < 0.6, 'normal bush near its hex center');
 
   // Chest on the hidden-hill tile is present and displaced (hill mound is not).
-  const chest = meshNamed(meshes, 'chest-body');
-  assert.ok(chest && chest.count === 1, 'chest-body present with one instance');
+  const chest = meshNamed(meshes, 'treasureChest-chest-body');
+  assert.ok(chest && chest.count === 1, 'treasureChest-chest-body present with one instance');
   const cCenter = centerOf(TILES[7]);
   const cPos = instInfo(chest, 0);
   assert.ok(closeTo(cPos.x, cCenter.x + anchor.dx) && closeTo(cPos.z, cCenter.z + anchor.dz), 'chest displaced');
@@ -303,7 +303,7 @@ test('resolveDescriptorForTile: decor is unoccupied while out of sight', () => {
 
   // Occupant + feature hill out of sight: full mound, not hidden.
   const hiddenHill = resolveDescriptorForTile(TILES[7], OCCUPIED, false);
-  assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['chest', 'hill']);
+  assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['treasureChest', 'hill']);
   assert.deepEqual(hiddenHill[1].displacement, { hidden: false, displaced: false });
 
   // Knot on forest out of sight: the knot still resolves (collect-time gating
@@ -333,7 +333,7 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
   // the solitary tree, and the fruit tree all disappear.
   assert.equal(meshNamed(meshes, 'bush-body').count, 1, 'only the visible bush renders');
   assert.equal(meshesStarting(meshes, 'knot-').length, 0, 'knot hidden out of sight');
-  assert.equal(meshNamed(meshes, 'chest-body'), null, 'chest hidden out of sight');
+  assert.equal(meshNamed(meshes, 'treasureChest-chest-body'), null, 'treasure chest hidden out of sight');
   assert.equal(meshNamed(meshes, 'tree-trunk'), null, 'solitary tree hidden out of sight');
   assert.equal(meshesStarting(meshes, 'fruit').length, 0, 'fruit tree hidden out of sight');
 

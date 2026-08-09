@@ -38,7 +38,7 @@ defineArchetype('biome_brass_grave', {
     { kind: 'scoriaRose',     threshold: 0.95, compare: 'gt', terrainExclude: ['ice'], tier: 'T2' },
     { kind: 'cinderbloom',    threshold: 0.92, compare: 'gt', terrainExclude: ['ice'], tier: 'T2' },
     // Treasure chest — any-biome collectible
-    { kind: 'chest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
+    { kind: 'treasureChest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
     // Resources
     { kind: 'knot',           threshold: 0.08, compare: 'lt' },
   ],
