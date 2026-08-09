@@ -61,6 +61,21 @@ function intInput(value, { min, onChange }) {
   return stepperWrap(input, commit);
 }
 
+const DEG_TO_RAD = Math.PI / 180;
+const RAD_TO_DEG = 180 / Math.PI;
+
+/**
+ * A radians-stored number input that displays and steps in degrees — the
+ * inspector's rotation fields. `value` is radians, `onChange` fires with the
+ * converted radians, so callers keep storing/consuming radians (the schema and
+ * render never change); only the editor's number entry is in degrees. The
+ * displayed value is rounded to 2 decimals so e.g. 0.12 rad reads as 6.88°.
+ */
+function degreeInput(value, { step = 5, onChange }) {
+  const displayed = Math.round(value * RAD_TO_DEG * 100) / 100;
+  return numberInput(displayed, { step, onChange: (deg) => onChange(deg * DEG_TO_RAD) });
+}
+
 /**
  * Wrap a number input in a .num-step shell with − / + buttons. Stepping uses
  * the input's `step` (default 1), clamps to min/max, and fires the same change
@@ -154,6 +169,8 @@ export {
   subheading,
   numberInput,
   intInput,
+  degreeInput,
+  DEG_TO_RAD,
   stepperWrap,
   selectInput,
   colorInput,

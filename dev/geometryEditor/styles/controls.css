@@ -206,6 +206,20 @@
   justify-content: flex-end;
 }
 
+/* Rotation quick-rotate buttons: a compact row of small preset buttons
+   (fits the 310px inspector column like the stretch rows above). */
+.preset-row {
+  display: flex;
+  gap: var(--s1);
+  margin-bottom: var(--s2);
+}
+
+.preset-row button {
+  flex: 1;
+  padding: 3px var(--s1);
+  font-size: var(--fs-xs);
+}
+
 /* ── Form controls ────────────────────────────────────────────────────────── */
 
 select, button, input[type="text"], input[type="number"], input[type="file"] {

@@ -16,10 +16,84 @@ import {
   intInput,
   selectInput,
   colorInput,
+  degreeInput,
+  DEG_TO_RAD,
 } from './formControls.js';
 import { inspectorHead } from './inspectorHead.js';
 import { SHAPE_TYPES } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
 import { ENTITY_KINDS } from '../entityView.js';
+
+/** Cardinal axis presets for local orientation — the axis is a direction only
+ *  (the render normalizes it), so these are exact unit vectors. */
+const AXIS3_PRESETS = {
+  x: { x: 1, y: 0, z: 0 },
+  '-x': { x: -1, y: 0, z: 0 },
+  y: { x: 0, y: 1, z: 0 },
+  '-y': { x: 0, y: -1, z: 0 },
+  z: { x: 0, y: 0, z: 1 },
+  '-z': { x: 0, y: 0, z: -1 },
+};
+const AXIS3_OPTIONS = [
+  { value: 'x', label: 'X' },
+  { value: '-x', label: '−X' },
+  { value: 'y', label: 'Y' },
+  { value: '-y', label: '−Y' },
+  { value: 'z', label: 'Z' },
+  { value: '-z', label: '−Z' },
+  { value: 'custom', label: 'custom' },
+];
+
+/** Cardinal lean axes for world-space tilt (horizontal { x, z } only). */
+const TILT_AXIS_PRESETS = {
+  x: { x: 1, z: 0 },
+  '-x': { x: -1, z: 0 },
+  z: { x: 0, z: 1 },
+  '-z': { x: 0, z: -1 },
+};
+const TILT_AXIS_OPTIONS = [
+  { value: 'x', label: 'X' },
+  { value: '-x', label: '−X' },
+  { value: 'z', label: 'Z' },
+  { value: '-z', label: '−Z' },
+  { value: 'custom', label: 'custom' },
+];
+
+/** Unit vector from a vec3 — zero or missing falls back to +Y. */
+function unitVec3(v) {
+  const x = v?.x ?? 0;
+  const y = v?.y ?? 0;
+  const z = v?.z ?? 0;
+  const len = Math.hypot(x, y, z);
+  return len > 1e-6 ? { x: x / len, y: y / len, z: z / len } : { x: 0, y: 1, z: 0 };
+}
+
+/** Unit horizontal vector from a { x, z } vec — zero or missing falls back to +Z. */
+function unitVec2(v) {
+  const x = v?.x ?? 0;
+  const z = v?.z ?? 0;
+  const len = Math.hypot(x, z);
+  return len > 1e-6 ? { x: x / len, z: z / len } : { x: 0, z: 1 };
+}
+
+/** The cardinal preset matching a vec3's direction, or 'custom'. */
+function cardinalAxis3(v) {
+  const u = unitVec3(v);
+  for (const [key, preset] of Object.entries(AXIS3_PRESETS)) {
+    const dot = u.x * preset.x + u.y * preset.y + u.z * preset.z;
+    if (dot > 0.99) return key;
+  }
+  return 'custom';
+}
+
+/** The cardinal preset matching a horizontal { x, z } direction, or 'custom'. */
+function cardinalAxis2(v) {
+  const u = unitVec2(v);
+  for (const [key, preset] of Object.entries(TILT_AXIS_PRESETS)) {
+    const dot = u.x * preset.x + u.z * preset.z;
+    if (dot > 0.99) return key;
+  }
+  return 'custom';
+}
 
 /** Inspector header for part editing: breadcrumb back to the object. */
 function renderPartHeader(container, part, ctx) {
@@ -95,7 +169,7 @@ export function renderPartInspector(container, part, ctx) {
   const t = part.transform;
   container.append(row('Y (bottom height)', numberInput(t.y, { onChange: (v) => ctx.mutate(() => { t.y = v; }) })));
   container.append(row('Lift (bottom height)', numberInput(t.lift, { onChange: (v) => ctx.mutate(() => { t.lift = v; }) })));
-  container.append(row('rotY (rad)', numberInput(t.rotY, { onChange: (v) => ctx.mutate(() => { t.rotY = v; }) })));
+  container.append(row('rotY (deg)', degreeInput(t.rotY, { onChange: (v) => ctx.mutate(() => { t.rotY = v; }) })));
 
   container.append(subheading('Scale'));
   container.append(el('div', 'hint', 'Independent per-axis scale — stretch or squash the part on any axis (base 1).'));
@@ -104,19 +178,54 @@ export function renderPartInspector(container, part, ctx) {
   container.append(row('scaleZ', numberInput(t.scaleZ, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleZ = v; }) })));
 
   container.append(subheading('Rotation'));
-  container.append(el('div', 'hint', 'localAxis + localAngle rotate the part around any axis in its own frame; tilt leans it in world space. Angles in radians.'));
-  // Merge the loaded vec over defaults so a missing or partial localAxis still
-  // renders every field, and each edit writes a complete vector back (a sparse
-  // write would blank the sibling fields on the next render).
-  const localAxis = { x: 0, y: 1, z: 0, ...(t.localAxis ?? {}) };
-  container.append(row('localAxis X', numberInput(localAxis.x, { onChange: (v) => ctx.mutate(() => { t.localAxis = { ...localAxis, x: v }; }) })));
-  container.append(row('localAxis Y', numberInput(localAxis.y, { onChange: (v) => ctx.mutate(() => { t.localAxis = { ...localAxis, y: v }; }) })));
-  container.append(row('localAxis Z', numberInput(localAxis.z, { onChange: (v) => ctx.mutate(() => { t.localAxis = { ...localAxis, z: v }; }) })));
-  container.append(row('localAngle (rad)', numberInput(t.localAngle ?? 0, { onChange: (v) => ctx.mutate(() => { t.localAngle = v; t.localAxis ??= { x: 0, y: 1, z: 0 }; }) })));
-  const tiltAxis = { x: 0, z: 1, ...(t.tiltAxis ?? {}) };
-  container.append(row('tiltAxis X', numberInput(tiltAxis.x, { onChange: (v) => ctx.mutate(() => { t.tiltAxis = { ...tiltAxis, x: v }; }) })));
-  container.append(row('tiltAxis Z', numberInput(tiltAxis.z, { onChange: (v) => ctx.mutate(() => { t.tiltAxis = { ...tiltAxis, z: v }; }) })));
-  container.append(row('tilt (rad)', numberInput(t.tilt ?? 0, { onChange: (v) => ctx.mutate(() => { t.tilt = v; t.tiltAxis ??= { x: 0, z: 1 }; }) })));
+  container.append(el('div', 'hint', 'localAxis + localAngle rotate the part around any axis in its own frame; tilt leans it in world space. The axis is a direction (magnitude is ignored); angles are degrees.'));
+  // Work on the NORMALIZED direction — the render rotates about the unit axis
+  // (meshBuilder), so a stored vector like {x:-3, y:4, z:4} reads and edits as
+  // its true direction {-0.47, 0.62, 0.62}. Edits write the full normalized
+  // vector back; untouched parts keep their stored bytes.
+  const localAxis = unitVec3(t.localAxis);
+  const axisValue = cardinalAxis3(t.localAxis);
+  container.append(row('Axis', selectInput(AXIS3_OPTIONS, axisValue, (v) => ctx.mutate(() => {
+    const preset = AXIS3_PRESETS[v];
+    if (preset) {
+      t.localAxis = { ...preset };
+      t.localAngle ??= 0;
+    }
+    // 'custom' keeps the current direction and reveals the axis fields below.
+  }))));
+  if (axisValue === 'custom') {
+    container.append(row('Axis X', numberInput(localAxis.x, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), x: v }); }) })));
+    container.append(row('Axis Y', numberInput(localAxis.y, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), y: v }); }) })));
+    container.append(row('Axis Z', numberInput(localAxis.z, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), z: v }); }) })));
+  }
+  container.append(row('Angle (deg)', degreeInput(t.localAngle ?? 0, { onChange: (deg) => ctx.mutate(() => { t.localAngle = deg; t.localAxis ??= { x: 0, y: 1, z: 0 }; }) })));
+  const rotPresets = el('div', 'preset-row');
+  for (const deg of [90, -90, 45, -45]) {
+    const btn = el('button', null, `${deg > 0 ? '+' : '−'}${Math.abs(deg)}°`);
+    btn.type = 'button';
+    btn.title = `Rotate ${deg > 0 ? '+' : '−'}${Math.abs(deg)}° about the selected axis`;
+    btn.addEventListener('click', () => ctx.mutate(() => {
+      t.localAngle = (t.localAngle ?? 0) + deg * DEG_TO_RAD;
+      t.localAxis ??= { x: 0, y: 1, z: 0 };
+    }));
+    rotPresets.append(btn);
+  }
+  container.append(rotPresets);
+
+  const tiltAxis = unitVec2(t.tiltAxis);
+  const tiltValue = cardinalAxis2(t.tiltAxis);
+  container.append(row('Lean axis', selectInput(TILT_AXIS_OPTIONS, tiltValue, (v) => ctx.mutate(() => {
+    const preset = TILT_AXIS_PRESETS[v];
+    if (preset) {
+      t.tiltAxis = { ...preset };
+      t.tilt ??= 0;
+    }
+  }))));
+  if (tiltValue === 'custom') {
+    container.append(row('Lean X', numberInput(tiltAxis.x, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.tiltAxis = unitVec2({ ...unitVec2(t.tiltAxis), x: v }); }) })));
+    container.append(row('Lean Z', numberInput(tiltAxis.z, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.tiltAxis = unitVec2({ ...unitVec2(t.tiltAxis), z: v }); }) })));
+  }
+  container.append(row('Lean (deg)', degreeInput(t.tilt ?? 0, { step: 1, onChange: (deg) => ctx.mutate(() => { t.tilt = deg; t.tiltAxis ??= { x: 0, z: 1 }; }) })));
 
   container.append(subheading('Stretch variation'));
   container.append(el('div', 'hint', 'Per-axis variation ranges for this part; "follow object" uses the object-level ranges, "fixed" pins the axis at 1.'));
