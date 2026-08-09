@@ -1,12 +1,12 @@
 /**
- * treasureChest.js — Descriptor data for "Open Treasure Chest".
+ * openTreasureChest.js — Descriptor data for "Open Treasure Chest".
  *
  * Generated file: edit this object in the geometry editor
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
-export const TREASURE_CHEST_DESCRIPTOR = {
+export const OPEN_TREASURE_CHEST_DESCRIPTOR = {
   schemaVersion: 3,
-  id: 'treasureChest',
+  id: 'openTreasureChest',
   kind: 'feature',
   displayName: 'Open Treasure Chest',
   scale: 1.2,
@@ -51,7 +51,6 @@ export const TREASURE_CHEST_DESCRIPTOR = {
       shape: 'dodecahedron',
       params: { radius: 0.03 },
       transform: {
-        y: -0.05,
         localPos: { x: 0.08, y: 0.16, z: 0.04 },
         localAxis: { x: 1, y: 1, z: 0 },
         localAngle: 0.5,
@@ -63,12 +62,11 @@ export const TREASURE_CHEST_DESCRIPTOR = {
       shape: 'dodecahedron',
       params: { radius: 0.025 },
       transform: {
-        y: -0.02,
         localPos: { x: -0.05, y: 0.18, z: -0.02 },
         localAxis: { x: 0, y: 1, z: 1 },
         localAngle: 0.8,
       },
-      color: 0x3584e4,
+      color: 0x0f52ba,
     },
     {
       id: 'chest-lid-open',

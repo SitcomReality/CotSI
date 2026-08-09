@@ -4,63 +4,46 @@
  * Generated file: edit this object in the geometry editor
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
+/**
+ * scoriaRose.js — Descriptor data for "Scoria Rose".
+ */
 export const SCORIA_ROSE_DESCRIPTOR = {
   schemaVersion: 4,
   id: 'scoriaRose',
   kind: 'feature',
   displayName: 'Scoria Rose',
-  scale: 1.9,
+  scale: 1.0,
   placement: { mode: 'scatter' },
   emphasis: { behavior: 'dispersed' },
   parts: [
     {
-      id: 'stony-stem',
-      shape: 'cylinder',
-      params: { bottomR: 0.045, topR: 0.06, height: 0.28, segments: 6 },
-      color: 0x45383a,
+      id: 'base-rock-1',
+      shape: 'octahedron',
+      params: { radius: 0.25 },
+      transform: { scaleY: 0.5 },
+      color: 0x222222,
     },
     {
-      id: 'outer-petal-a',
-      shape: 'cone',
-      params: { bottomR: 0.13, height: 0.1, radialSegs: 6, heightSegs: 1 },
-      transform: {
-        lift: 0.27,
-        rotY: 0,
-        scaleX: 1.15,
-        scaleZ: 0.65,
-      },
-      color: 0x8e302b,
+      id: 'base-rock-2',
+      shape: 'octahedron',
+      params: { radius: 0.2 },
+      transform: { localAxis: { x: 0, y: 1, z: 0 }, localAngle: 0.785, scaleY: 0.6 },
+      color: 0x1a1a1a,
     },
     {
-      id: 'outer-petal-b',
-      shape: 'cone',
-      params: { bottomR: 0.12, height: 0.11, radialSegs: 6, heightSegs: 1 },
-      transform: {
-        lift: 0.3,
-        rotY: 1.05,
-        scaleX: 1.1,
-        scaleZ: 0.62,
-      },
-      color: 0xa43c2e,
-    },
-    {
-      id: 'outer-petal-c',
-      shape: 'cone',
-      params: { bottomR: 0.11, height: 0.12, radialSegs: 6, heightSegs: 1 },
-      transform: {
-        lift: 0.32,
-        rotY: 2.1,
-        scaleX: 1.05,
-        scaleZ: 0.6,
-      },
-      color: 0x702c2c,
-    },
-    {
-      id: 'heart',
+      id: 'outer-bloom',
       shape: 'dodecahedron',
-      params: { radius: 0.065, detail: 0 },
-      transform: { lift: 0.38 },
-      color: 0xe26c32,
+      params: { radius: 0.14 },
+      transform: { lift: 0.12 },
+      color: 0x8b0000,
+      biomeColor: { source: 'primary', influence: 0.3 },
     },
+    {
+      id: 'inner-bloom',
+      shape: 'octahedron',
+      params: { radius: 0.09 },
+      transform: { localPos: { x: 0, y: 0.22, z: 0 }, localAxis: { x: 0, y: 1, z: 0 }, localAngle: 0.4 },
+      color: 0xdc143c,
+    }
   ],
 };

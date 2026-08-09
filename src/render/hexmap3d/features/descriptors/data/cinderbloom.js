@@ -4,46 +4,61 @@
  * Generated file: edit this object in the geometry editor
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
+/**
+ * cinderbloom.js — Descriptor data for "Cinderbloom".
+ */
 export const CINDERBLOOM_DESCRIPTOR = {
   schemaVersion: 4,
   id: 'cinderbloom',
   kind: 'feature',
   displayName: 'Cinderbloom',
-  scale: 1.8,
-  placement: { mode: 'scatter' },
+  scale: 0.9,
+  cluster: { rule: 'uniform', min: 1, max: 3 },
+  placement: { mode: 'scatter', offsetMin: 0.1, offsetMax: 0.35 },
   emphasis: { behavior: 'dispersed' },
-  variation: { colorJitter: 0.06 },
+  material: { emissive: 0xff4500, emissiveIntensity: 0.8 },
   parts: [
     {
-      id: 'stem',
+      id: 'stalk',
       shape: 'cylinder',
-      params: { bottomR: 0.035, topR: 0.025, height: 0.32, segments: 6 },
-      color: 0x49352c,
+      params: { bottomR: 0.02, topR: 0.015, height: 0.35, segments: 5 },
+      transform: { tiltAxis: { x: 1, z: 1 }, tilt: 0.1 },
+      color: 0x2a1100,
     },
     {
-      id: 'ember-bloom',
+      id: 'core-ember',
+      shape: 'dodecahedron',
+      params: { radius: 0.07 },
+      transform: { localPos: { x: 0, y: 0.35, z: 0 } },
+      color: 0xffaa00,
+    },
+    {
+      id: 'petal-n',
       shape: 'cone',
-      params: { bottomR: 0.17, height: 0.2, radialSegs: 7, heightSegs: 1 },
-      transform: { lift: 0.3 },
-      color: 0xd64228,
+      params: { bottomR: 0.04, height: 0.18 },
+      transform: { localPos: { x: 0, y: 0.32, z: -0.06 }, localAxis: { x: -1, y: 0, z: 0 }, localAngle: 0.8 },
+      color: 0xff3300,
     },
     {
-      id: 'ember-core',
-      shape: 'sphere',
-      params: { radius: 0.07, wSegs: 7, hSegs: 4 },
-      transform: { lift: 0.36 },
-      color: 0xffb52e,
+      id: 'petal-s',
+      shape: 'cone',
+      params: { bottomR: 0.04, height: 0.18 },
+      transform: { localPos: { x: 0, y: 0.32, z: 0.06 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 0.8 },
+      color: 0xff3300,
     },
     {
-      id: 'ash-petal',
-      shape: 'spheroid',
-      params: { radius: 0.055 },
-      transform: {
-        localPos: { x: 0.11, y: 0.39, z: 0 },
-        localAxis: { x: 0, y: 0, z: 1 },
-        localAngle: 0.65,
-      },
-      color: 0x7f3029,
+      id: 'petal-e',
+      shape: 'cone',
+      params: { bottomR: 0.04, height: 0.18 },
+      transform: { localPos: { x: 0.06, y: 0.32, z: 0 }, localAxis: { x: 0, y: 0, z: -1 }, localAngle: 0.8 },
+      color: 0xff3300,
     },
+    {
+      id: 'petal-w',
+      shape: 'cone',
+      params: { bottomR: 0.04, height: 0.18 },
+      transform: { localPos: { x: -0.06, y: 0.32, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: 0.8 },
+      color: 0xff3300,
+    }
   ],
 };

@@ -4,43 +4,47 @@
  * Generated file: edit this object in the geometry editor
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
+/**
+ * foolsFire.js — Descriptor data for "Fool's Fire".
+ */
 export const FOOLS_FIRE_DESCRIPTOR = {
   schemaVersion: 4,
   id: 'foolsFire',
   kind: 'feature',
-  displayName: 'Fool\'s Fire',
-  scale: 1.7,
-  placement: { mode: 'jitter', offset: 0.06 },
+  displayName: "Fool's Fire",
+  scale: 1.2,
+  cluster: { rule: 'uniform', min: 1, max: 3 },
+  placement: { mode: 'scatter', offsetMin: 0.1, offsetMax: 0.4 },
   emphasis: { behavior: 'dispersed' },
-  variation: { colorJitter: 0.08 },
-  material: { emissive: 0xff5a1f, emissiveIntensity: 0.35 },
+  material: { emissive: 0x00ffcc, emissiveIntensity: 1.5 },
   parts: [
     {
-      id: 'blue-flame',
-      shape: 'cone',
-      params: { bottomR: 0.14, height: 0.34, radialSegs: 7, heightSegs: 2 },
-      color: 0x438dff,
-    },
-    {
-      id: 'inner-flame',
-      shape: 'cone',
-      params: { bottomR: 0.08, height: 0.23, radialSegs: 6, heightSegs: 1 },
-      transform: { lift: 0.05 },
-      color: 0xffd34d,
-    },
-    {
-      id: 'wick',
-      shape: 'cylinder',
-      params: { bottomR: 0.025, topR: 0.018, height: 0.12, segments: 5 },
-      transform: { lift: -0.02 },
-      color: 0x33272c,
-    },
-    {
-      id: 'spark',
+      id: 'core-wisp',
       shape: 'dodecahedron',
-      params: { radius: 0.025, detail: 0 },
-      transform: { localPos: { x: 0.09, y: 0.38, z: 0.02 } },
-      color: 0xffa62f,
+      params: { radius: 0.08 },
+      transform: { lift: 0.6 },
+      color: 0x00ffcc,
     },
+    {
+      id: 'satellite-1',
+      shape: 'octahedron',
+      params: { radius: 0.03 },
+      transform: { localPos: { x: 0.12, y: 0.75, z: 0.05 }, localAxis: { x: 1, y: 1, z: 0 }, localAngle: 0.5 },
+      color: 0x00e6b8,
+    },
+    {
+      id: 'satellite-2',
+      shape: 'octahedron',
+      params: { radius: 0.025 },
+      transform: { localPos: { x: -0.1, y: 0.5, z: 0.1 }, localAxis: { x: 0, y: 1, z: 1 }, localAngle: 0.8 },
+      color: 0x00ccaa,
+    },
+    {
+      id: 'satellite-3',
+      shape: 'octahedron',
+      params: { radius: 0.02 },
+      transform: { localPos: { x: 0.05, y: 0.65, z: -0.12 } },
+      color: 0x00ffff,
+    }
   ],
 };

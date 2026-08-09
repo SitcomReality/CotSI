@@ -16,6 +16,7 @@
  * Not descriptor-driven (parity gaps, see dev/futureWork.md): fruit trees and
  * painforest gnarled groves keep their hard-coded builders.
  */
+import { OPEN_TREASURE_CHEST_DESCRIPTOR } from './openTreasureChest.js';
 import { BASE_DESCRIPTOR } from './bases.js';
 import { BEACH_DRIFTWOOD_DESCRIPTOR } from './beachDriftwood.js';
 import { BUSH_DESCRIPTOR } from './bush.js';
@@ -95,6 +96,7 @@ export const ALL_DESCRIPTORS = [
   CHAMPION_DESCRIPTOR,
   MOB_DESCRIPTOR,
   TRADER_DESCRIPTOR,
+  OPEN_TREASURE_CHEST_DESCRIPTOR,
 ];
 
 /**
