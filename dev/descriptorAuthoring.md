@@ -196,7 +196,7 @@ scaleY: 1, scaleZ: 1 }`.
 | `lift` | Raises the part in its own frame, pre-scale (same bottom-height measure as `y` under stretch). |
 | `rotY` | Spin around the world Y axis (radians). |
 | `scaleX`, `scaleY`, `scaleZ` | Independent non-uniform scale (base 1). |
-| `localPos` | `{ x, y, z }` offset within the part's frame (overrides `lift`); pre-scaled with item scale. |
+| `localPos` | `{ x, y, z }` offset within the part's frame; pre-scaled with item scale. `localPos.y` is the same vertical offset slot as `lift` — the two **stack** (both raise the part). |
 | `localAxis` + `localAngle` | Rotation about an arbitrary axis in the part's **local frame**. The axis is a **direction** — magnitude is ignored (normalized at render), so `{ x: -3, y: 4, z: 4 }` means the same as `{ x: -0.47, y: 0.62, z: 0.62 }`. Both fields are required together. |
 | `tiltAxis` + `tilt` | World-space lean about a horizontal axis: `tiltAxis` is `{ x, z }` (direction only, normalized at render), `tilt` the lean angle. Both required together. |
 

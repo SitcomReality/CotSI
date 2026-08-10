@@ -777,6 +777,41 @@ test('nodeWorldFrames exposes every leaf AND group origin plus parent rotation',
   assert.deepEqual(frames.get('base').origin, { x: 1.732, y: 1.55, z: -3 });
 });
 
+test('root node origin rides the lift + localPos.y vertical slot (gizmo at the part, not the ground)', () => {
+  const lifted = normalizeDescriptor({
+    id: 'lifted',
+    kind: 'feature',
+    displayName: 'Lifted',
+    schemaVersion: 3,
+    placement: { mode: 'center' },
+    size: { min: 1, max: 1 },
+    parts: [
+      // box default height 0.05 → base 0.025; y raises the bottom, lift and
+      // localPos.y stack as the extra vertical offset (the render stacks too).
+      { id: 'block', shape: 'box', transform: { y: 0.1, lift: 0.2, localPos: { x: 0, y: 0.3, z: 0 } } },
+    ],
+  });
+  const frames = nodeWorldFrames(lifted, TILE, POS);
+  // record y = 1.25 + 0.1 + 0.025 = 1.375; vertical slot = 0.3 + 0.2 = 0.5.
+  assert.deepEqual(frames.get('block').origin, { x: 1.732, y: 1.875, z: -3 });
+  // Entity path: same rule (recordForEntityPart scales lift/localPos by itemScale).
+  const framesE = nodeWorldFramesForEntity(lifted, { color: 0xffffff }, POS);
+  assert.deepEqual(framesE.get('block').origin, { x: 1.732, y: 1.875, z: -3 });
+  // A lift-only root sits at its lift height too (the snowperson case).
+  const liftOnly = normalizeDescriptor({
+    id: 'lift-only',
+    kind: 'feature',
+    displayName: 'Lift Only',
+    schemaVersion: 3,
+    placement: { mode: 'center' },
+    size: { min: 1, max: 1 },
+    parts: [{ id: 'orb', shape: 'sphere', transform: { lift: 0.45 } }],
+  });
+  const framesL = nodeWorldFrames(liftOnly, TILE, POS);
+  // sphere radius 0.3 → base 0.3 → record y = 1.55; + lift 0.45 → 2.0.
+  assert.deepEqual(framesL.get('orb').origin, { x: 1.732, y: 2.0, z: -3 });
+});
+
 test('parentRot carries the accumulated ancestor rotation (gizmo delta conversion)', () => {
   const rotated = normalizeDescriptor({
     id: 'rotated-frame',

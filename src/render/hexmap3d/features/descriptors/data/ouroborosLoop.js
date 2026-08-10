@@ -25,7 +25,6 @@ export const OUROBOROS_LOOP_DESCRIPTOR = {
       params: { bottomR: 0.07, height: 0.15, heightSegs: 1 },
       transform: {
         y: -0.21,
-        lift: 0.02,
         localPos: { x: 0.14, y: 0.16, z: 0 },
         localAxis: { x: 0, y: 0, z: 1 },
         localAngle: -0.7853981633974483,

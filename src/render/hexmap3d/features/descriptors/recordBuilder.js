@@ -593,7 +593,12 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
     out.push(recordForPart(descriptor, part, ctx.tile, ctx.worldPos, ctx.tileH, ctx.i, ctx.itemScale, ctx.placement, ctx.disp, ctx.biomeTint));
     if (nodeFrames) {
       const r = out[out.length - 1];
-      nodeFrames.set(part.id, { origin: { x: r.x, y: r.y, z: r.z }, parentRot: parentRotationMatrix(ctx.worldBase, mat4Identity()) });
+      // The root origin is the shape's local-origin height — record y (which
+      // already bakes the shape base) PLUS the lift/localPos.y vertical slot,
+      // the same stack the render composes. Without the offset the gizmo
+      // would sit at the ground for every lifted or localPos-raised part.
+      const ly = (r.localPos?.y ?? 0) + (r.lift ?? 0);
+      nodeFrames.set(part.id, { origin: { x: r.x, y: r.y + ly, z: r.z }, parentRot: parentRotationMatrix(ctx.worldBase, mat4Identity()) });
     }
     return;
   }
@@ -796,7 +801,10 @@ function collectEntityPart(descriptor, part, entity, worldPos, itemScale, frame,
     out.push(recordForEntityPart(part, entity, worldPos, itemScale));
     if (nodeFrames) {
       const r = out[out.length - 1];
-      nodeFrames.set(part.id, { origin: { x: r.x, y: r.y, z: r.z }, parentRot: parentRotationMatrix(worldBase, mat4Identity()) });
+      // Same as the tile path: the origin rides the lift/localPos.y vertical
+      // slot so the gizmo sits at the part, not on the ground.
+      const ly = (r.localPos?.y ?? 0) + (r.lift ?? 0);
+      nodeFrames.set(part.id, { origin: { x: r.x, y: r.y + ly, z: r.z }, parentRot: parentRotationMatrix(worldBase, mat4Identity()) });
     }
     return;
   }

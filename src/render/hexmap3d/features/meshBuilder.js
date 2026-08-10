@@ -126,9 +126,12 @@ export function buildInstanced(geometry, material, instances, meshName, opts = {
       const sy = inst.scaleY ?? s;
       const sz = inst.scaleZ ?? inst.scaleXZ ?? s;
 
-      // Local placement in the tree frame (default: plain lift above the pivot).
+      // Local placement in the tree frame. `lift` and `localPos.y` are the same
+      // vertical offset slot and STACK (recordBuilder emits both from the
+      // transform's independent fields) — a part raised by lift keeps its
+      // height when an editor drag/inspector edit introduces a localPos.
       const lx = inst.localPos ? inst.localPos.x : 0;
-      const ly = inst.localPos ? inst.localPos.y : (inst.lift ?? 0);
+      const ly = (inst.localPos ? inst.localPos.y : 0) + (inst.lift ?? 0);
       const lz = inst.localPos ? inst.localPos.z : 0;
       _matrixLift.makeTranslation(lx, ly, lz);
 
