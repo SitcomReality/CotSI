@@ -201,16 +201,24 @@ function resolveDisplacement(descriptor, count, tileH, displaced) {
 }
 
 /**
- * Legacy simple-feature scatter jitter — replicates jitterForTile() in
- * simpleFeatureMeshes.js verbatim, including the negative-hash `%` behavior,
- * so migrated feature descriptors land on exactly the same offsets and sizes
- * as the hard-coded builder. Computed once per tile (the game does not vary it
- * per item) and reused for every item in the cluster.
+ * Scatter placement jitter, derived from the descriptor's own
+ * `placement.offsetMin`/`offsetMax` bounds (schema defaults 0.15..0.3) so the
+ * scatter ring is authorable per object. The hash roll keeps the legacy
+ * 30-step bucket and the negative-hash `%` behavior from the old
+ * simpleFeatureMeshes.js jitterForTile(), so migrated descriptors stay
+ * deterministic and close to their original offsets; only the width of the
+ * ring is rescaled to the descriptor's bounds. Computed once per tile (the
+ * game does not vary it per item) and reused for every item in the cluster.
  */
-function scatterJitter(tile) {
+function scatterJitter(tile, placement) {
   const hash = ((tile.q * SCATTER_HASH_SEEDS[0] + tile.r * SCATTER_HASH_SEEDS[1]) * SCATTER_HASH_SEEDS[2]) % SCATTER_HASH_SEEDS[3];
   const angle = (hash * SCATTER_ANGLE_STEP) % (Math.PI * 2);
-  const dist = SCATTER_OFFSET_MIN + (hash % SCATTER_OFFSET_RANGE[0]) / SCATTER_OFFSET_RANGE[1];
+  // Legacy fallbacks for unnormalized descriptors: offsetMin 0.15, max 0.295
+  // (the old `min + (range[0]-1)/range[1]` top bucket).
+  const min = placement.offsetMin ?? SCATTER_OFFSET_MIN;
+  const max = placement.offsetMax ?? SCATTER_OFFSET_MIN + (SCATTER_OFFSET_RANGE[0] - 1) / SCATTER_OFFSET_RANGE[1];
+  const frac = (hash % SCATTER_OFFSET_RANGE[0]) / (SCATTER_OFFSET_RANGE[0] - 1);
+  const dist = min + frac * (max - min);
   return {
     dx: Math.cos(angle) * dist,
     dz: Math.sin(angle) * dist,
@@ -435,10 +443,13 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
 
   if (t.lift) record.lift = t.lift * itemScale * scaleMul * jitterScale * biomeFactor;
   if (t.localPos) {
+    // Pre-scaled by the same rigid factor as lift and the geometry: when a
+    // scatter tile (or displacement) shrinks the item, the localPos offset
+    // shrinks with it so sub-parts stay attached to the shrunk item.
     record.localPos = {
-      x: t.localPos.x * itemScale * biomeFactor,
-      y: t.localPos.y * itemScale * biomeFactor,
-      z: t.localPos.z * itemScale * biomeFactor,
+      x: t.localPos.x * itemScale * scaleMul * jitterScale * biomeFactor,
+      y: t.localPos.y * itemScale * scaleMul * jitterScale * biomeFactor,
+      z: t.localPos.z * itemScale * scaleMul * jitterScale * biomeFactor,
     };
   }
   if (t.localAxis && t.localAngle !== undefined) {
@@ -461,34 +472,37 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
 // ── Nested part groups ──────────────────────────────────────────────────────
 
 /**
- * Pre-scaled localPos of a node. `itemScale` makes the whole item scale
- * rigidly (the same convention as root-leaf localPos/lift); `biomeFactor`
- * keeps per-part biome size changes rigid for nested leaves (groups have no
+ * Pre-scaled localPos of a node. `itemScale` × dispersal × scatter jitter
+ * makes the whole item scale rigidly (the same convention as root-leaf
+ * localPos/lift — positions move with the geometry); `biomeFactor` keeps
+ * per-part biome size changes rigid for nested leaves (groups have no
  * biomeScale — validation rejects it). Roots may use `lift` instead of
  * localPos.y; nested nodes only have localPos.
  */
-function frameLocalPos(t, itemScale, biomeFactor) {
+function frameLocalPos(t, rigidScale, biomeFactor) {
   if (!t.localPos) return { x: 0, y: 0, z: 0 };
   return {
-    x: t.localPos.x * itemScale * biomeFactor,
-    y: t.localPos.y * itemScale * biomeFactor,
-    z: t.localPos.z * itemScale * biomeFactor,
+    x: t.localPos.x * rigidScale * biomeFactor,
+    y: t.localPos.y * rigidScale * biomeFactor,
+    z: t.localPos.z * rigidScale * biomeFactor,
   };
 }
 
 /**
  * A group's frame matrix — how a group offsets, orients, and scales its
  * children: T(localPos) · R(localAxis/localAngle) · R_y(rotY) · S(scale).
- * The group's localPos is pre-scaled by itemScale (rigid item scaling);
- * the scale pre-scales by itemScale × dispersal × scatter jitter, mirroring
- * how a root leaf's geometry scales (its local offsets do not — same
- * convention as root localPos/lift, which exclude scaleMul/jitterScale).
+ * The group's localPos is pre-scaled by the item's full rigid factor
+ * (itemScale × dispersal × scatter jitter), the same factor its children's
+ * own geometry and localPos carry — so the group's offsets move rigidly with
+ * the item. The group's S carries ONLY the group's own authored scale: its
+ * children already scale by the rigid factor themselves, and folding it in
+ * again would square it (nested geometry = itemScale²).
  */
 function groupFrameMatrix(t, itemScale, scaleMul, jitterScale) {
-  const { x, y, z } = frameLocalPos(t, itemScale, 1);
-  const sx = t.scaleX * itemScale * scaleMul * jitterScale;
-  const sy = t.scaleY * itemScale * scaleMul * jitterScale;
-  const sz = t.scaleZ * itemScale * scaleMul * jitterScale;
+  const { x, y, z } = frameLocalPos(t, itemScale * scaleMul * jitterScale, 1);
+  const sx = t.scaleX;
+  const sy = t.scaleY;
+  const sz = t.scaleZ;
   let m = mat4Scale(sx, sy, sz);
   if (t.localAxis && t.localAngle !== undefined) {
     m = mat4Multiply(mat4RotationAxisAngle(t.localAxis, t.localAngle), m);
@@ -511,7 +525,7 @@ function groupFrameMatrix(t, itemScale, scaleMul, jitterScale) {
 function nestedLeafFrameMatrix(part, descriptor, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor) {
   const t = part.transform;
   const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor);
-  const { x, y, z } = frameLocalPos(t, itemScale, biomeFactor);
+  const { x, y, z } = frameLocalPos(t, itemScale * scaleMul * jitterScale, biomeFactor);
   const base = shapeBaseOffset(part.shape, part.params);
   let m = mat4Scale(sx, sy, sz);
   m = mat4Multiply(mat4Translation(0, base * sy, 0), m);
@@ -532,11 +546,17 @@ function worldBaseMatrix(worldPos, placement, disp) {
   const px = worldPos.x + placement.dx;
   const py = worldPos.y + (disp?.yOffset ?? 0);
   const pz = worldPos.z + placement.dz;
+  // T · R(tilt) · R(rotY) — the translation is the OUTERMOST transform, so
+  // rotY/tilt spin the item about its own origin, exactly like the root-leaf
+  // record path (meshBuilder's T(x,z) · R(tilt)·R(rotY) · …). Composing
+  // R · T instead would rotate the placement offset about the WORLD origin,
+  // displacing nested parts (a scatter item's ring offset swung around the
+  // hex center by its per-tile rotY).
   let m = mat4Translation(px, py, pz);
   if (placement.tiltAxis && placement.tilt !== undefined) {
-    m = mat4Multiply(mat4RotationAxisAngle({ x: placement.tiltAxis.x, y: 0, z: placement.tiltAxis.z }, placement.tilt), m);
+    m = mat4Multiply(m, mat4RotationAxisAngle({ x: placement.tiltAxis.x, y: 0, z: placement.tiltAxis.z }, placement.tilt));
   }
-  if (placement.rotY) m = mat4Multiply(mat4RotationY(placement.rotY), m);
+  if (placement.rotY) m = mat4Multiply(m, mat4RotationY(placement.rotY));
   return m;
 }
 
@@ -579,7 +599,10 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
     const g = groupFrameMatrix(t, ctx.itemScale, scaleMul, ctx.placement.scaleMul ?? 1);
     const nextFrame = mat4Multiply(frame, g);
     if (nodeFrames) {
-      const { x, y, z } = frameLocalPos(t, ctx.itemScale, 1);
+      const jitterScale = ctx.placement.scaleMul ?? 1;
+      // Same pre-scale as groupFrameMatrix — the gizmo sits at the group's
+      // origin as the item rigidly shrinks/grows under scatter/dispersal.
+      const { x, y, z } = frameLocalPos(t, ctx.itemScale * scaleMul * jitterScale, 1);
       const originM = mat4Multiply(ctx.worldBase, mat4Multiply(frame, mat4Translation(x, y, z)));
       nodeFrames.set(part.id, { origin: mat4TranslationOf(originM), parentRot: parentRotationMatrix(ctx.worldBase, frame) });
     }
@@ -640,7 +663,7 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
 
   const variant = variantFor(descriptor, tile, tileH, variantId);
   const parts = (variant ?? descriptor).parts;
-  const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile) : null;
+  const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement) : null;
   const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);
 
   const records = [];
@@ -679,7 +702,7 @@ export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(til
 
   const variant = variantFor(descriptor, tile, tileH, variantId);
   const parts = (variant ?? descriptor).parts;
-  const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile) : null;
+  const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement) : null;
   const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);
 
   for (let i = 0; i < count; i++) {

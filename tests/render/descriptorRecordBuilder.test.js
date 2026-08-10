@@ -14,6 +14,7 @@ import {
 } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
 import { biomeTintForTile } from '../../src/render/hexmap3d/features/biomeTint.js';
 import { DISPERSED_SCALE, sunkTransform, dispersedSingleOffset } from '../../src/render/hexmap3d/features/decorEmphasis.js';
+import { mat4RotationY, mat4Translation, mat4Multiply, mat4TranslationOf } from '../../src/engine/rules/mat4.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -402,14 +403,18 @@ test('biomeScale scales localPos and lift rigidly (the gnarled painforest stack)
   assert.ok(Math.abs(plainBall.lift - 0.5) < 1e-9, `plain lift ${plainBall.lift}`);
 });
 
-// ── Legacy scatter parity (M4: simple-feature migration) ───────────────────
+// ── Scatter placement (M4: simple-feature migration) ───────────────────────
 
-test('scatter placement replicates jitterForTile() exactly', () => {
-  // Hand-compute the legacy formula from simpleFeatureMeshes.js.
-  const jitterFor = (tile) => {
+test('scatter offset honors placement.offsetMin/offsetMax (defaults 0.15..0.3)', () => {
+  // Hand-compute the scatter jitter the way recordBuilder does: the legacy
+  // 30-step hash roll from simpleFeatureMeshes.js, rescaled onto the
+  // descriptor's ring bounds. rotY and scaleMul keep the legacy formulas
+  // exactly — only the ring width became authorable (previously the
+  // offsetMin/offsetMax fields were silently ignored).
+  const jitterFor = (tile, min, max) => {
     const hash = ((tile.q * 17 + tile.r * 11) * 13) % 100;
     const angle = (hash * 0.618) % (Math.PI * 2);
-    const dist = 0.15 + (hash % 30) / 200;
+    const dist = min + ((hash % 30) / 29) * (max - min);
     return {
       dx: Math.cos(angle) * dist,
       dz: Math.sin(angle) * dist,
@@ -424,12 +429,33 @@ test('scatter placement replicates jitterForTile() exactly', () => {
     { q: 27, r: 8, terrain: 'plains' },
   ]) {
     const [record] = recordsForDescriptor(BUSH, tile, POS);
-    const { dx, dz, rotY, scaleMul } = jitterFor(tile);
+    // BUSH normalizes to the schema defaults offsetMin 0.15 / offsetMax 0.3.
+    const { dx, dz, rotY, scaleMul } = jitterFor(tile, 0.15, 0.3);
     assert.ok(Math.abs(record.x - (POS.x + dx)) < 1e-9, `tile ${tile.q},${tile.r} x`);
     assert.ok(Math.abs(record.z - (POS.z + dz)) < 1e-9, `tile ${tile.q},${tile.r} z`);
     // rotY is omitted from the record when 0 (identity rotation).
     assert.ok(Math.abs((record.rotY ?? 0) - rotY) < 1e-9, `tile ${tile.q},${tile.r} rotY`);
     assert.ok(Math.abs(record.scale - 1.5 * scaleMul) < 1e-9, `tile ${tile.q},${tile.r} scale`);
+  }
+
+  // Explicit bounds reshape the ring (the chests use offsetMin 0 / 0.1 to hug
+  // the hex center). The hand-computed roll lands exactly on the new bounds.
+  const narrow = normalizeDescriptor({
+    id: 'narrow-scatter',
+    kind: 'feature',
+    displayName: 'Narrow Scatter',
+    schemaVersion: 3,
+    placement: { mode: 'scatter', offsetMin: 0.02, offsetMax: 0.06 },
+    parts: [{ id: 'p', shape: 'box' }],
+  });
+  for (const tile of [
+    { q: 3, r: -2, terrain: 'plains' },
+    { q: 27, r: 8, terrain: 'plains' },
+  ]) {
+    const [record] = recordsForDescriptor(narrow, tile, POS);
+    const { dx, dz } = jitterFor(tile, 0.02, 0.06);
+    assert.ok(Math.abs(record.x - (POS.x + dx)) < 1e-9, `tile ${tile.q},${tile.r} x`);
+    assert.ok(Math.abs(record.z - (POS.z + dz)) < 1e-9, `tile ${tile.q},${tile.r} z`);
   }
 });
 
@@ -441,6 +467,85 @@ test('scatter scale keeps the displaced feature readable (× DISPERSED_SCALE)', 
   assert.ok(Math.abs(record.x - (POS.x + dx)) < 1e-9);
   assert.ok(record.scale >= 1.5 * 0.8 * DISPERSED_SCALE - 1e-9);
   assert.ok(record.scale <= 1.5 * DISPERSED_SCALE + 1e-9);
+});
+
+// ── Scatter rigidity (the open-chest distortion) ───────────────────────────
+
+test('scatter scales the whole item rigidly (geometry, offsets, and groups)', () => {
+  // Scatter's per-tile size jitter must shrink the ENTIRE item — geometry,
+  // root localPos/lift, group hinges, and nested leaf offsets alike — and the
+  // per-tile rotY must spin the item about its OWN origin. Two regressions
+  // once broke this for grouped objects: the scatter size jitter shrank the
+  // chest base but left the lid hinge at full size (lid floated off the
+  // body), nested geometry was scaled twice (itemScale²), and the placement
+  // rotY rotated the ring offset about the WORLD origin instead of the item.
+  const scatter = normalizeDescriptor({
+    id: 'scatter-rigid',
+    kind: 'feature',
+    displayName: 'Scatter Rigid',
+    schemaVersion: 3,
+    scale: 1.2,
+    placement: { mode: 'scatter' },
+    size: { min: 1, max: 1 },
+    parts: [
+      { id: 'base', shape: 'box', params: { width: 0.3, height: 0.1, depth: 0.2 }, transform: { localPos: { x: 0.1, y: 0.2, z: 0 } } },
+      {
+        id: 'hinge',
+        transform: { localPos: { x: 0, y: 0.15, z: 0.125 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 1 },
+        children: [
+          { id: 'lid', shape: 'box', transform: { localPos: { x: 0, y: 0, z: -0.125 } } },
+        ],
+      },
+    ],
+  });
+  const tile = { q: 3, r: -2, terrain: 'plains' }; // hash 77 → scaleMul 0.97
+  const records = recordsForDescriptor(scatter, tile, POS);
+  const base = records.find((r) => r.partId === 'base');
+  const lid = records.find((r) => r.partId === 'lid');
+
+  // Recover the per-tile scatter jitter from the root leaf (itemScale = 1.2,
+  // no stretch/biome factors in this fixture).
+  const dx = base.x - POS.x;
+  const dz = base.z - POS.z;
+  const rotY = base.rotY ?? 0;
+  const scaleMul = base.scale / 1.2;
+
+  // Root-leaf localPos pre-scales by scaleMul like lift and the geometry — the
+  // vertical slot rides the shrunken item instead of staying at full size.
+  assert.ok(Math.abs(base.localPos.x - 0.1 * 1.2 * scaleMul) < 1e-9, `base localPos.x ${base.localPos.x}`);
+  assert.ok(Math.abs(base.localPos.y - 0.2 * 1.2 * scaleMul) < 1e-9, `base localPos.y ${base.localPos.y}`);
+  assert.equal(base.localPos.z, 0);
+
+  // Nested geometry scales by itemScale × scaleMul exactly ONCE — a group must
+  // not fold the rigid factor in again, which would square it (1.44·scaleMul²).
+  const lidScale = Math.hypot(lid.matrix[0], lid.matrix[1], lid.matrix[2]);
+  assert.ok(Math.abs(lidScale - 1.2 * scaleMul) < 1e-9, `lid geometry scale ${lidScale}`);
+
+  // The whole nested item equals the center-mode item scaled by scaleMul,
+  // placed at the ring offset and spun about its own origin — T(dx,dz) ·
+  // R_y(rotY) · (shrunk center matrix). Composing the rotation the other way
+  // round (R·T) would swing the ring offset around the hex center and
+  // misplace every nested part. Compared at a zero world origin so the
+  // placement rotation never touches the world position.
+  const ORIGIN = { x: 0, y: 0, z: 0 };
+  const shrunk = { ...scatter, scale: base.scale, placement: { mode: 'center' } };
+  const shrunkLid = recordsForDescriptor(shrunk, tile, ORIGIN).find((r) => r.partId === 'lid').matrix;
+  const scatterLid = recordsForDescriptor(scatter, tile, ORIGIN).find((r) => r.partId === 'lid').matrix;
+  const expected = mat4Multiply(mat4Translation(dx, 0, dz), mat4Multiply(mat4RotationY(rotY), shrunkLid));
+  expectMatrix(scatterLid, expected);
+
+  // The group hinge (gizmo origin) rides the same rigid relationship.
+  const frames = nodeWorldFrames(scatter, tile, ORIGIN);
+  const shrunkFrames = nodeWorldFrames(shrunk, tile, ORIGIN);
+  const origin = frames.get('hinge').origin;
+  const shrunkOrigin = shrunkFrames.get('hinge').origin;
+  const expectedOrigin = mat4TranslationOf(mat4Multiply(
+    mat4Translation(dx, 0, dz),
+    mat4Multiply(mat4RotationY(rotY), mat4Translation(shrunkOrigin.x, shrunkOrigin.y, shrunkOrigin.z)),
+  ));
+  assert.ok(Math.abs(origin.x - expectedOrigin.x) < 1e-9, `hinge x ${origin.x} vs ${expectedOrigin.x}`);
+  assert.ok(Math.abs(origin.y - expectedOrigin.y) < 1e-9, `hinge y ${origin.y} vs ${expectedOrigin.y}`);
+  assert.ok(Math.abs(origin.z - expectedOrigin.z) < 1e-9, `hinge z ${origin.z} vs ${expectedOrigin.z}`);
 });
 
 // ── Moisture-driven cluster (M4: grove migration) ──────────────────────────

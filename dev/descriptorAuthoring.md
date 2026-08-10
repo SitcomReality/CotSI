@@ -126,8 +126,13 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
 **placement:**
 - `mode: 'center'` — one item at the hex center.
 - `mode: 'scatter'` — the classic simple-feature rule: a deterministic
-  per-tile offset (0–0.3 of a hex), a spin, and a size jitter (~0.8–0.99×).
-  Optional `offsetMin`/`offsetMax` (defaults 0.15/0.3).
+  per-tile offset, a spin, and a size jitter (~0.8–0.99×). The ring is bounded
+  by `offsetMin`/`offsetMax` (defaults 0.15/0.3) — the chests use
+  `offsetMin: 0, offsetMax: 0.1` to hug the hex center. The per-tile size
+  jitter is **rigid**: it scales the whole item (geometry *and* the root
+  `localPos`/`lift` slots, group hinges, and nested leaf offsets), so a
+  multi-part object stays assembled when a scatter tile shrinks it — and the
+  per-tile spin rotates the item about its own origin, not the hex center.
 - `mode: 'ring'` — cluster members in a ring around the center, each leaning
   outward. Optional `ringMin`/`ringMax` (0.18/0.55), `leanMin`/`leanMax`
   (0.045/0.12).
@@ -196,7 +201,7 @@ scaleY: 1, scaleZ: 1 }`.
 | `lift` | Raises the part in its own frame, pre-scale (same bottom-height measure as `y` under stretch). |
 | `rotY` | Spin around the world Y axis (radians). |
 | `scaleX`, `scaleY`, `scaleZ` | Independent non-uniform scale (base 1). |
-| `localPos` | `{ x, y, z }` offset within the part's frame; pre-scaled with item scale. `localPos.y` is the same vertical offset slot as `lift` — the two **stack** (both raise the part). |
+| `localPos` | `{ x, y, z }` offset within the part's frame; pre-scaled with the item's rigid scale factor (item scale × dispersal × scatter jitter, plus `biomeScale`). `localPos.y` is the same vertical offset slot as `lift` — the two **stack** (both raise the part). |
 | `localAxis` + `localAngle` | Rotation about an arbitrary axis in the part's **local frame**. The axis is a **direction** — magnitude is ignored (normalized at render), so `{ x: -3, y: 4, z: 4 }` means the same as `{ x: -0.47, y: 0.62, z: 0.62 }`. Both fields are required together. |
 | `tiltAxis` + `tilt` | World-space lean about a horizontal axis: `tiltAxis` is `{ x, z }` (direction only, normalized at render), `tilt` the lean angle. Both required together. |
 
