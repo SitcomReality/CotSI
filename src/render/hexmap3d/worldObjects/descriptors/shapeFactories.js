@@ -268,20 +268,22 @@ function getLatheGeo() {
  * cache entry per option-set. Mountain geometry carries per-vertex colors
  * (getMountainGeo above) — keep the material white and let vertex colors drive
  * the look, matching the game's MOUNTAIN_MATERIAL. Object-level emissive
- * (resource nodes) passes through.
+ * (resource nodes) passes through; a per-variant emissive (variant.material —
+ * e.g. the infernalpaca's glow) merges over it and wins.
  *
  * Materials are cached per option-set and marked shared: unit meshes rebuild
  * every render pass, and disposeMesh (sceneContext) skips shared materials, so
  * identical parts must reuse one material instead of recreating it per frame.
  *
- * @param {object} descriptor - normalized descriptor
- * @param {object} part       - descriptor part
+ * @param {object} descriptor      - normalized descriptor
+ * @param {object} part            - descriptor part
+ * @param {object} [variantMaterial] - the part's variant-level material (emissive)
  * @returns {THREE.MeshToonMaterial}
  */
 const materialCache = new Map();
 
-export function materialForPart(descriptor, part) {
-  const material = descriptor.material;
+export function materialForPart(descriptor, part, variantMaterial) {
+  const material = { ...descriptor.material, ...(variantMaterial ?? {}) };
   const opts = {};
   if (part.shape === 'mountain') {
     opts.vertexColors = true;

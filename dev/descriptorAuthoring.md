@@ -64,8 +64,8 @@ One file per object in `src/render/hexmap3d/worldObjects/descriptors/data/`:
 No id → file exceptions: every descriptor is `<id>.js` — including the
 entity kinds (which previously kept plural file names). `base.js` and
 `mob.js` remain table-driven (`BASE_VARIANTS` / `MOB_VARIANTS` derive their
-descriptor from variant maps the game imports) and are not editable through
-the editor yet.
+descriptor from variant maps the game imports — mobs compose the per-archetype
+variant files in `data/mobs/`) and are not editable through the editor yet.
 
 Module shape (this is what the editor Save produces; copying the header is
 optional for new files):

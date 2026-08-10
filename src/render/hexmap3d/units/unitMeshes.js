@@ -25,7 +25,7 @@ import { normalizeDescriptor } from '../worldObjects/descriptors/schema.js';
 import { recordsForEntity } from '../worldObjects/descriptors/recordBuilder.js';
 import { buildDescriptorMeshes } from '../worldObjects/descriptors/meshAssembly.js';
 import { CHAMPION_DESCRIPTOR } from '../worldObjects/descriptors/data/champion.js';
-import { MOB_DESCRIPTOR, MOB_TIER2_VARIANTS } from '../worldObjects/descriptors/data/mob.js';
+import { MOB_DESCRIPTOR } from '../worldObjects/descriptors/data/mob.js';
 import { TRADER_DESCRIPTOR } from '../worldObjects/descriptors/data/trader.js';
 
 // ─── Shared cap material (module-level, reused every rebuild) ───────────────
@@ -62,11 +62,10 @@ function darkenHex(hex, f) {
   return (ch(16) << 16) | (ch(8) << 8) | ch(0);
 }
 
-/** Which mob variant a mob's state selects (tier-2 mobs get their own variant). */
+/** Which mob variant a mob's state selects (all mobs render as their
+ *  archetype variant — tier-2 variants were removed in the mob rework). */
 function mobVariantFor(mob) {
-  const shape = mob.archetypeName;
-  if (!shape) return 'default';
-  return mob.tier > 1 && MOB_TIER2_VARIANTS[shape] ? MOB_TIER2_VARIANTS[shape] : shape;
+  return mob.archetypeName || 'default';
 }
 
 /** Map a champion onto the entity shape recordsForEntity expects. */
@@ -96,14 +95,22 @@ function entityForMob(mob) {
 
 /**
  * Top of a part above the tile surface (geometry is centered on its origin).
- * Cylinders/cones top out at y + height/2; spheres and polyhedra at y + radius.
- * Used to park the icon cap on top of the 3D body — an approximation that is
- * good enough while the caps are the temporary look (pieceIcons.js).
+ * Cylinders/cones top out at y + height/2; spheres and polyhedra at y + radius;
+ * spheroids at y + radius × scaleY. Groups (joint pivots) have no geometry —
+ * climb to their first leaf part. Used to park the icon cap on top of the 3D
+ * body — an approximation that is good enough while the caps are the temporary
+ * look (pieceIcons.js).
  */
 function partTopY(part) {
+  if (Array.isArray(part.children)) {
+    return part.children.length > 0 ? partTopY(part.children[0]) : 0;
+  }
   const p = part.params ?? {};
   if (part.shape === 'sphere' || part.shape === 'octahedron' || part.shape === 'dodecahedron') {
     return part.transform.y + p.radius;
+  }
+  if (part.shape === 'spheroid') {
+    return part.transform.y + p.radius * (part.transform.scaleY ?? 1);
   }
   return part.transform.y + (p.height ?? 0) / 2;
 }
@@ -122,8 +129,9 @@ function variantBodyTop(descriptor, variantId) {
  * All three entity types render through the descriptor pipeline:
  *   - Champions (descriptors/data/champion.js): cylinder body + sphere head
  *     per faction, instanced per part.
- *   - Mobs (descriptors/data/mob.js): a 3D body per archetype shape (7 shapes
- *     + the tier-2 elder/queen variants), instanced per part.
+ *   - Mobs (descriptors/data/mob.js — one variant per archetype, composed from
+ *     the per-mob files in data/mobs/): a 3D body per archetype shape (7
+ *     archetypes, no tier-2 variants), instanced per part.
  *   - Traders (descriptors/data/trader.js): a flat coin body in teal.
  *
  * Mobs and traders keep their baked SVG icon caps (pieceIcons.js — unchanged,
@@ -170,8 +178,8 @@ export function buildUnitMeshes(state, visible) {
       mobRecords.push(...recordsForEntity(normalizedMob, entity, { x, y: surfaceY, z }));
 
       // Icon cap on top of the 3D body — per-instance height so scaled mobs
-      // (tier-2 elders/queens) keep their cap on their head. Grouped by the
-      // archetype shape (the icon id), not the variant, so one mesh per icon.
+      // keep their cap on their head. Grouped by the archetype shape (the icon
+      // id), not the variant, so one mesh per icon.
       const iconKey = mob.archetypeName || 'default';
       if (!mobCapInstancesByShape.has(iconKey)) {
         mobCapInstancesByShape.set(iconKey, []);
@@ -221,7 +229,7 @@ export function buildUnitMeshes(state, visible) {
  *
  * @param {Array}   instances  - Instance data with {x, y, z, scale} — y already
  *                               includes the cap's rest height above the ground
- * @param {string}  iconId     - Piece icon ID (e.g. 'p-bear') or null for fallback
+ * @param {string}  iconId     - Piece icon ID (e.g. 'p-infernalpaca') or null for fallback
  * @param {string}  label      - Debug label for the mesh name
  * @param {Array}   results    - Output array to push InstancedMeshes into
  */

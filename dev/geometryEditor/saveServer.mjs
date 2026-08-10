@@ -146,7 +146,7 @@ async function handleSave(res, body) {
 
   if (TABLE_DRIVEN.has(file)) {
     return json(res, 409, {
-      error: `${file} is table-driven — ${id} is derived from BASE_VARIANTS / MOB_VARIANTS, not editable through the editor yet`,
+      error: `${file} is table-driven — ${id} is derived from BASE_VARIANTS / MOB_VARIANTS (composed from the per-mob files in data/mobs/), not editable through the editor yet`,
     });
   }
   if (isNew && existsSync(path.join(DATA_DIR, file))) {

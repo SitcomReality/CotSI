@@ -186,10 +186,12 @@ Entity-kind notes (by design, not regressions):
 - **2D icon caps** (`units/pieceIcons.js`) render on top of mob/trader
   bodies; destined to be replaced by full 3D geometry. Cap height rides the
   top of each archetype's body part — an approximation (tall shapes like the
-  goose float the icon high; entity part `stretch` is ignored).
+  goose float the icon high; entity part `stretch` is ignored). The two
+  reworked mob icons were renamed only (`p-infernalpaca`, `p-scorpelican`) —
+  redraws to match the new creatures are still pending.
 - **Champion accents** are minimal per-faction placeholders; richer looks
-  are authorable in the editor. Same for tier-2 mob accents (elder crown,
-  queen gem).
+  are authorable in the editor. Tier-2 mob accents were removed with the
+  scorpelican/infernalpaca rework (no tier-2 mob variants remain).
 
 **Editor write-back is live** — the editor saves objects straight into
 `descriptors/data/` via `dev/geometryEditor/saveServer.sh` (one file per
@@ -197,27 +199,31 @@ object, generated; convention documented in `data/index.js`). Remaining
 editor gaps:
 
 - **Table-driven entity save** — `base.js` / `mob.js` derive their
-  descriptor from variant maps the game imports; the save endpoint rejects
-  them until the maps are decoupled from the descriptor.
+  descriptor from variant maps the game imports (mobs now compose the per-mob
+  files in `data/mobs/`); the save endpoint rejects them until the maps are
+  decoupled from the descriptor.
 - **Diff-on-save** — the confirm dialog shows the target file only; a
   before/after descriptor diff would catch accidental drift.
 
 ### 4.1 Mob geometry & animation
 
-Mob geometry is next on the content front (a handful more archetypes are
-planned, plus the possibility of simple animation). Two hand-authored mob
-experiments (`infernalpaca.js`, `scorpelican.js`) plus an unused water-decor
-file were mined and then deleted; their findings are captured in
+Mob geometry is the current content front (the roster was reworked to
+mushroom / infernalpaca / leopard / goose / scorpelican / snail / tapir, one
+file per archetype in `worldObjects/descriptors/data/mobs/`, with simple
+animation planned later). Two hand-authored mob experiments
+(`infernalpaca.js`, `scorpelican.js`) plus an unused water-decor file were
+mined and then deleted; their findings are captured in
 `dev/mobGeometryAndAnimation.md` — joint-group pivots (already schema v5),
 FK chains, faction-token colors (mobs use `factionBody`, not `factionBase`),
-the object-level emissive hook, and an animation runtime proposal
-(declarative clip spec; hook into the per-render-pass mob mesh rebuild in
-`unitMeshes.js`).
+the object-level emissive hook (now also per-variant), and an animation
+runtime proposal (declarative clip spec; hook into the per-render-pass mob
+mesh rebuild in `unitMeshes.js`).
 
 Next steps when mob content resumes:
 
-- **New archetype** = one `MOB_VARIANTS` key (id == `archetypeName`) + optional
-  `MOB_TIER2_VARIANTS` tier-2 key, in `worldObjects/descriptors/data/mob.js`.
+- **New archetype** = one `<NAME>_VARIANT` file in
+  `worldObjects/descriptors/data/mobs/` (variant id == `archetypeName`) + a
+  line in the `data/mob.js` barrel.
 - **Decouple the variant tables from the descriptor** (the table-driven-save
   gap above) so mobs become editor-editable — prerequisite for authoring the
   richer mobs in the editor rather than by hand.

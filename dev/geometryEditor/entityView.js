@@ -30,7 +30,7 @@ export function darkenHex(hex, f) {
  * faction/archetype selection. Unknown factions fall back to the first.
  *
  * @param {string} faction   - faction short ('CRU'…'HOL')
- * @param {string} archetype - archetype shape key ('bear', …) or null
+ * @param {string} archetype - archetype shape key ('infernalpaca', …) or null
  * @returns {object} entity — { faction, archetype, scale, colors }
  */
 export function entityForSelection(faction, archetype) {

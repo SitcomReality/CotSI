@@ -8,9 +8,10 @@
  *
  * Descriptors are raw JSON literals with only non-default fields;
  * gameBuilder.js / the editor normalize them on load (normalizeDescriptor).
- * The table-driven entity files (base.js, mob.js) keep their variant tables
- * (BASE_VARIANTS / MOB_VARIANTS / MOB_TIER2_VARIANTS) — their descriptors are
- * derived from those tables and are NOT edited through the editor yet.
+ * The table-driven entity files keep their variant tables (BASE_VARIANTS /
+ * MOB_VARIANTS — mobs compose the per-archetype variant files in `data/mobs/`
+ * into the barrel) — their descriptors are derived from those tables and are
+ * NOT edited through the editor yet.
  *
  * Not descriptor-driven (parity gaps, see dev/futureWork.md): fruit trees keep
  * their hard-coded builder (worldObjects/fruitTree/).

@@ -63,7 +63,7 @@ const MOB_DESCRIPTOR = {
     { id: 'body', shape: 'cylinder', params: { bottomR: 0.14, topR: 0.1, height: 0.22, segments: 5 }, color: 'factionBase' },
   ],
   variants: [
-    { id: 'bear', parts: [{ id: 'body', shape: 'cylinder', params: { bottomR: 0.14, topR: 0.1, height: 0.22, segments: 5 }, color: 0x8a6a4a }] },
+    { id: 'infernalpaca', parts: [{ id: 'body', shape: 'cylinder', params: { bottomR: 0.14, topR: 0.1, height: 0.22, segments: 5 }, color: 0x8a6a4a }] },
     { id: 'snail', parts: [{ id: 'body', shape: 'sphere', params: { radius: 0.12, wSegs: 6, hSegs: 4 }, color: 0xc0d8a0 }] },
   ],
 };

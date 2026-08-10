@@ -1,5 +1,5 @@
 /**
- * mobs.js — Mob archetype definitions and their variants.
+ * mobs.js — Mob archetype definitions.
  *
  * Each mob archetype defines:
  *   type:          'mob'
@@ -10,19 +10,23 @@
  *   aggressiveChance: 0–1 probability of being aggressive
  *   tags:          Biome/terrain affinity tags
  *   visual:        { scale, tint } — render hints
+ *
+ * The `archetypeShape` key must match a variant id in the mob descriptor
+ * (worldObjects/descriptors/data/mob.js, variants composed from data/mobs/),
+ * which the renderer resolves via variantRule 'archetype'.
  */
 
-import { defineArchetype, createVariant } from '../archetypes.js';
+import { defineArchetype } from '../archetypes.js';
 
-defineArchetype('mob_bear', {
+defineArchetype('mob_infernalpaca', {
   type: 'mob',
-  name: 'Ink Bear',
-  archetypeShape: 'bear',
+  name: 'Infernalpaca',
+  archetypeShape: 'infernalpaca',
   baseStats: { hp: 36, maxHp: 52, tier: 1 },
   lootGold: [12, 26],
   aggressiveChance: 0.25,
   tags: ['forest', 'plains'],
-  visual: { scale: 1.0, tint: 'factionMutated' },
+  visual: { scale: 1.1, tint: 'factionMutated' },
 });
 
 defineArchetype('mob_leopard', {
@@ -80,33 +84,13 @@ defineArchetype('mob_goose', {
   visual: { scale: 1.0, tint: 'factionMutated' },
 });
 
-defineArchetype('mob_scorpion', {
+defineArchetype('mob_scorpelican', {
   type: 'mob',
-  name: 'Scorpiocelot',
-  archetypeShape: 'scorpion',
+  name: 'Scorpelican',
+  archetypeShape: 'scorpelican',
   baseStats: { hp: 38, maxHp: 52, tier: 1 },
   lootGold: [16, 30],
   aggressiveChance: 0.35,
   tags: ['desert', 'plains'],
-  visual: { scale: 1.0, tint: 'factionMutated' },
-});
-
-// ---- Mob variants (higher tier) ----
-
-createVariant('mob_bear_elder', 'mob_bear', {
-  name: 'Elder Ink Bear',
-  archetypeShape: 'bear',
-  baseStats: { hp: 72, maxHp: 84, tier: 2 },
-  lootGold: [30, 50],
-  aggressiveChance: 0.60,
-  visual: { scale: 1.4, tint: 'factionMutated' },
-});
-
-createVariant('mob_scorpion_queen', 'mob_scorpion', {
-  name: 'Scorpiocelot Queen',
-  archetypeShape: 'scorpion',
-  baseStats: { hp: 68, maxHp: 80, tier: 2 },
-  lootGold: [34, 56],
-  aggressiveChance: 0.80,
-  visual: { scale: 1.5, tint: 'factionMutated' },
+  visual: { scale: 1.2, tint: 'factionMutated' },
 });

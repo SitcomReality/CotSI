@@ -19,7 +19,10 @@
  *   - placement — how items sit inside the hex (center / scatter / ring);
  *   - variants + variantRule — alternative part sets picked by rule
  *     (hash/solitary/cluster for tile-driven objects; faction/archetype for
- *     entities, whose variant ids match the entity's faction or archetype);
+ *     entities, whose variant ids match the entity's faction or archetype).
+ *     A variant may carry its own `material` (emissive only, like the
+ *     descriptor-level material) so one multi-variant descriptor — the mob
+ *     barrel — can give a single variant a different material;
  *   - emphasis — what happens when something more important claims the hex
  *     center (decorEmphasis.js): dispersed to the edge, sunk flat, or hidden;
  *   - material — optional emissive for resource-node glow (v4 has no
@@ -835,13 +838,13 @@ export function validateDescriptor(def) {
 
   if (def.variants !== undefined) {
     if (!Array.isArray(def.variants) || def.variants.length === 0) {
-      errors.push('descriptor.variants: must be a non-empty array of { id, parts }');
+      errors.push('descriptor.variants: must be a non-empty array of { id, parts, material? }');
     } else {
       const seenVariants = new Set();
       def.variants.forEach((variant, vi) => {
         const vpath = `descriptor.variants[${vi}]`;
         if (!isPlainObject(variant)) {
-          errors.push(`${vpath}: variant must be an object { id, parts }`);
+          errors.push(`${vpath}: variant must be an object { id, parts, material? }`);
           return;
         }
         if (typeof variant.id !== 'string' || !variant.id) {
@@ -851,6 +854,7 @@ export function validateDescriptor(def) {
         }
         seenVariants.add(variant.id);
         validatePartsList(variant.parts, vpath, errors);
+        validateMaterial(variant.material, `${vpath}.material`, errors);
       });
     }
   }
@@ -1055,6 +1059,7 @@ export function normalizeDescriptor(def) {
     out.variants = out.variants.map((variant) => {
       const v = { ...variant };
       v.parts = (Array.isArray(variant.parts) ? variant.parts : []).map((p) => normalizePart(p, legacyGrounding));
+      v.material = { ...OBJECT_DEFAULTS.material, ...(isPlainObject(variant.material) ? variant.material : {}) };
       return v;
     });
   }
@@ -1235,6 +1240,7 @@ export function denormalizeDescriptor(def) {
     out.variants = out.variants.map((variant) => {
       const v = { ...variant };
       v.parts = (Array.isArray(variant.parts) ? variant.parts : []).map(denormPart);
+      if (isPlainObject(v.material) && sameValue(v.material, OBJECT_DEFAULTS.material)) delete v.material;
       return v;
     });
   }

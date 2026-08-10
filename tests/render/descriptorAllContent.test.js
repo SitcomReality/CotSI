@@ -78,7 +78,7 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
 test('every entity descriptor renders an InstancedMesh through the entity path', () => {
   const entity = {
     faction: 'CRU',
-    archetype: 'bear',
+    archetype: 'infernalpaca',
     scale: 1,
     color: 0xffffff,
     colors: { factionBase: 0x6e2e22, factionAccent: 0xb84530 },

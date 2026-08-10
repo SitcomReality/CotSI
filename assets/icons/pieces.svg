@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
  <defs>
-  <symbol id="p-bear" viewBox="0 0 24 24">
+  <symbol id="p-infernalpaca" viewBox="0 0 24 24">
    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <ellipse cx="12" cy="13" rx="5.5" ry="7"/>
     <circle cx="9" cy="6" r="2.2"/>
@@ -54,7 +54,7 @@
     <path d="M11 20l1 3M17 20l-1 3"/>
    </g>
   </symbol>
-  <symbol id="p-scorpion" viewBox="0 0 24 24">
+  <symbol id="p-scorpelican" viewBox="0 0 24 24">
    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <ellipse cx="12" cy="14" rx="3" ry="4"/>
     <path d="M9 12q-5 2-6 6q3-2 5-2"/>

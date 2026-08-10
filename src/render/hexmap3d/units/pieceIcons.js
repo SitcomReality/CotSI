@@ -25,7 +25,7 @@ import {
 // Kept inline so this module can run synchronously without fetching the sprite.
 
 const ICON_SVG = {
-  'p-bear': `<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  'p-infernalpaca': `<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <ellipse cx="12" cy="13" rx="5.5" ry="7"/>
     <circle cx="9" cy="6" r="2.2"/>
     <circle cx="15" cy="6" r="2.2"/>
@@ -67,7 +67,7 @@ const ICON_SVG = {
     <ellipse cx="14" cy="13" rx="3" ry="6"/>
     <path d="M11 20l1 3M17 20l-1 3"/>
   </g>`,
-  'p-scorpion': `<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  'p-scorpelican': `<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <ellipse cx="12" cy="14" rx="3" ry="4"/>
     <path d="M9 12q-5 2-6 6q3-2 5-2"/>
     <path d="M15 12q5 2 6 6q-3-2-5-2"/>
@@ -117,7 +117,7 @@ export function initPieceTextures() {
 
 /**
  * Retrieve a cached piece texture by icon ID.
- * @param {string} iconId — e.g. 'p-bear', 'i-trade'
+ * @param {string} iconId — e.g. 'p-infernalpaca', 'i-trade'
  * @returns {THREE.CanvasTexture|undefined}
  */
 export function getPieceTexture(iconId) {
@@ -137,8 +137,8 @@ export function disposePieceTextures() {
 
 /**
  * Map a mob archetype shape key to its piece icon ID.
- * @param {string} archetypeShape — e.g. 'bear', 'scorpion'
- * @returns {string} icon ID, e.g. 'p-bear'
+ * @param {string} archetypeShape — e.g. 'infernalpaca', 'scorpelican'
+ * @returns {string} icon ID, e.g. 'p-infernalpaca'
  */
 export function pieceIconForArchetype(archetypeShape) {
   const id = `p-${archetypeShape}`;

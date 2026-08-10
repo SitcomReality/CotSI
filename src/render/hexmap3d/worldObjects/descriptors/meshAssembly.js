@@ -40,13 +40,30 @@ export function buildDescriptorMeshes(descriptor, records, meshPrefix = 'descrip
     for (const part of variant.parts) collect(part);
   }
 
+  // Per-variant material (emissive) resolves per leaf part id, so a single
+  // multi-variant descriptor (the mob barrel) can give one variant a glow
+  // without applying it to the others. Descriptor-level material still
+  // applies to every part; the variant's material merges over it.
+  const variantMaterialByPartId = new Map();
+  const collectVariantMaterial = (node, material) => {
+    if (Array.isArray(node.children)) {
+      for (const child of node.children) collectVariantMaterial(child, material);
+      return;
+    }
+    variantMaterialByPartId.set(node.id, material);
+  };
+  for (const variant of descriptor.variants ?? []) {
+    if (variant.material === undefined) continue;
+    for (const part of variant.parts) collectVariantMaterial(part, variant.material);
+  }
+
   const results = [];
   for (const [partId, instances] of Object.entries(groups)) {
     const part = partById.get(partId);
     if (!part || instances.length === 0) continue;
 
     const geometry = geometryForShape(part.shape, part.params);
-    const material = materialForPart(descriptor, part);
+    const material = materialForPart(descriptor, part, variantMaterialByPartId.get(partId));
     const converted = instances.map((r) => (
       r.color !== undefined ? { ...r, color: new THREE.Color(r.color) } : r
     ));

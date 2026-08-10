@@ -14,7 +14,6 @@
  */
 import { normalizeDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/worldObjects/descriptors/data/index.js';
-import { MOB_TIER2_VARIANTS } from '../../src/render/hexmap3d/worldObjects/descriptors/data/mob.js';
 import { listArchetypes, getArchetype } from '../../src/game/rules/archetypes.js';
 // Side-effect imports: register the mob archetypes the rows below enumerate and
 // the biome archetypes the biome preview selector enumerates.
@@ -25,14 +24,12 @@ import '../../src/game/rules/archetypeData/biomes/index.js';
 export const SAMPLE_OBJECTS = ALL_DESCRIPTORS.map(normalizeDescriptor);
 
 /**
- * One browser row per mob type — all 7 base archetypes + the 2 tier-2
- * variants — labeled with the game-side friendly name. `variantId` is the
- * descriptor-side archetype variant id ('bear', 'bear-elder', ...); tier-2
- * shapes resolve through MOB_TIER2_VARIANTS.
+ * One browser row per mob type — all 7 archetypes — labeled with the
+ * game-side friendly name. `variantId` is the descriptor-side archetype
+ * variant id ('infernalpaca', 'scorpelican', ...).
  *
- * Note: listArchetypes('mob') only matches raw `type` fields, and tier-2
- * variants inherit theirs via `parent` — enumerate everything and filter on
- * the resolved definition instead.
+ * Note: listArchetypes('mob') only matches raw `type` fields; enumerate
+ * everything and filter on the resolved definition instead.
  */
 export const MOB_ROWS = Object.freeze(
   listArchetypes()
@@ -41,9 +38,7 @@ export const MOB_ROWS = Object.freeze(
     .map(({ id, def }) => ({
       id,
       displayName: def.name ?? id,
-      variantId: (def.baseStats?.tier ?? 1) > 1
-        ? MOB_TIER2_VARIANTS[def.archetypeShape] ?? def.archetypeShape
-        : def.archetypeShape,
+      variantId: def.archetypeShape,
     }))
     .filter((row) => row.variantId)
     .sort((a, b) => a.displayName.localeCompare(b.displayName)),

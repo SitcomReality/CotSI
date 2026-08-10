@@ -15,26 +15,32 @@ on established conventions instead of re-deriving them.
 
 ## 1. Where mobs live today
 
-Mobs are **table-driven** entity descriptors:
+Mobs are **entity descriptors, one file per archetype**:
 
-- `src/render/hexmap3d/worldObjects/descriptors/data/mob.js` holds
-  `MOB_VARIANTS` — a plain object keyed by archetype id (e.g.
-  `bear: [BEAR_BODY]`, `'bear-elder': [BEAR_ELDER_BODY, ELDER_CROWN]`) —
-  plus `MOB_TIER2_VARIANTS` mapping tier-2 shapes to variant ids
-  (`{ bear: 'bear-elder', scorpion: 'scorpion-queen' }`).
-- `MOB_DESCRIPTOR` derives the descriptor form from those tables:
-  `variantRule: 'archetype'`, `parts: MOB_VARIANTS.default`, `variants` built
-  from `Object.entries(MOB_VARIANTS)`.
-- Tier selection happens in `units/unitMeshes.js` (`mob.tier > 1` → tier-2
-  variant).
+- Each archetype lives in its own file under
+  `src/render/hexmap3d/worldObjects/descriptors/data/mobs/` (e.g.
+  `infernalpaca.js`, `scorpelican.js`), exporting a `<NAME>_VARIANT` block:
+  `{ id, parts, material? }`. The variant id must equal the mob's
+  `archetypeName` (resolved via variantRule 'archetype'). A variant may carry
+  its own `material` (emissive only) — the infernalpaca glows, the others
+  don't.
+- `data/mob.js` is a thin barrel: it imports the variant blocks and composes
+  `MOB_VARIANTS` (variant id → variant) plus `MOB_DESCRIPTOR`
+  (`variantRule: 'archetype'`, `parts: MOB_VARIANTS.default.parts`, `variants`
+  from the table).
+- The roster is exactly: mushroom, infernalpaca, leopard, goose, scorpelican,
+  snail, tapir (plus the `default` fallback). Tier-2 variants were removed in
+  the scorpelican/infernalpaca rework — `MOB_TIER2_VARIANTS` is gone and all
+  mobs render their baseline archetype variant (tier is still carried in game
+  stats).
 
-Because the tables are imported directly by game code, the editor's save
-endpoint rejects `mob.js` (and `base.js`) — they are not editor-editable yet
-(see `dev/futureWork.md` §4).
+Because the barrel is composed from tables imported by game code, the editor's
+save endpoint rejects `mob.js` (and `base.js`) — they are not editor-editable
+yet (see `dev/futureWork.md` §4). The per-mob files are hand-authored for now.
 
-**Adding a new mob archetype = one new `MOB_VARIANTS` key** (the key must
-equal the mob's `archetypeName`) + an optional `MOB_TIER2_VARIANTS` tier-2
-key.
+**Adding a new mob archetype = one new `<NAME>_VARIANT` file in `data/mobs/`**
+(the variant id must equal the mob's `archetypeName`) + a line in the
+`data/mob.js` barrel.
 
 ## 2. The joint-group convention (already supported by schema v5)
 
@@ -62,7 +68,7 @@ per-frame re-rotation at runtime (§5).
 
 ## 3. FK chain patterns (from scorpelican)
 
-**Tailed chain (recurved scorpion arc).** Root group `tail-joint-1`
+**Tailed chain (recurved stinger arc).** Root group `tail-joint-1`
 (`localAxis {1,0,0}`, `localAngle -0.5`, arches back/up) holds a segment
 cylinder bottom-anchored at the joint origin; the next joint nests as a child
 with `localPos` at the segment's top, pitching further (`0.4`, then `0.6`),
@@ -185,7 +191,11 @@ matrices.
 - **Emissive glow.** Object-level `material: { emissive, emissiveIntensity }`
   in a descriptor is passed through by `shapeFactories.materialForPart` — any
   mob gets an all-parts glow for free (infernalpaca used `0xff3e00 @ 0.35`).
-  No per-part emissive (yet).
+  Since the mob rework, a **variant-level `material`** is also supported:
+  `meshAssembly` resolves `variant.material` per part, so one multi-variant
+  descriptor (the mob barrel) can glow a single variant
+  (`data/mobs/infernalpaca.js`) without glowing the others. No per-part
+  emissive (yet).
 - **waterDecor** was a discarded water-surface decor idea (torus ripple ring
   + `lilyPad` / `seafoam` / `kelpFrond` variants, `kind: 'decor'`, never
   registered). Revive from git history if water-surface decor is ever wanted.

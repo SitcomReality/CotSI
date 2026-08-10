@@ -7,10 +7,10 @@
  * of nested objects — variants replace whole sub-objects).
  *
  * Usage:
- *   defineArchetype('mob_bear', { type:'mob', name:'Ink Bear', base:{hp:36}, ... });
- *   defineArchetype('mob_bear_elder', { parent:'mob_bear', name:'Elder Ink Bear', base:{hp:72}, ... });
- *   const def = getArchetype('mob_bear_elder');
- *   // → { type:'mob', name:'Elder Ink Bear', base:{hp:72}, ... }  (name & base overridden)
+ *   defineArchetype('mob_infernalpaca', { type:'mob', name:'Infernalpaca', base:{hp:36}, ... });
+ *   defineArchetype('mob_leopard', { parent:'mob_infernalpaca', name:'Lunar Leopard', base:{hp:30}, ... });
+ *   const def = getArchetype('mob_infernalpaca');
+ *   // → { type:'mob', name:'Infernalpaca', base:{hp:36}, ... }  (inherited / overridden)
  */
 
 const registry = new Map();
@@ -21,7 +21,7 @@ const registry = new Map();
  * archetype, all parent properties are inherited. The child's own properties
  * override the parent's at the top level.
  *
- * @param {string} name - Unique archetype identifier (e.g. 'mob_bear', 'biome_default')
+ * @param {string} name - Unique archetype identifier (e.g. 'mob_infernalpaca', 'biome_default')
  * @param {object} def  - Archetype definition. May include `parent` key for inheritance.
  * @throws {Error} If parent archetype is not found.
  * @throws {Error} If name is already registered.

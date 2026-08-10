@@ -165,7 +165,7 @@ function variantFor(descriptor, tile, tileH, explicitId = null) {
  * Which variant's parts compose a single entity (base / champion / mob /
  * trader). Variant ids match the entity attribute that selects them:
  *   variantRule 'faction'    — variant id === entity.faction (e.g. 'CRU')
- *   variantRule 'archetype'  — variant id === entity.archetype (e.g. 'bear')
+ *   variantRule 'archetype'  — variant id === entity.archetype (e.g. 'infernalpaca')
  * A missing match (or a rule the entity doesn't satisfy) falls back to the
  * first variant so a partially-migrated descriptor still renders.
  */
