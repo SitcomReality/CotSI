@@ -460,3 +460,85 @@ button:disabled {
   padding: 1px 6px;
   font-size: var(--fs-xs);
 }
+
+/* ── Collapsible inspector sections (details/summary) ─────────────────────── */
+
+/* Each field group is a <details>; the ▾/▸ marker is drawn via ::before so the
+   summary keeps the .section-title look (object controls still use .section-title
+   on plain divs — only summaries inside .inspector-section get the fold chrome). */
+.inspector-section {
+  border-top: 1px solid var(--crease);
+  padding-top: var(--s2);
+  margin-bottom: var(--s3);
+}
+
+.inspector-section > summary.section-title {
+  margin-top: 0;
+  margin-bottom: var(--s1);
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.inspector-section > summary.section-title::-webkit-details-marker {
+  display: none;
+}
+
+.inspector-section > summary.section-title::before {
+  content: '▾';
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--cerulean);
+}
+
+.inspector-section:not([open]) > summary.section-title::before {
+  content: '▸';
+}
+
+/* ── Part actions (nest / ungroup / copy-transform) ───────────────────────── */
+
+.part-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  flex-wrap: wrap;
+  margin-bottom: var(--s3);
+}
+
+.part-actions button,
+.part-actions select {
+  font-size: var(--fs-xs);
+  padding: 2px 6px;
+}
+
+.part-actions select {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+/* ── Parts-tree rows ──────────────────────────────────────────────────────── */
+
+/* Group rows read as containers: cerulean italic label, distinct from leaves. */
+.part-row.group .part-label {
+  color: var(--cerulean);
+  font-style: italic;
+}
+
+/* The ▸/▾ fold button sits before the label on group rows. */
+.part-fold {
+  flex-shrink: 0;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+/* Labels can overflow on deeply nested rows — ellipsis instead of wrap. */
+.part-label {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}

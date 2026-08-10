@@ -711,8 +711,9 @@ test('groups emit no records; nested leaves emit a baked world matrix', () => {
   const child = records[1];
   assert.ok(!('x' in child) && !('y' in child) && !('z' in child), 'no flat position on nested records');
   assert.ok(!('rotY' in child) && !('scale' in child) && !('scaleY' in child), 'no flat rotation/scale on nested records');
-  // T(worldPos) · T(0, 0.5, 0) · T(0, 0, 0.25) = T(1.732, 1.75, -2.75).
-  assert.deepEqual(child.matrix, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1.732, 1.75, -2.75, 1]);
+  // Bottom-anchored: T(worldPos) · T(0, 0.5, 0) · T(0, 0, 0.25) · T(0, 0.025, 0)
+  // (the box's base offset, height 0.05 / 2) = T(1.732, 1.775, -2.75).
+  assert.deepEqual(child.matrix, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1.732, 1.775, -2.75, 1]);
 });
 
 test('nested leaf under a rotated group inherits the hinge rotation', () => {
@@ -732,9 +733,11 @@ test('nested leaf under a rotated group inherits the hinge rotation', () => {
     ],
   });
   const [board] = recordsForDescriptor(rotated, TILE, POS);
-  // R_x(π/2) swings the child's +z offset to −y: origin T(1.732, 1.5, −3)
-  // (1.25 + 0.5 − 0.25 = 1.5).
-  expectMatrix(board.matrix, [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 1.732, 1.5, -3, 1]);
+  // R_x(π/2) swings the child's +z offset to −y, and the base baking follows
+  // the rotated frame: the box bottom lands at the group's origin +
+  // child localPos. Origin T(1.732, 1.5, −2.975) (1.25 + 0.5 − 0.25 = 1.5;
+  // −3 + 0.025 = −2.975).
+  expectMatrix(board.matrix, [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 1.732, 1.5, -2.975, 1]);
 });
 
 test('group scale composes with the child scale (affine shear-free case)', () => {
@@ -754,10 +757,10 @@ test('group scale composes with the child scale (affine shear-free case)', () =>
     ],
   });
   const [leaf] = recordsForDescriptor(scaled, TILE, POS);
-  // Group S(1,2,1) stretches the child's localPos.y (0.25 → 0.5) — the child
-  // lands at group origin + (0, 1.0, 0) — and the scales compose into a final
-  // S(3,2,1) at T(1.732, 2.25, −3).
-  expectMatrix(leaf.matrix, [3, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 1.732, 2.25, -3, 1]);
+  // Group S(1,2,1) stretches the child's localPos.y AND its base bake (0.25 →
+  // 0.5, 0.025 → 0.05), so the child lands at group origin + (0, 1.05, 0) —
+  // and the scales compose into a final S(3,2,1) at T(1.732, 2.3, −3).
+  expectMatrix(leaf.matrix, [3, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 1.732, 2.3, -3, 1]);
 });
 
 test('nodeWorldFrames exposes every leaf AND group origin plus parent rotation', () => {
@@ -766,8 +769,9 @@ test('nodeWorldFrames exposes every leaf AND group origin plus parent rotation',
   // Group origin: the hinge point in world space (worldPos + group localPos).
   assert.deepEqual(frames.get('lid').origin, { x: 1.732, y: 1.75, z: -3 });
   assert.deepEqual(frames.get('lid').parentRot, IDENTITY_MATRIX, 'center placement rotates nothing');
-  // Nested leaf origin = its baked matrix translation.
-  assert.deepEqual(frames.get('lid-board').origin, { x: 1.732, y: 1.75, z: -2.75 });
+  // Nested leaf origin = its baked matrix translation (bottom-anchored: the
+  // box's base 0.025 rides on top of localPos.y 0).
+  assert.deepEqual(frames.get('lid-board').origin, { x: 1.732, y: 1.775, z: -2.75 });
   assert.deepEqual(frames.get('lid-board').parentRot, IDENTITY_MATRIX);
   // Root leaf origin = its flat record position (bottom-anchored: + 0.3 base).
   assert.deepEqual(frames.get('base').origin, { x: 1.732, y: 1.55, z: -3 });
@@ -801,7 +805,7 @@ test('entity path: groups compose baked matrices with the same frame math', () =
   const records = recordsForEntity(GROUPED, entity, POS);
   assert.equal(records.length, 2);
   assert.deepEqual(records.map((r) => r.partId), ['base', 'lid-board']);
-  assert.deepEqual(records[1].matrix, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1.732, 1.75, -2.75, 1]);
+  assert.deepEqual(records[1].matrix, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1.732, 1.775, -2.75, 1]);
   // nodeWorldFramesForEntity exposes the group hinge for the editor too.
   const frames = nodeWorldFramesForEntity(GROUPED, entity, POS);
   assert.deepEqual([...frames.keys()].sort(), ['base', 'lid', 'lid-board']);

@@ -10,6 +10,7 @@
  */
 import { S } from '../state.js';
 import { activeParts } from './variantQuery.js';
+import { findNodeById } from './partTree.js';
 import { renderPartsList } from './partList.js';
 import { renderObjectHeader, renderObjectControls } from './objectControls.js';
 import { renderPartInspector } from './partInspector.js';
@@ -51,9 +52,9 @@ function renderInspector(container) {
   const d = S.descriptor;
   if (!d) return;
 
-  const part = activeParts().find((p) => p.id === S.selectedPartId);
-  if (part) {
-    renderPartInspector(container, part, ctx);
+  const entry = findNodeById(activeParts(), S.selectedPartId);
+  if (entry) {
+    renderPartInspector(container, entry, ctx);
     return;
   }
 

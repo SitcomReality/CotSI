@@ -1,17 +1,20 @@
 /**
  * partInspector.js — Selected-part fields for the geometry editor.
  *
- * Renders into `#inspector-body` when a part is selected: shape params from
- * the SHAPE_TYPES registry, transform (Y/lift/rotY), per-axis scale,
- * local-axis + tilt rotation, and stretch variation. `ctx` supplies
- * `mutate()` for every field change and `renderAll()` for the breadcrumb
- * (clearing the selection).
+ * Renders into `#inspector-body` when a part is selected. The selection is a
+ * parts-tree entry `{ node, parent, depth, index }` (see partTree.js): leaves
+ * show shape params, color, biome tint and stretch variation; groups (nodes
+ * with `children`) show structural actions instead of shape fields. Every node
+ * gets transform editing — root leaves use Y/Lift/tilt (world-space
+ * grounding), nested nodes use localPos in their parent frame — plus
+ * nest/ungroup and copy-transform actions. Fields live in collapsible
+ * `<details>` sections so the panel stays scannable. `ctx` supplies
+ * `mutate()` for every field change and `renderAll()` for pure re-renders.
  */
 import { S } from '../state.js';
 import {
   el,
   row,
-  subheading,
   numberInput,
   intInput,
   selectInput,
@@ -22,6 +25,15 @@ import {
 import { inspectorHead } from './inspectorHead.js';
 import { SHAPE_TYPES } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
 import { ENTITY_KINDS } from '../entityView.js';
+import { activeParts } from './variantQuery.js';
+import {
+  isGroupNode,
+  findNodeById,
+  siblingIds,
+  nestNode,
+  ungroupNode,
+  canUngroup,
+} from './partTree.js';
 
 /** Cardinal axis presets for local orientation — the axis is a direction only
  *  (the render normalizes it), so these are exact unit vectors. */
@@ -57,6 +69,37 @@ const TILT_AXIS_OPTIONS = [
   { value: '-z', label: '−Z' },
   { value: 'custom', label: 'custom' },
 ];
+
+/** Inspector sections: `key` → default open state. */
+const SECTIONS = {
+  shape: { title: 'Shape', open: true },
+  position: { title: 'Position', open: true },
+  rotation: { title: 'Rotation', open: true },
+  scale: { title: 'Scale', open: false },
+  color: { title: 'Color', open: false },
+  biome: { title: 'Biome tint', open: false },
+  stretch: { title: 'Stretch variation', open: false },
+};
+/** Which sections the user has open (session state, persisted across renders). */
+const openSections = new Set(
+  Object.entries(SECTIONS).filter(([, s]) => s.open).map(([key]) => key),
+);
+
+/**
+ * A collapsible `<details>` section appended to `container`; its open state is
+ * tracked in `openSections` so re-renders keep the user's layout.
+ */
+function section(key, container) {
+  const det = el('details', 'inspector-section');
+  det.open = openSections.has(key);
+  det.addEventListener('toggle', () => {
+    if (det.open) openSections.add(key);
+    else openSections.delete(key);
+  });
+  det.append(el('summary', 'section-title', SECTIONS[key].title));
+  container.append(det);
+  return det;
+}
 
 /** Unit vector from a vec3 — zero or missing falls back to +Y. */
 function unitVec3(v) {
@@ -95,8 +138,19 @@ function cardinalAxis2(v) {
   return 'custom';
 }
 
+/**
+ * Write one localPos component of `t`, deleting the field when every component
+ * is 0 again — keeps denormalized files free of `localPos: {0,0,0}` noise.
+ */
+function setLocalPos(t, axis, v) {
+  const lp = t.localPos ?? {};
+  const next = { x: lp.x ?? 0, y: lp.y ?? 0, z: lp.z ?? 0, [axis]: v };
+  if (next.x === 0 && next.y === 0 && next.z === 0) delete t.localPos;
+  else t.localPos = next;
+}
+
 /** Inspector header for part editing: breadcrumb back to the object. */
-function renderPartHeader(container, part, ctx) {
+function renderPartHeader(container, node, ctx) {
   const d = S.descriptor;
   const back = el('button', 'breadcrumb', `← ${d.displayName}`);
   back.type = 'button';
@@ -105,87 +159,119 @@ function renderPartHeader(container, part, ctx) {
     S.selectedPartId = null;
     ctx.renderAll();
   });
-  container.append(inspectorHead(`${part.id} · ${part.shape}`, null, back));
+  const title = isGroupNode(node) ? `${node.id} · group` : `${node.id} · ${node.shape}`;
+  container.append(inspectorHead(title, null, back));
 }
 
 /**
- * Render the selected part's shape + transform fields into `container`.
- * `ctx` supplies the mutation flow.
+ * Structural actions for any node: nest into a fresh group, ungroup (groups
+ * only, when the fold is exact), and copy the transform from a sibling.
  */
-export function renderPartInspector(container, part, ctx) {
-  const d = S.descriptor;
-  renderPartHeader(container, part, ctx);
-  const shape = SHAPE_TYPES[part.shape];
+function renderPartActions(container, entry, ctx) {
+  const { node } = entry;
+  const actions = el('div', 'part-actions');
 
+  const nestBtn = el('button', null, 'Nest into group');
+  nestBtn.type = 'button';
+  nestBtn.title = 'Wrap this part in a fresh group — its position is preserved';
+  nestBtn.addEventListener('click', () => ctx.mutate(() => {
+    const group = nestNode(activeParts(), entry);
+    S.selectedPartId = group.id;
+  }));
+  actions.append(nestBtn);
+
+  if (isGroupNode(node)) {
+    const ungroupBtn = el('button', null, 'Ungroup');
+    ungroupBtn.type = 'button';
+    ungroupBtn.title = 'Replace this group with its children, folding the transform into each';
+    ungroupBtn.disabled = !canUngroup(node);
+    ungroupBtn.addEventListener('click', () => ctx.mutate(() => {
+      const promoted = ungroupNode(activeParts(), entry);
+      S.selectedPartId = promoted[0].id;
+    }));
+    actions.append(ungroupBtn);
+  }
+
+  // Copy transform: adopt a sibling's transform wholesale. Root-only fields
+  // (y / lift / tiltAxis / tilt) don't exist on nested nodes, so a nested
+  // source simply lacks them — the copy leaves whatever the target had.
+  const ids = siblingIds(activeParts(), entry);
+  const copySelect = selectInput(
+    [{ value: '', label: '— copy transform from…' }, ...ids],
+    '',
+    (v) => {
+      if (!v) return;
+      ctx.mutate(() => {
+        const src = findNodeById(activeParts(), v).node.transform ?? {};
+        const t = node.transform ?? (node.transform = {});
+        const target = {};
+        for (const key of ['localPos', 'localAxis', 'tiltAxis']) {
+          if (src[key]) target[key] = { ...src[key] };
+        }
+        for (const key of ['rotY', 'scaleX', 'scaleY', 'scaleZ']) {
+          if (src[key] !== undefined) target[key] = src[key];
+        }
+        if (entry.parent === null) {
+          for (const key of ['y', 'lift', 'tilt']) {
+            if (src[key] !== undefined) target[key] = src[key];
+          }
+        }
+        Object.assign(t, target);
+      });
+    },
+  );
+  copySelect.disabled = ids.length === 0;
+  actions.append(copySelect);
+
+  container.append(actions);
+}
+
+/** Shape params (leaves only): enum/int/number rows from the SHAPE_TYPES registry. */
+function renderShapeSection(container, part, ctx) {
+  const sec = section('shape', container);
+  const shape = SHAPE_TYPES[part.shape];
   for (const [key, rule] of Object.entries(shape.params)) {
     const current = part.params[key] ?? shape.defaults[key];
     if (rule.type === 'enum') {
-      container.append(row(key, selectInput(rule.values, current, (v) => ctx.mutate(() => { part.params[key] = v; }))));
+      sec.append(row(key, selectInput(rule.values, current, (v) => ctx.mutate(() => { part.params[key] = v; }))));
     } else if (rule.type === 'int') {
-      container.append(row(key, intInput(current, { min: rule.min, onChange: (v) => ctx.mutate(() => { part.params[key] = v; }) })));
+      sec.append(row(key, intInput(current, { min: rule.min, onChange: (v) => ctx.mutate(() => { part.params[key] = v; }) })));
     } else {
-      container.append(row(key, numberInput(current, { min: rule.min, onChange: (v) => ctx.mutate(() => { part.params[key] = v; }) })));
+      sec.append(row(key, numberInput(current, { min: rule.min, onChange: (v) => ctx.mutate(() => { part.params[key] = v; }) })));
     }
   }
+}
 
-  container.append(subheading('Color'));
-  container.append(el('div', 'hint', 'Every part has its own color — the object has no base color (v4).'));
-  if (ENTITY_KINDS.has(d.kind)) {
-    const TOKENS = ['factionBase', 'factionAccent', 'factionBody'];
-    const isToken = typeof part.color === 'string' && TOKENS.includes(part.color);
-    const current = isToken ? part.color : 'custom';
-    container.append(row('Color', selectInput([...TOKENS, 'custom'], current, (v) => ctx.mutate(() => {
-      if (v === 'custom') part.color = typeof part.color === 'number' ? part.color : 0xffffff;
-      else part.color = v;
-    }))));
-    if (!isToken) {
-      container.append(row('Custom color', colorInput(typeof part.color === 'number' ? part.color : 0xffffff, (v) => ctx.mutate(() => { part.color = v; }))));
-    }
+/** Position: ground heights for roots, parent-frame localPos for every node. */
+function renderPositionSection(container, entry, ctx) {
+  const { node, parent } = entry;
+  const t = node.transform ?? (node.transform = {});
+  const sec = section('position', container);
+  if (parent === null) {
+    sec.append(el('div', 'hint', 'Y / Lift / localPos are world offsets (item-scaled). The part\'s lowest vertex lands at Y + Lift (+ localPos.y).'));
+    sec.append(row('Y (bottom height)', numberInput(t.y ?? 0, { onChange: (v) => ctx.mutate(() => { t.y = v; }) })));
+    sec.append(row('Lift (bottom height)', numberInput(t.lift ?? 0, { onChange: (v) => ctx.mutate(() => { t.lift = v; }) })));
   } else {
-    container.append(row('Color', colorInput(part.color ?? 0xffffff, (v) => ctx.mutate(() => { part.color = v; }))));
+    sec.append(el('div', 'hint', 'localPos offsets in the parent frame (pre-scale units); a leaf\'s bottom sits at its localPos point.'));
   }
+  sec.append(row('localPos X', numberInput(t.localPos?.x ?? 0, { onChange: (v) => ctx.mutate(() => setLocalPos(t, 'x', v)) })));
+  sec.append(row('localPos Y', numberInput(t.localPos?.y ?? 0, { onChange: (v) => ctx.mutate(() => setLocalPos(t, 'y', v)) })));
+  sec.append(row('localPos Z', numberInput(t.localPos?.z ?? 0, { onChange: (v) => ctx.mutate(() => setLocalPos(t, 'z', v)) })));
+}
 
-  container.append(subheading('Biome tint'));
-  container.append(el('div', 'hint', 'Tints this part toward the tile\'s blended biome color. Applies only to parts with a literal color; Untouched and Painforest tiles never tint.'));
-  const biome = part.biomeColor;
-  const source = biome?.source ?? '';
-  container.append(row('Source', selectInput(
-    [{ value: '', label: '— none' }, { value: 'primary', label: 'primary' }, { value: 'accent', label: 'accent' }],
-    source,
-    (v) => ctx.mutate(() => {
-      if (!v) {
-        if (part.biomeColor) delete part.biomeColor;
-      } else {
-        part.biomeColor = { source: v, influence: part.biomeColor?.influence ?? 0.5 };
-      }
-    }),
-  )));
-  if (biome?.source) {
-    container.append(row('Influence', numberInput(biome.influence ?? 0.5, { min: 0, step: 0.1, onChange: (v) => ctx.mutate(() => { biome.influence = Math.max(0, Math.min(1, v)); }) })));
-  }
-
-  container.append(subheading('Transform'));
-  container.append(el('div', 'hint', 'Y / Lift are bottom heights — 0 = sitting on the ground. The part\'s lowest vertex lands at Y + Lift (+ localPos.y).'));
-  const t = part.transform;
-  container.append(row('Y (bottom height)', numberInput(t.y, { onChange: (v) => ctx.mutate(() => { t.y = v; }) })));
-  container.append(row('Lift (bottom height)', numberInput(t.lift, { onChange: (v) => ctx.mutate(() => { t.lift = v; }) })));
-  container.append(row('rotY (deg)', degreeInput(t.rotY, { onChange: (v) => ctx.mutate(() => { t.rotY = v; }) })));
-
-  container.append(subheading('Scale'));
-  container.append(el('div', 'hint', 'Independent per-axis scale — stretch or squash the part on any axis (base 1).'));
-  container.append(row('scaleX', numberInput(t.scaleX, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleX = v; }) })));
-  container.append(row('scaleY', numberInput(t.scaleY, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleY = v; }) })));
-  container.append(row('scaleZ', numberInput(t.scaleZ, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleZ = v; }) })));
-
-  container.append(subheading('Rotation'));
-  container.append(el('div', 'hint', 'localAxis + localAngle rotate the part around any axis in its own frame; tilt leans it in world space. The axis is a direction (magnitude is ignored); angles are degrees.'));
+/** Rotation: local axis/angle + rotY for every node, world tilt for roots only. */
+function renderRotationSection(container, entry, ctx) {
+  const { node, parent } = entry;
+  const t = node.transform ?? (node.transform = {});
+  const sec = section('rotation', container);
+  sec.append(el('div', 'hint', 'localAxis + localAngle rotate the part around any axis in its own frame; angles are degrees. The axis is a direction (magnitude is ignored).'));
   // Work on the NORMALIZED direction — the render rotates about the unit axis
   // (meshBuilder), so a stored vector like {x:-3, y:4, z:4} reads and edits as
   // its true direction {-0.47, 0.62, 0.62}. Edits write the full normalized
   // vector back; untouched parts keep their stored bytes.
   const localAxis = unitVec3(t.localAxis);
   const axisValue = cardinalAxis3(t.localAxis);
-  container.append(row('Axis', selectInput(AXIS3_OPTIONS, axisValue, (v) => ctx.mutate(() => {
+  sec.append(row('Axis', selectInput(AXIS3_OPTIONS, axisValue, (v) => ctx.mutate(() => {
     const preset = AXIS3_PRESETS[v];
     if (preset) {
       t.localAxis = { ...preset };
@@ -194,11 +280,11 @@ export function renderPartInspector(container, part, ctx) {
     // 'custom' keeps the current direction and reveals the axis fields below.
   }))));
   if (axisValue === 'custom') {
-    container.append(row('Axis X', numberInput(localAxis.x, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), x: v }); }) })));
-    container.append(row('Axis Y', numberInput(localAxis.y, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), y: v }); }) })));
-    container.append(row('Axis Z', numberInput(localAxis.z, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), z: v }); }) })));
+    sec.append(row('Axis X', numberInput(localAxis.x, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), x: v }); }) })));
+    sec.append(row('Axis Y', numberInput(localAxis.y, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), y: v }); }) })));
+    sec.append(row('Axis Z', numberInput(localAxis.z, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), z: v }); }) })));
   }
-  container.append(row('Angle (deg)', degreeInput(t.localAngle ?? 0, { onChange: (deg) => ctx.mutate(() => { t.localAngle = deg; t.localAxis ??= { x: 0, y: 1, z: 0 }; }) })));
+  sec.append(row('Angle (deg)', degreeInput(t.localAngle ?? 0, { onChange: (deg) => ctx.mutate(() => { t.localAngle = deg; t.localAxis ??= { x: 0, y: 1, z: 0 }; }) })));
   const rotPresets = el('div', 'preset-row');
   for (const deg of [90, -90, 45, -45]) {
     const btn = el('button', null, `${deg > 0 ? '+' : '−'}${Math.abs(deg)}°`);
@@ -210,27 +296,88 @@ export function renderPartInspector(container, part, ctx) {
     }));
     rotPresets.append(btn);
   }
-  container.append(rotPresets);
+  sec.append(rotPresets);
+  sec.append(row('rotY (deg)', degreeInput(t.rotY ?? 0, { onChange: (v) => ctx.mutate(() => { t.rotY = v; }) })));
 
-  const tiltAxis = unitVec2(t.tiltAxis);
-  const tiltValue = cardinalAxis2(t.tiltAxis);
-  container.append(row('Lean axis', selectInput(TILT_AXIS_OPTIONS, tiltValue, (v) => ctx.mutate(() => {
-    const preset = TILT_AXIS_PRESETS[v];
-    if (preset) {
-      t.tiltAxis = { ...preset };
-      t.tilt ??= 0;
+  if (parent === null) {
+    sec.append(el('div', 'hint', 'tilt leans the part in world space (horizontal axis, degrees) — root leaves only.'));
+    const tiltAxis = unitVec2(t.tiltAxis);
+    const tiltValue = cardinalAxis2(t.tiltAxis);
+    sec.append(row('Lean axis', selectInput(TILT_AXIS_OPTIONS, tiltValue, (v) => ctx.mutate(() => {
+      const preset = TILT_AXIS_PRESETS[v];
+      if (preset) {
+        t.tiltAxis = { ...preset };
+        t.tilt ??= 0;
+      }
+    }))));
+    if (tiltValue === 'custom') {
+      sec.append(row('Lean X', numberInput(tiltAxis.x, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.tiltAxis = unitVec2({ ...unitVec2(t.tiltAxis), x: v }); }) })));
+      sec.append(row('Lean Z', numberInput(tiltAxis.z, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.tiltAxis = unitVec2({ ...unitVec2(t.tiltAxis), z: v }); }) })));
     }
-  }))));
-  if (tiltValue === 'custom') {
-    container.append(row('Lean X', numberInput(tiltAxis.x, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.tiltAxis = unitVec2({ ...unitVec2(t.tiltAxis), x: v }); }) })));
-    container.append(row('Lean Z', numberInput(tiltAxis.z, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.tiltAxis = unitVec2({ ...unitVec2(t.tiltAxis), z: v }); }) })));
+    sec.append(row('Lean (deg)', degreeInput(t.tilt ?? 0, { step: 1, onChange: (deg) => ctx.mutate(() => { t.tilt = deg; t.tiltAxis ??= { x: 0, z: 1 }; }) })));
   }
-  container.append(row('Lean (deg)', degreeInput(t.tilt ?? 0, { step: 1, onChange: (deg) => ctx.mutate(() => { t.tilt = deg; t.tiltAxis ??= { x: 0, z: 1 }; }) })));
+}
 
-  container.append(subheading('Stretch variation'));
-  container.append(el('div', 'hint', 'Per-axis variation ranges for this part; "follow object" uses the object-level ranges, "fixed" pins the axis at 1.'));
+/** Per-axis scale — every node can stretch or squash on any axis. */
+function renderScaleSection(container, entry, ctx) {
+  const t = entry.node.transform ?? (entry.node.transform = {});
+  const sec = section('scale', container);
+  sec.append(el('div', 'hint', 'Independent per-axis scale — stretch or squash the part on any axis (base 1).'));
+  sec.append(row('scaleX', numberInput(t.scaleX ?? 1, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleX = v; }) })));
+  sec.append(row('scaleY', numberInput(t.scaleY ?? 1, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleY = v; }) })));
+  sec.append(row('scaleZ', numberInput(t.scaleZ ?? 1, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleZ = v; }) })));
+}
+
+/** Color — leaves only (groups are pure containers, no visuals of their own). */
+function renderColorSection(container, part, ctx) {
+  const d = S.descriptor;
+  const sec = section('color', container);
+  sec.append(el('div', 'hint', 'Every part has its own color — the object has no base color (v4).'));
   if (ENTITY_KINDS.has(d.kind)) {
-    container.append(el('div', 'hint', 'Entity parts ignore stretch variation — entities have no per-tile hash draws.'));
+    const TOKENS = ['factionBase', 'factionAccent', 'factionBody'];
+    const isToken = typeof part.color === 'string' && TOKENS.includes(part.color);
+    const current = isToken ? part.color : 'custom';
+    sec.append(row('Color', selectInput([...TOKENS, 'custom'], current, (v) => ctx.mutate(() => {
+      if (v === 'custom') part.color = typeof part.color === 'number' ? part.color : 0xffffff;
+      else part.color = v;
+    }))));
+    if (!isToken) {
+      sec.append(row('Custom color', colorInput(typeof part.color === 'number' ? part.color : 0xffffff, (v) => ctx.mutate(() => { part.color = v; }))));
+    }
+  } else {
+    sec.append(row('Color', colorInput(part.color ?? 0xffffff, (v) => ctx.mutate(() => { part.color = v; }))));
+  }
+}
+
+/** Biome tint — leaves only. */
+function renderBiomeSection(container, part, ctx) {
+  const sec = section('biome', container);
+  sec.append(el('div', 'hint', 'Tints this part toward the tile\'s blended biome color. Applies only to parts with a literal color; Untouched and Painforest tiles never tint.'));
+  const biome = part.biomeColor;
+  const source = biome?.source ?? '';
+  sec.append(row('Source', selectInput(
+    [{ value: '', label: '— none' }, { value: 'primary', label: 'primary' }, { value: 'accent', label: 'accent' }],
+    source,
+    (v) => ctx.mutate(() => {
+      if (!v) {
+        if (part.biomeColor) delete part.biomeColor;
+      } else {
+        part.biomeColor = { source: v, influence: part.biomeColor?.influence ?? 0.5 };
+      }
+    }),
+  )));
+  if (biome?.source) {
+    sec.append(row('Influence', numberInput(biome.influence ?? 0.5, { min: 0, step: 0.1, onChange: (v) => ctx.mutate(() => { biome.influence = Math.max(0, Math.min(1, v)); }) })));
+  }
+}
+
+/** Stretch variation — leaves only. */
+function renderStretchSection(container, part, ctx) {
+  const d = S.descriptor;
+  const sec = section('stretch', container);
+  sec.append(el('div', 'hint', 'Per-axis variation ranges for this part; "follow object" uses the object-level ranges, "fixed" pins the axis at 1.'));
+  if (ENTITY_KINDS.has(d.kind)) {
+    sec.append(el('div', 'hint', 'Entity parts ignore stretch variation — entities have no per-tile hash draws.'));
   }
   const STRETCH_SEED_DEFAULTS = { x: 5, y: 4, z: 5 };
   for (const axis of ['x', 'y', 'z']) {
@@ -260,6 +407,29 @@ export function renderPartInspector(container, part, ctx) {
       );
       stretchRow.append(inputsLine);
     }
-    container.append(stretchRow);
+    sec.append(stretchRow);
+  }
+}
+
+/**
+ * Render the selected part's fields into `container`. `entry` is the parts-tree
+ * lookup ({ node, parent, depth, index }) — groups get structural actions and
+ * transform editing; leaves additionally get shape params, color, biome tint
+ * and stretch variation. `ctx` supplies the mutation flow.
+ */
+export function renderPartInspector(container, entry, ctx) {
+  const { node } = entry;
+  renderPartHeader(container, node, ctx);
+  renderPartActions(container, entry, ctx);
+  if (!isGroupNode(node)) {
+    renderShapeSection(container, node, ctx);
+  }
+  renderPositionSection(container, entry, ctx);
+  renderRotationSection(container, entry, ctx);
+  renderScaleSection(container, entry, ctx);
+  if (!isGroupNode(node)) {
+    renderColorSection(container, node, ctx);
+    renderBiomeSection(container, node, ctx);
+    renderStretchSection(container, node, ctx);
   }
 }

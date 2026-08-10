@@ -30,11 +30,13 @@
  *   none      — stays put (mountains).
  *
  * Grounding: every record bakes the part shape's base offset (shapeBaseOffset
- * in schema.js, scaled by the record's Y scale) into `y`, so a part's lowest
- * vertex always lands at worldPos.y + transform.y + lift (+ localPos.y) — the
- * bottom-anchored convention where y = 0 / lift = 0 sits flush on the surface.
- * Stretch and scaleY therefore grow a part upward from its base, never below
- * it. Both the tile path and the entity path apply the same rule.
+ * in schema.js, scaled by the record's Y scale) into the vertical placement —
+ * the root path into the record `y`, the nested path into the leaf's frame
+ * matrix — so a part's lowest vertex always lands at worldPos.y + transform.y
+ * + lift (+ localPos.y), and a nested leaf's bottom lands exactly at its
+ * localPos point in the parent's frame. Stretch and scaleY therefore grow a
+ * part upward from its base, never below it. Both the tile path and the entity
+ * path apply the same rule.
  */
 import { tileHash, treeHash, frac, lerp, clamp01 } from '../trees/treeHash.js';
 import {
@@ -499,13 +501,20 @@ function groupFrameMatrix(t, itemScale, scaleMul, jitterScale) {
  * A nested leaf's frame matrix — the leaf's own T(localPos) · R(localAxis/
  * localAngle) · R_y(rotY) · S(scale), with the full scale factor set (stretch,
  * scatter jitter, biome factor). The recordBuilder composes it onto the
- * ancestor frames to bake the leaf's world matrix.
+ * ancestor frames to bake the leaf's world matrix. Bottom-anchored like the
+ * root record path: the shape's base offset (scaled by this leaf's full Y
+ * scale) is baked into the frame AFTER the rotations but BEFORE the scale, so
+ * the lowest vertex cancels exactly to the leaf's localPos point — a nested
+ * leaf's localPos.y is its bottom height in the parent's frame, matching what
+ * `y` means at the root.
  */
 function nestedLeafFrameMatrix(part, descriptor, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor) {
   const t = part.transform;
   const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor);
   const { x, y, z } = frameLocalPos(t, itemScale, biomeFactor);
+  const base = shapeBaseOffset(part.shape, part.params);
   let m = mat4Scale(sx, sy, sz);
+  m = mat4Multiply(mat4Translation(0, base * sy, 0), m);
   if (t.localAxis && t.localAngle !== undefined) {
     m = mat4Multiply(mat4RotationAxisAngle(t.localAxis, t.localAngle), m);
   }
@@ -743,12 +752,17 @@ function recordForEntityPart(part, entity, worldPos, itemScale) {
 
 /**
  * A nested leaf's frame on the entity path — no tile hash draws: scale is
- * itemScale × transform scale only, localPos pre-scaled by itemScale.
+ * itemScale × transform scale only, localPos pre-scaled by itemScale. Same
+ * bottom-anchored baking as the tile path (entities have no stretch): the
+ * leaf's lowest vertex lands exactly at its localPos point.
  */
 function entityLeafFrameMatrix(part, itemScale) {
   const t = part.transform;
   const { x, y, z } = frameLocalPos(t, itemScale, 1);
-  let m = mat4Scale(itemScale * t.scaleX, itemScale * t.scaleY, itemScale * t.scaleZ);
+  const sy = itemScale * t.scaleY;
+  const base = shapeBaseOffset(part.shape, part.params);
+  let m = mat4Scale(itemScale * t.scaleX, sy, itemScale * t.scaleZ);
+  m = mat4Multiply(mat4Translation(0, base * sy, 0), m);
   if (t.localAxis && t.localAngle !== undefined) {
     m = mat4Multiply(mat4RotationAxisAngle(t.localAxis, t.localAngle), m);
   }
