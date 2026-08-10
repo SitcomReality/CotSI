@@ -4,47 +4,65 @@
  * Generated file: edit this object in the geometry editor
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
-/**
- * foolsFire.js — Descriptor data for "Fool's Fire".
- */
 export const FOOLS_FIRE_DESCRIPTOR = {
-  schemaVersion: 4,
+  schemaVersion: 5,
   id: 'foolsFire',
   kind: 'feature',
-  displayName: "Fool's Fire",
+  displayName: 'Fool\'s Fire',
   scale: 1.2,
-  cluster: { rule: 'uniform', min: 1, max: 3 },
-  placement: { mode: 'scatter', offsetMin: 0.1, offsetMax: 0.4 },
   emphasis: { behavior: 'dispersed' },
-  material: { emissive: 0x00ffcc, emissiveIntensity: 1.5 },
+  material: { emissive: 0xeed8aa, emissiveIntensity: 0.2 },
   parts: [
     {
-      id: 'core-wisp',
-      shape: 'dodecahedron',
-      params: { radius: 0.08 },
-      transform: { lift: 0.6 },
-      color: 0x00ffcc,
+      id: 'brazier-pedestal',
+      shape: 'cylinder',
+      params: { bottomR: 0.16, topR: 0.22, height: 0.18 },
+      color: 0x1a1a2e,
     },
     {
-      id: 'satellite-1',
-      shape: 'octahedron',
-      params: { radius: 0.03 },
-      transform: { localPos: { x: 0.12, y: 0.75, z: 0.05 }, localAxis: { x: 1, y: 1, z: 0 }, localAngle: 0.5 },
-      color: 0x00e6b8,
+      id: 'charred-runes',
+      shape: 'torus',
+      params: { radius: 0.18 },
+      transform: { y: 0.18, lift: 0 },
+      color: 0x2b2d42,
     },
     {
-      id: 'satellite-2',
-      shape: 'octahedron',
-      params: { radius: 0.025 },
-      transform: { localPos: { x: -0.1, y: 0.5, z: 0.1 }, localAxis: { x: 0, y: 1, z: 1 }, localAngle: 0.8 },
-      color: 0x00ccaa,
+      id: 'fire-core',
+      shape: 'spheroid',
+      params: { radius: 0.14, hSegs: 5 },
+      transform: {
+        y: 0.22,
+        lift: 0,
+        scaleY: 1.4,
+        localPos: { x: 0, y: 0.1, z: 0 },
+      },
+      color: 0xe5a50a,
     },
     {
-      id: 'satellite-3',
-      shape: 'octahedron',
-      params: { radius: 0.02 },
-      transform: { localPos: { x: 0.05, y: 0.65, z: -0.12 } },
-      color: 0x00ffff,
-    }
+      id: 'flame-swirl-1',
+      shape: 'cone',
+      params: { bottomR: 0.08, height: 0.28, radialSegs: 5 },
+      transform: {
+        y: 0.25,
+        lift: 0,
+        localPos: { x: 0.04, y: 0.08, z: 0.04 },
+        localAxis: { x: 1, y: 0, z: 1 },
+        localAngle: 0.2,
+      },
+      color: 0xc64600,
+    },
+    {
+      id: 'flame-swirl-2',
+      shape: 'cone',
+      params: { bottomR: 0.07, height: 0.25, radialSegs: 5 },
+      transform: {
+        y: 0.25,
+        lift: 0,
+        localPos: { x: -0.05, y: 0.08, z: -0.03 },
+        localAxis: { x: -1, y: 0, z: 0.5 },
+        localAngle: 0.25,
+      },
+      color: 0xe66100,
+    },
   ],
 };

@@ -75,8 +75,14 @@ function bindSaveToGame(els) {
 
   els.saveBtn.addEventListener('click', async () => {
     if (!saveAvailable) return;
-    const d = S.descriptor;
-    if (!d) return;
+    if (!S.descriptor) return;
+
+    // Normalize first — the live session may carry fields the schema rejects
+    // (e.g. root-only `y`/`lift` written onto a root group before the
+    // inspector hid those fields); normalizeDescriptor folds them into the
+    // canonical form (y/lift → localPos.y) so a stale edit saves with its
+    // height preserved instead of erroring.
+    const d = normalizeDescriptor(S.descriptor);
 
     const errors = validateDescriptor(d);
     if (errors.length > 0) {
@@ -102,6 +108,7 @@ function bindSaveToGame(els) {
       });
       const json = await res.json().catch(() => null);
       if (res.ok && json?.ok) {
+        S.descriptor = d; // session now matches the saved (normalized) file
         els.loadError.textContent =
           `Saved data/${json.file} — refresh the game to see it.` +
           (json.wasNew ? ' (Reload this page to browse the new object.)' : '');
@@ -145,7 +152,9 @@ export function bindProjectControls(els, ctx) {
   bindSaveToGame(els);
 
   els.downloadBtn.addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(S.descriptor, null, 2)], { type: 'application/json' });
+    // Normalize so a downloaded file re-loads cleanly (same canonical form the
+    // save path writes; see bindSaveToGame).
+    const blob = new Blob([JSON.stringify(normalizeDescriptor(S.descriptor), null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = el('a');
     a.href = url;

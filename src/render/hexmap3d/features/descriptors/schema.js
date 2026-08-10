@@ -940,6 +940,28 @@ function normalizePart(part, legacyGrounding = false, nested = false) {
   delete merged.scaleXZ;
   out.transform = merged;
 
+  // Root-only grounding fields (y / lift) and the world-space lean
+  // (tiltAxis / tilt) never appear on groups or nested nodes — the schema
+  // rejects them and the render ignores them. Fold the vertical offsets into
+  // localPos.y (the same convention as the editor's rootToNestedTransform, so
+  // a bottom-anchored root leaf keeps its height when wrapped) and drop the
+  // lean (no nested expression). Idempotent: canonical nodes carry none of
+  // these fields.
+  if (isGroup || nested) {
+    const yFold = (merged.y ?? 0) + (merged.lift ?? 0);
+    if (yFold !== 0) {
+      merged.localPos = {
+        x: merged.localPos?.x ?? 0,
+        y: (merged.localPos?.y ?? 0) + yFold,
+        z: merged.localPos?.z ?? 0,
+      };
+    }
+    delete merged.y;
+    delete merged.lift;
+    delete merged.tiltAxis;
+    delete merged.tilt;
+  }
+
   // Resolve the legacy combined stretch axis `xz` into x + z (false pins both).
   if (isPlainObject(out.stretch) && out.stretch.xz !== undefined) {
     const stretch = { ...out.stretch };

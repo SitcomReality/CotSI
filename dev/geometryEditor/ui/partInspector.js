@@ -282,15 +282,19 @@ function renderShapeSection(container, part, ctx) {
   }
 }
 
-/** Position: ground heights for roots, parent-frame localPos for every node. */
+/** Position: ground heights for root leaves, frame localPos for every node.
+ *  Groups are never grounded (schema: the nested field set at any depth), so
+ *  Y/Lift stay off root groups — only root shape leaves may set them. */
 function renderPositionSection(container, entry, ctx) {
   const { node, parent } = entry;
   const t = node.transform ?? (node.transform = {});
   const sec = section('position', container);
-  if (parent === null) {
+  if (parent === null && !isGroupNode(node)) {
     sec.append(el('div', 'hint', 'Y / Lift / localPos are world offsets (item-scaled). The part\'s lowest vertex lands at Y + Lift (+ localPos.y).'));
     sec.append(row('Y (bottom height)', numberInput(t.y ?? 0, { onChange: (v) => ctx.mutate(() => { t.y = v; }) })));
     sec.append(row('Lift (bottom height)', numberInput(t.lift ?? 0, { onChange: (v) => ctx.mutate(() => { t.lift = v; }) })));
+  } else if (parent === null) {
+    sec.append(el('div', 'hint', 'Groups are never grounded — localPos offsets in the item frame (pre-scale units).'));
   } else {
     sec.append(el('div', 'hint', 'localPos offsets in the parent frame (pre-scale units); a leaf\'s bottom sits at its localPos point.'));
   }
@@ -339,7 +343,8 @@ function renderRotationSection(container, entry, ctx) {
   sec.append(rotPresets);
   sec.append(row('rotY (deg)', degreeInput(t.rotY ?? 0, { onChange: (v) => ctx.mutate(() => { t.rotY = v; }) })));
 
-  if (parent === null) {
+  // Tilt is a world-space lean with no nested expression — root leaves only.
+  if (parent === null && !isGroupNode(node)) {
     sec.append(el('div', 'hint', 'tilt leans the part in world space (horizontal axis, degrees) — root leaves only.'));
     const tiltAxis = unitVec2(t.tiltAxis);
     const tiltValue = cardinalAxis2(t.tiltAxis);

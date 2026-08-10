@@ -727,3 +727,48 @@ test('normalize fills nested defaults recursively (nested set: no y/lift)', () =
   assert.deepEqual(normalizeDescriptor(d), d, 'normalize is idempotent with groups');
   assert.deepEqual(normalizeDescriptor(JSON.parse(JSON.stringify(d))), d, 'JSON roundtrip keeps groups');
 });
+
+test('normalize folds stale root-only fields off groups and nested nodes', () => {
+  // A root group carrying y/lift/tilt (written by a pre-fix editor session
+  // that exposed the root-only fields on groups) folds into the nested field
+  // set: y + lift land in localPos.y (the render never read them on a group,
+  // so the folded localPos carries the intended height), the lean is dropped
+  // (no nested expression), and the result validates clean.
+  const stale = normalizeDescriptor({
+    ...GROUPED,
+    parts: [
+      { id: 'base', shape: 'box' },
+      {
+        id: 'lid',
+        transform: {
+          y: 0.5,
+          lift: 0.25,
+          localPos: { x: 0, y: 0.125, z: 0.125 },
+          tiltAxis: { x: 1, z: 0 },
+          tilt: 0.3,
+        },
+        children: [{ id: 'c', shape: 'sphere' }],
+      },
+    ],
+  });
+  const lid = stale.parts[1];
+  assert.equal(lid.transform.y, undefined);
+  assert.equal(lid.transform.lift, undefined);
+  assert.equal(lid.transform.tilt, undefined);
+  assert.equal(lid.transform.tiltAxis, undefined);
+  assert.deepEqual(lid.transform.localPos, { x: 0, y: 0.875, z: 0.125 });
+  assert.deepEqual(validateDescriptor(stale), []);
+
+  // Nested leaves fold the same way — their bottom (y + lift + localPos.y)
+  // stays put in the parent frame.
+  const nested = normalizeDescriptor({
+    ...GROUPED,
+    parts: [{ id: 'g', children: [{ id: 'c', shape: 'sphere', transform: { y: 0.5, lift: 0.25 } }] }],
+  });
+  assert.deepEqual(nested.parts[0].children[0].transform.localPos, { x: 0, y: 0.75, z: 0 });
+  assert.deepEqual(validateDescriptor(nested), []);
+
+  // Idempotent: re-normalizing the folded result is a no-op.
+  assert.deepEqual(normalizeDescriptor(stale), stale);
+  assert.deepEqual(normalizeDescriptor(nested), nested);
+});
