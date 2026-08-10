@@ -144,7 +144,7 @@ export function renderPartsList(container, ctx) {
     ctx.mutate(() => {
       const id = freshId(parts, 'group');
       const group = makeGroupNode(id);
-      group.children.push(makeLeafNode(shape, freshId(parts, 'part')));
+      group.children.push(makeLeafNode(shape, freshId(parts, 'part'), true));
       parts.push(group);
       S.selectedPartId = id;
     });

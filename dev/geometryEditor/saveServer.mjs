@@ -30,7 +30,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { validateDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
+import { SCHEMA_VERSION, validateDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
 import { emitDescriptorModule, descriptorExportName } from './emitDescriptor.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -119,6 +119,15 @@ async function handleSave(res, body) {
   const def = payload?.descriptor;
   if (!def || typeof def !== 'object' || Array.isArray(def)) {
     return json(res, 400, { error: 'missing "descriptor" object' });
+  }
+
+  // A long-running server caches schema.js from when it started. If the editor
+  // (a fresh browser load) ships a newer schema than this process knows, the
+  // validator below rejects new fields cryptically — say so plainly instead.
+  if (typeof def.schemaVersion === 'number' && def.schemaVersion > SCHEMA_VERSION) {
+    return json(res, 400, {
+      error: `this descriptor is schema v${def.schemaVersion} but the save server only knows v${SCHEMA_VERSION} — restart saveServer.sh to load the current schema`,
+    });
   }
 
   const errors = validateDescriptor(def);

@@ -16,6 +16,7 @@
  */
 import {
   NESTED_PART_TRANSFORM_DEFAULTS,
+  PART_TRANSFORM_DEFAULTS,
   SHAPE_TYPES,
 } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
 import {
@@ -104,13 +105,18 @@ export function makeGroupNode(id) {
   };
 }
 
-/** A new leaf node of `shape` with defaults (nested field set — for group children). */
-export function makeLeafNode(shape, id) {
+/**
+ * A new leaf node of `shape`. Root leaves (nested = false) get the full
+ * grounding transform set (y/lift), so they render at the surface — the nested
+ * set has no `y`, and recordBuilder's `worldPos.y + t.y` would go NaN without
+ * it. Group children (nested = true) get the nested field set instead.
+ */
+export function makeLeafNode(shape, id, nested = false) {
   return {
     id,
     shape,
     params: { ...SHAPE_TYPES[shape].defaults },
-    transform: { ...NESTED_PART_TRANSFORM_DEFAULTS },
+    transform: { ...(nested ? NESTED_PART_TRANSFORM_DEFAULTS : PART_TRANSFORM_DEFAULTS) },
     color: 0xffffff,
   };
 }

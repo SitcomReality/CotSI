@@ -12,6 +12,7 @@ import {
   siblingIds,
   freshId,
   isGroupNode,
+  makeLeafNode,
   rootToNestedTransform,
   nestNode,
   ungroupNode,
@@ -22,6 +23,9 @@ import {
   canExtract,
   extractNode,
 } from '../../dev/geometryEditor/ui/partTree.js';
+import {
+  NESTED_PART_TRANSFORM_DEFAULTS,
+} from '../../src/render/hexmap3d/features/descriptors/schema.js';
 import {
   mat4Identity,
   mat4Translation,
@@ -104,6 +108,15 @@ test('freshId skips ids already in the tree', () => {
 test('isGroupNode distinguishes groups from leaves', () => {
   assert.equal(isGroupNode({ children: [] }), true);
   assert.equal(isGroupNode({ shape: 'box' }), false);
+});
+
+test('makeLeafNode seeds root vs nested transform defaults', () => {
+  const root = makeLeafNode('box', 'p1');
+  assert.equal(root.transform.y, 0, 'root leaves ground — recordBuilder reads t.y');
+  assert.equal(root.transform.lift, 0);
+  const nested = makeLeafNode('box', 'p2', true);
+  assert.equal(nested.transform.y, undefined, 'nested leaves use the nested field set');
+  assert.deepEqual(nested.transform, NESTED_PART_TRANSFORM_DEFAULTS, 'no y/lift in nested sets');
 });
 
 // ── Root → nested transform conversion (nest) ──────────────────────────────

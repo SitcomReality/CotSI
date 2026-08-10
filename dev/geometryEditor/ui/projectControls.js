@@ -107,7 +107,8 @@ function bindSaveToGame(els) {
           (json.wasNew ? ' (Reload this page to browse the new object.)' : '');
         els.loadError.classList.add('ok');
       } else {
-        els.loadError.textContent = `Save failed: ${json?.error ?? `HTTP ${res.status}`}`;
+        const detail = json?.errors?.length ? `\n${json.errors.join('\n')}` : '';
+        els.loadError.textContent = `Save failed: ${json?.error ?? `HTTP ${res.status}`}${detail}`;
         els.loadError.classList.remove('ok');
       }
     } catch (err) {
