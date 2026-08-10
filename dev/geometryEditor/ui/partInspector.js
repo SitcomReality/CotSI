@@ -33,6 +33,10 @@ import {
   nestNode,
   ungroupNode,
   canUngroup,
+  groupTargets,
+  moveIntoGroup,
+  canExtract,
+  extractNode,
 } from './partTree.js';
 
 /** Cardinal axis presets for local orientation — the axis is a direction only
@@ -164,8 +168,10 @@ function renderPartHeader(container, node, ctx) {
 }
 
 /**
- * Structural actions for any node: nest into a fresh group, ungroup (groups
- * only, when the fold is exact), and copy the transform from a sibling.
+ * Structural actions for any node: nest into a new group, move into an
+ * existing group, move out of the current group (nested nodes), ungroup
+ * (groups only, when the fold is exact), and copy the transform from a
+ * sibling.
  */
 function renderPartActions(container, entry, ctx) {
   const { node } = entry;
@@ -179,6 +185,37 @@ function renderPartActions(container, entry, ctx) {
     S.selectedPartId = group.id;
   }));
   actions.append(nestBtn);
+
+  // Move into an existing group — position is preserved (frame conversion).
+  const targets = groupTargets(activeParts(), entry);
+  const moveSelect = selectInput(
+    [{ value: '', label: '— move into group…' }, ...targets.map((g) => ({ value: g.id, label: `${g.id} · group` }))],
+    '',
+    (v) => {
+      if (!v) return;
+      ctx.mutate(() => {
+        const target = findNodeById(activeParts(), v).node;
+        moveIntoGroup(activeParts(), entry, target);
+        S.selectedPartId = node.id; // the node keeps its id — stay on it
+      });
+    },
+  );
+  moveSelect.disabled = targets.length === 0;
+  actions.append(moveSelect);
+
+  // Move out of the current group — nested nodes only, exact when the group
+  // is unscaled. The node lands beside its group in the group's parent list.
+  if (entry.parent !== null) {
+    const outBtn = el('button', null, 'Move out of group');
+    outBtn.type = 'button';
+    outBtn.title = 'Move this part out of its group to sit beside it — the group\'s transform folds in';
+    outBtn.disabled = !canExtract(entry);
+    outBtn.addEventListener('click', () => ctx.mutate(() => {
+      extractNode(activeParts(), entry);
+      S.selectedPartId = node.id;
+    }));
+    actions.append(outBtn);
+  }
 
   if (isGroupNode(node)) {
     const ungroupBtn = el('button', null, 'Ungroup');

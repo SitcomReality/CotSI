@@ -16,8 +16,15 @@ import {
   nestNode,
   ungroupNode,
   canUngroup,
+  canMoveInto,
+  groupTargets,
+  moveIntoGroup,
+  canExtract,
+  extractNode,
 } from '../../dev/geometryEditor/ui/partTree.js';
 import {
+  mat4Identity,
+  mat4Translation,
   mat4RotationY,
   mat4RotationAxisAngle,
   mat4ToAxisAngle,
@@ -267,4 +274,172 @@ test('ungroupNode drops rotation fields when the composition is identity', () =>
   assert.equal(child.transform.localAxis, undefined);
   assert.equal(child.transform.localAngle, undefined);
   assert.equal(child.transform.rotY, 0);
+});
+
+// ── Reparenting (move into / out of groups) ─────────────────────────────────
+
+/** Editor frame convention: T(localPos) · R(localAxis, angle) · R_y(rotY). */
+function nodeFrame(t) {
+  let r = mat4Identity();
+  if (t.localAxis && t.localAngle !== undefined) r = mat4RotationAxisAngle(t.localAxis, t.localAngle);
+  if (t.rotY) r = mat4Multiply(mat4RotationY(t.rotY), r);
+  return mat4Multiply(mat4Translation(t.localPos?.x ?? 0, t.localPos?.y ?? 0, t.localPos?.z ?? 0), r);
+}
+
+/** World placement of a node: ancestor frames composed root-first, then its own. */
+function worldFrame(parts, node) {
+  const parents = new Map();
+  for (const e of listNodes(parts)) parents.set(e.node, e.parent);
+  const chain = [];
+  let p = parents.get(node);
+  while (p) { chain.unshift(p); p = parents.get(p); }
+  let m = mat4Identity();
+  for (const g of chain) m = mat4Multiply(m, nodeFrame(g.transform ?? {}));
+  return mat4Multiply(m, nodeFrame(node.transform ?? {}));
+}
+
+/** Elementwise matrix comparison (trig entries carry ~1e-16 drift). */
+function expectMat4(actual, expected, eps = 1e-9) {
+  for (let i = 0; i < 16; i++) {
+    assert.ok(Math.abs(actual[i] - expected[i]) < eps, `m[${i}] ${actual[i]} vs ${expected[i]}`);
+  }
+}
+
+test('groupTargets lists eligible groups, excluding self-subtree, parent and scaled groups', () => {
+  const parts = [
+    { id: 'a', shape: 'box', transform: {} },
+    { id: 'gOuter', transform: {}, children: [
+      { id: 'gInner', transform: {}, children: [
+        { id: 'c', shape: 'box', transform: {} },
+      ] },
+    ] },
+    { id: 'gScaled', transform: { scaleZ: 2 }, children: [] },
+  ];
+  // A root leaf can enter any rigid group, including nested ones.
+  assert.deepEqual(groupTargets(parts, findNodeById(parts, 'a')).map((g) => g.id), ['gOuter', 'gInner']);
+  // A nested node cannot re-enter its current parent, but can move to a
+  // grandparent (gOuter is an ancestor, not a subtree — no cycle).
+  assert.deepEqual(groupTargets(parts, findNodeById(parts, 'c')).map((g) => g.id), ['gOuter']);
+  // A group cannot be moved into its own subtree (cycle).
+  assert.deepEqual(groupTargets(parts, findNodeById(parts, 'gOuter')).map((g) => g.id), []);
+  // gInner's only non-scaled relative is its parent gOuter — excluded as a no-op.
+  assert.deepEqual(groupTargets(parts, findNodeById(parts, 'gInner')).map((g) => g.id), []);
+  // Scaled groups are never a target.
+  assert.ok(!canMoveInto(parts, findNodeById(parts, 'a'), findNodeById(parts, 'gScaled').node));
+});
+
+test('moveIntoGroup of a root leaf into an identity group equals nestNode', () => {
+  const parts = [
+    { id: 'a', shape: 'box', transform: { y: 0.4, localPos: { x: 0.1, z: 0.2 }, rotY: 0.3 } },
+    { id: 'g', transform: {}, children: [] },
+  ];
+  const a = findNodeById(parts, 'a');
+  const moved = moveIntoGroup(parts, a, findNodeById(parts, 'g').node);
+  assert.equal(moved, a.node);
+  assert.deepEqual(parts.map((p) => p.id), ['g'], 'the leaf leaves the root list');
+  assert.deepEqual(parts[0].children.map((x) => x.id), ['a']);
+  // Identity target → no frame delta: exactly what nestNode would produce.
+  assert.deepEqual(a.node.transform, rootToNestedTransform({ y: 0.4, localPos: { x: 0.1, z: 0.2 }, rotY: 0.3 }));
+});
+
+test('moveIntoGroup of a root leaf into a rotated group preserves its placement', () => {
+  const parts = [
+    { id: 'a', shape: 'box', transform: { y: 0.2, localPos: { x: 0.5, z: 0 }, rotY: 0.4 } },
+    { id: 'g', transform: { localPos: { x: 1, y: 0, z: 0 }, rotY: Math.PI / 2 }, children: [] },
+  ];
+  const a = findNodeById(parts, 'a');
+  // Where the leaf would sit wrapped in an identity group (nestNode contract).
+  const expected = nodeFrame(rootToNestedTransform(a.node.transform));
+  moveIntoGroup(parts, a, findNodeById(parts, 'g').node);
+  expectMat4(worldFrame(parts, a.node), expected);
+  // Concrete values: localPos (0.5, 0.2, 0) − (1, 0, 0) = (−0.5, 0.2, 0),
+  // counter-rotated by R_y(−π/2) → (0, 0.2, −0.5); the lone rotY absorbs the
+  // pure-Y delta: 0.4 + (−π/2).
+  expectVec3(a.node.transform.localPos, { x: 0, y: 0.2, z: -0.5 });
+  assert.ok(Math.abs(a.node.transform.rotY - (0.4 - Math.PI / 2)) < 1e-9, 'rotY ' + a.node.transform.rotY);
+  assert.equal(a.node.transform.localAxis, undefined);
+  assert.equal(a.node.transform.y, undefined, 'root-only fields folded away');
+});
+
+test('moveIntoGroup between rotated sibling groups preserves the placement', () => {
+  const parts = [
+    { id: 'g1', transform: { rotY: Math.PI / 2 }, children: [
+      { id: 'c', shape: 'box', transform: { localPos: { x: 1, y: 0, z: 0 }, rotY: 0.5 } },
+    ] },
+    { id: 'g2', transform: { localPos: { x: 0, y: 0, z: 2 } }, children: [] },
+  ];
+  const c = findNodeById(parts, 'c');
+  const before = worldFrame(parts, c.node);
+  moveIntoGroup(parts, c, findNodeById(parts, 'g2').node);
+  expectMat4(worldFrame(parts, c.node), before, 1e-6);
+  assert.deepEqual(findNodeById(parts, 'g2').node.children.map((x) => x.id), ['c']);
+  assert.deepEqual(findNodeById(parts, 'g1').node.children, [], 'source group emptied');
+});
+
+test('moveIntoGroup can reparent a whole group into another group', () => {
+  const parts = [
+    { id: 'g1', transform: { localPos: { x: 3, y: 1, z: 0 }, rotY: 0.7 }, children: [] },
+    { id: 'g2', transform: { localPos: { x: 0, y: 0, z: 5 }, rotY: -0.3 }, children: [] },
+  ];
+  const g1 = findNodeById(parts, 'g1');
+  const before = worldFrame(parts, g1.node);
+  moveIntoGroup(parts, g1, findNodeById(parts, 'g2').node);
+  expectMat4(worldFrame(parts, g1.node), before);
+  assert.deepEqual(parts.map((p) => p.id), ['g2']);
+  assert.deepEqual(parts[0].children.map((x) => x.id), ['g1']);
+});
+
+test('moveIntoGroup rejects cycles and scaled frames', () => {
+  const parts = [
+    { id: 'gOuter', transform: {}, children: [
+      { id: 'gInner', transform: {}, children: [] },
+    ] },
+  ];
+  // Into own subtree → cycle.
+  assert.equal(moveIntoGroup(parts, findNodeById(parts, 'gOuter'), findNodeById(parts, 'gInner').node), null);
+  // Into itself.
+  assert.equal(moveIntoGroup(parts, findNodeById(parts, 'gOuter'), findNodeById(parts, 'gOuter').node), null);
+  // Into a scaled group.
+  const scaled = [
+    { id: 'a', shape: 'box', transform: {} },
+    { id: 'g', transform: { scaleX: 2 }, children: [] },
+  ];
+  assert.equal(moveIntoGroup(scaled, findNodeById(scaled, 'a'), findNodeById(scaled, 'g').node), null);
+  // A nested node under a scaled parent cannot move anywhere either.
+  const nestedInScaled = [
+    { id: 'g', transform: { scaleY: 2 }, children: [{ id: 'c', shape: 'box', transform: {} }] },
+    { id: 'g2', transform: {}, children: [] },
+  ];
+  assert.equal(canMoveInto(nestedInScaled, findNodeById(nestedInScaled, 'c'), findNodeById(nestedInScaled, 'g2').node), false);
+});
+
+test('extractNode pulls one child out of a rotated group, preserving placement', () => {
+  const parts = [{
+    id: 'g',
+    transform: { localPos: { x: 0, y: 0.5, z: 0 }, rotY: Math.PI / 2 },
+    children: [
+      { id: 'c', shape: 'box', transform: { localPos: { x: 0, y: 0, z: 1 }, rotY: 0.2 } },
+      { id: 'd', shape: 'box', transform: { localPos: { x: 0, y: 0.3, z: 0 } } },
+    ],
+  }];
+  const c = findNodeById(parts, 'c');
+  const before = worldFrame(parts, c.node);
+  const moved = extractNode(parts, c);
+  assert.equal(moved, c.node);
+  assert.deepEqual(parts.map((p) => p.id), ['g', 'c'], 'the child lands right after its group');
+  assert.deepEqual(findNodeById(parts, 'g').node.children.map((x) => x.id), ['d'], 'the group keeps its other children');
+  expectMat4(worldFrame(parts, c.node), before);
+});
+
+test('extractNode refuses root nodes and scaled groups', () => {
+  const parts = [{ id: 'root', shape: 'box', transform: {} }];
+  assert.equal(extractNode(parts, findNodeById(parts, 'root')), null);
+  assert.equal(canExtract(findNodeById(parts, 'root')), false);
+  const scaled = [{
+    id: 'g', transform: { scaleY: 2 }, children: [
+      { id: 'c', shape: 'box', transform: {} },
+    ],
+  }];
+  assert.equal(canExtract(findNodeById(scaled, 'c')), false);
+  assert.equal(extractNode(scaled, findNodeById(scaled, 'c')), null);
 });
