@@ -22,7 +22,7 @@ import {
   SCATTER_HASH_SEEDS, SCATTER_SCALE_BASE, SCATTER_SCALE_RANGE,
 } from '../../src/params/render/geometryParams.js';
 import { fruitTreeRecordsForTile } from '../../src/render/hexmap3d/worldObjects/fruitTree/fruitTreeRecordsForTile.js';
-import { tileHash, treeHash, frac, lerp } from '../../src/render/hexmap3d/worldObjects/tileHash.js';
+import { tileHash, treeHash, frac, lerp, itemHash } from '../../src/render/hexmap3d/worldObjects/tileHash.js';
 import { shapeBaseOffset } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { HILL_DESCRIPTOR } from '../../src/render/hexmap3d/worldObjects/descriptors/data/hill.js';
 
@@ -84,9 +84,14 @@ const meshesStarting = (meshes, prefix) => meshes.filter((m) => m.name.startsWit
 // The hill mound's dome band (thetaLength 1.5) keeps its lowest vertex ABOVE
 // the geometry origin, so shapeBaseOffset is negative — the record y sits that
 // far below the surface and the mound's lowest vertex lands at y + base·sy.
-// Each mound also draws its own [size.min, size.max] item scale (hash i+3).
+// Each mound draws its own [size.min, size.max] item scale: item 0 keeps the
+// legacy treeHash draw, members the decorrelated itemHash (see tileHash.js).
 const HILL_BASE = shapeBaseOffset(HILL_DESCRIPTOR.parts[0].shape, HILL_DESCRIPTOR.parts[0].params);
-const hillItemScale = (tileH, i) => lerp(HILL_DESCRIPTOR.size.min, HILL_DESCRIPTOR.size.max, frac(treeHash(tileH, i + 3)));
+const hillItemScale = (tileH, i) => lerp(
+  HILL_DESCRIPTOR.size.min,
+  HILL_DESCRIPTOR.size.max,
+  i === 0 ? frac(treeHash(tileH, 3)) : itemHash(tileH, i + 3),
+);
 
 // ── Tile resolution ─────────────────────────────────────────────────────────
 

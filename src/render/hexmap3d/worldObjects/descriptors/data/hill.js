@@ -14,7 +14,7 @@ export const HILL_DESCRIPTOR = {
     {
       id: 'mound',
       shape: 'sphere',
-      params: { radius: 0.4, wSegs: 7, thetaLength: 1.5 },
+      params: { radius: 0.27, wSegs: 7, thetaLength: 1.5 },
       transform: { scaleY: 0.6666666666666667 },
       color: 0x7a8f5a,
       biomeColor: { source: 'primary', influence: 0.8 },

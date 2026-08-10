@@ -41,7 +41,7 @@
  * and the tilt rotates about that base (see recordForPart), matching the
  * nested-leaf convention.
  */
-import { tileHash, treeHash, frac, lerp, clamp01 } from '../tileHash.js';
+import { tileHash, treeHash, itemHash, frac, lerp, clamp01 } from '../tileHash.js';
 import {
   DISPERSED_SCALE,
   dispersedSingleOffset,
@@ -211,8 +211,10 @@ function resolveDisplacement(descriptor, count, tileH, displaced) {
  * old simpleFeatureMeshes.js jitterForTile(), so lone objects stay
  * deterministic and close to their original offsets; only the width of the
  * ring is rescaled to the descriptor's bounds. Cluster members (i > 0) draw
- * their own angle/radius/rotation/scale from treeHash so a cluster truly
- * scatters across the hex instead of stacking every member at one point.
+ * their own angle/radius/rotation/scale from itemHash (decorrelated per
+ * index — see tileHash.js) so a cluster truly scatters across the hex instead
+ * of stacking every member at one point (or every third member at the same
+ * point, as the linear treeHash would).
  */
 function scatterJitter(tile, placement, tileH, i) {
   const min = placement.offsetMin ?? SCATTER_OFFSET_MIN;
@@ -231,15 +233,15 @@ function scatterJitter(tile, placement, tileH, i) {
       scaleMul: SCATTER_SCALE_BASE + (hash % SCATTER_SCALE_RANGE[0]) / SCATTER_SCALE_RANGE[1],
     };
   }
-  const angle = frac(treeHash(tileH, i + 13)) * Math.PI * 2;
-  const dist = lerp(min, max, frac(treeHash(tileH, i + 17)));
+  const angle = itemHash(tileH, i + 13) * Math.PI * 2;
+  const dist = lerp(min, max, itemHash(tileH, i + 17));
   return {
     dx: Math.cos(angle) * dist,
     dz: Math.sin(angle) * dist,
-    rotY: frac(treeHash(tileH, i + 19)) * Math.PI * 2,
+    rotY: itemHash(tileH, i + 19) * Math.PI * 2,
     // Same scale-jitter band as the legacy roll (SCATTER_SCALE_BASE .. BASE
     // + (RANGE[0]-1)/RANGE[1], i.e. 0.8..0.99), drawn smoothly per member.
-    scaleMul: SCATTER_SCALE_BASE + frac(treeHash(tileH, i + 23)) * (SCATTER_SCALE_RANGE[0] - 1) / SCATTER_SCALE_RANGE[1],
+    scaleMul: SCATTER_SCALE_BASE + itemHash(tileH, i + 23) * (SCATTER_SCALE_RANGE[0] - 1) / SCATTER_SCALE_RANGE[1],
   };
 }
 
@@ -257,10 +259,19 @@ function placementTilt(placement, dx, dz, tileH, i) {
     };
   }
   if (placement.mode === 'jitter') {
-    const dir = frac(treeHash(tileH, placement.tiltSeed + i)) * Math.PI * 2;
+    // Item 0 keeps the legacy per-tile lean axis (solitary trees lean the same
+    // way as before); cluster members draw a decorrelated one (itemHash) so
+    // they don't all lean in the same 3 directions (treeHash's every-third
+    // index correlation).
+    const dir = i === 0
+      ? frac(treeHash(tileH, placement.tiltSeed)) * Math.PI * 2
+      : itemHash(tileH, placement.tiltSeed + i) * Math.PI * 2;
+    const t = i === 0
+      ? frac(treeHash(tileH, placement.tiltSeed + 1))
+      : itemHash(tileH, placement.tiltSeed + 1 + i);
     return {
       tiltAxis: { x: Math.sin(dir), z: -Math.cos(dir) },
-      tilt: lerp(placement.tiltMin, placement.tiltMax, frac(treeHash(tileH, placement.tiltSeed + 1 + i))),
+      tilt: lerp(placement.tiltMin, placement.tiltMax, t),
     };
   }
   return null;
@@ -321,7 +332,8 @@ function itemPlacement(descriptor, i, count, tileH, disp, jitter) {
     // Item 0 keeps the legacy anchor — a single point at distance `offset`
     // along the tile's angle — so lone objects are unchanged. Cluster members
     // (i > 0) spread into a loose clump within 0.5..1.5 × offset of the hex
-    // center, each with its own facing; the per-item tilt is unchanged.
+    // center, each with its own facing (drawn from the decorrelated itemHash);
+    // the per-item tilt is unchanged.
     if (i === 0) {
       const angle = frac(tileH) * Math.PI * 2;
       const dx = Math.cos(angle) * placement.offset;
@@ -332,13 +344,13 @@ function itemPlacement(descriptor, i, count, tileH, disp, jitter) {
         ...placementTilt(placement, dx, dz, tileH, i),
       };
     }
-    const angle = frac(treeHash(tileH, i + 13)) * Math.PI * 2;
-    const radius = placement.offset * lerp(0.5, 1.5, frac(treeHash(tileH, i + 17)));
+    const angle = itemHash(tileH, i + 13) * Math.PI * 2;
+    const radius = placement.offset * lerp(0.5, 1.5, itemHash(tileH, i + 17));
     const dx = Math.cos(angle) * radius;
     const dz = Math.sin(angle) * radius;
     return {
       dx, dz,
-      rotY: frac(treeHash(tileH, i + 19)) * Math.PI * 2,
+      rotY: itemHash(tileH, i + 19) * Math.PI * 2,
       ...placementTilt(placement, dx, dz, tileH, i),
     };
   }
@@ -718,9 +730,11 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
   for (let i = 0; i < count; i++) {
     const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement, tileH, i) : null;
     // Per-item size draw — per-item so cluster members vary (treeVariation's
-    // scale uses hash i+3). For a single item (i=0) this is the same draw as
-    // the old item-independent roll, so lone objects are unchanged.
-    const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, frac(treeHash(tileH, i + 3)));
+    // scale uses hash i+3). Item 0 keeps the old item-independent roll, so
+    // lone objects are unchanged; members draw the decorrelated itemHash so
+    // the every-third-index correlation can't clone member sizes.
+    const sizeT = i === 0 ? frac(treeHash(tileH, i + 3)) : itemHash(tileH, i + 3);
+    const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, sizeT);
     const placement = itemPlacement(descriptor, i, count, tileH, disp, jitter);
     const ctx = {
       tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
@@ -755,7 +769,8 @@ export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(til
 
   for (let i = 0; i < count; i++) {
     const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement, tileH, i) : null;
-    const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, frac(treeHash(tileH, i + 3)));
+    const sizeT = i === 0 ? frac(treeHash(tileH, i + 3)) : itemHash(tileH, i + 3);
+    const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, sizeT);
     const placement = itemPlacement(descriptor, i, count, tileH, disp, jitter);
     const ctx = {
       tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,

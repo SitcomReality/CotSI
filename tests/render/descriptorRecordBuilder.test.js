@@ -15,6 +15,7 @@ import {
 import { biomeTintForTile } from '../../src/render/hexmap3d/worldObjects/biomeTint.js';
 import { DISPERSED_SCALE, sunkTransform, dispersedSingleOffset } from '../../src/render/hexmap3d/worldObjects/decorEmphasis.js';
 import { mat4RotationY, mat4Translation, mat4Multiply, mat4TranslationOf } from '../../src/engine/rules/mat4.js';
+import { treeHash, frac, itemHash } from '../../src/render/hexmap3d/worldObjects/tileHash.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -784,6 +785,33 @@ test('scatter distributes cluster members across the hex (item 0 keeps the legac
   assert.ok(Math.abs(first.scale - (0.8 + (hash % 20) / 100)) < 1e-9);
 });
 
+test('scatter cluster members spread apart (no every-third clumping)', () => {
+  // Regression: treeHash is linear in i (step 29 mod 89) and 3·29 ≡ −2
+  // (mod 89), so every third member nearly repeated — clusters piled into
+  // the same 3 spots. Members now draw from the decorrelated itemHash.
+  const scattered = normalizeDescriptor({
+    id: 'scatter-spread',
+    kind: 'feature',
+    displayName: 'Scatter Spread',
+    schemaVersion: 3,
+    cluster: { min: 6, max: 6 },
+    placement: { mode: 'scatter', offsetMin: 0.2, offsetMax: 0.6 },
+    parts: [{ id: 'p', shape: 'box' }],
+  });
+  const records = recordsForDescriptor(scattered, TILE, POS);
+  assert.equal(records.length, 6);
+  const pts = records.map((r) => ({ x: r.x - POS.x, z: r.z - POS.z }));
+  let minDist = Infinity;
+  for (let i = 0; i < pts.length; i++) {
+    for (let j = i + 1; j < pts.length; j++) {
+      minDist = Math.min(minDist, Math.hypot(pts[i].x - pts[j].x, pts[i].z - pts[j].z));
+    }
+  }
+  // The old treeHash clump left members ~0.03 apart (~5° at these radii);
+  // decorrelated draws keep them comfortably clear of each other.
+  assert.ok(minDist > 0.05, `closest members only ${minDist} apart`);
+});
+
 test('jitter spreads cluster members into a clump (item 0 keeps the legacy anchor)', () => {
   const clump = normalizeDescriptor({
     id: 'jitter-clump',
@@ -848,7 +876,7 @@ test('tilt pivots at the part base; untilted parts keep the base bake in y', () 
 
 // ── Per-item size draws (M4: cluster member variation) ─────────────────────
 
-test('cluster members draw their own size from hash i+3', () => {
+test('cluster members draw their own size from itemHash (item 0 keeps the legacy roll)', () => {
   const multi = normalizeDescriptor({
     id: 'multi-size',
     kind: 'feature',
@@ -863,9 +891,11 @@ test('cluster members draw their own size from hash i+3', () => {
   assert.equal(records.length, 3);
   const sizes = records.map((r) => r.scale);
   assert.equal(new Set(sizes).size, 3, 'three members, three distinct size draws');
-  const h = (i) => ((tileH * 17 + i * 29 + 5) % 89 + 89) % 89;
   sizes.forEach((s, i) => {
-    const expected = 1 + (h(i + 3) % 100) / 100;
+    // Item 0 keeps the legacy treeHash draw (lone-object stability); members
+    // draw the decorrelated itemHash so every-third-index correlation can't
+    // clone their sizes.
+    const expected = 1 + (i === 0 ? frac(treeHash(tileH, 3)) : itemHash(tileH, i + 3));
     assert.ok(Math.abs(s - expected) < 1e-9, `item ${i} scale ${s} vs ${expected}`);
   });
 });
