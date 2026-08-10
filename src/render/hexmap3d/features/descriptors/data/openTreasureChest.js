@@ -10,8 +10,6 @@ export const OPEN_TREASURE_CHEST_DESCRIPTOR = {
   kind: 'feature',
   displayName: 'Open Treasure Chest',
   scale: 1.2,
-  placement: { mode: 'scatter', offsetMin: 0, offsetMax: 0.1 },
-  emphasis: { behavior: 'dispersed' },
   parts: [
     {
       id: 'chest-base',
@@ -125,4 +123,5 @@ export const OPEN_TREASURE_CHEST_DESCRIPTOR = {
       ],
     },
   ],
+  emphasis: { behavior: 'dispersed' },
 };

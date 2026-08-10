@@ -77,7 +77,7 @@ optional for new files):
  * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const EDEN_MUSHROOM_DESCRIPTOR = {
-  schemaVersion: 4,
+  schemaVersion: 5,
   id: 'edenMushroom',
   kind: 'feature',
   displayName: 'Eden Mushroom',
@@ -101,8 +101,8 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| `schemaVersion` | int | 4 | Schema version. Always write `4` (v3 files auto-migrate). |
-| `id` | string | — | Canonical id, `[A-Za-z0-9_-]`. For a feature this must equal the feature kind the game state uses (`edenMushroom`). |
+| `schemaVersion` | int | 5 | Schema version. Always write `5` (v3/v4 files auto-migrate on load; the editor rewrites them to 5 on the next Save). |
+| `id` | string | — | Canonical id, `[A-Za-z0-9_-]`. For a feature this must equal the feature kind the game state uses (`openTreasureChest`). |
 | `kind` | string | — | One of `feature`, `decor`, `mountain`, `base`, `champion`, `mob`, `trader`. |
 | `displayName` | string | — | UI name (editor, tooltips). |
 | `scale` | number | 1 | Object-level scale multiplier (baked into every item's size). |
@@ -140,11 +140,20 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
   leaning on a per-tile axis. Optional `offset` (0.08), `tiltMin`/`tiltMax`
   (0/0), `tiltSeed` (1).
 
+Each mode owns a fixed sub-field set (scatter: `offsetMin`/`offsetMax`; ring:
+`ringMin`/`ringMax`/`leanMin`/`leanMax`; jitter: `offset`/`tiltMin`/`tiltMax`/
+`tiltSeed`). Fields from other modes are **inert** and stripped on emit, so
+switching modes in the editor does not accumulate stale fields. (Cluster rules
+work the same way: `countsByTerrain`/`densityRange`/`jitter` belong to
+`moisture` only, `min`/`max` to `uniform` only.)
+
 **emphasis** (`what the object does when the hex center is claimed by an
 occupant or feature`):
 - `'none'` — stays put (mountains).
 - `'dispersed'` — shrinks and steps aside: to a shared upper-left corner anchor
-  for a single item, to a ring near the hex edge for a cluster.
+  for a single item, to a ring near the hex edge for a cluster. Centralized
+  features (the chests) use this too: any occupant — champion, trader, mob —
+  claims the center, so the object steps aside rather than being buried.
 - `'sunk'` — shrinks and descends below the surface (hill mounds).
 - `'hidden'` — not rendered.
 
@@ -235,23 +244,26 @@ own bottom-center).
 frame — see §6). `buildInstanced` applies it directly, so the render structure
 and performance are unchanged.
 
-**Worked hinge example — the open chest lid.** The group's `localPos` sits at
-the hinge (the chest's back-top edge), and the children are placed in the
+**Worked hinge example — the open chest lid.** This is the actual `group-1`
+from `openTreasureChest.js` (shown in full in §8). The group's `localPos` sits
+at the hinge (the chest's back-top edge), and the children are placed in the
 closed-lid frame so their back edge lands on the hinge axis:
 
 ```js
-{ id: 'lid',                       // group — no shape
+{ id: 'group-1',                   // group — no shape
   transform: { localPos: { x: 0, y: 0.15, z: 0.125 },   // hinge: chest back-top
-              localAxis: { x: 1, y: 0, z: 0 }, localAngle: -1 },  // swing open
+              localAxis: { x: 1, y: 0, z: 0 }, localAngle: 1 },  // swing open
   children: [
-    { id: 'lid-board', shape: 'box', params: { width: 0.35, height: 0.08, depth: 0.25 },
-      transform: { localPos: { x: 0, y: 0.15, z: 0 } } },   // back edge at z=0.125
-    { id: 'strap-l', shape: 'box', params: { width: 0.031, height: 0.085, depth: 0.255 },
-      transform: { localPos: { x: -0.12, y: 0.15, z: 0 } } },
+    { id: 'chest-lid-open', shape: 'box', params: { width: 0.35, height: 0.08, depth: 0.25 },
+      transform: { localPos: { x: 0, y: 0, z: -0.125 } } },   // back edge on the hinge
+    { id: 'iron-strap-lid-left', shape: 'box', params: { width: 0.031, height: 0.1, depth: 0.255 },
+      transform: { localPos: { x: -0.1, y: 0, z: -0.125 } } },
+    { id: 'iron-strap-lid-right', shape: 'box', params: { width: 0.031, height: 0.1, depth: 0.255 },
+      transform: { localPos: { x: 0.1, y: 0, z: -0.125 } } },
   ] }
 ```
 
-Rotating the group's `localAxis`/`localAngle` swings board + straps rigidly
+Rotating the group's `localAxis`/`localAngle` swings the lid + straps rigidly
 about the hinge. **Author groups in the geometry editor** (`dev/geometryEditor.html`:
 "Nest into group", "move into group", "Move out of group", "Ungroup") — the
 editor keeps the transforms exact, and Save round-trips the tree.
@@ -344,13 +356,18 @@ grove on forest/denseForest, hill mounds, and one ground decor per
 marsh/plateau/plains/desert/beach). Decorations resolve in their unoccupied
 state while the tile is out of sight; occupants/features gate displacement.
 
-## 7. Worked example: the Tree Grove
+## 7. Worked example: a decor with variable properties — the Tree Grove
 
-`src/render/hexmap3d/features/descriptors/data/grove.js` (annotated):
+A terrain `decor` is scattered and varies per tile, and the grove is the
+flagship example of the variable-properties vocabulary: count, size, part set,
+stretch, and color all come from ranges and per-tile draws rather than fixed
+values. `src/render/hexmap3d/features/descriptors/data/grove.js` (annotated;
+the shipped file still carries `schemaVersion: 4` — v4 auto-migrates on load,
+and the editor rewrites it to 5 on the next Save):
 
 ```js
 export const GROVE_DESCRIPTOR = {
-  schemaVersion: 4,
+  schemaVersion: 5,
   id: 'grove',
   kind: 'decor',                      // terrain decoration, not a feature
   displayName: 'Tree Grove',
@@ -360,7 +377,10 @@ export const GROVE_DESCRIPTOR = {
   variantRule: 'cluster',             // denseForest→tall, else round; painforest biome→painforest
   placement: { mode: 'ring' },        // ring around the hex center
   emphasis: { behavior: 'dispersed' },// shrink+step aside when the center is claimed
-  parts: [ /* fallback single-trunk part set — only used if no variant matches */ ],
+  parts: [                           // fallback part set — only used if no variant matches
+    { id: 'trunk', shape: 'cylinder', stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false },
+      biomeScale: { biome_tundra: 0.85 }, color: 0x8b5e3c },
+  ],
   variants: [
     {
       id: 'round',                    // deciduous canopy
@@ -403,6 +423,10 @@ export const GROVE_DESCRIPTOR = {
 
 What each mechanism contributes, at a glance:
 
+- **Variable properties** — everything about a grove is a range, not a fixed
+  value: count (moisture rule), size (1.3–1.5×), part set (`variantRule`),
+  per-tree stretch, biome size/color, brightness jitter. The chest (§8) is the
+  opposite: one fixed, centralized object.
 - `cluster.rule: 'moisture'` — wetter forest tiles get more trees.
 - `variantRule: 'cluster'` — the terrain/biome picks the part set: round
   deciduous canopies, tall pines, or the gnarled multi-part Painforest trees.
@@ -415,74 +439,81 @@ What each mechanism contributes, at a glance:
   (primary for round, accent for tall).
 - `color` per part — trunk brown vs canopy green, jittered ±0.05 brightness.
 
-## 8. Worked example: the Eden Mushroom
+## 8. Worked example: a centralized feature — the Open Treasure Chest
 
-The current shipped model is a single cone:
+The chest is the opposite of the grove (§7): one fixed, centralized object
+with a moving sub-assembly. It shows schema v5 groups (the hinged lid), root
+leaves with per-part transforms, non-uniform scale, and local rotations. The
+closed-lid sibling `treasureChest.js` uses the same parts vocabulary without
+the group.
 
-```js
-export const EDEN_MUSHROOM_DESCRIPTOR = {
-  schemaVersion: 4,
-  id: 'edenMushroom',
-  kind: 'feature',
-  displayName: 'Eden Mushroom',
-  scale: 2.5,
-  placement: { mode: 'scatter' },
-  emphasis: { behavior: 'dispersed' },
-  parts: [
-    { id: 'body', shape: 'cone', params: { bottomR: 0.18, height: 0.3, heightSegs: 1 }, color: 0x7a2a8a },
-  ],
-};
-```
-
-A richer model demonstrates the parts vocabulary (syntax only — tune the design):
+`src/render/hexmap3d/features/descriptors/data/openTreasureChest.js` (annotated;
+default-valued fields omitted for readability):
 
 ```js
-export const EDEN_MUSHROOM_DESCRIPTOR = {
-  schemaVersion: 4,
-  id: 'edenMushroom',
+export const OPEN_TREASURE_CHEST_DESCRIPTOR = {
+  schemaVersion: 5,
+  id: 'openTreasureChest',        // a feature kind — spawns one chest per tile
   kind: 'feature',
-  displayName: 'Eden Mushroom',
-  scale: 2.5,
-  placement: { mode: 'scatter' },
-  emphasis: { behavior: 'dispersed' },
+  displayName: 'Open Treasure Chest',
+  scale: 1.2,                     // item-level size multiplier
+  emphasis: { behavior: 'dispersed' },  // yield when an occupant claims the hex
+  // No `placement`: defaults to { mode: 'center' } — one item at the hex center.
   parts: [
+    { id: 'chest-base', shape: 'box', params: { width: 0.35, height: 0.15, depth: 0.25 },
+      color: 0x5c4033 },
+    { id: 'iron-strap-base-left', shape: 'box', params: { width: 0.03, height: 0.16, depth: 0.255 },
+      transform: { localPos: { x: -0.12, y: 0, z: 0 } }, color: 0x222222 },
+    { id: 'iron-strap-base-right', shape: 'box', params: { width: 0.03, height: 0.16, depth: 0.255 },
+      transform: { localPos: { x: 0.12, y: 0, z: 0 } }, color: 0x222222 },
+    { id: 'gold-hoard', shape: 'spheroid', params: { radius: 0.12 },
+      transform: { y: -0.06, scaleX: 1.3, scaleY: 0.6, scaleZ: 0.9, localPos: { x: 0, y: 0.12, z: 0 } },
+      color: 0xffd700 },
+    { id: 'gem-ruby', shape: 'dodecahedron', params: { radius: 0.03 },
+      transform: { y: -0.04, localPos: { x: 0.08, y: 0.16, z: 0.04 }, localAxis: { x: 1, y: 1, z: 0 }, localAngle: 0.5 },
+      color: 0xe0115f },
+    { id: 'gem-sapphire', shape: 'dodecahedron', params: { radius: 0.025 },
+      transform: { y: -0.02, localPos: { x: -0.05, y: 0.18, z: -0.02 }, localAxis: { x: 0, y: 1, z: 1 }, localAngle: 0.8 },
+      color: 0x0f52ba },
     {
-      id: 'stem',
-      shape: 'cylinder',
-      params: { bottomR: 0.06, topR: 0.09, height: 0.28, segments: 6 },
-      color: 0xded0e8,
-    },
-    {
-      id: 'cap',
-      shape: 'cone',
-      params: { bottomR: 0.2, height: 0.18, radialSegs: 8, heightSegs: 1 },
-      transform: { lift: 0.28 },
-      color: 0x8a2be2,
-      biomeColor: { source: 'primary', influence: 0.6 },
-    },
-    {
-      id: 'spot',
-      shape: 'spheroid',
-      params: { radius: 0.025 },
-      transform: { localPos: { x: 0.08, y: 0.36, z: 0.05 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 0.5 },
-      color: 0xffffff,
-    },
-    {
-      id: 'spot2',
-      shape: 'spheroid',
-      params: { radius: 0.02 },
-      transform: { localPos: { x: -0.07, y: 0.34, z: -0.08 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: -0.35 },
-      color: 0xffffff,
+      id: 'group-1',              // the hinged lid — a group, no shape/color
+      transform: { localPos: { x: 0, y: 0.15, z: 0.125 },   // hinge: chest back-top
+                  localAxis: { x: 1, y: 0, z: 0 }, localAngle: 1 },  // swing open
+      children: [
+        { id: 'chest-lid-open', shape: 'box', params: { width: 0.35, height: 0.08, depth: 0.25 },
+          transform: { localPos: { x: 0, y: 0, z: -0.125 } }, color: 0x4a3022 },
+        { id: 'iron-strap-lid-left', shape: 'box', params: { width: 0.031, height: 0.1, depth: 0.255 },
+          transform: { localPos: { x: -0.1, y: 0, z: -0.125 } }, color: 0x222222 },
+        { id: 'iron-strap-lid-right', shape: 'box', params: { width: 0.031, height: 0.1, depth: 0.255 },
+          transform: { localPos: { x: 0.1, y: 0, z: -0.125 } }, color: 0x222222 },
+      ],
     },
   ],
 };
 ```
 
-Notes: the stem is bottom-anchored at 0; the cap `lift`s 0.28 to sit on top
-(the pipeline grounds each part to its own bottom); the spots hang on the cap
-face via `localPos` and are tilted with a local rotation; the cap tints toward
-the Edenfall biome color. Colors are literal `0xRRGGBB` — this is a tile-driven
-feature, so no tokens.
+What each piece demonstrates:
+
+- **Central placement** — no `placement` field, so the default `mode: 'center'`
+  puts one item at the hex center. Contrast the scattered grove (§7).
+- **Emphasis** — the chest *yields* rather than disappears: any occupant
+  (champion, trader, mob) claims the hex center, so `dispersed` shrinks the
+  chest and steps it aside instead of burying it. Use `behavior: 'hidden'` if
+  you'd rather it vanish outright.
+- **Root leaves** — `chest-base` and the iron straps are grounded at the
+  surface; the straps' `localPos.x` (±0.12) sets their stance against the
+  base. Each part is positioned independently, yet the straps read as wrapping
+  the box.
+- **Non-uniform scale** — `gold-hoard` squashes a 0.12-radius spheroid
+  (`scaleY: 0.6`, `scaleX: 1.3`) into a coin pile, and `y: -0.06` +
+  `localPos.y: 0.12` stack to sink it inside the chest body.
+- **Local rotations** — the gems are dodecahedra posed with
+  `localAxis`/`localAngle` so their facets catch the light at different angles.
+- **The group** — `group-1` is the hinged lid: its `localPos` is the hinge
+  point at the chest's back-top edge, and `localAxis`/`localAngle` swing the
+  whole sub-assembly open. The children are authored in the closed-lid frame
+  (`z: -0.125` puts their back edge on the hinge axis), so rotating the group
+  swings lid + straps rigidly — no hand-duplicated offsets (§4.5).
 
 ## 9. Adding a new object — checklist
 
@@ -497,8 +528,8 @@ feature, so no tokens.
    /run/host/usr/bin/node --input-type=module <<'EOF'
    import { normalizeDescriptor, validateDescriptor } from './src/render/hexmap3d/features/descriptors/schema.js';
    import { recordsForDescriptor } from './src/render/hexmap3d/features/descriptors/recordBuilder.js';
-   const { EDEN_MUSHROOM_DESCRIPTOR } = await import('./src/render/hexmap3d/features/descriptors/data/edenMushroom.js');
-   const d = normalizeDescriptor(EDEN_MUSHROOM_DESCRIPTOR);
+   const { OPEN_TREASURE_CHEST_DESCRIPTOR } = await import('./src/render/hexmap3d/features/descriptors/data/openTreasureChest.js');
+   const d = normalizeDescriptor(OPEN_TREASURE_CHEST_DESCRIPTOR);
    const errors = validateDescriptor(d);
    if (errors.length) { console.error(errors); process.exit(1); }
    console.log(recordsForDescriptor(d, { q: 3, r: -2, terrain: 'plains' }, { x: 0, y: 0, z: 0 }));

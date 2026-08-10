@@ -1105,10 +1105,19 @@ export function denormalizeDescriptor(def) {
 
   if (isPlainObject(out.cluster)) {
     const cluster = out.cluster;
-    if (cluster.min === OBJECT_DEFAULTS.cluster.min) delete cluster.min;
-    if (cluster.max === OBJECT_DEFAULTS.cluster.max) delete cluster.max;
-    if (cluster.rule === 'uniform') delete cluster.rule;
-    if (cluster.rule === 'moisture') {
+    const rule = cluster.rule ?? 'uniform';
+    if (rule === 'uniform') {
+      // min/max only — moisture fields left over from a rule switch are inert.
+      delete cluster.countsByTerrain;
+      delete cluster.densityRange;
+      delete cluster.jitter;
+      if (cluster.min === OBJECT_DEFAULTS.cluster.min) delete cluster.min;
+      if (cluster.max === OBJECT_DEFAULTS.cluster.max) delete cluster.max;
+      delete cluster.rule; // 'uniform' is the default
+    } else {
+      // moisture — counts come from countsByTerrain; min/max are uniform-only.
+      delete cluster.min;
+      delete cluster.max;
       if (sameValue(cluster.countsByTerrain, MOISTURE_COUNTS_DEFAULT)) delete cluster.countsByTerrain;
       if (sameValue(cluster.densityRange, [0.55, 0.85])) delete cluster.densityRange;
       if (cluster.jitter === 1) delete cluster.jitter;
@@ -1132,15 +1141,28 @@ export function denormalizeDescriptor(def) {
 
   if (isPlainObject(out.placement)) {
     const placement = out.placement;
-    if (placement.mode === 'scatter') {
+    const mode = placement.mode ?? 'center';
+    // Each placement mode owns a fixed sub-field set; fields left over from
+    // other modes (editor mode switches) are inert and stripped on emit.
+    const MODE_FIELDS = {
+      scatter: ['offsetMin', 'offsetMax'],
+      ring: ['ringMin', 'ringMax', 'leanMin', 'leanMax'],
+      jitter: ['offset', 'tiltMin', 'tiltMax', 'tiltSeed'],
+      center: [],
+    };
+    const own = new Set(MODE_FIELDS[mode] ?? []);
+    for (const key of Object.keys(placement)) {
+      if (key !== 'mode' && !own.has(key)) delete placement[key];
+    }
+    if (mode === 'scatter') {
       if (placement.offsetMin === 0.15) delete placement.offsetMin;
       if (placement.offsetMax === 0.3) delete placement.offsetMax;
-    } else if (placement.mode === 'ring') {
+    } else if (mode === 'ring') {
       if (placement.ringMin === 0.18) delete placement.ringMin;
       if (placement.ringMax === 0.55) delete placement.ringMax;
       if (placement.leanMin === 0.045) delete placement.leanMin;
       if (placement.leanMax === 0.12) delete placement.leanMax;
-    } else if (placement.mode === 'jitter') {
+    } else if (mode === 'jitter') {
       if (placement.offset === 0.08) delete placement.offset;
       if (placement.tiltMin === 0) delete placement.tiltMin;
       if (placement.tiltMax === 0) delete placement.tiltMax;

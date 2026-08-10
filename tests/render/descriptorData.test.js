@@ -94,12 +94,12 @@ test('simple features: one record, legacy scatter bounds', () => {
     const [record] = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'plains' }, POS);
     assert.ok(record, `${raw.id} produced no records`);
     // Legacy scatter size jitter: scale = descriptor.scale × part scaleX ×
-    // [0.8, 0.99]. The part's own per-axis scale folds into `scale` (a
-    // flattened spheroid like listenerLichen's mat legitimately exceeds
-    // descriptor.scale alone).
+    // [0.8, 0.99] × the authored `size` range (size.min/size.max). The part's
+    // own per-axis scale folds into `scale` (a flattened spheroid like
+    // listenerLichen's mat legitimately exceeds descriptor.scale alone).
     const sx = d.parts[0].transform.scaleX;
-    assert.ok(record.scale >= d.scale * sx * 0.8 - 1e-9, `${raw.id} scale ${record.scale} < ${d.scale}*${sx}*0.8`);
-    assert.ok(record.scale <= d.scale * sx * 0.99 + 1e-9, `${raw.id} scale ${record.scale} > ${d.scale}*${sx}*0.99`);
+    assert.ok(record.scale >= d.scale * sx * 0.8 * d.size.min - 1e-9, `${raw.id} scale ${record.scale} < ${d.scale}*${sx}*0.8*${d.size.min}`);
+    assert.ok(record.scale <= d.scale * sx * 0.99 * d.size.max + 1e-9, `${raw.id} scale ${record.scale} > ${d.scale}*${sx}*0.99*${d.size.max}`);
     // Scatter offset stays within the hex (≤ 0.3).
     const dist = Math.hypot(record.x - POS.x, record.z - POS.z);
     assert.ok(dist <= 0.3 + 1e-9, `${raw.id} scatter dist ${dist}`);
