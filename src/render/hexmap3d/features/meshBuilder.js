@@ -75,6 +75,13 @@ export function collectInstances(tilesOrArray, visible, matchFn, collectFn) {
  *                                           - localAngle — local orientation angle (radians)
  *                                           - tiltAxis — { x, z } horizontal lean axis (world space)
  *                                           - tilt     — lean angle in radians around tiltAxis
+ *                                           - matrix   — fully baked world matrix (16 numbers,
+ *                                                       column-major, THREE elements order).
+ *                                                       Nested (grouped) parts emit this instead
+ *                                                       of the flat fields — the fixed
+ *                                                       composition can't express rotation about
+ *                                                       a group origin. When present it replaces
+ *                                                       the whole position/rotation/scale chain.
  *                                           - color    — per-instance color (THREE.Color)
  * @param {string}               meshName  - Name for the InstancedMesh
  * @param {object}               [opts]    - Optional overrides
@@ -107,37 +114,45 @@ export function buildInstanced(geometry, material, instances, meshName, opts = {
 
   for (let i = 0; i < instances.length; i++) {
     const inst = instances[i];
-    const s = inst.scale ?? 1.0;
-    const sx = inst.scaleX ?? inst.scaleXZ ?? s;
-    const sy = inst.scaleY ?? s;
-    const sz = inst.scaleZ ?? inst.scaleXZ ?? s;
 
-    // Local placement in the tree frame (default: plain lift above the pivot).
-    const lx = inst.localPos ? inst.localPos.x : 0;
-    const ly = inst.localPos ? inst.localPos.y : (inst.lift ?? 0);
-    const lz = inst.localPos ? inst.localPos.z : 0;
-    _matrixLift.makeTranslation(lx, ly, lz);
-
-    // Local orientation in the tree frame (default: none).
-    if (inst.localAxis != null && inst.localAngle != null) {
-      _matrixLocal.makeRotationFromQuaternion(
-        _quatLocal.setFromAxisAngle(_localAxis.set(inst.localAxis.x, inst.localAxis.y, inst.localAxis.z).normalize(), inst.localAngle),
-      );
+    // Nested (grouped) parts carry a fully baked world matrix from
+    // recordBuilder — the flat fields below can't express rotation about a
+    // group origin, so the matrix replaces the whole composition.
+    if (inst.matrix) {
+      _matrixT.fromArray(inst.matrix);
     } else {
-      _matrixLocal.identity();
-    }
+      const s = inst.scale ?? 1.0;
+      const sx = inst.scaleX ?? inst.scaleXZ ?? s;
+      const sy = inst.scaleY ?? s;
+      const sz = inst.scaleZ ?? inst.scaleXZ ?? s;
 
-    // Tree-frame spin, then world-space lean about the horizontal tilt axis.
-    _quat.setFromAxisAngle(_yAxis, inst.rotY ?? 0);
-    if (inst.tiltAxis != null && inst.tilt != null) {
-      _quatTilt.setFromAxisAngle(_tiltAxis.set(inst.tiltAxis.x, 0, inst.tiltAxis.z).normalize(), inst.tilt);
-      _quat.premultiply(_quatTilt);
-    }
+      // Local placement in the tree frame (default: plain lift above the pivot).
+      const lx = inst.localPos ? inst.localPos.x : 0;
+      const ly = inst.localPos ? inst.localPos.y : (inst.lift ?? 0);
+      const lz = inst.localPos ? inst.localPos.z : 0;
+      _matrixLift.makeTranslation(lx, ly, lz);
 
-    _matrixT.makeTranslation(inst.x, inst.y ?? 0, inst.z);
-    _matrixR.makeRotationFromQuaternion(_quat);
-    _matrixS.makeScale(sx, sy, sz);
-    _matrixT.multiply(_matrixR).multiply(_matrixLift).multiply(_matrixLocal).multiply(_matrixS);
+      // Local orientation in the tree frame (default: none).
+      if (inst.localAxis != null && inst.localAngle != null) {
+        _matrixLocal.makeRotationFromQuaternion(
+          _quatLocal.setFromAxisAngle(_localAxis.set(inst.localAxis.x, inst.localAxis.y, inst.localAxis.z).normalize(), inst.localAngle),
+        );
+      } else {
+        _matrixLocal.identity();
+      }
+
+      // Tree-frame spin, then world-space lean about the horizontal tilt axis.
+      _quat.setFromAxisAngle(_yAxis, inst.rotY ?? 0);
+      if (inst.tiltAxis != null && inst.tilt != null) {
+        _quatTilt.setFromAxisAngle(_tiltAxis.set(inst.tiltAxis.x, 0, inst.tiltAxis.z).normalize(), inst.tilt);
+        _quat.premultiply(_quatTilt);
+      }
+
+      _matrixT.makeTranslation(inst.x, inst.y ?? 0, inst.z);
+      _matrixR.makeRotationFromQuaternion(_quat);
+      _matrixS.makeScale(sx, sy, sz);
+      _matrixT.multiply(_matrixR).multiply(_matrixLift).multiply(_matrixLocal).multiply(_matrixS);
+    }
     mesh.setMatrixAt(i, _matrixT);
 
     if (inst.color != null) {

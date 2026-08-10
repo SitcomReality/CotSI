@@ -1,14 +1,11 @@
 /**
- * treasureChest.js — Descriptor data for "Open Treasure Chest".
- *
- * Generated file: edit this object in the geometry editor
- * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
+ * treasureChest.js — Descriptor data for "Treasure Chest".
  */
 export const TREASURE_CHEST_DESCRIPTOR = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   id: 'treasureChest',
   kind: 'feature',
-  displayName: 'Open Treasure Chest',
+  displayName: 'Treasure Chest',
   scale: 1.2,
   placement: { mode: 'scatter', offsetMin: 0, offsetMax: 0.1 },
   emphasis: { behavior: 'dispersed' },
@@ -16,81 +13,36 @@ export const TREASURE_CHEST_DESCRIPTOR = {
     {
       id: 'chest-base',
       shape: 'box',
-      params: { width: 0.35, height: 0.15, depth: 0.25 },
+      params: { width: 0.35, height: 0.22, depth: 0.25 },
       color: 0x5c4033,
     },
     {
-      id: 'iron-strap-base-left',
+      id: 'chest-lid',
       shape: 'box',
-      params: { width: 0.03, height: 0.16, depth: 0.255 },
+      params: { width: 0.35, height: 0.08, depth: 0.25 },
+      transform: { lift: 0.22 },
+      color: 0x4a3022,
+    },
+    {
+      id: 'iron-strap-left',
+      shape: 'box',
+      params: { width: 0.03, height: 0.305, depth: 0.255 },
       transform: { localPos: { x: -0.12, y: 0, z: 0 } },
       color: 0x222222,
     },
     {
-      id: 'iron-strap-base-right',
+      id: 'iron-strap-right',
       shape: 'box',
-      params: { width: 0.03, height: 0.16, depth: 0.255 },
+      params: { width: 0.03, height: 0.305, depth: 0.255 },
       transform: { localPos: { x: 0.12, y: 0, z: 0 } },
       color: 0x222222,
     },
     {
-      id: 'gold-hoard',
-      shape: 'spheroid',
-      params: { radius: 0.12 },
-      transform: {
-        y: -0.06,
-        scaleX: 1.3,
-        scaleY: 0.6,
-        scaleZ: 0.9,
-        localPos: { x: 0, y: 0.12, z: 0 },
-      },
+      id: 'golden-lock',
+      shape: 'cube',
+      params: { size: 0.045 },
+      transform: { localPos: { x: 0, y: 0.19, z: 0.13 } },
       color: 0xffd700,
-    },
-    {
-      id: 'gem-ruby',
-      shape: 'dodecahedron',
-      params: { radius: 0.03 },
-      transform: {
-        y: -0.05,
-        localPos: { x: 0.08, y: 0.16, z: 0.04 },
-        localAxis: { x: 1, y: 1, z: 0 },
-        localAngle: 0.5,
-      },
-      color: 0xe0115f,
-    },
-    {
-      id: 'gem-sapphire',
-      shape: 'dodecahedron',
-      params: { radius: 0.025 },
-      transform: {
-        y: -0.02,
-        localPos: { x: -0.05, y: 0.18, z: -0.02 },
-        localAxis: { x: 0, y: 1, z: 1 },
-        localAngle: 0.8,
-      },
-      color: 0x3584e4,
-    },
-    {
-      id: 'chest-lid-open',
-      shape: 'box',
-      params: { width: 0.35, height: 0.08, depth: 0.25 },
-      transform: {
-        localPos: { x: 0, y: 0.22, z: -0.18 },
-        localAxis: { x: 1, y: 0, z: 0 },
-        localAngle: -1,
-      },
-      color: 0x4a3022,
-    },
-    {
-      id: 'iron-strap-lid-left',
-      shape: 'box',
-      params: { width: 0.031, height: 0.085, depth: 0.255 },
-      transform: {
-        localPos: { x: -0.12, y: 0.22, z: -0.18 },
-        localAxis: { x: 1, y: 0, z: 0 },
-        localAngle: -1,
-      },
-      color: 0x222222,
-    },
+    }
   ],
 };

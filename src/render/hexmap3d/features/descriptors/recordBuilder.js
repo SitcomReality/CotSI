@@ -56,6 +56,15 @@ import {
   TREE_VARIANT_THRESHOLDS,
 } from '../../../../params/render/geometryParams.js';
 import { shapeBaseOffset } from './schema.js';
+import {
+  mat4Identity,
+  mat4Translation,
+  mat4Scale,
+  mat4RotationY,
+  mat4RotationAxisAngle,
+  mat4Multiply,
+  mat4TranslationOf,
+} from '../../../../engine/rules/mat4.js';
 
 // Ring-scatter constants mirror TREE_VARIATION.ringJitter / angleJitter in
 // geometryParams.js (0.15 × ring width jitter, ±0.7 rad angular scatter).
@@ -343,24 +352,19 @@ function stretchForAxis(part, descriptor, axis, tileH, i) {
   return lerp(pair[0], pair[1], frac(treeHash(tileH, STRETCH_SEEDS[axis])));
 }
 
-/**
- * Build one item's instance records for the given part.
- * Local offsets (lift / localPos) are pre-scaled by the item scale so the
- * whole item scales rigidly — the same convention addTreeRecords uses when it
- * bakes the tree scale into the canopy lift.
- */
-function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint) {
-  const t = part.transform;
-  const scaleMul = disp?.scaleMul ?? 1;
-  const jitterScale = placement.scaleMul ?? 1;
-  // Per-biome size factor — stunts (or grows) the part on tiles of specific
-  // biomes (part.biomeScale[biomeId], e.g. Tundra's stunted trees).
-  const biomeFactor = part.biomeScale?.[tile.biomeId] ?? 1;
+/** A group node — a part with a `children` array and no shape of its own. */
+const isGroupNode = (part) => Array.isArray(part.children);
 
-  // Per-part non-uniform scale, then the per-axis stretch (part override or
-  // the object's variation ranges), then the scatter size jitter. X and Z are
-  // independent; symmetric parts emit no scaleZ (meshBuilder falls back to
-  // `scale`), so existing records are unchanged.
+/**
+ * Per-part non-uniform scale (X/Y/Z) — item scale × dispersal × scatter
+ * jitter × transform scale × per-axis stretch (part override or the object's
+ * variation ranges) × biome factor. Shared by the root-leaf record path and
+ * the nested-frame matrix path so a part renders identically at any depth.
+ * X and Z are independent; Y follows the mountain-type rule when the
+ * descriptor sizes by mountainType.
+ */
+function leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor) {
+  const t = part.transform;
   const sx = itemScale * scaleMul * jitterScale * t.scaleX * stretchForAxis(part, descriptor, 'x', tileH, i) * biomeFactor;
   const sz = itemScale * scaleMul * jitterScale * t.scaleZ * stretchForAxis(part, descriptor, 'z', tileH, i) * biomeFactor;
   // Mountain-type height rule: scaleY comes from the tile's mountainType tag
@@ -371,6 +375,43 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
   const sy = bucket
     ? itemScale * scaleMul * t.scaleY * lerp(bucket.min, bucket.max, frac(treeHash(tileH, i + 3))) * biomeFactor
     : itemScale * scaleMul * jitterScale * t.scaleY * stretchForAxis(part, descriptor, 'y', tileH, i) * biomeFactor;
+  return { sx, sy, sz };
+}
+
+/**
+ * The instance color for a tile-path part: brightness jitter from the object's
+ * colorJitter, then the per-part biome tint. String `color` values are named
+ * tokens for the entity record path (recordsForEntity) — the tile path has no
+ * entity to resolve them, so they are skipped here rather than fed into the
+ * color-jitter bit math. `biomeTint` is null when the tile has no tint
+ * (biomeTint.js returns null for Untouched/Painforest tiles and for tiles with
+ * no known biome colors), which keeps the default color.
+ */
+function tileColorForPart(part, descriptor, tileH, i, biomeTint) {
+  if (part.color === undefined || typeof part.color === 'string') return undefined;
+  let color = jitteredColor(part.color, descriptor.variation.colorJitter, tileH, i);
+  if (part.biomeColor && biomeTint) {
+    const influence = Math.min(1, Math.max(0, part.biomeColor.influence ?? 0));
+    const tint = biomeTint[part.biomeColor.source];
+    if (influence > 0 && tint) color = mixTowardColor(color, tint, influence);
+  }
+  return color;
+}
+
+/**
+ * Build one item's instance records for the given ROOT part. Local offsets
+ * (lift / localPos) are pre-scaled by the item scale so the whole item scales
+ * rigidly — the same convention addTreeRecords uses when it bakes the tree
+ * scale into the canopy lift.
+ */
+function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint) {
+  const t = part.transform;
+  const scaleMul = disp?.scaleMul ?? 1;
+  const jitterScale = placement.scaleMul ?? 1;
+  // Per-biome size factor — stunts (or grows) the part on tiles of specific
+  // biomes (part.biomeScale[biomeId], e.g. Tundra's stunted trees).
+  const biomeFactor = part.biomeScale?.[tile.biomeId] ?? 1;
+  const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor);
 
   // Bottom-anchored grounding: bake the shape's base offset (scaled by the
   // record's Y scale) into the pivot, so the part's lowest vertex lands at
@@ -409,27 +450,158 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
     record.tiltAxis = placement.tiltAxis;
     record.tilt = placement.tilt;
   }
-  if (part.color !== undefined && typeof part.color !== 'string') {
-    record.color = jitteredColor(part.color, descriptor.variation.colorJitter, tileH, i);
-  }
-  // String `color` values are named tokens for the entity record path
-  // (recordsForEntity) — the tile path has no entity to resolve them, so they
-  // are skipped here rather than fed into the color-jitter bit math.
-
-  // Per-part biome tint: pull the (already jittered) default toward the tile's
-  // blended biome color by `biomeColor.influence` (0 = default, 1 = full tint).
-  // `biomeTint` is null when the tile has no tint (biomeTint.js returns null
-  // for Untouched/Painforest tiles and for tiles with no known biome colors),
-  // which keeps the default color.
-  if (part.biomeColor && biomeTint && record.color !== undefined) {
-    const influence = Math.min(1, Math.max(0, part.biomeColor.influence ?? 0));
-    const tint = biomeTint[part.biomeColor.source];
-    if (influence > 0 && tint) {
-      record.color = mixTowardColor(record.color, tint, influence);
-    }
-  }
+  const color = tileColorForPart(part, descriptor, tileH, i, biomeTint);
+  if (color !== undefined) record.color = color;
 
   return record;
+}
+
+// ── Nested part groups ──────────────────────────────────────────────────────
+
+/**
+ * Pre-scaled localPos of a node. `itemScale` makes the whole item scale
+ * rigidly (the same convention as root-leaf localPos/lift); `biomeFactor`
+ * keeps per-part biome size changes rigid for nested leaves (groups have no
+ * biomeScale — validation rejects it). Roots may use `lift` instead of
+ * localPos.y; nested nodes only have localPos.
+ */
+function frameLocalPos(t, itemScale, biomeFactor) {
+  if (!t.localPos) return { x: 0, y: 0, z: 0 };
+  return {
+    x: t.localPos.x * itemScale * biomeFactor,
+    y: t.localPos.y * itemScale * biomeFactor,
+    z: t.localPos.z * itemScale * biomeFactor,
+  };
+}
+
+/**
+ * A group's frame matrix — how a group offsets, orients, and scales its
+ * children: T(localPos) · R(localAxis/localAngle) · R_y(rotY) · S(scale).
+ * The group's localPos is pre-scaled by itemScale (rigid item scaling);
+ * the scale pre-scales by itemScale × dispersal × scatter jitter, mirroring
+ * how a root leaf's geometry scales (its local offsets do not — same
+ * convention as root localPos/lift, which exclude scaleMul/jitterScale).
+ */
+function groupFrameMatrix(t, itemScale, scaleMul, jitterScale) {
+  const { x, y, z } = frameLocalPos(t, itemScale, 1);
+  const sx = t.scaleX * itemScale * scaleMul * jitterScale;
+  const sy = t.scaleY * itemScale * scaleMul * jitterScale;
+  const sz = t.scaleZ * itemScale * scaleMul * jitterScale;
+  let m = mat4Scale(sx, sy, sz);
+  if (t.localAxis && t.localAngle !== undefined) {
+    m = mat4Multiply(mat4RotationAxisAngle(t.localAxis, t.localAngle), m);
+  }
+  if (t.rotY) m = mat4Multiply(mat4RotationY(t.rotY), m);
+  return mat4Multiply(mat4Translation(x, y, z), m);
+}
+
+/**
+ * A nested leaf's frame matrix — the leaf's own T(localPos) · R(localAxis/
+ * localAngle) · R_y(rotY) · S(scale), with the full scale factor set (stretch,
+ * scatter jitter, biome factor). The recordBuilder composes it onto the
+ * ancestor frames to bake the leaf's world matrix.
+ */
+function nestedLeafFrameMatrix(part, descriptor, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor) {
+  const t = part.transform;
+  const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor);
+  const { x, y, z } = frameLocalPos(t, itemScale, biomeFactor);
+  let m = mat4Scale(sx, sy, sz);
+  if (t.localAxis && t.localAngle !== undefined) {
+    m = mat4Multiply(mat4RotationAxisAngle(t.localAxis, t.localAngle), m);
+  }
+  if (t.rotY) m = mat4Multiply(mat4RotationY(t.rotY), m);
+  return mat4Multiply(mat4Translation(x, y, z), m);
+}
+
+/**
+ * The item-level world transform nested leaves sit under — the same slot a
+ * root leaf's world rotation occupies: T(placement offset + displacement
+ * offset) · R(tilt) · R(rotY), matching meshBuilder's
+ * `T · R(rotY) · R(tilt) · …` composition order.
+ */
+function worldBaseMatrix(worldPos, placement, disp) {
+  const px = worldPos.x + placement.dx;
+  const py = worldPos.y + (disp?.yOffset ?? 0);
+  const pz = worldPos.z + placement.dz;
+  let m = mat4Translation(px, py, pz);
+  if (placement.tiltAxis && placement.tilt !== undefined) {
+    m = mat4Multiply(mat4RotationAxisAngle({ x: placement.tiltAxis.x, y: 0, z: placement.tiltAxis.z }, placement.tilt), m);
+  }
+  if (placement.rotY) m = mat4Multiply(mat4RotationY(placement.rotY), m);
+  return m;
+}
+
+/**
+ * The rotation-only part of a composed matrix — worldBase × accumulated
+ * ancestor frames with the translation zeroed. The editor converts gizmo drag
+ * deltas into a node's local frame with the transpose (a rotation's inverse).
+ */
+function parentRotationMatrix(worldBase, frame) {
+  const m = mat4Multiply(worldBase, frame);
+  m[12] = 0;
+  m[13] = 0;
+  m[14] = 0;
+  return m;
+}
+
+/**
+ * Recursively emit records for one node of a parts tree and (optionally)
+ * collect every node's world frame for the editor.
+ *
+ * - Root shape leaves go through recordForPart — byte-identical to the flat
+ *   model.
+ * - Groups compose a frame onto the accumulated ancestor frames and recurse.
+ * - Nested shape leaves get a fully baked world `matrix` record — the flat
+ *   record fields can't express rotation about a group origin, so the matrix
+ *   carries the whole composed transform.
+ *
+ * @param {object} ctx - { tile, worldPos, tileH, i, itemScale, placement, disp,
+ *        biomeTint, worldBase }
+ * @param {number[]} frame - accumulated ancestor group frames (identity at root)
+ * @param {boolean} isRoot - node is at the top of the parts tree (grounded)
+ * @param {object[]} out - record accumulator
+ * @param {Map|null} nodeFrames - when set, per-node { origin, parentRot } for
+ *        every leaf and group (see nodeWorldFrames)
+ */
+function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
+  if (isGroupNode(part)) {
+    const t = part.transform;
+    const scaleMul = ctx.disp?.scaleMul ?? 1;
+    const g = groupFrameMatrix(t, ctx.itemScale, scaleMul, ctx.placement.scaleMul ?? 1);
+    const nextFrame = mat4Multiply(frame, g);
+    if (nodeFrames) {
+      const { x, y, z } = frameLocalPos(t, ctx.itemScale, 1);
+      const originM = mat4Multiply(ctx.worldBase, mat4Multiply(frame, mat4Translation(x, y, z)));
+      nodeFrames.set(part.id, { origin: mat4TranslationOf(originM), parentRot: parentRotationMatrix(ctx.worldBase, frame) });
+    }
+    for (const child of part.children) {
+      collectPart(descriptor, child, ctx, nextFrame, false, out, nodeFrames);
+    }
+    return;
+  }
+
+  if (isRoot) {
+    out.push(recordForPart(descriptor, part, ctx.tile, ctx.worldPos, ctx.tileH, ctx.i, ctx.itemScale, ctx.placement, ctx.disp, ctx.biomeTint));
+    if (nodeFrames) {
+      const r = out[out.length - 1];
+      nodeFrames.set(part.id, { origin: { x: r.x, y: r.y, z: r.z }, parentRot: parentRotationMatrix(ctx.worldBase, mat4Identity()) });
+    }
+    return;
+  }
+
+  const biomeFactor = part.biomeScale?.[ctx.tile.biomeId] ?? 1;
+  const leaf = nestedLeafFrameMatrix(
+    part, descriptor, ctx.tile, ctx.tileH, ctx.i, ctx.itemScale,
+    ctx.disp?.scaleMul ?? 1, ctx.placement.scaleMul ?? 1, biomeFactor,
+  );
+  const matrix = mat4Multiply(ctx.worldBase, mat4Multiply(frame, leaf));
+  const record = { partId: part.id, matrix };
+  const color = tileColorForPart(part, descriptor, ctx.tileH, ctx.i, ctx.biomeTint);
+  if (color !== undefined) record.color = color;
+  out.push(record);
+  if (nodeFrames) {
+    nodeFrames.set(part.id, { origin: mat4TranslationOf(matrix), parentRot: parentRotationMatrix(ctx.worldBase, frame) });
+  }
 }
 
 /**
@@ -464,11 +636,50 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
     // the old item-independent roll, so lone objects are unchanged.
     const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, frac(treeHash(tileH, i + 3)));
     const placement = itemPlacement(descriptor, i, count, tileH, disp, jitter);
+    const ctx = {
+      tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
+      worldBase: worldBaseMatrix(worldPos, placement, disp),
+    };
     for (const part of parts) {
-      records.push(recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint));
+      collectPart(descriptor, part, ctx, mat4Identity(), true, records, null);
     }
   }
   return records;
+}
+
+/**
+ * World frames for every node (shape leaves AND groups) of the tile path:
+ * per partId, the node's world-space origin and the rotation-only matrix of
+ * its parent chain (`worldBase × ancestor frames`, translation zeroed). The
+ * editor uses these to place the translation gizmo at a selected node's origin
+ * and to convert world-space drag deltas into the node's local frame — a
+ * rotation's inverse is its transpose, so `deltaLocal = R_parentᵀ · deltaWorld`.
+ * For clusters every item's nodes land in the same map; later items overwrite
+ * earlier ones (the gizmo drags the shared localPos of the last item's frame).
+ */
+export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null) {
+  const frames = new Map();
+  if (displacement.hidden) return frames;
+  const count = itemCount(descriptor, tile, tileH);
+  if (displacement.displaced && descriptor.emphasis.behavior === 'hidden') return frames;
+
+  const variant = variantFor(descriptor, tile, tileH, variantId);
+  const parts = (variant ?? descriptor).parts;
+  const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile) : null;
+  const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);
+
+  for (let i = 0; i < count; i++) {
+    const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, frac(treeHash(tileH, i + 3)));
+    const placement = itemPlacement(descriptor, i, count, tileH, disp, jitter);
+    const ctx = {
+      tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
+      worldBase: worldBaseMatrix(worldPos, placement, disp),
+    };
+    for (const part of parts) {
+      collectPart(descriptor, part, ctx, mat4Identity(), true, [], frames);
+    }
+  }
+  return frames;
 }
 
 // ── Entity-driven records ───────────────────────────────────────────────────
@@ -531,6 +742,62 @@ function recordForEntityPart(part, entity, worldPos, itemScale) {
 }
 
 /**
+ * A nested leaf's frame on the entity path — no tile hash draws: scale is
+ * itemScale × transform scale only, localPos pre-scaled by itemScale.
+ */
+function entityLeafFrameMatrix(part, itemScale) {
+  const t = part.transform;
+  const { x, y, z } = frameLocalPos(t, itemScale, 1);
+  let m = mat4Scale(itemScale * t.scaleX, itemScale * t.scaleY, itemScale * t.scaleZ);
+  if (t.localAxis && t.localAngle !== undefined) {
+    m = mat4Multiply(mat4RotationAxisAngle(t.localAxis, t.localAngle), m);
+  }
+  if (t.rotY) m = mat4Multiply(mat4RotationY(t.rotY), m);
+  return mat4Multiply(mat4Translation(x, y, z), m);
+}
+
+/**
+ * Recursively emit records for one node on the entity path (the tile-path
+ * collectPart, without a tile hash: no stretch, no scatter, no biome). Root
+ * shape leaves go through recordForEntityPart unchanged; groups compose a
+ * frame; nested leaves get a baked world `matrix` record.
+ */
+function collectEntityPart(descriptor, part, entity, worldPos, itemScale, frame, isRoot, out, nodeFrames) {
+  const worldBase = mat4Translation(worldPos.x, worldPos.y, worldPos.z);
+  if (isGroupNode(part)) {
+    const g = groupFrameMatrix(part.transform, itemScale, 1, 1);
+    const nextFrame = mat4Multiply(frame, g);
+    if (nodeFrames) {
+      const { x, y, z } = frameLocalPos(part.transform, itemScale, 1);
+      const originM = mat4Multiply(worldBase, mat4Multiply(frame, mat4Translation(x, y, z)));
+      nodeFrames.set(part.id, { origin: mat4TranslationOf(originM), parentRot: parentRotationMatrix(worldBase, frame) });
+    }
+    for (const child of part.children) {
+      collectEntityPart(descriptor, child, entity, worldPos, itemScale, nextFrame, false, out, nodeFrames);
+    }
+    return;
+  }
+
+  if (isRoot) {
+    out.push(recordForEntityPart(part, entity, worldPos, itemScale));
+    if (nodeFrames) {
+      const r = out[out.length - 1];
+      nodeFrames.set(part.id, { origin: { x: r.x, y: r.y, z: r.z }, parentRot: parentRotationMatrix(worldBase, mat4Identity()) });
+    }
+    return;
+  }
+
+  const matrix = mat4Multiply(worldBase, mat4Multiply(frame, entityLeafFrameMatrix(part, itemScale)));
+  const record = { partId: part.id, matrix };
+  const color = entityColorForPart(part, entity);
+  if (color !== undefined) record.color = color;
+  out.push(record);
+  if (nodeFrames) {
+    nodeFrames.set(part.id, { origin: mat4TranslationOf(matrix), parentRot: parentRotationMatrix(worldBase, frame) });
+  }
+}
+
+/**
  * Generate instance records for one entity (base / champion / mob / trader)
  * from a (normalized) descriptor — the entity-driven record path.
  *
@@ -554,5 +821,25 @@ export function recordsForEntity(descriptor, entity, worldPos, displacement = {}
   const variant = variantForEntity(descriptor, entity);
   const parts = (variant ?? descriptor).parts;
   const itemScale = (entity.scale ?? 1) * descriptor.scale;
-  return parts.map((part) => recordForEntityPart(part, entity, worldPos, itemScale));
+  const records = [];
+  for (const part of parts) {
+    collectEntityPart(descriptor, part, entity, worldPos, itemScale, mat4Identity(), true, records, null);
+  }
+  return records;
+}
+
+/**
+ * World frames for every node (leaves AND groups) on the entity path — the
+ * entity-path counterpart of nodeWorldFrames, for the editor's gizmo.
+ */
+export function nodeWorldFramesForEntity(descriptor, entity, worldPos, displacement = {}) {
+  const frames = new Map();
+  if (displacement.hidden) return frames;
+  const variant = variantForEntity(descriptor, entity);
+  const parts = (variant ?? descriptor).parts;
+  const itemScale = (entity.scale ?? 1) * descriptor.scale;
+  for (const part of parts) {
+    collectEntityPart(descriptor, part, entity, worldPos, itemScale, mat4Identity(), true, [], frames);
+  }
+  return frames;
 }

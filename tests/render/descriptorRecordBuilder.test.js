@@ -6,7 +6,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
-import { recordsForDescriptor } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
+import {
+  recordsForDescriptor,
+  recordsForEntity,
+  nodeWorldFrames,
+  nodeWorldFramesForEntity,
+} from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
 import { biomeTintForTile } from '../../src/render/hexmap3d/features/biomeTint.js';
 import { DISPERSED_SCALE, sunkTransform, dispersedSingleOffset } from '../../src/render/hexmap3d/features/decorEmphasis.js';
 
@@ -658,4 +663,147 @@ test('cluster members draw their own size from hash i+3', () => {
     const expected = 1 + (h(i + 3) % 100) / 100;
     assert.ok(Math.abs(s - expected) < 1e-9, `item ${i} scale ${s} vs ${expected}`);
   });
+});
+
+// ── Nested part groups (schema v5) ──────────────────────────────────────────
+
+/**
+ * Center-placed grouped object: a root leaf + a group with one nested leaf.
+ * All offsets are powers of two (0.5, 0.25) and the world position uses exact
+ * fractions, so the baked matrix entries are exact (no FP drift to chase).
+ */
+const GROUPED = normalizeDescriptor({
+  id: 'grouped',
+  kind: 'feature',
+  displayName: 'Grouped',
+  schemaVersion: 3,
+  placement: { mode: 'center' },
+  size: { min: 1, max: 1 },
+  parts: [
+    { id: 'base', shape: 'sphere' }, // radius 0.3 → base offset 0.3
+    {
+      id: 'lid',
+      transform: { localPos: { x: 0, y: 0.5, z: 0 } },
+      children: [
+        { id: 'lid-board', shape: 'box', transform: { localPos: { x: 0, y: 0, z: 0.25 } } },
+      ],
+    },
+  ],
+});
+
+const IDENTITY_MATRIX = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+
+/** Element-wise matrix comparison — rotation entries carry ~1e-16 trig drift. */
+function expectMatrix(actual, expected, eps = 1e-9) {
+  assert.equal(actual.length, 16, `matrix has ${actual.length} elements`);
+  for (let i = 0; i < 16; i++) {
+    assert.ok(Math.abs(actual[i] - expected[i]) < eps, `matrix[${i}] = ${actual[i]} vs ${expected[i]}`);
+  }
+}
+
+test('groups emit no records; nested leaves emit a baked world matrix', () => {
+  const records = recordsForDescriptor(GROUPED, TILE, POS);
+  assert.equal(records.length, 2);
+  assert.deepEqual(records.map((r) => r.partId), ['base', 'lid-board'], 'groups never appear in records');
+  // Root leaf: the flat record path — byte-identical to the un-grouped model.
+  assert.deepEqual(Object.keys(records[0]).sort(), ['partId', 'scale', 'scaleY', 'x', 'y', 'z']);
+  // Nested leaf: a full world matrix instead of the flat fields.
+  const child = records[1];
+  assert.ok(!('x' in child) && !('y' in child) && !('z' in child), 'no flat position on nested records');
+  assert.ok(!('rotY' in child) && !('scale' in child) && !('scaleY' in child), 'no flat rotation/scale on nested records');
+  // T(worldPos) · T(0, 0.5, 0) · T(0, 0, 0.25) = T(1.732, 1.75, -2.75).
+  assert.deepEqual(child.matrix, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1.732, 1.75, -2.75, 1]);
+});
+
+test('nested leaf under a rotated group inherits the hinge rotation', () => {
+  const rotated = normalizeDescriptor({
+    id: 'rotated',
+    kind: 'feature',
+    displayName: 'Rotated',
+    schemaVersion: 3,
+    placement: { mode: 'center' },
+    size: { min: 1, max: 1 },
+    parts: [
+      {
+        id: 'lid',
+        transform: { localPos: { x: 0, y: 0.5, z: 0 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: Math.PI / 2 },
+        children: [{ id: 'board', shape: 'box', transform: { localPos: { x: 0, y: 0, z: 0.25 } } }],
+      },
+    ],
+  });
+  const [board] = recordsForDescriptor(rotated, TILE, POS);
+  // R_x(π/2) swings the child's +z offset to −y: origin T(1.732, 1.5, −3)
+  // (1.25 + 0.5 − 0.25 = 1.5).
+  expectMatrix(board.matrix, [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 1.732, 1.5, -3, 1]);
+});
+
+test('group scale composes with the child scale (affine shear-free case)', () => {
+  const scaled = normalizeDescriptor({
+    id: 'scaled',
+    kind: 'feature',
+    displayName: 'Scaled',
+    schemaVersion: 3,
+    placement: { mode: 'center' },
+    size: { min: 1, max: 1 },
+    parts: [
+      {
+        id: 'g',
+        transform: { localPos: { x: 0, y: 0.5, z: 0 }, scaleY: 2 },
+        children: [{ id: 'leaf', shape: 'box', transform: { localPos: { x: 0, y: 0.25, z: 0 }, scaleX: 3 } }],
+      },
+    ],
+  });
+  const [leaf] = recordsForDescriptor(scaled, TILE, POS);
+  // Group S(1,2,1) stretches the child's localPos.y (0.25 → 0.5) — the child
+  // lands at group origin + (0, 1.0, 0) — and the scales compose into a final
+  // S(3,2,1) at T(1.732, 2.25, −3).
+  expectMatrix(leaf.matrix, [3, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 1.732, 2.25, -3, 1]);
+});
+
+test('nodeWorldFrames exposes every leaf AND group origin plus parent rotation', () => {
+  const frames = nodeWorldFrames(GROUPED, TILE, POS);
+  assert.deepEqual([...frames.keys()].sort(), ['base', 'lid', 'lid-board']);
+  // Group origin: the hinge point in world space (worldPos + group localPos).
+  assert.deepEqual(frames.get('lid').origin, { x: 1.732, y: 1.75, z: -3 });
+  assert.deepEqual(frames.get('lid').parentRot, IDENTITY_MATRIX, 'center placement rotates nothing');
+  // Nested leaf origin = its baked matrix translation.
+  assert.deepEqual(frames.get('lid-board').origin, { x: 1.732, y: 1.75, z: -2.75 });
+  assert.deepEqual(frames.get('lid-board').parentRot, IDENTITY_MATRIX);
+  // Root leaf origin = its flat record position (bottom-anchored: + 0.3 base).
+  assert.deepEqual(frames.get('base').origin, { x: 1.732, y: 1.55, z: -3 });
+});
+
+test('parentRot carries the accumulated ancestor rotation (gizmo delta conversion)', () => {
+  const rotated = normalizeDescriptor({
+    id: 'rotated-frame',
+    kind: 'feature',
+    displayName: 'Rotated Frame',
+    schemaVersion: 3,
+    placement: { mode: 'center' },
+    size: { min: 1, max: 1 },
+    parts: [
+      {
+        id: 'g',
+        transform: { localPos: { x: 0, y: 0.5, z: 0 }, rotY: Math.PI / 2 },
+        children: [{ id: 'leaf', shape: 'box' }],
+      },
+    ],
+  });
+  const frames = nodeWorldFrames(rotated, TILE, POS);
+  // R_y(π/2), col-major: [0,0,-1; 0,1,0; 1,0,0] — the group's own rotation,
+  // so a drag delta converts as deltaLocal = R_parentᵀ · deltaWorld.
+  expectMatrix(frames.get('leaf').parentRot, [0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1]);
+  expectMatrix(frames.get('g').parentRot, IDENTITY_MATRIX);
+});
+
+test('entity path: groups compose baked matrices with the same frame math', () => {
+  const entity = { color: 0xffffff }; // no entity.scale → itemScale = descriptor.scale = 1
+  const records = recordsForEntity(GROUPED, entity, POS);
+  assert.equal(records.length, 2);
+  assert.deepEqual(records.map((r) => r.partId), ['base', 'lid-board']);
+  assert.deepEqual(records[1].matrix, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1.732, 1.75, -2.75, 1]);
+  // nodeWorldFramesForEntity exposes the group hinge for the editor too.
+  const frames = nodeWorldFramesForEntity(GROUPED, entity, POS);
+  assert.deepEqual([...frames.keys()].sort(), ['base', 'lid', 'lid-board']);
+  assert.deepEqual(frames.get('lid').origin, { x: 1.732, y: 1.75, z: -3 });
 });

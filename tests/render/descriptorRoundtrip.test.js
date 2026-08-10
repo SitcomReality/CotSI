@@ -73,3 +73,38 @@ test('every descriptor has a home file (per-object file or DESCRIPTOR_SOURCES)',
     }
   }
 });
+
+// ── Nested part groups (schema v5) ──────────────────────────────────────────
+
+test('synthetic group descriptor round-trips through denormalize and emit', async () => {
+  const grouped = {
+    id: 'groupedDemo',
+    kind: 'feature',
+    displayName: 'Grouped Demo',
+    schemaVersion: 3,
+    parts: [
+      { id: 'base', shape: 'box' },
+      {
+        id: 'lid',
+        transform: {
+          localPos: { x: 0, y: 0.15, z: 0.125 },
+          localAxis: { x: 1, y: 0, z: 0 },
+          localAngle: -1.4,
+        },
+        children: [
+          { id: 'lid-board', shape: 'box', params: { width: 0.35, height: 0.08, depth: 0.25 }, transform: { localPos: { x: 0, y: 0, z: -0.125 } } },
+          { id: 'lid-strap', shape: 'box', transform: { localPos: { x: -0.12, y: 0, z: -0.125 }, scaleX: 0.5 } },
+        ],
+      },
+    ],
+  };
+  const d = normalizeDescriptor(grouped);
+  assert.deepEqual(validateDescriptor(d), []);
+  // Default stripping + refill keeps the tree intact.
+  assert.deepEqual(normalizeDescriptor(denormalizeDescriptor(d)), d, 'denormalize keeps the group tree');
+  // And the Save round-trip: emit → import → normalize returns the same value.
+  const text = emitDescriptorModule(d);
+  const mod = await import('data:text/javascript;base64,' + Buffer.from(text).toString('base64'));
+  assert.ok('GROUPED_DEMO_DESCRIPTOR' in mod, 'emitted module exports the group descriptor');
+  assert.deepEqual(normalizeDescriptor(mod.GROUPED_DEMO_DESCRIPTOR), d, 'emitted module keeps the group tree');
+});

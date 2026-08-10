@@ -613,3 +613,117 @@ test('part.biomeScale validates per-biome factors and passes through', () => {
   }
   assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', biomeScale: 'all' }] }).length > 0);
 });
+
+// ── Nested part groups (schema v5) ──────────────────────────────────────────
+
+/** A minimal grouped descriptor: a root leaf + a group with two nested leaves. */
+const GROUPED = {
+  id: 'grouped',
+  kind: 'feature',
+  displayName: 'Grouped',
+  schemaVersion: 3,
+  parts: [
+    { id: 'base', shape: 'box' },
+    {
+      id: 'lid',
+      transform: {
+        localPos: { x: 0, y: 0.15, z: 0.125 },
+        localAxis: { x: 1, y: 0, z: 0 },
+        localAngle: -1.4,
+      },
+      children: [
+        { id: 'lid-board', shape: 'box', params: { width: 0.35, height: 0.08, depth: 0.25 }, transform: { localPos: { x: 0, y: 0, z: -0.125 } } },
+        { id: 'lid-strap', shape: 'box', transform: { localPos: { x: -0.12, y: 0, z: -0.125 } } },
+      ],
+    },
+  ],
+};
+
+test('a group descriptor validates clean', () => {
+  assert.deepEqual(validateDescriptor(GROUPED), []);
+  assert.deepEqual(validateDescriptor(normalizeDescriptor(GROUPED)), []);
+});
+
+test('a node is a leaf OR a group: shape+children, empty children, non-array children rejected', () => {
+  const withShape = { ...GROUPED, parts: [{ id: 'g', shape: 'box', children: [{ id: 'c', shape: 'sphere' }] }] };
+  assert.ok(validateDescriptor(withShape).some((e) => e.includes('groups have no shape')), 'group with shape rejected');
+  const withParams = { ...GROUPED, parts: [{ id: 'g', params: { width: 1 }, children: [{ id: 'c', shape: 'sphere' }] }] };
+  assert.ok(validateDescriptor(withParams).some((e) => e.includes('groups have no params')), 'group with params rejected');
+  const badChildren = { ...GROUPED, parts: [{ id: 'g', shape: 'box', children: 'nope' }] };
+  assert.ok(validateDescriptor(badChildren).some((e) => e.includes('children must be an array')), 'leaf with children array rejected');
+  const empty = { ...GROUPED, parts: [{ id: 'g', children: [] }] };
+  assert.ok(validateDescriptor(empty).some((e) => e.includes('at least one child')), 'empty group rejected');
+});
+
+test('nested y/lift/tilt fields are rejected (root-only grounding)', () => {
+  for (const bad of [
+    { id: 'g', children: [{ id: 'c', shape: 'sphere', transform: { y: 1 } }] },
+    { id: 'g', children: [{ id: 'c', shape: 'sphere', transform: { lift: 0.2 } }] },
+    { id: 'g', children: [{ id: 'c', shape: 'sphere', transform: { tiltAxis: { x: 1, z: 0 }, tilt: 0.1 } }] },
+    { id: 'g', transform: { lift: 0.2 }, children: [{ id: 'c', shape: 'sphere' }] }, // groups are never grounded either
+  ]) {
+    const errors = validateDescriptor({ ...GROUPED, parts: [bad] });
+    assert.ok(errors.some((e) => e.includes('only root parts may set')), JSON.stringify(bad));
+  }
+  // The same fields stay valid on a root leaf.
+  const rootLeaf = { ...GROUPED, parts: [{ id: 'root', shape: 'sphere', transform: { y: 1, lift: 0.2, tiltAxis: { x: 1, z: 0 }, tilt: 0.1 } }] };
+  assert.deepEqual(validateDescriptor(rootLeaf), []);
+});
+
+test('groups reject color/stretch/biome fields (no geometry of their own)', () => {
+  for (const extra of [
+    { color: 0xff0000 },
+    { stretch: { y: { min: 1, max: 1 } } },
+    { biomeColor: { source: 'primary', influence: 0.5 } },
+    { biomeScale: { biome_tundra: 0.85 } },
+  ]) {
+    const bad = { ...GROUPED, parts: [{ id: 'g', ...extra, children: [{ id: 'c', shape: 'sphere' }] }] };
+    const errors = validateDescriptor(bad);
+    assert.ok(errors.some((e) => e.includes('groups have no')), JSON.stringify(extra));
+  }
+});
+
+test('duplicate part ids are rejected across nesting depth', () => {
+  const dup = {
+    ...GROUPED,
+    parts: [
+      { id: 'base', shape: 'box' },
+      { id: 'lid', children: [{ id: 'base', shape: 'sphere' }] }, // collides with the root leaf
+    ],
+  };
+  assert.ok(validateDescriptor(dup).some((e) => e.includes('duplicate part id "base"')));
+  // Two leaves in different sibling groups also collide (records key by partId).
+  const dupSiblings = {
+    ...GROUPED,
+    parts: [
+      { id: 'a', children: [{ id: 'shared', shape: 'sphere' }] },
+      { id: 'b', children: [{ id: 'shared', shape: 'box' }] },
+    ],
+  };
+  assert.ok(validateDescriptor(dupSiblings).some((e) => e.includes('duplicate part id "shared"')));
+});
+
+test('normalize fills nested defaults recursively (nested set: no y/lift)', () => {
+  const d = normalizeDescriptor(GROUPED);
+  const [base, lid] = d.parts;
+  const [board, strap] = lid.children;
+  // Root leaf keeps the full root transform defaults.
+  assert.deepEqual(base.transform, { y: 0, lift: 0, rotY: 0, scaleX: 1, scaleY: 1, scaleZ: 1 });
+  // The group itself uses the nested set (groups are never grounded).
+  assert.deepEqual(lid.transform, {
+    rotY: 0, scaleX: 1, scaleY: 1, scaleZ: 1,
+    localPos: { x: 0, y: 0.15, z: 0.125 },
+    localAxis: { x: 1, y: 0, z: 0 },
+    localAngle: -1.4,
+  });
+  // Nested leaves get the nested defaults — no y/lift appear.
+  assert.deepEqual(strap.transform, {
+    rotY: 0, scaleX: 1, scaleY: 1, scaleZ: 1,
+    localPos: { x: -0.12, y: 0, z: -0.125 },
+  });
+  assert.deepEqual(board.transform, { rotY: 0, scaleX: 1, scaleY: 1, scaleZ: 1, localPos: { x: 0, y: 0, z: -0.125 } });
+  assert.equal(d.schemaVersion, SCHEMA_VERSION);
+  // Idempotence and JSON roundtrip keep the tree.
+  assert.deepEqual(normalizeDescriptor(d), d, 'normalize is idempotent with groups');
+  assert.deepEqual(normalizeDescriptor(JSON.parse(JSON.stringify(d))), d, 'JSON roundtrip keeps groups');
+});

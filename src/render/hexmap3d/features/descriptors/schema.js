@@ -9,7 +9,10 @@
  *     octahedron / cube / spheroid, plus bespoke shapes like the mountain
  *     pyramid and the lathe solid of revolution) with their dimensions and
  *     per-part transforms — the same fields the mesh builders
- *     write into instance records (see meshBuilder.js);
+ *     write into instance records (see meshBuilder.js). A part is either a
+ *     shape leaf or a group: a group carries a `children` array of further
+ *     parts/groups and a transform that composes onto its descendants, so
+ *     sub-assemblies (a hinged lid with its straps) share one transform;
  *   - cluster min/max — how many items share a hex (default 1);
  *   - size min/max — the per-item scale range (default 1..1) and finer
  *     variation ranges (canopy stretch, color jitter);
@@ -180,9 +183,14 @@ export const PLACEMENT_MODES = Object.freeze(['center', 'scatter', 'ring', 'jitt
 /**
  * Bump when the descriptor shape changes in a breaking way. v4 removed the
  * object-level material color and the per-part materialColor — every part now
- * carries its own `color`; normalizeDescriptor migrates v3 files.
+ * carries its own `color`; normalizeDescriptor migrates v3 files. v5 added
+ * nested part groups: a part is either a shape leaf or a group (a `children`
+ * array) whose transform composes onto its descendants, so sub-assemblies
+ * (hinged lids, attached straps) share one transform instead of duplicating
+ * numbers. v4 files need no migration — groups are optional, absent means the
+ * flat all-leaves model.
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /**
  * Defaults for optional object-level fields. Values mirror the current game
@@ -216,6 +224,23 @@ export const OBJECT_DEFAULTS = Object.freeze({
 export const PART_TRANSFORM_DEFAULTS = Object.freeze({
   y: 0,
   lift: 0,
+  rotY: 0,
+  scaleX: 1,
+  scaleY: 1,
+  scaleZ: 1,
+});
+
+/**
+ * Defaults for a NESTED part's or group's transform — any node below the root
+ * of a parts tree. Nested nodes have no grounding: they sit purely in their
+ * parent's frame, so the bottom-height fields (`y`, `lift`) and the world-space
+ * lean (`tiltAxis`, `tilt`) are root-only and never appear here. Position is
+ * `localPos`; orientation is `localAxis`/`localAngle` (parent-frame rotation)
+ * plus `rotY` (spin about the node's own origin); scaleX/Y/Z are the
+ * non-uniform scale. Groups use this set at any depth (they are never
+ * grounded), nested leaves use it too.
+ */
+export const NESTED_PART_TRANSFORM_DEFAULTS = Object.freeze({
   rotY: 0,
   scaleX: 1,
   scaleY: 1,
@@ -384,15 +409,20 @@ function validateVec(value, axes, path, errors) {
  * @param {object} transform - part.transform
  * @param {string} path - error prefix, e.g. `descriptor.parts[0] "trunk"`
  * @param {string[]} errors - accumulator
+ * @param {boolean} [nested=false] - nested parts and groups sit in their
+ *        parent's frame with no grounding: `y`, `lift`, `tiltAxis`, and
+ *        `tilt` are root-only fields and rejected here.
  */
-export function validateTransform(transform, path, errors) {
+export function validateTransform(transform, path, errors, nested = false) {
   if (!isPlainObject(transform)) {
     errors.push(`${path}.transform: must be an object`);
     return;
   }
   for (const key of Object.keys(transform)) {
     const value = transform[key];
-    if (TRANSFORM_NUMBER_KEYS.includes(key)) {
+    if (nested && (key === 'y' || key === 'lift' || key === 'tiltAxis' || key === 'tilt')) {
+      errors.push(`${path}.transform.${key}: only root parts may set this field — nested parts and groups sit in their parent's frame`);
+    } else if (TRANSFORM_NUMBER_KEYS.includes(key)) {
       if (!isFiniteNumber(value)) errors.push(`${path}.transform.${key}: expected a finite number (angles in radians)`);
     } else if (TRANSFORM_SCALE_KEYS.includes(key)) {
       if (!isPositiveNumber(value)) errors.push(`${path}.transform.${key}: must be a positive number`);
@@ -406,7 +436,7 @@ export function validateTransform(transform, path, errors) {
   }
 }
 
-const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale'];
+const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale', 'children'];
 
 const STRETCH_AXES = ['x', 'y', 'z', 'xz']; // 'xz' is the legacy combined axis
 
@@ -491,38 +521,66 @@ function validateStretch(stretch, path, errors) {
 }
 
 /**
- * Validate a single shape part.
- * @param {object} part - the part
+ * Validate a single node of a parts tree: either a shape leaf or a group
+ * (a `children` array). `seen` is the id set shared across the whole parts set
+ * (fallback `parts` or one variant's `parts`) — ids must be unique across the
+ * entire subtree because records and InstancedMeshes are keyed by partId.
+ * `nested` marks nodes below the root, which use the nested transform field
+ * set (no `y`/`lift`/`tilt`).
+ * @param {object} part - the node
  * @param {string} path - error prefix, e.g. `descriptor.parts[0]`
  * @param {string[]} errors - accumulator
+ * @param {Set<string>} seen - ids already claimed in this parts set
+ * @param {boolean} [nested=false] - node is below the root of the parts tree
  */
-export function validatePart(part, path, errors) {
+export function validatePart(part, path, errors, seen = new Set(), nested = false) {
   if (!isPlainObject(part)) {
     errors.push(`${path}: part must be an object`);
     return;
   }
   if (typeof part.id !== 'string' || !part.id) errors.push(`${path}: missing part id`);
   const label = part.id ? ` "${part.id}"` : '';
-
-  if (typeof part.shape !== 'string' || !SHAPE_TYPES[part.shape]) {
-    errors.push(`${path}${label}: unknown shape "${part.shape ?? '(missing)'}" (known: ${Object.keys(SHAPE_TYPES).join(', ')})`);
-  } else if (part.params !== undefined) {
-    errors.push(...validateShapeParams(part.shape, part.params));
+  if (typeof part.id === 'string' && part.id) {
+    if (seen.has(part.id)) errors.push(`${path}: duplicate part id "${part.id}"`);
+    seen.add(part.id);
   }
 
-  if (part.transform !== undefined) validateTransform(part.transform, `${path}${label}`, errors);
-  if (part.color !== undefined && !isColorInt(part.color) && !isColorToken(part.color)) {
-    errors.push(`${path}${label}: color must be an integer 0..0xFFFFFF or a named-color token (${COLOR_TOKEN_PATTERN})`);
+  const isGroup = Array.isArray(part.children);
+  if (isGroup) {
+    if (part.children.length === 0) errors.push(`${path}${label}: group must have at least one child`);
+    if (part.shape !== undefined) errors.push(`${path}${label}: groups have no shape — a part is either a shape leaf or a group (children)`);
+    if (part.params !== undefined) errors.push(`${path}${label}: groups have no params`);
+    if (part.color !== undefined) errors.push(`${path}${label}: groups have no color`);
+    if (part.materialColor !== undefined) errors.push(`${path}${label}: groups have no materialColor`);
+    if (part.stretch !== undefined) errors.push(`${path}${label}: groups have no stretch`);
+    if (part.biomeColor !== undefined) errors.push(`${path}${label}: groups have no biomeColor`);
+    if (part.biomeScale !== undefined) errors.push(`${path}${label}: groups have no biomeScale`);
+    part.children.forEach((child, ci) => validatePart(child, `${path}.children[${ci}]`, errors, seen, true));
+  } else {
+    if (part.children !== undefined) errors.push(`${path}${label}: children must be an array`);
+    if (typeof part.shape !== 'string' || !SHAPE_TYPES[part.shape]) {
+      errors.push(`${path}${label}: unknown shape "${part.shape ?? '(missing)'}" (known: ${Object.keys(SHAPE_TYPES).join(', ')})`);
+    } else if (part.params !== undefined) {
+      errors.push(...validateShapeParams(part.shape, part.params));
+    }
+
+    if (part.color !== undefined && !isColorInt(part.color) && !isColorToken(part.color)) {
+      errors.push(`${path}${label}: color must be an integer 0..0xFFFFFF or a named-color token (${COLOR_TOKEN_PATTERN})`);
+    }
+    // materialColor is legacy (v3): normalizeDescriptor merges it into `color`,
+    // which is why it stays integer-only here (the material path never resolves
+    // tokens). Accepted so old downloads still validate; never emitted by Save.
+    if (part.materialColor !== undefined && !isColorInt(part.materialColor)) {
+      errors.push(`${path}${label}: materialColor must be an integer 0..0xFFFFFF`);
+    }
+    if (part.stretch !== undefined) validateStretch(part.stretch, `${path}${label}.stretch`, errors);
+    if (part.biomeColor !== undefined) validateBiomeColor(part.biomeColor, `${path}${label}.biomeColor`, errors);
+    if (part.biomeScale !== undefined) validateBiomeScale(part.biomeScale, `${path}${label}.biomeScale`, errors);
   }
-  // materialColor is legacy (v3): normalizeDescriptor merges it into `color`,
-  // which is why it stays integer-only here (the material path never resolves
-  // tokens). Accepted so old downloads still validate; never emitted by Save.
-  if (part.materialColor !== undefined && !isColorInt(part.materialColor)) {
-    errors.push(`${path}${label}: materialColor must be an integer 0..0xFFFFFF`);
-  }
-  if (part.stretch !== undefined) validateStretch(part.stretch, `${path}${label}.stretch`, errors);
-  if (part.biomeColor !== undefined) validateBiomeColor(part.biomeColor, `${path}${label}.biomeColor`, errors);
-  if (part.biomeScale !== undefined) validateBiomeScale(part.biomeScale, `${path}${label}.biomeScale`, errors);
+
+  // Groups use the nested field set at any depth (they are never grounded);
+  // leaves use it only below the root.
+  if (part.transform !== undefined) validateTransform(part.transform, `${path}${label}`, errors, isGroup || nested);
   for (const key of Object.keys(part)) {
     if (!PART_KEYS.includes(key)) errors.push(`${path}${label}: unknown field "${key}"`);
   }
@@ -535,11 +593,7 @@ function validatePartsList(parts, path, errors) {
   }
   const seen = new Set();
   parts.forEach((part, i) => {
-    validatePart(part, `${path}.parts[${i}]`, errors);
-    if (isPlainObject(part) && part.id) {
-      if (seen.has(part.id)) errors.push(`${path}.parts: duplicate part id "${part.id}"`);
-      seen.add(part.id);
-    }
+    validatePart(part, `${path}.parts[${i}]`, errors, seen);
   });
 }
 
@@ -830,37 +884,51 @@ const LEGACY_SHAPE_NAMES = Object.freeze({
 });
 
 /**
- * Normalize one part. `legacyGrounding` migrates pre-v3 vertical placement (see
- * normalizeDescriptor): files authored before the bottom-anchored convention
- * encoded `transform.y` as the part's CENTER height. The record path bakes the
- * shape's base offset × Y scale into `y` (recordBuilder), which compensates a
- * matching `base × scaleY` subtraction from `transform.y` exactly at scale 1 —
- * so the migration pulls the base out of the authored center height and the
- * part renders at the same height (its lowest vertex lands at the old center
- * height, and stretch grows it upward from there instead of from its center).
- * `lift` / `localPos.y` are pure offsets and stay as authored. Idempotent:
- * only schemaVersion < SCHEMA_VERSION triggers it.
+ * Normalize one node of a parts tree (a shape leaf or a group). `nested` marks
+ * nodes below the root: they get the nested transform defaults (no `y`/`lift`)
+ * and skip the legacy grounding migration. Groups keep no shape/params and
+ * their `children` recurse. `legacyGrounding` migrates pre-v3 vertical
+ * placement (see normalizeDescriptor): files authored before the
+ * bottom-anchored convention encoded `transform.y` as the part's CENTER height.
+ * The record path bakes the shape's base offset × Y scale into `y`
+ * (recordBuilder), which compensates a matching `base × scaleY` subtraction
+ * from `transform.y` exactly at scale 1 — so the migration pulls the base out
+ * of the authored center height and the part renders at the same height (its
+ * lowest vertex lands at the old center height, and stretch grows it upward
+ * from there instead of from its center). `lift` / `localPos.y` are pure
+ * offsets and stay as authored. Idempotent: only schemaVersion < SCHEMA_VERSION
+ * triggers it.
  */
-function normalizePart(part, legacyGrounding = false) {
+function normalizePart(part, legacyGrounding = false, nested = false) {
   if (!isPlainObject(part)) return part;
-  const shapeName = LEGACY_SHAPE_NAMES[part.shape] ?? part.shape;
-  const shape = SHAPE_TYPES[shapeName];
-  const params = isPlainObject(part.params) ? part.params : {};
-  const transform = isPlainObject(part.transform) ? part.transform : {};
-  const out = { ...part, shape: shapeName };
-  out.params = shape ? { ...shape.defaults, ...params } : { ...params };
+  const out = { ...part };
+  const isGroup = Array.isArray(out.children);
+
+  // Shape leaves resolve params + legacy shape names; groups carry neither.
+  if (!isGroup) {
+    const shapeName = LEGACY_SHAPE_NAMES[out.shape] ?? out.shape;
+    const shape = SHAPE_TYPES[shapeName];
+    const params = isPlainObject(out.params) ? out.params : {};
+    out.shape = shapeName;
+    out.params = shape ? { ...shape.defaults, ...params } : { ...params };
+  } else {
+    delete out.shape;
+    delete out.params;
+  }
 
   // v3 → v4: `materialColor` merges into the single per-part `color`. A literal
   // `color` wins when both are present — the old instance-color path already
   // overrode the material color visually. Idempotent: v4 parts carry neither.
   if (out.materialColor !== undefined) {
-    if (out.color === undefined) out.color = out.materialColor;
+    if (!isGroup && out.color === undefined) out.color = out.materialColor;
     delete out.materialColor;
   }
 
   // Resolve the legacy combined XZ scale into independent scaleX/scaleZ
   // (an explicit per-axis scale wins over the legacy value).
-  const merged = { ...PART_TRANSFORM_DEFAULTS, ...transform };
+  const defaults = isGroup || nested ? NESTED_PART_TRANSFORM_DEFAULTS : PART_TRANSFORM_DEFAULTS;
+  const transform = isPlainObject(out.transform) ? out.transform : {};
+  const merged = { ...defaults, ...transform };
   if (transform.scaleXZ !== undefined) {
     if (!('scaleX' in transform)) merged.scaleX = transform.scaleXZ;
     if (!('scaleZ' in transform)) merged.scaleZ = transform.scaleXZ;
@@ -877,10 +945,16 @@ function normalizePart(part, legacyGrounding = false) {
     out.stretch = stretch;
   }
 
-  // Legacy (pre-v3) grounding migration — see the function docstring.
-  if (legacyGrounding) {
+  // Legacy (pre-v3) grounding migration — root shape leaves only. Groups have
+  // no geometry and nested nodes have no grounding to migrate.
+  if (!isGroup && !nested && legacyGrounding) {
     const base = shapeBaseOffset(out.shape, out.params);
     out.transform.y -= base * (out.transform.scaleY ?? 1);
+  }
+
+  // Children recurse as nested nodes (nested defaults, no grounding).
+  if (isGroup) {
+    out.children = out.children.map((child) => normalizePart(child, legacyGrounding, true));
   }
   return out;
 }
@@ -963,12 +1037,17 @@ export function normalizeDescriptor(def) {
   // that lacks an explicit color, then drop it from the material. Entity parts
   // are skipped for the push — their instance color comes from the entity
   // (token or the entity.color fallback), so the material color never rendered
-  // for them — but material.color is removed for every kind. Idempotent: a v4
-  // file has no material.color, so the push no-ops.
+  // for them — but material.color is removed for every kind. The push walks the
+  // parts trees recursively and touches shape leaves only (groups have no
+  // color). Idempotent: a v4 file has no material.color, so the push no-ops.
   if (legacyMaterialColor !== undefined) {
     if (!ENTITY_DRIVEN_KINDS.has(out.kind)) {
-      const push = (part) => {
-        if (part.color === undefined) part.color = legacyMaterialColor;
+      const push = (node) => {
+        if (Array.isArray(node.children)) {
+          for (const child of node.children) push(child);
+          return;
+        }
+        if (node.color === undefined) node.color = legacyMaterialColor;
       };
       for (const part of out.parts) push(part);
       for (const variant of out.variants ?? []) {
@@ -1075,11 +1154,12 @@ export function denormalizeDescriptor(def) {
   if (isPlainObject(out.emphasis) && out.emphasis.behavior === 'none') delete out.emphasis;
   if (isPlainObject(out.material) && sameValue(out.material, OBJECT_DEFAULTS.material)) delete out.material;
 
-  const denormPart = (part) => {
+  const denormPart = (part, nested = false) => {
     if (!isPlainObject(part)) return part;
     const p = cloneJson(part);
+    const isGroup = Array.isArray(p.children);
     const shape = SHAPE_TYPES[p.shape];
-    if (shape && isPlainObject(p.params)) {
+    if (!isGroup && shape && isPlainObject(p.params)) {
       const params = {};
       for (const [key, value] of Object.entries(p.params)) {
         if (!(key in shape.defaults) || !Object.is(value, shape.defaults[key])) params[key] = value;
@@ -1088,12 +1168,16 @@ export function denormalizeDescriptor(def) {
       else p.params = params;
     }
     if (isPlainObject(p.transform)) {
+      const defaults = isGroup || nested ? NESTED_PART_TRANSFORM_DEFAULTS : PART_TRANSFORM_DEFAULTS;
       const transform = {};
       for (const [key, value] of Object.entries(p.transform)) {
-        if (!(key in PART_TRANSFORM_DEFAULTS) || !Object.is(value, PART_TRANSFORM_DEFAULTS[key])) transform[key] = value;
+        if (!(key in defaults) || !Object.is(value, defaults[key])) transform[key] = value;
       }
       if (Object.keys(transform).length === 0) delete p.transform;
       else p.transform = transform;
+    }
+    if (isGroup) {
+      p.children = p.children.map((child) => denormPart(child, true));
     }
     return p;
   };

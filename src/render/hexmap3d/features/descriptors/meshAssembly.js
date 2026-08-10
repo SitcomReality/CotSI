@@ -25,9 +25,19 @@ export function buildDescriptorMeshes(descriptor, records, meshPrefix = 'descrip
   }
 
   const partById = new Map();
-  for (const part of descriptor.parts) partById.set(part.id, part);
+  // Walk the parts trees recursively — nested (grouped) leaves render through
+  // the same pipeline and need their material/geometry lookup too. Groups
+  // themselves never appear in records (no geometry), so they are skipped.
+  const collect = (node) => {
+    if (Array.isArray(node.children)) {
+      for (const child of node.children) collect(child);
+      return;
+    }
+    partById.set(node.id, node);
+  };
+  for (const part of descriptor.parts) collect(part);
   for (const variant of descriptor.variants ?? []) {
-    for (const part of variant.parts) partById.set(part.id, part);
+    for (const part of variant.parts) collect(part);
   }
 
   const results = [];

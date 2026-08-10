@@ -196,8 +196,8 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   assert.ok(Math.hypot(other.x - b0.x, other.z - b0.z) < 0.6, 'normal bush near its hex center');
 
   // Chest on the hidden-hill tile is present and displaced (hill mound is not).
-  const chest = meshNamed(meshes, 'treasureChest-chest-body');
-  assert.ok(chest && chest.count === 1, 'treasureChest-chest-body present with one instance');
+  const chest = meshNamed(meshes, 'treasureChest-chest-base');
+  assert.ok(chest && chest.count === 1, 'treasureChest-chest-base present with one instance');
   const cCenter = centerOf(TILES[7]);
   const cPos = instInfo(chest, 0);
   assert.ok(closeTo(cPos.x, cCenter.x + anchor.dx) && closeTo(cPos.z, cCenter.z + anchor.dz), 'chest displaced');
@@ -333,7 +333,7 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
   // the solitary tree, and the fruit tree all disappear.
   assert.equal(meshNamed(meshes, 'bush-body').count, 1, 'only the visible bush renders');
   assert.equal(meshesStarting(meshes, 'knot-').length, 0, 'knot hidden out of sight');
-  assert.equal(meshNamed(meshes, 'treasureChest-chest-body'), null, 'treasure chest hidden out of sight');
+  assert.equal(meshNamed(meshes, 'treasureChest-chest-base'), null, 'treasure chest hidden out of sight');
   assert.equal(meshNamed(meshes, 'tree-trunk'), null, 'solitary tree hidden out of sight');
   assert.equal(meshesStarting(meshes, 'fruit').length, 0, 'fruit tree hidden out of sight');
 
