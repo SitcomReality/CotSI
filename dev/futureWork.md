@@ -199,6 +199,5 @@ editor gaps:
 - **Table-driven entity save** — `bases.js` / `mobs.js` derive their
   descriptor from variant maps the game imports; the save endpoint rejects
   them until the maps are decoupled from the descriptor.
-- **3D gizmo** — direct transform manipulation in the preview (deferred).
 - **Diff-on-save** — the confirm dialog shows the target file only; a
   before/after descriptor diff would catch accidental drift.

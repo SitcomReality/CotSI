@@ -271,6 +271,13 @@ button:disabled {
   color: var(--ink-faint);
 }
 
+/* Monospace readout text (e.g. the Bounds min/max/center rows). */
+.control-row code.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+}
+
 /* ── Inspector field sizing ───────────────────────────────────────────────── */
 
 #inspector input[type="number"] {

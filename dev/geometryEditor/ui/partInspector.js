@@ -23,6 +23,7 @@ import {
   DEG_TO_RAD,
 } from './formControls.js';
 import { inspectorHead } from './inspectorHead.js';
+import { worldAABBForPartIds } from '../preview.js';
 import { SHAPE_TYPES } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
 import { ENTITY_KINDS } from '../entityView.js';
 import { activeParts } from './variantQuery.js';
@@ -30,6 +31,7 @@ import {
   isGroupNode,
   findNodeById,
   siblingIds,
+  descendantLeafIds,
   nestNode,
   ungroupNode,
   canUngroup,
@@ -80,6 +82,7 @@ const SECTIONS = {
   position: { title: 'Position', open: true },
   rotation: { title: 'Rotation', open: true },
   scale: { title: 'Scale', open: false },
+  bounds: { title: 'Bounds', open: true },
   color: { title: 'Color', open: false },
   biome: { title: 'Biome tint', open: false },
   stretch: { title: 'Stretch variation', open: false },
@@ -365,6 +368,26 @@ function renderScaleSection(container, entry, ctx) {
   sec.append(row('scaleZ', numberInput(t.scaleZ ?? 1, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleZ = v; }) })));
 }
 
+/**
+ * World bounds readout — the exact AABB the viewport wireframe draws (union
+ * over every instance of every descendant leaf), so the numbers always match
+ * the highlight. Groups report their children's union; a leaf reports its own.
+ */
+function renderBoundsSection(container, entry, ctx) {
+  const sec = section('bounds', container);
+  const box = worldAABBForPartIds(descendantLeafIds(entry));
+  if (!box) {
+    sec.append(el('div', 'hint', '— no rendered geometry for this node'));
+    return;
+  }
+  const fmt = (n) => (Math.round(n * 1000) / 1000).toFixed(3);
+  const tri = (v) => `${fmt(v.x)}, ${fmt(v.y)}, ${fmt(v.z)}`;
+  sec.append(row('min', el('code', 'mono', tri(box.min))));
+  sec.append(row('max', el('code', 'mono', tri(box.max))));
+  sec.append(row('center', el('code', 'mono', tri(box.center))));
+  sec.append(row('size', el('code', 'mono', tri(box.size))));
+}
+
 /** Color — leaves only (groups are pure containers, no visuals of their own). */
 function renderColorSection(container, part, ctx) {
   const d = S.descriptor;
@@ -464,6 +487,7 @@ export function renderPartInspector(container, entry, ctx) {
   renderPositionSection(container, entry, ctx);
   renderRotationSection(container, entry, ctx);
   renderScaleSection(container, entry, ctx);
+  renderBoundsSection(container, entry, ctx);
   if (!isGroupNode(node)) {
     renderColorSection(container, node, ctx);
     renderBiomeSection(container, node, ctx);

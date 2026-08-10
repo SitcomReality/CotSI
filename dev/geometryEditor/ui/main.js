@@ -9,10 +9,23 @@
 import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
 import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf, MOB_ROWS, BROWSABLE_TOTAL } from '../sampleObjects.js';
-import { createPreview, showRecords, setFloorVisible } from '../preview.js';
+import {
+  createPreview,
+  showRecords,
+  setFloorVisible,
+  worldAABBForPartIds,
+  bindViewportCallbacks,
+  updateSelectionOverlay,
+} from '../preview.js';
 import { bindEditorPanel, refreshEditorPanel } from './editorPanel.js';
-import { activeVariant } from './variantQuery.js';
-import { recordsForDescriptor, recordsForEntity } from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
+import { activeParts, activeVariant } from './variantQuery.js';
+import {
+  recordsForDescriptor,
+  recordsForEntity,
+  nodeWorldFrames,
+  nodeWorldFramesForEntity,
+} from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
+import { findNodeById, descendantLeafIds, addLocalDelta } from './partTree.js';
 import { biomeTintForTile } from '../../../src/render/hexmap3d/features/biomeTint.js';
 import { listArchetypes, getArchetype } from '../../../src/game/rules/archetypes.js';
 import { ENTITY_KINDS, entityForSelection } from '../entityView.js';
@@ -99,6 +112,46 @@ function rebuild() {
       (variant ? ` · variant ${variant.id}` : '') +
       (biome ? ` · biome ${biome}` : '');
   }
+
+  refreshSelectionOverlay();
+}
+
+/**
+ * World frames ({ origin, parentRot }) for every node of the active parts tree
+ * — the same recordBuilder path as rebuild(), so partIds always match the
+ * preview meshes.
+ */
+function currentFrames() {
+  const d = S.descriptor;
+  const tile = previewTile();
+  return ENTITY_KINDS.has(d.kind)
+    ? nodeWorldFramesForEntity(d, entityForSelection(S.entity.faction, S.entity.archetype), ORIGIN)
+    : nodeWorldFrames(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId);
+}
+
+/**
+ * Recompute the selection wireframe + gizmo from the current state — called at
+ * the end of every rebuild() and whenever selection changes (click-to-select,
+ * panel edits). Clears the overlay when nothing is selected or the selection is
+ * stale (e.g. after a variant switch).
+ */
+function refreshSelectionOverlay() {
+  const d = S.descriptor;
+  if (!d) { updateSelectionOverlay(null); return; }
+  const entry = findNodeById(activeParts(), S.selectedPartId);
+  if (!entry) { updateSelectionOverlay(null); return; }
+  const frame = currentFrames().get(entry.node.id);
+  if (!frame) { updateSelectionOverlay(null); return; }
+  const entityScale = ENTITY_KINDS.has(d.kind)
+    ? (entityForSelection(S.entity.faction, S.entity.archetype).scale ?? 1)
+    : 1;
+  updateSelectionOverlay({
+    partId: entry.node.id,
+    origin: frame.origin,
+    parentRot: frame.parentRot,
+    itemScale: d.scale * entityScale,
+    box: worldAABBForPartIds(descendantLeafIds(entry)),
+  });
 }
 
 /** Hide the tile-preview controls (biome / occupied / re-roll) for entity-driven objects. */
@@ -345,9 +398,27 @@ function init() {
   renderObjectList();
   updateEntityMode();
   createPreview(els.canvas);
-  bindEditorPanel(els, rebuild, () => {
+  const panelCtx = bindEditorPanel(els, rebuild, () => {
     renderObjectList(els.objectFilter.value);
     updateEntityMode(); // a loaded entity JSON must hide the tile-preview controls
+  });
+  bindViewportCallbacks({
+    // Click-to-select from the viewport: same selection slot as the parts list.
+    onSelect: (partId) => {
+      S.selectedPartId = partId;
+      refreshEditorPanel();
+      refreshSelectionOverlay();
+    },
+    // Gizmo drags commit through the panel's mutate flow (rebuild + re-render),
+    // so the preview, the wireframe and the inspector stay in lockstep.
+    onMutateLocalPos: (partId, delta) => {
+      const entry = findNodeById(activeParts(), partId);
+      if (!entry) return;
+      panelCtx.mutate(() => {
+        const t = entry.node.transform ?? (entry.node.transform = {});
+        addLocalDelta(t, delta.x, delta.y, delta.z);
+      });
+    },
   });
   rebuild();
 }

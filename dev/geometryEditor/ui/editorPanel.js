@@ -74,6 +74,7 @@ function renderAll() {
  * @param {object} elsRef - the editor's DOM refs (partsEdit, inspectorBody, downloadBtn, loadFile, loadError)
  * @param {Function} onEditFn - () => void; rebuilds the preview from S.descriptor
  * @param {Function} onLoadedFn - () => void; called after a JSON load succeeds (re-renders the object browser)
+ * @returns {object} the panel ctx ({ mutate, renderAll, onEdit, onLoaded }) — the single mutation path
  */
 export function bindEditorPanel(elsRef, onEditFn, onLoadedFn = () => {}) {
   els = elsRef;
@@ -81,6 +82,7 @@ export function bindEditorPanel(elsRef, onEditFn, onLoadedFn = () => {}) {
   onLoaded = onLoadedFn;
   bindProjectControls(els, ctx);
   renderAll();
+  return ctx;
 }
 
 /** Re-render the panel (e.g. after selecting a different sample object). */

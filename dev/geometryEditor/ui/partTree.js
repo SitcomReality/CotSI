@@ -86,6 +86,36 @@ export function siblingIds(parts, entry) {
 }
 
 /**
+ * Ids of every LEAF node in the subtree rooted at `entry.node` (a leaf node →
+ * its own id; a group → the union over its descendants). Records and meshes
+ * only exist for leaves, so this is what a group's world bounds / selection
+ * highlight must union over.
+ */
+export function descendantLeafIds(entry) {
+  const out = [];
+  const walk = (node) => {
+    if (Array.isArray(node.children)) node.children.forEach(walk);
+    else out.push(node.id);
+  };
+  walk(entry.node);
+  return out;
+}
+
+/**
+ * Apply a parent-frame delta to a node's `localPos`, deleting the field when
+ * every component returns to 0 (keeps denormalized files free of
+ * `localPos: {0,0,0}` noise — the same convention as the inspector's field
+ * editor). `t` must already exist; callers create it via
+ * `node.transform ?? (node.transform = {})`. Used by the viewport gizmo.
+ */
+export function addLocalDelta(t, dx, dy, dz) {
+  const lp = t.localPos ?? {};
+  const next = { x: (lp.x ?? 0) + dx, y: (lp.y ?? 0) + dy, z: (lp.z ?? 0) + dz };
+  if (next.x === 0 && next.y === 0 && next.z === 0) delete t.localPos;
+  else t.localPos = next;
+}
+
+/**
  * A fresh node id in the tree: `prefix` + a counter that skips ids already in
  * use (schema: ids must be unique across the whole parts tree).
  */

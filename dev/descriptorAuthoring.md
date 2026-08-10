@@ -200,6 +200,57 @@ scaleY: 1, scaleZ: 1 }`.
 | `localAxis` + `localAngle` | Rotation about an arbitrary axis in the part's **local frame**. The axis is a **direction** — magnitude is ignored (normalized at render), so `{ x: -3, y: 4, z: 4 }` means the same as `{ x: -0.47, y: 0.62, z: 0.62 }`. Both fields are required together. |
 | `tiltAxis` + `tilt` | World-space lean about a horizontal axis: `tiltAxis` is `{ x, z }` (direction only, normalized at render), `tilt` the lean angle. Both required together. |
 
+### 4.5 Part groups (nesting)
+
+A part is either a **shape leaf** (`shape` + `params`, as above) or a **group**:
+a node with a `children` array and **no** `shape`/`params`/`color`/`stretch`/
+`biomeColor`/`biomeScale` of its own (groups have no geometry — validation
+rejects those fields). `parts` (or one variant's `parts`) is a tree: root nodes
+may be leaves or groups, and groups recurse. Part ids must be unique across the
+**whole** tree, not just one list (records/InstancedMeshes are keyed by
+partId).
+
+**Root vs nested transforms.** Root leaves keep every transform field from
+§4.4 — `y`/`lift` ground them and `tiltAxis`/`tilt` lean them in world space.
+Nested leaves and groups carry only `localPos`, `localAxis` + `localAngle`,
+`rotY`, and `scaleX/Y/Z` — `y`/`lift`/`tilt` are **root-only** (nested nodes
+have no grounding; their position is purely relative to the parent). Validation
+rejects `y`/`lift`/`tilt` on nested nodes.
+
+**Why groups exist.** Sub-assemblies that must move (or hinge) together — the
+open chest's lid + straps, a censer's chain — used to be hand-duplicated
+numbers across parts. A group shares one transform: moving/rotating the group
+moves every child rigidly, and rotation happens about the group's `localPos`
+point (a **pivot/hinge** — the flat model can only rotate each part about its
+own bottom-center).
+
+**Rendering.** Groups emit no records; nested leaves emit a precomputed world
+`matrix` (16 floats, THREE column-major) instead of the flat record fields
+(`recordBuilder` composes every ancestor group frame, then the leaf's own
+frame — see §6). `buildInstanced` applies it directly, so the render structure
+and performance are unchanged.
+
+**Worked hinge example — the open chest lid.** The group's `localPos` sits at
+the hinge (the chest's back-top edge), and the children are placed in the
+closed-lid frame so their back edge lands on the hinge axis:
+
+```js
+{ id: 'lid',                       // group — no shape
+  transform: { localPos: { x: 0, y: 0.15, z: 0.125 },   // hinge: chest back-top
+              localAxis: { x: 1, y: 0, z: 0 }, localAngle: -1 },  // swing open
+  children: [
+    { id: 'lid-board', shape: 'box', params: { width: 0.35, height: 0.08, depth: 0.25 },
+      transform: { localPos: { x: 0, y: 0.15, z: 0 } } },   // back edge at z=0.125
+    { id: 'strap-l', shape: 'box', params: { width: 0.031, height: 0.085, depth: 0.255 },
+      transform: { localPos: { x: -0.12, y: 0.15, z: 0 } } },
+  ] }
+```
+
+Rotating the group's `localAxis`/`localAngle` swings board + straps rigidly
+about the hinge. **Author groups in the geometry editor** (`dev/geometryEditor.html`:
+"Nest into group", "move into group", "Move out of group", "Ungroup") — the
+editor keeps the transforms exact, and Save round-trips the tree.
+
 ## 5. How randomization works
 
 Every tile-driven decision is a pure function of the tile — a deterministic
@@ -263,7 +314,8 @@ descriptor (+ tile / entity)
   → recordsForDescriptor / recordsForEntity   (recordBuilder.js — pure data)
   → records: { partId, x, y, z, scale, scaleY, scaleZ?, rotY?,
                lift? / localPos?, localAxis? + localAngle?,
-               tiltAxis? + tilt?, color? }
+               tiltAxis? + tilt?, color? }    // root leaves
+             { partId, matrix, color? }       // nested leaves (§4.5)
   → buildDescriptorMeshes                       (meshAssembly.js)
   → one InstancedMesh per part geometry         (meshBuilder.js)
 ```
@@ -277,7 +329,9 @@ descriptor (+ tile / entity)
   enables vertex colors.
 - **Instance matrix:** `T · R(rotY · tilt) · Lift(localPos) · Local(axis·angle) · S(scaleX/Y/Z)`.
   The local axis and tilt axis are normalized here, which is why their
-  magnitude is meaningless in the data.
+  magnitude is meaningless in the data. A nested-leaf record carries a
+  precomputed world `matrix` instead — `buildInstanced` applies it directly
+  (the matrix already includes every ancestor group frame).
 
 In-game dispatch (gameBuilder.js): each tile resolves to its feature (by
 `tile.feature.kind` → descriptor id) plus its terrain decoration (mountains,
