@@ -1,4 +1,4 @@
-// src/render/hexmap3d/features/decorEmphasis.js
+// src/render/hexmap3d/worldObjects/decorEmphasis.js
 // Pure per-tile de-emphasis rules for hex decorations.
 //
 // A tile's center is the most prominent spot. When it is claimed by an

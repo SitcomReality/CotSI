@@ -51,7 +51,7 @@ A descriptor never contains THREE.js or any rendering code — it is pure data
 
 ## 3. The deliverable: file, naming, module shape
 
-One file per object in `src/render/hexmap3d/features/descriptors/data/`:
+One file per object in `src/render/hexmap3d/worldObjects/descriptors/data/`:
 
 - File name: `<id>.js` (lowerCamelCase id).
 - Export name: the id converted to SCREAMING_SNAKE + `_DESCRIPTOR`
@@ -61,10 +61,11 @@ One file per object in `src/render/hexmap3d/features/descriptors/data/`:
 - The export is the descriptor literal — **only non-default fields** (the
   emitter strips defaults; `normalizeDescriptor` re-fills them on load).
 
-Id → file exceptions (legacy table-driven files, do not create new ones):
-`hill`→`hills.js`, `mountain`→`mountains.js`, `knot`→`knots.js`,
-`champion`→`champions.js`, `trader`→`traders.js`, `base`→`bases.js`,
-`mob`→`mobs.js`.
+No id → file exceptions: every descriptor is `<id>.js` — including the
+entity kinds (which previously kept plural file names). `base.js` and
+`mob.js` remain table-driven (`BASE_VARIANTS` / `MOB_VARIANTS` derive their
+descriptor from variant maps the game imports) and are not editable through
+the editor yet.
 
 Module shape (this is what the editor Save produces; copying the header is
 optional for new files):
@@ -361,7 +362,7 @@ state while the tile is out of sight; occupants/features gate displacement.
 A terrain `decor` is scattered and varies per tile, and the grove is the
 flagship example of the variable-properties vocabulary: count, size, part set,
 stretch, and color all come from ranges and per-tile draws rather than fixed
-values. `src/render/hexmap3d/features/descriptors/data/grove.js` (annotated;
+values. `src/render/hexmap3d/worldObjects/descriptors/data/grove.js` (annotated;
 the shipped file still carries `schemaVersion: 4` — v4 auto-migrates on load,
 and the editor rewrites it to 5 on the next Save):
 
@@ -447,7 +448,7 @@ leaves with per-part transforms, non-uniform scale, and local rotations. The
 closed-lid sibling `treasureChest.js` uses the same parts vocabulary without
 the group.
 
-`src/render/hexmap3d/features/descriptors/data/openTreasureChest.js` (annotated;
+`src/render/hexmap3d/worldObjects/descriptors/data/openTreasureChest.js` (annotated;
 default-valued fields omitted for readability):
 
 ```js
@@ -517,7 +518,7 @@ What each piece demonstrates:
 
 ## 9. Adding a new object — checklist
 
-1. **Write the file** `src/render/hexmap3d/features/descriptors/data/<id>.js`
+1. **Write the file** `src/render/hexmap3d/worldObjects/descriptors/data/<id>.js`
    with the `<ID>_DESCRIPTOR` export (id = feature kind for features).
 2. **Register it** in `data/index.js`: add the import and push it into
    `ALL_DESCRIPTORS` (editor-display order).
@@ -526,9 +527,9 @@ What each piece demonstrates:
 
    ```bash
    /run/host/usr/bin/node --input-type=module <<'EOF'
-   import { normalizeDescriptor, validateDescriptor } from './src/render/hexmap3d/features/descriptors/schema.js';
-   import { recordsForDescriptor } from './src/render/hexmap3d/features/descriptors/recordBuilder.js';
-   const { OPEN_TREASURE_CHEST_DESCRIPTOR } = await import('./src/render/hexmap3d/features/descriptors/data/openTreasureChest.js');
+   import { normalizeDescriptor, validateDescriptor } from './src/render/hexmap3d/worldObjects/descriptors/schema.js';
+   import { recordsForDescriptor } from './src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
+   const { OPEN_TREASURE_CHEST_DESCRIPTOR } = await import('./src/render/hexmap3d/worldObjects/descriptors/data/openTreasureChest.js');
    const d = normalizeDescriptor(OPEN_TREASURE_CHEST_DESCRIPTOR);
    const errors = validateDescriptor(d);
    if (errors.length) { console.error(errors); process.exit(1); }
@@ -543,9 +544,9 @@ What each piece demonstrates:
    ```bash
    /run/host/usr/bin/node --input-type=module <<'EOF'
    import { writeFileSync } from 'node:fs';
-   import { ALL_DESCRIPTORS } from './src/render/hexmap3d/features/descriptors/data/index.js';
-   import { normalizeDescriptor } from './src/render/hexmap3d/features/descriptors/schema.js';
-   import { recordsForDescriptor } from './src/render/hexmap3d/features/descriptors/recordBuilder.js';
+   import { ALL_DESCRIPTORS } from './src/render/hexmap3d/worldObjects/descriptors/data/index.js';
+   import { normalizeDescriptor } from './src/render/hexmap3d/worldObjects/descriptors/schema.js';
+   import { recordsForDescriptor } from './src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
    const POS = { x: 1.732, y: 1.25, z: -3.0 };
    const TILES = {
      grove: { q: 3, r: -2, terrain: 'forest', moisture: 0.8 },
@@ -581,13 +582,13 @@ What each piece demonstrates:
 
 | Concern | File |
 |---|---|
-| Descriptor schema, shapes, defaults, validation, normalization | `src/render/hexmap3d/features/descriptors/schema.js` |
-| Record generation (randomization) | `src/render/hexmap3d/features/descriptors/recordBuilder.js` |
-| Records → InstancedMeshes | `src/render/hexmap3d/features/descriptors/meshAssembly.js`, `../meshBuilder.js` |
-| Shape/material factories (THREE) | `src/render/hexmap3d/features/descriptors/shapeFactories.js` |
-| Neighbor-blended biome colors | `src/render/hexmap3d/features/biomeTint.js` |
-| In-game tile dispatch | `src/render/hexmap3d/features/descriptors/gameBuilder.js` |
-| Descriptor data | `src/render/hexmap3d/features/descriptors/data/` |
+| Descriptor schema, shapes, defaults, validation, normalization | `src/render/hexmap3d/worldObjects/descriptors/schema.js` |
+| Record generation (randomization) | `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` |
+| Records → InstancedMeshes | `src/render/hexmap3d/worldObjects/descriptors/meshAssembly.js`, `../meshBuilder.js` |
+| Shape/material factories (THREE) | `src/render/hexmap3d/worldObjects/descriptors/shapeFactories.js` |
+| Neighbor-blended biome colors | `src/render/hexmap3d/worldObjects/biomeTint.js` |
+| In-game tile dispatch | `src/render/hexmap3d/worldObjects/descriptors/gameBuilder.js` |
+| Descriptor data | `src/render/hexmap3d/worldObjects/descriptors/data/` |
 | Editor emit/format rules | `dev/geometryEditor/emitDescriptor.js` |
-| Deterministic hashes | `src/render/hexmap3d/features/trees/treeHash.js` |
-| Dispersal/sinking | `src/render/hexmap3d/features/decorEmphasis.js` |
+| Deterministic hashes | `src/render/hexmap3d/worldObjects/tileHash.js` |
+| Dispersal/sinking | `src/render/hexmap3d/worldObjects/decorEmphasis.js` |

@@ -1,4 +1,7 @@
-// src/render/hexmap3d/features/geometries/treeGeometries.js
+// src/render/hexmap3d/worldObjects/fruitTree/treeGeometries.js
+// Geometry factories for the procedural fruit tree (the only remaining legacy
+// tree builder — groves and solitary trees are descriptor-driven now).
+// Moved here from features/geometries/ during the geometry-system cleanup.
 import * as THREE from '../../../../vendor/three.module.js';
 import {
   TREE_TRUNK,
@@ -53,11 +56,6 @@ export function getTreeCanopyWideGeo() {
     treeCanopyWideGeo = new THREE.ConeGeometry(TREE_CANOPY_WIDE.bottomR, TREE_CANOPY_WIDE.height, TREE_CANOPY_WIDE.radialSegs, TREE_CANOPY_WIDE.heightSegs);
   }
   return treeCanopyWideGeo;
-}
-
-// Legacy alias for backward compat
-export function getTreeCanopyGeo() {
-  return getTreeCanopyRoundGeo();
 }
 
 /** Fruit tree: single trunk segment (stack 2–3 of these, each tilted a bit more). */

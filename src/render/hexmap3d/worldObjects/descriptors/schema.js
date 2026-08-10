@@ -50,8 +50,8 @@
  * Shape types the editor can compose. `params` maps each editable dimension to
  * its validation rule; `defaults` seeds new parts and fills omitted params.
  * Param names mirror the THREE constructor arguments the game's geometry
- * factories use (see geometries/), so a descriptor's params map 1:1 onto the
- * factory calls. Bespoke shapes (mountain) carry a variant enum instead.
+ * factories use (see shapeFactories.js), so a descriptor's params map 1:1 onto
+ * the factory calls. Bespoke shapes (mountain) carry a variant enum instead.
  */
 export const SHAPE_TYPES = Object.freeze({
   cylinder: {

@@ -1,19 +1,19 @@
 /**
  * descriptorRecordBuilder.test.js — Pure record generation from descriptors
- * (src/render/hexmap3d/features/descriptors/recordBuilder.js).
+ * (src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js).
  * Covers determinism, cluster/size math, placement, and emphasis behavior.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
+import { normalizeDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import {
   recordsForDescriptor,
   recordsForEntity,
   nodeWorldFrames,
   nodeWorldFramesForEntity,
-} from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
-import { biomeTintForTile } from '../../src/render/hexmap3d/features/biomeTint.js';
-import { DISPERSED_SCALE, sunkTransform, dispersedSingleOffset } from '../../src/render/hexmap3d/features/decorEmphasis.js';
+} from '../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
+import { biomeTintForTile } from '../../src/render/hexmap3d/worldObjects/biomeTint.js';
+import { DISPERSED_SCALE, sunkTransform, dispersedSingleOffset } from '../../src/render/hexmap3d/worldObjects/decorEmphasis.js';
 import { mat4RotationY, mat4Translation, mat4Multiply, mat4TranslationOf } from '../../src/engine/rules/mat4.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────

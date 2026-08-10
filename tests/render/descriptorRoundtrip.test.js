@@ -8,8 +8,7 @@
  *   - the emitted module re-imports and normalizes back to the same value,
  *   - the export name follows the id → <ID>_DESCRIPTOR convention the barrel
  *     (data/index.js) and the save server rely on,
- *   - every descriptor's home file exists (per-object file or a
- *     DESCRIPTOR_SOURCES legacy name).
+ *   - every descriptor's home file exists (data/<id>.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -18,8 +17,8 @@ import {
   normalizeDescriptor,
   denormalizeDescriptor,
   validateDescriptor,
-} from '../../src/render/hexmap3d/features/descriptors/schema.js';
-import { ALL_DESCRIPTORS, DESCRIPTOR_SOURCES } from '../../src/render/hexmap3d/features/descriptors/data/index.js';
+} from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/worldObjects/descriptors/data/index.js';
 import { emitDescriptorModule, descriptorExportName } from '../../dev/geometryEditor/emitDescriptor.js';
 
 const all = ALL_DESCRIPTORS;
@@ -58,19 +57,11 @@ test('export names follow the <ID>_DESCRIPTOR convention', () => {
   }
 });
 
-test('every descriptor has a home file (per-object file or DESCRIPTOR_SOURCES)', () => {
+test('every descriptor has a home file (data/<id>.js)', () => {
   for (const raw of all) {
-    const file = DESCRIPTOR_SOURCES[raw.id] ?? `${raw.id}.js`;
-    const p = new URL(`../../src/render/hexmap3d/features/descriptors/data/${file}`, import.meta.url);
+    const file = `${raw.id}.js`;
+    const p = new URL(`../../src/render/hexmap3d/worldObjects/descriptors/data/${file}`, import.meta.url);
     assert.ok(existsSync(p), `"${raw.id}" home file data/${file} missing`);
-  }
-  // DESCRIPTOR_SOURCES only lists non-conventional names; a per-object file must
-  // exist for every id NOT listed there.
-  for (const raw of all) {
-    if (DESCRIPTOR_SOURCES[raw.id] === undefined) {
-      assert.ok(existsSync(new URL(`../../src/render/hexmap3d/features/descriptors/data/${raw.id}.js`, import.meta.url)),
-        `"${raw.id}" should live in data/${raw.id}.js`);
-    }
   }
 });
 

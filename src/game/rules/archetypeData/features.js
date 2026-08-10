@@ -12,7 +12,9 @@
  *
  * Adding a new simple feature:
  *   1. Add its defineArchetype call here
- *   2. Add an entry to src/render/hexmap3d/features/descriptors/data/simpleFeatures.js
+ *   2. Add its descriptor (authored via the geometry editor) to
+ *      src/render/hexmap3d/worldObjects/descriptors/data/ — one file per
+ *      object, `<id>.js`, registered in data/index.js
  *   3. Add a biome rule referencing its kind
  *   4. Add an entry to dev/analysis/render/theme.js FEATURES table
  */

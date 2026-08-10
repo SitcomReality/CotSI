@@ -5,7 +5,7 @@ import {
   getAllTerrainMeshes, countExploredInChunk, disposeChunk
 } from './chunkManager.js';
 import { buildChunkTerrainMesh, buildChunkWaterMesh, buildChunkWaterSparkles } from './terrain/index.js';
-import { buildChunkFeatureMeshes } from './features/featureMeshes.js';
+import { buildChunkWorldMeshes } from './worldObjects/worldMeshes.js';
 import { buildUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted, initPieceTextures, disposePieceTextures } from './units/index.js';
 import { waterTimeUniform } from './scene/materials.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/mapInteraction.js';
@@ -137,13 +137,13 @@ export function renderHexMap3D(state, humanView) {
 
       // Sparkle glints for still water (InstancedMesh accent, no ink outline —
       // added to the features array after addOutlines ran inside
-      // buildChunkFeatureMeshes, so it is disposed with the chunk)
+      // buildChunkWorldMeshes, so it is disposed with the chunk)
       const sparkles = buildChunkWaterSparkles(chunkTiles, state, visible, explored);
 
-      // Build feature meshes for this chunk. `explored` lets terrain
+      // Build world-object meshes for this chunk. `explored` lets terrain
       // decorations (mountain, hill mound, grove) render on explored tiles
       // that are out of sight — features, bases, and units stay visible-gated.
-      const features = buildChunkFeatureMeshes(chunkTiles, state, visible, explored);
+      const features = buildChunkWorldMeshes(chunkTiles, state, visible, explored);
 
       if (terrain || water || sparkles || features.length > 0) {
         const group = new THREE.Group();

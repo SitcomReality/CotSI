@@ -1,6 +1,6 @@
 /**
  * descriptorSchema.test.js — Descriptor schema: validation, normalization,
- * and JSON roundtrip (src/render/hexmap3d/features/descriptors/schema.js).
+ * and JSON roundtrip (src/render/hexmap3d/worldObjects/descriptors/schema.js).
  * Pure data + pure functions, no THREE.
  */
 import { test } from 'node:test';
@@ -16,7 +16,7 @@ import {
   validateShapeParams,
   normalizeDescriptor,
   shapeBaseOffset,
-} from '../../src/render/hexmap3d/features/descriptors/schema.js';
+} from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 

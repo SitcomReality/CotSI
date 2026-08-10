@@ -25,7 +25,7 @@ import {
 } from '../../dev/geometryEditor/ui/partTree.js';
 import {
   NESTED_PART_TRANSFORM_DEFAULTS,
-} from '../../src/render/hexmap3d/features/descriptors/schema.js';
+} from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import {
   mat4Identity,
   mat4Translation,

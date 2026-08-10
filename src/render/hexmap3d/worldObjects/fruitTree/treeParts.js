@@ -1,11 +1,11 @@
-// src/render/hexmap3d/features/trees/treeParts.js
+// src/render/hexmap3d/worldObjects/fruitTree/treeParts.js
 // Shared record helpers for the tree treatments: emitting one simple tree's
 // trunk + canopy records (addTreeRecords) and jittering leaf/fruit colors
 // (clusterColor).
 
 import * as THREE from '../../../../vendor/three.module.js';
 import { canopyForVariant } from './treeVariants.js';
-import { frac, treeHash, clamp01 } from './treeHash.js';
+import { frac, treeHash, clamp01 } from '../tileHash.js';
 import { TREE_TRUNK_Y_FRACTION, TREE_VARIATION } from '../../../../params/render/geometryParams.js';
 
 /**

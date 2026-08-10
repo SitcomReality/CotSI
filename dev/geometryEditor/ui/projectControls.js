@@ -13,15 +13,14 @@ import { el } from './formControls.js';
 import {
   normalizeDescriptor,
   validateDescriptor,
-} from '../../../src/render/hexmap3d/features/descriptors/schema.js';
-import { DESCRIPTOR_SOURCES } from '../../../src/render/hexmap3d/features/descriptors/data/index.js';
+} from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { SAMPLE_OBJECTS } from '../sampleObjects.js';
 import { newObjectTemplate } from './objectTemplates.js';
 
-/** The data-file path the descriptor id saves to (the per-object convention,
- *  or the mapped legacy file for DESCRIPTOR_SOURCES ids like knots.js). */
+/** The data-file path the descriptor id saves to (the per-object convention
+ *  data/<id>.js). */
 function targetFile(id) {
-  return DESCRIPTOR_SOURCES[id] ?? `${id}.js`;
+  return `${id}.js`;
 }
 
 /** Default port the save server binds (saveServer.mjs) — the cross-origin

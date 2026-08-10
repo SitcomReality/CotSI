@@ -36,7 +36,7 @@ Never re-use terminology for two different purposes: `Verdant` is a faction so t
 ## 3. Directory Naming
 
 - Plural for collections (`rules/`, `panels/`, `modals/`, `overlays/`); singular for concepts (`state/`, `runtime/`, `render/`, `engine/`).
-- **Domain subdirectories are allowed** under a layer directory: `game/state/combat/`, `ui/combat/`, `render/hexmap3d/features/`. The layer path is the qualifier, and every file inside is still fully qualified (`combatScoring.js`, never `scoring.js`). This is the resolution of the "combat virus" problem: the virus was unqualified *files* and directories at the *top* level, not domain folders inside a layer.
+- **Domain subdirectories are allowed** under a layer directory: `game/state/combat/`, `ui/combat/`, `render/hexmap3d/worldObjects/`. The layer path is the qualifier, and every file inside is still fully qualified (`combatScoring.js`, never `scoring.js`). This is the resolution of the "combat virus" problem: the virus was unqualified *files* and directories at the *top* level, not domain folders inside a layer.
 
 ---
 

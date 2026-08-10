@@ -18,7 +18,7 @@ import {
   NESTED_PART_TRANSFORM_DEFAULTS,
   PART_TRANSFORM_DEFAULTS,
   SHAPE_TYPES,
-} from '../../../src/render/hexmap3d/features/descriptors/schema.js';
+} from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import {
   mat4Identity,
   mat4Translation,

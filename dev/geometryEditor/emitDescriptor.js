@@ -13,7 +13,7 @@
 import {
   normalizeDescriptor,
   denormalizeDescriptor,
-} from '../../src/render/hexmap3d/features/descriptors/schema.js';
+} from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 
 /**
  * The canonical export name for a descriptor id: camelCase/`-`/`_` →
@@ -113,7 +113,7 @@ function formatValue(v, indent, key) {
  *
  * @param {object} def - descriptor (raw or normalized)
  * @param {string} [file=`${def.id}.js`] - the target file name (for the header);
- *   differs from the convention for DESCRIPTOR_SOURCES ids (e.g. knots.js)
+ *   defaults to the per-object convention `data/<id>.js`
  * @returns {string} file source text
  */
 export function emitDescriptorModule(def, file) {

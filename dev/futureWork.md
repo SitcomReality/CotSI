@@ -163,11 +163,11 @@ champion-centered minimap. Remaining:
 ## 4. Geometry editor — deferred content (descriptor migration gaps)
 
 The descriptor pipeline is live: game feature/decor meshes resolve through
-`features/descriptors/` (data + recordBuilder + gameBuilder) and the editor
+`worldObjects/descriptors/` (data + recordBuilder + gameBuilder) and the editor
 (`dev/geometryEditor.html`) edits the same data. All simple feature
 archetypes, tree groves, solitary + elder trees, hill mounds, mountains,
 knots, and the entity kinds (bases, champions, mobs, traders) are migrated.
-Remaining gaps — content still on hard-coded builders (`features/trees/`):
+Remaining gaps — content still on hard-coded builders (`worldObjects/fruitTree/`):
 
 - **fruitTree** — the procedural fruit tree (`fruitTreeRecords.js`) grows
   per-tree hash-driven trunk segments, branches, and fruit — beyond the
@@ -196,8 +196,29 @@ Entity-kind notes (by design, not regressions):
 object, generated; convention documented in `data/index.js`). Remaining
 editor gaps:
 
-- **Table-driven entity save** — `bases.js` / `mobs.js` derive their
+- **Table-driven entity save** — `base.js` / `mob.js` derive their
   descriptor from variant maps the game imports; the save endpoint rejects
   them until the maps are decoupled from the descriptor.
 - **Diff-on-save** — the confirm dialog shows the target file only; a
   before/after descriptor diff would catch accidental drift.
+
+### 4.1 Mob geometry & animation
+
+Mob geometry is next on the content front (a handful more archetypes are
+planned, plus the possibility of simple animation). Two hand-authored mob
+experiments (`infernalpaca.js`, `scorpelican.js`) plus an unused water-decor
+file were mined and then deleted; their findings are captured in
+`dev/mobGeometryAndAnimation.md` — joint-group pivots (already schema v5),
+FK chains, faction-token colors (mobs use `factionBody`, not `factionBase`),
+the object-level emissive hook, and an animation runtime proposal
+(declarative clip spec; hook into the per-render-pass mob mesh rebuild in
+`unitMeshes.js`).
+
+Next steps when mob content resumes:
+
+- **New archetype** = one `MOB_VARIANTS` key (id == `archetypeName`) + optional
+  `MOB_TIER2_VARIANTS` tier-2 key, in `worldObjects/descriptors/data/mob.js`.
+- **Decouple the variant tables from the descriptor** (the table-driven-save
+  gap above) so mobs become editor-editable — prerequisite for authoring the
+  richer mobs in the editor rather than by hand.
+- **Animation runtime** — see the design doc §4–5 for the worked approach.

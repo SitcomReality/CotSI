@@ -8,7 +8,7 @@
 import {
   SHAPE_TYPES,
   PART_TRANSFORM_DEFAULTS,
-} from '../../../src/render/hexmap3d/features/descriptors/schema.js';
+} from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 
 let createCounter = 0;
 

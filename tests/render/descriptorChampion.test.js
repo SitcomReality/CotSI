@@ -10,9 +10,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../../src/vendor/three.module.js';
-import { normalizeDescriptor, validateDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
-import { recordsForEntity } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
-import { CHAMPION_DESCRIPTOR, CHAMPION_VARIANTS } from '../../src/render/hexmap3d/features/descriptors/data/champions.js';
+import { normalizeDescriptor, validateDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { recordsForEntity } from '../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
+import { CHAMPION_DESCRIPTOR, CHAMPION_VARIANTS } from '../../src/render/hexmap3d/worldObjects/descriptors/data/champion.js';
 import { buildUnitMeshes } from '../../src/render/hexmap3d/units/unitMeshes.js';
 import { FACTIONS } from '../../src/game/rules/factionData.js';
 

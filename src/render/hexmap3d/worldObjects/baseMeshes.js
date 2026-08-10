@@ -1,15 +1,15 @@
-// src/render/hexmap3d/features/baseMeshes.js
+// src/render/hexmap3d/worldObjects/baseMeshes.js
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
 import { tileSurfaceY } from '../terrain/index.js';
 import { normalizeDescriptor } from './descriptors/schema.js';
 import { recordsForEntity } from './descriptors/recordBuilder.js';
 import { buildDescriptorMeshes } from './descriptors/meshAssembly.js';
-import { BASE_DESCRIPTOR } from './descriptors/data/bases.js';
+import { BASE_DESCRIPTOR } from './descriptors/data/base.js';
 
 /**
  * Base meshes now render through the generic descriptor pipeline: the base
- * descriptor (descriptors/data/bases.js) holds the tower + cap + per-faction
+ * descriptor (descriptors/data/base.js) holds the tower + cap + per-faction
  * decoration as 7 faction variants; here the tile's faction is mapped onto an
  * entity ({ faction, colors }) whose records recordsForEntity derives, and
  * buildDescriptorMeshes assembles one InstancedMesh per part (instanced across

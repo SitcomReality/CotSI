@@ -22,7 +22,7 @@ import { activeVariant } from './variantQuery.js';
 import {
   EMPHASIS_BEHAVIORS,
   PLACEMENT_MODES,
-} from '../../../src/render/hexmap3d/features/descriptors/schema.js';
+} from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { ENTITY_KINDS } from '../entityView.js';
 import { SAMPLE_OBJECTS } from '../sampleObjects.js';
 import { FACTIONS } from '../../../src/game/rules/factionData.js';

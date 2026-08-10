@@ -1,4 +1,18 @@
-// src/render/hexmap3d/features/geometries/mountainGeometries.js
+/**
+ * shapeFactories.js — THREE geometry/material factories for descriptor parts.
+ *
+ * Maps a descriptor part's shape type + params onto the THREE constructors the
+ * game's geometry uses. Geometries are cached per (type, params) pair.
+ *
+ * Bespoke shapes that don't map onto a single primitive live here too:
+ * `mountain` (faceted low-poly hex pyramid with vertex colors — migrated from
+ * the legacy geometries/mountainGeometries.js) and `lathe` (the former
+ * snowperson solid of revolution — geometries/featureGeometries.js). These are
+ * the only shape types with custom geometry; everything else is a primitive.
+ *
+ * This module is the only THREE-dependent part of the descriptor pipeline —
+ * record generation (recordBuilder.js) stays pure.
+ */
 import * as THREE from '../../../../vendor/three.module.js';
 import {
   MOUNTAIN_BASE_RADIUS,
@@ -12,10 +26,60 @@ import {
   MOUNTAIN_TIP_COLOR,
   MOUNTAIN_OFFPEAK,
 } from '../../../../params/render/geometryParams.js';
+import { toonMaterial } from '../../scene/materials.js';
+
+const geometryCache = new Map();
+
+/**
+ * Cached BufferGeometry for a descriptor part's shape.
+ * @param {string} type   - key of SHAPE_TYPES (schema.js)
+ * @param {object} params - normalized shape params
+ * @returns {THREE.BufferGeometry}
+ */
+export function geometryForShape(type, params) {
+  const key = `${type}:${JSON.stringify(params)}`;
+  if (!geometryCache.has(key)) {
+    geometryCache.set(key, buildShape(type, params));
+  }
+  return geometryCache.get(key);
+}
+
+function buildShape(type, params) {
+  switch (type) {
+    case 'cylinder':
+      return new THREE.CylinderGeometry(params.bottomR, params.topR, params.height, params.segments);
+    case 'cone':
+      return new THREE.ConeGeometry(params.bottomR, params.height, params.radialSegs, params.heightSegs);
+    case 'sphere':
+      return new THREE.SphereGeometry(params.radius, params.wSegs, params.hSegs, params.phiStart, params.phiLength, params.thetaStart, params.thetaLength);
+    case 'torus':
+      return new THREE.TorusGeometry(params.radius, params.tube, params.radialSegs, params.tubularSegs, params.arc);
+    case 'box':
+      return new THREE.BoxGeometry(params.width, params.height, params.depth);
+    case 'dodecahedron':
+      return new THREE.DodecahedronGeometry(params.radius, params.detail);
+    case 'octahedron':
+      return new THREE.OctahedronGeometry(params.radius, params.detail);
+    case 'mountain':
+      return getMountainGeo(params.variant);
+    case 'cube':
+      return new THREE.BoxGeometry(params.size, params.size, params.size);
+    case 'spheroid':
+      return new THREE.SphereGeometry(params.radius, params.wSegs, params.hSegs);
+    case 'lathe':
+      return getLatheGeo();
+    default:
+      throw new Error(`descriptor: unknown shape type "${type}"`);
+  }
+}
 
 // =========================================================================
-// Mountain geometry — faceted low-poly hex pyramids with vertex colors.
+// Bespoke shapes
 // =========================================================================
+
+// -------------------------------------------------------------------------
+// Mountain geometry — faceted low-poly hex pyramids with vertex colors.
+// -------------------------------------------------------------------------
 // Every variant shares the same base ring (radius MOUNTAIN_BASE_RADIUS, y=0),
 // matching hexCornersXZ, so adjacent mountain edges align perfectly — no gaps.
 // Variants differ only in the upper structure (cap size/offset, tip offset),
@@ -29,7 +93,7 @@ import {
 // Tiers: 6 body quads + 6 cap quads + 6 tip triangles.
 // Non-indexed, 90 vertices per pyramid. Tiers share no vertices, so the band
 // boundaries are crisp.
-// =========================================================================
+// -------------------------------------------------------------------------
 
 const mountainGeos = {};
 
@@ -38,7 +102,7 @@ const mountainGeos = {};
  * @param {'classic'|'offpeak'} [variant='classic']
  * @returns {THREE.BufferGeometry}
  */
-export function getMountainGeo(variant = 'classic') {
+function getMountainGeo(variant = 'classic') {
   if (!mountainGeos[variant]) {
     mountainGeos[variant] = buildVariant(variant);
   }
@@ -161,4 +225,75 @@ function writeVert(positions, colors, idx, x, y, z, color) {
   colors[i3]        = color[0];
   colors[i3 + 1]    = color[1];
   colors[i3 + 2]    = color[2];
+}
+
+// -------------------------------------------------------------------------
+// Lathe — a solid of revolution (the former snowperson body+head blend).
+// -------------------------------------------------------------------------
+
+let latheGeo = null;
+function getLatheGeo() {
+  if (!latheGeo) {
+    const pts = [];
+    const segments = 10;
+    for (let i = 0; i <= segments; i++) {
+      const a = (i / segments) * Math.PI;
+      // Body: radius 0.10 centered at y=0.10 (bottom at exactly 0 — the lathe
+      // is a bottom-anchored geometry, so the record path adds no base offset)
+      const bodyR = Math.sin(a) * 0.10;
+      const bodyY = -Math.cos(a) * 0.10 + 0.10;
+      // Head: radius 0.06 centered at y=0.28
+      const headA = Math.max(0, Math.min(Math.PI, a * 1.8 - 0.6));
+      const headR = Math.sin(headA) * 0.06;
+      const headY = -Math.cos(headA) * 0.06 + 0.28;
+      // Blend body into head in the middle zone
+      const t = Math.max(0, Math.min(1, (a - 0.7) / 1.0));
+      pts.push(new THREE.Vector2(
+        bodyR * (1 - t) + headR * t,
+        bodyY * (1 - t) + headY * t,
+      ));
+    }
+    latheGeo = new THREE.LatheGeometry(pts, 8);
+  }
+  return latheGeo;
+}
+
+// =========================================================================
+// Materials
+// =========================================================================
+
+/**
+ * Toon material for a part — always white: instance colors (record.color from
+ * recordBuilder) carry the look, so a shared white material stays the single
+ * cache entry per option-set. Mountain geometry carries per-vertex colors
+ * (getMountainGeo above) — keep the material white and let vertex colors drive
+ * the look, matching the game's MOUNTAIN_MATERIAL. Object-level emissive
+ * (resource nodes) passes through.
+ *
+ * Materials are cached per option-set and marked shared: unit meshes rebuild
+ * every render pass, and disposeMesh (sceneContext) skips shared materials, so
+ * identical parts must reuse one material instead of recreating it per frame.
+ *
+ * @param {object} descriptor - normalized descriptor
+ * @param {object} part       - descriptor part
+ * @returns {THREE.MeshToonMaterial}
+ */
+const materialCache = new Map();
+
+export function materialForPart(descriptor, part) {
+  const material = descriptor.material;
+  const opts = {};
+  if (part.shape === 'mountain') {
+    opts.vertexColors = true;
+  }
+  if (material.emissive !== undefined) opts.emissive = material.emissive;
+  if (material.emissiveIntensity !== undefined) opts.emissiveIntensity = material.emissiveIntensity;
+  const key = JSON.stringify(opts);
+  let mat = materialCache.get(key);
+  if (!mat) {
+    mat = toonMaterial(opts);
+    mat.userData.shared = true;
+    materialCache.set(key, mat);
+  }
+  return mat;
 }

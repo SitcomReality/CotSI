@@ -17,7 +17,7 @@ import { initMap3D, resetInitFlags } from './initMap3d.js';
 import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
 import { clearDirtyFlags, markChunkDirty } from '../game/state/chunkDirtyTracking.js';
 import { ensureChunk, missingChunksAround } from '../game/state/chunkManager.js';
-import { occupiedKeys } from '../render/hexmap3d/features/decorEmphasis.js';
+import { occupiedKeys } from '../render/hexmap3d/worldObjects/decorEmphasis.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { BACKGROUND_BUFFER_CHUNKS, BACKGROUND_GEN_SPREAD_MS } from '../params/game/worldParams.js';
 

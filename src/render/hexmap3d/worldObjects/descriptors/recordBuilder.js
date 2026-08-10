@@ -5,7 +5,7 @@
  * the same record format the mesh builders write (see meshBuilder.js), tagged
  * with `partId` so the assembler can group them by part geometry.
  *
- * Determinism: every decision is derived from the tile hash (treeHash.js), so
+ * Determinism: every decision is derived from the tile hash (tileHash.js), so
  * the same tile always produces the same records across chunk rebuilds — the
  * same guarantee the current per-kind builders rely on.
  *
@@ -38,7 +38,7 @@
  * part upward from its base, never below it. Both the tile path and the entity
  * path apply the same rule.
  */
-import { tileHash, treeHash, frac, lerp, clamp01 } from '../trees/treeHash.js';
+import { tileHash, treeHash, frac, lerp, clamp01 } from '../tileHash.js';
 import {
   DISPERSED_SCALE,
   dispersedSingleOffset,
@@ -106,8 +106,8 @@ function itemCount(descriptor, tile, tileH) {
  * variantRule 'hash' (default) — roll over the variants list from the tile
  * hash; the generic rule for any content with hash-chosen variants (mountains).
  *
- * variantRule 'solitary' — replicate treeVariant() (treeVariants.js): canopy
- * shape by terrain + coord hash, matching lone trees on open ground.
+ * variantRule 'solitary' — the legacy lone-tree canopy rule (terrain + coord
+ * hash → round/tall/wide), matching the solitary-tree descriptor on open ground.
  *
  * variantRule 'cluster' — replicate clusterVariant(): denseForest groves are
  * conical (tall) pines, everything else round. Painforest woods (forest or

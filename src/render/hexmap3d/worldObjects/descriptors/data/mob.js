@@ -1,5 +1,5 @@
 /**
- * mobs.js — Descriptor data for mob units.
+ * mob.js — Descriptor data for mob units.
  *
  * Migrated from unitGeometries.js: the seven archetype shapes designed there
  * (bear, leopard, snail, tapir, mushroom, goose, scorpion — the MOB_* params)

@@ -18,8 +18,8 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { toonMaterial } from '../scene/materials.js';
 import { getClock } from '../../../shared/clockScheduler.js';
-import { geometryForShape } from '../features/descriptors/shapeFactories.js';
-import { CHAMPION_DESCRIPTOR } from '../features/descriptors/data/champions.js';
+import { geometryForShape } from '../worldObjects/descriptors/shapeFactories.js';
+import { CHAMPION_DESCRIPTOR } from '../worldObjects/descriptors/data/champion.js';
 import { getOutlineGeometry, outlineMaterial } from '../scene/outline.js';
 import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
 import {
@@ -34,7 +34,7 @@ import { MOVE_ANIM_DURATION, CHAMPION_HEIGHT_OFFSET, HEAD_BODY_OFFSET } from '..
 export { MOVE_DURATION } from './movementCurves.js';
 
 // The animating champion's temporary body/head meshes are built from the same
-// champion descriptor the static meshes use (descriptors/data/champions.js) —
+// champion descriptor the static meshes use (descriptors/data/champion.js) —
 // one geometry source, shared via the shapeFactories cache.
 const CHAMPION_BODY_PART = CHAMPION_DESCRIPTOR.parts.find((p) => p.id === 'body');
 const CHAMPION_HEAD_PART = CHAMPION_DESCRIPTOR.parts.find((p) => p.id === 'head');

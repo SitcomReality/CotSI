@@ -1,6 +1,6 @@
 /**
  * descriptorData.test.js — Migrated descriptor data coverage and golden
- * snapshots (src/render/hexmap3d/features/descriptors/data/).
+ * snapshots (src/render/hexmap3d/worldObjects/descriptors/data/).
  *
  * Every migrated object must validate, round-trip through JSON, and produce
  * deterministic records that exactly match the committed golden snapshot
@@ -10,10 +10,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { normalizeDescriptor, validateDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
-import { recordsForDescriptor } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
-import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/features/descriptors/data/index.js';
-import { DISPERSED_SCALE, dispersedRingOffsets, dispersedSingleOffset } from '../../src/render/hexmap3d/features/decorEmphasis.js';
+import { normalizeDescriptor, validateDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { recordsForDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
+import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/worldObjects/descriptors/data/index.js';
+import { DISPERSED_SCALE, dispersedRingOffsets, dispersedSingleOffset } from '../../src/render/hexmap3d/worldObjects/decorEmphasis.js';
 
 const POS = { x: 1.732, y: 1.25, z: -3.0 };
 const TILES = {
@@ -100,9 +100,13 @@ test('simple features: one record, legacy scatter bounds', () => {
     const sx = d.parts[0].transform.scaleX;
     assert.ok(record.scale >= d.scale * sx * 0.8 * d.size.min - 1e-9, `${raw.id} scale ${record.scale} < ${d.scale}*${sx}*0.8*${d.size.min}`);
     assert.ok(record.scale <= d.scale * sx * 0.99 * d.size.max + 1e-9, `${raw.id} scale ${record.scale} > ${d.scale}*${sx}*0.99*${d.size.max}`);
-    // Scatter offset stays within the hex (≤ 0.3).
+    // Scatter offset stays within the authored offsetMax — the legacy fixed
+    // ≤0.3 ring became per-descriptor authorable (e.g. desertScrub's wider
+    // 0.42). The cap must keep items inside their hex: inradius √3/2 ≈ 0.866
+    // at HEX_RADIUS 1.0.
     const dist = Math.hypot(record.x - POS.x, record.z - POS.z);
-    assert.ok(dist <= 0.3 + 1e-9, `${raw.id} scatter dist ${dist}`);
+    assert.ok(dist <= d.placement.offsetMax + 1e-9, `${raw.id} scatter dist ${dist} > offsetMax ${d.placement.offsetMax}`);
+    assert.ok(d.placement.offsetMax <= Math.sqrt(3) / 2 + 1e-9, `${raw.id} offsetMax ${d.placement.offsetMax} exceeds the hex inradius`);
   }
 });
 

@@ -1,12 +1,12 @@
 /**
  * biomeTint.test.js — Neighbor-blended biome colors
- * (src/render/hexmap3d/features/biomeTint.js): the blend formula, water/river
+ * (src/render/hexmap3d/worldObjects/biomeTint.js): the blend formula, water/river
  * exclusion, gate filtering, and the Untouched/Painforest no-tint rule.
  * Pure module — no THREE, no game state.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { biomeTintForTile, isDefaultTintBiome } from '../../src/render/hexmap3d/features/biomeTint.js';
+import { biomeTintForTile, isDefaultTintBiome } from '../../src/render/hexmap3d/worldObjects/biomeTint.js';
 import { TERRAIN_BLEND_FACTOR } from '../../src/params/render/terrainParams.js';
 
 // Arbitrary-but-real biome colors (0-1 tuples): Edenfall purple/gold and

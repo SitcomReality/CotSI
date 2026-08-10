@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../../src/vendor/three.module.js';
-import { buildInstanced } from '../../src/render/hexmap3d/features/meshBuilder.js';
+import { buildInstanced } from '../../src/render/hexmap3d/worldObjects/meshBuilder.js';
 
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshBasicMaterial({ color: 0xffffff });

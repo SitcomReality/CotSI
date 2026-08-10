@@ -24,9 +24,9 @@ import {
   recordsForEntity,
   nodeWorldFrames,
   nodeWorldFramesForEntity,
-} from '../../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
+} from '../../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
 import { findNodeById, descendantLeafIds, addLocalDelta } from './partTree.js';
-import { biomeTintForTile } from '../../../src/render/hexmap3d/features/biomeTint.js';
+import { biomeTintForTile } from '../../../src/render/hexmap3d/worldObjects/biomeTint.js';
 import { listArchetypes, getArchetype } from '../../../src/game/rules/archetypes.js';
 import { ENTITY_KINDS, entityForSelection } from '../entityView.js';
 

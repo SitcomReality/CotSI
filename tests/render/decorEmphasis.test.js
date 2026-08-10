@@ -1,6 +1,6 @@
 /**
  * decorEmphasis.test.js — Decoration de-emphasis rules and placement
- * (src/render/hexmap3d/features/decorEmphasis.js). Pure math, no THREE.
+ * (src/render/hexmap3d/worldObjects/decorEmphasis.js). Pure math, no THREE.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,7 +10,7 @@ import {
   dispersedSingleOffset, dispersedRingOffsets,
   sunkTransform, DISPERSED_SCALE,
   occupiedKeys, isTileOccupied,
-} from '../../src/render/hexmap3d/features/decorEmphasis.js';
+} from '../../src/render/hexmap3d/worldObjects/decorEmphasis.js';
 
 test('decorState: no decoration returns null regardless of occupants', () => {
   assert.equal(decorState({ hasOccupant: false, hasFeature: false, decoration: null }), null);

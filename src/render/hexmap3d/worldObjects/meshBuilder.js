@@ -1,4 +1,4 @@
-// src/render/hexmap3d/features/meshBuilder.js
+// src/render/hexmap3d/worldObjects/meshBuilder.js
 // Shared utilities for building InstancedMeshes from tile data.
 // Eliminates the iteration + matrix boilerplate duplicated across mesh builders.
 

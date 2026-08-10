@@ -1,8 +1,10 @@
-// src/render/hexmap3d/features/trees/treeHash.js
-// Deterministic per-tile / per-tree hashing — the source of all tree variation.
-// Stable across chunk rebuilds: the same tile always produces the same trees.
+// src/render/hexmap3d/worldObjects/tileHash.js
+// Deterministic per-tile / per-tree hashing — the source of all tile-driven
+// variation. Shared by the fruit-tree builder (fruitTree/) and the descriptor
+// pipeline (descriptors/recordBuilder.js). Stable across chunk rebuilds: the
+// same tile always produces the same records.
 
-import { TREE_VARIANT_HASH_SEEDS } from '../../../../params/render/geometryParams.js';
+import { TREE_VARIANT_HASH_SEEDS } from '../../../params/render/geometryParams.js';
 
 /** Tile hash from hex coords — the roll every per-tile tree decision starts from. */
 export function tileHash(tile) {

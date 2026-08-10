@@ -202,7 +202,7 @@ export const KNOT_EMISSIVE_INTENSITY = 0.4;
 
 // ── Unit geometries (champions, pieces, mobs) ──
 // Champion body/head and the mob archetype bodies now live in the descriptor
-// data (features/descriptors/data/champions.js + mobs.js); only the icon-cap
+// data (worldObjects/descriptors/data/champion.js + mob.js); only the icon-cap
 // and darken constants remain here.
 
 export const PIECE_CAP = { radiusX: 0.25, radiusY: 0.25, height: 0.025, segments: 24 };

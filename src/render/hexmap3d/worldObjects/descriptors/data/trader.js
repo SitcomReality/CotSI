@@ -1,5 +1,5 @@
 /**
- * traders.js — Descriptor data for trader units.
+ * trader.js — Descriptor data for trader units.
  *
  * Migrated 1:1 from unitMeshes.js: a trader is a single flat coin body (the
  * old PIECE_BODY cylinder) in the fixed teal green, with the icon cap riding

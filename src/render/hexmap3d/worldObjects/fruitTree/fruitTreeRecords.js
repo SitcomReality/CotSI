@@ -1,4 +1,4 @@
-// src/render/hexmap3d/features/trees/fruitTreeRecords.js
+// src/render/hexmap3d/worldObjects/fruitTree/fruitTreeRecords.js
 // Fruit-tree treatment (an interactive feature that claims its tile): one
 // forest-family tree — the same canopy family as the surrounding grove (round
 // on forest, tall on denseForest), slightly larger and warmer-toned — with
@@ -6,7 +6,7 @@
 // state (tile.feature.ripe): ripe trees show full red apples; harvested trees
 // regrow as small green fruit, making the heal/regrow cycle visible.
 
-import { tileHash, treeHash, frac, lerp } from './treeHash.js';
+import { tileHash, treeHash, frac, lerp } from '../tileHash.js';
 import { clusterVariant } from './treeVariants.js';
 import { addTreeRecords, clusterColor } from './treeParts.js';
 import {

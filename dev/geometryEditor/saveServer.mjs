@@ -10,11 +10,11 @@
  *
  * The POST handler runs the game's own validateDescriptor, then emits the
  * module source through emitDescriptor.js (the same code the editor uses) and
- * writes it atomically into src/render/hexmap3d/features/descriptors/data/.
+ * writes it atomically into src/render/hexmap3d/worldObjects/descriptors/data/.
  * Existing objects are saved in place; brand-new ids create `data/<id>.js`
  * AND register it in data/index.js (import + ALL_DESCRIPTORS entry).
  *
- * The table-driven entity files (bases.js, mobs.js) are rejected — their
+ * The table-driven entity files (base.js, mob.js) are rejected — their
  * descriptors are derived from variant tables, not edited through the editor.
  *
  * Run from the repo root (see saveServer.sh for the node resolution):
@@ -30,7 +30,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { SCHEMA_VERSION, validateDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
+import { SCHEMA_VERSION, validateDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { emitDescriptorModule, descriptorExportName } from './emitDescriptor.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -43,7 +43,7 @@ const PORT = Number(process.env.PORT || 8000);
 const MAX_BODY = 1024 * 1024; // 1 MB — descriptors are a few KB
 
 const ID_PATTERN = /^[A-Za-z0-9_-]+$/;
-const TABLE_DRIVEN = new Set(['bases.js', 'mobs.js']);
+const TABLE_DRIVEN = new Set(['base.js', 'mob.js']);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -142,25 +142,19 @@ async function handleSave(res, body) {
   const barrel = await importBarrel();
   const knownIds = new Set(barrel.ALL_DESCRIPTORS.map((d) => d.id));
   const isNew = !knownIds.has(id);
-  const sources = barrel.DESCRIPTOR_SOURCES ?? {};
+  const file = `${id}.js`;
 
-  let file;
-  if (sources[id] !== undefined) {
-    file = sources[id];
-    if (TABLE_DRIVEN.has(file)) {
-      return json(res, 409, {
-        error: `${file} is table-driven — ${id} is derived from BASE_VARIANTS / MOB_VARIANTS, not editable through the editor yet`,
-      });
-    }
-  } else {
-    file = `${id}.js`;
+  if (TABLE_DRIVEN.has(file)) {
+    return json(res, 409, {
+      error: `${file} is table-driven — ${id} is derived from BASE_VARIANTS / MOB_VARIANTS, not editable through the editor yet`,
+    });
   }
   if (isNew && existsSync(path.join(DATA_DIR, file))) {
     return json(res, 409, {
       error: `data/${file} already exists but id "${id}" is not registered — pick a different id`,
     });
   }
-  if (!isNew && !sources[id] && !existsSync(path.join(DATA_DIR, file))) {
+  if (!isNew && !existsSync(path.join(DATA_DIR, file))) {
     return json(res, 409, {
       error: `descriptor "${id}" is registered but data/${file} is missing — restore it first`,
     });

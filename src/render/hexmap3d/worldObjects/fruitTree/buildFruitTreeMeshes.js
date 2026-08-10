@@ -1,6 +1,11 @@
-// src/render/hexmap3d/features/trees/buildTreeMeshes.js
-// Collects tree instance records from visible tiles and assembles one
-// InstancedMesh per part geometry. Public entry points for the tree feature.
+// src/render/hexmap3d/worldObjects/fruitTree/buildFruitTreeMeshes.js
+// Collects fruit-tree instance records from visible tiles and assembles one
+// InstancedMesh per part geometry. Public entry points for the fruit-tree
+// feature (the only treatment still on a hard-coded builder).
+//
+// Everything else — groves on any woods (including the Painforest gnarled
+// variant), solitary trees, simple features, knots, mountains, hills — is
+// migrated to descriptor data and resolved by descriptors/gameBuilder.js.
 
 import * as THREE from '../../../../vendor/three.module.js';
 import { toonMaterial } from '../../scene/materials.js';
@@ -13,19 +18,17 @@ import {
   getFruitTreeBranchGeo,
   getFruitTreeCanopyGeo,
   getFruitTreeAppleGeo,
-} from '../geometries/index.js';
+} from './treeGeometries.js';
 import { collectInstances, buildInstanced } from '../meshBuilder.js';
-import { treeRecordsForTile } from './treeRecordsForTile.js';
+import { fruitTreeRecordsForTile } from './fruitTreeRecordsForTile.js';
 import { FRUIT_TREE_COLORS } from '../../../../params/render/geometryParams.js';
 
 const TRUNK_COLOR = 0x8B5E3C;
 
 /**
  * A tile draws legacy tree meshes for the one treatment still on the
- * hard-coded builders (see treeRecordsForTile.js): a fruitTree feature on any
- * terrain. Everything else — groves on any woods (including the Painforest
- * gnarled variant), solitary trees, and the migrated simple/knot/mountain/hill
- * content — resolves through descriptor data (descriptors/gameBuilder.js).
+ * hard-coded builders (see fruitTreeRecordsForTile.js): a fruitTree feature on
+ * any terrain. Everything else resolves through descriptor data.
  */
 function isTreeTile(tile) {
   return tile.feature?.kind === 'fruitTree';
@@ -39,7 +42,7 @@ function collectTreeInstances(tilesOrArray, visible, occupants) {
   return collectInstances(
     tilesOrArray, visible,
     (tile) => isTreeTile(tile),
-    (tile, worldPos) => treeRecordsForTile(tile, worldPos, occupants, visible.has(`${tile.q},${tile.r}`)),
+    (tile, worldPos) => fruitTreeRecordsForTile(tile, worldPos, occupants, visible.has(`${tile.q},${tile.r}`)),
   );
 }
 
@@ -81,23 +84,23 @@ function buildMeshesFromInstances(instances) {
 }
 
 /**
- * Build tree InstancedMeshes for the current game state.
+ * Build fruit-tree InstancedMeshes for the current game state.
  * @param {object} state - Game state (state.tiles Map)
  * @param {Set<string>} visible - Set of "q,r" keys currently visible
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildTreeMeshes(state, visible, occupants) {
+export function buildFruitTreeMeshes(state, visible, occupants) {
   return buildMeshesFromInstances(collectTreeInstances(state.tiles, visible, occupants));
 }
 
 /**
- * Build tree InstancedMeshes for a single chunk's tiles.
+ * Build fruit-tree InstancedMeshes for a single chunk's tiles.
  * @param {object[]} chunkTiles - Array of tile objects in this chunk
  * @param {Set<string>} visible - Set of hex keys currently visible
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildChunkTreeMeshes(chunkTiles, visible, occupants) {
+export function buildChunkFruitTreeMeshes(chunkTiles, visible, occupants) {
   return buildMeshesFromInstances(collectTreeInstances(chunkTiles, visible, occupants));
 }

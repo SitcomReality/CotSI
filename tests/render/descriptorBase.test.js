@@ -1,7 +1,7 @@
 /**
  * descriptorBase.test.js — Base descriptor data + entity record path.
  *
- * The base descriptor (descriptors/data/bases.js) is migrated 1:1 from the old
+ * The base descriptor (descriptors/data/base.js) is migrated 1:1 from the old
  * baseMeshes.js switch: tower + cap + per-faction decoration, keyed by the 7
  * faction shorts. These tests lock the descriptor→record mapping (golden
  * snapshots per faction), the faction-palette color tokens, variant fallback,
@@ -11,10 +11,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../../src/vendor/three.module.js';
-import { normalizeDescriptor, validateDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
-import { recordsForEntity } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
-import { BASE_DESCRIPTOR, BASE_VARIANTS } from '../../src/render/hexmap3d/features/descriptors/data/bases.js';
-import { buildBaseMeshes } from '../../src/render/hexmap3d/features/baseMeshes.js';
+import { normalizeDescriptor, validateDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { recordsForEntity } from '../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
+import { BASE_DESCRIPTOR, BASE_VARIANTS } from '../../src/render/hexmap3d/worldObjects/descriptors/data/base.js';
+import { buildBaseMeshes } from '../../src/render/hexmap3d/worldObjects/baseMeshes.js';
 import { FACTIONS } from '../../src/game/rules/factionData.js';
 
 const POS = { x: 0, y: 0, z: 0 };

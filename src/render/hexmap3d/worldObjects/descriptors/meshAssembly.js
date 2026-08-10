@@ -3,7 +3,7 @@
  *
  * The final leg of the descriptor pipeline: descriptor + records →
  * one InstancedMesh per part geometry, exactly like the per-kind builders
- * (e.g. buildTreeMeshes groups records by geo key). Records carry numeric
+ * (e.g. the fruit-tree builder groups records by geo key). Records carry numeric
  * colors; here they become THREE.Color instance colors.
  */
 import * as THREE from '../../../../vendor/three.module.js';

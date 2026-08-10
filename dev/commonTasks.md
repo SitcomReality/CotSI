@@ -10,8 +10,8 @@
 
 - Map generation: `src/game/rules/terrainGen/` — chunked: `terrainGen/chunkGeneration.js`, flat: `terrainGen/flatGeneration.js` (terrain types in `src/game/rules/terrainTypes.js`)
 - Hex math: `src/engine/rules/hexGrid.js`
-- Feature geometry: `src/render/hexmap3d/features/geometries/` (one file per feature type)
-- Feature meshes: `src/render/hexmap3d/features/descriptors/` (descriptor data + generic builder — new simple features are added as data), legacy builders in `features/trees/`
+- Feature geometry (new objects): add a descriptor in `src/render/hexmap3d/worldObjects/descriptors/data/` — one file per object (`<id>.js`), authored in the geometry editor (see below). The only hand-written builder left is `worldObjects/fruitTree/`.
+- Feature meshes: `src/render/hexmap3d/worldObjects/descriptors/` (descriptor data + generic builder — new simple features are added as data), legacy builder in `worldObjects/fruitTree/`
 - Visibility/fog: `src/game/state/fogOfWar.js`
 
 ## Add a New Feature via the Geometry Editor
@@ -31,7 +31,7 @@ Entities (faction bases, champions, mobs, traders) are entity-driven descriptors
 1. Open `dev/geometryEditor.html`. Pick the entity in the object list — the occupied/re-roll controls disappear (entities are occupants, not displaced decor) and an **Entity** panel appears.
 2. Pick the variant: **Faction** (bases/champions — also sets the palette colors) and/or **Archetype** (mobs — picks the shape variant). Traders have one fixed look.
 3. Edit parts as usual — edits target the active variant's parts (the parts the preview shows). Entity parts ignore stretch variation (no per-tile hash draws).
-4. **Save** — works for champions and traders (plain descriptor files). Bases and mobs are **table-driven** (`bases.js` / `mobs.js` derive their descriptor from variant maps the game imports) — Save rejects them with a 409; hand-edit those two files until the maps are decoupled.
+4. **Save** — works for champions and traders (plain descriptor files). Bases and mobs are **table-driven** (`base.js` / `mob.js` derive their descriptor from variant maps the game imports) — Save rejects them with a 409; hand-edit those two files until the maps are decoupled.
 5. Variant contract for entities: variant `id` === the selecting field (`variantRule 'faction'` → the faction short, `'archetype'` → the archetype shape key from `mob.archetypeName`). Unknown selections fall back to the first variant. Part ids must stay unique across variants — meshAssembly groups records by part id, so two variants sharing an id merge into one geometry.
 
 ## Change Win Conditions

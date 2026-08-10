@@ -12,8 +12,8 @@ import assert from 'node:assert/strict';
 import {
   normalizeDescriptor, validateDescriptor,
   OBJECT_KINDS, VARIANT_RULES, COLOR_TOKEN_PATTERN,
-} from '../../src/render/hexmap3d/features/descriptors/schema.js';
-import { recordsForEntity } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
+} from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { recordsForEntity } from '../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
 
 const POS = { x: 5, y: 1.0, z: -2 };
 

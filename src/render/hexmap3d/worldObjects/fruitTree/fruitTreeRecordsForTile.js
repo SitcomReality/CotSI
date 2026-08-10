@@ -1,6 +1,6 @@
-// src/render/hexmap3d/features/trees/treeRecordsForTile.js
+// src/render/hexmap3d/worldObjects/fruitTree/fruitTreeRecordsForTile.js
 // Per-tile legacy tree dispatch — the one procedural treatment the static-parts
-// descriptor model cannot express (see descriptors/data/trees.js):
+// descriptor model cannot express (see descriptors/data/tree.js):
 //
 // fruitTree — one bigger forest-family tree with visible, ripening fruit
 // (fruitTreeRecords.js), on any terrain. Renders as one forest-family tree
@@ -25,7 +25,7 @@ import {
  * @param {boolean} [visible=true] - whether the tile is currently visible;
  *        out of sight the feature is not rendered, so it stays unoccupied
  */
-export function treeRecordsForTile(tile, worldPos, occupants, visible = true) {
+export function fruitTreeRecordsForTile(tile, worldPos, occupants, visible = true) {
   if (tile.feature?.kind !== 'fruitTree') return [];
   const occupied = visible && isTileOccupied(occupants, tile);
   return fruitTreeRecords(tile, worldPos, featureState({ hasOccupant: occupied }));

@@ -3,7 +3,7 @@
  *
  * The descriptor-pipeline replacement for the per-kind builders it supersedes
  * (mountainMeshes.js, knotMeshes.js, simpleFeatureMeshes.js, hillDecorMeshes.js
- * and the solitary-tree half of trees/treeRecordsForTile.js). Dispatch matches
+ * and the solitary-tree half of fruitTree/fruitTreeRecordsForTile.js). Dispatch matches
  * the old builders' rules; once a tile resolves to a descriptor,
  * recordsForDescriptor → buildDescriptorMeshes renders it.
  *
@@ -37,9 +37,9 @@ import { recordsForDescriptor } from './recordBuilder.js';
 import { normalizeDescriptor } from './schema.js';
 import { descriptorById } from './data/index.js';
 import { GROVE_DESCRIPTOR } from './data/grove.js';
-import { HILL_DESCRIPTOR } from './data/hills.js';
-import { KNOT_DESCRIPTOR } from './data/knots.js';
-import { MOUNTAIN_DESCRIPTOR } from './data/mountains.js';
+import { HILL_DESCRIPTOR } from './data/hill.js';
+import { KNOT_DESCRIPTOR } from './data/knot.js';
+import { MOUNTAIN_DESCRIPTOR } from './data/mountain.js';
 import { biomeTintForTile } from '../biomeTint.js';
 import { coordKey } from '../../../../engine/rules/hexGrid.js';
 import { PLAINS_GRASS_DESCRIPTOR } from './data/plainsGrass.js';
@@ -321,7 +321,7 @@ export function buildDescriptorFeatureMeshes(state, visible, occupants, decorVis
  *        (visible ∪ explored); features stay gated on `visible`
  * @param {Map|null} [biomeColors] - biome id → { primary, accent } (state
  *        carries it; the chunk entry point has no state, so callers pass it —
- *        see featureMeshes.js). Absent = default part colors, no biome tint.
+ *        see worldMeshes.js). Absent = default part colors, no biome tint.
  * @returns {THREE.InstancedMesh[]}
  */
 export function buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decorVisible = visible, biomeColors = null) {

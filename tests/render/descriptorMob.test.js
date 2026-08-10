@@ -12,10 +12,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../../src/vendor/three.module.js';
-import { normalizeDescriptor, validateDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
-import { recordsForEntity } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
-import { MOB_DESCRIPTOR, MOB_VARIANTS, MOB_TIER2_VARIANTS } from '../../src/render/hexmap3d/features/descriptors/data/mobs.js';
-import { TRADER_DESCRIPTOR } from '../../src/render/hexmap3d/features/descriptors/data/traders.js';
+import { normalizeDescriptor, validateDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { recordsForEntity } from '../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
+import { MOB_DESCRIPTOR, MOB_VARIANTS, MOB_TIER2_VARIANTS } from '../../src/render/hexmap3d/worldObjects/descriptors/data/mob.js';
+import { TRADER_DESCRIPTOR } from '../../src/render/hexmap3d/worldObjects/descriptors/data/trader.js';
 import { buildUnitMeshes } from '../../src/render/hexmap3d/units/unitMeshes.js';
 import { FACTIONS } from '../../src/game/rules/factionData.js';
 

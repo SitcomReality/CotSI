@@ -14,7 +14,7 @@
 import { S } from '../state.js';
 import { el, selectInput } from './formControls.js';
 import { activeParts } from './variantQuery.js';
-import { SHAPE_TYPES } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
+import { SHAPE_TYPES } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import {
   isGroupNode,
   countNodes,

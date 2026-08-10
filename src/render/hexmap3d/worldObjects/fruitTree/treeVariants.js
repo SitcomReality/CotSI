@@ -1,32 +1,18 @@
-// src/render/hexmap3d/features/trees/treeVariants.js
-// Canopy-shape selection for trees: which variant a tile's trees use, and the
-// per-variant geometry + placement offsets + canopy half-height.
+// src/render/hexmap3d/worldObjects/fruitTree/treeVariants.js
+// Canopy selection for the fruit tree: the terrain decides round vs tall (the
+// same canopy family as the surrounding grove — clusterVariant), and
+// canopyForVariant supplies the per-variant geometry + placement offsets +
+// canopy half-height.
 
 import {
   getTreeCanopyRoundGeo,
   getTreeCanopyTallGeo,
   getTreeCanopyWideGeo,
-} from '../geometries/index.js';
+} from './treeGeometries.js';
 import {
-  TREE_VARIANT_HASH_SEEDS, TREE_FOREST_TALL_THRESHOLD, TREE_VARIANT_THRESHOLDS,
   TREE_TALL, TREE_WIDE, TREE_ROUND,
   TREE_CANOPY_ROUND, TREE_CANOPY_TALL, TREE_CANOPY_WIDE,
 } from '../../../../params/render/geometryParams.js';
-
-/**
- * Canopy variant for a solitary tree — deterministic from terrain + coords.
- * (Cluster trees pick their shape per terrain below; lone trees keep the
- * original round/tall/wide mix.)
- */
-export function treeVariant(terrain, q, r) {
-  const hash = ((q * TREE_VARIANT_HASH_SEEDS[0] + r * TREE_VARIANT_HASH_SEEDS[1]) * TREE_VARIANT_HASH_SEEDS[2]) % TREE_VARIANT_HASH_SEEDS[3];
-  if (terrain === 'forest') {
-    return hash < TREE_FOREST_TALL_THRESHOLD ? 'tall' : 'round';
-  }
-  if (hash < TREE_VARIANT_THRESHOLDS[0]) return 'round';
-  if (hash < TREE_VARIANT_THRESHOLDS[1]) return 'tall';
-  return 'wide';
-}
 
 /**
  * Canopy shape for a cluster terrain — one shape per landscape:

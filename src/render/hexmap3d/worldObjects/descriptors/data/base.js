@@ -1,5 +1,5 @@
 /**
- * bases.js — Descriptor data for champion bases.
+ * base.js — Descriptor data for champion bases.
  *
  * Migrated 1:1 from baseMeshes.js: the shared tower + cap (faction-colored via
  * the 'factionBase' token) and the per-faction decoration (the 'factionAccent'

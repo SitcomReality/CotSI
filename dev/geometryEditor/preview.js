@@ -20,7 +20,7 @@ import * as THREE from '../../src/vendor/three.module.js';
 import { toonMaterial } from '../../src/render/hexmap3d/scene/materials.js';
 import { addLights } from '../../src/render/hexmap3d/scene/lightSetup.js';
 import { hexCornersXZ, HEX_RADIUS } from '../../src/render/hexmap3d/hexWorldSpace.js';
-import { buildDescriptorMeshes } from '../../src/render/hexmap3d/features/descriptors/meshAssembly.js';
+import { buildDescriptorMeshes } from '../../src/render/hexmap3d/worldObjects/descriptors/meshAssembly.js';
 
 const TARGET = new THREE.Vector3(0, 0.35, 0);
 

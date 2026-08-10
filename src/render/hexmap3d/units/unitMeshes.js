@@ -21,12 +21,12 @@ import {
   traderPieceIconId,
 } from './pieceIcons.js';
 import { addOutlines } from '../scene/outline.js';
-import { normalizeDescriptor } from '../features/descriptors/schema.js';
-import { recordsForEntity } from '../features/descriptors/recordBuilder.js';
-import { buildDescriptorMeshes } from '../features/descriptors/meshAssembly.js';
-import { CHAMPION_DESCRIPTOR } from '../features/descriptors/data/champions.js';
-import { MOB_DESCRIPTOR, MOB_TIER2_VARIANTS } from '../features/descriptors/data/mobs.js';
-import { TRADER_DESCRIPTOR } from '../features/descriptors/data/traders.js';
+import { normalizeDescriptor } from '../worldObjects/descriptors/schema.js';
+import { recordsForEntity } from '../worldObjects/descriptors/recordBuilder.js';
+import { buildDescriptorMeshes } from '../worldObjects/descriptors/meshAssembly.js';
+import { CHAMPION_DESCRIPTOR } from '../worldObjects/descriptors/data/champion.js';
+import { MOB_DESCRIPTOR, MOB_TIER2_VARIANTS } from '../worldObjects/descriptors/data/mob.js';
+import { TRADER_DESCRIPTOR } from '../worldObjects/descriptors/data/trader.js';
 
 // ─── Shared cap material (module-level, reused every rebuild) ───────────────
 // Unit meshes are rebuilt every render pass; these materials are built once
@@ -120,11 +120,11 @@ function variantBodyTop(descriptor, variantId) {
  * Build unit meshes for all visible champions, mobs, and traders.
  *
  * All three entity types render through the descriptor pipeline:
- *   - Champions (descriptors/data/champions.js): cylinder body + sphere head
+ *   - Champions (descriptors/data/champion.js): cylinder body + sphere head
  *     per faction, instanced per part.
- *   - Mobs (descriptors/data/mobs.js): a 3D body per archetype shape (7 shapes
+ *   - Mobs (descriptors/data/mob.js): a 3D body per archetype shape (7 shapes
  *     + the tier-2 elder/queen variants), instanced per part.
- *   - Traders (descriptors/data/traders.js): a flat coin body in teal.
+ *   - Traders (descriptors/data/trader.js): a flat coin body in teal.
  *
  * Mobs and traders keep their baked SVG icon caps (pieceIcons.js — unchanged,
  * destined to be replaced by full 3D geometry); each mob cap rides the top of

@@ -13,11 +13,11 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/features/descriptors/data/index.js';
-import { buildChunkDescriptorFeatureMeshes } from '../../src/render/hexmap3d/features/descriptors/gameBuilder.js';
-import { normalizeDescriptor } from '../../src/render/hexmap3d/features/descriptors/schema.js';
-import { recordsForEntity } from '../../src/render/hexmap3d/features/descriptors/recordBuilder.js';
-import { buildDescriptorMeshes } from '../../src/render/hexmap3d/features/descriptors/meshAssembly.js';
+import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/worldObjects/descriptors/data/index.js';
+import { buildChunkDescriptorFeatureMeshes } from '../../src/render/hexmap3d/worldObjects/descriptors/gameBuilder.js';
+import { normalizeDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { recordsForEntity } from '../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
+import { buildDescriptorMeshes } from '../../src/render/hexmap3d/worldObjects/descriptors/meshAssembly.js';
 
 const ENTITY_KINDS = new Set(['base', 'champion', 'mob', 'trader']);
 

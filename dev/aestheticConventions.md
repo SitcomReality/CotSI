@@ -473,7 +473,7 @@ The three-dimensional map follows the same artistic rules as the 2D UI: **low-po
 
 Stylized piece scale, not real-world fidelity. A champion and a mountain are both "game pieces on a stage" and can share similar heights.
 
-### Tree clusters (implemented in `features/trees/`)
+### Tree clusters (implemented in `worldObjects/descriptors/gameBuilder.js` + `worldObjects/fruitTree/`)
 
 Every forest/woods tile reads as a **grove** — the grove is the terrain's
 decoration, not a feature:
@@ -498,7 +498,7 @@ the tile's decoration survives:
 
 - A feature on a woods tile keeps its place; the grove **disperses** — its
   trees shrink and push out toward the hex edge as a ring (state computation
-  in `features/decorEmphasis.js`)
+  in `worldObjects/decorEmphasis.js`)
 - An occupant on a feature tile pushes that feature aside: single-item
   features shrink and move to the shared upper-left-corner anchor of the hex
 - An occupant on a decoration tile disperses the grove, or sinks the hill

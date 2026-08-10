@@ -24,7 +24,7 @@ import {
 } from './formControls.js';
 import { inspectorHead } from './inspectorHead.js';
 import { worldAABBForPartIds } from '../preview.js';
-import { SHAPE_TYPES } from '../../../src/render/hexmap3d/features/descriptors/schema.js';
+import { SHAPE_TYPES } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { ENTITY_KINDS } from '../entityView.js';
 import { activeParts } from './variantQuery.js';
 import {

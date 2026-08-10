@@ -1,6 +1,6 @@
 /**
  * descriptorGameBuilder.test.js — Game-side descriptor resolution + assembly
- * (src/render/hexmap3d/features/descriptors/gameBuilder.js): tile dispatch
+ * (src/render/hexmap3d/worldObjects/descriptors/gameBuilder.js): tile dispatch
  * parity with the superseded per-kind builders, occupancy de-emphasis, and the
  * one legacy path that stays on the tree builder (the fruitTree feature).
  */
@@ -11,17 +11,17 @@ import {
   buildDescriptorFeatureMeshes,
   buildChunkDescriptorFeatureMeshes,
   resolveDescriptorForTile,
-} from '../../src/render/hexmap3d/features/descriptors/gameBuilder.js';
-import { buildChunkFeatureMeshes } from '../../src/render/hexmap3d/features/featureMeshes.js';
+} from '../../src/render/hexmap3d/worldObjects/descriptors/gameBuilder.js';
+import { buildChunkWorldMeshes } from '../../src/render/hexmap3d/worldObjects/worldMeshes.js';
 import { tileSurfaceY } from '../../src/render/hexmap3d/terrain/index.js';
 import { hexCenter3D } from '../../src/render/hexmap3d/hexWorldSpace.js';
 import {
   DISPERSED_SCALE, sunkTransform, dispersedSingleOffset,
-} from '../../src/render/hexmap3d/features/decorEmphasis.js';
+} from '../../src/render/hexmap3d/worldObjects/decorEmphasis.js';
 import {
   SCATTER_HASH_SEEDS, SCATTER_SCALE_BASE, SCATTER_SCALE_RANGE,
 } from '../../src/params/render/geometryParams.js';
-import { treeRecordsForTile } from '../../src/render/hexmap3d/features/trees/treeRecordsForTile.js';
+import { fruitTreeRecordsForTile } from '../../src/render/hexmap3d/worldObjects/fruitTree/fruitTreeRecordsForTile.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -250,8 +250,8 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   const marsh = meshNamed(meshes, 'marshReeds-reed');
   const plateau = meshNamed(meshes, 'plateauMound-mound');
   const grass = meshNamed(meshes, 'plainsGrass-blade');
-  const scrub = meshNamed(meshes, 'desertScrub-scrub');
-  const driftwood = meshNamed(meshes, 'beachDriftwood-plank');
+  const scrub = meshNamed(meshes, 'desertScrub-cactus-stem');
+  const driftwood = meshNamed(meshes, 'beachDriftwood-driftwood-log');
   for (const m of [marsh, plateau, grass, scrub, driftwood]) {
     assert.ok(m && m.count >= 1, `${m?.name ?? 'missing mesh'} renders at least one instance`);
   }
@@ -289,8 +289,8 @@ test('painforest grove is descriptor data; fruit trees stay legacy', () => {
   assert.ok(meshNamed(meshes, 'plainsGrass-blade'), 'the fruit tile terrain decor still renders');
 
   // Legacy tree records are fruit trees only — painforest no longer emits any.
-  assert.deepEqual(treeRecordsForTile(painforest, centerOf(painforest), new Set()), [], 'painforest grove is fully migrated to descriptors');
-  const fruitRecords = treeRecordsForTile(fruit, centerOf(fruit), new Set());
+  assert.deepEqual(fruitTreeRecordsForTile(painforest, centerOf(painforest), new Set()), [], 'painforest grove is fully migrated to descriptors');
+  const fruitRecords = fruitTreeRecordsForTile(fruit, centerOf(fruit), new Set());
   assert.ok(fruitRecords.some((r) => r.geo === 'fruit-apple'), 'fruit tree still emits fruit records');
 });
 
@@ -368,31 +368,31 @@ test('painforest grove (descriptor decor) renders out of sight; fruit trees stay
 
   // The gnarled grove is terrain decoration — it renders out of sight through
   // the descriptor path, not the legacy tree builder.
-  const painMeshes = buildChunkFeatureMeshes([painforest], state, visible, explored);
+  const painMeshes = buildChunkWorldMeshes([painforest], state, visible, explored);
   assert.ok(painMeshes.some((m) => m.name.startsWith('grove-')), 'painforest grove renders out of sight');
   assert.equal(meshesStarting(painMeshes, 'tree-').length, 0, 'painforest emits no legacy tree meshes');
 
   // The fruit tree (a feature) alone, out of sight, produces nothing — only
   // the tile's terrain decoration (plains grass) renders out of sight.
-  const fruitMeshes = buildChunkFeatureMeshes([fruit], state, visible, explored);
+  const fruitMeshes = buildChunkWorldMeshes([fruit], state, visible, explored);
   assert.equal(meshesStarting(fruitMeshes, 'fruit-').length, 0, 'fruit tree hidden out of sight');
   assert.ok(fruitMeshes.some((m) => m.name.startsWith('plainsGrass-')), 'plains grass decor still renders out of sight');
 
   // The migrated painforest grove emits no legacy records — with or without
   // an occupant, out of sight.
   const occupied = new Set([`${painforest.q},${painforest.r}`]);
-  assert.deepEqual(treeRecordsForTile(painforest, centerOf(painforest), new Set(), false), [], 'no legacy records for the migrated painforest grove');
-  assert.deepEqual(treeRecordsForTile(painforest, centerOf(painforest), occupied, false), [], 'no legacy records even with an occupant');
+  assert.deepEqual(fruitTreeRecordsForTile(painforest, centerOf(painforest), new Set(), false), [], 'no legacy records for the migrated painforest grove');
+  assert.deepEqual(fruitTreeRecordsForTile(painforest, centerOf(painforest), occupied, false), [], 'no legacy records even with an occupant');
 });
 
-// ── Barrel smoke (featureMeshes.js wiring) ─────────────────────────────────
+// ── Barrel smoke (worldMeshes.js wiring) ─────────────────────────────────
 
-test('buildChunkFeatureMeshes still wires tree + descriptor + base + outlines', () => {
+test('buildChunkWorldMeshes still wires tree + descriptor + base + outlines', () => {
   const state = {
     tiles: new Map(TILES.map((t) => [`${t.q},${t.r}`, t])),
     champions: [], mobs: [], traders: [],
   };
-  const meshes = buildChunkFeatureMeshes(TILES, state, VISIBLE);
+  const meshes = buildChunkWorldMeshes(TILES, state, VISIBLE);
 
   // Every source InstancedMesh gains an outline twin.
   assert.ok(meshes.length >= 2, 'barrel returns sources + outlines');
