@@ -162,21 +162,32 @@ test('mountain: per-variant part ids and mountainType-driven scaleY', () => {
   }
 });
 
-test('knot hovers at KNOT_Y_OFFSET and hill mound is a flattened hemisphere', () => {
+test('knot hovers at KNOT_Y_OFFSET and hill mound is a flattened dome cluster', () => {
   const knot = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'knot'));
   const [knotRecord] = recordsForDescriptor(knot, { q: 3, r: -2, terrain: 'plains' }, POS);
   assert.equal(knotRecord.y, POS.y + 0.3);
   assert.ok(knotRecord.partId === 'knot');
 
+  // Hill mound is a cluster of flattened domes: 2-3 ring-placed mounds, each
+  // at its own [0.8, 1.1] size draw, squashed to 2/3 height (scaleY/scale).
+  // The dome's thetaLength-1.5 band keeps its lowest vertex above the origin,
+  // so the grounded y dips slightly below the surface to compensate.
   const hill = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'hill'));
-  const [mound] = recordsForDescriptor(hill, { q: 3, r: -2, terrain: 'hill' }, POS);
-  assert.equal(mound.scale, 1);
-  assert.ok(Math.abs(mound.scaleY - 0.28 / 0.42) < 1e-9, 'hemisphere flattening');
-  // Sunk: descends below the surface and shrinks.
+  const mounds = recordsForDescriptor(hill, { q: 3, r: -2, terrain: 'hill' }, POS);
+  assert.ok(mounds.length >= 2 && mounds.length <= 3, `hill cluster ${mounds.length} outside [2,3]`);
+  for (const mound of mounds) {
+    assert.ok(mound.scale >= 0.8 - 1e-9 && mound.scale <= 1.1 + 1e-9, `mound size ${mound.scale}`);
+    assert.ok(Math.abs(mound.scaleY / mound.scale - 2 / 3) < 1e-9, `dome flattening ${mound.scaleY}/${mound.scale}`);
+    const dist = Math.hypot(mound.x - POS.x, mound.z - POS.z);
+    assert.ok(dist <= 0.4 + 1e-9, `mound ${dist} outside ringMax`);
+  }
+  // Sunk: descends below the surface and shrinks (same cluster count).
   const sunk = recordsForDescriptor(hill, { q: 3, r: -2, terrain: 'hill' }, POS, undefined, { displaced: true });
-  assert.equal(sunk.length, 1);
-  assert.ok(sunk[0].y < POS.y);
-  assert.ok(sunk[0].scale < 1);
+  assert.equal(sunk.length, mounds.length);
+  for (const s of sunk) {
+    assert.ok(s.y < POS.y);
+    assert.ok(s.scale < 1);
+  }
 });
 
 // ── Per-axis scale ─────────────────────────────────────────────────────────

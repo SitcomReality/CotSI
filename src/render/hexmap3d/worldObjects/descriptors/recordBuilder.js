@@ -36,7 +36,10 @@
  * + lift (+ localPos.y), and a nested leaf's bottom lands exactly at its
  * localPos point in the parent's frame. Stretch and scaleY therefore grow a
  * part upward from its base, never below it. Both the tile path and the entity
- * path apply the same rule.
+ * path apply the same rule. When a root part actually leans (nonzero tilt),
+ * the bake moves into the lift slot instead — `y` becomes the bottom height
+ * and the tilt rotates about that base (see recordForPart), matching the
+ * nested-leaf convention.
  */
 import { tileHash, treeHash, frac, lerp, clamp01 } from '../tileHash.js';
 import {
@@ -201,29 +204,42 @@ function resolveDisplacement(descriptor, count, tileH, displaced) {
 }
 
 /**
- * Scatter placement jitter, derived from the descriptor's own
+ * Per-item scatter placement jitter, derived from the descriptor's own
  * `placement.offsetMin`/`offsetMax` bounds (schema defaults 0.15..0.3) so the
- * scatter ring is authorable per object. The hash roll keeps the legacy
- * 30-step bucket and the negative-hash `%` behavior from the old
- * simpleFeatureMeshes.js jitterForTile(), so migrated descriptors stay
+ * scatter spread is authorable per object. Item 0 keeps the legacy roll
+ * verbatim — the 30-step bucket and the negative-hash `%` behavior from the
+ * old simpleFeatureMeshes.js jitterForTile(), so lone objects stay
  * deterministic and close to their original offsets; only the width of the
- * ring is rescaled to the descriptor's bounds. Computed once per tile (the
- * game does not vary it per item) and reused for every item in the cluster.
+ * ring is rescaled to the descriptor's bounds. Cluster members (i > 0) draw
+ * their own angle/radius/rotation/scale from treeHash so a cluster truly
+ * scatters across the hex instead of stacking every member at one point.
  */
-function scatterJitter(tile, placement) {
-  const hash = ((tile.q * SCATTER_HASH_SEEDS[0] + tile.r * SCATTER_HASH_SEEDS[1]) * SCATTER_HASH_SEEDS[2]) % SCATTER_HASH_SEEDS[3];
-  const angle = (hash * SCATTER_ANGLE_STEP) % (Math.PI * 2);
-  // Legacy fallbacks for unnormalized descriptors: offsetMin 0.15, max 0.295
-  // (the old `min + (range[0]-1)/range[1]` top bucket).
+function scatterJitter(tile, placement, tileH, i) {
   const min = placement.offsetMin ?? SCATTER_OFFSET_MIN;
+  // Legacy fallback for unnormalized descriptors: max 0.295 (the old
+  // `min + (range[0]-1)/range[1]` top bucket).
   const max = placement.offsetMax ?? SCATTER_OFFSET_MIN + (SCATTER_OFFSET_RANGE[0] - 1) / SCATTER_OFFSET_RANGE[1];
-  const frac = (hash % SCATTER_OFFSET_RANGE[0]) / (SCATTER_OFFSET_RANGE[0] - 1);
-  const dist = min + frac * (max - min);
+  if (i === 0) {
+    const hash = ((tile.q * SCATTER_HASH_SEEDS[0] + tile.r * SCATTER_HASH_SEEDS[1]) * SCATTER_HASH_SEEDS[2]) % SCATTER_HASH_SEEDS[3];
+    const angle = (hash * SCATTER_ANGLE_STEP) % (Math.PI * 2);
+    const f = (hash % SCATTER_OFFSET_RANGE[0]) / (SCATTER_OFFSET_RANGE[0] - 1);
+    const dist = min + f * (max - min);
+    return {
+      dx: Math.cos(angle) * dist,
+      dz: Math.sin(angle) * dist,
+      rotY: (hash * SCATTER_ROTATION_SEED) % (Math.PI * 2),
+      scaleMul: SCATTER_SCALE_BASE + (hash % SCATTER_SCALE_RANGE[0]) / SCATTER_SCALE_RANGE[1],
+    };
+  }
+  const angle = frac(treeHash(tileH, i + 13)) * Math.PI * 2;
+  const dist = lerp(min, max, frac(treeHash(tileH, i + 17)));
   return {
     dx: Math.cos(angle) * dist,
     dz: Math.sin(angle) * dist,
-    rotY: (hash * SCATTER_ROTATION_SEED) % (Math.PI * 2),
-    scaleMul: SCATTER_SCALE_BASE + (hash % SCATTER_SCALE_RANGE[0]) / SCATTER_SCALE_RANGE[1],
+    rotY: frac(treeHash(tileH, i + 19)) * Math.PI * 2,
+    // Same scale-jitter band as the legacy roll (SCATTER_SCALE_BASE .. BASE
+    // + (RANGE[0]-1)/RANGE[1], i.e. 0.8..0.99), drawn smoothly per member.
+    scaleMul: SCATTER_SCALE_BASE + frac(treeHash(tileH, i + 23)) * (SCATTER_SCALE_RANGE[0] - 1) / SCATTER_SCALE_RANGE[1],
   };
 }
 
@@ -302,12 +318,27 @@ function itemPlacement(descriptor, i, count, tileH, disp, jitter) {
     };
   }
   if (placement.mode === 'jitter') {
-    const angle = frac(tileH) * Math.PI * 2;
-    const dx = Math.cos(angle) * placement.offset;
-    const dz = Math.sin(angle) * placement.offset;
+    // Item 0 keeps the legacy anchor — a single point at distance `offset`
+    // along the tile's angle — so lone objects are unchanged. Cluster members
+    // (i > 0) spread into a loose clump within 0.5..1.5 × offset of the hex
+    // center, each with its own facing; the per-item tilt is unchanged.
+    if (i === 0) {
+      const angle = frac(tileH) * Math.PI * 2;
+      const dx = Math.cos(angle) * placement.offset;
+      const dz = Math.sin(angle) * placement.offset;
+      return {
+        dx, dz,
+        rotY: angle,
+        ...placementTilt(placement, dx, dz, tileH, i),
+      };
+    }
+    const angle = frac(treeHash(tileH, i + 13)) * Math.PI * 2;
+    const radius = placement.offset * lerp(0.5, 1.5, frac(treeHash(tileH, i + 17)));
+    const dx = Math.cos(angle) * radius;
+    const dz = Math.sin(angle) * radius;
     return {
       dx, dz,
-      rotY: angle,
+      rotY: frac(treeHash(tileH, i + 19)) * Math.PI * 2,
       ...placementTilt(placement, dx, dz, tileH, i),
     };
   }
@@ -423,15 +454,32 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
   const biomeFactor = part.biomeScale?.[tile.biomeId] ?? 1;
   const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor);
 
-  // Bottom-anchored grounding: bake the shape's base offset (scaled by the
-  // record's Y scale) into the pivot, so the part's lowest vertex lands at
-  // worldPos.y + t.y + lift regardless of scaleY/stretch — y = 0 / lift = 0
-  // sits flush on the surface, and stretch grows the part upward from there.
+  // Bottom-anchored grounding: the shape's base offset (scaled by the record's
+  // Y scale) normally bakes into the pivot `y`, so the part's lowest vertex
+  // lands at worldPos.y + t.y + lift — y = 0 / lift = 0 sits flush on the
+  // surface, and stretch grows the part upward from there. When the part
+  // actually leans (nonzero tilt), the pivot moves DOWN to the part's base:
+  // `y` becomes the bottom height and the base offset rides inside the
+  // rotation as lift, so the tilt spins the part about its ground contact
+  // instead of its geometry center (meshBuilder's T · R(tilt) · T(lift) …).
   const base = shapeBaseOffset(part.shape, part.params);
+  const rigid = itemScale * scaleMul * jitterScale * biomeFactor;
+  const groundedY = worldPos.y + t.y + (disp?.yOffset ?? 0);
+  let tiltAxis;
+  let tilt;
+  if (t.tiltAxis && t.tilt !== undefined) {
+    tiltAxis = t.tiltAxis;
+    tilt = t.tilt;
+  } else if (placement.tiltAxis && placement.tilt !== undefined) {
+    tiltAxis = placement.tiltAxis;
+    tilt = placement.tilt;
+  }
+  const basePivot = tilt !== undefined && tilt !== 0;
+  const baseLift = base * sy;
   const record = {
     partId: part.id,
     x: worldPos.x + placement.dx,
-    y: worldPos.y + t.y + base * sy + (disp?.yOffset ?? 0),
+    y: basePivot ? groundedY : groundedY + baseLift,
     z: worldPos.z + placement.dz,
     scale: sx,
     scaleY: sy,
@@ -441,7 +489,11 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
   const rotY = t.rotY + (placement.rotY ?? 0);
   if (rotY) record.rotY = rotY;
 
-  if (t.lift) record.lift = t.lift * itemScale * scaleMul * jitterScale * biomeFactor;
+  // Tilted parts carry the base offset in the lift slot (the pivot). Untilted
+  // parts emit lift only when the part is authored with one (keeping the exact
+  // legacy multiplication order so untilted records stay byte-identical).
+  if (basePivot) record.lift = baseLift + (t.lift ? t.lift * rigid : 0);
+  else if (t.lift) record.lift = t.lift * itemScale * scaleMul * jitterScale * biomeFactor;
   if (t.localPos) {
     // Pre-scaled by the same rigid factor as lift and the geometry: when a
     // scatter tile (or displacement) shrinks the item, the localPos offset
@@ -456,12 +508,9 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
     record.localAxis = t.localAxis;
     record.localAngle = t.localAngle;
   }
-  if (t.tiltAxis && t.tilt !== undefined) {
-    record.tiltAxis = t.tiltAxis;
-    record.tilt = t.tilt;
-  } else if (placement.tiltAxis && placement.tilt !== undefined) {
-    record.tiltAxis = placement.tiltAxis;
-    record.tilt = placement.tilt;
+  if (tilt !== undefined) {
+    record.tiltAxis = tiltAxis;
+    record.tilt = tilt;
   }
   const color = tileColorForPart(part, descriptor, tileH, i, biomeTint);
   if (color !== undefined) record.color = color;
@@ -663,11 +712,11 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
 
   const variant = variantFor(descriptor, tile, tileH, variantId);
   const parts = (variant ?? descriptor).parts;
-  const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement) : null;
   const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);
 
   const records = [];
   for (let i = 0; i < count; i++) {
+    const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement, tileH, i) : null;
     // Per-item size draw — per-item so cluster members vary (treeVariation's
     // scale uses hash i+3). For a single item (i=0) this is the same draw as
     // the old item-independent roll, so lone objects are unchanged.
@@ -702,10 +751,10 @@ export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(til
 
   const variant = variantFor(descriptor, tile, tileH, variantId);
   const parts = (variant ?? descriptor).parts;
-  const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement) : null;
   const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);
 
   for (let i = 0; i < count; i++) {
+    const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement, tileH, i) : null;
     const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, frac(treeHash(tileH, i + 3)));
     const placement = itemPlacement(descriptor, i, count, tileH, disp, jitter);
     const ctx = {
@@ -743,20 +792,26 @@ function entityColorForPart(part, entity) {
 function recordForEntityPart(part, entity, worldPos, itemScale) {
   const t = part.transform;
   // Same bottom-anchored grounding as the tile path (no stretch for entities):
-  // the part's lowest vertex lands at worldPos.y + t.y + lift.
+  // the part's lowest vertex lands at worldPos.y + t.y + lift. Tilted parts
+  // pivot at that base — `y` becomes the bottom height and the base offset
+  // rides inside the rotation as lift (see recordForPart).
   const base = shapeBaseOffset(part.shape, part.params);
+  const sy = itemScale * t.scaleY;
+  const tilted = t.tiltAxis !== undefined && t.tilt !== undefined && t.tilt !== 0;
+  const baseLift = base * sy;
   const record = {
     partId: part.id,
     x: worldPos.x,
-    y: worldPos.y + t.y + base * (itemScale * t.scaleY),
+    y: tilted ? worldPos.y + t.y : worldPos.y + t.y + baseLift,
     z: worldPos.z,
     scale: itemScale * t.scaleX,
-    scaleY: itemScale * t.scaleY,
+    scaleY: sy,
   };
   if (t.scaleZ !== t.scaleX) record.scaleZ = itemScale * t.scaleZ;
 
   if (t.rotY) record.rotY = t.rotY;
-  if (t.lift) record.lift = t.lift * itemScale;
+  if (tilted) record.lift = baseLift + (t.lift ? t.lift * itemScale : 0);
+  else if (t.lift) record.lift = t.lift * itemScale;
   if (t.localPos) {
     record.localPos = {
       x: t.localPos.x * itemScale,

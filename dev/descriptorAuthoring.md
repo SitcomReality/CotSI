@@ -126,20 +126,28 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
 
 **placement:**
 - `mode: 'center'` — one item at the hex center.
-- `mode: 'scatter'` — the classic simple-feature rule: a deterministic
-  per-tile offset, a spin, and a size jitter (~0.8–0.99×). The ring is bounded
-  by `offsetMin`/`offsetMax` (defaults 0.15/0.3) — the chests use
-  `offsetMin: 0, offsetMax: 0.1` to hug the hex center. The per-tile size
-  jitter is **rigid**: it scales the whole item (geometry *and* the root
-  `localPos`/`lift` slots, group hinges, and nested leaf offsets), so a
-  multi-part object stays assembled when a scatter tile shrinks it — and the
-  per-tile spin rotates the item about its own origin, not the hex center.
+- `mode: 'scatter'` — the classic simple-feature rule extended to clusters:
+  every member gets its own per-tile offset, spin, and size jitter (~0.8–0.99×),
+  so a cluster truly scatters across the hex (item 0 keeps the original
+  deterministic single-item roll verbatim — lone objects are unchanged). The
+  spread is bounded by `offsetMin`/`offsetMax` (defaults 0.15/0.3) — the chests
+  use `offsetMin: 0, offsetMax: 0.1` to hug the hex center. The size jitter is
+  **rigid**: it scales the whole item (geometry *and* the root `localPos`/`lift`
+  slots, group hinges, and nested leaf offsets), so a multi-part object stays
+  assembled when a scatter tile shrinks it — and the spin rotates each item
+  about its own origin, not the hex center.
 - `mode: 'ring'` — cluster members in a ring around the center, each leaning
   outward. Optional `ringMin`/`ringMax` (0.18/0.55), `leanMin`/`leanMax`
   (0.045/0.12).
-- `mode: 'jitter'` — cluster members offset by a fixed per-tile angle/distance,
-  leaning on a per-tile axis. Optional `offset` (0.08), `tiltMin`/`tiltMax`
-  (0/0), `tiltSeed` (1).
+- `mode: 'jitter'` — a loose clump: item 0 sits at a fixed per-tile
+  angle/distance (`offset`), the rest of the cluster spreads within 0.5–1.5×
+  `offset` of the hex center, each with its own facing and a per-tile lean
+  axis. Optional `offset` (0.08), `tiltMin`/`tiltMax` (0/0), `tiltSeed` (1).
+
+All lean/tilt (ring `leanMin`/`leanMax`, jitter `tiltMin`/`tiltMax`, and a
+part's own `tiltAxis`/`tilt`) **pivots at the part's base** — the bottom stays
+planted on the ground (or on `transform.y`/`lift`) and the top swings, rather
+than rotating around the shape's center.
 
 Each mode owns a fixed sub-field set (scatter: `offsetMin`/`offsetMax`; ring:
 `ringMin`/`ringMax`/`leanMin`/`leanMax`; jitter: `offset`/`tiltMin`/`tiltMax`/

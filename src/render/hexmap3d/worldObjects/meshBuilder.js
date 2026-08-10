@@ -70,6 +70,8 @@ export function collectInstances(tilesOrArray, visible, matchFn, collectFn) {
  *     frame, oriented by `R_local` there, spun by `rotY`, then leaned in world
  *     space by `tilt` around `y` — so a whole tree leans rigidly around its
  *     base and every part of it stays in the same relative arrangement.
+ *     (For tilted descriptor records `y` is the part's base — the grounding
+ *     bake rides in `lift` — so the lean pivots at the ground contact.)
  *   - `localPos` defaults to { x: 0, y: lift ?? 0, z: 0 }, which is the plain
  *     "raised above the pivot" case used by the simple trunk/canopy parts.
  *

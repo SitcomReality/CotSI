@@ -34,7 +34,7 @@ import { SCHEMA_VERSION, validateDescriptor } from '../../src/render/hexmap3d/wo
 import { emitDescriptorModule, descriptorExportName } from './emitDescriptor.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const DATA_DIR = path.join(ROOT, 'src', 'render', 'hexmap3d', 'features', 'descriptors', 'data');
+const DATA_DIR = path.join(ROOT, 'src', 'render', 'hexmap3d', 'worldObjects', 'descriptors', 'data');
 const INDEX_PATH = path.join(DATA_DIR, 'index.js');
 const DATA_DIR_REL = path.relative(ROOT, DATA_DIR).replaceAll('\\', '/');
 

@@ -68,7 +68,8 @@ test('golden snapshot: CRU base (tower + cap + 6 leaning spikes)', () => {
     ...Array.from({ length: 6 }, (_, i) => {
       const a = (Math.PI * 2 / 6) * i;
       return {
-        partId: `spike${i}`, x: 0, y: 0.15000000000000002, z: 0, scale: 1, scaleY: 1, // y = 0.1 bottom + 0.05 base (1-ulp drift)
+        partId: `spike${i}`, x: 0, y: 0.1, z: 0, scale: 1, scaleY: 1, // y = 0.1 bottom — tilt pivots at the base
+        lift: 0.05, // cone h 0.1 → base 0.05 rides inside the tilt rotation
         localPos: { x: Math.cos(a) * 0.28, y: 0, z: Math.sin(a) * 0.28 },
         tiltAxis: { x: Math.sin(a), z: -Math.cos(a) },
         tilt: 0.3,

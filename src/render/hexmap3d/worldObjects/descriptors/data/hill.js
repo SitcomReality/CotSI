@@ -1,33 +1,26 @@
 /**
- * hills.js — Descriptor data for the hill-mound terrain decoration.
+ * hill.js — Descriptor data for "Hill Mound".
  *
- * Migrated from hillDecorMeshes.js + hillDecorGeometries.js: one low flattened
- * dome per hill tile at the hex center (HILL_DECOR: radius 0.42, height 0.28).
- * The geometry is a top hemisphere (thetaLength π/2) flattened by
- * height/radius; emphasis 'sunk' shrinks it and descends it below the surface
- * when the tile center is claimed (decorEmphasis.js).
+ * Generated file: edit this object in the geometry editor
+ * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
  */
-
 export const HILL_DESCRIPTOR = {
-  schemaVersion: 4,
+  schemaVersion: 5,
   id: 'hill',
   kind: 'decor',
   displayName: 'Hill Mound',
-  placement: { mode: 'center' },
   emphasis: { behavior: 'sunk' },
   parts: [
     {
       id: 'mound',
       shape: 'sphere',
-      params: {
-        radius: 0.42, // HILL_DECOR.radius
-        wSegs: 10, hSegs: 5,
-        thetaStart: 0,
-        thetaLength: Math.PI / 2, // top hemisphere
-      },
-      transform: { scaleY: 0.28 / 0.42 }, // HILL_DECOR.height / radius flattening
-      color: 0x7a8f5a, // HILL_DECOR.color
-      biomeColor: { source: 'primary', influence: 0.3 }, // subtle biome tint on the turf
+      params: { radius: 0.4, wSegs: 7, thetaLength: 1.5 },
+      transform: { scaleY: 0.6666666666666667 },
+      color: 0x7a8f5a,
+      biomeColor: { source: 'primary', influence: 0.8 },
     },
   ],
+  cluster: { min: 2, max: 3 },
+  size: { min: 0.8, max: 1.1 },
+  placement: { mode: 'ring', ringMax: 0.4, leanMin: 0, leanMax: 0 },
 };

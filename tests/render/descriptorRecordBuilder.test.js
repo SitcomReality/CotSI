@@ -5,7 +5,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeDescriptor } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { normalizeDescriptor, shapeBaseOffset } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import {
   recordsForDescriptor,
   recordsForEntity,
@@ -112,8 +112,14 @@ test('item scale stays within scale × [size.min, size.max]', () => {
 test('lift and localPos pre-scale with the item scale', () => {
   const records = recordsForDescriptor(GROVE, TILE, POS);
   const trunk = records.find((r) => r.partId === 'trunk');
-  // lift = transform.lift × itemScale (itemScale = 1.5 × lerp(1.3..1.5, hash)).
-  assert.ok(trunk.lift > 0.16 && trunk.lift <= 0.16 * 1.5 * 1.5);
+  // Ring items lean, so the trunk carries the base bake (cylinder h 0.4 → base
+  // 0.2 × scaleY) plus the authored lift, which still pre-scales by itemScale
+  // (itemScale = lerp(1.3..1.5, hash) — GROVE has no `scale`, so scale = 1).
+  const authored = trunk.lift - 0.2 * trunk.scaleY;
+  assert.ok(authored >= 0.16 * 1.3 - 1e-9 && authored <= 0.16 * 1.5 + 1e-9, `authored lift ${authored}`);
+  // Grounded pivot: the tilted trunk's y is the bottom height, flush on the
+  // surface (the base bake rides as lift, so bottom = y + lift − 0.2·scaleY).
+  assert.ok(Math.abs(trunk.y - POS.y) < 1e-9, `pivot y ${trunk.y}`);
 });
 
 // ── Placement ──────────────────────────────────────────────────────────────
@@ -744,6 +750,100 @@ test('jitter placement replicates solitaryTreeRecords offsets and lean', () => {
   // scale = 1.15 (no stretch variation since ranges are flat).
   assert.ok(Math.abs(record.scale - 1.15 * 1.05) < 1e-9);
   assert.ok(Math.abs(record.scaleY - 1.15 * 1.1) < 1e-9);
+});
+
+// ── Cluster distribution (M4: scatter/jitter spread cluster members) ────────
+
+test('scatter distributes cluster members across the hex (item 0 keeps the legacy roll)', () => {
+  const scattered = normalizeDescriptor({
+    id: 'scatter-cluster',
+    kind: 'feature',
+    displayName: 'Scatter Cluster',
+    schemaVersion: 3,
+    cluster: { min: 4, max: 4 },
+    placement: { mode: 'scatter', offsetMin: 0.2, offsetMax: 0.6 },
+    parts: [{ id: 'p', shape: 'box' }],
+  });
+  const records = recordsForDescriptor(scattered, TILE, POS);
+  assert.equal(records.length, 4);
+  // Distinct positions — members no longer stack at one point.
+  assert.equal(new Set(records.map((r) => `${r.x},${r.z}`)).size, 4);
+  for (const r of records) {
+    const dist = Math.hypot(r.x - POS.x, r.z - POS.z);
+    assert.ok(dist >= 0.2 - 1e-9 && dist <= 0.6 + 1e-9, `dist ${dist} out of scatter bounds`);
+  }
+  // Item 0 keeps the legacy single-item roll verbatim (same hand-computed
+  // formula as the offset-honoring test above).
+  const hash = ((TILE.q * 17 + TILE.r * 11) * 13) % 100;
+  const angle = (hash * 0.618) % (Math.PI * 2);
+  const dist = 0.2 + ((hash % 30) / 29) * (0.6 - 0.2);
+  const [first] = records;
+  assert.ok(Math.abs(first.x - (POS.x + Math.cos(angle) * dist)) < 1e-9, `item 0 x ${first.x}`);
+  assert.ok(Math.abs(first.z - (POS.z + Math.sin(angle) * dist)) < 1e-9, `item 0 z ${first.z}`);
+  assert.ok(Math.abs((first.rotY ?? 0) - (hash * 0.723) % (Math.PI * 2)) < 1e-9);
+  assert.ok(Math.abs(first.scale - (0.8 + (hash % 20) / 100)) < 1e-9);
+});
+
+test('jitter spreads cluster members into a clump (item 0 keeps the legacy anchor)', () => {
+  const clump = normalizeDescriptor({
+    id: 'jitter-clump',
+    kind: 'feature',
+    displayName: 'Jitter Clump',
+    schemaVersion: 3,
+    cluster: { min: 4, max: 4 },
+    placement: { mode: 'jitter', offset: 0.12, tiltMin: 0.02, tiltMax: 0.08 },
+    parts: [{ id: 'p', shape: 'box' }],
+  });
+  const records = recordsForDescriptor(clump, TILE, POS);
+  assert.equal(records.length, 4);
+  // Distinct positions — members no longer share one base point (the teepee).
+  assert.equal(new Set(records.map((r) => `${r.x},${r.z}`)).size, 4);
+  for (const r of records) {
+    const dist = Math.hypot(r.x - POS.x, r.z - POS.z);
+    assert.ok(dist >= 0.12 * 0.5 - 1e-9 && dist <= 0.12 * 1.5 + 1e-9, `dist ${dist} outside clump`);
+  }
+  // Item 0 keeps the legacy anchor: angle = frac(tileH)·2π, radius = offset.
+  const tileH = ((TILE.q * 7 + TILE.r * 13) * 31) % 17;
+  const angle = ((tileH % 100) / 100) * Math.PI * 2;
+  assert.ok(Math.abs(records[0].x - (POS.x + Math.cos(angle) * 0.12)) < 1e-9);
+  assert.ok(Math.abs(records[0].z - (POS.z + Math.sin(angle) * 0.12)) < 1e-9);
+});
+
+test('tilt pivots at the part base; untilted parts keep the base bake in y', () => {
+  // A ring-mode cone with no authored lift: the lean moves the pivot DOWN to
+  // the cone's base — y is the bottom height (flush on the surface) and the
+  // base bake (h/2 × scaleY) rides inside the rotation as lift, so the tilt
+  // spins the cone about its ground contact, not its geometry center.
+  const tilting = normalizeDescriptor({
+    id: 'tilting',
+    kind: 'feature',
+    displayName: 'Tilting',
+    schemaVersion: 3,
+    cluster: { min: 2, max: 2 },
+    placement: { mode: 'ring', ringMin: 0.3, ringMax: 0.3, leanMin: 0.05, leanMax: 0.05 },
+    parts: [{ id: 'p', shape: 'cone', params: { bottomR: 0.028, height: 0.55, radialSegs: 4 } }],
+  });
+  for (const r of recordsForDescriptor(tilting, TILE, POS)) {
+    assert.ok(r.tilt !== undefined && r.tilt !== 0, 'ring item leans');
+    assert.ok(Math.abs(r.y - POS.y) < 1e-9, `pivot y ${r.y} vs ${POS.y}`);
+    assert.ok(Math.abs(r.lift - 0.275 * r.scaleY) < 1e-9, `lift ${r.lift} vs base bake`);
+    // The cone's lowest vertex is exactly the pivot (bottom = y + lift − base).
+    const bottom = r.y + r.lift - 0.275 * r.scaleY;
+    assert.ok(Math.abs(bottom - POS.y) < 1e-9, `bottom ${bottom} vs ${POS.y}`);
+  }
+  // An untilted part keeps the base bake in y (cone h 0.55 → base 0.275) and
+  // emits no lift.
+  const untilted = normalizeDescriptor({
+    id: 'untilted',
+    kind: 'feature',
+    displayName: 'Untilted',
+    schemaVersion: 3,
+    placement: { mode: 'center' },
+    parts: [{ id: 'p', shape: 'cone', params: { bottomR: 0.028, height: 0.55, radialSegs: 4 } }],
+  });
+  const [rec] = recordsForDescriptor(untilted, TILE, POS);
+  assert.equal(rec.lift, undefined);
+  assert.ok(Math.abs(rec.y - (POS.y + 0.275 * rec.scaleY)) < 1e-9);
 });
 
 // ── Per-item size draws (M4: cluster member variation) ─────────────────────
