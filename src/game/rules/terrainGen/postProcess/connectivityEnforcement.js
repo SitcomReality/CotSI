@@ -69,7 +69,11 @@ export function ensurePassableConnectivity(tiles, radius) {
   // 3. Find isolated passable components
   const isolated = [];
   for (const key of passableSet) {
-    if (mainComponent.has(key)) continue;
+    // Skip everything already visited — the main component AND components
+    // isolated in an earlier pass. They live in bfsVisited, not mainComponent:
+    // mainComponent must stay clean so the Dijkstra in _bridgeComponent can
+    // terminate on it.
+    if (bfsVisited.has(key)) continue;
 
     const comp = new Set();
     const q2 = [key];
@@ -79,13 +83,13 @@ export function ensurePassableConnectivity(tiles, radius) {
     while (q2.length > 0) {
       const cur2 = q2.shift();
       comp.add(cur2);
-      mainComponent.add(cur2);  // mark globally visited
+      bfsVisited.add(cur2);  // mark globally visited
       const [cq, cr] = cur2.split(',').map(Number);
       for (const nbr of neighbors({ q: cq, r: cr })) {
         const nk = coordKey(nbr);
         if (vis2.has(nk)) continue;
         vis2.add(nk);
-        if (passableSet.has(nk) && !mainComponent.has(nk)) {
+        if (passableSet.has(nk) && !bfsVisited.has(nk)) {
           q2.push(nk);
         }
       }

@@ -5,7 +5,7 @@
  * and collects aggregate statistics. Uses setTimeout-based yielding to
  * keep the UI responsive during long batches.
  */
-import { generateSingleSeed, DEFAULT_CHAMPIONS } from './generate.js';
+import { generateSingleSeed } from './generate.js';
 import { coordKey } from '../../../src/engine/rules/hexGrid.js';
 import { collectHistograms } from './histograms.js';
 import {
@@ -86,7 +86,6 @@ function buildChampionHeatmap(perSeedStats) {
 export async function runMultiSeed({ baseSeed, count, radius, biomeDef, multiBiome = false, onProgress, collectCalibration = false, noiseConfig = null }) {
   const perSeedStats = [];
   const terrainDistributions = [];
-  const allChampionPositions = [];
 
   // ── Optional: calibration histogram arrays ──────────────────────
   let calibHists = null;
@@ -104,7 +103,6 @@ export async function runMultiSeed({ baseSeed, count, radius, biomeDef, multiBio
       .filter(c => c.alive !== false)
       .map(c => ({ q: c.pos.q, r: c.pos.r }));
     stats.championPositions = champPositions;
-    allChampionPositions.push(...champPositions);
 
     perSeedStats.push(stats);
     terrainDistributions.push(stats.terrain);

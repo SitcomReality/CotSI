@@ -6,8 +6,7 @@
  *
  * Delegates to existing formatters for individual sections:
  *   - formatSnapshotReport(), formatMultiSeedSeamReport(), formatClimateCoverageReport()
- *   - formatMultiStats(), formatCalibrationReport()
- *   - formatFrequencyReport(), formatMultiCalibrationReport()
+ *   - formatCalibrationReport()
  *
  * Config and helpers in ./reportBaseFormat.js.
  * Heatmap formatting in ./reportHeatmapFormat.js.
@@ -16,7 +15,6 @@ import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
 import { formatSnapshotReport } from '../generation/snapshotTest.js';
 import { formatMultiSeedSeamReport } from '../generation/seamTestReport.js';
 import { formatClimateCoverageReport } from '../generation/climateCoverage.js';
-import { formatFrequencyReport } from '../stats/calibrationDisplay.js';
 import { formatCalibrationReport, exportCalibrationV1 } from '../generation/calibrationExport.js';
 import { poolHistograms } from '../generation/quantileLUT.js';
 import { percentileFromHistogram } from '../generation/histograms.js';

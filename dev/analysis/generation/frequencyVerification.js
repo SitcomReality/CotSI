@@ -9,7 +9,7 @@
  *
  * Pure: no DOM, no state, no side effects.
  */
-import { hexFbm2D, hexToWorld } from '../../../src/engine/rules/noise.js';
+import { hexFbm2D } from '../../../src/engine/rules/noise.js';
 import { stringSeed } from '../../../src/engine/rules/seededRng.js';
 import { hexesWithinRadius } from '../../../src/engine/rules/hexGrid.js';
 import { getNoiseConfig, SEED_DETAIL, SEED_RIDGE, SEED_MOISTURE, SEED_TEMP, SEED_REGION_M } from './noiseConfig.js';

@@ -10,9 +10,10 @@ import { tileSurfaceY } from '../terrain/index.js';
  * Iterate tiles, apply visibility + filter match, compute hex-center position,
  * and collect instance records via a callback.
  *
- * Accepts either a Map (state.tiles) keyed by "q,r" or an array of chunkTile objects.
+ * Accepts a "q,r"-keyed tile accessor (state.tiles proxy), a Map, or an array
+ * of chunkTile objects.
  *
- * @param {Map|object[]} tilesOrArray - state.tiles Map or chunkTiles array
+ * @param {Map|object|object[]} tilesOrArray - state.tiles accessor, Map, or chunkTiles array
  * @param {Set<string>}  visible      - Set of "q,r" keys currently visible
  * @param {Function}     matchFn      - (tile) => boolean; return true to collect this tile
  * @param {Function}     collectFn    - (tile, worldPos) => object|object[]|null;
@@ -34,10 +35,22 @@ export function collectInstances(tilesOrArray, visible, matchFn, collectFn) {
       const record = collectFn(tile, { x, y: surfaceY, z });
       if (record != null) addRecord(results, record);
     }
-  } else {
+  } else if (Array.isArray(tilesOrArray)) {
     for (const tile of tilesOrArray) {
       const key = `${tile.q},${tile.r}`;
       if (!visible.has(key)) continue;
+      if (!matchFn(tile)) continue;
+      const surfaceY = tileSurfaceY(tile);
+      const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
+      const record = collectFn(tile, { x, y: surfaceY, z });
+      if (record != null) addRecord(results, record);
+    }
+  } else {
+    // state.tiles is a "q,r"-keyed accessor (tileProxy), not iterable — read
+    // tiles by key over the visible set (mirrors collectBaseRecords).
+    for (const key of visible) {
+      const tile = tilesOrArray[key];
+      if (!tile) continue;
       if (!matchFn(tile)) continue;
       const surfaceY = tileSurfaceY(tile);
       const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);

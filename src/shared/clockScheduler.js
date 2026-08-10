@@ -106,9 +106,10 @@ export function createClock() {
      * given speed group. Returns a handle usable with clearTimeout.
      */
     setTimeout(fn, ms, group = 'default') {
-      const grp = _groups[group] || _groups.default;
+      const name = _groups[group] ? group : 'default';
+      const grp = _groups[name];
       const id = _idCounter++;
-      addTask(_timeoutTasks, createTask(id, fn, grp.virtualNow + ms, 0, group));
+      addTask(_timeoutTasks, createTask(id, fn, grp.virtualNow + ms, 0, name));
       return id;
     },
 
@@ -124,9 +125,10 @@ export function createClock() {
      * Returns a handle usable with clearInterval / clearTimeout.
      */
     setInterval(fn, ms, group = 'default') {
-      const grp = _groups[group] || _groups.default;
+      const name = _groups[group] ? group : 'default';
+      const grp = _groups[name];
       const id = _idCounter++;
-      addTask(_timeoutTasks, createTask(id, fn, grp.virtualNow + ms, ms, group));
+      addTask(_timeoutTasks, createTask(id, fn, grp.virtualNow + ms, ms, name));
       return id;
     },
 

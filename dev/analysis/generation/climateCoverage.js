@@ -38,7 +38,15 @@ export function runClimateCoverageTest(seedText = DEFAULT_SEED, radius = DEFAULT
   const tileCount = tileEntries.length;
 
   if (tileCount === 0) {
-    return { biomeCounts: {}, biomeDefaultTiles: [], climateGrid: {}, error: 'No tiles generated' };
+    return {
+      biomeCounts: {},
+      biomeDefaultTiles: [],
+      climateGrid: {},
+      totalTiles: 0,
+      seed: seedText,
+      radius,
+      error: 'No tiles generated',
+    };
   }
 
   // Count per-biome and collect biome_default tile data

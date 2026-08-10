@@ -184,11 +184,6 @@
   color: var(--ink-mid);
 }
 
-.control-row.hint {
-  color: var(--ink-faint);
-  font-size: var(--fs-xs);
-}
-
 /* Stretch variation rows: the mode select on the first line, the min/max/seed
    inputs on their own line below — so a custom axis never overflows the
    inspector column. */
@@ -339,7 +334,7 @@ button:disabled {
   overflow: hidden;
 }
 
-.num-step input[type="number"] {
+#inspector .num-step input[type="number"] {
   flex: 1;
   width: 84px;
   border: none;
@@ -521,7 +516,7 @@ button:disabled {
   padding: 2px 6px;
 }
 
-.part-actions select {
+#inspector .part-actions select {
   flex: 1;
   min-width: 0;
   max-width: none;

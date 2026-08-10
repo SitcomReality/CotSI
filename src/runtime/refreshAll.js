@@ -11,7 +11,6 @@ import { showDeathAnnouncement } from './deathAnnouncement.js';
 import { showPendingDispatch } from './dispatchPrompt.js';
 import { showPendingReward } from './rewardPrompt.js';
 import { showVictory } from '../ui/hud.js';
-import { refreshZoomDisplay } from './zoomDisplay.js';
 import { runBot } from './botTurnRunner.js';
 import { G, currentChamp, isTurnLocked } from '../game/state/liveGame.js';
 import { getClock } from '../shared/clockScheduler.js';

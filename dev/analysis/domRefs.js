@@ -86,9 +86,6 @@ export function cacheDom() {
   els.btnDownloadLuts = $('btn-download-luts');
   els.btnDownloadBatchReport = $('btn-download-batch-report');
   els.batchSummaryBadge = $('batch-summary-badge');
-  els.legend = $('legend');
-  els.loading = $('loading');
-  els.mapArea = $('map-area');
 
   // The canvas element is shared via state for rendering and export
   S.canvasEl = $('map-canvas');

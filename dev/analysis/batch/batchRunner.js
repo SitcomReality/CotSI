@@ -6,7 +6,7 @@
  *
  * Pure: no DOM, no state, no side effects.
  */
-import { getNoiseConfig, NOISE_CONFIG } from '../generation/noiseConfig.js';
+import { NOISE_CONFIG } from '../generation/noiseConfig.js';
 import {
   deriveThresholds,
 } from '../generation/thresholdDerivation.js';

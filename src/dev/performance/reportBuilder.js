@@ -87,7 +87,7 @@ function _buildSlowClusters(frames) {
 
     if (isSlow) {
       if (!current) {
-        current = { startIndex: i, entries: [], skipCount: 0 };
+        current = { startTs: entry.timestamp, entries: [], skipCount: 0 };
       }
       current.entries.push(entry);
       current.skipCount = 0;
@@ -113,8 +113,8 @@ function _buildSlowClusters(frames) {
   return clusters.map(c => {
     const worst = c.entries.reduce((a, b) => a.frameTime > b.frameTime ? a : b);
     return {
-      startIndex: c.startIndex,
-      endIndex: c.entries[c.entries.length - 1].timestamp,
+      startTs: c.startTs,
+      endTs: c.entries[c.entries.length - 1].timestamp,
       count: c.entries.length,
       worstMs: worst.frameTime,
       worstEntry: worst,
@@ -737,8 +737,8 @@ export function buildReport(frames, interval, longTasks = []) {
     contextBreakdown,
     ctxSlowSummary,
     slowClusters: slowClusters.map(c => ({
-      startTs: c.startIndex,
-      endTs: c.endIndex,
+      startTs: c.startTs,
+      endTs: c.endTs,
       count: c.count,
       worstMs: c.worstMs,
       context: c.context,

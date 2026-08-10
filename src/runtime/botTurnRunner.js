@@ -59,6 +59,14 @@ export async function runBot() {
     });
 
     let decision = aiDecide(G);
+    if (!decision) {
+      // No valid decision (missing/dead/non-bot champion): finish the turn
+      // like 'end' so the turn lock is always released.
+      clearGameContext();
+      _botFinishTurn();
+      endMeasure('runBot');
+      return;
+    }
     while (decision) {
       if (decision.action === 'end') {
         clearGameContext();
@@ -166,10 +174,17 @@ export async function runBot() {
       break;
     }
 
+    // Loop exhausted without a handled action (unknown action kind, or a
+    // falsy re-decide after a move): finish the turn defensively so the
+    // turn lock always releases.
+    clearGameContext();
+    _botFinishTurn();
     endMeasure('runBot');
   } catch (err) {
     clearGameContext();
+    hideBotIndicator();
     setTurnLock(false);
+    endMeasure('runBot');
     throw err;
   }
 }

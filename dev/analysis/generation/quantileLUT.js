@@ -34,7 +34,7 @@ export function poolHistograms(histogramArray) {
  *
  * The LUT maps rawValue → percentile using the cumulative distribution.
  * With 256 entries, each entry i represents the percentile at raw value
- * i/256. Linear interpolation is used during normalization.
+ * i/255. Linear interpolation is used during normalization.
  *
  * The source histogram typically has 50 bins (from collectHistograms).
  * This function resamples to a 256-entry LUT by linearly interpolating
@@ -42,7 +42,7 @@ export function poolHistograms(histogramArray) {
  *
  * @param {Uint32Array} pooledHist     - Pooled histogram (from poolHistograms)
  * @param {number}      [binCount=256] - Number of LUT entries
- * @returns {Float32Array} LUT where lut[i] = percentile at raw value i/binCount
+ * @returns {Float32Array} LUT where lut[i] = percentile at raw value i/(binCount-1)
  *                         lut[0] = 0, lut[binCount-1] = 1.0
  */
 export function buildQuantileLUT(pooledHist, binCount = 256) {
@@ -50,7 +50,7 @@ export function buildQuantileLUT(pooledHist, binCount = 256) {
   if (total === 0) {
     // Degenerate: return identity LUT (no-op normalization)
     const lut = new Float32Array(binCount);
-    for (let i = 0; i < binCount; i++) lut[i] = i / binCount;
+    for (let i = 0; i < binCount; i++) lut[i] = i / (binCount - 1);
     return lut;
   }
 
@@ -64,12 +64,12 @@ export function buildQuantileLUT(pooledHist, binCount = 256) {
     cdf[i] = cumulative / total;
   }
 
-  // Build the LUT: for each entry i (representing raw value i/binCount),
+  // Build the LUT: for each entry i (representing raw value i/(binCount-1)),
   // find the CDF value at that raw value via linear interpolation in CDF space.
   const lut = new Float32Array(binCount);
 
   for (let i = 0; i < binCount; i++) {
-    const rawValue = i / binCount;
+    const rawValue = i / (binCount - 1);
 
     // Map rawValue to the source bin it falls in
     const srcBinRaw = rawValue * sourceBins;

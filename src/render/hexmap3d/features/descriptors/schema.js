@@ -283,8 +283,12 @@ export function shapeBaseOffset(shape, params) {
     case 'sphere':
     case 'spheroid': {
       const r = params.radius;
-      const thetaEnd = (params.thetaStart ?? 0) + (params.thetaLength ?? Math.PI);
-      const lowest = thetaEnd >= Math.PI ? -r : r * Math.cos(thetaEnd);
+      const thetaStart = params.thetaStart ?? 0;
+      const thetaEnd = thetaStart + (params.thetaLength ?? Math.PI);
+      // Lowest vertex: -r when the band covers the south pole (theta = π);
+      // otherwise it sits at whichever band endpoint dips lower.
+      const coversSouthPole = thetaStart <= Math.PI && thetaEnd >= Math.PI;
+      const lowest = coversSouthPole ? -r : r * Math.min(Math.cos(thetaStart), Math.cos(thetaEnd));
       return -lowest;
     }
     case 'torus':

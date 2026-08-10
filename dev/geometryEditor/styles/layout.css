@@ -91,7 +91,7 @@
   transform: translateY(0);
 }
 
-/* The object browser hugs the left edge, same width the old grid column had. */
+/* The object browser hugs the right edge, same width the old grid column had. */
 #browser {
   right: 0;
   width: 230px;

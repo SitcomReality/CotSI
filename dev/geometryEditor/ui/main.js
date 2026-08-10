@@ -236,7 +236,8 @@ function renderObjectList(filterText = '') {
   }
 
   const selectedId = S.descriptor?.id ?? null;
-  let matched = 0;
+  // The pinned "Custom (loaded)" row counts toward the filtered total.
+  let matched = isCustomDescriptor() ? 1 : 0;
   for (const category of OBJECT_CATEGORIES) {
     if (category.id === 'mob') {
       const rows = MOB_ROWS.filter(

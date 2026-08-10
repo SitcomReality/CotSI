@@ -17,7 +17,7 @@ import { pickAndGenerateRandom, startCycle, stopCycle, nextSeed, prevSeed } from
 import { exportPng, exportJson } from './export.js';
 import { getArchetype, listArchetypes } from '../../../src/game/rules/archetypes.js';
 import '../../../src/game/rules/archetypeData/index.js'; // side-effect: populate registry
-import { getGenerationOptions, bindBatchControls, runBatchAnalysis } from './batchPanel.js';
+import { getGenerationOptions, bindBatchControls } from './batchPanel.js';
 
 // ─── Generate and display ───────────────────────────────────────────────────
 

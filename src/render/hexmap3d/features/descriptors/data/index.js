@@ -13,8 +13,8 @@
  * (BASE_VARIANTS / MOB_VARIANTS / MOB_TIER2_VARIANTS) — their descriptors are
  * derived from those tables and are NOT edited through the editor yet.
  *
- * Not descriptor-driven (parity gaps, see dev/futureWork.md): fruit trees and
- * painforest gnarled groves keep their hard-coded builders.
+ * Not descriptor-driven (parity gaps, see dev/futureWork.md): fruit trees keep
+ * their hard-coded builder.
  */
 import { OPEN_TREASURE_CHEST_DESCRIPTOR } from './openTreasureChest.js';
 import { BASE_DESCRIPTOR } from './bases.js';

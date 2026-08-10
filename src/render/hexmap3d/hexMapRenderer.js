@@ -85,7 +85,7 @@ export function renderHexMap3D(state, humanView) {
   const { visible, explored } = humanView;
   startMeasure('renderHexMap');
 
-  // Remove old ground plane if it exists (one-time cleanup from older sessions)
+  // Remove the temporary ground plane added during this session's scene setup
   const oldGround = ctx.scene.getObjectByName('ground');
   if (oldGround) {
     oldGround.geometry.dispose();

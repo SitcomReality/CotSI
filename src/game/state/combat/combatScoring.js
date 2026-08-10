@@ -36,8 +36,8 @@ export function scorePickPair(state, A, B, pickA, pickB){
 export function applyFinalBonuses(state, A, B, scoreA, scoreB){
   // Turn-long buffs from map features: attack adds to your round score and
   // defense subtracts from the opponent's. Mobs have no buffs (guarded reads).
-  scoreA += (A.buffs?.attack || 0) + (B.buffs?.defense || 0);
-  scoreB += (B.buffs?.attack || 0) + (A.buffs?.defense || 0);
+  scoreA += (A.buffs?.attack || 0) - (B.buffs?.defense || 0);
+  scoreB += (B.buffs?.attack || 0) - (A.buffs?.defense || 0);
   // Crucible Scarshield
   const week = Math.floor((state.day - 1) / DAYS_PER_WEEK) + 1;
   if(A.faction===0){ scoreB = Math.max(0, scoreB - week); }

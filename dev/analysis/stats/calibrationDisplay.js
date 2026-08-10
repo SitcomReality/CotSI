@@ -4,7 +4,6 @@
  * Pure formatting functions. No DOM access, no side effects.
  * Each function takes data and returns a plain text string.
  */
-import { NOISE_CONFIG, NOISE_FIELDS } from '../generation/noiseConfig.js';
 import { normalizeField } from '../generation/quantileLUT.js';
 import { poolHistograms, buildQuantileLUT } from '../generation/quantileLUT.js';
 import { percentileFromHistogram } from '../generation/histograms.js';

@@ -54,7 +54,7 @@ export function createMobs({ tiles, rand, used, radius }) {
       archetypeName: archetype.archetypeShape,
       faction,
       pos: parseKey(key),
-      hp: base.hp + hpRoll,
+      hp: Math.min(base.maxHp, base.hp + hpRoll),
       maxHp: base.maxHp,
       potencies,
       alive: true,
