@@ -154,8 +154,11 @@ function buildSelectionOverlay(group) {
 
   wireframe = new THREE.LineSegments(
     new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)),
-    new THREE.LineBasicMaterial({ color: 0xffc25e, depthTest: false, depthWrite: false }),
+    // transparent:true moves the box to the transparent pass, drawn after ALL
+    // opaque geometry — with depthTest off it never hides behind the part.
+    new THREE.LineBasicMaterial({ color: 0xffc25e, transparent: true, depthTest: false, depthWrite: false }),
   );
+  wireframe.renderOrder = 10;
   wireframe.visible = false;
   group.add(wireframe);
 
@@ -172,12 +175,23 @@ function buildSelectionOverlay(group) {
     );
     arrow.userData.axisKey = axis.key;
     // Invisible grab sphere — a far fatter raycast target than the thin shaft.
+    // Stored on userData.hit: pickGizmoArrow raycasts exactly these spheres.
     const hit = new THREE.Mesh(
-      new THREE.SphereGeometry(0.055, 8, 6),
+      new THREE.SphereGeometry(0.09, 10, 8),
       new THREE.MeshBasicMaterial({ visible: false }),
     );
-    hit.position.copy(axis.dir).multiplyScalar(ARROW_LENGTH * 0.65);
+    // The ArrowHelper maps its local +Y onto the axis direction, so the grab
+    // sphere rides the shaft in the arrow's own frame (placing it at
+    // axis.dir·k in local coords would drop it on −Y for the X/Z arrows).
+    hit.position.set(0, ARROW_LENGTH * 0.65, 0);
     arrow.add(hit);
+    arrow.userData.hit = hit;
+    // The shaft + head also render in the transparent pass (always on top).
+    for (const mat of [arrow.line.material, arrow.cone.material]) {
+      mat.transparent = true;
+      mat.depthTest = false;
+      mat.depthWrite = false;
+    }
     gizmoGroup.add(arrow);
   }
   group.add(gizmoGroup);
@@ -330,7 +344,7 @@ function pointerNDC(e, canvas) {
 function bindPointer(canvas) {
   const raycaster = new THREE.Raycaster();
   let orbitDrag = false;
-  let gizmoDrag = null; // { axis: Vector3, origin: Vector3, t0, pointerId }
+  let gizmoDrag = null; // { axis, origin, planeNormal, p0, pointerId }
   let downX = 0;
   let downY = 0;
   let moved = 0;
@@ -347,10 +361,13 @@ function bindPointer(canvas) {
     const arrow = pickGizmoArrow(raycaster, pointerNDC(e, canvas));
     if (arrow) {
       const origin = currentDragInfo.origin.clone();
+      const planeNormal = new THREE.Vector3();
+      camera.getWorldDirection(planeNormal);
       gizmoDrag = {
         axis: arrow.dir,
         origin,
-        t0: axisParam(raycaster, pointerNDC(e, canvas), arrow.dir, origin),
+        planeNormal,
+        p0: planePoint(raycaster, pointerNDC(e, canvas), origin, planeNormal),
         pointerId: e.pointerId,
       };
       canvas.setPointerCapture(e.pointerId);
@@ -367,10 +384,10 @@ function bindPointer(canvas) {
     const ndc = pointerNDC(e, canvas);
 
     if (gizmoDrag) {
-      const t = axisParam(raycaster, ndc, gizmoDrag.axis, gizmoDrag.origin);
-      const deltaWorld = t - gizmoDrag.t0;
+      const p = planePoint(raycaster, ndc, gizmoDrag.origin, gizmoDrag.planeNormal);
+      const deltaWorld = p.clone().sub(gizmoDrag.p0).dot(gizmoDrag.axis);
       if (deltaWorld !== 0) {
-        gizmoDrag.t0 = t;
+        gizmoDrag.p0.copy(p);
         const { partId, parentRot, itemScale } = currentDragInfo;
         const deltaLocal = worldDeltaToLocal(parentRot, gizmoDrag.axis, deltaWorld / itemScale);
         if (viewportCallbacks.onMutateLocalPos) {
@@ -426,6 +443,7 @@ function bindPointer(canvas) {
 
 /** Raycast the preview object meshes → the hit part's id, or null. */
 function pickPart(raycaster, ndc) {
+  scene.updateMatrixWorld(); // raycasts must see fresh overlay/object positions
   raycaster.setFromCamera(ndc, camera);
   const hits = raycaster.intersectObject(objectGroup, true);
   if (hits.length === 0) return null;
@@ -436,6 +454,7 @@ function pickPart(raycaster, ndc) {
 /** Raycast the gizmo's invisible grab spheres → its axis entry, or null. */
 function pickGizmoArrow(raycaster, ndc) {
   if (!gizmoGroup || !gizmoGroup.visible || !currentDragInfo) return null;
+  scene.updateMatrixWorld(); // raycasts must see fresh gizmo positions
   raycaster.setFromCamera(ndc, camera);
   const spheres = gizmoGroup.children.map((arrow) => arrow.userData.hit).filter(Boolean);
   if (spheres.length === 0) return null;
@@ -446,22 +465,20 @@ function pickGizmoArrow(raycaster, ndc) {
 }
 
 /**
- * The `t` along the axis line (origin + t·axis, unit axis) of the point closest
- * to the pointer ray — the gizmo drag parameter. Standard closest-points-
- * between-two-lines solve (pointer ray vs axis line).
+ * Where the pointer ray crosses the gizmo drag plane: the plane through
+ * `origin` perpendicular to the camera view direction (`planeNormal`).
+ * Projecting the pointer onto this plane keeps the drag delta aligned with the
+ * mouse on screen — the classic gizmo slide plane. (A closest-point-to-axis-
+ * line projection instead gives the OPPOSITE sense of motion: tilting the ray
+ * upward sweeps the axis-intersection downward under the preview camera angle.)
  */
-function axisParam(raycaster, ndc, axis, origin) {
+function planePoint(raycaster, ndc, origin, planeNormal) {
   raycaster.setFromCamera(ndc, camera);
   const ray = raycaster.ray;
-  const w0 = ray.origin.clone().sub(origin);
-  const a = axis.dot(axis);                    // 1 — unit axis
-  const b = axis.dot(ray.direction);
-  const c = ray.direction.dot(ray.direction);  // 1
-  const d = axis.dot(w0);
-  const e = ray.direction.dot(w0);
-  const denom = a * c - b * b;
-  if (Math.abs(denom) < 1e-8) return 0;        // parallel — degenerate
-  return (b * e - c * d) / denom;
+  const denom = ray.direction.dot(planeNormal);
+  if (Math.abs(denom) < 1e-8) return origin.clone(); // edge-on — degenerate
+  const t = origin.clone().sub(ray.origin).dot(planeNormal) / denom;
+  return ray.origin.clone().addScaledVector(ray.direction, t);
 }
 
 /**
