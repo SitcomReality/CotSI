@@ -49,10 +49,19 @@ const biomeColors = new Map(
     .filter(([, colors]) => colors?.primary && colors?.accent),
 );
 
+/** Biome terrain palettes (biome id → per-terrain color), for the `terrain`
+ *  tint source — the tile's ground color. Same per-biome data the game state
+ *  collects into state.biomePalettes. */
+const biomePalettes = new Map(
+  listArchetypes('biome')
+    .map((id) => [id, getArchetype(id)?.palette])
+    .filter(([, palette]) => palette),
+);
+
 /** The biome tint for the preview tile, or null (default colors). */
 function previewTint(tile) {
   if (!S.biomeId) return null;
-  return biomeTintForTile(tile, new Map([['1,0', tile]]), biomeColors, null);
+  return biomeTintForTile(tile, new Map([['1,0', tile]]), biomeColors, null, biomePalettes);
 }
 
 /** Fill the preview-tile biome selector: none + every registered biome. */

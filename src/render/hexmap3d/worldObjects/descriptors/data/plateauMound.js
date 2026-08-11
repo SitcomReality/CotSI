@@ -14,9 +14,9 @@ export const PLATEAU_MOUND_DESCRIPTOR = {
     {
       id: 'mound',
       shape: 'cylinder',
-      params: { bottomR: 0.75, topR: 0.42, height: 0.22, segments: 7 },
-      color: 0x8a8578,
-      biomeColor: { source: 'primary', influence: 0.7 },
+      params: { bottomR: 0.75, topR: 0.42, height: 0.22, segments: 10 },
+      color: 0xffffff,
+      biomeColor: { source: 'terrain', influence: 0.8 },
       transform: { localAngle: -3.141592653589793, localAxis: { x: 1, y: 0, z: 0 } },
     },
   ],

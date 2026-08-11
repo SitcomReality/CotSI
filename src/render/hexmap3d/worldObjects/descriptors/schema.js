@@ -454,11 +454,14 @@ const STRETCH_AXES = ['x', 'y', 'z', 'xz']; // 'xz' is the legacy combined axis
 /**
  * Biome tint sources a part may pull from. `primary` tints toward the biome's
  * primary color, `accent` toward its accent color (e.g. Tundra leaves use the
- * near-white accent to read as snow). The influence strength is 0..1, where 0
- * keeps the part's default color (also the behavior in Untouched and
- * Painforest, whose tiles never tint).
+ * near-white accent to read as snow). `terrain` tints toward the tile's own
+ * terrain surface color (its biome palette entry for the tile's terrain type,
+ * neighbor-blended) — ground-matching decor such as hill and plateau mounds.
+ * The influence strength is 0..1, where 0 keeps the part's default color (also
+ * the behavior in Untouched and Painforest for primary/accent, whose tiles
+ * never signature-tint; `terrain` still tints there).
  */
-const BIOME_COLOR_SOURCES = ['primary', 'accent'];
+const BIOME_COLOR_SOURCES = ['primary', 'accent', 'terrain'];
 
 /**
  * Validate a part's `biomeColor` — the per-part biome tint: which biome color

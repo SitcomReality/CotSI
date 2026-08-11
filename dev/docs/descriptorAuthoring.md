@@ -210,7 +210,7 @@ variation: {
 | `transform` | object | See §4.4. |
 | `stretch` | object | Per-part per-axis stretch override: `{ y: { min, max, seed } }`, or `false` to pin an axis at 1 (no stretch). Overrides the object-level `variation` ranges. |
 | `biomeScale` | object | Per-biome size factor: `{ biome_tundra: 0.85 }` multiplies the part's scale on tiles of that biome (stunted tundra trees). Scales lift/`localPos` rigidly too. |
-| `biomeColor` | object | Per-part biome tint: `{ source: 'primary' \| 'accent', influence: 0..1 }` — mixes the part's color toward the tile's blended biome color by `influence` (see §5.7). |
+| `biomeColor` | object | Per-part biome tint: `{ source: 'primary' \| 'accent' \| 'terrain', influence: 0..1 }` — mixes the part's color toward the tile's blended biome color by `influence` (see §5.7). |
 
 ### 4.3 Shape registry
 
@@ -345,15 +345,22 @@ and there are no tile-hash draws. Differences from the tile path:
 ### 5.7 Biome color influence
 
 `part.biomeColor` only applies on the tile path. The tint is the tile's own
-biome `primary`/`accent` color **pulled toward the average of its land
-neighbors** (the same neighbor blend the terrain surfaces use), so an Edenfall
-object beside Painforest tiles gets its purple diluted by green. Rules:
+biome colors **pulled toward the average of its land neighbors** (the same
+neighbor blend the terrain surfaces use), so an Edenfall object beside
+Painforest tiles gets its purple diluted by green. Rules:
 
-- `source: 'primary'` or `'accent'` picks which channel to tint toward.
+- `source: 'primary'` or `'accent'` picks the biome's signature color channel
+  to tint toward.
+- `source: 'terrain'` tints toward the tile's own **terrain surface color** —
+  the biome palette entry for the tile's terrain type, neighbor-blended the
+  same way. This is ground-matching: decor using it can never mismatch the
+  surface it sits on (hill and plateau mounds use it).
 - `influence: 0` keeps the default color; `1` fully replaces it.
-- Tiles of `biome_default` (Untouched) and `biome_painforest` never tint; tiles
-  with no known biome colors never tint. Their colors still bleed into
-  *neighbor* tiles' blends.
+- Tiles of `biome_default` (Untouched) and `biome_painforest` never
+  *signature*-tint (`primary`/`accent`); their `terrain` tint still applies,
+  and their colors still bleed into *neighbor* tiles' blends.
+- Tiles with no known biome colors never tint; tiles with no palette never
+  terrain-tint.
 - Requires a numeric (literal) part color — tokens have no tint.
 
 ## 6. How rendering works

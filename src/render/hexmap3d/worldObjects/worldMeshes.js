@@ -34,7 +34,7 @@ export function buildChunkWorldMeshes(chunkTiles, state, visible, explored = new
   const decor = decorGate(visible, explored);
 
   results.push(...buildChunkFruitTreeMeshes(chunkTiles, visible, occupants));
-  results.push(...buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decor, state.biomeColors ?? null));
+  results.push(...buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decor, state.biomeColors ?? null, state.biomePalettes ?? null));
   results.push(...buildChunkBaseMeshes(chunkTiles, visible));
 
   // Ink-outline twins for every feature mesh (units + features coverage —

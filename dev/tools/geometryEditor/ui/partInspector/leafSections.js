@@ -49,11 +49,11 @@ function renderColorSection(container, part, ctx) {
 /** Biome tint — leaves only. */
 function renderBiomeSection(container, part, ctx) {
   const sec = section('biome', container);
-  sec.append(el('div', 'hint', 'Tints this part toward the tile\'s blended biome color. Applies only to parts with a literal color; Untouched and Painforest tiles never tint.'));
+  sec.append(el('div', 'hint', 'Tints this part toward the tile\'s blended biome color. Applies only to parts with a literal color; Untouched and Painforest tiles skip signature (primary/accent) tints — terrain still matches the ground.'));
   const biome = part.biomeColor;
   const source = biome?.source ?? '';
   sec.append(row('Source', selectInput(
-    [{ value: '', label: '— none' }, { value: 'primary', label: 'primary' }, { value: 'accent', label: 'accent' }],
+    [{ value: '', label: '— none' }, { value: 'primary', label: 'primary' }, { value: 'accent', label: 'accent' }, { value: 'terrain', label: 'terrain' }],
     source,
     (v) => ctx.mutate(() => {
       if (!v) {

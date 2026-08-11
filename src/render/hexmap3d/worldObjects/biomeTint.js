@@ -14,17 +14,21 @@
  * follows), and neighbors outside the decor gate (visible ∪ explored) are
  * skipped, standing in for the terrain blend's `explored` set.
  *
- * Untouched (biome_default) and Painforest (biome_painforest) never tint:
- * their decor keeps the default part colors per the design rule, so the blend
- * returns null for tiles of those biomes. Their colors still bleed into
- * NEIGHBOR tiles' blends — the check applies to the tile's own biome only.
+ * Untouched (biome_default) and Painforest (biome_painforest) never signature
+ * tint: their decor keeps the default part colors per the design rule, so
+ * `primary`/`accent` are not computed for tiles of those biomes. Their colors
+ * still bleed into NEIGHBOR tiles' blends — the check applies to the tile's
+ * own biome only. The `terrain` source is different: it matches decor to the
+ * ground it sits on, so it applies in every biome (including the default-tint
+ * ones), whenever the biome palettes are known.
  *
- * Pure module: no THREE, no game state — it reads a `biomeColors` Map
- * (biome id → { primary, accent }) and a tile lookup Map passed in as args,
- * so it is unit-testable in Node and shared by the state and chunk paths.
+ * Pure module: no THREE, no game state — it reads `biomeColors` (biome id →
+ * { primary, accent }) and `biomePalettes` (biome id → per-terrain palette)
+ * Maps passed in as args, so it is unit-testable in Node and shared by the
+ * state and chunk paths.
  */
 import { neighbors, coordKey } from '../../../engine/rules/hexGrid.js';
-import { TERRAIN_BLEND_FACTOR } from '../../../params/render/terrainParams.js';
+import { TERRAIN_BLEND_FACTOR, TERRAIN_COLOR } from '../../../params/render/terrainParams.js';
 
 /** Biomes whose decor keeps the default part colors (never tinted). */
 const DEFAULT_TINT_BIOMES = new Set(['biome_default', 'biome_painforest']);
@@ -50,38 +54,72 @@ function averageColor(parts, own, factor) {
 }
 
 /**
- * Neighbor-blended biome colors for a tile's decor, or null when the tile has
- * no biome tint (default biomes, or no colors known for its biome).
- *
- * @param {object} tile        - tile ({ q, r, biomeId, terrain })
- * @param {Map}    tilesByKey  - "q,r" → tile lookup for the tiles being built
- *                               (state.tiles Map, or a Map built from a chunk)
- * @param {Map}    biomeColors - biome id → { primary, accent } (0-1 tuples)
- * @param {Set<string>} [decorGate] - "q,r" keys of decor-visible tiles; when
- *                               given, out-of-gate neighbors are skipped
- * @returns {{ primary: number[], accent: number[] }|null}
+ * The tile's terrain surface color: its biome palette entry for the tile's
+ * terrain type, falling back to the base TERRAIN_COLOR table like the terrain
+ * mesh resolver (tileColor.js). Lake/river modulation is irrelevant here —
+ * decor never sits on water, and water neighbors are excluded from the blend.
  */
-export function biomeTintForTile(tile, tilesByKey, biomeColors, decorGate = null) {
-  if (!biomeColors || DEFAULT_TINT_BIOMES.has(tile.biomeId)) return null;
-  const own = biomeColors.get(tile.biomeId);
-  if (!own) return null;
+function terrainColorFor(tile, biomePalettes) {
+  const pal = (tile.biomeId && biomePalettes.get(tile.biomeId)) || {};
+  return pal[tile.terrain] || TERRAIN_COLOR[tile.terrain] || TERRAIN_COLOR.plains;
+}
 
-  const partsP = [own.primary];
-  const partsA = [own.accent];
+/**
+ * Neighbor-blended biome colors for a tile's decor, or null when nothing can
+ * be computed. The returned tint carries whichever sources apply to the tile:
+ *   primary / accent — the biome's signature colors, neighbor-blended; skipped
+ *       on Untouched and Painforest tiles (default-tint design rule).
+ *   terrain — the tile's own terrain surface color, neighbor-blended the same
+ *       way the surface itself is; applies in every biome (ground matching).
+ *
+ * @param {object} tile          - tile ({ q, r, biomeId, terrain })
+ * @param {Map}    tilesByKey    - "q,r" → tile lookup for the tiles being built
+ *                                 (state.tiles Map, or a Map built from a chunk)
+ * @param {Map}    biomeColors   - biome id → { primary, accent } (0-1 tuples)
+ * @param {Set<string>} [decorGate] - "q,r" keys of decor-visible tiles; when
+ *                                 given, out-of-gate neighbors are skipped
+ * @param {Map}    [biomePalettes] - biome id → palette (terrain type → 0-1
+ *                                 color tuple); required for the terrain source
+ * @returns {{ primary?: number[], accent?: number[], terrain?: number[] }|null}
+ */
+export function biomeTintForTile(tile, tilesByKey, biomeColors, decorGate = null, biomePalettes = null) {
+  const wantSignature = biomeColors && !DEFAULT_TINT_BIOMES.has(tile.biomeId);
+  const ownSignature = wantSignature ? biomeColors.get(tile.biomeId) : null;
+  const wantTerrain = !!biomePalettes;
+
+  const partsP = ownSignature ? [ownSignature.primary] : null;
+  const partsA = ownSignature ? [ownSignature.accent] : null;
+  const partsT = wantTerrain ? [terrainColorFor(tile, biomePalettes)] : null;
+  if (!partsP && !partsT) return null;
+
+  const tint = {};
+  if (partsP) {
+    tint.primary = partsP[0];
+    tint.accent = partsA[0];
+  }
+  if (partsT) tint.terrain = partsT[0];
+
   for (const nb of neighbors({ q: tile.q, r: tile.r })) {
     const key = coordKey(nb);
     const nbTile = tilesByKey?.get(key);
     if (!nbTile || nbTile.terrain === 'water' || nbTile.terrain === 'river') continue;
     if (decorGate && !decorGate.has(key)) continue;
-    const nbColors = biomeColors.get(nbTile.biomeId);
-    if (!nbColors) continue;
-    partsP.push(nbColors.primary);
-    partsA.push(nbColors.accent);
+    if (partsP) {
+      const nbColors = biomeColors.get(nbTile.biomeId);
+      if (nbColors) {
+        partsP.push(nbColors.primary);
+        partsA.push(nbColors.accent);
+      }
+    }
+    if (partsT) partsT.push(terrainColorFor(nbTile, biomePalettes));
   }
 
-  if (partsP.length === 1) return { primary: own.primary, accent: own.accent };
-  return {
-    primary: averageColor(partsP, own.primary, TERRAIN_BLEND_FACTOR),
-    accent: averageColor(partsA, own.accent, TERRAIN_BLEND_FACTOR),
-  };
+  if (partsP && partsP.length > 1) {
+    tint.primary = averageColor(partsP, ownSignature.primary, TERRAIN_BLEND_FACTOR);
+    tint.accent = averageColor(partsA, ownSignature.accent, TERRAIN_BLEND_FACTOR);
+  }
+  if (partsT && partsT.length > 1) {
+    tint.terrain = averageColor(partsT, partsT[0], TERRAIN_BLEND_FACTOR);
+  }
+  return tint;
 }
