@@ -545,9 +545,9 @@ What each piece demonstrates:
    EOF
    ```
 
-4. **Regenerate the golden snapshot** so `tests/run.sh` passes
+4. **Regenerate the golden snapshot** so `dev/tests/run.sh` passes
    (`descriptorData.test.js` asserts every descriptor's records exactly match
-   `tests/render/fixtures/descriptorData.snap.json`):
+   `dev/tests/render/fixtures/descriptorData.snap.json`):
 
    ```bash
    /run/host/usr/bin/node --input-type=module <<'EOF'
@@ -569,12 +569,12 @@ What each piece demonstrates:
      const d = normalizeDescriptor(raw);
      out[raw.id] = { tile: tileFor(d), records: recordsForDescriptor(d, tileFor(d), POS) };
    }
-   writeFileSync('tests/render/fixtures/descriptorData.snap.json', JSON.stringify(out, null, 2) + '\n');
+   writeFileSync('dev/tests/render/fixtures/descriptorData.snap.json', JSON.stringify(out, null, 2) + '\n');
    console.log('wrote', Object.keys(out).length, 'snapshots');
    EOF
    ```
 
-5. **Run the checks**: `tests/run.sh`, `python3 dev/scripts/check_imports.py`,
+5. **Run the checks**: `dev/tests/run.sh`, `python3 dev/scripts/check_imports.py`,
    `python3 dev/scripts/check_geometry_editor_imports.py`.
 6. **Make it spawn in-game** (features): register a feature archetype in
    `src/game/rules/archetypeData/features.js`

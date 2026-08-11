@@ -7,7 +7,7 @@
  * Layer: shared/
  */
 
-import { EMA_ALPHA } from '../params/dev/performanceParams.js';
+import { EMA_ALPHA } from '../params/devtools/performanceParams.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 

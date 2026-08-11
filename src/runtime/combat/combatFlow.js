@@ -19,7 +19,7 @@ import { renderCombat } from '../../ui/combat/combatRenderer.js';
 import { closeCombat } from './combatLifecycle.js';
 import { animateReveal } from '../../ui/combat/combatReveal.js';
 import { handleRoundEnd } from './combatRoundEnd.js';
-import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../../dev/performance/index.js';
+import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../../devtools/performance/index.js';
 import { BOT_PICK_DELAY_MS, ROUND_END_HOLD_MS } from '../../params/ui/combatUiParams.js';
 
 // ---- helpers ----

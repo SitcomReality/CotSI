@@ -1,10 +1,12 @@
 # Future Work & Deferred Items
 
-Forward-looking tracker consolidated from three earlier documents
-(`dev/auditBacklog.md`, `dev/mapgen_update/remaining_work.md`,
-`dev/largeMapRoadmap.md`) in Aug 2026. Contains only work that is deferred,
-still to be implemented, or worth keeping as future reference. Completed work
-lives in git history, not here.
+Forward-looking tracker. Contains only work that is deferred, still to be
+implemented, or worth keeping as future reference. Completed work lives in git
+history, not here.
+
+Some things in this document may be based on out-of-date design ideas -- confirm
+with the user before implementing specific features or making changes based on
+this document.
 
 ---
 
@@ -34,6 +36,7 @@ in trader stock (a `secondary` bonus, `TRADER_WEAPON_BONUS`).
 - Design the champion inventory/slot model, and how a weapon's `secondary`
   bonus applies in combat scoring.
 - Sources beyond traders: dungeon rewards, digs, bases.
+- Stronger equipment is tied to God's Knots - either by purchase or upgrading.
 - Settle stacking / durability / trading items back.
 
 ### 1.3 Dungeons
@@ -267,10 +270,10 @@ Consumers to re-point during the refactor: `terrainGen/**`,
 - `dev/tools/analysis/ui/cycle.js:139` — `restartCycle` export unused;
   `dev/tools/analysis/domRefs.js:54` — `els.statsPanel` cache unused
 - `src/ui/setupHeptagram.js:144` — `getBalancedThird` export unused
-- `src/dev/performance/frameProfiler.js:62-68` — `'frame:tick'` instrumentation
+- `src/devtools/performance/frameProfiler.js:62-68` — `'frame:tick'` instrumentation
   never enabled (enabling needs a matching exclusion in
   `reportBuilder._computeJsOverhead`)
-- `src/dev/performance/stats.js` — `bucketFrameTimes`/`computeEma` unused;
+- `src/devtools/performance/stats.js` — `bucketFrameTimes`/`computeEma` unused;
   `reportBuilder.js` duplicated `ftBuckets`/`th*` tallies, literal `50` vs
   `HITCH_THRESHOLD`, hardcoded "Worst 5 Frames" header
 - `src/render/hexmap3d/` — full-map dead builders (`buildFeatureMeshes`,
@@ -307,7 +310,7 @@ per-variant display names or close the goal.
 
 ### 5.7 Conditional extracts (techDebtAudit §2 — only if these files grow)
 
-- `src/dev/performance/reportBuilder.js` (938) — extract `_formatReport`
+- `src/devtools/performance/reportBuilder.js` (938) — extract `_formatReport`
   (~148 lines) → `reportFormatter.js` if it grows past ~1,000 lines
 - `src/game/state/featureRewards.js` (545) — extract the `FEATURES` table +
   card builders → `featureRewardTable.js` if it grows past ~650 lines

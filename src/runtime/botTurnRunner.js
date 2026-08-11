@@ -14,7 +14,7 @@ import { FACTIONS } from '../game/rules/factionData.js';
 import { runBotTurn as aiDecide } from '../game/state/championAI.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { showBotIndicator, hideBotIndicator } from '../ui/panels/botIndicator.js';
-import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../dev/performance/index.js';
+import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
 import { tileSurfaceY } from '../render/hexmap3d/hexMapRenderer.js';

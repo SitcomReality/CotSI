@@ -370,7 +370,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 |------|---------|
 | `actionBus.js` | `[data-action]` dispatcher with keyboard shortcuts and modal-action helpers |
 | `clockScheduler.js` | Centralized Clock with pause/resume, per-group speed control, master rAF loop |
-| `measurements.js` | Named timing measurements (start/end, lifetime avg, EMA); moved from `dev/performance/` |
+| `measurements.js` | Named timing measurements (start/end, lifetime avg, EMA); moved from `src/devtools/performance/` |
 | `speedGroup.js` | Speed-group definitions and speed multipliers |
 | `timerQueue.js` | Priority-queue timer management for the clock scheduler |
 
@@ -378,8 +378,8 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 
 | File | Purpose |
 |------|---------|
-| `dev/cheatParams.js` | Default amounts for dev cheat actions |
-| `dev/performanceParams.js` | Performance profiling thresholds and frame-rate targets |
+| `src/params/devtools/cheatParams.js` | Default amounts for dev cheat actions |
+| `src/params/devtools/performanceParams.js` | Performance profiling thresholds and frame-rate targets |
 | `engine/chunkParams.js` | Chunk sizing for hex-grid spatial partitioning |
 | `game/aiParams.js` | Bot AI decision thresholds, weights, and probabilities |
 | `game/championParams.js` | Champion starting stats and base values |
@@ -408,9 +408,9 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `three.webgpu.nodes.js` | Three.js WebGPU TSL nodes |
 | `three.tsl.js` | Three.js TSL shading language |
 
-### `src/dev/` — Developer tools (not part of game UI)
+### `src/devtools/` — Developer tools (not part of game UI)
 
-#### `src/dev/panel/` — Dev tools panel shell
+#### `src/devtools/panel/` — Dev tools panel shell
 
 | File | Purpose |
 |------|---------|
@@ -421,18 +421,17 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `template.js` | Dev panel HTML template |
 | `teleport.js` | Dev teleport-mode UI and state |
 
-#### `src/dev/cheats/` — Cheat actions
+#### `src/devtools/cheats/` — Cheat actions
 
 | File | Purpose |
 |------|---------|
 | `combat.js` | Cheat: trigger combat, resolve instantly |
-| `index.js` | Barrel for cheat registrations |
 | `map.js` | Cheat: reveal map, toggle fog |
 | `movement.js` | Cheat: fill moves, teleport |
 | `resources.js` | Cheat: +gold, +HP, +relics, +knots, +potency |
 | `state.js` | Cheat state: what's enabled |
 
-#### `src/dev/botControl/` — Bot control UI
+#### `src/devtools/botControl/` — Bot control UI
 
 | File | Purpose |
 |------|---------|
@@ -442,7 +441,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `state.js` | Bot-control state: per-champion mode, step mode |
 | `stepMode.js` | Step-through mode: one action at a time |
 
-#### `src/dev/actionWiring/` — Dev action bindings
+#### `src/devtools/actionWiring/` — Dev action bindings
 
 | File | Purpose |
 |------|---------|
@@ -451,7 +450,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `index.js` | Barrel for dev action wiring |
 | `performance.js` | Dev action wiring for performance-tab actions |
 
-#### `src/dev/performance/` — Performance profiling
+#### `src/devtools/performance/` — Performance profiling
 
 | File | Purpose |
 |------|---------|
@@ -465,7 +464,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `snapshot.js` | Performance snapshot (point-in-time metrics) |
 | `stats.js` | Performance statistics (min, max, avg, percentiles) |
 
-#### `src/dev/` — Top-level dev files
+#### `src/devtools/` — Top-level dev files
 
 | File | Purpose |
 |------|---------|
@@ -534,10 +533,10 @@ documented (encoded in the checker):
   threading, paid down opportunistically when touching affected files.
 
 The dev-tools-in-production couplings (formerly 11 entries — `render → dev` and
-`game → dev` importing `dev/performance/index.js` for `startMeasure`/
+`game → dev` importing `src/devtools/performance/index.js` for `startMeasure`/
 `endMeasure`) were resolved by relocating the timing core to
 `src/shared/measurements.js` (a layer-neutral API). The dev-specific capture,
-overlay, and reporting machinery stays in `src/dev/performance/`.
+overlay, and reporting machinery stays in `src/devtools/performance/`.
 
 The current report shows **0 known-debt imports**.
 
@@ -547,7 +546,7 @@ The current report shows **0 known-debt imports**.
 
 - `python3 dev/scripts/check_imports.py` — verifies every relative import in `src/` resolves, and prints a boundary report of cross-layer imports vs the §2 dependency table.
 - `python3 dev/scripts/check_analysis_imports.py` — verifies every relative import in `dev/tools/analysis/` resolves, including cross-references into `src/`. Does not check layer boundaries (those rules don't apply to the standalone analysis tool).
-- `tests/run.sh` (or `node --test` from the repo root) — unit-test suite for the pure layers (`src/engine/rules/`, `src/game/rules/` incl. terrain-gen). Zero dependencies; uses Node's built-in `node:test` runner. `tests/` lives outside `src/` so it doesn't affect the boundary report.
+- `dev/tests/run.sh` (or `node --test` from the repo root) — unit-test suite for the pure layers (`src/engine/`, `src/game/` rules/state/combat, `src/render/` incl. descriptor round-trip). Zero dependencies; uses Node's built-in `node:test` runner. `dev/tests/` lives outside `src/` so it doesn't affect the boundary report.
 - `dev/tools/analysis.html` — standalone map-gen analysis page. Not part of the game UI. Opens directly in a browser (served from the same origin).
 - `dev/tools/geometryEditor.html` — standalone object-geometry editor page. Not part of the game UI. Opens directly in a browser (served from the same origin).
 - `python3 dev/scripts/check_geometry_editor_imports.py` — verifies every relative import in `dev/tools/geometryEditor/` resolves, including cross-references into `src/`. Does not check layer boundaries (those rules don't apply to the standalone editor tool).

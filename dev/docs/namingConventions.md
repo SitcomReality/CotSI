@@ -15,7 +15,7 @@ This document covers naming and style rules for the CotSI codebase. For architec
 
 **Known exceptions (accepted debt):** `logHelpers.js` violates the banned "helpers" word
 (renaming it is a code change — deferred), and five bare-domain dev-tooling files exist:
-`dev/cheats/{combat,map,state}.js`, `dev/botControl/state.js`, `dev/tools/analysis/state.js`
+`src/devtools/cheats/{combat,map,state}.js`, `src/devtools/botControl/state.js`, `dev/tools/analysis/state.js`
 (the analysis tool is standalone and exempt from game naming rules). New code must not
 follow these examples.
 

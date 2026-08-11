@@ -12,7 +12,7 @@ import { neighbors, coordKey, parseKey } from '../engine/rules/hexGrid.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/minimap.js';
 import { setDerivedState, setInteractionHighlights } from '../render/overlays/overlayStack.js';
-import { startMeasure, endMeasure } from '../dev/performance/index.js';
+import { startMeasure, endMeasure } from '../devtools/performance/index.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
 import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
 import { clearDirtyFlags, markChunkDirty } from '../game/state/chunkDirtyTracking.js';

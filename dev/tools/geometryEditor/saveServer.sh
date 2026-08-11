@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Launch the geometry editor save server (see saveServer.mjs).
-# Resolves node like tests/run.sh (falls back to the Flatpak host node).
+# Resolves node like dev/tests/run.sh (falls back to the Flatpak host node).
 # Usage: dev/tools/geometryEditor/saveServer.sh [PORT]
 set -euo pipefail
 cd "$(dirname "$0")/../../.."

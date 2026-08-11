@@ -16,8 +16,8 @@ import { openTrader } from '../ui/combat/combatRewardUI.js';
 import { pulseEnd, toast } from '../ui/hud.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { interactBase } from '../game/state/baseInteraction.js';
-import { handleTeleportClick } from '../dev/devTools.js';
-import { setGameContext } from '../dev/performance/index.js';
+import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../devtools/performance/index.js';
+import { handleTeleportClick } from '../devtools/devTools.js';
 import { CHAMPION_HEIGHT_OFFSET } from '../params/render/animationParams.js';
 
 /**
