@@ -28,7 +28,7 @@ CotSI is a browser-based hex-crawl strategy game, early in development. Seven fa
 | `src/game/rules/` | Pure game-specific logic (factions, combat, terrain) | `engine/`, `shared/`, itself |
 | `src/game/state/` | Mutable state, queries, mutations | `engine/`, `game/rules/`, itself |
 | `src/runtime/` | Cross-layer orchestration (startup, turns, refresh) | everything |
-| `src/render/` | Three.js + Canvas2D (reads state, never mutates) | `shared/`, `engine/`; state via args |
+| `src/render/` | Three.js + Canvas2D (reads state, never mutates) | `shared/`, `engine/`; state via args or the read-only queries in `TOLERATED_STATE_READS` |
 | `src/ui/` | DOM: panels, modals, widgets, view-models | `shared/`, `ui/`; dispatches via actionBus |
 | `src/shared/` | Leaf infrastructure (`actionBus.js`, `clockScheduler.js`, `speedGroup.js`, `timerQueue.js`, `measurements.js`) | nothing project-local (except `params/` — pure constants) |
 | `src/params/` | Pure parameter/data constants (rate of change) | nothing local |
@@ -61,7 +61,7 @@ window.__gameState; // same object as G
 **UI interactions:**
 - `data-action="foo"` on elements, register via `registerAction('foo', handler)` from `src/shared/actionBus.js`
 - Dynamic DOM with `h()` from `src/ui/domBuilder.js`, not `innerHTML`
-- Derived UI data in `src/ui/viewModels/` (may read state only via the read-only query symbols tolerated in `check_imports.py`'s `TOLERATED_STATE_READS` — never mutators)
+- Derived UI data in `src/ui/viewModels/` and render-layer reads use only the read-only query symbols tolerated in `check_imports.py`'s `TOLERATED_STATE_READS` (`ui/` and `render/`; never mutators)
 
 **Timers:** Always use `getClock()` from `src/shared/clockScheduler.js` — never raw `setTimeout`/`setInterval`/`rAF`. Specify a speed group: `'bot'`, `'combat'`, `'animation'`, `'ui'`, or `'default'`. Full API: `dev/docs/clockScheduler.md`.
 

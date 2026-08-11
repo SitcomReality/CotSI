@@ -84,17 +84,6 @@ function buildMeshesFromInstances(instances) {
 }
 
 /**
- * Build fruit-tree InstancedMeshes for the current game state.
- * @param {object} state - Game state (state.tiles Map)
- * @param {Set<string>} visible - Set of "q,r" keys currently visible
- * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
- * @returns {THREE.InstancedMesh[]}
- */
-export function buildFruitTreeMeshes(state, visible, occupants) {
-  return buildMeshesFromInstances(collectTreeInstances(state.tiles, visible, occupants));
-}
-
-/**
  * Build fruit-tree InstancedMeshes for a single chunk's tiles.
  * @param {object[]} chunkTiles - Array of tile objects in this chunk
  * @param {Set<string>} visible - Set of hex keys currently visible

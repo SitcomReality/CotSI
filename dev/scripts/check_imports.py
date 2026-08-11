@@ -163,11 +163,11 @@ def main():
             if (allowed is not None and target.startswith('src/')
                     and '/vendor/' not in target
                     and target_layer not in allowed and target_layer != importer_layer):
-                # Symbol-scoped tolerance: ui/ may import the pure read-only
-                # queries in TOLERATED_STATE_READS; any other symbol from
-                # those modules is still a boundary violation.
+                # Symbol-scoped tolerance: ui/ and render/ may import the pure
+                # read-only queries in TOLERATED_STATE_READS; any other symbol
+                # from those modules is still a boundary violation.
                 tolerated = TOLERATED_STATE_READS.get(target)
-                if importer_layer == 'ui' and tolerated and names is not None:
+                if importer_layer in ('ui', 'render') and tolerated and names is not None:
                     bad = [n for n in names if n not in tolerated]
                     if not bad:
                         return target

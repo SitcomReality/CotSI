@@ -8,8 +8,8 @@
 import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileSurfaceY } from '../hexmap3d/hexMapRenderer.js';
 import { getDerivedMoveHighlights, getHoveredKey } from './overlayStack.js';
-import { coordKey } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from '../../game/rules/terrainTypes.js';
+import { occupiedByTrader } from '../../game/state/entityQueries.js';
 import { MOVE_ALLOWED_WIDTH, MOVE_HOVER_WIDTH, MOVE_DASH, MOVE_DASH_SPEED, HIGHLIGHT_RADIUS_FRAC, HIGHLIGHT_Y_OFFSET } from '../../params/render/overlayParams.js';
 
 // ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ export function renderMovementHighlights(ctx2d, state, camera, time) {
     if (!tile) continue;
 
     // Skip hexes occupied by a trader
-    const hasTrader = state.traders?.some(t => coordKey(t.pos) === key);
+    const hasTrader = occupiedByTrader(state, key);
     if (hasTrader) continue;
 
     // Safety guard: never highlight impassable terrain
