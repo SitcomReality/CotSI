@@ -17,6 +17,7 @@ The dev-tool recommendations in this audit were executed on 2026-08-11. The affe
 - **`ui/partTree.js` (479) "keep" (§4)** — split into `ui/partTree/` (`walk`, `nodes`, `restructure`, barrel `index.js`); the Node test suite pins the same exports through the barrel.
 - **`styles/controls.css` (551) "keep" (§4)** — split into `chrome`, `parts`, `fields`, `forms`, `text`, `inspector` component stylesheets.
 - **`dev/analysis/styles/controls.css` (280) optional extract (§2)** — done: the `.collapsible` / `.summary-*` / `.batch-body` block moved to `styles/batch.css`.
+- **`dev/performance/measurements.js` (164) "keep" (§0 file table)** — relocated to `src/shared/measurements.js` (2026-08-11): the timing core was layer-neutral and its `dev/` home caused the 11 `render → dev` / `game → dev` boundary-debt imports. The dev barrel (`dev/performance/index.js`) re-exports from the new home; no API change.
 - **Dead code removed** — `generation/multiSeed.js` (151), `stats/calibrationDisplay.js` (251), `generation/frequencyReport.js` (48); dead exports pruned (`thresholdDerivation.js`: `calibratePipeline`/`generateSeeds`/`percentileFromValues`; `statsDisplay.js`: `formatMultiStats`); unused `S` import dropped from `ui/batchPanel.js`; `thresholdDerivation.js` now uses `batch/fingerprint.js`'s `fingerprint`.
 
 Status after refactor: 585 tests pass; `check_geometry_editor_imports.py` (35 files) and `check_analysis_imports.py` (51 files) both OK.

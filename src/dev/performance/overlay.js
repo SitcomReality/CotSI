@@ -10,7 +10,7 @@
 
 import { OVERLAY_TOP_N } from '../../params/dev/performanceParams.js';
 import { getFps, getLastFrameTime } from './frameTracker.js';
-import { getRawMeasurements } from './measurements.js';
+import { getRawMeasurements } from '../../shared/measurements.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 

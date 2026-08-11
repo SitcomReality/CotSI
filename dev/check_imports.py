@@ -9,6 +9,9 @@ Gates:
   3. Boundary report: cross-layer imports vs the layer rules in AGENTS.md
      (mirrored in dev/systemArchitecture.md §2). Informational only —
      pre-existing debt is tracked in dev/futureWork.md; do not add to it.
+     Two documented tolerances are exempt: READONLY_RULES_DATA (static
+     game/rules data) and TOLERATED_STATE_READS (pure read-only state
+     queries consumed by ui view-models/tooltips).
 
 Usage:  python3 dev/check_imports.py
 Exit code is non-zero if gate 1 or 2 fails.
@@ -42,6 +45,18 @@ READONLY_RULES_DATA = {
     'src/game/rules/terrainTypes.js',
     'src/game/rules/archetypes.js',
     'src/game/rules/archetypeData/index.js',
+}
+
+# Read-only state queries tolerated from ui/: pure functions of state, no
+# mutation (tolerance policy dev/systemArchitecture.md §6). Symbol-scoped —
+# only these exact names are allowed; anything else from these modules is
+# still a boundary violation.
+TOLERATED_STATE_READS = {
+    'src/game/state/entityQueries.js': {'occupiedByMob', 'occupiedByChampion', 'occupiedByTrader'},
+    'src/game/state/fogOfWar.js': {'getHumanView'},
+    'src/game/state/championMovement.js': {'movementRange', 'dailyMoves'},
+    'src/game/state/liveGame.js': {'currentChamp'},
+    'src/game/state/combat/index.js': {'sideOf', 'entityFor'},
 }
 
 IMPORT_FROM_RE = re.compile(r"""\bimport\s*(\{[^}]*\}|\*\s+as\s+[\w$]+)\s*from\s*['"]([^'"]+)['"]""")
@@ -132,7 +147,7 @@ def main():
         text = strip_comments(open(os.path.join(ROOT, relpath), encoding='utf8').read())
         importer_layer = layer_of(relpath)
 
-        def check_target(spec):
+        def check_target(spec, names=None):
             target = resolve(relpath, spec)
             if not os.path.exists(os.path.join(ROOT, target)):
                 missing_files.append(f'{relpath}: "{spec}" → {target} not found')
@@ -148,11 +163,20 @@ def main():
             if (allowed is not None and target.startswith('src/')
                     and '/vendor/' not in target
                     and target_layer not in allowed and target_layer != importer_layer):
+                # Symbol-scoped tolerance: ui/ may import the pure read-only
+                # queries in TOLERATED_STATE_READS; any other symbol from
+                # those modules is still a boundary violation.
+                tolerated = TOLERATED_STATE_READS.get(target)
+                if importer_layer == 'ui' and tolerated and names is not None:
+                    bad = [n for n in names if n not in tolerated]
+                    if not bad:
+                        return target
                 boundary.append(f'{relpath}  ({importer_layer} → {target_layer}: {target})')
             return target
 
         for clause, spec in IMPORT_FROM_RE.findall(text):
-            target = check_target(spec)
+            names = [src_name for src_name, _ in split_list(clause)] if clause.startswith('{') else None
+            target = check_target(spec, names)
             if target and clause.startswith('{') and '/vendor/' not in target:
                 available = exported_names(target)
                 if available:

@@ -4,10 +4,10 @@
  * Manages named measurements with lifetime average, EMA tracking,
  * and optional User Timing API integration. No DOM, no FPS tracking.
  *
- * Layer: dev/
+ * Layer: shared/
  */
 
-import { EMA_ALPHA } from '../../params/dev/performanceParams.js';
+import { EMA_ALPHA } from '../params/dev/performanceParams.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 

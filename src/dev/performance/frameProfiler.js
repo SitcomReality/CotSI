@@ -10,7 +10,7 @@
 
 import { TARGET_FPS, CAPTURE_MAX_FRAMES, BUFFER_TRIM_TOLERANCE } from '../../params/dev/performanceParams.js';
 import { getFps, getLastFrameTime, onFrame as registerFrameCallback, ensureFrameTracking } from './frameTracker.js';
-import { getRawMeasurements, startFrameSnapshot, endFrameDeltas, startMeasure, endMeasure } from './measurements.js';
+import { getRawMeasurements, startFrameSnapshot, endFrameDeltas, startMeasure, endMeasure } from '../../shared/measurements.js';
 import { getGameContext } from './gameContext.js';
 import { getClock } from '../../shared/clockScheduler.js';
 

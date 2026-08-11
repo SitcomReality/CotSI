@@ -21,7 +21,7 @@ import { getClock } from '../../../shared/clockScheduler.js';
 import { geometryForShape } from '../worldObjects/descriptors/shapeFactories.js';
 import { CHAMPION_DESCRIPTOR } from '../worldObjects/descriptors/data/champion.js';
 import { getOutlineGeometry, outlineMaterial } from '../scene/outline.js';
-import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
+import { startMeasure, endMeasure } from '../../../shared/measurements.js';
 import {
   hexToRgb,
   computeInterpolatedPos,

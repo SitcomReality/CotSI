@@ -30,7 +30,7 @@ CotSI is a browser-based hex-crawl strategy game, early in development. Seven fa
 | `src/runtime/` | Cross-layer orchestration (startup, turns, refresh) | everything |
 | `src/render/` | Three.js + Canvas2D (reads state, never mutates) | `shared/`, `engine/`; state via args |
 | `src/ui/` | DOM: panels, modals, widgets, view-models | `shared/`, `ui/`; dispatches via actionBus |
-| `src/shared/` | Leaf infrastructure (`actionBus.js`, `clockScheduler.js`, `speedGroup.js`, `timerQueue.js`) | nothing local |
+| `src/shared/` | Leaf infrastructure (`actionBus.js`, `clockScheduler.js`, `speedGroup.js`, `timerQueue.js`, `measurements.js`) | nothing project-local (except `params/` — pure constants) |
 | `src/params/` | Pure parameter/data constants (rate of change) | nothing local |
 | `src/vendor/` | Third-party Three.js builds | do not edit |
 
@@ -61,7 +61,7 @@ window.__gameState; // same object as G
 **UI interactions:**
 - `data-action="foo"` on elements, register via `registerAction('foo', handler)` from `src/shared/actionBus.js`
 - Dynamic DOM with `h()` from `src/ui/domBuilder.js`, not `innerHTML`
-- Derived UI data in `src/ui/viewModels/`
+- Derived UI data in `src/ui/viewModels/` (may read state only via the read-only query symbols tolerated in `check_imports.py`'s `TOLERATED_STATE_READS` — never mutators)
 
 **Timers:** Always use `getClock()` from `src/shared/clockScheduler.js` — never raw `setTimeout`/`setInterval`/`rAF`. Specify a speed group: `'bot'`, `'combat'`, `'animation'`, `'ui'`, or `'default'`. Full API: `dev/clockScheduler.md`.
 

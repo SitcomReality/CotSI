@@ -10,7 +10,7 @@
  */
 
 import { getFps, getLastFrameTime } from './frameTracker.js';
-import { getRawMeasurements } from './measurements.js';
+import { getRawMeasurements } from '../../shared/measurements.js';
 
 /**
  * Get a formatted performance snapshot string suitable for copy-paste.

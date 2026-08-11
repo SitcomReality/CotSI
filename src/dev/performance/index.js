@@ -5,7 +5,7 @@
  * now split across focused submodules. New exports from the refactored
  * capture system are also exposed here.
  */
-export { startMeasure, endMeasure, setMeasurementEnabled, getMeasurementStats, enableAllMeasurements, disposeMeasurements } from './measurements.js';
+export { startMeasure, endMeasure, setMeasurementEnabled, getMeasurementStats, enableAllMeasurements, disposeMeasurements } from '../../shared/measurements.js';
 export { getFps, getLastFrameTime, ensureFrameTracking, disposeFrameTracker, onFrame, getFrameHistory } from './frameTracker.js';
 export { setOverlayEnabled, disposeOverlay, isOverlayEnabled } from './overlay.js';
 export { getSnapshot } from './snapshot.js';
@@ -13,7 +13,7 @@ export { startCapture, stopCapture, getCaptureReport, isCaptureActive } from './
 export { setGameContext, getGameContext, clearGameContext } from './gameContext.js';
 
 // Composite cleanup for backward compatibility
-import { disposeMeasurements } from './measurements.js';
+import { disposeMeasurements } from '../../shared/measurements.js';
 import { disposeFrameTracker } from './frameTracker.js';
 import { disposeOverlay } from './overlay.js';
 

@@ -4,7 +4,7 @@ import { createCameraState, applyCameraState } from './cameraState.js';
 import { createRenderer } from './rendererSetup.js';
 import { addLights } from './lightSetup.js';
 import { graphicsSettings } from '../../overlays/graphicsSettings.js';
-import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
+import { startMeasure, endMeasure } from '../../../shared/measurements.js';
 import { INITIAL_FRUSTUM, CAMERA_NEAR, CAMERA_FAR, GROUND_PLANE_SIZE, GROUND_PLANE_Y } from '../../../params/render/cameraParams.js';
 
 // Stage background: dark parchment vignette fading to the abyss — frames the

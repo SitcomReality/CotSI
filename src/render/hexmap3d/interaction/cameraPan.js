@@ -1,7 +1,7 @@
 import { panCamera } from '../scene/cameraPanMath.js';
 import { screenToWorldPan } from './panMath.js';
 import { hideTooltip } from './hoverTooltip.js';
-import { startMeasure, endMeasure } from '../../../dev/performance/index.js';
+import { startMeasure, endMeasure } from '../../../shared/measurements.js';
 import { cancelCameraPan } from '../scene/panAnimation.js';
 /**
  * Create pan handlers for shift+drag and middle-button drag.

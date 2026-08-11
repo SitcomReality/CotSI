@@ -23,7 +23,7 @@ import { beginTurn } from './turnActions.js';
 import { rebuildSpatialIndex } from './spatialIndex.js';
 import { createTileProxy } from './tileProxy.js';
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
-import { startMeasure, endMeasure } from '../../dev/performance/index.js';
+import { startMeasure, endMeasure } from '../../shared/measurements.js';
 import { computeSpawnTargets } from './spawnPosition.js';
 
 export function createGame({

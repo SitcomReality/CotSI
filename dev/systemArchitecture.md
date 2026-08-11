@@ -27,7 +27,7 @@ src/
   runtime/        Composition root. The ONLY layer that may import multiple layers.
   render/         Pixels: Three.js scene, Canvas2D overlays, minimap. Reads state, never mutates.
   ui/             DOM: panels, modals, widgets, view-models. Never mutates game state.
-  shared/         Leaf infrastructure imported by any layer; imports nothing project-local.
+  shared/         Leaf infrastructure imported by any layer; imports nothing project-local (except params/ pure constants).
   params/         Pure parameter/data constants (rate of change). Imports nothing project-local.
   vendor/         Third-party builds (Three.js). Exempt from naming rules. Do not edit.
 ```
@@ -36,7 +36,7 @@ src/
 
 | Importer      | May import |
 |---------------|------------|
-| `shared/`     | nothing project-local |
+| `shared/`     | nothing project-local except `params/` (pure constants) |
 | `params/`     | nothing project-local |
 | `engine/`     | `shared/`, `engine/` |
 | `game/rules/` | `shared/`, `engine/`, `game/rules/` |
@@ -364,12 +364,13 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `templates/victoryModal.inc` | Victory modal template |
 | `weatherDisplay.js` | Weather icon and label display |
 
-### `src/shared/` — Layer-neutral infrastructure (imports nothing project-local)
+### `src/shared/` — Layer-neutral infrastructure (imports nothing project-local except `params/` constants)
 
 | File | Purpose |
 |------|---------|
 | `actionBus.js` | `[data-action]` dispatcher with keyboard shortcuts and modal-action helpers |
 | `clockScheduler.js` | Centralized Clock with pause/resume, per-group speed control, master rAF loop |
+| `measurements.js` | Named timing measurements (start/end, lifetime avg, EMA); moved from `dev/performance/` |
 | `speedGroup.js` | Speed-group definitions and speed multipliers |
 | `timerQueue.js` | Priority-queue timer management for the clock scheduler |
 
@@ -459,7 +460,6 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `frameTracker.js` | Frame timing tracker (FPS, frame times) |
 | `gameContext.js` | Game context snapshot for performance reports |
 | `index.js` | Barrel for performance exports |
-| `measurements.js` | Named measurement definitions and enable/disable |
 | `overlay.js` | Performance overlay display on the game canvas |
 | `reportBuilder.js` | Performance report text builder |
 | `snapshot.js` | Performance snapshot (point-in-time metrics) |
@@ -519,28 +519,27 @@ No step is skippable in new code. The UI never calls `game/state/` directly; ren
 
 ## 6. Boundary Debt
 
-Some pre-existing cross-layer imports remain from before the layer migration. They are tracked by `python3 dev/check_imports.py`. Do not add new violations; fix existing ones via view-models/snapshots when touching affected files. Static-data reads from `game/rules/` (faction colors, terrain constants) are tolerated — passing them through `runtime/` would add ceremony without architectural benefit. The checker encodes this tolerance as an explicit allowlist (`READONLY_RULES_DATA` in `check_imports.py`), so only the remaining logic/instrumentation imports are reported as debt.
+Pre-existing cross-layer imports from before the layer migration are tracked by
+`python3 dev/check_imports.py`. Do not add new violations. Two tolerances are
+documented (encoded in the checker):
 
-The current report shows **18 known-debt imports**, all deliberate pre-migration leftovers:
+- **`READONLY_RULES_DATA`** — static data reads from `game/rules/` (faction
+  colors, terrain constants, archetypes). Passing them through `runtime/` would
+  add ceremony without architectural benefit.
+- **`TOLERATED_STATE_READS`** — pure read-only state queries consumed by `ui/`
+  view-models and tooltips (`occupiedBy*`, `getHumanView`, `movementRange`,
+  `dailyMoves`, `currentChamp`, `sideOf`, `entityFor`). Symbol-scoped: ui may
+  import only those exact names; importing mutators from the same modules still
+  fails the boundary check. Long-term direction remains view-model/snapshot
+  threading, paid down opportunistically when touching affected files.
 
-- **`ui → game/state` (7) — view-model/state reads that predate the view-model migration:**
-  `ui/mapTooltip.js` (entityQueries, fogOfWar, championMovement), `ui/panels/leftPanel.js`
-  (liveGame), `ui/viewModels/championViewModel.js` (championMovement),
-  `ui/viewModels/combatViewModel.js` (combat/index), `ui/combat/combatReveal.js`
-  (combat/index).
-- **`render → dev` (7) — dev-tooling measurement instrumentation:**
-  `overlays/fogMaskGenerator.js`, `overlays/overlayRegistry.js`,
-  `hexmap3d/hexMapRenderer.js`, `hexmap3d/units/movementAnimator.js`,
-  `hexmap3d/interaction/cameraPan.js`, `hexmap3d/interaction/hexHover.js`,
-  `hexmap3d/scene/sceneSetup.js` — all importing `dev/performance/index.js`.
-- **`game → dev` (4) — dev-tooling measurement instrumentation:**
-  `rules/terrainGen/flatGeneration.js`, `state/championFactory.js`,
-  `state/gameFactory.js`, `state/worldSimulation.js` — all importing
-  `dev/performance/index.js`.
+The dev-tools-in-production couplings (formerly 11 entries — `render → dev` and
+`game → dev` importing `dev/performance/index.js` for `startMeasure`/
+`endMeasure`) were resolved by relocating the timing core to
+`src/shared/measurements.js` (a layer-neutral API). The dev-specific capture,
+overlay, and reporting machinery stays in `src/dev/performance/`.
 
-The `render → dev` and `game → dev` entries are the dev-tools-in-production couplings
-flagged in the audit backlog §2 (gating them behind `?dev=1` would clear these without
-moving code).
+The current report shows **0 known-debt imports**.
 
 ---
 

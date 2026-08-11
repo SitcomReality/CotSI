@@ -17,7 +17,7 @@ import { renderInteractionHighlights } from '../overlays/interactionHighlights.j
 import { getClock } from '../../shared/clockScheduler.js';
 import { OVERLAY_Z } from '../../params/ui/uiParams.js';
 import { shadowLightConfig } from '../shadowLightConfig.js';
-import { startMeasure, endMeasure } from '../../dev/performance/index.js';
+import { startMeasure, endMeasure } from '../../shared/measurements.js';
 import { chunkKeysWithinCap } from '../../engine/rules/sightCull.js';
 
 // Re‑export symbols needed by external consumers
