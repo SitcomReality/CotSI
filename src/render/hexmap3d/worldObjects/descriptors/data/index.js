@@ -9,9 +9,11 @@
  * Descriptors are raw JSON literals with only non-default fields;
  * gameBuilder.js / the editor normalize them on load (normalizeDescriptor).
  * The table-driven entity files keep their variant tables (BASE_VARIANTS /
- * MOB_VARIANTS — mobs compose the per-archetype variant files in `data/mobs/`
- * into the barrel) — their descriptors are derived from those tables and are
- * NOT edited through the editor yet.
+ * MOB_VARIANTS / CHAMPION_VARIANTS — mobs compose the per-archetype variant
+ * files in `data/mobs/`, bases and champions the per-faction files in
+ * `data/bases/` / `data/champions/`). The editor saves ONLY the active
+ * variant to those per-variant files; the barrels here are never rewritten
+ * by a save.
  *
  * Not descriptor-driven (parity gaps, see dev/docs/futureWork.md): fruit trees keep
  * their hard-coded builder (worldObjects/fruitTree/).

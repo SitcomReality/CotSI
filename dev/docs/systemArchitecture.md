@@ -247,9 +247,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `units/index.js` | Barrel for unit rendering |
 | `units/movementAnimator.js` | Unit movement animation (tween along path) |
 | `units/movementCurves.js` | Movement animation curves (easing) |
-| `units/pieceIcons.js` | Champion/mob icon rendering (sprites) |
 | `units/unitAnimations.js` | Unit animation state machine (idle, move, attack) |
-| `units/unitGeometries.js` | Unit geometry shapes |
 | `units/unitMeshes.js` | Unit mesh creation and management |
 
 #### `src/render/overlays/` — Canvas2D overlays

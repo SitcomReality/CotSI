@@ -44,7 +44,10 @@ A descriptor never contains THREE.js or any rendering code — it is pure data
   on the ground. Shapes are vertically centered primitives; the pipeline bakes
   in the automatic base offset (`shapeBaseOffset`), so you never compensate for
   "half the shape height" yourself. Stretch and `scaleY` grow a part upward
-  from its base, never below it.
+  from its base, never below it. `transform.liftRange` draws that height from
+  `[min, max]` by a seeded hash instead of a fixed `lift` — author it with the
+  seed of the part it tracks (e.g. the trunk's stretch seed) so one part's
+  bottom follows another's per-tile draw (see the grove canopy anchor, §5.3).
 - **Transform order at render:** place → spin (`rotY`, world Y) + lean
   (`tiltAxis`/`tilt`, world space) → lift/`localPos` (local frame) → local
   rotation (`localAxis`/`localAngle`, local frame) → scale.
@@ -62,10 +65,15 @@ One file per object in `src/render/hexmap3d/worldObjects/descriptors/data/`:
   emitter strips defaults; `normalizeDescriptor` re-fills them on load).
 
 No id → file exceptions: every descriptor is `<id>.js` — including the
-entity kinds (which previously kept plural file names). `base.js` and
-`mob.js` remain table-driven (`BASE_VARIANTS` / `MOB_VARIANTS` derive their
-descriptor from variant maps the game imports — mobs compose the per-archetype
-variant files in `data/mobs/`) and are not editable through the editor yet.
+entity kinds (which previously kept plural file names). The table-driven
+entity files (`base.js`, `champion.js`, `mob.js`) compose their variant maps
+from per-variant files the editor DOES write: mobs from `data/mobs/<archetype>.js`,
+bases from `data/bases/<faction>.js`, champions from `data/champions/<faction>.js`
+(each a `<NAME>_VARIANT` block — see `variantExportName`/`emitVariantModule` in
+`dev/tools/geometryEditor/emitDescriptor.js`). The editor Save writes ONLY the
+active variant's file; the barrels stay hand-composed and are never rewritten
+by a save. The shared building blocks for bases/champions live in
+`data/bases/shared.js` / `data/champions/shared.js`.
 
 Module shape (this is what the editor Save produces; copying the header is
 optional for new files):
@@ -217,6 +225,7 @@ scaleY: 1, scaleZ: 1 }`.
 |---|---|
 | `y` | Bottom height of the part above the surface (bottom-anchored). |
 | `lift` | Raises the part in its own frame, pre-scale (same bottom-height measure as `y` under stretch). |
+| `liftRange` | `{ min, max, seed? }` — draws the lift from `[min, max]` by `frac(treeHash(tileH, seed))` instead of a fixed value (default seed 6). Both are bottom-heights; the canopy anchor uses it with the trunk's stretch seed so the canopy bottom tracks the per-tree trunk stretch (§5.3). Root-only, like `y`/`lift`. |
 | `rotY` | Spin around the world Y axis (radians). |
 | `scaleX`, `scaleY`, `scaleZ` | Independent non-uniform scale (base 1). |
 | `localPos` | `{ x, y, z }` offset within the part's frame; pre-scaled with the item's rigid scale factor (item scale × dispersal × scatter jitter, plus `biomeScale`). `localPos.y` is the same vertical offset slot as `lift` — the two **stack** (both raise the part). |
@@ -236,9 +245,9 @@ partId).
 **Root vs nested transforms.** Root leaves keep every transform field from
 §4.4 — `y`/`lift` ground them and `tiltAxis`/`tilt` lean them in world space.
 Nested leaves and groups carry only `localPos`, `localAxis` + `localAngle`,
-`rotY`, and `scaleX/Y/Z` — `y`/`lift`/`tilt` are **root-only** (nested nodes
-have no grounding; their position is purely relative to the parent). Validation
-rejects `y`/`lift`/`tilt` on nested nodes.
+`rotY`, and `scaleX/Y/Z` — `y`/`lift`/`liftRange`/`tilt` are **root-only**
+(nested nodes have no grounding; their position is purely relative to the
+parent). Validation rejects those fields on nested nodes.
 
 **Why groups exist.** Sub-assemblies that must move (or hinge) together — the
 open chest's lid + straps, a censer's chain — used to be hand-duplicated
@@ -296,7 +305,8 @@ anywhere. The pipeline (recordBuilder.js):
 
 `variants` is a list of `{ id, parts }`. The rule:
 
-- `'hash'` (default) — roll over the variant list by tile hash. The generic rule for any hash-chosen content (mountains).
+- `'hash'` (default) — roll over the variant list by tile hash. The generic rule for hash-chosen content.
+- `'mountain'` — legacy mountain roll: hash raw `(q, r)` with `MOUNTAIN_HASH_SEEDS` (`((q·13 + r·7)·19) % 100`) so per-tile `classic`/`offpeak` assignments match the pre-migration `mountainMeshes.js` builder.
 - `'cluster'` — grove rule: `denseForest` → `tall`, everything else → `round`; the `biome_painforest` biome forces the `painforest` variant.
 - `'solitary'` — lone-tree rule: canopy shape by terrain + coord hash (ids `round`/`tall`/`wide`).
 - `'faction'` / `'archetype'` — **entity-driven**: variant id must equal the entity's `faction` (e.g. `'CRU'`) or `archetype` (e.g. `'bear'`); unknown values fall back to the first variant.
@@ -402,7 +412,10 @@ export const GROVE_DESCRIPTOR = {
         },
         {
           id: 'canopy-round', shape: 'sphere',
-          transform: { lift: 0.2 },
+          // Legacy anchor: canopy bottom = (canopyY·trunkStretch − halfHeight)
+          // = 0.5·s − 0.3, drawn on the trunk's stretch seed (6) so the canopy
+          // tracks the per-tree trunk stretch → [0.15, 0.30].
+          transform: { liftRange: { min: 0.15, max: 0.3, seed: 6 } },
           stretch: { y: { min: 0.85, max: 1.3, seed: 4 }, x: { min: 0.9, max: 1.15, seed: 5 }, z: { min: 0.9, max: 1.15, seed: 5 } },
           color: 0x3cb371,
           biomeColor: { source: 'primary', influence: 0.8 }, // greens blend toward the biome
@@ -414,7 +427,9 @@ export const GROVE_DESCRIPTOR = {
       id: 'tall',                     // denseForest pine: cone canopy, accent tint
       parts: [
         { id: 'trunk', shape: 'cylinder', stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false }, biomeScale: { biome_tundra: 0.85 }, transform: { scaleY: 0.8 }, color: 0x8b5e3c },
-        { id: 'canopy-tall', shape: 'cone', transform: { lift: 0.22 }, stretch: { y: { min: 0.85, max: 1.3, seed: 4 }, x: { min: 0.9, max: 1.15, seed: 5 }, z: { min: 0.9, max: 1.15, seed: 5 } }, color: 0x2e8b57, biomeColor: { source: 'accent', influence: 0.7 }, biomeScale: { biome_tundra: 0.85 } },
+        // Tall canopy: canopyY 0.58, halfHeight 0.36 → [0.58·0.9−0.36, 0.58·1.2−0.36]
+        // = [0.162, 0.336] on the trunk's seed 6.
+        { id: 'canopy-tall', shape: 'cone', transform: { liftRange: { min: 0.162, max: 0.336, seed: 6 } }, stretch: { y: { min: 0.85, max: 1.3, seed: 4 }, x: { min: 0.9, max: 1.15, seed: 5 }, z: { min: 0.9, max: 1.15, seed: 5 } }, color: 0x2e8b57, biomeColor: { source: 'accent', influence: 0.7 }, biomeScale: { biome_tundra: 0.85 } },
       ],
     },
     {

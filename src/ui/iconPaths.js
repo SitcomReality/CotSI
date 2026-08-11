@@ -73,15 +73,6 @@ const ICON_TO_SPRITE = {
   'd-mandorla': 'assets/icons/decor.svg',
   'd-seal':     'assets/icons/decor.svg',
   'd-corner':   'assets/icons/decor.svg',
-
-  // ── Mob Pieces ────────────────────────────────────────────────────
-  'p-infernalpaca': 'assets/icons/pieces.svg',
-  'p-leopard':     'assets/icons/pieces.svg',
-  'p-snail':       'assets/icons/pieces.svg',
-  'p-tapir':       'assets/icons/pieces.svg',
-  'p-mushroom':    'assets/icons/pieces.svg',
-  'p-goose':       'assets/icons/pieces.svg',
-  'p-scorpelican': 'assets/icons/pieces.svg',
 };
 
 /**

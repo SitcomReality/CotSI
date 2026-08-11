@@ -46,7 +46,9 @@ export const GROVE_DESCRIPTOR = {
         {
           id: 'canopy-round',
           shape: 'sphere',
-          transform: { lift: 0.2 },
+          // Legacy anchor: canopy bottom = (canopyY·trunkStretch − halfHeight)
+          // = 0.5·s − 0.3, drawn on the trunk's seed 6 → [0.15, 0.30].
+          transform: { liftRange: { min: 0.15, max: 0.3, seed: 6 } },
           stretch: {
             y: { min: 0.85, max: 1.3, seed: 4 },
             x: { min: 0.9, max: 1.15, seed: 5 },
@@ -76,7 +78,9 @@ export const GROVE_DESCRIPTOR = {
         {
           id: 'canopy-tall',
           shape: 'cone',
-          transform: { lift: 0.22 },
+          // Legacy anchor: canopyY 0.58, halfHeight 0.36 → [0.58·0.9−0.36,
+          // 0.58·1.2−0.36] = [0.162, 0.336] on the trunk's seed 6.
+          transform: { liftRange: { min: 0.162, max: 0.336, seed: 6 } },
           stretch: {
             y: { min: 0.85, max: 1.3, seed: 4 },
             x: { min: 0.9, max: 1.15, seed: 5 },

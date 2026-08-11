@@ -59,6 +59,7 @@ import {
   TREE_VARIANT_HASH_SEEDS,
   TREE_FOREST_TALL_THRESHOLD,
   TREE_VARIANT_THRESHOLDS,
+  MOUNTAIN_HASH_SEEDS,
 } from '../../../../params/render/geometryParams.js';
 import { shapeBaseOffset } from './schema.js';
 import {
@@ -156,6 +157,13 @@ function variantFor(descriptor, tile, tileH, explicitId = null) {
     }
     const id = tile.terrain === 'denseForest' ? 'tall' : 'round';
     return byId(id) ?? variants[((tileH % variants.length) + variants.length) % variants.length];
+  }
+  if (rule === 'mountain') {
+    // Legacy mountainMeshes.js roll: hash raw (q, r) with MOUNTAIN_HASH_SEEDS
+    // so per-tile classic/offpeak assignments match the pre-migration render
+    // (a 50/50 mix — only the per-tile assignment order differs from 'hash').
+    const hash = ((tile.q * MOUNTAIN_HASH_SEEDS[0] + tile.r * MOUNTAIN_HASH_SEEDS[1]) * MOUNTAIN_HASH_SEEDS[2]) % MOUNTAIN_HASH_SEEDS[3];
+    return variants[hash % variants.length];
   }
   const len = variants.length;
   return variants[((tileH % len) + len) % len];
@@ -394,6 +402,9 @@ function mixTowardColor(base, tint, influence) {
  */
 const STRETCH_SEEDS = Object.freeze({ x: 5, y: 4, z: 5 });
 
+/** Default seed for a part's `liftRange` draw — the legacy trunk-stretch seed. */
+const LIFT_RANGE_SEED = 6;
+
 function stretchForAxis(part, descriptor, axis, tileH, i) {
   const partStretch = part.stretch?.[axis];
   if (partStretch === false) return 1;
@@ -424,7 +435,10 @@ function leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jit
   // (peak/slope/normal) instead of the stretch ranges — the mountainMeshes
   // builder's mountainScale(). Item scale stays 1 on XZ.
   const byType = descriptor.size.byMountainType;
-  const bucket = byType?.[tile.mountainType];
+  // 'isolated' and untagged mountain tiles draw the normal (medium) bucket —
+  // the legacy mountainScale() default — so isolated peaks keep per-tile
+  // height jitter instead of a fixed scaleY of 1.
+  const bucket = byType?.[tile.mountainType] ?? byType?.normal;
   const sy = bucket
     ? itemScale * scaleMul * t.scaleY * lerp(bucket.min, bucket.max, frac(treeHash(tileH, i + 3))) * biomeFactor
     : itemScale * scaleMul * jitterScale * t.scaleY * stretchForAxis(part, descriptor, 'y', tileH, i) * biomeFactor;
@@ -504,8 +518,15 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
   // Tilted parts carry the base offset in the lift slot (the pivot). Untilted
   // parts emit lift only when the part is authored with one (keeping the exact
   // legacy multiplication order so untilted records stay byte-identical).
-  if (basePivot) record.lift = baseLift + (t.lift ? t.lift * rigid : 0);
-  else if (t.lift) record.lift = t.lift * itemScale * scaleMul * jitterScale * biomeFactor;
+  // `liftRange` draws the lift from [min, max] by the seeded hash instead of a
+  // fixed value — author it with the seed of the part this lift tracks (the
+  // trunk's stretch seed) so the canopy bottom follows the per-tree trunk
+  // stretch (legacy canopyLift = canopyY·trunkStretch − halfHeight).
+  const lift = t.liftRange
+    ? lerp(t.liftRange.min, t.liftRange.max, frac(treeHash(tileH, t.liftRange.seed ?? LIFT_RANGE_SEED)))
+    : (t.lift ?? 0);
+  if (basePivot) record.lift = baseLift + lift * rigid;
+  else if (lift) record.lift = lift * itemScale * scaleMul * jitterScale * biomeFactor;
   if (t.localPos) {
     // Pre-scaled by the same rigid factor as lift and the geometry: when a
     // scatter tile (or displacement) shrinks the item, the localPos offset

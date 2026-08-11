@@ -30,6 +30,21 @@ export function descriptorExportName(id) {
     .replace(/[^A-Z0-9_]/g, '_') + '_DESCRIPTOR';
 }
 
+/**
+ * The canonical export name for a per-variant file (mobs/<archetype>.js,
+ * bases/<faction>.js, champions/<faction>.js): the same id → SCREAMING_SNAKE
+ * transform, suffixed `_VARIANT` (`leopard` → `LEOPARD_VARIANT`,
+ * `infernalpaca` → `INFERNALPACA_VARIANT`, `CRU` → `CRU_VARIANT`).
+ * @param {string} id - variant id (matches /^[A-Za-z0-9_-]+$/)
+ * @returns {string} export name
+ */
+export function variantExportName(id) {
+  return id
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .toUpperCase()
+    .replace(/[^A-Z0-9_]/g, '_') + '_VARIANT';
+}
+
 // ── Formatting ──────────────────────────────────────────────────────────────
 
 /** Keys whose integer values are colors — rendered as 0xRRGGBB hex literals. */
@@ -124,6 +139,39 @@ export function emitDescriptorModule(def, file) {
   const header =
     `/**\n` +
     ` * ${fileName} — Descriptor data for "${d.displayName}".\n` +
+    ` *\n` +
+    ` * Generated file: edit this object in the geometry editor\n` +
+    ` * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.\n` +
+    ` */\n`;
+  return header + `export const ${exportName} = ${body};\n`;
+}
+
+/**
+ * Emit a per-variant module (mobs/<archetype>.js, bases/<faction>.js,
+ * champions/<faction>.js): `export const <NAME>_VARIANT = { id, parts,
+ * material? };` in the minimal (denormalized) form — the same part-minimizing
+ * pass emitDescriptorModule runs, so a re-save only rewrites what changed.
+ * The variant block is self-contained by design: the table-driven barrels
+ * (data/mob.js, data/base.js, data/champion.js) import these files by export
+ * name, so the file's shape never changes no matter how the variant evolves.
+ *
+ * @param {object} def - descriptor (raw or normalized) containing the variant
+ * @param {string} variantId - the variant to emit (must exist in `def.variants`)
+ * @param {string} [file=`${variantId}.js`] - the target file name (for the header)
+ * @returns {string} file source text
+ */
+export function emitVariantModule(def, variantId, file) {
+  const d = denormalizeDescriptor(normalizeDescriptor(def));
+  const variant = (d.variants ?? []).find((v) => v.id === variantId);
+  if (!variant) throw new Error(`variant "${variantId}" not found in descriptor "${d.id}"`);
+  const exportName = variantExportName(variant.id);
+  const block = { id: variant.id, parts: variant.parts };
+  if (variant.material) block.material = variant.material;
+  const fileName = file ?? `${variant.id}.js`;
+  const body = formatObject(block, 0);
+  const header =
+    `/**\n` +
+    ` * ${fileName} — Descriptor variant for "${d.displayName}" (${variant.id}).\n` +
     ` *\n` +
     ` * Generated file: edit this object in the geometry editor\n` +
     ` * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.\n` +

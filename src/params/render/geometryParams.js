@@ -201,18 +201,8 @@ export const KNOT_Y_OFFSET = 0.30;
 export const KNOT_EMISSIVE_INTENSITY = 0.4;
 
 // ── Unit geometries (champions, pieces, mobs) ──
-// Champion body/head and the mob archetype bodies now live in the descriptor
-// data (worldObjects/descriptors/data/champion.js + mob.js); only the icon-cap
-// and darken constants remain here.
-
-export const PIECE_CAP = { radiusX: 0.25, radiusY: 0.25, height: 0.025, segments: 24 };
-export const PIECE_CAP_Y_OFFSET = 0.0645; // trader cap: 0.05 (coin centre) + 0.0125 + 0.002
-export const PIECE_CAP_SPACER = 0.002;
-
-export const PIECE_CAP_BG_COLOR = '#f0e8d0';
-export const PIECE_ICON_COLOR = '#3a2a1a';
-export const PIECE_TEX_SIZE = 128;
-export const PIECE_BG_RADIUS_OFFSET = 2;
+// Champion body/head and the mob archetype bodies live in the descriptor
+// data (worldObjects/descriptors/data/champion.js + mob.js).
 
 /** Mob body tint — faction base color darkened channel-wise by this factor. */
 export const MOB_COLOR_DARKEN = 0.7;

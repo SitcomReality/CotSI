@@ -163,50 +163,43 @@ champion-centered minimap. Remaining:
   removed (`worldShape` falloff, noise scaled by 1/radius, latitude term,
   distance clamp) plus camera-driven chunk streaming (see §3.1).
 
-## 4. Geometry editor — deferred content (descriptor migration gaps)
+## 4. Geometry editor — remaining deferred content (descriptor migration)
 
 The descriptor pipeline is live: game feature/decor meshes resolve through
 `worldObjects/descriptors/` (data + recordBuilder + gameBuilder) and the editor
-(`dev/tools/geometryEditor.html`) edits the same data. All simple feature
-archetypes, tree groves, solitary + elder trees, hill mounds, mountains,
-knots, and the entity kinds (bases, champions, mobs, traders) are migrated.
-Remaining gaps — content still on hard-coded builders (`worldObjects/fruitTree/`):
+(`dev/tools/geometryEditor.html`) edits and saves the same data. All content is
+migrated to descriptor data — simple feature archetypes, tree groves (including
+the Painforest gnarled variant), solitary + elder trees, hill mounds, mountains,
+knots, and the entity kinds (bases, champions, mobs, traders) — except the fruit
+tree, which stays on its legacy builder by decision:
 
-- **fruitTree** — the procedural fruit tree (`fruitTreeRecords.js`) grows
-  per-tree hash-driven trunk segments, branches, and fruit — beyond the
-  static-parts descriptor model. To migrate: add procedural/part-instancing
-  to the descriptor model.
-- **Mountain variant roll** — descriptors use the generic hash variant roll
-  (50/50 classic/offpeak); per-tile assignments may differ from the legacy
-  `MOUNTAIN_HASH_SEEDS` roll. Range reads identically.
-- **Tree canopy anchor** — descriptor canopies use a fixed lift; legacy
-  builders tie the canopy bottom to the trunk top per-tree. Canopy sits
-  ~0.1 world units off relative to stretch — visually identical at game
-  scale.
+- **fruitTree** — deferred by decision: the interactive fruit tree remains on
+  the procedural builder (`worldObjects/fruitTree/`). It renders a simple
+  forest-family tree — shared trunk + the canopy family of the surrounding
+  grove (round on forest, tall on denseForest), slightly larger and
+  warmer-toned — with 1–2 fruit hanging just under the canopy, ripe state
+  reflecting the heal/regrow cycle. Migrating it to descriptors would need
+  procedural/part-instancing support in the descriptor model; not worth the
+  churn while it reads well at game scale.
 
 Entity-kind notes (by design, not regressions):
 
-- **2D icon caps** (`units/pieceIcons.js`) render on top of mob/trader
-  bodies; destined to be replaced by full 3D geometry. Cap height rides the
-  top of each archetype's body part — an approximation (tall shapes like the
-  goose float the icon high; entity part `stretch` is ignored). The two
-  reworked mob icons were renamed only (`p-infernalpaca`, `p-scorpelican`) —
-  redraws to match the new creatures are still pending.
 - **Champion accents** are minimal per-faction placeholders; richer looks
   are authorable in the editor. Tier-2 mob accents were removed with the
   scorpelican/infernalpaca rework (no tier-2 mob variants remain).
 
 **Editor write-back is live** — the editor saves objects straight into
-`descriptors/data/` via `dev/tools/geometryEditor/saveServer.sh` (one file per
-object, generated; convention documented in `data/index.js`). Remaining
-editor gaps:
-
-- **Table-driven entity save** — `base.js` / `mob.js` derive their
-  descriptor from variant maps the game imports (mobs now compose the per-mob
-  files in `data/mobs/`); the save endpoint rejects them until the maps are
-  decoupled from the descriptor.
-- **Diff-on-save** — the confirm dialog shows the target file only; a
-  before/after descriptor diff would catch accidental drift.
+`descriptors/data/` via `dev/tools/geometryEditor/saveServer.sh`. Tile-driven
+objects write the whole descriptor to `data/<id>.js`; entity kinds save only
+the active variant to `data/mobs/<archetype>.js`, `data/bases/<faction>.js`,
+or `data/champions/<faction>.js` (the server mirrors the same per-variant file
+convention). The barrels — `data/mob.js`, `data/base.js`, `data/champion.js`,
+`data/index.js` — are hand-composed and never rewritten; a variant the barrel
+does not import saves fine but stays unregistered in-game until its import is
+added by hand. Before writing, the editor shows a before/after diff of the
+target file (server-side fresh import → normalize → emit vs the same emitter
+run locally), so accidental drift is visible before a save lands. Convention
+documented in `data/index.js`.
 
 ### 4.1 Mob geometry & animation
 
@@ -227,9 +220,10 @@ Next steps when mob content resumes:
 - **New archetype** = one `<NAME>_VARIANT` file in
   `worldObjects/descriptors/data/mobs/` (variant id == `archetypeName`) + a
   line in the `data/mob.js` barrel.
-- **Decouple the variant tables from the descriptor** (the table-driven-save
-  gap above) so mobs become editor-editable — prerequisite for authoring the
-  richer mobs in the editor rather than by hand.
+- **Table-driven save is done** — mobs are editor-editable: saving writes
+  only the active variant to `data/mobs/<archetype>.js` and never rewrites
+  the `data/mob.js` barrel (same for `base.js`/`champion.js`). Authoring the
+  richer mobs in the editor rather than by hand is now possible.
 - **Animation runtime** — see the design doc §4–5 for the worked approach.
 
 ---

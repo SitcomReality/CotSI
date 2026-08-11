@@ -14,8 +14,11 @@
  * Existing objects are saved in place; brand-new ids create `data/<id>.js`
  * AND register it in data/index.js (import + ALL_DESCRIPTORS entry).
  *
- * The table-driven entity files (base.js, mob.js) are rejected — their
- * descriptors are derived from variant tables, not edited through the editor.
+ * The table-driven entity files (mob.js, base.js, champion.js) are saved
+ * VARIANT-SCOPED: the POST must carry the `activeVariant` being edited, and
+ * only that variant's file is written — data/mobs/<archetype>.js,
+ * data/bases/<faction>.js, or data/champions/<faction>.js. The barrel files
+ * are never rewritten (their import lists are hand-composed).
  *
  * Run from the repo root (see saveServer.sh for the node resolution):
  *   /run/host/usr/bin/node dev/tools/geometryEditor/saveServer.mjs   # 127.0.0.1:8000
@@ -31,9 +34,9 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { SCHEMA_VERSION, validateDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
-import { emitDescriptorModule, descriptorExportName } from './emitDescriptor.js';
+import { emitDescriptorModule, emitVariantModule, descriptorExportName } from './emitDescriptor.js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const DATA_DIR = path.join(ROOT, 'src', 'render', 'hexmap3d', 'worldObjects', 'descriptors', 'data');
 const INDEX_PATH = path.join(DATA_DIR, 'index.js');
 const DATA_DIR_REL = path.relative(ROOT, DATA_DIR).replaceAll('\\', '/');
@@ -43,7 +46,18 @@ const PORT = Number(process.env.PORT || 8000);
 const MAX_BODY = 1024 * 1024; // 1 MB — descriptors are a few KB
 
 const ID_PATTERN = /^[A-Za-z0-9_-]+$/;
-const TABLE_DRIVEN = new Set(['base.js', 'mob.js']);
+
+/**
+ * Table-driven entity files — the editor saves ONLY the active variant to its
+ * own file (never the barrel). `dir` is the per-variant subdirectory under
+ * descriptors/data/, `fileFor` maps a variant id to its file name (faction
+ * shorts stay uppercase in the data but use lowercase file names).
+ */
+const TABLE_DRIVEN = new Map([
+  ['mob.js', { dir: 'mobs', fileFor: (id) => `${id}.js` }],
+  ['base.js', { dir: 'bases', fileFor: (id) => `${id.toLowerCase()}.js` }],
+  ['champion.js', { dir: 'champions', fileFor: (id) => `${id.toLowerCase()}.js` }],
+]);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -144,9 +158,48 @@ async function handleSave(res, body) {
   const isNew = !knownIds.has(id);
   const file = `${id}.js`;
 
-  if (TABLE_DRIVEN.has(file)) {
-    return json(res, 409, {
-      error: `${file} is table-driven — ${id} is derived from BASE_VARIANTS / MOB_VARIANTS (composed from the per-mob files in data/mobs/), not editable through the editor yet`,
+  const variantTarget = TABLE_DRIVEN.get(file);
+  if (variantTarget) {
+    // Table-driven entity object: write ONLY the active variant's file. The
+    // barrel (data/mob.js / base.js / champion.js) hand-composes these files
+    // by export name and is never rewritten here.
+    const activeVariant = payload?.activeVariant;
+    if (typeof activeVariant !== 'string' || !ID_PATTERN.test(activeVariant)) {
+      return json(res, 400, {
+        error: `${file} is table-driven — saving requires "activeVariant" (the variant being edited: an archetype for mobs, a faction short for bases/champions)`,
+      });
+    }
+    if (file === 'mob.js' && activeVariant === 'default') {
+      return json(res, 400, {
+        error: 'the "default" mob fallback body is authored inline in data/mob.js — pick a real archetype to save',
+      });
+    }
+    const variantIds = new Set((def.variants ?? []).map((v) => v.id));
+    if (!variantIds.has(activeVariant)) {
+      return json(res, 400, {
+        error: `descriptor "${id}" has no variant "${activeVariant}" (variants: ${[...variantIds].join(', ') || 'none'})`,
+      });
+    }
+    const relFile = `${variantTarget.dir}/${variantTarget.fileFor(activeVariant)}`;
+    let content;
+    try {
+      content = emitVariantModule(def, activeVariant, relFile);
+    } catch (err) {
+      return json(res, 500, { error: `emitting variant failed: ${err.message}` });
+    }
+    await atomicWrite(path.join(DATA_DIR, variantTarget.dir, variantTarget.fileFor(activeVariant)), content);
+    // The barrel is hand-composed: a variant the barrel doesn't import yet is
+    // written but invisible to the game until its import line is added by hand.
+    const barrelVariants = new Set(
+      (barrel.ALL_DESCRIPTORS.find((d) => d.id === id)?.variants ?? []).map((v) => v.id),
+    );
+    const unregistered = !barrelVariants.has(activeVariant);
+    console.log(`[save] updated ${id} variant ${activeVariant} → data/${relFile}`);
+    return json(res, 200, {
+      ok: true,
+      file: relFile,
+      wasNew: false,
+      ...(unregistered ? { unregistered: true } : {}),
     });
   }
   if (isNew && existsSync(path.join(DATA_DIR, file))) {
@@ -264,6 +317,40 @@ const server = http.createServer(async (req, res) => {
 
   if (route === '/save/status') {
     return json(res, 200, { ok: true, dataDir: DATA_DIR_REL });
+  }
+
+  // The editor's save-review modal: the CURRENT on-disk source for a
+  // descriptor (or one of its variants) — fresh import → normalize → emit, so
+  // the diff shows exactly what a save would change in the emitted form.
+  if (route === '/save/descriptor' && method === 'GET') {
+    const id = url.searchParams.get('id');
+    const variant = url.searchParams.get('variant') ?? null;
+    if (!id || !ID_PATTERN.test(id)) {
+      return json(res, 400, { error: 'missing or invalid "id" query param' });
+    }
+    try {
+      const barrel = await importBarrel();
+      const def = barrel.ALL_DESCRIPTORS.find((d) => d.id === id);
+      if (!def) return json(res, 404, { error: `no registered descriptor "${id}"` });
+      if (variant !== null) {
+        if (!ID_PATTERN.test(variant)) return json(res, 400, { error: 'invalid "variant" query param' });
+        const variantTarget = TABLE_DRIVEN.get(`${id}.js`);
+        if (!variantTarget) return json(res, 400, { error: `"${id}" is not table-driven — no per-variant file` });
+        const relFile = `${variantTarget.dir}/${variantTarget.fileFor(variant)}`;
+        let source;
+        try {
+          source = emitVariantModule(def, variant, relFile);
+        } catch {
+          return json(res, 404, { error: `no variant "${variant}" in descriptor "${id}"` });
+        }
+        return json(res, 200, { ok: true, id, file: relFile, source });
+      }
+      const file = `${id}.js`;
+      return json(res, 200, { ok: true, id, file, source: emitDescriptorModule(def, file) });
+    } catch (err) {
+      console.error('[save/descriptor] failed:', err);
+      return json(res, 500, { error: `failed: ${err.message}` });
+    }
   }
 
   if (method === 'GET') {

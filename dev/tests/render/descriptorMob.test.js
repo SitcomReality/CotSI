@@ -8,8 +8,7 @@
  * infernalpaca, leopard, goose, scorpelican, snail, tapir — plus the
  * `default` fallback. Tier-2 variants are gone; the infernalpaca carries a
  * variant-level emissive material, scorpelican and the others don't.
- * Mobs keep their baked SVG icon caps (pieceIcons.js, unchanged) riding on
- * top of each 3D body.
+ * Mobs and traders render as pure 3D geometry — the icon caps are gone.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -253,12 +252,8 @@ test('buildUnitMeshes renders mobs and traders through the descriptor pipeline',
   assert.equal(byName('mob-gooseBody').length, 1);
   assert.equal(byName('trader-traderBody').length, 1);
 
-  // Icon caps: one mesh per archetype icon, grouped per shape.
-  assert.equal(byName('pieceCap_infernalpaca').length, 1);
-  assert.equal(byName('pieceCap_infernalpaca')[0].count, 1);
-  assert.equal(byName('pieceCap_scorpelican').length, 1);
-  assert.equal(byName('pieceCap_goose').length, 1);
-  assert.equal(byName('pieceCap_trader').length, 1);
+  // No icon caps — mobs and traders are pure 3D geometry now.
+  assert.equal(meshes.filter((m) => m.name.startsWith('pieceCap')).length, 0, 'no piece icon caps remain');
 
   // Themed literals survive the game path: obsidian torso + emissive glow.
   const torso = byName('mob-torso-main')[0];

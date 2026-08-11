@@ -18,8 +18,8 @@
  *     variation ranges (canopy stretch, color jitter);
  *   - placement — how items sit inside the hex (center / scatter / ring);
  *   - variants + variantRule — alternative part sets picked by rule
- *     (hash/solitary/cluster for tile-driven objects; faction/archetype for
- *     entities, whose variant ids match the entity's faction or archetype).
+ *     (hash/solitary/cluster/mountain for tile-driven objects; faction/archetype
+ *     for entities, whose variant ids match the entity's faction or archetype).
  *     A variant may carry its own `material` (emissive only, like the
  *     descriptor-level material) so one multi-variant descriptor — the mob
  *     barrel — can give a single variant a different material;
@@ -219,8 +219,10 @@ export const OBJECT_DEFAULTS = Object.freeze({
  * placement surface: 0 = sitting flush on the ground (see shapeBaseOffset for
  * how the record path anchors vertically-centered primitives). `lift` raises
  * the part in its own frame (pre-scale, so it is the same bottom-height
- * measure under stretch); `localPos` overrides `lift` with a full local
- * offset. Angles are radians.
+ * measure under stretch); `liftRange` draws that height from `[min, max]` by
+ * the seeded hash instead — author it with the seed of the part this lift
+ * tracks (e.g. the trunk) so the bottom follows a per-tree draw; `localPos`
+ * overrides `lift` with a full local offset. Angles are radians.
  * scaleX/scaleY/scaleZ are the part's independent non-uniform scale (base 1);
  * a legacy `scaleXZ` input resolves to scaleX + scaleZ on normalize.
  */
@@ -427,10 +429,12 @@ export function validateTransform(transform, path, errors, nested = false) {
   }
   for (const key of Object.keys(transform)) {
     const value = transform[key];
-    if (nested && (key === 'y' || key === 'lift' || key === 'tiltAxis' || key === 'tilt')) {
+    if (nested && (key === 'y' || key === 'lift' || key === 'liftRange' || key === 'tiltAxis' || key === 'tilt')) {
       errors.push(`${path}.transform.${key}: only root parts may set this field — nested parts and groups sit in their parent's frame`);
     } else if (TRANSFORM_NUMBER_KEYS.includes(key)) {
       if (!isFiniteNumber(value)) errors.push(`${path}.transform.${key}: expected a finite number (angles in radians)`);
+    } else if (key === 'liftRange') {
+      validateLiftRange(value, `${path}.transform.liftRange`, errors);
     } else if (TRANSFORM_SCALE_KEYS.includes(key)) {
       if (!isPositiveNumber(value)) errors.push(`${path}.transform.${key}: must be a positive number`);
     } else if (TRANSFORM_VEC3_KEYS.includes(key)) {
@@ -524,6 +528,29 @@ function validateStretch(stretch, path, errors) {
     if (rule.seed !== undefined && !(Number.isInteger(rule.seed) && rule.seed >= 0)) {
       errors.push(`${path}.${key}.seed: must be a non-negative integer`);
     }
+  }
+}
+
+/**
+ * Validate a part's optional `liftRange` — a per-item lift drawn from
+ * [min, max] by the seeded hash instead of a fixed `lift` (see §5.3's canopy
+ * anchor). `min`/`max` are finite bottom-heights (the same measure as `lift`),
+ * `seed` the sub-hash seed to draw with — author the seed of the part this
+ * lift tracks (the legacy trunk-stretch draw uses 6) so the canopy bottom
+ * follows the per-tree trunk stretch. Root-only.
+ */
+function validateLiftRange(range, path, errors) {
+  if (!isPlainObject(range)) {
+    errors.push(`${path}: must be an object { min, max, seed? }`);
+    return;
+  }
+  if (!isFiniteNumber(range.min)) errors.push(`${path}.min: expected a finite number`);
+  if (!isFiniteNumber(range.max)) errors.push(`${path}.max: expected a finite number`);
+  if (isFiniteNumber(range.min) && isFiniteNumber(range.max) && range.min > range.max) {
+    errors.push(`${path}: min must be <= max`);
+  }
+  if (range.seed !== undefined && !(Number.isInteger(range.seed) && range.seed >= 0)) {
+    errors.push(`${path}.seed: must be a non-negative integer`);
   }
 }
 
@@ -812,7 +839,7 @@ const OBJECT_KEYS = [
 ];
 
 /** How a descriptor's `variants` list is resolved to the parts of one item. */
-export const VARIANT_RULES = Object.freeze(['hash', 'solitary', 'cluster', 'faction', 'archetype']);
+export const VARIANT_RULES = Object.freeze(['hash', 'solitary', 'cluster', 'faction', 'archetype', 'mountain']);
 
 /**
  * Validate a descriptor. Accepts raw (un-normalized) descriptors — optional
@@ -962,6 +989,7 @@ function normalizePart(part, legacyGrounding = false, nested = false) {
     }
     delete merged.y;
     delete merged.lift;
+    delete merged.liftRange;
     delete merged.tiltAxis;
     delete merged.tilt;
   }

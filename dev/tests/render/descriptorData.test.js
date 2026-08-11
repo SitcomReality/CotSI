@@ -160,6 +160,16 @@ test('mountain: per-variant part ids and mountainType-driven scaleY', () => {
     assert.equal(record.scale, 1, 'mountain XZ scale stays 1 (hex-tiling base)');
     assert.ok(['peak-classic', 'peak-offpeak'].includes(record.partId));
   }
+  // Legacy MOUNTAIN_HASH_SEEDS roll: (3,-2) hashes to ((3*13 + -2*7)*19)%100
+  // = 75 → 'offpeak' — the tile the golden snapshot uses.
+  const legacy = recordsForDescriptor(mountain, { q: 3, r: -2, terrain: 'mountain', mountainType: 'peak' }, POS)[0];
+  assert.equal(legacy.partId, 'peak-offpeak');
+  // Isolated/untagged mountains fall back to the normal (medium) bucket with
+  // per-tile height jitter — never a fixed scaleY of 1.
+  const isolated = recordsForDescriptor(mountain, { q: 3, r: -2, terrain: 'mountain', mountainType: 'isolated' }, POS)[0];
+  assert.ok(isolated.scaleY > 0.9 && isolated.scaleY < 1.15, `isolated scaleY ${isolated.scaleY} outside the normal bucket`);
+  const untagged = recordsForDescriptor(mountain, { q: 3, r: -2, terrain: 'mountain' }, POS)[0];
+  assert.equal(untagged.scaleY, isolated.scaleY, 'untagged mountains draw the same normal bucket');
 });
 
 test('knot hovers at KNOT_Y_OFFSET and hill mound is a flattened dome cluster', () => {

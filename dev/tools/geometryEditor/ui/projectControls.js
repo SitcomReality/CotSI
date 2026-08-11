@@ -10,6 +10,10 @@
  */
 import { S } from '../state.js';
 import { el } from './formControls.js';
+import { activeVariant } from './variantQuery.js';
+import { ENTITY_KINDS } from '../entityView.js';
+import { diffLines } from './lineDiff.js';
+import { emitDescriptorModule, emitVariantModule } from '../emitDescriptor.js';
 import {
   normalizeDescriptor,
   validateDescriptor,
@@ -21,6 +25,17 @@ import { newObjectTemplate } from './objectTemplates.js';
  *  data/<id>.js). */
 function targetFile(id) {
   return `${id}.js`;
+}
+
+/** The per-variant data-file path for entity kinds (the table-driven save
+ *  convention the server mirrors): mobs/<archetype>.js, bases/<faction>.js,
+ *  champions/<faction>.js. Null for tile-driven objects — they save the whole
+ *  descriptor to data/<id>.js. */
+function variantTargetFile(d, variantId) {
+  if (d.kind === 'mob') return `mobs/${variantId}.js`;
+  if (d.kind === 'base') return `bases/${variantId.toLowerCase()}.js`;
+  if (d.kind === 'champion') return `champions/${variantId.toLowerCase()}.js`;
+  return null;
 }
 
 /** Default port the save server binds (saveServer.mjs) — the cross-origin
@@ -72,6 +87,108 @@ function bindSaveToGame(els) {
     enable(base !== null, base ?? '');
   })();
 
+  // ── Save-review modal ────────────────────────────────────────────────────
+  // Replaces the bare window.confirm: a before/after side-by-side diff of the
+  // data file on disk vs what this save would write (both emitted through the
+  // same emitter the server runs, so the diff shows the real content change).
+  // The overlay shell reuses the object browser's .floating pattern.
+
+  let modal = null; // lazily-built DOM, null until the first save
+  let modalResolver = null;
+
+  function ensureModal() {
+    if (modal) return modal;
+    const panel = el('div', 'floating diff-panel');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-labelledby', 'save-diff-title');
+
+    const fileEl = el('span', 'diff-file');
+    const head = el('div', 'diff-head');
+    head.append(el('h2', null, 'Review Save'), fileEl);
+    const hint = el('div', 'diff-hint', 'Left: the data file on disk · Right: what this save writes. Save only proceeds on your confirmation.');
+    const body = el('div', 'diff-body');
+    const cancelBtn = el('button', null, 'Cancel');
+    cancelBtn.type = 'button';
+    const confirmBtn = el('button', 'create-btn', 'Save');
+    confirmBtn.type = 'button';
+    const actions = el('div', 'diff-actions');
+    actions.append(cancelBtn, confirmBtn);
+    panel.append(head, hint, body, actions);
+    document.body.append(panel);
+
+    const close = (result) => {
+      panel.classList.remove('open');
+      body.textContent = '';
+      const resolve = modalResolver;
+      modalResolver = null;
+      if (resolve) resolve(result);
+    };
+    cancelBtn.addEventListener('click', () => close(false));
+    confirmBtn.addEventListener('click', () => close(true));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && panel.classList.contains('open')) close(false);
+    });
+
+    modal = { panel, fileEl, body, close };
+    return modal;
+  }
+
+  /** Open the diff modal and resolve true/false with the user's choice. */
+  function openDiffModal({ file, before, after }) {
+    const m = ensureModal();
+    const rows = diffLines(before, after);
+    const changed = rows.filter((r) => r.type !== 'same').length;
+    m.fileEl.textContent = `data/${file} · ${changed} line${changed === 1 ? '' : 's'} changed`;
+    m.body.textContent = '';
+    for (const row of rows) {
+      const div = el('div', `diff-row ${row.type}`);
+      div.append(el('pre', null, row.left ?? ''), el('pre', null, row.right ?? ''));
+      m.body.append(div);
+    }
+    m.panel.classList.add('open');
+    return new Promise((resolve) => { modalResolver = resolve; });
+  }
+
+  /**
+   * Ask before saving. The "after" side is emitted locally with the same
+   * emitter the server uses; the "before" side comes from GET /save/descriptor
+   * (fresh import → normalize → emit). A missing on-disk file (404) diffs
+   * against an empty source so a new object shows its full content; any other
+   * probe failure falls back to the old window.confirm so saving never
+   * dead-ends. Resolves true when the user proceeds.
+   */
+  async function reviewSave(d, { isNew, file, variantId }) {
+    const after = variantId
+      ? emitVariantModule(d, variantId, file)
+      : emitDescriptorModule(d, file);
+    let before = null;
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 2000);
+      const query = variantId
+        ? `?id=${encodeURIComponent(d.id)}&variant=${encodeURIComponent(variantId)}`
+        : `?id=${encodeURIComponent(d.id)}`;
+      const r = await fetch(`${saveBase}/save/descriptor${query}`, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (r.status === 404) before = ''; // not registered yet — a brand-new file
+      else if (r.ok) {
+        const j = await r.json();
+        before = j?.source ?? null;
+      }
+    } catch {
+      before = null;
+    }
+    if (before === null) {
+      return isNew
+        ? window.confirm(
+            `Save "${d.displayName}" as a NEW object?\n\n` +
+            `This creates data/${file} and registers it in data/index.js.`)
+        : window.confirm(`Save "${d.displayName}" to data/${file}?`);
+    }
+    return openDiffModal({ file, before, after });
+  }
+
   els.saveBtn.addEventListener('click', async () => {
     if (!saveAvailable) return;
     if (!S.descriptor) return;
@@ -91,26 +208,40 @@ function bindSaveToGame(els) {
     }
 
     const isNew = !SAMPLE_OBJECTS.some((o) => o.id === d.id);
-    const file = targetFile(d.id);
-    const confirmed = isNew
-      ? window.confirm(
-          `Save "${d.displayName}" as a NEW object?\n\n` +
-          `This creates data/${file} and registers it in data/index.js.`)
-      : window.confirm(`Save "${d.displayName}" to data/${file}?`);
+    const body = { descriptor: d };
+    let file = targetFile(d.id);
+    // Entity kinds save ONLY the active variant to its own file (mobs/
+    // bases/ champions/) — the table-driven barrels are hand-composed and
+    // never rewritten. Tile-driven objects save the whole descriptor.
+    const av = activeVariant();
+    if (ENTITY_KINDS.has(d.kind) && av) {
+      if (d.kind === 'mob' && !S.entity.archetype) {
+        els.loadError.textContent = 'Pick a mob type in the browser first — the archetype drives the save target.';
+        els.loadError.classList.remove('ok');
+        return;
+      }
+      const variantFile = variantTargetFile(d, av.id);
+      if (variantFile) {
+        body.activeVariant = av.id;
+        file = variantFile;
+      }
+    }
+    const confirmed = await reviewSave(d, { isNew, file, variantId: body.activeVariant ?? null });
     if (!confirmed) return;
 
     try {
       const res = await fetch(saveBase + '/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ descriptor: d }),
+        body: JSON.stringify(body),
       });
       const json = await res.json().catch(() => null);
       if (res.ok && json?.ok) {
         S.descriptor = d; // session now matches the saved (normalized) file
         els.loadError.textContent =
           `Saved data/${json.file} — refresh the game to see it.` +
-          (json.wasNew ? ' (Reload this page to browse the new object.)' : '');
+          (json.wasNew ? ' (Reload this page to browse the new object.)' : '') +
+          (json.unregistered ? ' (The barrel data/index.js is hand-composed — add the variant import there to see it in-game.)' : '');
         els.loadError.classList.add('ok');
       } else {
         const detail = json?.errors?.length ? `\n${json.errors.join('\n')}` : '';

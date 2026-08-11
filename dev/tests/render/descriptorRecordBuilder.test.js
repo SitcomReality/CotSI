@@ -123,6 +123,46 @@ test('lift and localPos pre-scale with the item scale', () => {
   assert.ok(Math.abs(trunk.y - POS.y) < 1e-9, `pivot y ${trunk.y}`);
 });
 
+test('liftRange anchors the canopy bottom to the per-tree trunk stretch', () => {
+  // Synthetic center-placement tree: the trunk stretches on Y from the seed-6
+  // draw and the canopy draws its lift from the SAME seed — so the canopy
+  // bottom = 0.5·trunkStretch − 0.3 (legacy canopyY·trunkStretch − halfHeight)
+  // tracks the trunk exactly on every tile.
+  const anchored = normalizeDescriptor({
+    id: 'anchored-canopy',
+    kind: 'feature',
+    displayName: 'Anchored Canopy',
+    placement: { mode: 'center' },
+    size: { min: 1, max: 1 },
+    parts: [
+      { id: 'trunk', shape: 'cylinder', stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false } },
+      { id: 'canopy', shape: 'sphere', transform: { liftRange: { min: 0.15, max: 0.3, seed: 6 } } },
+    ],
+  });
+  for (let q = 0; q <= 30; q++) {
+    const tile = { q, r: -2, terrain: 'plains' };
+    const records = recordsForDescriptor(anchored, tile, POS);
+    const trunk = records.find((r) => r.partId === 'trunk');
+    const canopy = records.find((r) => r.partId === 'canopy');
+    // Center placement: itemScale = 1, no jitter/biome factors — the canopy
+    // lift is the raw draw and trunk.scaleY the raw seed-6 stretch.
+    assert.ok(Math.abs(canopy.lift - (0.5 * trunk.scaleY - 0.3)) < 1e-9,
+      `q=${q} canopy lift ${canopy.lift} vs 0.5·${trunk.scaleY}−0.3`);
+    // The legacy draw is lerp(min, max, frac(treeHash(tileH, 6))). JS negative
+    // modulo lets frac go negative on some tiles, so the reachable band is
+    // lerp(range, ±0.88) — the same quirk the trunk stretch always had. The
+    // anchor identity above holds regardless; check both draws independently
+    // and honor the authored [min, max] band where the draw is non-negative.
+    const f = frac(treeHash(((q * 7 + -2 * 13) * 31) % 17, 6));
+    assert.ok(Math.abs(trunk.scaleY - (0.9 + 0.3 * f)) < 1e-9, `q=${q} trunk scaleY ${trunk.scaleY} vs ${0.9 + 0.3 * f}`);
+    assert.ok(Math.abs(canopy.lift - (0.15 + 0.15 * f)) < 1e-9, `q=${q} lift ${canopy.lift} vs ${0.15 + 0.15 * f}`);
+    if (f >= 0) {
+      assert.ok(canopy.lift >= 0.15 - 1e-9 && canopy.lift <= 0.3 + 1e-9, `q=${q} lift ${canopy.lift} out of [0.15, 0.3]`);
+      assert.ok(trunk.scaleY >= 0.9 - 1e-9 && trunk.scaleY <= 1.2 + 1e-9, `q=${q} trunk scaleY ${trunk.scaleY}`);
+    }
+  }
+});
+
 // ── Placement ──────────────────────────────────────────────────────────────
 
 test('scatter placement stays within the offset range', () => {

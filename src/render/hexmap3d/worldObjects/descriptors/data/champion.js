@@ -1,56 +1,42 @@
 /**
- * champions.js — Descriptor data for champion units.
+ * champion.js — Barrel/composer for the champion descriptor.
  *
- * Migrated from unitMeshes.js: the champion is a cylinder body + sphere head.
- * The body is faction-colored (the 'factionBase' token, resolved from the
- * champion's faction palette); the head is a fixed skin tone — a literal part
- * color 0xffe8c8, the old CHAMPION_HEAD_MAT (v4 merged materialColor into
- * `color`).
+ * Each faction's variant lives in its own file under data/champions/ (a
+ * <FACTION>_VARIANT block: `{ id, parts }`); this module composes them into
+ * the tables the game consumes:
  *
- * Vertical offsets are bottom heights (schema v3): no transform = flush on the
- * ground. The body sits flush; the head and accents keep their old center
- * positions (y = old center height − shape base).
+ *   - CHAMPION_VARIANTS — faction short → parts array. The key equals the
+ *     variant's id (via variantRule 'faction').
+ *   - CHAMPION_DESCRIPTOR — the descriptor form, derived from those tables.
+ *
+ * The shared body/head/accents building blocks live in champions/shared.js —
+ * the committed faction files compose from them (see the editor-overwrite
+ * caveat there). The geometry editor saves ONLY the active faction to
+ * data/champions/<faction>.js; this barrel is never rewritten by a save.
  *
  * Per the design brief, each faction gets a SLIGHT variation on the same body
  * — a small head accent in the faction accent color ('factionAccent'), the
- * same idea as the base decorations. The accents below are minimal placeholders
- * (one small part per faction); they are ordinary descriptor parts, so anyone
- * can author richer faction looks in the geometry editor.
- *
- * Variant ids are the faction shorts (CRU / REV / VER / ARC / HRT / MSK / HOL).
- * Values are JSON-safe (colors as tokens / integers, angles in radians,
- * lengths in world units where hex radius = 1.0).
+ * same idea as the base decorations. The accents are ordinary descriptor
+ * parts, so anyone can author richer faction looks in the geometry editor.
  */
+import { CRU_VARIANT } from './champions/cru.js';
+import { REV_VARIANT } from './champions/rev.js';
+import { VER_VARIANT } from './champions/ver.js';
+import { ARC_VARIANT } from './champions/arc.js';
+import { HRT_VARIANT } from './champions/hrt.js';
+import { MSK_VARIANT } from './champions/msk.js';
+import { HOL_VARIANT } from './champions/hol.js';
 
-const BODY = {
-  id: 'body',
-  shape: 'cylinder',
-  params: { bottomR: 0.08, topR: 0.12, height: 0.5, segments: 8 },
-  color: 'factionBase',
+/** Every faction variant. Variant id === the faction short name. */
+export const CHAMPION_VARIANTS = {
+  CRU: CRU_VARIANT.parts,
+  REV: REV_VARIANT.parts,
+  VER: VER_VARIANT.parts,
+  ARC: ARC_VARIANT.parts,
+  HRT: HRT_VARIANT.parts,
+  MSK: MSK_VARIANT.parts,
+  HOL: HOL_VARIANT.parts,
 };
-const HEAD = {
-  id: 'head',
-  shape: 'sphere',
-  params: { radius: 0.1, wSegs: 8, hSegs: 6 },
-  transform: { y: 0.35 },
-  color: 0xffe8c8, // skin tone — was the v3 materialColor (CHAMPION_HEAD_MAT)
-};
-
-/** One small accent part per faction, sitting on/around the head. */
-const ACCENTS = {
-  CRU: [{ id: 'spikeTop', shape: 'cone', params: { bottomR: 0.03, height: 0.06, radialSegs: 4, heightSegs: 1 }, transform: { y: 0.55 }, color: 'factionAccent' }],
-  REV: [{ id: 'halo', shape: 'torus', params: { radius: 0.11, tube: 0.015, radialSegs: 4, tubularSegs: 8 }, transform: { y: 0.435, localAxis: { x: 1, y: 0, z: 0 }, localAngle: Math.PI / 2 }, color: 'factionAccent' }],
-  VER: [{ id: 'leaf', shape: 'cone', params: { bottomR: 0.03, height: 0.05, radialSegs: 4, heightSegs: 1 }, transform: { y: 0.525, tiltAxis: { x: 1, z: 0 }, tilt: 0.5 }, color: 'factionAccent' }],
-  ARC: [{ id: 'orb', shape: 'sphere', params: { radius: 0.035, wSegs: 6, hSegs: 4 }, transform: { y: 0.545 }, color: 'factionAccent' }],
-  HRT: [{ id: 'cap', shape: 'sphere', params: { radius: 0.05, wSegs: 6, hSegs: 4, phiStart: 0, phiLength: Math.PI, thetaStart: 0, thetaLength: Math.PI / 2 }, transform: { y: 0.57 }, color: 'factionAccent' }],
-  MSK: [{ id: 'gem', shape: 'dodecahedron', params: { radius: 0.035, detail: 0 }, transform: { y: 0.545 }, color: 'factionAccent' }],
-  HOL: [{ id: 'pendant', shape: 'cone', params: { bottomR: 0.03, height: 0.05, radialSegs: 4, heightSegs: 1 }, transform: { y: 0.355, localAxis: { x: 1, y: 0, z: 0 }, localAngle: Math.PI }, color: 'factionAccent' }],
-};
-
-/** Every faction variant: same body + head, slight accent variation. */
-export const CHAMPION_VARIANTS = Object.fromEntries(
-  Object.entries(ACCENTS).map(([id, accent]) => [id, [BODY, HEAD, ...accent]]),
-);
 
 /** The champion descriptor — top-level parts are the CRU fallback. */
 export const CHAMPION_DESCRIPTOR = {

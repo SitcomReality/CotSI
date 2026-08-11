@@ -19,7 +19,12 @@ import {
   validateDescriptor,
 } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { ALL_DESCRIPTORS } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/index.js';
-import { emitDescriptorModule, descriptorExportName } from '../../../dev/tools/geometryEditor/emitDescriptor.js';
+import {
+  emitDescriptorModule,
+  emitVariantModule,
+  descriptorExportName,
+  variantExportName,
+} from '../../../dev/tools/geometryEditor/emitDescriptor.js';
 
 const all = ALL_DESCRIPTORS;
 
@@ -54,6 +59,35 @@ test('export names follow the <ID>_DESCRIPTOR convention', () => {
   for (const raw of all) {
     const name = descriptorExportName(raw.id);
     assert.match(name, /^[A-Z][A-Z0-9_]*_DESCRIPTOR$/, `${raw.id} → bad export name "${name}"`);
+  }
+});
+
+test('variant export names follow the <NAME>_VARIANT convention', () => {
+  for (const raw of all) {
+    for (const v of raw.variants ?? []) {
+      const name = variantExportName(v.id);
+      assert.match(name, /^[A-Z][A-Z0-9_]*_VARIANT$/, `${raw.id} variant "${v.id}" → bad export name "${name}"`);
+    }
+  }
+});
+
+test('emitted variant modules re-import and normalize back to the same variant', async () => {
+  // The table-driven save writes one <NAME>_VARIANT block per variant
+  // (mobs/<archetype>.js, bases/<faction>.js, champions/<faction>.js). The
+  // block must be self-contained: importable on its own, and its parts
+  // normalize back to exactly the descriptor's variant.
+  for (const raw of all) {
+    const d = normalizeDescriptor(raw);
+    if (!d.variants || d.variants.length === 0) continue;
+    for (const v of d.variants) {
+      const text = emitVariantModule(d, v.id);
+      const exportName = variantExportName(v.id);
+      const mod = await import('data:text/javascript;base64,' + Buffer.from(text).toString('base64'));
+      assert.ok(exportName in mod, `${d.id}: variant "${v.id}" export "${exportName}" missing`);
+      const probe = normalizeDescriptor({ ...d, variants: [mod[exportName]] });
+      assert.equal(probe.variants.length, 1);
+      assert.deepEqual(probe.variants[0], v, `${d.id}: variant "${v.id}" emitted module drifted`);
+    }
   }
 });
 

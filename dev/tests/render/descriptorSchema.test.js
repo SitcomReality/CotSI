@@ -95,7 +95,7 @@ test('enumerations are exhaustive and frozen', () => {
   assert.deepEqual(OBJECT_KINDS, ['feature', 'decor', 'mountain', 'base', 'champion', 'mob', 'trader']);
   assert.deepEqual(EMPHASIS_BEHAVIORS, ['none', 'dispersed', 'sunk', 'hidden']);
   assert.deepEqual(PLACEMENT_MODES, ['center', 'scatter', 'ring', 'jitter']);
-  assert.deepEqual(VARIANT_RULES, ['hash', 'solitary', 'cluster', 'faction', 'archetype']);
+  assert.deepEqual(VARIANT_RULES, ['hash', 'solitary', 'cluster', 'faction', 'archetype', 'mountain']);
   assert.ok(Number.isInteger(SCHEMA_VERSION) && SCHEMA_VERSION >= 1);
 });
 
@@ -326,6 +326,36 @@ test('part.stretch validates ranges and axes', () => {
   assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', stretch: { y: { min: 1, max: 2, seed: -1 } } }] }).length > 0);
   assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', materialColor: 0xffffff }] }).length === 0);
   assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', materialColor: 0x1000000 }] }).length > 0);
+});
+
+test('part.transform.liftRange validates ranges and stays root-only', () => {
+  const ok = {
+    id: 's',
+    kind: 'feature',
+    displayName: 'S',
+    parts: [{ id: 'p', shape: 'sphere', transform: { liftRange: { min: 0.15, max: 0.3, seed: 6 } } }],
+  };
+  assert.deepEqual(validateDescriptor(ok), []);
+  // Seed is optional (defaults to the legacy trunk-stretch seed 6).
+  assert.deepEqual(
+    validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', transform: { liftRange: { min: 0, max: 0.5 } } }] }),
+    [],
+  );
+  // min > max, non-finite bounds, negative seed, and non-object forms fail.
+  assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', transform: { liftRange: { min: 0.3, max: 0.15 } } }] }).length > 0);
+  assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', transform: { liftRange: { min: NaN, max: 0.3 } } }] }).length > 0);
+  assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', transform: { liftRange: { min: 0, max: 0.3, seed: -1 } } }] }).length > 0);
+  assert.ok(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', transform: { liftRange: 0.2 } }] }).length > 0);
+  // Root-only: nested parts and groups cannot set liftRange (the parent frame
+  // owns the lift — the same restriction as y/lift/tilt).
+  const nested = {
+    ...ok,
+    parts: [
+      { id: 'root', shape: 'sphere' },
+      { id: 'g', children: [{ id: 'leaf', shape: 'sphere', transform: { liftRange: { min: 0, max: 0.3 } } }] },
+    ],
+  };
+  assert.ok(validateDescriptor(nested).some((e) => e.includes('only root parts may set this field')));
 });
 
 test('variantRule accepts only known rules and normalizes to hash', () => {

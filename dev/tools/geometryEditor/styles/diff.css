@@ -1,0 +1,110 @@
+/* diff.css — save-review modal: a side-by-side descriptor diff replacing the
+   bare window.confirm on Save. Reuses the .floating overlay shell (layout.css)
+   as a centered panel; the body scrolls, the buttons stay pinned. */
+
+.diff-panel {
+  left: 50%;
+  top: 50%;
+  bottom: auto;
+  width: min(760px, calc(100vw - var(--s6) * 2));
+  max-height: min(78vh, 640px);
+  display: flex;
+  flex-direction: column;
+  padding: var(--s3);
+  /* The .floating base slides on translateY; recenter on the modal's own axis. */
+  transform: translate(-50%, calc(-50% - 4px));
+}
+
+.diff-panel.open {
+  transform: translate(-50%, -50%);
+}
+
+.diff-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+
+.diff-head h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-mid);
+}
+
+.diff-file {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.diff-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--abyss) 30%, transparent);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
+}
+
+.diff-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.diff-row > pre {
+  margin: 0;
+  padding: 0 var(--s2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.diff-row.same > pre {
+  color: var(--ink-mid);
+}
+
+.diff-row.del > pre:first-child {
+  background: color-mix(in srgb, #c03c3c 22%, transparent);
+  color: #e8a0a0;
+}
+
+.diff-row.add > pre:last-child {
+  background: color-mix(in srgb, #5ac878 16%, transparent);
+  color: #a8e0b8;
+}
+
+/* The empty half of a changed row stays blank so columns stay aligned. */
+.diff-row.del > pre:last-child,
+.diff-row.add > pre:first-child {
+  background: none;
+  color: transparent;
+}
+
+.diff-hint {
+  margin: 0 0 var(--s1);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+.diff-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s2);
+  margin-top: var(--s3);
+}
+
+.diff-actions button {
+  min-width: 96px;
+}

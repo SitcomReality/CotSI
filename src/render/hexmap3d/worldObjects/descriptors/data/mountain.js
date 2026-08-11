@@ -9,9 +9,9 @@
  *
  * Variants carry distinct part ids (peak-classic / peak-offpeak) so the mesh
  * assembler builds one InstancedMesh per variant, exactly like the hard-coded
- * builder's per-variant bucketing. The variant roll is the generic hash rule
- * (50/50 mix), not the legacy MOUNTAIN_HASH_SEEDS — per-tile assignments may
- * differ from the old render, but the range reads the same.
+ * builder's per-variant bucketing. The variant roll is the dedicated
+ * 'mountain' rule — the legacy MOUNTAIN_HASH_SEEDS hash — so per-tile
+ * classic/offpeak assignments match the pre-migration render exactly.
  *
  * Biome tint: the mountain geometry carries per-vertex colors
  * (mountainGeometries.js) — the material is white with vertexColors on, so a
@@ -26,6 +26,7 @@ export const MOUNTAIN_DESCRIPTOR = {
   schemaVersion: 3,
   id: 'mountain',
   kind: 'mountain',
+  variantRule: 'mountain',
   displayName: 'Mountain',
   scale: 1,
   size: {
