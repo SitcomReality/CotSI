@@ -1,43 +1,61 @@
 /**
  * movementAnimator.js — Champion movement animation state machine.
  *
- * Manages temporary body+head meshes that animate a champion moving between
+ * Manages a temporary miniature mesh that animates a champion moving between
  * hex tiles.  Pure animation math (curves, interpolation, frame transforms)
  * lives in movementCurves.js — this file handles:
  *   - Module state (scene ref, active/completed animation maps)
  *   - rAF integration via the clock scheduler
  *   - Mesh creation, scene add/remove, and material disposal
  *
+ * The animated piece is the champion's ACTUAL descriptor miniature — same
+ * parts, geometries, materials and transforms as the static render — with all
+ * parts parented to one THREE.Group. The group glides/lifts/tilts as a unit,
+ * so the Forge Juggernaut you see moving is the Forge Juggernaut you see
+ * standing. Geometries/materials are the shared shapeFactory/outline caches,
+ * so nothing here is disposed — the group is simply removed on cleanup.
+ *
  * Rapid successive moves are smoothly interpolated: if a new movement starts
  * while a previous one is in flight, the current interpolated position becomes
  * the origin of the new animation so the champion appears to "bob" between hexes.
  *
- * Layer: render/ — imports render/ units/geometries + curves, shared/ clock, vendor/ Three.
+ * Layer: render/ — imports render/ descriptor pipeline + curves, shared/ clock, vendor/ Three.
  */
 
 import * as THREE from '../../../vendor/three.module.js';
-import { toonMaterial } from '../scene/materials.js';
 import { getClock } from '../../../shared/clockScheduler.js';
-import { geometryForShape } from '../worldObjects/descriptors/shapeFactories.js';
-import { CHAMPION_DESCRIPTOR } from '../worldObjects/descriptors/data/champion.js';
-import { getOutlineGeometry, outlineMaterial } from '../scene/outline.js';
 import { startMeasure, endMeasure } from '../../../shared/measurements.js';
+import { normalizeDescriptor } from '../worldObjects/descriptors/schema.js';
+import { recordsForEntity } from '../worldObjects/descriptors/recordBuilder.js';
+import { buildDescriptorMeshes } from '../worldObjects/descriptors/meshAssembly.js';
+import { addOutlines } from '../scene/outline.js';
+import { CHAMPION_DESCRIPTOR } from '../worldObjects/descriptors/data/champion.js';
 import {
-  hexToRgb,
   computeInterpolatedPos,
   applyAnimationFrame,
 } from './movementCurves.js';
-import { MOVE_ANIM_DURATION, CHAMPION_HEIGHT_OFFSET, HEAD_BODY_OFFSET } from '../../../params/render/animationParams.js';
+import { MOVE_ANIM_DURATION } from '../../../params/render/animationParams.js';
 
 // Re-exported so existing callers importing MOVE_DURATION from this module
 // don't need to update their import paths.
 export { MOVE_DURATION } from './movementCurves.js';
 
-// The animating champion's temporary body/head meshes are built from the same
-// champion descriptor the static meshes use (descriptors/data/champion.js) —
-// one geometry source, shared via the shapeFactories cache.
-const CHAMPION_BODY_PART = CHAMPION_DESCRIPTOR.parts.find((p) => p.id === 'body');
-const CHAMPION_HEAD_PART = CHAMPION_DESCRIPTOR.parts.find((p) => p.id === 'head');
+// The animating miniature is built through the same descriptor pipeline the
+// static unit meshes use (unitMeshes.js) — one geometry/material source,
+// shared via the shapeFactories + outline caches. Records are generated at the
+// group origin (0,0,0); the group transform then drives the whole piece.
+const normalizedChampion = normalizeDescriptor(CHAMPION_DESCRIPTOR);
+
+/** Faction entry → the entity shape recordsForEntity expects (token colors). */
+function championEntityFor(faction) {
+  return {
+    faction: faction.short,
+    colors: {
+      factionBase: parseInt(faction.base.slice(1), 16),
+      factionAccent: parseInt(faction.color.slice(1), 16),
+    },
+  };
+}
 
 // ─── Module state ────────────────────────────────────────────────────────────
 
@@ -90,11 +108,12 @@ export function getAnimatingIds() {
  * @param {string} championId
  * @param {{x:number,y:number,z:number}} fromPos — world-space origin
  * @param {{x:number,y:number,z:number}} toPos   — world-space destination
- * @param {string} factionColorHex               — CSS hex colour for the body
+ * @param {object} faction                        — FACTIONS entry (short/base/color
+ *        resolve the champion variant and its factionBase/factionAccent tokens)
  * @param {number} [duration=MOVE_ANIM_DURATION] — animation duration in ms
  * @param {Function} [onComplete]                — called when animation naturally finishes
  */
-export function queueOrStart(championId, fromPos, toPos, factionColorHex, duration = MOVE_ANIM_DURATION, onComplete = null) {
+export function queueOrStart(championId, fromPos, toPos, faction, duration = MOVE_ANIM_DURATION, onComplete = null) {
   if (!scene) return;
 
   const existing = activeAnimations.get(championId);
@@ -128,41 +147,22 @@ export function queueOrStart(championId, fromPos, toPos, factionColorHex, durati
     actualFromZ = fromPos.z;
   }
 
-  // Build temporary meshes
-  const rgb = hexToRgb(factionColorHex);
-  const bodyMat = toonMaterial({
-    color: new THREE.Color(rgb[0], rgb[1], rgb[2]),
-  });
-  const headMat = toonMaterial({
-    color: 0xffe8c8,
-  });
-
-  const body = new THREE.Mesh(geometryForShape(CHAMPION_BODY_PART.shape, CHAMPION_BODY_PART.params), bodyMat);
-  const head = new THREE.Mesh(geometryForShape(CHAMPION_HEAD_PART.shape, CHAMPION_HEAD_PART.params), headMat);
-  body.castShadow = true;
-  head.castShadow = true;
-
-  // Ink-outline twins (shared hull geometry + material — never disposed here).
-  // Parented to body/head so they inherit the animation transform each frame
-  // and come off with their parent on cleanup.
-  const bodyOutline = new THREE.Mesh(getOutlineGeometry(body.geometry), outlineMaterial);
-  const headOutline = new THREE.Mesh(getOutlineGeometry(head.geometry), outlineMaterial);
-  bodyOutline.renderOrder = -1;
-  headOutline.renderOrder = -1;
-  body.add(bodyOutline);
-  head.add(headOutline);
-
-  scene.add(body);
-  scene.add(head);
+  // Build the champion's real miniature: descriptor records at the group
+  // origin, one InstancedMesh per part (outline hulls attached), all parented
+  // to a single group so the animation transform drives the whole piece.
+  const records = recordsForEntity(normalizedChampion, championEntityFor(faction), { x: 0, y: 0, z: 0 });
+  const group = new THREE.Group();
+  group.name = `anim-${faction.short}`;
+  for (const mesh of buildDescriptorMeshes(normalizedChampion, records, group.name)) {
+    group.add(...addOutlines(mesh));
+  }
+  scene.add(group);
 
   const startTime = performance.now();
 
   const anim = {
     championId,
-    body,
-    head,
-    bodyMat,
-    headMat,
+    group,
     fromX: actualFromX, fromY: actualFromY, fromZ: actualFromZ,
     toX: toPos.x, toY: toPos.y, toZ: toPos.z,
     startTime,
@@ -231,20 +231,13 @@ function _removeAnimation(championId, anim) {
     anim.stopFn();
     anim.stopFn = null;
   }
-  if (anim.body && scene) scene.remove(anim.body);
-  if (anim.head && scene) scene.remove(anim.head);
-  // Outline hulls are children of body/head, so they come off with them.
-  // Dispose only the materials — geometries are shared via the geometry cache
-  // (outline geometry + material are shared renderer assets, never disposed).
-  if (anim.bodyMat) anim.bodyMat.dispose();
-  if (anim.headMat) anim.headMat.dispose();
+  if (anim.group && scene) scene.remove(anim.group);
+  // Geometries and materials are shared cache entries (shapeFactories,
+  // outline) — the group's removal releases them; nothing is disposed here.
   activeAnimations.delete(championId);
 }
 
 /** Dispose a completed animation's meshes and materials. */
 function _disposeCompleted(anim) {
-  if (anim.body && scene) scene.remove(anim.body);
-  if (anim.head && scene) scene.remove(anim.head);
-  if (anim.bodyMat) anim.bodyMat.dispose();
-  if (anim.headMat) anim.headMat.dispose();
+  if (anim.group && scene) scene.remove(anim.group);
 }

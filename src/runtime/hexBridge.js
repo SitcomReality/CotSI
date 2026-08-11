@@ -84,7 +84,7 @@ export function onHexClick(key) {
     });
     const fac = FACTIONS[ch.faction];
     if (fac) {
-      queueMovement(ch.id, fromWorld, toWorld, fac.base, MOVE_DURATION);
+      queueMovement(ch.id, fromWorld, toWorld, fac, MOVE_DURATION);
     }
     refreshAll();
     // Camera follow is handled inside refreshMap (damped chase toward the

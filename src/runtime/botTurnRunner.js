@@ -146,7 +146,7 @@ export async function runBot() {
           // Start the animation BEFORE refreshAll so isAnimating is true when
           // buildUnitMeshes runs — the normal mesh skips this champion.
           if (fac) {
-            queueMovement(ch.id, fromWorld, toWorld, fac.base, MOVE_DURATION);
+            queueMovement(ch.id, fromWorld, toWorld, fac, MOVE_DURATION);
           }
 
           refreshAll();

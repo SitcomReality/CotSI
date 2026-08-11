@@ -12,7 +12,7 @@
  */
 
 import * as THREE from '../../../vendor/three.module.js';
-import { LIFT_RISE_END, LIFT_DESCENT_START, LIFT_HEIGHT, TILT_PHASE_START, TILT_PHASE_END, TILT_MAX_ANGLE, SWING_START, SWING_END, SWING_TRAVEL_RANGE, SWING_AMPLITUDE, HEAD_BODY_OFFSET } from '../../../params/render/animationParams.js';
+import { LIFT_RISE_END, LIFT_DESCENT_START, LIFT_HEIGHT, TILT_PHASE_START, TILT_PHASE_END, TILT_MAX_ANGLE, SWING_START, SWING_END, SWING_TRAVEL_RANGE, SWING_AMPLITUDE } from '../../../params/render/animationParams.js';
 
 // ─── Tunable constants ───────────────────────────────────────────────────────
 
@@ -91,9 +91,14 @@ export function computeInterpolatedPos(anim, t) {
 }
 
 /**
- * Set body + head transform for the given animation progress t (0..1).
+ * Set the animated miniature's group transform for the given progress t (0..1).
  *
- * @param {{fromX:number, fromY:number, fromZ:number, toX:number, toY:number, toZ:number, body:THREE.Mesh, head:THREE.Mesh}} anim
+ * The animating champion is the full descriptor miniature (all parts parented
+ * to one THREE.Group by movementAnimator), so a single group transform drives
+ * the whole piece: horizontal ease-out glide, vertical lift arc, side swing,
+ * and a backward tilt that pivots about the miniature's base.
+ *
+ * @param {{fromX:number, fromY:number, fromZ:number, toX:number, toY:number, toZ:number, group:THREE.Group}} anim
  * @param {number} t — normalised progress (0..1)
  */
 export function applyAnimationFrame(anim, t) {
@@ -121,10 +126,6 @@ export function applyAnimationFrame(anim, t) {
 
   const tilt = tiltCurve(t);
 
-  anim.body.position.set(x + swingX, y, z + swingZ);
-  anim.body.rotation.set(tilt, 0, 0);
-
-  // Head is offset HEAD_BODY_OFFSET world units above the body (matching unitMeshes.js).
-  anim.head.position.set(x + swingX, y + HEAD_BODY_OFFSET, z + swingZ);
-  anim.head.rotation.set(tilt, 0, 0);
+  anim.group.position.set(x + swingX, y, z + swingZ);
+  anim.group.rotation.set(tilt, 0, 0);
 }
