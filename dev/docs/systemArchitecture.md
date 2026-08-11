@@ -681,5 +681,6 @@ The current report shows **0 known-debt imports**.
 | `dev/docs/clockScheduler.md` | Clock API reference — all timer/scheduling patterns |
 | `dev/docs/gameMechanics.md` | Combat round flow, turn order, biome system |
 | `dev/docs/commonTasks.md` | How-to recipes for common changes |
-| `dev/docs/futureWork.md` | Deferred work and future-reference roadmap |
+| `dev/docs/futureWork.md` | Deferred-work tracker (unimplemented work only) |
+| `dev/docs/terrainGenNotes.md` | Terrain-gen design notes (noise, calibration, classification) |
 | `dev/tools/analysis.html` | Map-gen analysis tool reference (standalone page) |

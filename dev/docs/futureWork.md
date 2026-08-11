@@ -1,8 +1,9 @@
 # Future Work & Deferred Items
 
-Forward-looking tracker. Contains only work that is deferred, still to be
-implemented, or worth keeping as future reference. Completed work lives in git
-history, not here.
+Forward-looking tracker. Contains only work that is deferred or still to be
+implemented. Completed work lives in git history, not here; design notes and
+reference material live in their own docs (`dev/docs/terrainGenNotes.md`,
+`dev/docs/gameMechanics.md`, `dev/docs/descriptorAuthoring.md`).
 
 Some things in this document may be based on out-of-date design ideas -- confirm
 with the user before implementing specific features or making changes based on
@@ -82,63 +83,36 @@ for narrow/tall aspect ratios.
 
 ---
 
-## 2. Terrain-gen: design notes for future reference
+## 2. Bot AI
 
-- **Calibration is re-runnable** — `dev/tools/analysis.html` has a "Derive
-  Thresholds" button and "Run Tests" button. Any change to noise output
-  distributions (composite changes, new layers) requires regenerating
-  calibration data. Thresholds remain stable percentiles if/when LUT
-  normalization is added.
-- **Per-phase normalization** — the additive composite spans [0, 2] (two
-  fields summed), divided by 2 for [0, 1]. Any future noise layer follows
-  the same pattern; only LUTs need regeneration.
-- **Frequencies scale with map radius** — noise frequencies are scaled by
-  1/radius, so terrain at a coordinate differs across radii; cross-radius
-  tile equality is not an invariant (the seam invariant is per-chunk
-  determinism at a fixed radius). Calibration/LUTs are radius-specific.
-- **Frequency separation** — detail (0.020) and ridge (0.008) layers are
-  separated by ~2.5×; new layers should maintain comparable separation.
-- **Slope normalization gotcha** — `SLOPE_NORMALIZATION` uses the 95th
-  percentile of aggregate per-tile mean delta (sum of 6 neighbor deltas /
-  6), not individual deltas. Using the wrong statistic clusters slope near 0.
-- **Rain shadow** — if the upwind average elevation (along
-  `RAIN_SHADOW_WIND`, sampled at `RAIN_SHADOW_DISTANCES`) rises at least
-  `RAIN_SHADOW_ELEV_THRESHOLD` above local elevation, the tile dries by
-  (surplus − threshold) × `RAIN_SHADOW_DRYING`. Constants in
-  `src/params/game/worldParams.js`; applied in
-  `src/game/rules/terrainGen/classification/moistureAdjustment.js`.
-- **Supernatural biome pattern** — to add a supernatural biome: (1) define
-  archetype with `origin: 'supernatural'` + `epicenter` config; (2) add to
-  `SUPERNATURAL_BIOMES`; (3) no `climateRange` (never climate-selected);
-  (4) `fieldModifiers` alter local environment before terrain
-  classification; (5) no pipeline code changes.
-- **Testing** — the analysis tool runs snapshot, seam, and climate coverage
-  tests in-browser via "Run Batch Analysis" (distribution histogram +
-  threshold overlay). No Node.js dependency.
+Bot decision-making is deliberately small today: map movement is a scored,
+radius-limited target search with an exploration fallback
+(`src/game/state/championAI.js` + `src/params/game/aiParams.js`), and combat
+picks are a weighted heuristic over revealed intel
+(`src/game/state/combat/combatBotAI.js`). A real AI pass is a big update when
+it happens; the open design work:
+
+- **Global strategy / directionality** — bots radius-limit their targeting
+  but have no global strategy. A simple bias toward unexplored tiles /
+  nearest God's Knot / enemy prevents circle-wandering. Design task as much
+  as performance.
+- **Large-map-appropriate exploration** — on the big maps (§3), local
+  exploration should bias toward resource gradients and away from recently
+  visited areas; victory conditions may need rethinking.
+
+---
 
 ## 3. Large-map: reference & future scale
 
-The large-map roadmap's phases 1–4 (algorithmic decoupling, chunk
-infrastructure, chunked rendering, scale-up) are complete — map sizes in the
-original document are out of date. What remains below is reference and
-future-scale material.
+Chunked storage, lazy per-chunk generation, the background generation buffer
+around the champion, eviction with delta extraction, and the fixed-pixel
+champion-centered minimap are implemented; map sizes in the original roadmap
+document are out of date. Remaining scale work:
 
-### 3.1 "Infinite" world (not actually infinite — "unknowably large")
+### 3.1 Persistence
 
-The design (six other players to interact with) isn't mechanically compatible
-with truly infinite maps, but the goal is to support extremely large maps of
-any arbitrary size. Implemented (2026-08): chunked storage
-(`src/game/state/chunkManager.js`) with lazy per-chunk generation, a
-background generation buffer around the champion (clock-scheduled), eviction
-of empty chunks with delta extraction, an eager starting region around
-spawns, render bounded by the sight-5 cap, and a fixed-pixel
-champion-centered minimap. Remaining:
-
-- **Persistence** — save seed + list of dirty tiles with their deltas;
-  everything else regenerates (only the diff from procedural generation).
-- **Infinite-appropriate AI** — local exploration biased toward resource
-  gradients and away from recently visited areas; victory conditions may
-  need rethinking.
+Save seed + list of dirty tiles with their deltas; everything else regenerates
+(only the diff from procedural generation).
 
 ### 3.2 What NOT to do (yet)
 
@@ -152,9 +126,6 @@ champion-centered minimap. Remaining:
 
 ### 3.3 Still-open scale concerns
 
-- **Bot directionality** — bots radius-limit their targeting but have no
-  global strategy. A simple bias toward unexplored tiles / nearest God's
-  Knot / enemy prevents circle-wandering. Design task as much as performance.
 - **Camera caps + fog are tuned to current map scale** — zoom is capped
   (`ZOOM_MAX_FRUSTUM=20`, `DEFAULT_REFERENCE_FRUSTUM=40` in
   `src/params/render/cameraParams.js`), as are `CAMERA_FAR=200` and the
@@ -163,68 +134,26 @@ champion-centered minimap. Remaining:
   removed (`worldShape` falloff, noise scaled by 1/radius, latitude term,
   distance clamp) plus camera-driven chunk streaming (see §3.1).
 
-## 4. Geometry editor — remaining deferred content (descriptor migration)
+---
 
-The descriptor pipeline is live: game feature/decor meshes resolve through
-`worldObjects/descriptors/` (data + recordBuilder + gameBuilder) and the editor
-(`dev/tools/geometryEditor.html`) edits and saves the same data. All content is
-migrated to descriptor data — simple feature archetypes, tree groves (including
-the Painforest gnarled variant), solitary + elder trees, hill mounds, mountains,
-knots, and the entity kinds (bases, champions, mobs, traders) — except the fruit
-tree, which stays on its legacy builder by decision:
+## 4. Geometry editor — remaining deferred content
 
-- **fruitTree** — deferred by decision: the interactive fruit tree remains on
-  the procedural builder (`worldObjects/fruitTree/`). It renders a simple
-  forest-family tree — shared trunk + the canopy family of the surrounding
-  grove (round on forest, tall on denseForest), slightly larger and
-  warmer-toned — with 1–2 fruit hanging just under the canopy, ripe state
-  reflecting the heal/regrow cycle. Migrating it to descriptors would need
-  procedural/part-instancing support in the descriptor model; not worth the
-  churn while it reads well at game scale.
+All content is migrated to descriptor data except the fruit tree, which stays
+on its legacy builder by decision. The descriptor model, the editor's
+variant-scoped write-back, and the mob/trader geometry conventions are
+documented in `dev/docs/descriptorAuthoring.md` and
+`dev/docs/mobGeometryAndAnimation.md`.
 
-Entity-kind notes (by design, not regressions):
-
-- **Champion accents** are minimal per-faction placeholders; richer looks
-  are authorable in the editor. Tier-2 mob accents were removed with the
+- **fruitTree** — deferred by decision: stays on the procedural builder
+  (`worldObjects/fruitTree/`); a simple trunk + grove-family canopy + 1–2
+  hanging fruit, ripe state reflecting the heal/regrow cycle. Migrating it
+  to descriptors would need procedural/part-instancing support in the
+  descriptor model; not worth the churn while it reads well at game scale.
+- **Champion accents** — minimal per-faction placeholders; richer looks are
+  authorable in the editor. Tier-2 mob accents were removed with the
   scorpelican/infernalpaca rework (no tier-2 mob variants remain).
-
-**Editor write-back is live** — the editor saves objects straight into
-`descriptors/data/` via `dev/tools/geometryEditor/saveServer.sh`. Tile-driven
-objects write the whole descriptor to `data/<id>.js`; entity kinds save only
-the active variant to `data/mobs/<archetype>.js`, `data/bases/<faction>.js`,
-or `data/champions/<faction>.js` (the server mirrors the same per-variant file
-convention). The barrels — `data/mob.js`, `data/base.js`, `data/champion.js`,
-`data/index.js` — are hand-composed and never rewritten; a variant the barrel
-does not import saves fine but stays unregistered in-game until its import is
-added by hand. Before writing, the editor shows a before/after diff of the
-target file (server-side fresh import → normalize → emit vs the same emitter
-run locally), so accidental drift is visible before a save lands. Convention
-documented in `data/index.js`.
-
-### 4.1 Mob geometry & animation
-
-Mob geometry is the current content front (the roster was reworked to
-mushroom / infernalpaca / leopard / goose / scorpelican / snail / tapir, one
-file per archetype in `worldObjects/descriptors/data/mobs/`, with simple
-animation planned later). Two hand-authored mob experiments
-(`infernalpaca.js`, `scorpelican.js`) plus an unused water-decor file were
-mined and then deleted; their findings are captured in
-`dev/docs/mobGeometryAndAnimation.md` — joint-group pivots (already schema v5),
-FK chains, faction-token colors (mobs use `factionBody`, not `factionBase`),
-the object-level emissive hook (now also per-variant), and an animation
-runtime proposal (declarative clip spec; hook into the per-render-pass mob
-mesh rebuild in `unitMeshes.js`).
-
-Next steps when mob content resumes:
-
-- **New archetype** = one `<NAME>_VARIANT` file in
-  `worldObjects/descriptors/data/mobs/` (variant id == `archetypeName`) + a
-  line in the `data/mob.js` barrel.
-- **Table-driven save is done** — mobs are editor-editable: saving writes
-  only the active variant to `data/mobs/<archetype>.js` and never rewrites
-  the `data/mob.js` barrel (same for `base.js`/`champion.js`). Authoring the
-  richer mobs in the editor rather than by hand is now possible.
-- **Animation runtime** — see the design doc §4–5 for the worked approach.
+- **Mob animation runtime** — deferred; see `dev/docs/mobGeometryAndAnimation.md`
+  §4–5 for the worked approach (declarative clip spec, per-render-pass hook).
 
 ---
 

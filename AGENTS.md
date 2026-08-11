@@ -83,6 +83,7 @@ window.__gameState; // same object as G
 | `dev/docs/descriptorAuthoring.md` | How to author descriptor data (object geometry): schema, randomization, rendering, worked examples |
 | `dev/docs/mobGeometryAndAnimation.md` | Mob geometry & animation design notes (joint groups, FK chains, animation runtime proposal) |
 | `dev/docs/gameMechanics.md` | Combat round flow, turn order, biome system |
+| `dev/docs/terrainGenNotes.md` | Terrain-gen design notes: noise, calibration, classification, supernatural biomes |
 | `dev/docs/commonTasks.md` | How-to recipes for common changes |
 | `dev/tools/analysis.html` | Standalone map-gen analysis tool (not part of the game) |
 

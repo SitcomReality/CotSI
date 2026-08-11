@@ -35,8 +35,11 @@ Mobs are **entity descriptors, one file per archetype**:
   stats).
 
 Because the barrel is composed from tables imported by game code, the editor's
-save endpoint rejects `mob.js` (and `base.js`) — they are not editor-editable
-yet (see `dev/docs/futureWork.md` §4). The per-mob files are hand-authored for now.
+save writes only the active variant — `data/mobs/<archetype>.js` for mobs,
+`data/bases/<faction>.js` / `data/champions/<faction>.js` for the entity kinds —
+and never rewrites the barrel itself. A variant the barrel does not import
+saves fine but stays unregistered in-game until its import is added by hand.
+Remaining deferred geometry-editor content: `dev/docs/futureWork.md` §4.
 
 **Adding a new mob archetype = one new `<NAME>_VARIANT` file in `data/mobs/`**
 (the variant id must equal the mob's `archetypeName`) + a line in the
