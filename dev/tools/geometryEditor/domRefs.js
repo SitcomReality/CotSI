@@ -18,6 +18,8 @@ export function cacheDom() {
   els.biomeSelect = document.getElementById('biome-select');
   els.biomeRow = document.getElementById('biome-row');
   els.floorCheck = document.getElementById('floor-check');
+  els.outlineCheck = document.getElementById('outline-check');
+  els.resetCameraBtn = document.getElementById('reset-camera-btn');
   els.info = document.getElementById('info');
   els.viewport = document.getElementById('viewport');
   els.canvas = document.getElementById('preview-canvas');

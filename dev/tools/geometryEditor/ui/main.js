@@ -2,15 +2,16 @@
  * main.js — Entry point for the geometry editor page.
  *
  * Wires the controls panel to the preview: object selection, the occupied
- * (displacement) toggle, and re-rolling the per-tile variation hash. The
- * object browser overlay lives in ./objectBrowser.js, the state→preview
- * bridge (rebuild, biome select, selection overlay) in ./previewSync.js;
- * this module orchestrates startup and binds the header controls.
+ * (displacement) toggle, the ink-outline toggle, the camera reset, and
+ * re-rolling the per-tile variation hash. The object browser overlay lives in
+ * ./objectBrowser.js, the state→preview bridge (rebuild, biome select,
+ * selection overlay) in ./previewSync.js; this module orchestrates startup and
+ * binds the header controls.
  */
 import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
 import { SAMPLE_OBJECTS, MOB_ROWS } from '../sampleObjects.js';
-import { createPreview, setFloorVisible, bindViewportCallbacks } from '../preview/index.js';
+import { createPreview, setFloorVisible, bindViewportCallbacks, resetCamera } from '../preview/index.js';
 import { bindEditorPanel, refreshEditorPanel } from './editorPanel.js';
 import { activeParts } from './variantQuery.js';
 import { findNodeById, addLocalDelta } from './partTree/index.js';
@@ -74,6 +75,15 @@ function bindControls() {
 
   els.floorCheck.addEventListener('change', () => {
     setFloorVisible(els.floorCheck.checked);
+  });
+
+  els.outlineCheck.addEventListener('change', () => {
+    S.outlines = els.outlineCheck.checked;
+    rebuild();
+  });
+
+  els.resetCameraBtn.addEventListener('click', () => {
+    resetCamera();
   });
 }
 

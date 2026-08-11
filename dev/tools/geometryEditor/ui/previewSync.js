@@ -83,7 +83,7 @@ export function rebuild() {
   const records = ENTITY_KINDS.has(d.kind)
     ? recordsForEntity(d, entityForSelection(S.entity.faction, S.entity.archetype), ORIGIN)
     : recordsForDescriptor(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId);
-  showRecords(d, records);
+  showRecords(d, records, { outlines: S.outlines });
 
   // Items = records / parts-of-the-active-variant (variant objects have more
   // parts than the fallback `parts` list).

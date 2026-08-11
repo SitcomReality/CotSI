@@ -1,10 +1,14 @@
 /**
  * scene.js — Preview scene construction, render loop, and the object-mesh
  * pipeline. createPreview() builds everything and wires the sub-modules
- * (floor, overlay, pointer) into the shared viewport state.
+ * (floor, overlay, pointer) into the shared viewport state. showRecords()
+ * optionally adds the game's ink-outline twins; resetCamera() snaps the orbit
+ * to the in-game camera angle.
  */
 import * as THREE from '../../../../src/vendor/three.module.js';
 import { addLights } from '../../../../src/render/hexmap3d/scene/lightSetup.js';
+import { addOutlines } from '../../../../src/render/hexmap3d/scene/outline.js';
+import { CAMERA_PITCH, CAMERA_YAW } from '../../../../src/params/render/cameraParams.js';
 import { buildDescriptorMeshes } from '../../../../src/render/hexmap3d/worldObjects/descriptors/meshAssembly.js';
 import { viewport } from './viewportState.js';
 import { addFloor, addFloorReference } from './floor.js';
@@ -67,12 +71,17 @@ export function setFloorVisible(visible) {
  * Replace the previewed object with records built from the descriptor.
  * @param {object} descriptor - normalized descriptor
  * @param {object[]} records  - instance records (recordsForDescriptor output)
+ * @param {{ outlines?: boolean }} [options] - preview presentation options
  */
-export function showRecords(descriptor, records) {
+export function showRecords(descriptor, records, { outlines = false } = {}) {
   for (const child of [...viewport.objectGroup.children]) {
     viewport.objectGroup.remove(child);
   }
-  const meshes = buildDescriptorMeshes(descriptor, records, descriptor.id);
+  let meshes = buildDescriptorMeshes(descriptor, records, descriptor.id);
+  // Ink-outline twins per part mesh — the same pass the game applies to its
+  // features/units (worldMeshes.js / unitMeshes.js → outline.js §11), so the
+  // preview shows exactly what the outlined in-game object looks like.
+  if (outlines) meshes = meshes.flatMap(addOutlines);
   for (const mesh of meshes) viewport.objectGroup.add(mesh);
 
   // Mesh names are `${descriptor.id}-${partId}` (meshAssembly.js) — the
@@ -81,8 +90,21 @@ export function showRecords(descriptor, records) {
   const prefix = descriptor.id + '-';
   viewport.partIdToMesh = new Map();
   for (const mesh of meshes) {
+    if (mesh.userData.outlineOf) continue; // outline twins are never parts
     if (mesh.name.startsWith(prefix)) viewport.partIdToMesh.set(mesh.name.slice(prefix.length), mesh);
   }
+  requestRender();
+}
+
+/**
+ * Reset the orbit to the in-game camera angle (cameraParams: CAMERA_YAW 30°,
+ * CAMERA_PITCH ≈51.4°). The editor's phi is a polar angle from the Y axis, so
+ * the game's elevation pitch maps to π/2 − pitch; theta is the yaw. Zoom
+ * (radius) and the preview target stay as the user left them.
+ */
+export function resetCamera() {
+  viewport.orbit.theta = CAMERA_YAW;
+  viewport.orbit.phi = Math.PI / 2 - CAMERA_PITCH;
   requestRender();
 }
 

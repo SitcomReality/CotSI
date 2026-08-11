@@ -16,6 +16,12 @@ export const S = {
   displaced: false,
 
   /**
+   * Whether the preview renders the game's ink outlines (inverted-hull twins —
+   * see src/render/hexmap3d/scene/outline.js, aestheticConventions §11).
+   */
+  outlines: false,
+
+  /**
    * Biome id for the preview tile (e.g. 'biome_edenfall'), or null for a plain
    * tile. Sets the per-part biomeScale (stunted Tundra trees, small Painforest
    * groves) and the biome-color influence preview (Edenfall purple leaves).
