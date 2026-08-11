@@ -5,7 +5,7 @@
  * effective frequencies via zero-crossing counting. This validates or
  * corrects the frequency constants in the mapgen redesign plan docs.
  *
- * Report formatting lives in ./frequencyReport.js.
+ * Frequency results are formatted inline in ../stats/batchReport.js.
  *
  * Pure: no DOM, no state, no side effects.
  */

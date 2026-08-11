@@ -11,7 +11,7 @@ import { normalizeField } from '../generation/quantileLUT.js';
  * By default, quantile LUTs are excluded to keep the file compact (~50 lines
  * of thresholds + meta). Pass { includeLUTs: true } for the full dump.
  *
- * @param {object} calibrationResult - Output from calibratePipeline()
+ * @param {object} calibrationResult - Output from the threshold-derivation pipeline (`deriveThresholds` in `generation/thresholdDerivation.js`)
  * @param {object} [opts]
  * @param {boolean} [opts.includeLUTs=false] - Include the 4×256-entry LUT arrays
  * @returns {object} JSON-safe calibration document
@@ -49,7 +49,7 @@ export function exportCalibrationV1(calibrationResult, { includeLUTs = false } =
 /**
  * Format calibration pipeline results as a text report for the stats panel.
  *
- * @param {object} result - Output from calibratePipeline()
+ * @param {object} result - Output from the threshold-derivation pipeline (`deriveThresholds` in `generation/thresholdDerivation.js`)
  * @returns {string}
  */
 export function formatCalibrationReport(result) {

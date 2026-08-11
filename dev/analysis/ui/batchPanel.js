@@ -4,7 +4,6 @@
  * Handles batch-run orchestration, LUT/report downloads, and the DOM
  * helpers for reading batch configuration from controls.
  */
-import { S } from '../state.js';
 import { els } from '../domRefs.js';
 import { runBatch } from '../batch/batchRunner.js';
 import { formatBatchReport, calibrationToJSON } from '../stats/batchReport.js';

@@ -22,7 +22,7 @@ import {
   freshId,
   makeGroupNode,
   makeLeafNode,
-} from './partTree.js';
+} from './partTree/index.js';
 
 /** Whether the parts list rows are expanded (collapsed hides just the rows). */
 let partsListExpanded = true;

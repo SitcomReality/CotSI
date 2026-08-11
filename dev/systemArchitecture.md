@@ -550,6 +550,8 @@ moving code).
 - `python3 dev/check_analysis_imports.py` — verifies every relative import in `dev/analysis/` resolves, including cross-references into `src/`. Does not check layer boundaries (those rules don't apply to the standalone analysis tool).
 - `tests/run.sh` (or `node --test` from the repo root) — unit-test suite for the pure layers (`src/engine/rules/`, `src/game/rules/` incl. terrain-gen). Zero dependencies; uses Node's built-in `node:test` runner. `tests/` lives outside `src/` so it doesn't affect the boundary report.
 - `dev/analysis.html` — standalone map-gen analysis page. Not part of the game UI. Opens directly in a browser (served from the same origin).
+- `dev/geometryEditor.html` — standalone object-geometry editor page. Not part of the game UI. Opens directly in a browser (served from the same origin).
+- `python3 dev/check_geometry_editor_imports.py` — verifies every relative import in `dev/geometryEditor/` resolves, including cross-references into `src/`. Does not check layer boundaries (those rules don't apply to the standalone editor tool).
 - There is no build step; `engine/rules/` and `game/rules/` must stay importable in plain Node (`node --check` clean, no DOM/Three imports).
 
 ### `dev/analysis/` — Map gen analysis tool (standalone)
@@ -565,14 +567,12 @@ moving code).
 | `ui/seedStepper.js` | Seed string parsing and numeric-step computation (pure) |
 | `ui/export.js` | PNG and JSON export of the current map view |
 | `generation/generate.js` | Pure map generation pipeline (terrain + entities) |
-| `generation/multiSeed.js` | Batch multi-seed analysis with aggregated heatmaps |
 | `generation/thresholdDerivation.js` | Calibration pipeline: histogram pooling, LUTs, threshold derivation |
 | `generation/slopeDeltas.js` | Raw per-tile slope delta collection for SLOPE_NORMALIZATION |
 | `generation/calibrationExport.js` | Calibration JSON serialization and text report formatting |
 | `generation/seamTest.js` | Chunk-seam invariant test runners |
 | `generation/seamTestReport.js` | Seam test text report formatting |
 | `generation/frequencyVerification.js` | Noise frequency measurement via zero-crossing counting |
-| `generation/frequencyReport.js` | Frequency verification text report formatting |
 | `generation/quantileLUT.js` | Quantile LUT construction and field normalization |
 | `generation/histograms.js` | Histogram collection and percentile queries |
 | `generation/noiseConfig.js` | Noise field configuration and seed offsets |
@@ -600,7 +600,6 @@ moving code).
 | `stats/batchReport.js` | Batch report orchestrator and JSON calibration export |
 | `stats/reportBaseFormat.js` | Batch report config/terrain-rule section formatting |
 | `stats/reportHeatmapFormat.js` | Batch report heatmap section formatting (parameterized) |
-| `stats/calibrationDisplay.js` | Calibration section and composite report formatting |
 | `legend/legend.js` | Legend dispatcher: bucket-gradient and passability builders |
 | `legend/terrainLegend.js` | Terrain palette legend builder (sorted by TERRAIN_ORDER) |
 | `legend/biomeLegend.js` | Biome-region legend builder (coloured by BIOME_COLORS) |
@@ -621,6 +620,58 @@ moving code).
 | `styles/scrolling.css` | Custom scrollbar styling for panels |
 | `styles/cycle.css` | Random cycle button state styles |
 | `styles/batch.css` | Batch analysis panel layout and progress styles |
+
+### `dev/geometryEditor/` — Object geometry editor tool (standalone)
+
+| File | Purpose |
+|------|---------|
+| `state.js` | Shared mutable editor state (`S`): descriptor, selection, variant, biome |
+| `domRefs.js` | DOM element cache (`els` object) |
+| `entityView.js` | Entity-kind registry + selection helpers |
+| `sampleObjects.js` | Sample descriptors, object categories, mob rows |
+| `emitDescriptor.js` | Descriptor → `src/…/descriptors/data/<id>.js` serialization |
+| `saveServer.mjs` / `saveServer.sh` | Dev save server: writes descriptor files into `src/` |
+| `preview/index.js` | Barrel: public 3D-viewport API (createPreview, showRecords, selection overlay, AABB) |
+| `preview/viewportState.js` | Shared viewport runtime handles (renderer, scene, camera, orbit, …) |
+| `preview/scene.js` | Scene lifecycle: renderer/camera setup, mesh rebuild, render loop |
+| `preview/overlay.js` | Selection wireframe + move-gizmo overlay |
+| `preview/pointer.js` | Orbit / click-select / gizmo-drag pointer input + raycasting |
+| `preview/floor.js` | Hex tile floor + floor-reference plane builders |
+| `preview/aabb.js` | World-AABB computation for selected part ids |
+| `ui/main.js` | Entry point: startup orchestration + header control bindings |
+| `ui/editorPanel.js` | Panel context (`mutate`/`renderAll`) + object/part inspector dispatch |
+| `ui/objectBrowser.js` | Floating object browser: search, category collapse, overlay choreography |
+| `ui/previewSync.js` | State→preview bridge: rebuild, biome select, selection overlay |
+| `ui/objectControls.js` | Object-level inspector fields |
+| `ui/partList.js` | Parts-tree list: fold, reorder, add/remove |
+| `ui/partInspector/index.js` | Barrel: selected-part inspector |
+| `ui/partInspector/render.js` | Inspector composition entry |
+| `ui/partInspector/sectionShell.js` | Collapsible section shell + open-state |
+| `ui/partInspector/axisPresets.js` | Axis/tilt presets + vector helpers |
+| `ui/partInspector/actions.js` | Part header + structural actions (nest/move/ungroup/copy-transform) |
+| `ui/partInspector/transformSections.js` | Position/rotation/scale fields |
+| `ui/partInspector/leafSections.js` | Shape/color/biome/stretch fields (leaves only) |
+| `ui/partInspector/boundsSection.js` | World-AABB readout |
+| `ui/partTree/index.js` | Barrel: parts-tree math (pure, Node-tested) |
+| `ui/partTree/walk.js` | Tree walking + predicates |
+| `ui/partTree/nodes.js` | Node construction + transform conversion |
+| `ui/partTree/restructure.js` | Nest/ungroup/move/extract structural edits |
+| `ui/projectControls.js` | Chrome-bar project actions: save/download/load/new |
+| `ui/formControls.js` | DOM form builders (`el`, `row`, inputs, steppers) |
+| `ui/inspectorHead.js` | Inspector header chrome |
+| `ui/objectTemplates.js` | New-object template presets |
+| `ui/variantQuery.js` | Active variant/parts query from state |
+| `styles/index.css` | Barrel: imports all geometry-editor page stylesheets |
+| `styles/reset.css` | Global reset and base element styles |
+| `styles/layout.css` | Page grid, chrome shell, panel positioning |
+| `styles/chrome.css` | Header action bar, search, load-error |
+| `styles/browser.css` | Object browser panel |
+| `styles/parts.css` | Parts list + parts-tree rows |
+| `styles/fields.css` | Field-row layout (control/stretch/preset rows) |
+| `styles/forms.css` | Form-control base, inspector field sizing, steppers |
+| `styles/text.css` | Info/hint/mono text |
+| `styles/inspector.css` | Inspector head, section titles, collapsible sections, part actions |
+| `styles/overlay.css` | Viewport overlays: preview tools + HUD |
 
 ---
 

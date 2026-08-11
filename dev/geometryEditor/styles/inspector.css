@@ -1,0 +1,114 @@
+/* ── Inspector header ─────────────────────────────────────────────────────── */
+
+.inspector-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding-bottom: var(--s2);
+  margin-bottom: var(--s3);
+  border-bottom: 1px solid var(--crease);
+}
+
+.inspector-head-main {
+  min-width: 0;
+}
+
+.inspector-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.inspector-meta {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+/* ── Sub-headings inside the dynamic panels (Cluster, Size, Placement, …) ── */
+
+.section-title {
+  margin-top: var(--s3);
+  margin-bottom: var(--s1);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-faint);
+}
+
+/* Entity-mode callout */
+.mode-banner {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-left: 3px solid var(--cerulean);
+  border-radius: var(--r-sm);
+  padding: var(--s2) var(--s3);
+  margin-bottom: var(--s3);
+}
+
+/* ── Collapsible inspector sections (details/summary) ─────────────────────── */
+
+/* Each field group is a <details>; the ▾/▸ marker is drawn via ::before so the
+   summary keeps the .section-title look (object controls still use .section-title
+   on plain divs — only summaries inside .inspector-section get the fold chrome). */
+.inspector-section {
+  border-top: 1px solid var(--crease);
+  padding-top: var(--s2);
+  margin-bottom: var(--s3);
+}
+
+.inspector-section > summary.section-title {
+  margin-top: 0;
+  margin-bottom: var(--s1);
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.inspector-section > summary.section-title::-webkit-details-marker {
+  display: none;
+}
+
+.inspector-section > summary.section-title::before {
+  content: '▾';
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--cerulean);
+}
+
+.inspector-section:not([open]) > summary.section-title::before {
+  content: '▸';
+}
+
+/* ── Part actions (nest / ungroup / copy-transform) ───────────────────────── */
+
+.part-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  flex-wrap: wrap;
+  margin-bottom: var(--s3);
+}
+
+.part-actions button,
+.part-actions select {
+  font-size: var(--fs-xs);
+  padding: 2px 6px;
+}
+
+#inspector .part-actions select {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}

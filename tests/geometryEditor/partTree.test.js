@@ -1,6 +1,6 @@
 /**
  * partTree.test.js — Parts-tree walk + nest/ungroup math for the geometry
- * editor (dev/geometryEditor/ui/partTree.js). Pure — no DOM — so it runs in
+ * editor (dev/geometryEditor/ui/partTree/). Pure — no DOM — so it runs in
  * the Node suite.
  */
 import { test } from 'node:test';
@@ -22,7 +22,7 @@ import {
   moveIntoGroup,
   canExtract,
   extractNode,
-} from '../../dev/geometryEditor/ui/partTree.js';
+} from '../../dev/geometryEditor/ui/partTree/index.js';
 import {
   NESTED_PART_TRANSFORM_DEFAULTS,
 } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';

@@ -7,6 +7,22 @@
 
 ---
 
+## 0. Superseded — dev-tool refactor executed (2026-08-11)
+
+The dev-tool recommendations in this audit were executed on 2026-08-11. The affected verdicts below are stale; see `dev/geometryEditor/` and `dev/analysis/` for the current tree.
+
+- **`dev/geometryEditor/ui/main.js` (430) "SPLIT" (§1)** — done: object browser → `ui/objectBrowser.js`; the state→preview bridge additionally went to `ui/previewSync.js`; `main.js` is now the ~130-line entry (startup + header bindings).
+- **`preview.js` (571) "keep" (§3/§4)** — split into `preview/` (`viewportState`, `scene`, `overlay`, `pointer`, `floor`, `aabb`, barrel `index.js`).
+- **`ui/partInspector.js` (496) "keep" (§4)** — split into `ui/partInspector/` (`render`, `sectionShell`, `axisPresets`, `actions`, `transformSections`, `leafSections`, `boundsSection`, barrel `index.js`).
+- **`ui/partTree.js` (479) "keep" (§4)** — split into `ui/partTree/` (`walk`, `nodes`, `restructure`, barrel `index.js`); the Node test suite pins the same exports through the barrel.
+- **`styles/controls.css` (551) "keep" (§4)** — split into `chrome`, `parts`, `fields`, `forms`, `text`, `inspector` component stylesheets.
+- **`dev/analysis/styles/controls.css` (280) optional extract (§2)** — done: the `.collapsible` / `.summary-*` / `.batch-body` block moved to `styles/batch.css`.
+- **Dead code removed** — `generation/multiSeed.js` (151), `stats/calibrationDisplay.js` (251), `generation/frequencyReport.js` (48); dead exports pruned (`thresholdDerivation.js`: `calibratePipeline`/`generateSeeds`/`percentileFromValues`; `statsDisplay.js`: `formatMultiStats`); unused `S` import dropped from `ui/batchPanel.js`; `thresholdDerivation.js` now uses `batch/fingerprint.js`'s `fingerprint`.
+
+Status after refactor: 585 tests pass; `check_geometry_editor_imports.py` (35 files) and `check_analysis_imports.py` (51 files) both OK.
+
+---
+
 ## 1. Split candidates (recommended)
 
 ### `src/params/game/worldParams.js` (292) — **SPLIT**

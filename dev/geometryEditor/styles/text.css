@@ -1,0 +1,19 @@
+/* ── Info / hint text ─────────────────────────────────────────────────────── */
+
+.info {
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+  white-space: pre-line;
+}
+
+.hint {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+/* Monospace readout text (e.g. the Bounds min/max/center rows). */
+.control-row code.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+}

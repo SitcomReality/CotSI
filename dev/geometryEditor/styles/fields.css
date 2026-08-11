@@ -1,0 +1,46 @@
+/* ── Control rows ─────────────────────────────────────────────────────────── */
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+
+.control-row label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-mid);
+}
+
+/* Stretch variation rows: the mode select on the first line, the min/max/seed
+   inputs on their own line below — so a custom axis never overflows the
+   inspector column. */
+.stretch-row {
+  margin-bottom: var(--s2);
+}
+
+.stretch-row .control-row {
+  margin-bottom: var(--s1);
+}
+
+.stretch-inputs {
+  display: flex;
+  gap: var(--s2);
+  justify-content: flex-end;
+}
+
+/* Rotation quick-rotate buttons: a compact row of small preset buttons
+   (fits the 310px inspector column like the stretch rows above). */
+.preset-row {
+  display: flex;
+  gap: var(--s1);
+  margin-bottom: var(--s2);
+}
+
+.preset-row button {
+  flex: 1;
+  padding: 3px var(--s1);
+  font-size: var(--fs-xs);
+}

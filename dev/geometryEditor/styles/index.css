@@ -4,5 +4,10 @@
 @import "./reset.css";
 @import "./layout.css";
 @import "./browser.css";
-@import "./controls.css";
+@import "./chrome.css";
+@import "./parts.css";
+@import "./fields.css";
+@import "./forms.css";
+@import "./text.css";
+@import "./inspector.css";
 @import "./overlay.css";

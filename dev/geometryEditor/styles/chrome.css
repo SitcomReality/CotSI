@@ -1,0 +1,82 @@
+/* controls.css — form controls + contextual inspector styling (token-driven).
+   Follows the game's aesthetic conventions: dark proscenium chrome,
+   Rubik display headings, Outfit body, ink-faint tertiary text,
+   state via glow (box-shadow) rather than CSS outline. */
+
+/* ── Chrome header (slim action bar) ───────────────────────────────────────── */
+
+.chrome-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+/* Load JSON is a styled label wrapping a hidden file input. */
+.load-btn {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-radius: var(--r-sm);
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.load-btn:hover {
+  background: color-mix(in srgb, var(--board-hi) 80%, var(--ink-mid));
+}
+
+/* Create-from-template buttons — accent-tinted so they read as "new". */
+.create-btn {
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-left: 3px solid var(--cerulean);
+  border-radius: var(--r-sm);
+  padding: 5px 8px;
+}
+
+/* All header controls are compact so the bar stays one slim row. */
+#chrome button,
+#chrome .load-btn {
+  padding: 3px 6px;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+.chrome-search {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.chrome-search input {
+  width: 180px;
+}
+
+/* Project errors drop below the bar (absolute) so they never change its height. */
+#load-error {
+  position: absolute;
+  top: 100%;
+  right: var(--s3);
+  z-index: var(--z-toast);
+  max-width: 320px;
+  color: var(--crimson);
+  text-align: right;
+  background: var(--shadow);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  padding: var(--s1) var(--s2);
+}
+
+/* Save success reuses the same slot but reads as positive (growth accent). */
+#load-error.ok {
+  color: var(--verdigris);
+}
