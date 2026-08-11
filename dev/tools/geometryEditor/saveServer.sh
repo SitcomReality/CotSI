@@ -14,4 +14,4 @@ else
   exit 1
 fi
 
-exec "$NODE_BIN" dev/tools/geometryEditor/saveServer.mjs "$@"
+exec env PORT="${1:-${PORT:-8000}}" "$NODE_BIN" dev/tools/geometryEditor/saveServer.mjs
