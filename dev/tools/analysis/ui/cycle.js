@@ -132,11 +132,3 @@ export function stopCycle() {
   els.btnCycleToggle.textContent = '▶ Play';
   els.btnCycleToggle.classList.remove('playing');
 }
-
-/**
- * Restart the cycle timer (e.g. after a speed change).
- */
-export function restartCycle() {
-  stopCycle();
-  if (S.cycleOn) startCycle();
-}

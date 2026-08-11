@@ -19,7 +19,7 @@ import { tileToChunk, chunkKey, chunkKeyFromTile, localCoord, localKey, hexesInC
 import { generateChunkTiles } from '../rules/terrainGen/chunkGeneration.js';
 import { getArchetype } from '../rules/archetypes.js';
 import { chunkKeysWithinCap, humanChampionPositions } from '../../engine/rules/sightCull.js';
-import { CHUNK_EVICTION_GRACE_DAYS } from '../../params/game/worldParams.js';
+import { CHUNK_EVICTION_GRACE_DAYS } from '../../params/game/chunkParams.js';
 
 /** Whether a hex lies inside the map disc for the given radius. */
 export function isInMap(state, q, r) {

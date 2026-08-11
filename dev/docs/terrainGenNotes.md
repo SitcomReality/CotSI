@@ -25,7 +25,7 @@ classification). This is not a to-do list — unimplemented work is tracked in
   `RAIN_SHADOW_WIND`, sampled at `RAIN_SHADOW_DISTANCES`) rises at least
   `RAIN_SHADOW_ELEV_THRESHOLD` above local elevation, the tile dries by
   (surplus − threshold) × `RAIN_SHADOW_DRYING`. Constants in
-  `src/params/game/worldParams.js`; applied in
+  `src/params/game/terrainGenParams.js`; applied in
   `src/game/rules/terrainGen/classification/moistureAdjustment.js`.
 - **Supernatural biome pattern** — to add a supernatural biome: (1) define
   archetype with `origin: 'supernatural'` + `epicenter` config; (2) add to

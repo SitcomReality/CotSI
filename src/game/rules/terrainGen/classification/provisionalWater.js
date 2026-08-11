@@ -1,5 +1,5 @@
 import { coordKey } from '../../../../engine/rules/hexGrid.js';
-import { DEFAULT_TERRAIN_RULES } from '../../../../params/game/worldParams.js';
+import { DEFAULT_TERRAIN_RULES } from '../../../../params/game/terrainGenParams.js';
 
 /**
  * Classify a tile as provisional water from elevation and moisture alone.

@@ -38,7 +38,7 @@ import {
 } from '../../../../src/game/rules/terrainGen/index.js';
 import { getArchetype } from '../../../../src/game/rules/archetypes.js';
 import { hexesWithinRadius, coordKey } from '../../../../src/engine/rules/hexGrid.js';
-import { DEFAULT_TERRAIN_RULES, RIVER_MOISTURE_BOOST, RIVER_BOOST_RADIUS } from '../../../../src/params/game/worldParams.js';
+import { DEFAULT_TERRAIN_RULES, RIVER_MOISTURE_BOOST, RIVER_BOOST_RADIUS } from '../../../../src/params/game/terrainGenParams.js';
 
 /** Supernatural biome IDs to skip during seam comparison (epicenter overrides break pure-function invariance). */
 const SUPERNATURAL_BIOME_IDS = ['biome_brass_grave', 'biome_unfinished_lands'];

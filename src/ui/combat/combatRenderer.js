@@ -114,14 +114,14 @@ function combatantCard(vm, isActivePicker, phase) {
 
     // Potency grid
     h('div', { class: 'combat-potencys' },
-      ...vm.pots.map(pot => buildToken(pot, isActivePicker, phase)),
+      ...vm.pots.map(pot => buildToken(pot, phase)),
     ),
   );
 }
 
 // ─── Potency token builder ──────────────────────────────────────────────
 
-function buildToken(pot, isActivePicker, phase) {
+function buildToken(pot, phase) {
   const classes = ['ctok', 'paley-item', 'paley-item--f' + pot.idx];
   if (pot.used) classes.push('used');
   if (pot.unavailable) classes.push('unavailable');

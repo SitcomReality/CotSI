@@ -4,7 +4,7 @@ import { stringSeed } from '../../../engine/rules/seededRng.js';
 import { startMeasure, endMeasure } from '../../../shared/measurements.js';
 import {
   RIVER_SOURCE_MIN_ELEV, RIVER_SOURCE_MIN_MOIST,
-} from '../../../params/game/worldParams.js';
+} from '../../../params/game/terrainGenParams.js';
 import { generateChunkTiles } from './chunkGeneration.js';
 import { ensurePassableConnectivity } from './postProcess/connectivityEnforcement.js';
 import { enforceWaterRules, carveRiverBeds, assignRiverFlows } from './postProcess/waterRules.js';

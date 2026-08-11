@@ -12,7 +12,7 @@ import {
   DEFAULT_TERRAIN_RULES,
   SLOPE_NORMALIZATION,
   EPICENTER_CONFIG,
-} from '../../../../src/params/game/worldParams.js';
+} from '../../../../src/params/game/terrainGenParams.js';
 
 /** Total hexes in a radius-r map: 3r(r+1) + 1 */
 export function totalTilesAtRadius(r) {

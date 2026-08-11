@@ -12,7 +12,7 @@ import { getTile, setTile } from '../../../../src/game/state/tileAccess.js';
 import { createTileProxy } from '../../../../src/game/state/tileProxy.js';
 import { coordKey } from '../../../../src/engine/rules/hexGrid.js';
 import { tileToChunk, chunkKey, chunkKeyFromTile, localCoord, hexesInChunk } from '../../../../src/engine/rules/chunkGrid.js';
-import { CHUNK_EVICTION_GRACE_DAYS } from '../../../../src/params/game/worldParams.js';
+import { CHUNK_EVICTION_GRACE_DAYS } from '../../../../src/params/game/chunkParams.js';
 
 function makeState({ seed = 'chunk-test', radius = 60, biome = 'multi_biome', day = 1 } = {}) {
   const state = {

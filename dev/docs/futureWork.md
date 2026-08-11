@@ -171,52 +171,6 @@ Consolidated here when the audit doc was retired (2026-08-11); the rest of that
 document described completed work and now lives in git history. Only the open
 items below remain.
 
-### 5.1 Split candidate — `src/params/game/worldParams.js` (techDebtAudit §1)
-
-Still a 292-line catch-all mixing ~18 parameter domains, unlike every other
-`params/game/` file. Proposed split — pure constant moves, no value changes:
-
-| New file | Contents (exact export names) |
-|---|---|
-| `worldParams.js` (slim) | `DAYS_PER_WEEK`, `MOB_HARASS_CHANCE`, `MOB_HARASS_DMG_BASE`, `MOB_HARASS_DMG_RANGE`, `MOB_WANDER_CHANCE`, `MAX_LOG_ENTRIES` |
-| `terrainGenParams.js` | `NOISE_MOISTURE`, `NOISE_ELEVATION_DETAIL`, `NOISE_RIDGE`, `NOISE_TEMP_VARIATION`, `NOISE_REGION`, `SEED_MOISTURE/TEMP/REGION_M/REGION_T/FEATURES/DETAIL/RIDGE`, `ELEVATION_DETAIL_MIX`, `HYPSOMETRIC_EXPONENT`, `TEMP_BASE`, `TEMP_LATITUDE_WEIGHT`, `TEMP_VARIATION_WEIGHT`, `TEMP_ELEVATION_LAPSE`, `RAIN_SHADOW_WIND/DISTANCES/ELEV_THRESHOLD/DRYING`, `WATER_MOISTURE_BOOST`, `MOUNTAIN_PEAK_MIN_NEIGHBORS`, `WATER_BFS_MAX_DEPTH`, `OCEAN_EDGE_BUFFER`, `SLOPE_NORMALIZATION`, `MAX_LOOKUP_RADIUS`, `WATER_LAND_GAP`, `SEA_LEVEL_ELEVATION`, `DEFAULT_TERRAIN_RULES`, `EPICENTER_CONFIG`, `RIVER_SOURCE_MIN_ELEV/MIN_MOIST/FRACTION`, `RIVER_MAX_LENGTH`, `RIVER_MOISTURE_BOOST`, `RIVER_BOOST_RADIUS` |
-| `featureSpawnParams.js` | `NOISE_CHANNEL_FEATURES`, `NOISE_CHANNEL_FEATURE_TIER`, `FEATURE_DENSITY`, `FEATURE_TIERS`, `KNOT_BASE_AMOUNT`, `KNOT_AMOUNT_VARIATION_SCALE`, `KNOT_AMOUNT_VARIATION_MOD` |
-| `chunkParams.js` | `STARTING_REGION_RADIUS`, `CHUNK_EVICTION_GRACE_DAYS`, `BACKGROUND_BUFFER_CHUNKS`, `BACKGROUND_GEN_SPREAD_MS` |
-
-Consumers to re-point during the refactor: `terrainGen/**`,
-`game/state/chunkManager.js` + `runtime/mapRefresh.js`.
-
-### 5.2 Dead code to prune (techDebtAudit §6 — still present)
-
-- `dev/tools/analysis/ui/cycle.js:139` — `restartCycle` export unused;
-  `dev/tools/analysis/domRefs.js:54` — `els.statsPanel` cache unused
-- `src/ui/setupHeptagram.js:144` — `getBalancedThird` export unused
-- `src/devtools/performance/frameProfiler.js:62-68` — `'frame:tick'` instrumentation
-  never enabled (enabling needs a matching exclusion in
-  `reportBuilder._computeJsOverhead`)
-- `src/devtools/performance/stats.js` — `bucketFrameTimes`/`computeEma` unused;
-  `reportBuilder.js` duplicated `ftBuckets`/`th*` tallies, literal `50` vs
-  `HITCH_THRESHOLD`, hardcoded "Worst 5 Frames" header
-- `src/render/hexmap3d/` — full-map dead builders (`buildFeatureMeshes`,
-  full-map `buildTreeMeshes`/`buildBaseMeshes`/`buildTerrainMesh`); 14 of 15
-  `featureGeometries.js` getters unused; `scene/panAnimation.js`
-  `_panFrameCount` debug leftover
-
-### 5.3 Minor latent / perf notes (techDebtAudit §6 — still present)
-
-- `minimapTerrainLayer.js:50` — color fallback is gray while the 3D path falls
-  back to plains for `hill`/`plateau` (not currently visible: every biome
-  palette defines them)
-- `gameBuilder.js:256-273` — resolver runs twice per tile per pass (identical
-  results; memoize per pass)
-- `minimap.js:68-71` — fingerprint includes all traders unfiltered (extra
-  redraws only); `movementHighlights.js:46` re-implements `occupiedByTrader`
-  without the spatial index (equivalent)
-- `combatRenderer.js:124` — unused `isActivePicker` param; `heraldModal.js:40,59`
-  — empty `--faction-color` custom property; `setupActions.js:24` — hardcoded
-  `a * 7 + b` vs `FACTION_COUNT`
-- `dev/tools/analysis/generation/thresholdDerivation.js:246` — wrong JSDoc type
-
 ### 5.4 Out of scope (techDebtAudit §7)
 
 - Root `styles/` (the game's CSS design system) — never audited at the same
@@ -224,9 +178,9 @@ Consumers to re-point during the refactor: `terrainGen/**`,
 
 ### 5.5 Conditional extracts (techDebtAudit §2 — only if these files grow)
 
-- `src/devtools/performance/reportBuilder.js` (938) — extract `_formatReport`
+- `src/devtools/performance/reportBuilder.js` (928) — extract `_formatReport`
   (~148 lines) → `reportFormatter.js` if it grows past ~1,000 lines
 - `src/game/state/featureRewards.js` (557) — extract the `FEATURES` table +
   card builders → `featureRewardTable.js` if it grows past ~650 lines
-- `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` (890) —
+- `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` (981) —
   extract the entity path → `entityRecords.js` if it grows past ~1,100 lines

@@ -15,7 +15,7 @@ import { assignRiverFlows } from '../../../src/game/rules/terrainGen/postProcess
 import { applyRiverTerrain } from '../../../src/game/rules/terrainGen/rivers/riverTerrain.js';
 import { TERRAIN } from '../../../src/game/rules/terrainTypes.js';
 import { TERRAIN_ELEVATION } from '../../../src/params/render/terrainParams.js';
-import { WATER_LAND_GAP } from '../../../src/params/game/worldParams.js';
+import { WATER_LAND_GAP } from '../../../src/params/game/terrainGenParams.js';
 import { getArchetype } from '../../../src/game/rules/archetypes.js';
 import '../../../src/game/rules/archetypeData/index.js';
 import { coordKey, neighbors, distance } from '../../../src/engine/rules/hexGrid.js';

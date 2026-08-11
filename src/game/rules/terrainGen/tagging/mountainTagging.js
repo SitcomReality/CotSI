@@ -1,5 +1,5 @@
 import { neighbors } from '../../../../engine/rules/hexGrid.js';
-import { MOUNTAIN_PEAK_MIN_NEIGHBORS } from '../../../../params/game/worldParams.js';
+import { MOUNTAIN_PEAK_MIN_NEIGHBORS } from '../../../../params/game/terrainGenParams.js';
 
 export function tagMountainType(tile, tileLookup) {
   const nbrs = neighbors({ q: tile.q, r: tile.r });

@@ -1,5 +1,5 @@
 import { coordKey, neighbors } from '../../../../engine/rules/hexGrid.js';
-import { WATER_LAND_GAP, RIVER_BED_DEPTH } from '../../../../params/game/worldParams.js';
+import { WATER_LAND_GAP, RIVER_BED_DEPTH } from '../../../../params/game/terrainGenParams.js';
 
 /**
  * waterRules.js — Post-classification invariants for water terrain.

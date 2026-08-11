@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { startingRegionChunkKeys } from '../../../src/game/rules/terrainGen/startingRegion.js';
 import { tileToChunk, chunkKey } from '../../../src/engine/rules/chunkGrid.js';
-import { STARTING_REGION_RADIUS } from '../../../src/params/game/worldParams.js';
+import { STARTING_REGION_RADIUS } from '../../../src/params/game/chunkParams.js';
 
 /** All in-map hex keys of a disc map, mapped to their chunk keys. */
 function allMapChunkKeys(radius) {

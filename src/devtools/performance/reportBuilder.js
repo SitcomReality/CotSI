@@ -509,22 +509,12 @@ export function buildReport(frames, interval, longTasks = []) {
   // ── 3. Slow-frame clusters ─────────────────────────────────────────────
   const slowClusters = _buildSlowClusters(timeline);
 
-  // Individual spike entries (for the report data, not the formatted output)
-  let thGood = 0, thMissed = 0, thBad = 0, thHitch = 0, thMajor = 0;
-  for (const v of ftValues) {
-    const cat = _categorize(v);
-    if (cat === 'good') thGood++;
-    else if (cat === 'missed60') thMissed++;
-    else if (cat === 'bad') thBad++;
-    else if (cat === 'hitch') thHitch++;
-    else if (cat === 'majorHitch') thMajor++;
-  }
-
+  // Frame counts per category (report data) — derived from the ftBuckets tally above
   const longFrames = {
-    good: thGood, missed60: thMissed, bad: thBad,
-    hitch: thHitch, majorHitch: thMajor,
-    totalSlow: thBad + thHitch + thMajor,
-    totalMissed: thMissed + thBad + thHitch + thMajor,
+    good: ftBuckets.good, missed60: ftBuckets.missed60, bad: ftBuckets.bad,
+    hitch: ftBuckets.hitch, majorHitch: ftBuckets.majorHitch,
+    totalSlow: ftBuckets.bad + ftBuckets.hitch + ftBuckets.majorHitch,
+    totalMissed: ftBuckets.missed60 + ftBuckets.bad + ftBuckets.hitch + ftBuckets.majorHitch,
   };
 
   // ── 4. Per-context breakdown ────────────────────────────────────────────
@@ -540,7 +530,7 @@ export function buildReport(frames, interval, longTasks = []) {
     }
     frameTimesByPhase[phase].push(entry.frameTime);
     contextMeta[phase].count++;
-    if (entry.frameTime > 50) contextMeta[phase].framesGt50++;
+    if (entry.frameTime > HITCH_THRESHOLD) contextMeta[phase].framesGt50++;
     else if (entry.frameTime > BAD_THRESHOLD) contextMeta[phase].framesGt33++;
   }
 
@@ -632,7 +622,7 @@ export function buildReport(frames, interval, longTasks = []) {
   }
 
   if (slowClusters.length > 0) {
-    warnings.push(`Found ${slowClusters.length} slow-frame clusters (${thBad + thHitch + thMajor} frames >${_r1(BAD_THRESHOLD)}ms)`);
+    warnings.push(`Found ${slowClusters.length} slow-frame clusters (${longFrames.totalSlow} frames >${_r1(BAD_THRESHOLD)}ms)`);
   }
 
   if (memStats && memStats.limitMB != null && memStats.maxHeap > memStats.limitMB * MEM_WARN_NEAR_LIMIT_RATIO) {
@@ -658,26 +648,26 @@ export function buildReport(frames, interval, longTasks = []) {
       `— likely GC or untimed code paths`
     );
   }
-  if (jsOverhead && jsOverhead.invisibleRatio > JS_OVERHEAD_HIGH_WARN_RATIO && thHitch > 0) {
+  if (jsOverhead && jsOverhead.invisibleRatio > JS_OVERHEAD_HIGH_WARN_RATIO && longFrames.hitch > 0) {
     const pct = _r1(jsOverhead.invisibleRatio * 100);
     warnings.push(
-      `${pct}% JS overhead + ${thHitch} hitches with Long Task API ` +
+      `${pct}% JS overhead + ${longFrames.hitch} hitches with Long Task API ` +
       `${longTaskObserverActive ? 'active' : 'unavailable'} — ` +
       `GC is the most likely common cause`
     );
   }
 
-  if (timeBudget.pctUnaccounted > UNACCOUNTED_FRAME_WARN_PCT && ftValues.length > 0 && thHitch > 0) {
+  if (timeBudget.pctUnaccounted > UNACCOUNTED_FRAME_WARN_PCT && ftValues.length > 0 && longFrames.hitch > 0) {
     warnings.push(
       `${_r1(timeBudget.pctUnaccounted)}% of frame time is unmeasured ` +
-      `(${thHitch + thMajor} hitches >${_r1(HITCH_THRESHOLD)}ms with little measured work)`
+      `(${longFrames.hitch + longFrames.majorHitch} hitches >${_r1(HITCH_THRESHOLD)}ms with little measured work)`
     );
   }
 
   // Warn when Long Task API was unavailable but hitches occurred
-  if (thHitch > 0 && !longTaskObserverActive) {
+  if (longFrames.hitch > 0 && !longTaskObserverActive) {
     warnings.push(
-      `Long Task API unavailable — hitches >50ms may be GC, layout, or paint events ` +
+      `Long Task API unavailable — hitches >${_r1(HITCH_THRESHOLD)}ms may be GC, layout, or paint events ` +
       `invisible to JS instrumentation`
     );
   }
@@ -838,7 +828,7 @@ function _formatReport(report) {
 
   // ── Worst Frames Drill-Down ──
   const worstFrames = _buildWorstFrames(report.timeline, WORST_FRAMES_COUNT);
-  s += `\n─── Worst 5 Frames by frameTime ───\n`;
+  s += `\n─── Worst ${WORST_FRAMES_COUNT} Frames by frameTime ───\n`;
   if (worstFrames.length > 0) {
     for (const wf of worstFrames) {
       s += `  Frame #${wf.frameIndex}: ${_r1(wf.frameTime)}ms  context: ${wf.context}\n`;

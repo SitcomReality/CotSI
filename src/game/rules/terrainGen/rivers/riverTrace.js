@@ -1,5 +1,5 @@
 import { coordKey, neighbors } from '../../../../engine/rules/hexGrid.js';
-import { RIVER_MAX_LENGTH } from '../../../../params/game/worldParams.js';
+import { RIVER_MAX_LENGTH } from '../../../../params/game/terrainGenParams.js';
 
 /**
  * Deterministic hash from position + step + seed for tie-breaking.

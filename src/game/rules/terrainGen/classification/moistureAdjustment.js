@@ -6,7 +6,7 @@ import {
   RAIN_SHADOW_DISTANCES,
   RAIN_SHADOW_ELEV_THRESHOLD,
   RAIN_SHADOW_DRYING,
-} from '../../../../params/game/worldParams.js';
+} from '../../../../params/game/terrainGenParams.js';
 
 /**
  * Boost moisture for land tiles near water.

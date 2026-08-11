@@ -47,7 +47,7 @@ function windowAnchorChampion(G) {
 
 /** Normalize a palette color (array of 0-1 floats) to a safe array. */
 function colorRGB(color) {
-  return Array.isArray(color) ? color : [0.3, 0.3, 0.3];
+  return Array.isArray(color) ? color : TERRAIN_COLOR.plains;
 }
 
 function rgbToCSS(rgb) {

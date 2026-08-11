@@ -135,15 +135,4 @@ export function refreshSetup() {
   buildRoster();
 }
 
-// ─── Balance algorithm (kept from original) ───
 
-/**
- * Get the third faction for a balanced 3P triple.
- * Returns the faction ID, or -1 if not determined yet / invalid.
- */
-export function getBalancedThird(a, b) {
-  const key = a < b ? a * FACTION_COUNT + b : b * FACTION_COUNT + a;
-  const valid = BALANCED_3P[key];
-  if (!valid || valid.length === 0) return -1;
-  return valid[0];
-}

@@ -51,7 +51,6 @@ export function cacheDom() {
   els.multiBiomeCheck = $('multi-biome-check');
   els.btnExportPng = $('btn-export-png');
   els.btnExportJson = $('btn-export-json');
-  els.statsPanel = $('stats-panel');
   els.statsBody = $('stats-body');
   els.headerSeed = $('header-seed');
   els.headerRadius = $('header-radius');

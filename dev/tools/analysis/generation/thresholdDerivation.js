@@ -138,7 +138,7 @@ function buildQuantileLUTs(pooledElev, pooledMoist, pooledTemp, pooledSlope) {
  * pools them, and computes thresholds + LUTs.
  *
  * @param {object} histData - { elev, moist, temp, slope } — each is an array of Uint32Array histograms
- * @param {number[]|Float64Array[]} slopeDeltas  - Raw per-tile average neighbor deltas, or null
+ * @param {number[]|Float64Array[]|null} slopeDeltas  - Raw per-tile average neighbor deltas, or null
  * @param {object} [meta] - Optional metadata to attach to result
  * @returns {object} { quantileLUTs, thresholds, slopeNormalization, meta }
  */

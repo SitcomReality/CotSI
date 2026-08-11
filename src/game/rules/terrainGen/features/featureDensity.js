@@ -1,5 +1,5 @@
 import { clamp01 } from '../fields/slopeComputation.js';
-import { FEATURE_DENSITY } from '../../../../params/game/worldParams.js';
+import { FEATURE_DENSITY } from '../../../../params/game/featureSpawnParams.js';
 
 /**
  * Compute continuous feature density [0, 1] for a tile.

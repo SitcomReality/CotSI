@@ -1,4 +1,4 @@
-import { DEFAULT_TERRAIN_RULES } from '../../../../params/game/worldParams.js';
+import { DEFAULT_TERRAIN_RULES } from '../../../../params/game/terrainGenParams.js';
 import { TERRAIN_ELEVATION } from '../../../../params/render/terrainParams.js';
 import { neighbors } from '../../../../engine/rules/hexGrid.js';
 

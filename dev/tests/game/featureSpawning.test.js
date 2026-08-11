@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnFeature, tierAcceptance, centerDistance01 } from '../../../src/game/rules/terrainGen/features/featureSpawning.js';
 import { canSpawnFruitTree, featureDensity } from '../../../src/game/rules/terrainGen/features/featureDensity.js';
-import { KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_MOD, FEATURE_TIERS } from '../../../src/params/game/worldParams.js';
+import { KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_MOD, FEATURE_TIERS } from '../../../src/params/game/featureSpawnParams.js';
 
 test('spawnFeature: returns null when no rule matches', () => {
   const features = [{ kind: 'tree', threshold: 0.9, compare: 'gt' }];

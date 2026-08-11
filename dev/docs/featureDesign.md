@@ -115,7 +115,7 @@ side later.
 | T3 | Rare, choices / relics / potencies / temp buffs | strong center bias (rare near edge) | Palimpsest Slab, Null Lily, Saint's Rib |
 | T4 | Very rare, richest center rewards | center only | Errata Slip, Ouroboros Loop, Half-Drawn Obelisk |
 
-**Implemented (Aug 2026)** in `featureSpawning.js` + `FEATURE_TIERS` (worldParams.js):
+**Implemented (Aug 2026)** in `featureSpawning.js` + `FEATURE_TIERS` (featureSpawnParams.js):
 each tier gates its rules by normalized distance from the map center; a rejected
 gate falls through to the next rule, so more common features fill the edge.
 Concrete values: `T1 {gate 1.0}`, `T2 {gate 0.55}`, `T3 {gate 0.2}`, `T4 {gate 0,

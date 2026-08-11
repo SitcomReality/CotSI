@@ -18,8 +18,6 @@ import { PAN_ANIMATION_DURATION, CAMERA_CHASE_TAU, CAMERA_CHASE_EPSILON, CAMERA_
 
 /** Currently active camera pan animation stop function, if any. */
 let _panStopFn = null;
-/** Number of frames rendered in the current pan, for debug logging. */
-let _panFrameCount = 0;
 
 /**
  * Smoothly animate the camera to center on a hex position.
@@ -49,8 +47,6 @@ export function animateCenterOnHex(state, applyFn, q, r, duration = PAN_ANIMATIO
   const fromZ = state.targetZ;
   const startTime = performance.now();
 
-  _panFrameCount = 0;
-
   _panStopFn = getClock().onTick((timestamp) => {
     const elapsed = timestamp - startTime;
     const t = Math.max(0, Math.min(elapsed / duration, 1));
@@ -60,8 +56,6 @@ export function animateCenterOnHex(state, applyFn, q, r, duration = PAN_ANIMATIO
     state.targetX = fromX + (toX - fromX) * eased;
     state.targetZ = fromZ + (toZ - fromZ) * eased;
     applyFn();
-
-    _panFrameCount++;
 
     if (t >= 1) {
       // Snap to exact final position to avoid floating-point drift

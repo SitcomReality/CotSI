@@ -25,7 +25,7 @@ import {
   SEED_REGION_M,
   SEED_REGION_T,
   SEED_FEATURES,
-} from '../../../../src/params/game/worldParams.js';
+} from '../../../../src/params/game/terrainGenParams.js';
 
 // Re-export seed offsets for consumers that import from noiseConfig.js
 export {

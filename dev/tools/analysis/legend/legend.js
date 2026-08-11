@@ -14,7 +14,7 @@ import { els } from '../domRefs.js';
 import { TERRAIN } from '../../../../src/game/rules/terrainTypes.js';
 import { ELEVATION_COLOR_STOPS, MOISTURE_COLOR_STOPS, DENSITY_COLOR_STOPS } from '../render/colorMaps.js';
 import { featureDensity } from '../../../../src/game/rules/terrainGen/features/featureDensity.js';
-import { DEFAULT_TERRAIN_RULES } from '../../../../src/params/game/worldParams.js';
+import { DEFAULT_TERRAIN_RULES } from '../../../../src/params/game/terrainGenParams.js';
 import { buildTerrainLegend } from './terrainLegend.js';
 import { buildBiomeRegionLegend } from './biomeLegend.js';
 import { buildRiversLegend } from './riversLegend.js';

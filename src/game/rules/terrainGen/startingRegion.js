@@ -12,7 +12,7 @@
  */
 import { hexesWithinRadius } from '../../../engine/rules/hexGrid.js';
 import { tileToChunk, chunkKey } from '../../../engine/rules/chunkGrid.js';
-import { STARTING_REGION_RADIUS } from '../../../params/game/worldParams.js';
+import { STARTING_REGION_RADIUS } from '../../../params/game/chunkParams.js';
 
 /**
  * Chunk keys of every chunk containing at least one hex within `regionRadius`

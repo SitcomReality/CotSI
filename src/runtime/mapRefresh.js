@@ -19,7 +19,7 @@ import { clearDirtyFlags, markChunkDirty } from '../game/state/chunkDirtyTrackin
 import { ensureChunk, missingChunksAround } from '../game/state/chunkManager.js';
 import { occupiedKeys } from '../render/hexmap3d/worldObjects/decorEmphasis.js';
 import { getClock } from '../shared/clockScheduler.js';
-import { BACKGROUND_BUFFER_CHUNKS, BACKGROUND_GEN_SPREAD_MS } from '../params/game/worldParams.js';
+import { BACKGROUND_BUFFER_CHUNKS, BACKGROUND_GEN_SPREAD_MS } from '../params/game/chunkParams.js';
 
 /** Whether the minimap has been initialized. */
 let minimapInitialized = false;

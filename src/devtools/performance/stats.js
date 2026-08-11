@@ -1,13 +1,11 @@
 /**
  * stats.js — Pure statistical math for performance analysis.
  *
- * Pure functions: percentile, summary stats, bucket computation, EMA.
+ * Pure functions: percentile and summary stats.
  * No state, no imports.
  *
  * Layer: dev/ — leaf utility.
  */
-
-import { EMA_ALPHA } from '../../params/devtools/performanceParams.js';
 
 /**
  * Compute the p-th percentile from a sorted array (ascending).
@@ -46,31 +44,3 @@ export function computeStats(values) {
   };
 }
 
-/**
- * Compute frame-time bucket counts.
- * @param {number[]} frameTimes
- * @returns {{ under8: number, under16: number, under33: number, under50: number, over50: number }}
- */
-export function bucketFrameTimes(frameTimes) {
-  let under8 = 0, under16 = 0, under33 = 0, under50 = 0, over50 = 0;
-  for (const t of frameTimes) {
-    if (t <= 8) under8++;
-    else if (t <= 16) under16++;
-    else if (t <= 33) under33++;
-    else if (t <= 50) under50++;
-    else over50++;
-  }
-  return { under8, under16, under33, under50, over50 };
-}
-
-/**
- * Update an exponential moving average.
- * @param {number|null} prevEma — previous EMA value, or null on first call
- * @param {number} value — new measurement
- * @param {number} [alpha=0.3] — smoothing factor
- * @returns {number}
- */
-export function computeEma(prevEma, value, alpha = EMA_ALPHA) {
-  if (prevEma == null) return value;
-  return prevEma * (1 - alpha) + value * alpha;
-}

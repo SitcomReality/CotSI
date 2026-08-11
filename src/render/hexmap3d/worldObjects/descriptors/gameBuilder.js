@@ -254,11 +254,19 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
   };
 
   const runPass = (resolve, gate) => {
+    // Resolve once per tile per pass — the predicate and the record callback
+    // both need the result, and each resolver is pure within a pass.
+    const resolveCache = new Map();
+    const cachedResolve = (tile) => {
+      const key = coordKey(tile);
+      if (!resolveCache.has(key)) resolveCache.set(key, resolve(tile));
+      return resolveCache.get(key);
+    };
     collectInstances(
       tilesOrArray, gate,
-      (tile) => resolve(tile) !== null,
+      (tile) => cachedResolve(tile) !== null,
       (tile, worldPos) => {
-        const { descriptor, displacement } = resolve(tile);
+        const { descriptor, displacement } = cachedResolve(tile);
         const records = recordsForDescriptor(descriptor, tile, worldPos, undefined, displacement, tintFor(tile));
         if (records.length === 0) return null;
         let list = groups.get(descriptor.id);

@@ -1,5 +1,5 @@
 import { coordKey } from '../../../../engine/rules/hexGrid.js';
-import { RIVER_SOURCE_FRACTION } from '../../../../params/game/worldParams.js';
+import { RIVER_SOURCE_FRACTION } from '../../../../params/game/terrainGenParams.js';
 
 /**
  * Deterministic Fisher-Yates shuffle using Murmur3-style mixing.

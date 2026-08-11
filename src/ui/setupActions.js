@@ -5,6 +5,7 @@ import { toast } from './hud.js';
 import { refreshSetup } from './setupHeptagram.js';
 import { gameMode, roster, setGameMode } from './setupScreen.js';
 import { SEED_RANDOM_MAX, DEFAULT_MAP_RADIUS, DEFAULT_RELIC_TARGET } from '../params/ui/setupParams.js';
+import { FACTION_COUNT } from '../params/game/factionParams.js';
 
 registerAction('toggleFaction', (el) => {
   const idx = parseInt(el.dataset.idx, 10);
@@ -21,7 +22,7 @@ registerAction('toggleFaction', (el) => {
       if (activeIds.length >= 2) {
         // Check balance: can this faction be the balanced third?
         const [a, b] = activeIds;
-        const key = a < b ? a * 7 + b : b * 7 + a;
+        const key = a < b ? a * FACTION_COUNT + b : b * FACTION_COUNT + a;
         if (!BALANCED_3P[key]?.includes(idx)) {
           toast('This faction would unbalance the RPS triple.', true);
           return;

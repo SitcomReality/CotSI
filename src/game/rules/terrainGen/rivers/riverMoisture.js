@@ -1,6 +1,6 @@
 import { coordKey, hexesWithinRadius } from '../../../../engine/rules/hexGrid.js';
 import { clamp01 } from '../fields/slopeComputation.js';
-import { RIVER_MOISTURE_BOOST, RIVER_BOOST_RADIUS } from '../../../../params/game/worldParams.js';
+import { RIVER_MOISTURE_BOOST, RIVER_BOOST_RADIUS } from '../../../../params/game/terrainGenParams.js';
 
 /**
  * Apply moisture boost to all tiles near river paths.

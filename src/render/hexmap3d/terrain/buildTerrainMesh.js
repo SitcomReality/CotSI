@@ -96,45 +96,6 @@ function addVertex(positions, colors, offset, x, y, z, color) {
 }
 
 /**
- * Build a single merged BufferGeometry for all visible + explored hex tiles.
- * Water tiles (water + river terrain) are excluded — they render via
- * buildChunkWaterMesh on their own material (no terrain blending, ripple +
- * flow animation).
- *
- * @param {Object} state    - Game state (G)
- * @param {Set}    visible  - Set of hex keys currently visible
- * @param {Set}    explored - Set of hex keys ever explored
- * @returns {THREE.Mesh}
- */
-export function buildTerrainMesh(state, visible, explored) {
-  const tiles = Object.values(state.tiles);
-
-  // Count how many tiles we'll render
-  const activeTiles = tiles.filter(t => explored.has(`${t.q},${t.r}`) && t.terrain !== 'water' && t.terrain !== 'river');
-  const tileCount = activeTiles.length;
-
-  const positions = new Float32Array(tileCount * VERTICES_PER_HEX * 3);
-  const colors = new Float32Array(tileCount * VERTICES_PER_HEX * 3);
-  const topColorFor = makeTopColorResolver(state);
-
-  let vi = 0; // vertex index (in floats, so vi/3 = vertex count)
-  for (const tile of activeTiles) {
-    vi = writeTileVertices(positions, colors, vi, tile, state, explored, topColorFor);
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  geo.computeVertexNormals();
-
-  const mesh = new THREE.Mesh(geo, terrainMaterial);
-  mesh.name = 'terrain';
-  mesh.receiveShadow = true;
-  mesh.castShadow = true;
-  return mesh;
-}
-
-/**
  * Build a merged BufferGeometry for tiles within a single chunk.
  * Only tiles present in `explored` are rendered; water tiles (water + river
  * terrain) are excluded (they render via buildChunkWaterMesh on their own

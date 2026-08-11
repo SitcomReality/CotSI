@@ -1,7 +1,7 @@
 import { makeRng, stringSeed } from '../../../../engine/rules/seededRng.js';
 import { hexFbm2D } from '../../../../engine/rules/noise.js';
 import { coordKey, distance } from '../../../../engine/rules/hexGrid.js';
-import { EPICENTER_CONFIG } from '../../../../params/game/worldParams.js';
+import { EPICENTER_CONFIG } from '../../../../params/game/terrainGenParams.js';
 import { getArchetype } from '../../archetypes.js';
 import { classifyTerrain } from '../classification/terrainClassification.js';
 import { resolveElevation } from '../classification/terrainClassification.js';

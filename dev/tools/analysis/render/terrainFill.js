@@ -10,7 +10,7 @@ import { TERRAIN } from '../../../../src/game/rules/terrainTypes.js';
 import { elevationColor, moistureColor, densityColor } from './colorMaps.js';
 import { BIOME_COLORS } from './theme.js';
 import { featureDensity } from '../../../../src/game/rules/terrainGen/features/featureDensity.js';
-import { DEFAULT_TERRAIN_RULES } from '../../../../src/params/game/worldParams.js';
+import { DEFAULT_TERRAIN_RULES } from '../../../../src/params/game/terrainGenParams.js';
 
 /**
  * Determine the fill color for a single tile.

@@ -37,7 +37,6 @@ function turnOrderEl(order, champions, deathOrder) {
       'div',
       {
         class: 'herald-modal__turn-item' + (isFirst ? ' herald-modal__turn-item--active' : ''),
-        style: { '--faction-color': `` },
       },
       h('span', { class: `herald-modal__turn-num herald-modal__turn-f${champ.faction}` }, String(idx + 1)),
       h('span', { class: 'herald-modal__turn-name' }, champ.name),
@@ -56,7 +55,6 @@ function turnOrderEl(order, champions, deathOrder) {
           'div',
           {
             class: 'herald-modal__turn-item herald-modal__turn-item--dead',
-            style: { '--faction-color': `` },
           },
           h('span', { class: `herald-modal__turn-num herald-modal__turn-f${champ.faction} herald-modal__turn-num--dead` }, ''),
           h('span', { class: 'herald-modal__turn-name herald-modal__turn-name--dead' }, champ.name),

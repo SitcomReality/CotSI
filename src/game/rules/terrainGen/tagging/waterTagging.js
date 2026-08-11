@@ -1,5 +1,5 @@
 import { coordKey, distance, neighbors } from '../../../../engine/rules/hexGrid.js';
-import { WATER_BFS_MAX_DEPTH, OCEAN_EDGE_BUFFER } from '../../../../params/game/worldParams.js';
+import { WATER_BFS_MAX_DEPTH, OCEAN_EDGE_BUFFER } from '../../../../params/game/terrainGenParams.js';
 import { provisionalTerrainForRing } from '../classification/provisionalWater.js';
 
 export function waterTypeForTile(q, r, radius, fieldMap, tileLookup) {

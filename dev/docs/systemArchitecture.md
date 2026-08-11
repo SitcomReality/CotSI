@@ -381,11 +381,14 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `engine/chunkParams.js` | Chunk sizing for hex-grid spatial partitioning |
 | `game/aiParams.js` | Bot AI decision thresholds, weights, and probabilities |
 | `game/championParams.js` | Champion starting stats and base values |
+| `game/chunkParams.js` | Chunk eviction, starting-region radius, and background generation |
 | `game/combatParams.js` | Combat scoring, damage, loot, and auto-resolve parameters |
 | `game/economyParams.js` | Gold costs, heal amounts, dig values, and artifact economy |
 | `game/factionParams.js` | Faction counts, potency defaults, and ability parameters |
+| `game/featureSpawnParams.js` | Feature density, tiered placement, and knot-amount parameters |
 | `game/spawnParams.js` | Spawn position and entity-count parameters |
-| `game/worldParams.js` | World simulation, days, and shared game-world constants |
+| `game/terrainGenParams.js` | Terrain-gen noise, seeds, shaping, rivers, and terrain rules |
+| `game/worldParams.js` | World simulation days, mob harassment, and log retention |
 | `render/animationParams.js` | Movement animation durations, curve parameters, champion Y offsets |
 | `render/cameraParams.js` | Camera frustum, zoom, pan, and centering parameters |
 | `render/geometryParams.js` | 3D geometry dimensions for features and units |

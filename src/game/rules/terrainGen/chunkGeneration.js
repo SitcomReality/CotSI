@@ -5,8 +5,8 @@ import { tileToChunk, localCoord, localKey, hexesInChunk } from '../../../engine
 import { CHUNK_SIZE } from '../../../params/engine/chunkParams.js';
 import {
   MAX_LOOKUP_RADIUS, DEFAULT_TERRAIN_RULES, SEA_LEVEL_ELEVATION,
-  NOISE_CHANNEL_FEATURES,
-} from '../../../params/game/worldParams.js';
+} from '../../../params/game/terrainGenParams.js';
+import { NOISE_CHANNEL_FEATURES } from '../../../params/game/featureSpawnParams.js';
 import { getArchetype } from '../archetypes.js';
 import { getNoiseConfig, sampleBaseFields } from './fields/sampleBaseFields.js';
 import { computeSlope, clamp01 } from './fields/slopeComputation.js';

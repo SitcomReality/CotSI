@@ -1,5 +1,5 @@
 import { neighbors } from '../../../../engine/rules/hexGrid.js';
-import { SLOPE_NORMALIZATION } from '../../../../params/game/worldParams.js';
+import { SLOPE_NORMALIZATION } from '../../../../params/game/terrainGenParams.js';
 
 /**
  * Compute topographic slope from neighbor elevation deltas.

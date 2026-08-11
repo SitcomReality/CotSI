@@ -2,7 +2,7 @@ import { seededNoise } from '../../../../engine/rules/seededRng.js';
 import {
   KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_SCALE, KNOT_AMOUNT_VARIATION_MOD,
   FEATURE_TIERS, NOISE_CHANNEL_FEATURE_TIER,
-} from '../../../../params/game/worldParams.js';
+} from '../../../../params/game/featureSpawnParams.js';
 import {
   CHEST_GOLD_BASE, CHEST_GOLD_VARIATION_SCALE, CHEST_GOLD_VARIATION_MOD,
 } from '../../../../params/game/economyParams.js';

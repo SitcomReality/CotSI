@@ -8,7 +8,7 @@ import {
   DEFAULT_TERRAIN_RULES,
   ELEVATION_DETAIL_MIX, HYPSOMETRIC_EXPONENT,
   TEMP_BASE, TEMP_LATITUDE_WEIGHT, TEMP_VARIATION_WEIGHT, TEMP_ELEVATION_LAPSE,
-} from '../../../../params/game/worldParams.js';
+} from '../../../../params/game/terrainGenParams.js';
 import { worldShape } from './worldShape.js';
 import { clamp01 } from './slopeComputation.js';
 

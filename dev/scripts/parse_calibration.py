@@ -9,7 +9,7 @@ If no path is given, looks for calibration_v1.json in the current directory.
 
 Outputs:
   1. A table of derived thresholds with target percentiles and fields
-  2. The exact DEFAULT_TERRAIN_RULES override ready to paste into worldParams.js
+  2. The exact DEFAULT_TERRAIN_RULES override ready to paste into terrainGenParams.js
   3. Optional: raw JSON threshold-only export with --json flag
 """
 
@@ -58,14 +58,14 @@ def print_threshold_table(calib):
 
 
 def print_rules_override(calib):
-    """Print DEFAULT_TERRAIN_RULES object ready to paste into worldParams.js."""
+    """Print DEFAULT_TERRAIN_RULES object ready to paste into terrainGenParams.js."""
     thresholds = calib.get("thresholds", {})
 
-    print("--- Copy-paste into src/params/game/worldParams.js ---")
+    print("--- Copy-paste into src/params/game/terrainGenParams.js ---")
     print()
     print("export const DEFAULT_TERRAIN_RULES = {")
 
-    # Elevation-derived (sorted in same order as worldParams.js)
+    # Elevation-derived (sorted in same order as terrainGenParams.js)
     elev_order = [
         ("waterMaxElevation",         "p12 target"),
         ("mountainThreshold",         "p97 target"),
