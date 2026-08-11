@@ -10,8 +10,8 @@ export const DESERT_SCRUB_DESCRIPTOR = {
   kind: 'decor',
   displayName: 'Desert Scrub',
   scale: 1.1,
-  cluster: { min: 2, max: 4 },
-  placement: { mode: 'scatter', offsetMin: 0.16, offsetMax: 0.42 },
+  cluster: { max: 3 },
+  placement: { mode: 'scatter', offsetMin: 0.16, offsetMax: 0.42, separation: 0.5 },
   emphasis: { behavior: 'dispersed' },
   variation: { stretchY: [0.85, 1.3], colorJitter: 0.04 },
   parts: [

@@ -222,6 +222,27 @@ async function handleSave(res, body) {
   } else {
     console.log(`[save] updated ${id} → data/${file}`);
   }
+
+  // The golden descriptor snapshot (dev/tests/render/fixtures/) pins
+  // data/ → record determinism. A save legitimately changes the saved object's
+  // records, so refresh the fixture right here — editing geometry and saving
+  // must never leave the test suite red. Entity saves (table-driven) return
+  // above; entities aren't in the tile snapshot. The dynamic import with a
+  // cache-buster re-evaluates schema/recordBuilder from disk, so a long-lived
+  // server refreshes the fixture with the same code the game and tests load.
+  try {
+    const { writeDescriptorSnapshot } = await import('../../tests/render/descriptorSnapshot.js?snapshot=' + Date.now());
+    // importBarrel() re-evaluates data/index.js but its static imports of the
+    // data files stay cached from the first load — substitute a fresh import
+    // of the file we just wrote so the snapshot reflects the saved geometry.
+    const fresh = await import(pathToFileURL(path.join(DATA_DIR, file)).href + '?snap=' + Date.now());
+    const freshDef = fresh[descriptorExportName(id)];
+    const descriptors = barrel.ALL_DESCRIPTORS.map((d) => (d.id === id ? freshDef : d));
+    const refreshed = await writeDescriptorSnapshot(descriptors);
+    console.log(refreshed ? '[save] refreshed golden snapshot' : '[save] golden snapshot unchanged');
+  } catch (err) {
+    console.error('[save] golden snapshot refresh failed:', err);
+  }
   return json(res, 200, { ok: true, file, wasNew: isNew });
 }
 

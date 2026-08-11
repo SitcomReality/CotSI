@@ -15,6 +15,7 @@ import {
   validateDescriptor,
   validateShapeParams,
   normalizeDescriptor,
+  denormalizeDescriptor,
   shapeBaseOffset,
 } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 
@@ -308,6 +309,25 @@ test('jitter placement validates and normalizes its defaults', () => {
   assert.equal(tree.placement.tiltSeed, 1);
   const bad = { id: 't', kind: 'feature', displayName: 'T', placement: { mode: 'jitter', offset: -1 }, parts: [{ id: 'p', shape: 'sphere' }] };
   assert.ok(validateDescriptor(bad).length > 0);
+});
+
+test('placement.separation validates in scatter and jitter', () => {
+  const base = { id: 's', kind: 'feature', displayName: 'S', parts: [{ id: 'p', shape: 'sphere' }] };
+  assert.deepEqual(validateDescriptor({ ...base, placement: { mode: 'scatter', separation: 0.3 } }), []);
+  assert.deepEqual(validateDescriptor({ ...base, placement: { mode: 'jitter', separation: 0.3 } }), []);
+  assert.ok(validateDescriptor({ ...base, placement: { mode: 'scatter', separation: -0.1 } }).length > 0);
+  assert.ok(validateDescriptor({ ...base, placement: { mode: 'jitter', separation: -0.1 } }).length > 0);
+  assert.ok(validateDescriptor({ ...base, placement: { mode: 'scatter', separation: 'wide' } }).length > 0);
+});
+
+test('denormalizeDescriptor keeps a non-zero separation and strips 0', () => {
+  const withSep = normalizeDescriptor({ ...BUSH, placement: { mode: 'scatter', separation: 0.3 } });
+  assert.equal(denormalizeDescriptor(withSep).placement.separation, 0.3);
+  const zero = normalizeDescriptor({ ...BUSH, placement: { mode: 'scatter', separation: 0 } });
+  assert.equal(denormalizeDescriptor(zero).placement.separation, undefined);
+  // Inert in other modes — stripped like any foreign field on emit.
+  const ring = normalizeDescriptor({ ...GROVE, placement: { mode: 'ring', separation: 0.3 } });
+  assert.equal(denormalizeDescriptor(ring).placement.separation, undefined);
 });
 
 test('part.stretch validates ranges and axes', () => {

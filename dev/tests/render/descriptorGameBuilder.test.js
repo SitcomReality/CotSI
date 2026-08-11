@@ -84,12 +84,14 @@ const meshesStarting = (meshes, prefix) => meshes.filter((m) => m.name.startsWit
 // The hill mound's dome band (thetaLength 1.5) keeps its lowest vertex ABOVE
 // the geometry origin, so shapeBaseOffset is negative — the record y sits that
 // far below the surface and the mound's lowest vertex lands at y + base·sy.
-// Each mound draws its own [size.min, size.max] item scale: item 0 keeps the
-// legacy treeHash draw, members the decorrelated itemHash (see tileHash.js).
+// The mound draws its own [size.min, size.max] item scale: max defaults to 1
+// when absent (schema normalize merges OBJECT_DEFAULTS.size); item 0 keeps the
+// legacy treeHash roll, cluster members the decorrelated itemHash (see
+// tileHash.js — hill is a single mound today, so only item 0 is used).
 const HILL_BASE = shapeBaseOffset(HILL_DESCRIPTOR.parts[0].shape, HILL_DESCRIPTOR.parts[0].params);
 const hillItemScale = (tileH, i) => lerp(
   HILL_DESCRIPTOR.size.min,
-  HILL_DESCRIPTOR.size.max,
+  HILL_DESCRIPTOR.size.max ?? 1,
   i === 0 ? frac(treeHash(tileH, 3)) : itemHash(tileH, i + 3),
 );
 
@@ -243,10 +245,9 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   assert.ok(peak.sy >= 1.3 && peak.sy <= 1.45, `peak scaleY in [1.3,1.45] (got ${peak.sy})`);
   assert.ok(closeTo(peak.sx, 1), 'mountain XZ scale 1');
 
-  // Hill mound: only the sunk cluster contributes (the hidden hill is skipped).
-  // The mound is now a 2-3 member dome cluster, each at its own size draw.
+  // Hill mound: only the sunk mound contributes (the hidden hill is skipped).
   const hill = meshNamed(meshes, 'hill-mound');
-  assert.ok(hill && hill.count >= 2 && hill.count <= 3, `hill-mound holds the sunk cluster (got ${hill.count})`);
+  assert.ok(hill && hill.count === 1, `hill-mound is a single sunk mound (got ${hill.count})`);
   const sunk = sunkTransform();
   const hillSurface = tileSurfaceY(TILES[6]);
   const hillTileH = tileHash(TILES[6]);
@@ -255,7 +256,7 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
     // The dome's lowest vertex lands at surface + yOffset: the record y sits
     // HILL_BASE·sy below that (HILL_BASE is negative).
     assert.ok(closeTo(p.y - HILL_BASE * p.sy, hillSurface + sunk.yOffset), `sunk hill ${i} descends below the surface (got ${p.y})`);
-    // Each mound is its own size draw × the sunk shrink.
+    // The mound is its own [0.9, 1.0] size draw × the sunk shrink.
     assert.ok(closeTo(p.sx, hillItemScale(hillTileH, i) * sunk.scale), `sunk hill ${i} shrinks by sunk scale (got ${p.sx})`);
   }
 
@@ -365,16 +366,17 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
   assert.equal(mountains.length, 1);
   assert.equal(mountains[0].count, 1);
 
-  // ... and both hill clusters, at full size — even though (8,-1) has an
-  // occupant and (-3,-4) an occupant + feature (unoccupied = full mound).
+  // ... and both hill tiles render their single mound, at full size — even
+  // though (8,-1) has an occupant and (-3,-4) an occupant + feature
+  // (unoccupied = full mound).
   const hill = meshNamed(meshes, 'hill-mound');
-  assert.ok(hill && hill.count >= 4 && hill.count <= 6, `both hill clusters render out of sight (got ${hill.count})`);
+  assert.ok(hill && hill.count === 2, `both hill mounds render out of sight (got ${hill.count})`);
   const hillSurface = tileSurfaceY(TILES[6]); // both hill tiles share the terrain surface
   for (let i = 0; i < hill.count; i++) {
     const p = instInfo(hill, i);
-    // Full size (no displacement): each mound draws its own [0.8, 1.1] size
+    // Full size (no displacement): the mound draws its own [0.9, 1.0] size
     // (p.scale = hypot(e0, e2), the true XZ scale under the mound's ring rotY).
-    assert.ok(p.scale >= 0.8 - 1e-4 && p.scale <= 1.1 + 1e-4, `hill mound ${i} at full size (got ${p.scale})`);
+    assert.ok(p.scale >= 0.9 - 1e-4 && p.scale <= 1 + 1e-4, `hill mound ${i} at full size (got ${p.scale})`);
     // Grounded dome: the lowest band vertex sits HILL_BASE·sy above the origin,
     // so the record y dips that far below the surface.
     assert.ok(closeTo(p.y - HILL_BASE * p.sy, hillSurface), `hill mound ${i} grounded at the surface (got ${p.y})`);

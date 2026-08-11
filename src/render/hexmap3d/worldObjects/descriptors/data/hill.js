@@ -14,13 +14,18 @@ export const HILL_DESCRIPTOR = {
     {
       id: 'mound',
       shape: 'sphere',
-      params: { radius: 0.27, wSegs: 7, thetaLength: 1.5 },
+      params: { radius: 0.8, wSegs: 7, thetaLength: 1.5 },
       transform: { scaleY: 0.6666666666666667 },
       color: 0x7a8f5a,
       biomeColor: { source: 'primary', influence: 0.8 },
     },
   ],
-  cluster: { min: 2, max: 3 },
-  size: { min: 0.8, max: 1.1 },
-  placement: { mode: 'ring', ringMax: 0.4, leanMin: 0, leanMax: 0 },
+  size: { min: 0.9 },
+  placement: {
+    mode: 'ring',
+    ringMax: 0.02,
+    leanMin: 0,
+    leanMax: 0,
+    ringMin: 0.01,
+  },
 };

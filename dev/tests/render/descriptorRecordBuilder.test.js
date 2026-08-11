@@ -187,6 +187,74 @@ test('ring placement sits inside the ring radii with outward lean', () => {
   }
 });
 
+// ── Placement separation ────────────────────────────────────────────────────
+
+/** A multi-item scatter cluster — the cactus case (overlaps without separation). */
+const SEP_RAW = {
+  id: 'sep-cluster',
+  kind: 'feature',
+  displayName: 'Separated Cluster',
+  schemaVersion: 3,
+  scale: 1.5,
+  cluster: { min: 2, max: 4 },
+  placement: { mode: 'scatter', offsetMin: 0.16, offsetMax: 0.42 },
+  parts: [
+    { id: 'tuft', shape: 'cone', params: { bottomR: 0.04, height: 0.06, radialSegs: 3, heightSegs: 1 } },
+  ],
+};
+const SEP_BUSH = normalizeDescriptor({ ...SEP_RAW, placement: { ...SEP_RAW.placement, separation: 0.35 } });
+const SEP_JITTER = normalizeDescriptor({
+  ...SEP_RAW,
+  placement: { mode: 'jitter', offset: 0.12, separation: 0.25 },
+});
+
+/** The minimum pairwise distance between one tile's item origins. */
+function minPairDistance(records, pos) {
+  const origins = records.map((r) => ({ x: r.x - pos.x, z: r.z - pos.z }));
+  let min = Infinity;
+  for (let i = 0; i < origins.length; i++) {
+    for (let j = i + 1; j < origins.length; j++) {
+      min = Math.min(min, Math.hypot(origins[i].x - origins[j].x, origins[i].z - origins[j].z));
+    }
+  }
+  return min;
+}
+
+test('separation keeps cluster members at least `separation` apart (scatter)', () => {
+  for (let q = 0; q < 60; q++) {
+    const records = recordsForDescriptor(SEP_BUSH, { q, r: 7, terrain: 'plains' }, POS);
+    assert.ok(records.length >= 2, `q=${q}: cluster count ${records.length} < 2`);
+    // The relaxation converges asymptotically — pairs land within ~1e-3 of the target.
+    assert.ok(minPairDistance(records, POS) >= 0.35 - 1e-3, `q=${q}: a pair sits closer than the separation`);
+  }
+});
+
+test('separation keeps cluster members at least `separation` apart (jitter)', () => {
+  for (let q = 0; q < 60; q++) {
+    const records = recordsForDescriptor(SEP_JITTER, { q, r: 7, terrain: 'plains' }, POS);
+    assert.ok(records.length >= 2, `q=${q}: cluster count ${records.length} < 2`);
+    assert.ok(minPairDistance(records, POS) >= 0.25 - 1e-3, `q=${q}: a pair sits closer than the separation`);
+  }
+});
+
+test('separation 0 (or absent) keeps the legacy cluster layout', () => {
+  const none = normalizeDescriptor(SEP_RAW);
+  const zero = normalizeDescriptor({ ...SEP_RAW, placement: { ...SEP_RAW.placement, separation: 0 } });
+  for (let q = 0; q < 20; q++) {
+    const tile = { q, r: 7, terrain: 'plains' };
+    assert.deepEqual(recordsForDescriptor(zero, tile, POS), recordsForDescriptor(none, tile, POS));
+  }
+});
+
+test('nodeWorldFrames matches the separated record layout (gizmo/records in sync)', () => {
+  const tile = { q: 5, r: 3, terrain: 'plains' };
+  const records = recordsForDescriptor(SEP_BUSH, tile, POS);
+  const frames = nodeWorldFrames(SEP_BUSH, tile, POS);
+  // Cluster frames collapse to the last item (later items overwrite earlier).
+  const last = records[records.length - 1];
+  assert.deepEqual(frames.get('tuft').origin, { x: last.x, y: last.y, z: last.z });
+});
+
 // ── Emphasis ───────────────────────────────────────────────────────────────
 
 test('dispersed single item steps to the shared corner anchor and shrinks', () => {

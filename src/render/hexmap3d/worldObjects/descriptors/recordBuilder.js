@@ -366,6 +366,68 @@ function itemPlacement(descriptor, i, count, tileH, disp, jitter) {
 }
 
 /**
+ * Deterministic minimum-distance relaxation for a cluster: every pair closer
+ * than `separation` world units is pushed apart symmetrically along the pair
+ * axis, repeated until no pair moves (hard-capped — cluster counts are small).
+ * The scheme converges asymptotically, so after the cap pairs can sit a tiny
+ * fraction short of the target — well under a thousandth of a world unit (the
+ * hex is 1.0), invisible in play. Positions derive only from the tile-hash
+ * draws, so the result is stable across rebuilds. Separation 0 (or a lone
+ * item) is a no-op, so existing descriptors keep their exact layout.
+ */
+function spreadCluster(placements, separation, maxPasses = 6) {
+  const minSq = separation * separation;
+  for (let pass = 0; pass < maxPasses; pass++) {
+    let moved = false;
+    for (let i = 0; i < placements.length; i++) {
+      const a = placements[i];
+      for (let j = i + 1; j < placements.length; j++) {
+        const b = placements[j];
+        const dx = b.dx - a.dx;
+        const dz = b.dz - a.dz;
+        const distSq = dx * dx + dz * dz;
+        if (distSq >= minSq) continue;
+        if (distSq === 0) {
+          // Coincident draws (rare): separate along +x; later passes unwind
+          // any pile-up the fixed direction leaves behind.
+          const push = separation / 2;
+          a.dx -= push;
+          b.dx += push;
+        } else {
+          const dist = Math.sqrt(distSq);
+          const push = (separation - dist) / 2;
+          const ux = dx / dist;
+          const uz = dz / dist;
+          a.dx -= ux * push; a.dz -= uz * push;
+          b.dx += ux * push; b.dz += uz * push;
+        }
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+}
+
+/**
+ * The item placements for a cluster, in item order. When the descriptor's
+ * `placement.separation` is set (> 0) and the cluster has more than one item,
+ * members are pushed apart so no two sit closer than `separation` world units
+ * — the spread the offset radii can't give (they move items away from the hex
+ * center, not away from each other). Displaced clusters (dispersal ring /
+ * corner anchor) keep their authored emphasis layout, which is already spread.
+ */
+function clusterPlacements(descriptor, tile, count, tileH, disp) {
+  const placements = [];
+  for (let i = 0; i < count; i++) {
+    const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement, tileH, i) : null;
+    placements.push(itemPlacement(descriptor, i, count, tileH, disp, jitter));
+  }
+  const separation = descriptor.placement.separation ?? 0;
+  if (separation > 0 && count > 1 && !disp) spreadCluster(placements, separation);
+  return placements;
+}
+
+/**
  * Color with a small deterministic brightness jitter, as an integer —
  * mirrors clusterColor() in treeParts.js, but stays THREE-free.
  */
@@ -748,15 +810,15 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
   const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);
 
   const records = [];
+  const placements = clusterPlacements(descriptor, tile, count, tileH, disp);
   for (let i = 0; i < count; i++) {
-    const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement, tileH, i) : null;
     // Per-item size draw — per-item so cluster members vary (treeVariation's
     // scale uses hash i+3). Item 0 keeps the old item-independent roll, so
     // lone objects are unchanged; members draw the decorrelated itemHash so
     // the every-third-index correlation can't clone member sizes.
     const sizeT = i === 0 ? frac(treeHash(tileH, i + 3)) : itemHash(tileH, i + 3);
     const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, sizeT);
-    const placement = itemPlacement(descriptor, i, count, tileH, disp, jitter);
+    const placement = placements[i];
     const ctx = {
       tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
       worldBase: worldBaseMatrix(worldPos, placement, disp),
@@ -787,12 +849,16 @@ export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(til
   const variant = variantFor(descriptor, tile, tileH, variantId);
   const parts = (variant ?? descriptor).parts;
   const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);
+  const placements = clusterPlacements(descriptor, tile, count, tileH, disp);
 
   for (let i = 0; i < count; i++) {
-    const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement, tileH, i) : null;
+    // Per-item size draw — per-item so cluster members vary (treeVariation's
+    // scale uses hash i+3). Item 0 keeps the old item-independent roll, so
+    // lone objects are unchanged; members draw the decorrelated itemHash so
+    // the every-third-index correlation can't clone member sizes.
     const sizeT = i === 0 ? frac(treeHash(tileH, i + 3)) : itemHash(tileH, i + 3);
     const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, sizeT);
-    const placement = itemPlacement(descriptor, i, count, tileH, disp, jitter);
+    const placement = placements[i];
     const ctx = {
       tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
       worldBase: worldBaseMatrix(worldPos, placement, disp),

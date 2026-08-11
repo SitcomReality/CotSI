@@ -22,6 +22,12 @@
 4. Add the gameplay archetype if needed: entry in `src/game/rules/archetypeData/features.js` whose `kind` matches the descriptor `id`.
 5. Done — no builder code; the generic descriptor pipeline renders whatever the data defines. Contract: descriptor `id` === archetype `kind` (the renderer resolves `tile.feature.kind` → `descriptorById(id)` in `gameBuilder.js`). Reload the editor page to browse a newly saved object.
 
+Every non-entity object's record output is pinned by the golden snapshot
+(`dev/tests/render/fixtures/descriptorData.snap.json`). **Save refreshes it
+automatically** (server log: `[save] refreshed golden snapshot`), so editing
+geometry never leaves the test suite red; to re-reconcile manually (e.g. after
+reverting a data file) run `dev/scripts/regenerate_descriptor_snapshot.sh`.
+
 **Download JSON** remains as a portable fallback (`<id>.descriptor.json`).
 
 ## Edit an Entity (Base / Champion / Mob / Trader) via the Geometry Editor

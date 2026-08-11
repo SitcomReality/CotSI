@@ -756,7 +756,7 @@ function validateVariation(variation, path, errors) {
   }
 }
 
-const PLACEMENT_KEYS = ['mode', 'offsetMin', 'offsetMax', 'ringMin', 'ringMax', 'leanMin', 'leanMax', 'offset', 'tiltMin', 'tiltMax', 'tiltSeed'];
+const PLACEMENT_KEYS = ['mode', 'offsetMin', 'offsetMax', 'separation', 'ringMin', 'ringMax', 'leanMin', 'leanMax', 'offset', 'tiltMin', 'tiltMax', 'tiltSeed'];
 
 function validatePlacement(placement, path, errors) {
   if (placement === undefined) return;
@@ -776,6 +776,7 @@ function validatePlacement(placement, path, errors) {
     if (placement.offsetMin !== undefined && placement.offsetMax !== undefined && placement.offsetMin > placement.offsetMax) {
       errors.push(`${path}: offsetMin must be <= offsetMax`);
     }
+    if (placement.separation !== undefined && !isNonNegativeNumber(placement.separation)) errors.push(`${path}.separation: must be >= 0`);
   }
   if (placement.mode === 'ring') {
     if (placement.ringMin !== undefined && !isPositiveNumber(placement.ringMin)) errors.push(`${path}.ringMin: must be > 0`);
@@ -799,6 +800,7 @@ function validatePlacement(placement, path, errors) {
     if (placement.tiltSeed !== undefined && !(Number.isInteger(placement.tiltSeed) && placement.tiltSeed >= 0)) {
       errors.push(`${path}.tiltSeed: must be a non-negative integer`);
     }
+    if (placement.separation !== undefined && !isNonNegativeNumber(placement.separation)) errors.push(`${path}.separation: must be >= 0`);
   }
 }
 
@@ -1204,9 +1206,9 @@ export function denormalizeDescriptor(def) {
     // Each placement mode owns a fixed sub-field set; fields left over from
     // other modes (editor mode switches) are inert and stripped on emit.
     const MODE_FIELDS = {
-      scatter: ['offsetMin', 'offsetMax'],
+      scatter: ['offsetMin', 'offsetMax', 'separation'],
       ring: ['ringMin', 'ringMax', 'leanMin', 'leanMax'],
-      jitter: ['offset', 'tiltMin', 'tiltMax', 'tiltSeed'],
+      jitter: ['offset', 'tiltMin', 'tiltMax', 'tiltSeed', 'separation'],
       center: [],
     };
     const own = new Set(MODE_FIELDS[mode] ?? []);
@@ -1229,6 +1231,7 @@ export function denormalizeDescriptor(def) {
     } else {
       delete placement.mode; // 'center' is the default
     }
+    if (placement.separation === 0) delete placement.separation;
     if (Object.keys(placement).length === 0) delete out.placement;
   }
 

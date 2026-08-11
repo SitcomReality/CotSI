@@ -139,7 +139,8 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
   so a cluster truly scatters across the hex (item 0 keeps the original
   deterministic single-item roll verbatim — lone objects are unchanged). The
   spread is bounded by `offsetMin`/`offsetMax` (defaults 0.15/0.3) — the chests
-  use `offsetMin: 0, offsetMax: 0.1` to hug the hex center. The size jitter is
+  use `offsetMin: 0, offsetMax: 0.1` to hug the hex center. Optional
+  `separation` (0) — see below. The size jitter is
   **rigid**: it scales the whole item (geometry *and* the root `localPos`/`lift`
   slots, group hinges, and nested leaf offsets), so a multi-part object stays
   assembled when a scatter tile shrinks it — and the spin rotates each item
@@ -150,17 +151,31 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
 - `mode: 'jitter'` — a loose clump: item 0 sits at a fixed per-tile
   angle/distance (`offset`), the rest of the cluster spreads within 0.5–1.5×
   `offset` of the hex center, each with its own facing and a per-tile lean
-  axis. Optional `offset` (0.08), `tiltMin`/`tiltMax` (0/0), `tiltSeed` (1).
+  axis. Optional `offset` (0.08), `tiltMin`/`tiltMax` (0/0), `tiltSeed` (1),
+  `separation` (0).
+
+`separation` (scatter + jitter, world units, default 0) is the **minimum
+distance between cluster members on the same tile** — the offset radii move
+items away from the hex center, but no two members can be forced apart by them,
+so overlapping clusters (e.g. a tight cactus patch) have no way to spread out.
+Set it to your object's footprint width (a cactus with arms reaching ±0.3 wants
+`separation` ≈ 0.35–0.45) and cluster members are pushed apart so every pair
+ends up roughly that far apart (a deterministic relaxation after the offsets
+are drawn — stable per tile, and members may land beyond the offset disc, which
+is the point; convergence leaves pairs within ~0.001 world units of the target,
+invisible against a 1.0-unit hex). Displaced clusters (dispersal ring / corner
+anchor) ignore it.
 
 All lean/tilt (ring `leanMin`/`leanMax`, jitter `tiltMin`/`tiltMax`, and a
 part's own `tiltAxis`/`tilt`) **pivots at the part's base** — the bottom stays
 planted on the ground (or on `transform.y`/`lift`) and the top swings, rather
 than rotating around the shape's center.
 
-Each mode owns a fixed sub-field set (scatter: `offsetMin`/`offsetMax`; ring:
-`ringMin`/`ringMax`/`leanMin`/`leanMax`; jitter: `offset`/`tiltMin`/`tiltMax`/
-`tiltSeed`). Fields from other modes are **inert** and stripped on emit, so
-switching modes in the editor does not accumulate stale fields. (Cluster rules
+Each mode owns a fixed sub-field set (scatter: `offsetMin`/`offsetMax`/
+`separation`; ring: `ringMin`/`ringMax`/`leanMin`/`leanMax`; jitter:
+`offset`/`tiltMin`/`tiltMax`/`tiltSeed`/`separation`). Fields from other modes
+are **inert** and stripped on emit, so switching modes in the editor does not
+accumulate stale fields. (Cluster rules
 work the same way: `countsByTerrain`/`densityRange`/`jitter` belong to
 `moisture` only, `min`/`max` to `uniform` only.)
 

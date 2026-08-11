@@ -158,6 +158,11 @@ export function renderObjectControls(container, ctx) {
   if (d.placement.mode === 'scatter') {
     container.append(row('Offset min', numberInput(d.placement.offsetMin, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.offsetMin = v; }) })));
     container.append(row('Offset max', numberInput(d.placement.offsetMax, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.offsetMax = v; }) })));
+    container.append(row('Separation', numberInput(d.placement.separation ?? 0, { min: 0, step: 0.05, onChange: (v) => ctx.mutate(() => {
+      if (v > 0) d.placement.separation = v;
+      else delete d.placement.separation;
+    }) })));
+    container.append(el('div', 'hint', 'Min world-unit distance between cluster members; 0 = off.'));
   }
   if (d.placement.mode === 'ring') {
     container.append(row('Ring min', numberInput(d.placement.ringMin, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.placement.ringMin = v; }) })));
@@ -167,6 +172,11 @@ export function renderObjectControls(container, ctx) {
   }
   if (d.placement.mode === 'jitter') {
     container.append(row('Offset', numberInput(d.placement.offset, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.offset = v; }) })));
+    container.append(row('Separation', numberInput(d.placement.separation ?? 0, { min: 0, step: 0.05, onChange: (v) => ctx.mutate(() => {
+      if (v > 0) d.placement.separation = v;
+      else delete d.placement.separation;
+    }) })));
+    container.append(el('div', 'hint', 'Min world-unit distance between cluster members; 0 = off.'));
     container.append(row('Tilt min', numberInput(d.placement.tiltMin, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltMin = v; }) })));
     container.append(row('Tilt max', numberInput(d.placement.tiltMax, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltMax = v; }) })));
     container.append(row('Tilt seed', intInput(d.placement.tiltSeed, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltSeed = v; }) })));

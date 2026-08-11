@@ -14,14 +14,12 @@ import { normalizeDescriptor, validateDescriptor } from '../../../src/render/hex
 import { recordsForDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
 import { ALL_DESCRIPTORS } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/index.js';
 import { DISPERSED_SCALE, dispersedRingOffsets, dispersedSingleOffset } from '../../../src/render/hexmap3d/worldObjects/decorEmphasis.js';
-
-const POS = { x: 1.732, y: 1.25, z: -3.0 };
-const TILES = {
-  grove: { q: 3, r: -2, terrain: 'forest', moisture: 0.8 },
-  hill: { q: 3, r: -2, terrain: 'hill' },
-  mountain: { q: 3, r: -2, terrain: 'mountain', mountainType: 'peak' },
-};
-const tileFor = (d) => TILES[d.id] ?? { q: 3, r: -2, terrain: 'plains' };
+import {
+  SNAPSHOT_POS as POS,
+  snapshotTileFor as tileFor,
+  SNAPSHOT_ENTITY_KINDS as ENTITY_KINDS,
+  SNAPSHOT_PATH,
+} from './descriptorSnapshot.js';
 
 // ── Coverage ────────────────────────────────────────────────────────────────
 
@@ -57,12 +55,11 @@ test('every migrated descriptor validates and survives a JSON roundtrip', () => 
 
 // ── Golden snapshots ───────────────────────────────────────────────────────
 
-const SNAPSHOT = JSON.parse(readFileSync(new URL('./fixtures/descriptorData.snap.json', import.meta.url), 'utf8'));
+const SNAPSHOT = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'));
 
 // Entity descriptors (kind base/champion/mob/trader) are entity-driven — they
 // record via recordsForEntity, not the tile path — and are snapshot-tested in
-// descriptorEntity.test.js / descriptorBase.test.js.
-const ENTITY_KINDS = new Set(['base', 'champion', 'mob', 'trader']);
+// descriptorEntity.test.js / descriptorBase.test.js (SNAPSHOT_ENTITY_KINDS).
 
 test('descriptor→record output matches the committed golden snapshot', () => {
   const ids = new Set(ALL_DESCRIPTORS.map((d) => d.id));
@@ -103,9 +100,12 @@ test('simple features: one record, legacy scatter bounds', () => {
     // Scatter offset stays within the authored offsetMax — the legacy fixed
     // ≤0.3 ring became per-descriptor authorable (e.g. desertScrub's wider
     // 0.42). The cap must keep items inside their hex: inradius √3/2 ≈ 0.866
-    // at HEX_RADIUS 1.0.
+    // at HEX_RADIUS 1.0. `separation` deliberately pushes members beyond the
+    // base disc (that's its job), so the bound applies only without it.
     const dist = Math.hypot(record.x - POS.x, record.z - POS.z);
-    assert.ok(dist <= d.placement.offsetMax + 1e-9, `${raw.id} scatter dist ${dist} > offsetMax ${d.placement.offsetMax}`);
+    if (!d.placement.separation) {
+      assert.ok(dist <= d.placement.offsetMax + 1e-9, `${raw.id} scatter dist ${dist} > offsetMax ${d.placement.offsetMax}`);
+    }
     assert.ok(d.placement.offsetMax <= Math.sqrt(3) / 2 + 1e-9, `${raw.id} offsetMax ${d.placement.offsetMax} exceeds the hex inradius`);
   }
 });
@@ -172,32 +172,31 @@ test('mountain: per-variant part ids and mountainType-driven scaleY', () => {
   assert.equal(untagged.scaleY, isolated.scaleY, 'untagged mountains draw the same normal bucket');
 });
 
-test('knot hovers at KNOT_Y_OFFSET and hill mound is a flattened dome cluster', () => {
+test('knot hovers at KNOT_Y_OFFSET and hill mound is a single flattened dome', () => {
   const knot = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'knot'));
   const [knotRecord] = recordsForDescriptor(knot, { q: 3, r: -2, terrain: 'plains' }, POS);
   assert.equal(knotRecord.y, POS.y + 0.3);
   assert.ok(knotRecord.partId === 'knot');
 
-  // Hill mound is a cluster of flattened domes: 2-3 ring-placed mounds, each
-  // at its own [0.8, 1.1] size draw, squashed to 2/3 height (scaleY/scale).
-  // The dome's thetaLength-1.5 band keeps its lowest vertex above the origin,
-  // so the grounded y dips slightly below the surface to compensate.
+  // Hill mound is ONE flattened dome: a single ring-placed mound at its own
+  // [0.9, 1.0] size draw (size.min only — max defaults to 1 on normalize),
+  // squashed to 2/3 height (scaleY/scale). The tight ring (0.01-0.02) keeps
+  // it at the hex center. The dome's thetaLength-1.5 band keeps its lowest
+  // vertex above the origin, so the grounded y dips slightly below the
+  // surface to compensate.
   const hill = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'hill'));
   const mounds = recordsForDescriptor(hill, { q: 3, r: -2, terrain: 'hill' }, POS);
-  assert.ok(mounds.length >= 2 && mounds.length <= 3, `hill cluster ${mounds.length} outside [2,3]`);
-  for (const mound of mounds) {
-    assert.ok(mound.scale >= 0.8 - 1e-9 && mound.scale <= 1.1 + 1e-9, `mound size ${mound.scale}`);
-    assert.ok(Math.abs(mound.scaleY / mound.scale - 2 / 3) < 1e-9, `dome flattening ${mound.scaleY}/${mound.scale}`);
-    const dist = Math.hypot(mound.x - POS.x, mound.z - POS.z);
-    assert.ok(dist <= 0.4 + 1e-9, `mound ${dist} outside ringMax`);
-  }
-  // Sunk: descends below the surface and shrinks (same cluster count).
+  assert.equal(mounds.length, 1, 'hill is a single mound');
+  const mound = mounds[0];
+  assert.ok(mound.scale >= 0.9 - 1e-9 && mound.scale <= 1 + 1e-9, `mound size ${mound.scale}`);
+  assert.ok(Math.abs(mound.scaleY / mound.scale - 2 / 3) < 1e-9, `dome flattening ${mound.scaleY}/${mound.scale}`);
+  const dist = Math.hypot(mound.x - POS.x, mound.z - POS.z);
+  assert.ok(dist <= 0.02 + 1e-9, `mound ${dist} outside ringMax`);
+  // Sunk: descends below the surface and shrinks (same record count).
   const sunk = recordsForDescriptor(hill, { q: 3, r: -2, terrain: 'hill' }, POS, undefined, { displaced: true });
-  assert.equal(sunk.length, mounds.length);
-  for (const s of sunk) {
-    assert.ok(s.y < POS.y);
-    assert.ok(s.scale < 1);
-  }
+  assert.equal(sunk.length, 1);
+  assert.ok(sunk[0].y < POS.y);
+  assert.ok(sunk[0].scale < 1);
 });
 
 // ── Per-axis scale ─────────────────────────────────────────────────────────
