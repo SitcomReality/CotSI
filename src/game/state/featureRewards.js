@@ -42,6 +42,8 @@ import {
   FEATURE_COPYIST_DEFENSE,
   FEATURE_WAXBLOOM_HEAL,
   FEATURE_CINDERBLOOM_HEAL,
+  FEATURE_EDEN_MUSHROOM_HEAL,
+  FEATURE_EDEN_SHROOMLET_HEAL,
   FEATURE_PERIDEXION_HEAL,
   FEATURE_PERIDEXION_DEFENSE,
   FEATURE_SCORIA_KNOTS,
@@ -274,6 +276,16 @@ const FEATURES = {
     log: { verb: 'gathers', object: 'a Cinderbloom', category: LOG_CATEGORY.HEAL },
     grants: [{ kind: 'heal', amount: FEATURE_CINDERBLOOM_HEAL }],
   },
+  edenMushroom: {
+    class: 'regrow',
+    log: { verb: 'gathers', object: 'an Eden Mushroom', category: LOG_CATEGORY.HEAL },
+    grants: [{ kind: 'heal', amount: FEATURE_EDEN_MUSHROOM_HEAL }],
+  },
+  edenShroomlet: {
+    class: 'regrow',
+    log: { verb: 'gathers', object: 'a Shroomlet', category: LOG_CATEGORY.HEAL },
+    grants: [{ kind: 'heal', amount: FEATURE_EDEN_SHROOMLET_HEAL }],
+  },
   scoriaRose: {
     class: 'regrow',
     log: { verb: 'plucks', object: 'a Scoria Rose', category: LOG_CATEGORY.ECONOMY },
@@ -302,7 +314,7 @@ const FEATURES = {
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 /** Feature kinds whose rewards include healing (bot injury bonus). */
-const HEAL_KINDS = new Set(['waxbloom', 'cinderbloom', 'peridexionTree', 'vegetableLamb']);
+const HEAL_KINDS = new Set(['waxbloom', 'cinderbloom', 'edenMushroom', 'edenShroomlet', 'peridexionTree', 'vegetableLamb']);
 
 /**
  * Resolve the reward of the feature under the champion, if any.

@@ -148,6 +148,30 @@ test('scoria rose: grants renewable knots and regrows', () => {
   assert.equal(tile.feature.ripe, false);
 });
 
+test('eden mushroom: heals and regrows on the shared timer', () => {
+  const champ = humanChamp({ hp: 30 });
+  const tile = makeTile('plains', { feature: { kind: 'edenMushroom' } });
+  const state = stateWith(champ, tile);
+
+  interactWithFeature(state, champ, tile);
+
+  assert.equal(champ.hp, 42, '+12 HP');
+  assert.equal(tile.feature.ripe, false);
+  assert.equal(tile.feature.nextRewardDay, 5, 'day 1 + 4 regrow days');
+  assert.ok(state._regrowingFeatures.has(HERE));
+});
+
+test('shroomlet: small heal and regrows', () => {
+  const champ = humanChamp({ hp: 30 });
+  const tile = makeTile('plains', { feature: { kind: 'edenShroomlet' } });
+  const state = stateWith(champ, tile);
+
+  interactWithFeature(state, champ, tile);
+
+  assert.equal(champ.hp, 36, '+6 HP');
+  assert.equal(tile.feature.ripe, false);
+});
+
 // ── Choice rewards — human modal payload ──────────────────────────────────────
 
 test('witness stone: human gets a pending choice reward, feature not yet consumed', () => {
@@ -305,6 +329,15 @@ test('featureValueForBot: base value, spent gate, and heal bonus', () => {
     'scenery is not a target');
   assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'unknownKind' } })), 0,
     'unknown kinds are not targets');
+});
+
+test('featureValueForBot: edenfall mushrooms count as heal targets when injured', () => {
+  const hurt = makeChampion({ hp: 40, maxHp: 100 });
+
+  assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'edenMushroom' } })), 34,
+    'eden mushroom (24) + injury bonus (10)');
+  assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'edenShroomlet' } })), 28,
+    'shroomlet (18) + injury bonus (10)');
 });
 
 // ── Arrival integration ───────────────────────────────────────────────────────

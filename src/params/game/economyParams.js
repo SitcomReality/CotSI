@@ -58,6 +58,10 @@ export const FEATURE_COPYIST_DEFENSE = 2;
 export const FEATURE_WAXBLOOM_HEAL = 10;
 /** Heal granted by Cinderbloom (replenishable). */
 export const FEATURE_CINDERBLOOM_HEAL = 6;
+/** Heal granted by Eden Mushroom (replenishable). */
+export const FEATURE_EDEN_MUSHROOM_HEAL = 12;
+/** Heal granted by Eden Shroomlet (replenishable). */
+export const FEATURE_EDEN_SHROOMLET_HEAL = 6;
 /** Heal granted by Peridexion Tree (replenishable). */
 export const FEATURE_PERIDEXION_HEAL = 8;
 /** Defense buff granted by Peridexion Tree (this turn). */

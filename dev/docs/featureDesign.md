@@ -163,8 +163,8 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 | listenerLichen | Listener Lichen | live | T3 | utility (reveal) **or** reward choice | finite | shared (Frigid Silence, Sere Wastes) | utility-as-choice |
 | snowperson | Snowperson | live | T2 | tempbuff (bonus movement this turn) | replenishable | sig (Tundra) | fun: snowperson grants a push |
 | nullLily | Null Lily | live | T3 | potency choice (which faction) | finite | sig (Unfinished Lands) | flagship choice feature — implemented, see §3a |
-| edenMushroom | Eden Mushroom | live | T2 | *open* | — | sig (Edenfall) | |
-| edenShroomlet | Shroomlet | live | T2 | *open* | — | sig (Edenfall) | |
+| edenMushroom | Eden Mushroom | live | T2 | heal, renewable | replenishable | sig (Edenfall) | placeholder amounts; balance pending |
+| edenShroomlet | Shroomlet | live | T2 | heal, renewable | replenishable | sig (Edenfall) | placeholder amounts; balance pending |
 | ~~vine~~ | ~~Ground Vine~~ | deleted | — | — | — | — | no biome spawned it |
 | ~~largeTree~~ | ~~Elder Tree~~ | deleted | — | — | — | — | no biome spawned it |
 | ~~redLetterBramble~~ | ~~Red-Letter Bramble~~ | deleted | — | — | — | — | obstacle — removed per decision 3 |

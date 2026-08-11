@@ -81,6 +81,14 @@ The game must keep working when the window resizes or the screen rotates
 audit fixed-size layout in `styles/`, panels/overlays, and pointer handling
 for narrow/tall aspect ratios.
 
+### 1.7 Feature reward design & balance
+
+Rewards are functional but un-tuned — amounts, tier scaling, and the shared
+`FEATURE_REGROW_DAYS` cadence need a design/balance pass. Edenfall mushrooms
+heal on starting values (`FEATURE_EDEN_MUSHROOM_HEAL` /
+`FEATURE_EDEN_SHROOMLET_HEAL` in `src/params/game/economyParams.js`).
+Per-feature reward intent tracked in `dev/docs/featureDesign.md` §5.
+
 ---
 
 ## 2. Bot AI
@@ -157,23 +165,13 @@ documented in `dev/docs/descriptorAuthoring.md` and
 
 ---
 
-## 5. Maintenance follow-ups (from techDebtAudit.md + goalTerrainDecorConsolidation.md)
+## 5. Maintenance follow-ups (from techDebtAudit.md)
 
-Consolidated here when the audit and goal docs were retired (2026-08-11).
-The rest of those documents described completed work and now lives in git
-history; only the open items below remain.
+Consolidated here when the audit doc was retired (2026-08-11); the rest of that
+document described completed work and now lives in git history. Only the open
+items below remain.
 
-### 5.1 Design decision — Edenfall mushroom rewards (techDebtAudit §6)
-
-`src/params/game/aiParams.js:37,43` — `BOT_FEATURE_SCORES` gives
-`edenMushroom: 24` / `edenShroomlet: 18`, but no reward logic exists for either
-kind (`featureRewards.js`'s `FEATURES` table has no entries;
-`arrivalInteractions.js` only handles fruitTree/knot/treasureChest). Bots spend
-a full turn pathing to an Edenfall mushroom for nothing. Either add the two
-kinds as rewards (they look like heal rewards) or drop the scores until the
-reward exists.
-
-### 5.2 Split candidate — `src/params/game/worldParams.js` (techDebtAudit §1)
+### 5.1 Split candidate — `src/params/game/worldParams.js` (techDebtAudit §1)
 
 Still a 292-line catch-all mixing ~18 parameter domains, unlike every other
 `params/game/` file. Proposed split — pure constant moves, no value changes:
@@ -188,7 +186,7 @@ Still a 292-line catch-all mixing ~18 parameter domains, unlike every other
 Consumers to re-point during the refactor: `terrainGen/**`,
 `game/state/chunkManager.js` + `runtime/mapRefresh.js`.
 
-### 5.3 Dead code to prune (techDebtAudit §6 — still present)
+### 5.2 Dead code to prune (techDebtAudit §6 — still present)
 
 - `dev/tools/analysis/ui/cycle.js:139` — `restartCycle` export unused;
   `dev/tools/analysis/domRefs.js:54` — `els.statsPanel` cache unused
@@ -204,7 +202,7 @@ Consumers to re-point during the refactor: `terrainGen/**`,
   `featureGeometries.js` getters unused; `scene/panAnimation.js`
   `_panFrameCount` debug leftover
 
-### 5.4 Minor latent / perf notes (techDebtAudit §6 — still present)
+### 5.3 Minor latent / perf notes (techDebtAudit §6 — still present)
 
 - `minimapTerrainLayer.js:50` — color fallback is gray while the 3D path falls
   back to plains for `hill`/`plateau` (not currently visible: every biome
@@ -219,23 +217,16 @@ Consumers to re-point during the refactor: `terrainGen/**`,
   `a * 7 + b` vs `FACTION_COUNT`
 - `dev/tools/analysis/generation/thresholdDerivation.js:246` — wrong JSDoc type
 
-### 5.5 Out of scope (techDebtAudit §7)
+### 5.4 Out of scope (techDebtAudit §7)
 
 - Root `styles/` (the game's CSS design system) — never audited at the same
   ~100-line level; a future pass could reuse the audit method.
 
-### 5.6 Grove display-name nit (goalTerrainDecorConsolidation)
-
-The goal specified per-terrain grove display names ("Forest Grove" / "Deep Wood
-Grove"); groves still use one `displayName: 'Tree Grove'`
-(`src/render/hexmap3d/worldObjects/descriptors/data/grove.js`). Either add
-per-variant display names or close the goal.
-
-### 5.7 Conditional extracts (techDebtAudit §2 — only if these files grow)
+### 5.5 Conditional extracts (techDebtAudit §2 — only if these files grow)
 
 - `src/devtools/performance/reportBuilder.js` (938) — extract `_formatReport`
   (~148 lines) → `reportFormatter.js` if it grows past ~1,000 lines
-- `src/game/state/featureRewards.js` (545) — extract the `FEATURES` table +
+- `src/game/state/featureRewards.js` (557) — extract the `FEATURES` table +
   card builders → `featureRewardTable.js` if it grows past ~650 lines
 - `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` (890) —
   extract the entity path → `entityRecords.js` if it grows past ~1,100 lines
