@@ -2,7 +2,7 @@
  * foolsFire.js — Descriptor data for "Fool's Fire".
  *
  * Generated file: edit this object in the geometry editor
- * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
+ * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const FOOLS_FIRE_DESCRIPTOR = {
   schemaVersion: 5,

@@ -19,7 +19,7 @@ import {
   validateDescriptor,
 } from '../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { ALL_DESCRIPTORS } from '../../src/render/hexmap3d/worldObjects/descriptors/data/index.js';
-import { emitDescriptorModule, descriptorExportName } from '../../dev/geometryEditor/emitDescriptor.js';
+import { emitDescriptorModule, descriptorExportName } from '../../dev/tools/geometryEditor/emitDescriptor.js';
 
 const all = ALL_DESCRIPTORS;
 

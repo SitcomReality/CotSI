@@ -2,7 +2,7 @@
  * grove.js — Descriptor data for "Tree Grove".
  *
  * Generated file: edit this object in the geometry editor
- * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
+ * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const GROVE_DESCRIPTOR = {
   schemaVersion: 4,

@@ -65,7 +65,7 @@ test('seed variance: different seeds produce different maps', () => {
 test('terrain budget: wide snapshot ranges hold at r=14', () => {
   // Ranges recalibrated 2026-08-07 after the peak/floatingIsland removal
   // (mountain is now the scarce capstone; plateau fills the former highland
-  // band). Mirrors the TOLERANCE ranges in dev/analysis/generation/snapshotTest.js.
+  // band). Mirrors the TOLERANCE ranges in dev/tools/analysis/generation/snapshotTest.js.
   for (const seed of ['budget-a', 'budget-b', 'budget-c']) {
     const tiles = generateTiles(seed, RADIUS);
     const total = Object.keys(tiles).length;
@@ -151,7 +151,7 @@ test('map covers the full radius disc', () => {
 });
 
 test('chunk generation is deterministic per chunk (seam invariant)', () => {
-  // Frequencies scale with map radius (dev/futureWork.md §2), so cross-radius
+  // Frequencies scale with map radius (dev/docs/futureWork.md §2), so cross-radius
   // tile equality is not an invariant. The real invariant is per-chunk
   // determinism at a fixed radius — the basis for seamless chunked generation.
   const a = generateChunkTiles('chunk-seed', 1, -1, RADIUS).tileMap;
@@ -411,7 +411,7 @@ test('applyRiverTerrain: path tiles become river and lose features; water mouths
 });
 
 // ---------------------------------------------------------------------------
-// Rain shadow (classification/moistureAdjustment.js — dev/futureWork.md §2)
+// Rain shadow (classification/moistureAdjustment.js — dev/docs/futureWork.md §2)
 // ---------------------------------------------------------------------------
 
 test('rain shadow: upwind ridge ≥0.2 higher dries the leeward tile', () => {

@@ -34,7 +34,7 @@ export function adjustMoisture(q, r, baseMoisture, fieldMap, provisionalWaterSet
 }
 
 /**
- * Rain shadow drying effect (dev/futureWork.md §2).
+ * Rain shadow drying effect (dev/docs/futureWork.md §2).
  *
  * Samples elevation upwind of the tile (prevailing wind direction
  * RAIN_SHADOW_WIND at each distance in RAIN_SHADOW_DISTANCES). If the upwind

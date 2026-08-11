@@ -2,7 +2,7 @@
  * palimpsestSlab.js — Descriptor data for "Palimpsest Slab".
  *
  * Generated file: edit this object in the geometry editor
- * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
+ * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const PALIMPSEST_SLAB_DESCRIPTOR = {
   schemaVersion: 3,

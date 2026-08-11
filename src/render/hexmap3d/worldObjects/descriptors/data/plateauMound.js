@@ -2,7 +2,7 @@
  * plateauMound.js — Descriptor data for "Plateau Mound".
  *
  * Generated file: edit this object in the geometry editor
- * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
+ * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const PLATEAU_MOUND_DESCRIPTOR = {
   schemaVersion: 5,

@@ -2,7 +2,7 @@
  * infernalpaca.js — Descriptor variant for the Infernalpaca mob.
  *
  * Recovered from the hand-authored experiment `data/infernalpaca.js` (see
- * dev/mobGeometryAndAnimation.md) and re-authored as a mob variant block:
+ * dev/docs/mobGeometryAndAnimation.md) and re-authored as a mob variant block:
  * geometry only — the experimental imperative animation runtime
  * (INFERNALPACA_ANIMATIONS / applyAnimation) is intentionally dropped until
  * the declarative animation system lands.

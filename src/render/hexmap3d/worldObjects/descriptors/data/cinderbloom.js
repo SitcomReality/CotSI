@@ -2,7 +2,7 @@
  * cinderbloom.js — Descriptor data for "Cinderbloom".
  *
  * Generated file: edit this object in the geometry editor
- * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
+ * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const CINDERBLOOM_DESCRIPTOR = {
   schemaVersion: 5,

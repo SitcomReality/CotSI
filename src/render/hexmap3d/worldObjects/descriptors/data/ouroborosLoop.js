@@ -2,7 +2,7 @@
  * ouroborosLoop.js — Descriptor data for "Ouroboros Loop".
  *
  * Generated file: edit this object in the geometry editor
- * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
+ * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const OUROBOROS_LOOP_DESCRIPTOR = {
   schemaVersion: 3,

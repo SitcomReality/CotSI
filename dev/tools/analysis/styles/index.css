@@ -1,0 +1,14 @@
+/* index.css — Barrel: imports all analysis page stylesheets.
+   Game design tokens first, then page styles in rate-of-change order. */
+
+@import "../../../../styles/abstracts/variables.css";
+@import "./reset.css";
+@import "./layout.css";
+@import "./controls.css";
+@import "./sidebar.css";
+@import "./legend.css";
+@import "./entityKey.css";
+@import "./statsPanel.css";
+@import "./scrolling.css";
+@import "./cycle.css";
+@import "./batch.css";

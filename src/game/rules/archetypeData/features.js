@@ -16,7 +16,7 @@
  *      src/render/hexmap3d/worldObjects/descriptors/data/ — one file per
  *      object, `<id>.js`, registered in data/index.js
  *   3. Add a biome rule referencing its kind
- *   4. Add an entry to dev/analysis/render/theme.js FEATURES table
+ *   4. Add an entry to dev/tools/analysis/render/theme.js FEATURES table
  */
 
 import { defineArchetype } from '../archetypes.js';

@@ -2,7 +2,7 @@
  * saintsRib.js — Descriptor data for "Saint's Rib".
  *
  * Generated file: edit this object in the geometry editor
- * (dev/geometryEditor.html) and press Save — hand edits are overwritten.
+ * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const SAINTS_RIB_DESCRIPTOR = {
   schemaVersion: 4,

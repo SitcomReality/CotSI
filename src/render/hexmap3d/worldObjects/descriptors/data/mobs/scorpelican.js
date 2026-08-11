@@ -2,7 +2,7 @@
  * scorpelican.js — Descriptor variant for the Scorpelican mob.
  *
  * Recovered from the hand-authored experiment `data/scorpelican.js` (see
- * dev/mobGeometryAndAnimation.md) and re-authored as a mob variant block:
+ * dev/docs/mobGeometryAndAnimation.md) and re-authored as a mob variant block:
  * geometry only — the experimental declarative animation-clip spec (the bare
  * JSON block that also made the original file a syntax error) is dropped until
  * the declarative animation system lands.

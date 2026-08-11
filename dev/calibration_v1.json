@@ -1,5 +1,4 @@
 {
-  "$schema": "dev/mapgen_update/calibration_v1.schema.json",
   "title": "Phase 0 Calibration — Terrain Generation Redesign",
   "description": "Percentile thresholds derived from pooled histogram data. Thresholds remain valid through Phases B and F provided the LUTs are regenerated after each distribution change.",
   "thresholds": {
