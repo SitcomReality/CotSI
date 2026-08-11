@@ -9,15 +9,16 @@
  *     variant's id (via variantRule 'faction').
  *   - BASE_DESCRIPTOR — the descriptor form, derived from those tables.
  *
- * The shared tower/cap/generator building blocks live in bases/shared.js —
- * the committed faction files compose from them (see the editor-overwrite
- * caveat there). The geometry editor saves ONLY the active faction to
- * data/bases/<faction>.js; this barrel is never rewritten by a save.
+ * Each faction's citadel is fully authored (see the per-faction files): all
+ * part ids are unique across every variant (cruF..., revF..., ...) so part
+ * grouping in meshAssembly never mixes two different geometries under one id.
+ * The geometry editor saves ONLY the active faction to data/bases/<faction>.js;
+ * this barrel is never rewritten by a save.
  *
- * Decoration parts carry unique part ids per variant (spike0..5, ring,
- * crown0..7, dot0..3, dome, spire, hangSpike) so part grouping in
- * meshAssembly never mixes two different geometries under one id. Material
- * stays white — instance colors drive the look.
+ * Faction identity comes from architectural silhouette + accent
+ * (aestheticConventions §4): main structures use the 'factionBase' token,
+ * signature elements the 'factionAccent' token, with dark iron/stone literals
+ * for the foundations. Material stays white — instance colors drive the look.
  */
 import { CRU_VARIANT } from './bases/cru.js';
 import { REV_VARIANT } from './bases/rev.js';

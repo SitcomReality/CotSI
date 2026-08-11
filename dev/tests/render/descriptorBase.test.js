@@ -1,12 +1,12 @@
 /**
  * descriptorBase.test.js — Base descriptor data + entity record path.
  *
- * The base descriptor (descriptors/data/base.js) is migrated 1:1 from the old
- * baseMeshes.js switch: tower + cap + per-faction decoration, keyed by the 7
- * faction shorts. These tests lock the descriptor→record mapping (golden
- * snapshots per faction), the faction-palette color tokens, variant fallback,
- * part-id uniqueness (so meshAssembly never merges two geometries under one
- * id), and the real game path (buildBaseMeshes over a synthetic state).
+ * The base descriptor (descriptors/data/base.js) is a fully authored citadel
+ * per faction (data/bases/<faction>.js), keyed by the 7 faction shorts. These
+ * tests lock the descriptor→record mapping (golden snapshots), the
+ * faction-palette color tokens, variant fallback, part-id uniqueness (so
+ * meshAssembly never merges two geometries under one id), and the real game
+ * path (buildBaseMeshes over a synthetic state).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -43,70 +43,74 @@ test('base descriptor validates and has all 7 faction variants', () => {
   assert.equal(BASE_DESCRIPTOR.variantRule, 'faction');
 });
 
-test('decoration part ids are unique per variant (no geometry collisions in meshAssembly)', () => {
-  const shared = ['tower', 'cap'];
+test('every base part id is unique across all variants (no geometry collisions in meshAssembly)', () => {
+  const seen = new Map(); // part id → owning faction
   for (const [id, parts] of Object.entries(BASE_VARIANTS)) {
     const ids = parts.map((p) => p.id);
-    assert.ok(ids.length === new Set(ids).size, `${id}: duplicate part ids within variant`);
+    assert.equal(ids.length, new Set(ids).size, `${id}: duplicate part ids within variant`);
     for (const pid of ids) {
-      if (shared.includes(pid)) continue;
-      const elsewhere = Object.entries(BASE_VARIANTS)
-        .filter(([otherId]) => otherId !== id)
-        .some(([, otherParts]) => otherParts.some((p) => p.id === pid));
-      assert.ok(!elsewhere, `${id}: part id "${pid}" must be unique to one variant`);
+      const owner = seen.get(pid);
+      assert.ok(!owner, `part id "${pid}" shared between ${owner} and ${id}`);
+      seen.set(pid, id);
     }
+  }
+});
+
+test('every variant carries both identity tokens (factionBase structure + factionAccent signature)', () => {
+  for (const [id, parts] of Object.entries(BASE_VARIANTS)) {
+    const colors = new Set(parts.map((p) => p.color));
+    assert.ok(colors.has('factionBase'), `${id}: no factionBase part`);
+    assert.ok(colors.has('factionAccent'), `${id}: no factionAccent part`);
   }
 });
 
 // ── Golden snapshots (one per faction) ─────────────────────────────────────
 
-test('golden snapshot: CRU base (tower + cap + 6 leaning spikes)', () => {
+test('golden snapshot: CRU base (Forge-Citadel)', () => {
   const records = recordsForEntity(normalizeDescriptor(BASE_DESCRIPTOR), ENTITY('CRU'), POS);
   assert.deepEqual(records, [
-    { partId: 'tower', x: 0, y: 0.35, z: 0, scale: 1, scaleY: 1, color: 0x224466 },
-    { partId: 'cap', x: 0, y: 0.75, z: 0, scale: 1, scaleY: 1, color: 0x224466 },
-    ...Array.from({ length: 6 }, (_, i) => {
-      const a = (Math.PI * 2 / 6) * i;
-      return {
-        partId: `spike${i}`, x: 0, y: 0.1, z: 0, scale: 1, scaleY: 1, // y = 0.1 bottom — tilt pivots at the base
-        lift: 0.05, // cone h 0.1 → base 0.05 rides inside the tilt rotation
-        localPos: { x: Math.cos(a) * 0.28, y: 0, z: Math.sin(a) * 0.28 },
-        tiltAxis: { x: Math.sin(a), z: -Math.cos(a) },
-        tilt: 0.3,
-        color: 0xd8b830,
-      };
-    }),
+    { partId: 'cruFPlinth', x: 0, y: 0.05, z: 0, scale: 1, scaleY: 1, color: 0x2a2628 }, // iron plinth — spans 0..0.1
+    { partId: 'cruFKeep', x: 0, y: 0.23, z: 0, scale: 1, scaleY: 1, color: 0x224466 },
+    { partId: 'cruFTowerFL', x: 0, y: 0.18, z: 0, scale: 1, scaleY: 1, localPos: { x: -0.27, y: 0, z: -0.27 }, color: 0x224466 },
+    { partId: 'cruFTowerFR', x: 0, y: 0.18, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.27, y: 0, z: -0.27 }, color: 0x224466 },
+    { partId: 'cruFTowerBL', x: 0, y: 0.18, z: 0, scale: 1, scaleY: 1, localPos: { x: -0.27, y: 0, z: 0.27 }, color: 0x224466 },
+    { partId: 'cruFTowerBR', x: 0, y: 0.18, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.27, y: 0, z: 0.27 }, color: 0x224466 },
+    { partId: 'cruFGate', x: 0, y: 0.2, z: 0, scale: 1, scaleY: 1, localPos: { x: 0, y: 0, z: 0.25 }, color: 0x0c0e12 },
+    { partId: 'cruFChimney', x: 0, y: 0.45, z: 0, scale: 1, scaleY: 1, localPos: { x: 0, y: 0, z: 0.02 }, color: 0x2a2628 },
+    { partId: 'cruFEmber', x: 0, y: 0.7100000000000001, z: 0, scale: 1, scaleY: 1, localPos: { x: 0, y: 0, z: 0.02 }, color: 0xd8b830 }, // floats above the chimney (1-ulp drift)
   ]);
 });
 
-test('golden snapshot: REV base (tower + cap + flat ring) and HOL base (inverted spike)', () => {
-  const rev = recordsForEntity(normalizeDescriptor(BASE_DESCRIPTOR), ENTITY('REV'), POS);
-  assert.deepEqual(rev, [
-    { partId: 'tower', x: 0, y: 0.35, z: 0, scale: 1, scaleY: 1, color: 0x224466 },
-    { partId: 'cap', x: 0, y: 0.75, z: 0, scale: 1, scaleY: 1, color: 0x224466 },
-    { partId: 'ring', x: 0, y: 0.85, z: 0, scale: 1, scaleY: 1, localAxis: { x: 1, y: 0, z: 0 }, localAngle: Math.PI / 2, color: 0xd8b830 },
+test('golden snapshot: HOL base (Hollow-Bastion — ring + localPos parts)', () => {
+  const records = recordsForEntity(normalizeDescriptor(BASE_DESCRIPTOR), ENTITY('HOL'), POS);
+  assert.deepEqual(records, [
+    { partId: 'holFPlinth', x: 0, y: 0.05, z: 0, scale: 1, scaleY: 1, color: 0x224466 },
+    { partId: 'holFTowerL', x: 0, y: 0.31, z: 0, scale: 1, scaleY: 1, localPos: { x: -0.16, y: 0, z: 0 }, color: 0x224466 },
+    { partId: 'holFTowerR', x: 0, y: 0.31, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.16, y: 0, z: 0 }, color: 0x224466 },
+    { partId: 'holFLintel', x: 0, y: 0.495, z: 0, scale: 1, scaleY: 1, color: 0x2a2628 },
+    { partId: 'holFVoid', x: 0, y: 0.38, z: 0, scale: 1, scaleY: 1, localPos: { x: 0, y: 0, z: 0.04 }, color: 0x0c0e12 }, // the abyss core of the arch
+    { partId: 'holFRing', x: 0, y: 0.64, z: 0, scale: 1, scaleY: 1, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 1.05, color: 0xd8b830 }, // torus base (tube) baked into y
+    { partId: 'holFShardL', x: 0, y: 0.41, z: 0, scale: 1, scaleY: 1, localPos: { x: -0.32, y: 0, z: 0.12 }, color: 0xd8b830 },
+    { partId: 'holFShardR', x: 0, y: 0.54, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.32, y: 0, z: -0.08 }, color: 0xd8b830 },
   ]);
-
-  const hol = recordsForEntity(normalizeDescriptor(BASE_DESCRIPTOR), ENTITY('HOL'), POS);
-  assert.deepEqual(hol[2], {
-    partId: 'hangSpike', x: 0, y: 0.06999999999999999, z: 0, scale: 1, scaleY: 1, // y = 0.01 bottom + 0.06 base (1-ulp drift)
-    localAxis: { x: 1, y: 0, z: 0 }, localAngle: Math.PI, color: 0xd8b830,
-  });
 });
 
-test('part counts per faction match the old builder (8/3/10/6/3/3/3)', () => {
+test('part counts per faction', () => {
   const normalized = normalizeDescriptor(BASE_DESCRIPTOR);
   const counts = ['CRU', 'REV', 'VER', 'ARC', 'HRT', 'MSK', 'HOL'].map(
     (f) => recordsForEntity(normalized, ENTITY(f), POS).length,
   );
-  assert.deepEqual(counts, [8, 3, 10, 6, 3, 3, 3]);
+  assert.deepEqual(counts, [9, 5, 6, 8, 7, 10, 8]);
 });
 
 // ── Variant + color semantics ───────────────────────────────────────────────
 
 test('unknown faction falls back to the CRU variant', () => {
   const records = recordsForEntity(normalizeDescriptor(BASE_DESCRIPTOR), ENTITY('ZZZ'), POS);
-  assert.deepEqual(records.map((r) => r.partId), ['tower', 'cap', 'spike0', 'spike1', 'spike2', 'spike3', 'spike4', 'spike5']);
+  assert.deepEqual(
+    records.map((r) => r.partId),
+    ['cruFPlinth', 'cruFKeep', 'cruFTowerFL', 'cruFTowerFR', 'cruFTowerBL', 'cruFTowerBR', 'cruFGate', 'cruFChimney', 'cruFEmber'],
+  );
 });
 
 test('recordsForEntity is deterministic and hidden displacement yields no records', () => {
@@ -115,16 +119,18 @@ test('recordsForEntity is deterministic and hidden displacement yields no record
   assert.deepEqual(recordsForEntity(normalized, ENTITY('VER'), POS, { hidden: true }), []);
 });
 
-test('color tokens resolve from the faction palette (FACTIONS hex strings)', () => {
+test('color tokens resolve from the faction palette (FACTIONS hex strings); literals pass through', () => {
   const normalized = normalizeDescriptor(BASE_DESCRIPTOR);
   const hex = (s) => parseInt(s.slice(1), 16);
   for (const fac of FACTIONS) {
     const entity = { faction: fac.short, colors: { factionBase: hex(fac.base), factionAccent: hex(fac.color) } };
     const records = recordsForEntity(normalized, entity, POS);
-    for (const r of records) {
-      const expected = r.partId === 'tower' || r.partId === 'cap' ? hex(fac.base) : hex(fac.color);
-      assert.equal(r.color, expected, `${fac.short} ${r.partId} color`);
-    }
+    const parts = BASE_VARIANTS[fac.short];
+    assert.equal(records.length, parts.length, `${fac.short}: one record per part`);
+    parts.forEach((p, i) => {
+      const expected = p.color === 'factionBase' ? hex(fac.base) : p.color === 'factionAccent' ? hex(fac.color) : p.color;
+      assert.equal(records[i].color, expected, `${fac.short} ${p.id} color`);
+    });
   }
 });
 
@@ -142,22 +148,15 @@ test('buildBaseMeshes renders bases through the game path, instanced per part', 
   const meshes = buildBaseMeshes({ tiles }, ['0,0', '2,1', '5,3', '7,4']);
 
   const byName = new Map(meshes.map((m) => [m.name, m]));
-  assert.equal(byName.get('base-tower').count, 2, 'tower instanced across both bases');
-  assert.equal(byName.get('base-cap').count, 2);
-  assert.equal(byName.get('base-spike0').count, 1, 'CRU spikes present once');
-  assert.equal(byName.get('base-crown0').count, 1, 'VER crown present once');
-  assert.ok(!byName.has('base-ring') && !byName.has('base-hangSpike'), 'no decoration from unselected factions');
+  assert.equal(byName.get('base-cruFKeep').count, 1, 'CRU keep present once');
+  assert.equal(byName.get('base-verFTrunk').count, 1, 'VER trunk present once');
+  assert.ok(!byName.has('base-revFSpire'), 'no parts from unselected factions');
 
-  // Colors: CRU tower carries faction 0's base color via instance color.
-  const tower = byName.get('base-tower');
-  assert.ok(tower.count === 2);
-  assert.ok(tower.isInstancedMesh);
-
-  // Decoration colors come from the entity mapping's factionAccent token
-  // (CRU spike at index 0, VER crown at index 0) — guards the same regression
+  // Signature parts carry the faction accent color via instance color (CRU
+  // ember at index 0, VER crown-tip at index 0) — guards the same regression
   // class as the champion/mob accent assertions.
-  const spike0 = byName.get('base-spike0');
-  const crown0 = byName.get('base-crown0');
-  assert.equal(instanceColorAt(spike0, 0), hexColor(FACTIONS[0].color), 'CRU decoration accent');
-  assert.equal(instanceColorAt(crown0, 0), hexColor(FACTIONS[2].color), 'VER decoration accent');
+  const ember = byName.get('base-cruFEmber');
+  const tip = byName.get('base-verFTip');
+  assert.equal(instanceColorAt(ember, 0), hexColor(FACTIONS[0].color), 'CRU accent');
+  assert.equal(instanceColorAt(tip, 0), hexColor(FACTIONS[2].color), 'VER accent');
 });

@@ -9,15 +9,17 @@
  *     variant's id (via variantRule 'faction').
  *   - CHAMPION_DESCRIPTOR — the descriptor form, derived from those tables.
  *
- * The shared body/head/accents building blocks live in champions/shared.js —
- * the committed faction files compose from them (see the editor-overwrite
- * caveat there). The geometry editor saves ONLY the active faction to
+ * Each faction's miniature is fully authored (see the per-faction files):
+ * every part id is unique to its faction (cruX, revX, ...) except the shared
+ * PEDESTAL stand from champions/shared.js, which is identical in all seven
+ * variants so meshAssembly merges every champion's stand into one
+ * InstancedMesh. The geometry editor saves ONLY the active faction to
  * data/champions/<faction>.js; this barrel is never rewritten by a save.
  *
- * Per the design brief, each faction gets a SLIGHT variation on the same body
- * — a small head accent in the faction accent color ('factionAccent'), the
- * same idea as the base decorations. The accents are ordinary descriptor
- * parts, so anyone can author richer faction looks in the geometry editor.
+ * Faction identity comes from silhouette + accent (aestheticConventions §4):
+ * each miniature is colored primarily via the 'factionBase' token, its
+ * signature element via 'factionAccent', with warm dark/bone literals for
+ * metal, wood and stone detail.
  */
 import { CRU_VARIANT } from './champions/cru.js';
 import { REV_VARIANT } from './champions/rev.js';

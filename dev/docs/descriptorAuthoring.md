@@ -72,8 +72,8 @@ bases from `data/bases/<faction>.js`, champions from `data/champions/<faction>.j
 (each a `<NAME>_VARIANT` block — see `variantExportName`/`emitVariantModule` in
 `dev/tools/geometryEditor/emitDescriptor.js`). The editor Save writes ONLY the
 active variant's file; the barrels stay hand-composed and are never rewritten
-by a save. The shared building blocks for bases/champions live in
-`data/bases/shared.js` / `data/champions/shared.js`.
+by a save. Champions compose their shared pedestal stand from
+`data/champions/shared.js`; the base variants are fully self-contained.
 
 Module shape (this is what the editor Save produces; copying the header is
 optional for new files):

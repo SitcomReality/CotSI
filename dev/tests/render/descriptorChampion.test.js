@@ -1,11 +1,14 @@
 /**
  * descriptorChampion.test.js — Champion descriptor data + entity record path.
  *
- * Champions migrate from unitMeshes.js: a cylinder body (faction-colored via
- * the 'factionBase' token) + sphere head (fixed skin-tone materialColor, no
- * instance color) + one slight per-faction accent part in the faction accent
- * color. Variants are keyed by the 7 faction shorts; records come from
- * recordsForEntity and render through the same generic pipeline as bases.
+ * Each faction's champion is a fully authored miniature (data/champions/
+ * <faction>.js): a distinct silhouette per faction, colored via the
+ * 'factionBase'/'factionAccent' tokens plus warm dark/bone literals. Every
+ * champion stands on the same PEDESTAL (identical id/shape/params across all
+ * variants) so meshAssembly merges all seven stands into one InstancedMesh;
+ * every other part id is unique to its faction, so silhouettes never collide
+ * under one part id. Variants are keyed by the 7 faction shorts; records come
+ * from recordsForEntity and render through the same generic pipeline as bases.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -34,60 +37,81 @@ test('champion descriptor validates and has all 7 faction variants', () => {
   for (const fac of FACTIONS) assert.ok(ids.has(fac.short), `missing variant "${fac.short}"`);
   assert.equal(CHAMPION_DESCRIPTOR.kind, 'champion');
   assert.equal(CHAMPION_DESCRIPTOR.variantRule, 'faction');
-  // Every variant shares the same body + head parts (same part ids, same shapes).
-  const baseParts = CHAMPION_VARIANTS.CRU.map((p) => `${p.id}:${p.shape}`);
+});
+
+test('every champion stands on the identical shared pedestal; all other ids are faction-unique', () => {
+  const pedestalParams = JSON.stringify(CHAMPION_VARIANTS.CRU[0].params);
+  const seen = new Map(); // part id → owning faction
   for (const [id, parts] of Object.entries(CHAMPION_VARIANTS)) {
-    assert.deepEqual(parts.map((p) => `${p.id}:${p.shape}`).slice(0, 2), baseParts.slice(0, 2), `${id}: body/head differ`);
+    assert.ok(parts.length >= 6, `${id}: miniature is thin (${parts.length} parts)`);
+    const pedestal = parts[0];
+    assert.equal(pedestal.id, 'pedestal', `${id}: pedestal must be the first part`);
+    assert.equal(JSON.stringify(pedestal.params), pedestalParams, `${id}: pedestal geometry differs`);
+    const ids = parts.map((p) => p.id);
+    assert.equal(ids.length, new Set(ids).size, `${id}: duplicate part ids`);
+    for (const pid of ids) {
+      if (pid === 'pedestal') continue; // the one intentionally shared id
+      const owner = seen.get(pid);
+      assert.ok(!owner, `part id "${pid}" shared between ${owner} and ${id}`);
+      seen.set(pid, id);
+    }
   }
 });
 
-test('every faction variant has exactly one accent part with a unique id', () => {
+test('every variant carries both identity tokens (factionBase body + factionAccent signature)', () => {
   for (const [id, parts] of Object.entries(CHAMPION_VARIANTS)) {
-    assert.equal(parts.length, 3, `${id}: body + head + one accent`);
-    const accent = parts[2];
-    assert.equal(accent.color, 'factionAccent', `${id}: accent is faction-colored`);
-    const ids = parts.map((p) => p.id);
-    assert.equal(ids.length, new Set(ids).size, `${id}: duplicate part ids`);
-    const elsewhere = Object.entries(CHAMPION_VARIANTS)
-      .filter(([otherId]) => otherId !== id)
-      .some(([, otherParts]) => otherParts.some((p) => p.id === accent.id));
-    assert.ok(!elsewhere, `${id}: accent id "${accent.id}" must be unique to one variant`);
+    const colors = new Set(parts.map((p) => p.color));
+    assert.ok(colors.has('factionBase'), `${id}: no factionBase part`);
+    assert.ok(colors.has('factionAccent'), `${id}: no factionAccent part`);
   }
 });
 
 // ── Golden snapshots ────────────────────────────────────────────────────────
 
-test('golden snapshot: CRU champion (body + head + top spike)', () => {
+test('golden snapshot: CRU champion (Forge Juggernaut)', () => {
   const records = recordsForEntity(normalizeDescriptor(CHAMPION_DESCRIPTOR), ENTITY('CRU'), POS);
   assert.deepEqual(records, [
-    { partId: 'body', x: 0, y: 0.25, z: 0, scale: 1, scaleY: 1, color: 0x6e2e22 }, // flush bottom (0) + 0.25 base
-    { partId: 'head', x: 0, y: 0.44999999999999996, z: 0, scale: 1, scaleY: 1, color: 0xffe8c8 }, // skin tone — a literal instance color in v4; 1-ulp drift from the v3 grounding round-trip (0.35 + 0.1)
-    { partId: 'spikeTop', x: 0, y: 0.5800000000000001, z: 0, scale: 1, scaleY: 1, color: 0xb84530 }, // y = 0.55 bottom + 0.03 base (1-ulp drift)
+    { partId: 'pedestal', x: 0, y: 0.03, z: 0, scale: 1, scaleY: 1, color: 0x2a2628 }, // shared stand — spans 0..0.06
+    { partId: 'cruLegs', x: 0, y: 0.1, z: 0, scale: 1, scaleY: 1, color: 0x6e2e22 },
+    { partId: 'cruTorso', x: 0, y: 0.24000000000000002, z: 0, scale: 1, scaleY: 1, color: 0x6e2e22 },
+    { partId: 'cruPauldronL', x: 0, y: 0.345, z: 0, scale: 1, scaleY: 1, localPos: { x: -0.19, y: 0, z: 0 }, color: 0x6e2e22 },
+    { partId: 'cruPauldronR', x: 0, y: 0.345, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.19, y: 0, z: 0 }, color: 0x6e2e22 },
+    { partId: 'cruHelm', x: 0, y: 0.4, z: 0, scale: 1, scaleY: 1, color: 0x2a2628 },
+    { partId: 'cruHornL', x: 0, y: 0.42, z: 0, scale: 1, scaleY: 1, lift: 0.09, localPos: { x: -0.09, y: 0, z: 0 }, tiltAxis: { x: -1, z: 0 }, tilt: 0.5, color: 0xb84530 }, // tilt pivots at the helm
+    { partId: 'cruHornR', x: 0, y: 0.42, z: 0, scale: 1, scaleY: 1, lift: 0.09, localPos: { x: 0.09, y: 0, z: 0 }, tiltAxis: { x: 1, z: 0 }, tilt: 0.5, color: 0xb84530 },
+    { partId: 'cruShaft', x: 0, y: 0.29, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.22, y: 0, z: 0.08 }, color: 0x2a2628 },
+    { partId: 'cruHammerHead', x: 0, y: 0.52, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.22, y: 0, z: 0.08 }, color: 0xb84530 },
+    { partId: 'cruEmberL', x: 0, y: 0.45499999999999996, z: 0, scale: 1, scaleY: 1, localPos: { x: -0.19, y: 0, z: 0 }, color: 0xe87a6a }, // glow literal — 1-ulp drift
+    { partId: 'cruEmberR', x: 0, y: 0.45499999999999996, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.19, y: 0, z: 0 }, color: 0xe87a6a },
   ]);
 });
 
-test('golden snapshot: REV champion (halo ring around the head)', () => {
+test('golden snapshot: REV champion (Dreammote — localAxis crescent + orbiting orbs)', () => {
   const records = recordsForEntity(normalizeDescriptor(CHAMPION_DESCRIPTOR), ENTITY('REV'), POS);
-  assert.deepEqual(records[2], {
-    partId: 'halo', x: 0, y: 0.45, z: 0, scale: 1, scaleY: 1,
-    localAxis: { x: 1, y: 0, z: 0 }, localAngle: Math.PI / 2, color: 0xb84530,
-  });
+  assert.deepEqual(records, [
+    { partId: 'pedestal', x: 0, y: 0.03, z: 0, scale: 1, scaleY: 1, color: 0x2a2628 },
+    { partId: 'revRobe', x: 0, y: 0.27, z: 0, scale: 1, scaleY: 1, color: 0x6e2e22 },
+    { partId: 'revHood', x: 0, y: 0.52, z: 0, scale: 1, scaleY: 1, color: 0x6e2e22 },
+    { partId: 'revFace', x: 0, y: 0.53, z: 0, scale: 1, scaleY: 1, localPos: { x: 0, y: 0, z: 0.06 }, color: 0x1c1624 },
+    { partId: 'revOrb1', x: 0, y: 0.5950000000000001, z: 0, scale: 1, scaleY: 1, localPos: { x: -0.15, y: 0, z: 0.08 }, color: 0xb84530 },
+    { partId: 'revOrb2', x: 0, y: 0.65, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.13, y: 0, z: -0.1 }, color: 0xb84530 },
+    { partId: 'revOrb3', x: 0, y: 0.545, z: 0, scale: 1, scaleY: 1, localPos: { x: 0.08, y: 0, z: 0.14 }, color: 0xb84530 },
+    { partId: 'revCrescent', x: 0, y: 0.68, z: 0, scale: 1, scaleY: 1, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 1.1, color: 0xb84530 }, // torus base (tube) baked into y
+  ]);
 });
 
-test('all seven factions record exactly three parts', () => {
+test('all seven factions record their miniature; fallback to CRU is deterministic', () => {
   const normalized = normalizeDescriptor(CHAMPION_DESCRIPTOR);
-  for (const fac of FACTIONS) {
-    const records = recordsForEntity(normalized, ENTITY(fac.short), POS);
-    assert.equal(records.length, 3, `${fac.short} parts`);
-    assert.equal(records[0].partId, 'body');
-    assert.equal(records[1].partId, 'head');
-  }
-});
-
-test('unknown faction falls back to the CRU variant; records are deterministic', () => {
-  const normalized = normalizeDescriptor(CHAMPION_DESCRIPTOR);
+  const counts = ['CRU', 'REV', 'VER', 'ARC', 'HRT', 'MSK', 'HOL'].map(
+    (f) => recordsForEntity(normalized, ENTITY(f), POS).length,
+  );
+  assert.deepEqual(counts, [12, 8, 8, 6, 9, 7, 7]);
   const fallback = recordsForEntity(normalized, { faction: 'ZZZ', colors: {} }, POS);
-  assert.deepEqual(fallback.map((r) => r.partId), ['body', 'head', 'spikeTop']);
+  assert.deepEqual(
+    fallback.map((r) => r.partId),
+    recordsForEntity(normalized, ENTITY('CRU'), POS).map((r) => r.partId),
+    'unknown faction falls back to the CRU miniature',
+  );
   assert.deepEqual(recordsForEntity(normalized, ENTITY('MSK'), POS), recordsForEntity(normalized, ENTITY('MSK'), POS));
 });
 
@@ -111,27 +135,23 @@ test('buildUnitMeshes renders champions through the descriptor pipeline', () => 
   const meshes = buildUnitMeshes(state, new Set(['0,0', '2,1']));
 
   const byName = (name) => meshes.filter((m) => m.name === name);
-  assert.equal(byName('champion-body').length, 1);
-  assert.equal(byName('champion-head').length, 1);
-  assert.equal(byName('champion-spikeTop').length, 1, 'CRU accent present');
-  assert.equal(byName('champion-gem').length, 1, 'MSK accent present');
-  assert.equal(byName('champion-halo').length, 0, 'no unselected-faction accents');
+  assert.equal(byName('champion-pedestal').length, 1, 'one shared pedestal mesh');
+  assert.equal(byName('champion-pedestal')[0].count, 2, 'pedestal instanced across both champions');
+  assert.equal(byName('champion-cruHelm').length, 1, 'CRU helm present');
+  assert.equal(byName('champion-mskMask').length, 1, 'MSK mask present');
+  assert.equal(byName('champion-revCrescent').length, 0, 'no unselected-faction parts');
 
-  // Body and head meshes: white material + per-instance colors (the head's
-  // skin tone is a literal instance color in v4 — materialColor is gone).
-  const body = byName('champion-body')[0];
-  const head = byName('champion-head')[0];
-  assert.equal(body.count, 2, 'one body instance per champion');
-  assert.equal(body.material.color.getHex(), 0xffffff);
-  assert.ok(body.instanceColor, 'body carries per-instance faction colors');
-  assert.equal(head.material.color.getHex(), 0xffffff, 'head material is white; the skin tone is an instance color');
-  assert.ok(head.instanceColor, 'head carries the skin-tone instance color');
-  assert.equal(head.count, 2);
+  // Every mesh keeps the white material; all color is per-instance (the shared
+  // pedestal carries the literal stand color).
+  const pedestal = byName('champion-pedestal')[0];
+  assert.equal(pedestal.material.color.getHex(), 0xffffff);
+  assert.ok(pedestal.instanceColor, 'pedestal carries per-instance colors');
+  assert.equal(instanceColorAt(pedestal, 0), 0x2a2628, 'pedestal stand color');
 
-  // Accents carry the faction accent color (CRU spike at index 0, MSK gem at
-  // index 1) — the entity mapping must provide factionAccent, not just base.
-  const spike = byName('champion-spikeTop')[0];
-  const gem = byName('champion-gem')[0];
-  assert.equal(instanceColorAt(spike, 0), hexColor(FACTIONS[0].color), 'CRU accent color');
-  assert.equal(instanceColorAt(gem, 0), hexColor(FACTIONS[5].color), 'MSK accent color');
+  // Signature parts carry the faction accent color — the entity mapping must
+  // provide factionAccent, not just base.
+  const horn = byName('champion-cruHornL')[0];
+  const pom = byName('champion-mskPom')[0];
+  assert.equal(instanceColorAt(horn, 0), hexColor(FACTIONS[0].color), 'CRU accent color');
+  assert.equal(instanceColorAt(pom, 0), hexColor(FACTIONS[5].color), 'MSK accent color');
 });
