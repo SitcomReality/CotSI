@@ -14,7 +14,7 @@ import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/mi
 import { setDerivedState, setInteractionHighlights, setPathPreview } from '../render/overlays/overlayStack.js';
 import { startMeasure, endMeasure } from '../devtools/performance/index.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
-import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
+import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter, isCameraPanInFlight } from './mapCamera.js';
 import { clearDirtyFlags, markChunkDirty } from '../game/state/chunkDirtyTracking.js';
 import { ensureChunk, missingChunksAround } from '../game/state/chunkManager.js';
 import { occupiedKeys } from '../render/hexmap3d/worldObjects/decorEmphasis.js';
@@ -182,7 +182,7 @@ export function refreshMap() {
       focusCameraOnHex(ch.pos.q, ch.pos.r);
       setLastCenteredChampionId(ch.id);
       lastFollowedChampKey = `${ch.pos.q},${ch.pos.r}`;
-    } else if (lastFollowedChampKey !== `${ch.pos.q},${ch.pos.r}`) {
+    } else if (!isCameraPanInFlight() && lastFollowedChampKey !== `${ch.pos.q},${ch.pos.r}`) {
       const ctx3d = getSceneContext();
       if (ctx3d) {
         chaseCameraToHex(ctx3d.getCameraState(), ctx3d.applyCamera, ch.pos.q, ch.pos.r);

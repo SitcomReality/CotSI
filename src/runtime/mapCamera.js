@@ -11,6 +11,22 @@ import { CAMERA_CHAMPION_ZOOM_PERCENT } from '../params/render/cameraParams.js';
 let lastCenteredChampionId = null;
 
 /**
+ * Whether a walk-length camera pan is currently in flight (set by
+ * hexBridge.walkPath for multi-hex human moves). While set, mapRefresh
+ * suppresses its per-refresh damped chase so the two camera motions don't
+ * fight — the walk pan covers the whole movement instead.
+ */
+let cameraPanInFlight = false;
+
+export function setCameraPanInFlight(inFlight) {
+  cameraPanInFlight = inFlight;
+}
+
+export function isCameraPanInFlight() {
+  return cameraPanInFlight;
+}
+
+/**
  * Center the camera on a hex with a smooth animated pan and fixed close-up zoom.
  * Sets the zoom immediately and animates the pan so the view moves smoothly
  * from the current position.

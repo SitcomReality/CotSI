@@ -20,6 +20,9 @@ import { FACTIONS } from '../game/rules/factionData.js';
 import { interactBase } from '../game/state/baseInteraction.js';
 import { setGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { handleTeleportClick } from '../devtools/devTools.js';
+import { animateCenterOnHex, getSceneContext } from '../render/hexmap3d/hexMapRenderer.js';
+import { setCameraPanInFlight } from './mapCamera.js';
+import { getClock } from '../shared/clockScheduler.js';
 import { CHAMPION_HEIGHT_OFFSET } from '../params/render/animationParams.js';
 
 // ─── Click-to-preview state (dev/docs/movementDesign.md §8) ────────────────
@@ -74,6 +77,21 @@ function walkPath(ch, pathKeys) {
     queuePath(ch.id, hops, fac, MOVE_DURATION);
   }
   clearGameContext();
+  // Scale the camera pan to the whole walk (one pan per committed path), so
+  // the view glides alongside the champion instead of swooshing to the final
+  // hex in one fast damped chase. mapRefresh's per-refresh chase is
+  // suppressed while this pan is in flight; the flag clears when the pan
+  // would have ended (robust even if a manual drag cancels the pan early).
+  const ctx3d = getSceneContext();
+  if (ctx3d && hops.length > 0) {
+    const finalHex = parseKey(pathKeys[pathKeys.length - 1]);
+    const panMs = hops.length * MOVE_DURATION;
+    setCameraPanInFlight(true);
+    animateCenterOnHex(ctx3d.getCameraState(), ctx3d.applyCamera, finalHex.q, finalHex.r, panMs);
+    // 'default' group = real time, matching the pan's frame-rate-independent
+    // timing (speed-group multipliers must not desync the flag).
+    getClock().setTimeout(() => setCameraPanInFlight(false), panMs + 50, 'default');
+  }
   // Drop any hover/preview route overlay — the champion moved, so the old
   // path no longer starts at the champion. The next hover rebuilds it.
   setPathPreview(null);
