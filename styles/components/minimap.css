@@ -1,19 +1,30 @@
-/* ── Minimap overlay on the 3D map area ── */
+/* ── Minimap — "scrying pool" treatment ──
+   A circular dusk-glass pool with a turn-tinted ring and a soft inner
+   sheen. Geometry (position/size) is inline from minimapParams.js; the
+   look lives here so the theme owns it. Display-only widget (inline
+   pointer-events: none) — if clicks are ever wired, re-enable
+   pointer-events and keep the circular hit area.
+   ========================================================================= */
 
 .minimap-wrap {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  width: 200px;
-  height: 200px;
-  border: 1px solid rgba(120, 100, 80, 0.6);
-  border-radius: 4px;
+  border-radius: 50%;
   overflow: hidden;
-  background: #080602;
-  z-index: 5;
-  pointer-events: auto;
-  cursor: crosshair;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border: 2px solid color-mix(in srgb, var(--turn-color, var(--crease-bold)) 55%, var(--crease-bold));
+  background: var(--abyss);
+  box-shadow:
+    0 0 18px -4px var(--turn-glow, transparent),   /* turn-coloured pool glow */
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 0 16px rgba(0, 0, 0, 0.55);            /* pool depth */
+}
+
+/* Soft light catching the pool surface */
+.minimap-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.10), transparent 55%);
+  pointer-events: none;
 }
 
 .minimap-wrap canvas {

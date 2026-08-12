@@ -1,30 +1,117 @@
-@media(max-width:1100px){
+/* =========================================================================
+   RESPONSIVE — narrow / portrait layout overrides (imported last so they
+   win by cascade position without needing higher specificity).
+
+   Single-column stack on ≤ 900px:
+     header (compact, scrollable pill strip)
+     map    (champion card docked over it)
+     right  (cosmic ledger: heptagram + log, flowing below the map)
+   The page may scroll; the map keeps a usable minimum height.
+   ========================================================================= */
+
+@media (max-width: 900px) {
   .layout-root #game {
     grid-template-areas:
       "header"
       "map"
-      "left"
-      "right"
-      "log";
+      "right";
     grid-template-columns: 1fr;
-    grid-template-rows: 48px 1fr auto auto auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
-  .leftbar,
-  .rightbar {
-    order: unset;  /* flexbox not used; grid-area handles order */
-  }
+
+  /* Map keeps a playable minimum height on phones */
   .mapwrap {
-    order: unset;
-    min-height: 520px;
+    min-height: clamp(300px, 55dvh, 560px);
+  }
+
+  /* ── Compact header: world info shrinks, pills scroll horizontally ── */
+  #gameHeader {
+    height: auto;
+    min-height: 48px;
+    padding: var(--s2) var(--s3);
+    gap: var(--s2);
+  }
+
+  .header-panel__world {
+    font-size: 10px;
+    gap: var(--s2);
+  }
+
+  .header-panel__champions {
+    flex: 1;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox — strip is still scrollable */
+  }
+  .header-panel__champions::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Right ledger: flows below the map, no viewport cap, top hairline ── */
+  .rightbar {
+    max-height: none;
+    overflow: visible;
+    border-left: none;
+    border-top: var(--edge) solid var(--crease);
+  }
+
+  /* Log entries scroll inside the ledger instead of clipping */
+  .rt-log-entries {
+    overflow-y: auto;
+  }
+
+  /* ── Touch targets ≥ 40px on touch-sized screens ── */
+  .map-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .map-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  .left-actions-row .btn {
+    padding: 10px 12px;
+    font-size: var(--fs-sm);
+  }
+  .header-panel__champion {
+    padding: 6px 8px;
   }
 }
 
-body.is-mobile #game {
-  grid-template-areas:
-    "header"
-    "map"
-    "right"
-    "log";
-  grid-template-columns: 1fr;
-  grid-template-rows: 48px 1fr auto auto auto;
+/* ── Small phones: compact champion-card dock ──
+   Resources/equipment rows collapse (full stats stay available in the
+   header pill detail dropdown); the card keeps identity, HP, and the
+   End Turn action on screen. */
+@media (max-width: 480px) {
+  .champion-hud {
+    bottom: var(--s2);
+    left: var(--s2);
+    gap: var(--s2);
+  }
+
+  .left-champion-card {
+    width: min(280px, calc(100vw - 2 * var(--s4)));
+    padding: var(--s3);
+    gap: 8px;
+  }
+
+  .left-resources-row,
+  .left-equip-row {
+    display: none;
+  }
+
+  /* Scrying pool shrinks on phones so it doesn't crowd the dock */
+  .minimap-wrap {
+    width: 140px !important;
+    height: 140px !important;
+    bottom: 8px !important;
+    right: 8px !important;
+  }
+
+  /* Header detail dropdown stays inside the viewport */
+  .champion-detail {
+    width: min(220px, calc(100vw - 2 * var(--s3)));
+  }
 }

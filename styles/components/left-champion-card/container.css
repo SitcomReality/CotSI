@@ -6,7 +6,11 @@
 .left-champion-card {
   pointer-events: auto;
   width: 280px;
-  background: var(--board);
+  background-image: var(--nebula), linear-gradient(180deg,
+    color-mix(in srgb, var(--board-hi) 92%, transparent),
+    color-mix(in srgb, var(--board) 92%, transparent)); /* dusk glass — world bleeds through */
+  background-size: 300px 300px, auto;
+  backdrop-filter: blur(6px);
   border: var(--edge) solid var(--crease-bold);
   border-radius: var(--r-panel);
   box-shadow: var(--shadow-panel);

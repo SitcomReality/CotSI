@@ -54,6 +54,8 @@
 @import "./components/textTreatment.css";
 @import "./components/hud.css";
 @import "./components/paleyCrossHighlight.css";
+@import "./components/turnChrome.css";
+@import "./components/facet.css";
 @import "./components/bot-indicator.css";
 @import "./components/confirmModal.css";
 @import "./components/devTools.css";

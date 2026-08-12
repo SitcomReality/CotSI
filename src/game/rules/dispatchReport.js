@@ -213,7 +213,7 @@ export function buildDispatchReport(state, champ, ledgerEntries = []) {
     factionName: fac.name,
     glyphId: fac.glyphId,
     glyph: fac.textGlyph,
-    color: fac.color,
+    color: fac.uiColor || fac.color, /* luminous UI variant — reads on dusk chrome */
     day: state.day,
     week: weekOf(state.day),
     movement: movementReport(state, champ),

@@ -59,3 +59,47 @@ html[data-cross-highlight="6"] .rt-heptagram-node[data-index="6"] {
   stroke-width: 2.5;
   filter: drop-shadow(0 0 6px var(--gold));
 }
+
+/* ----- Current-turn node: the active faction's node wears its glow -----
+   Driven by data-turn-faction on <html> (src/ui/turnTint.js). The pulse
+   animates stroke-opacity only, so it never fights the hover glow rules
+   (which set r/stroke-width/filter). */
+html[data-turn-faction="cru"] .rt-heptagram-node[data-index="0"],
+html[data-turn-faction="rev"] .rt-heptagram-node[data-index="1"],
+html[data-turn-faction="ver"] .rt-heptagram-node[data-index="2"],
+html[data-turn-faction="arc"] .rt-heptagram-node[data-index="3"],
+html[data-turn-faction="hrt"] .rt-heptagram-node[data-index="4"],
+html[data-turn-faction="msk"] .rt-heptagram-node[data-index="5"],
+html[data-turn-faction="hol"] .rt-heptagram-node[data-index="6"] {
+  stroke: var(--turn-glow);
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 6px var(--turn-glow));
+  animation: heptagram-turn-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes heptagram-turn-pulse {
+  0%, 100% { stroke-opacity: 0.72; }
+  50%      { stroke-opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-turn-faction="cru"] .rt-heptagram-node[data-index="0"],
+  html[data-turn-faction="rev"] .rt-heptagram-node[data-index="1"],
+  html[data-turn-faction="ver"] .rt-heptagram-node[data-index="2"],
+  html[data-turn-faction="arc"] .rt-heptagram-node[data-index="3"],
+  html[data-turn-faction="hrt"] .rt-heptagram-node[data-index="4"],
+  html[data-turn-faction="msk"] .rt-heptagram-node[data-index="5"],
+  html[data-turn-faction="hol"] .rt-heptagram-node[data-index="6"] {
+    animation: none;
+  }
+}
+
+/* ----- Keystone mount: tight padding + slight bleed so the wheel
+   dominates the ledger card ----- */
+.rt-heptagram-card.panel {
+  padding: 12px 10px;
+}
+
+.rt-heptagram-svg {
+  margin: 0 -4px;
+}

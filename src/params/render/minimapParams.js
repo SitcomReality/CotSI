@@ -5,7 +5,6 @@
 export const MINIMAP_SIZE = 200;
 export const MINIMAP_PADDING = 4;
 export const MINIMAP_MARGIN_PX = 12;
-export const MINIMAP_BORDER_RADIUS_PX = 4;
 
 export const MINIMAP_BASE_MARKER_SIZE = 3; // half-size (draws 6x6 rect)
 export const MINIMAP_CHAMPION_DOT_RADIUS = 3;

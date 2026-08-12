@@ -1,0 +1,121 @@
+/* =========================================================================
+   TURN CHROME — current-turn identity layer.
+   Consumes the root --turn-* custom properties set by src/ui/turnTint.js
+   and paints the persistent chrome with the active champion's faction
+   colour: header edge, current pill, left reliquary, right ledger, map
+   frame, toast.
+
+   Design rules:
+     - Herald's Prognosis NEVER consumes --turn-* (global/neutral message).
+     - The death announcement NEVER consumes --turn-* (sombre/neutral).
+     - Everything else is allowed to read the turn tint.
+   ========================================================================= */
+
+/* ── Header: bottom edge + glow follow the turn colour ── */
+#gameHeader {
+  border-bottom: var(--edge-bold) solid var(--turn-color, var(--crease-bold));
+  box-shadow: var(--shadow-panel), 0 1px 0 var(--abyss),
+              0 0 22px -8px var(--turn-glow, transparent);
+}
+
+/* ── Current champion pill: faction ring + soft glow (no layout shift) ── */
+.header-panel__champion[data-state="current"] {
+  border-left: 2px solid var(--turn-color, var(--faction-color, var(--ink)));
+  box-shadow: 0 0 0 2px var(--turn-color, var(--faction-color, var(--ink))),
+              0 0 16px -2px var(--turn-glow, transparent);
+}
+
+/* ── Left reliquary (champion card): faction frame + glow ── */
+.left-champion-card {
+  border-color: color-mix(in srgb, var(--turn-color, var(--crease-bold)) 55%, var(--crease-bold));
+  border-left: 2px solid var(--turn-color, var(--faction-color, var(--ink)));
+  box-shadow: var(--shadow-panel), 0 0 26px -6px var(--turn-glow, transparent);
+}
+
+/* ── Right ledger: panel border + heptagram card pick up the tint ── */
+.rightbar {
+  border-left-color: color-mix(in srgb, var(--turn-color, var(--crease)) 45%, var(--crease));
+}
+
+.rt-heptagram-card {
+  border-color: color-mix(in srgb, var(--turn-color, var(--crease-bold)) 40%, var(--crease-bold));
+  box-shadow: var(--shadow-panel), 0 0 20px -6px var(--turn-glow, transparent);
+}
+
+/* ── Map frame: faint turn-coloured vignette (pointer-transparent) ── */
+.mapwrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1; /* above terrain canvas, below fog/highlights/selection */
+  box-shadow: inset 0 0 130px -70px var(--turn-glow, transparent);
+}
+
+/* ── Turn-colour transitions: the frame eases into the new owner's hue ── */
+#gameHeader,
+.left-champion-card,
+.rightbar,
+.rt-heptagram-card {
+  transition: border-color var(--dur-slow, 420ms) var(--ease, cubic-bezier(.22,.61,.36,1)),
+              box-shadow var(--dur-slow, 420ms) var(--ease, cubic-bezier(.22,.61,.36,1));
+}
+
+/* ── Toast: thin turn-coloured edge ── */
+#toast {
+  border-left: 3px solid var(--turn-color, var(--crease-bold));
+}
+
+/* =========================================================================
+   MODAL TURN TINT
+   Every player-affiliated modal carries the current turn's faction colour:
+   a soft wash in the backdrop + a turn glow on the card + a faction top
+   rule. Exceptions (neutral by design, never consume --turn-*):
+     - Herald's Prognosis  (global/universal week-start message)
+     - Death announcement  (sombre, fallen champion is not "the turn")
+   ========================================================================= */
+
+/* ── Backdrop wash: faint turn-coloured light spilling from above ── */
+.modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(70% 45% at 50% 0%,
+    color-mix(in srgb, var(--turn-glow, transparent) 12%, transparent),
+    transparent 75%);
+}
+
+/* Neutral modals: plain dark backdrop — no turn wash */
+.modal--neutral::before {
+  display: none;
+}
+
+/* ── Card glow: player-affiliated modal cards pick up the turn colour ── */
+.modal > .dispatch-modal-card,
+.modal > .reward-card,
+.modal > .confirm-modal-card,
+.modal > .victory-card,
+#combatModal .modal-card {
+  box-shadow: var(--shadow-stack), 0 0 30px -6px var(--turn-glow, transparent);
+}
+
+/* ── Faction top rule on cards without an existing faction edge ── */
+.modal > .reward-card,
+.modal > .confirm-modal-card,
+.modal > .victory-card {
+  border-top: var(--edge-heavy) solid var(--turn-color, var(--gold));
+}
+
+/* ── Combat: header rule follows the attacking champion's turn colour ── */
+#combatModal .modal-header-row {
+  border-bottom: 2px solid var(--turn-color, var(--gold));
+  padding-bottom: var(--s2);
+}
+
+/* ── Neutral guards (defence in depth): herald + death never glow ── */
+.modal > .herald-modal-card,
+.modal > .death-modal-card {
+  box-shadow: var(--shadow-stack);
+}
+

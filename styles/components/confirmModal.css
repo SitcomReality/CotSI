@@ -5,7 +5,9 @@
    ========================================================================= */
 
 .confirm-modal-card {
-  background: linear-gradient(180deg, var(--board-hi), var(--board));
+  background-color: var(--board);
+  background-image: var(--nebula), linear-gradient(180deg, var(--board-hi), var(--board));
+  background-size: 340px 340px, auto;
   border: var(--edge-bold) solid var(--crease-bold);
   border-radius: var(--r-panel);
   box-shadow: var(--shadow-stack);
@@ -13,6 +15,11 @@
   max-width: 400px;
   width: 100%;
   text-align: center;
+
+  /* Responsive overflow safety */
+  max-height: calc(100vh - 2 * var(--s4));
+  max-height: calc(100dvh - 2 * var(--s4));
+  overflow-y: auto;
 }
 
 .confirm-modal-title {

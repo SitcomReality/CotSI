@@ -9,14 +9,19 @@
    glow   — the pale highlight / emissive glow
    ========================================================================= */
 :root {
-  --f-cru: #6e2e22; --f-cru-accent: #b84530; --f-cru-glow: #e87a6a; /* Crucible */
-  --f-rev: #5a3a5a; --f-rev-accent: #8a5aaa; --f-rev-glow: #b388f0; /* Reverie  */
-  --f-ver: #3a5a3a; --f-ver-accent: #5a8a4a; --f-ver-glow: #88d888; /* Verdant  */
-  --f-arc: #3a4a5a; --f-arc-accent: #5a7a9a; --f-arc-glow: #8ab8f0; /* Archive  */
-  --f-hrt: #5a4a22; --f-hrt-accent: #9a8a3a; --f-hrt-glow: #efc86b; /* Hearth   */
-  --f-msk: #5a3a4a; --f-msk-accent: #8a5a7a; --f-msk-glow: #e488c0; /* Masque   */
-  --f-hol: #3a3a44; --f-hol-accent: #5a5a7a; --f-hol-glow: #a0a8c0; /* Hollow   */
+  --f-cru: #6e2e22; --f-cru-accent: #b84530; --f-cru-glow: #e87a6a; --f-cru-ui: #e0604a; --f-cru-ui-glow: #ff9d8a; /* Crucible */
+  --f-rev: #5a3a5a; --f-rev-accent: #8a5aaa; --f-rev-glow: #b388f0; --f-rev-ui: #b06ae0; --f-rev-ui-glow: #d4a0ff; /* Reverie  */
+  --f-ver: #3a5a3a; --f-ver-accent: #5a8a4a; --f-ver-glow: #88d888; --f-ver-ui: #6ad06a; --f-ver-ui-glow: #a8f0a8; /* Verdant  */
+  --f-arc: #3a4a5a; --f-arc-accent: #5a7a9a; --f-arc-glow: #8ab8f0; --f-arc-ui: #5aa8e0; --f-arc-ui-glow: #9cc8ff; /* Archive  */
+  --f-hrt: #5a4a22; --f-hrt-accent: #9a8a3a; --f-hrt-glow: #efc86b; --f-hrt-ui: #d8b048; --f-hrt-ui-glow: #ffe08a; /* Hearth   */
+  --f-msk: #5a3a4a; --f-msk-accent: #8a5a7a; --f-msk-glow: #e488c0; --f-msk-ui: #d060a8; --f-msk-ui-glow: #f0a8d8; /* Masque   */
+  --f-hol: #3a3a44; --f-hol-accent: #5a5a7a; --f-hol-glow: #a0a8c0; --f-hol-ui: #8080b0; --f-hol-ui-glow: #b8b8e0; /* Hollow   */
 }
+
+/* ── Luminous UI variants ──
+   Brighter, more saturated hues for the chrome layer (borders, glows,
+   turn tint) so faction identity pops against the dusk surfaces. The
+   world keeps the muted two-color system above; these are for UI only. */
 
 /* ── Backward-compat aliases (legacy f0–f6 names) ── */
 :root {

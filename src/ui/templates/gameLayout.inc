@@ -21,7 +21,7 @@
   <section class="mapwrap">
     <div id="championHud" class="champion-hud">
       <div id="championCard">
-        <div class="panel left-champion-card">
+        <div class="panel left-champion-card glint chamfer">
           <!-- Header row -->
           <div class="left-champ-header">
             <span class="left-faction-dot"></span>
@@ -106,7 +106,7 @@
 
   <!-- Right sidebar: renamed id -->
   <aside class="rightbar" id="rightPanel">
-    <div class="panel rt-heptagram-card">
+    <div class="panel rt-heptagram-card glint chamfer">
       <h4>Paley Heptagram</h4>
       <div id="paleyMount" class="rt-heptagram-svg"></div>
       <div class="rt-heptagram-hint">i → i+1, i+2, i+4</div>

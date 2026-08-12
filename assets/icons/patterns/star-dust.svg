@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <title>Star dust — faint faint prismatic motes for panel surfaces</title>
+  <g fill="#ffffff">
+    <circle cx="18" cy="26" r="1.1" opacity=".10"/>
+    <circle cx="51" cy="9" r="0.8" opacity=".08"/>
+    <circle cx="87" cy="31" r="1.4" opacity=".12"/>
+    <circle cx="110" cy="14" r="0.7" opacity=".07"/>
+    <circle cx="9" cy="67" r="0.9" opacity=".09"/>
+    <circle cx="38" cy="52" r="1.2" opacity=".10"/>
+    <circle cx="64" cy="40" r="0.7" opacity=".08"/>
+    <circle cx="97" cy="74" r="1.3" opacity=".11"/>
+    <circle cx="121" cy="99" r="0.8" opacity=".07"/>
+    <circle cx="24" cy="103" r="1.0" opacity=".09"/>
+    <circle cx="58" cy="118" r="1.2" opacity=".10"/>
+    <circle cx="79" cy="92" r="0.9" opacity=".08"/>
+    <circle cx="106" cy="55" r="0.7" opacity=".06"/>
+    <circle cx="45" cy="84" r="0.8" opacity=".07"/>
+    <circle cx="14" cy="44" r="0.6" opacity=".06"/>
+    <circle cx="92" cy="110" r="1.0" opacity=".09"/>
+  </g>
+  <g fill="#ffd97a">
+    <circle cx="70" cy="18" r="1.0" opacity=".14"/>
+    <circle cx="33" cy="74" r="0.8" opacity=".10"/>
+  </g>
+  <g fill="#b48cf0">
+    <circle cx="99" cy="42" r="0.9" opacity=".12"/>
+    <circle cx="8" cy="90" r="0.7" opacity=".09"/>
+  </g>
+  <circle cx="55" cy="62" r="1.6" opacity=".10" fill="none" stroke="#ffffff"/>
+</svg>

@@ -1,18 +1,26 @@
 /* =========================================================================
-   CHROME — The proscenium / the stage frame  (dark, receded, velvety)
-   Deep blacks and charcoals. The dark theater around a puppet show.
-   Recedes so the painted Puppet layer commands attention.
+   CHROME — The proscenium / remnant-cosmos dusk frame
+   Deep indigo-violet dusk instead of near-black: panels read as shards of
+   leftover divine geometry floating in the afterglow of vanished gods.
+   Never pure #000 or flat charcoal — every surface has a violet breath.
+
+   The world (Puppet layer) stays the vibrant star; the chrome recedes
+   into coloured dusk and only flares when it needs attention.
    ========================================================================= */
 :root {
-  --abyss:         #0c0e12;  /* deepest stage void / page ground           */
-  --shadow:        #14171e;  /* recessed panels, stage wings, map mount    */
-  --board:         #1c202a;  /* card / panel surface                       */
-  --board-hi:      #242a38;  /* raised card, modal surface                 */
-  --ink:           #e8e4dc;  /* warm off-white — body text, line icons     */
-  --ink-mid:       #a8a4b0;  /* secondary text, captions                   */
-  --ink-faint:     #6a5e5a;  /* warm gray-brown — recedes without feeling cold */
-  --ink-line:      #121418;  /* ink outline color for Puppet elements      */
-  --crease:        #2a2620;  /* warm charcoal-brown — reads as genuine crease */
-  --crease-bold:   #3a3530;  /* warm deep charcoal — reads as thicker fold     */
-  --board-glass:   #242a38cc;  /* semi-transparent overlay (combat cards, play slots, reward box) */
+  --abyss:         #141024;  /* deepest dusk void / page ground             */
+  --shadow:        #1d1731;  /* recessed panels, stage wings, map mount     */
+  --board:         #272040;  /* card / panel surface                        */
+  --board-hi:      #322a52;  /* raised card, modal surface                  */
+  --ink:           #f2ead9;  /* warm cream — body text, line icons          */
+  --ink-mid:       #aea4c4;  /* lavender-mauve secondary text, captions     */
+  --ink-faint:     #8d82a6;  /* muted violet — tertiary captions, ≥3:1 on --board */
+  --ink-line:      #12101e;  /* ink outline color for Puppet elements       */
+  --crease:        #352c4e;  /* violet charcoal — reads as genuine crease   */
+  --crease-bold:   #463a66;  /* violet charcoal — reads as thicker fold     */
+  --board-glass:   #272040cc;  /* semi-transparent overlay (combat cards, play slots, reward box) */
+
+  /* ── Remnant-cosmos surface tokens ── */
+  --nebula:        url('/assets/icons/patterns/star-dust.svg'); /* faint star-dust texture */
+  --iridescent:    linear-gradient(115deg, #ff9a5a, #cf6ff0, #5ab8ff); /* Rainbow-Aftermath rim */
 }

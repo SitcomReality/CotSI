@@ -4,17 +4,28 @@
    ======================================================================== */
 
 .btn-gold {
-  background: linear-gradient(180deg, #ffe18a, #d4a138);
+  background: linear-gradient(180deg, var(--gold-hi, #ffe18a), var(--gold, #d4a138));
   border: 1px solid #b88728;
   color: #2a1700;
   font-weight: 800;
   padding: 13px 20px;
   border-radius: 13px;
-  box-shadow: 0 8px 24px #b8872840;
+  box-shadow: 0 8px 24px #b8872840, inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: filter var(--dur-fast, 150ms), transform var(--dur-fast, 150ms) var(--ease-bounce, cubic-bezier(.34,1.56,.64,1));
 }
 
 .btn-gold:hover {
   filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-gold {
+    transition: filter var(--dur-fast, 150ms);
+  }
+  .btn-gold:hover {
+    transform: none;
+  }
 }
 
 .size-pill {

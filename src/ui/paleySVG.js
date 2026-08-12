@@ -28,8 +28,9 @@ export function paleySVG(highlight=-1, w=PALEY_SVG_WIDTH, h=PALEY_SVG_HEIGHT, R)
   // nodes
   pts.forEach(p=>{
     const isHi = p.i===highlight;
-    // Use token-based stroke (ink) and ink-mid for label; CSS variables resolve in inline SVG
-    s += `<circle class="rt-heptagram-node paley-item paley-item--f${p.i}" data-index="${p.i}" cx="${p.x}" cy="${p.y}" r="${isHi?PALEY_NODE_RADIUS_SEL:PALEY_NODE_RADIUS}" fill="${p.f.color}" style="stroke:var(--ink)" stroke-width="${isHi?PALEY_NODE_STROKE_SEL:PALEY_NODE_STROKE}"/>`;
+    // Stroke comes from CSS (heptagramWidget.css) so state rules can
+    // override it; fill is data-driven faction colour.
+    s += `<circle class="rt-heptagram-node paley-item paley-item--f${p.i}" data-index="${p.i}" cx="${p.x}" cy="${p.y}" r="${isHi?PALEY_NODE_RADIUS_SEL:PALEY_NODE_RADIUS}" fill="${p.f.color}" stroke-width="${isHi?PALEY_NODE_STROKE_SEL:PALEY_NODE_STROKE}"/>`;
     s += `<g transform="translate(${p.x-PALEY_ICON_SIZE_HALF}, ${p.y-PALEY_ICON_SIZE_HALF})"><use href="${iconSpritePath(p.f.glyphId)}#${p.f.glyphId}" width="${PALEY_GLYPH_SIZE}" height="${PALEY_GLYPH_SIZE}"/></g>`;
     s += `<text class="rt-heptagram-label" x="${p.x}" y="${p.y+PALEY_LABEL_OFFSET}" text-anchor="middle" font-size="${PALEY_LABEL_FONT_SIZE}" style="pointer-events:none">${p.f.short}</text>`;
   });

@@ -50,7 +50,9 @@ test('report shell: faction glyph fields, week, and empty ledger', () => {
   assert.equal(report.factionName, 'Crucible');
   assert.equal(report.glyphId, 'g-crucible');
   assert.equal(report.glyph, '[CRU]');
-  assert.equal(report.color, '#b84530');
+  // report.color is the luminous UI variant — the dispatch modal renders it
+  // as display text on dusk chrome (world accent is too dim there).
+  assert.equal(report.color, '#e0604a');
   assert.equal(report.day, 1);
   assert.equal(report.week, 1);
   assert.deepEqual(report.ledger, []);

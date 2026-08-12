@@ -7,7 +7,7 @@
  */
 
 // ---- Constants ----
-import { MINIMAP_SIZE, MINIMAP_PADDING, MINIMAP_MARGIN_PX, MINIMAP_BORDER_RADIUS_PX } from '../../params/render/minimapParams.js';
+import { MINIMAP_SIZE, MINIMAP_PADDING, MINIMAP_MARGIN_PX } from '../../params/render/minimapParams.js';
 export { MINIMAP_SIZE };
 export const PADDING = MINIMAP_PADDING;
 
@@ -34,16 +34,15 @@ export function initMinimap(mountEl) {
   // Create wrapper
   minimapEl = document.createElement('div');
   minimapEl.className = 'minimap-wrap';
+  // Geometry stays inline (params-driven); the LOOK (border, radius,
+  // background, glow, sheen) lives in styles/components/minimap.css so the
+  // theme can retint it without JS changes.
   minimapEl.style.cssText = `
     position: absolute;
     bottom: ${MINIMAP_MARGIN_PX}px;
     right: ${MINIMAP_MARGIN_PX}px;
     width: ${MINIMAP_SIZE}px;
     height: ${MINIMAP_SIZE}px;
-    border: 1px solid rgba(120, 100, 80, 0.6);
-    border-radius: ${MINIMAP_BORDER_RADIUS_PX}px;
-    overflow: hidden;
-    background: #080602;
     z-index: 5;
     pointer-events: none;
   `;

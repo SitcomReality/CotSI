@@ -11,7 +11,9 @@ import { showDeathAnnouncement } from './deathAnnouncement.js';
 import { showPendingDispatch } from './dispatchPrompt.js';
 import { showPendingReward } from './rewardPrompt.js';
 import { showVictory } from '../ui/hud.js';
+import { applyTurnTint } from '../ui/turnTint.js';
 import { runBot } from './botTurnRunner.js';
+import { noteTurnStart } from './turnPacing.js';
 import { G, currentChamp, isTurnLocked } from '../game/state/liveGame.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { getCombatUI } from './combat/combatState.js';
@@ -42,6 +44,12 @@ export function refreshAll() {
   }
 
   const ch = currentChamp();
+
+  // ── Turn chrome tint: whose turn is it? Drives header, panels, modals ──
+  applyTurnTint(G);
+
+  // ── Turn pacing: stamp when the active champion changes (bot dwell) ──
+  noteTurnStart(G);
 
   // Set profiling context based on current game phase
   if (G.winnerId) {

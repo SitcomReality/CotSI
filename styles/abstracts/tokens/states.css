@@ -17,7 +17,7 @@
   /* ── State glow colors (drawn from pigments) ── */
   --st-hostile:  var(--cinnabar);  /* vivid orange glow — deliberate departure from red (CRU) */
   --st-ally:     var(--verdigris); /* vivid teal glow — deliberate departure from green (VER) */
-  --st-neutral:  #5a6070;         /* cool gray — no glow */
+  --st-neutral:  #66608a;         /* mauve-gray — no glow */
   --st-selected: var(--gold);     /* gold glow — same as gold token */
 
   /* ── Legacy state fills (for background washes and overlays only) ── */

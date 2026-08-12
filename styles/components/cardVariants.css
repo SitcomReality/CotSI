@@ -5,22 +5,36 @@
 
 .modal-card {
   width: min(1020px, 96vw);
-  background: linear-gradient(180deg, var(--board-hi), var(--board));
+  background-color: var(--board);
+  background-image: var(--nebula), linear-gradient(180deg, var(--board-hi), var(--board));
+  background-size: 340px 340px, auto;
   border: var(--edge-bold) solid var(--crease-bold);
   border-radius: var(--r-panel);
   padding: 18px 20px;
   box-shadow: var(--shadow-stack);
   position: relative;
+
+  /* Responsive overflow safety — tall combat screens stay reachable */
+  max-height: calc(100vh - 2 * var(--s4));
+  max-height: calc(100dvh - 2 * var(--s4));
+  overflow-y: auto;
 }
 
 .victory-card {
-  background: linear-gradient(180deg, var(--board-hi), var(--board));
+  background-color: var(--board);
+  background-image: var(--nebula), linear-gradient(180deg, var(--board-hi), var(--board));
+  background-size: 340px 340px, auto;
   border: var(--edge-heavy) solid var(--gold);
   border-radius: var(--r-panel);
   padding: 22px;
   text-align: center;
   box-shadow: var(--shadow-stack);
   max-width: 560px;
+
+  /* Responsive overflow safety */
+  max-height: calc(100vh - 2 * var(--s4));
+  max-height: calc(100dvh - 2 * var(--s4));
+  overflow-y: auto;
 }
 
 /* New card styles — step layout / modal / section panels */

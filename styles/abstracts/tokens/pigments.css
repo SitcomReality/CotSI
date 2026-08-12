@@ -7,8 +7,8 @@
 :root {
   --crimson:   #e82020;  /* fire / damage / blood                   */
   --cinnabar:  #ff6600;  /* heat / danger / hostile accent           */
-  --gold:      #ffbf00;  /* GOLD LEAF — RARE accent only             */
-  --gold-hi:   #ffe060;  /* burnished highlight (animation peak)     */
+  --gold:      #ffc94d;  /* GOLD LEAF — warm orichalcum, rare accent only */
+  --gold-hi:   #ffe38f;  /* burnished highlight (animation peak)     */
   --verdigris: #00cc88;  /* growth / ally accent / healing           */
   --cerulean:  #00aaff;  /* water / sky / arcane                     */
   --indigo:    #5555ff;  /* deep magic / covenant                     */

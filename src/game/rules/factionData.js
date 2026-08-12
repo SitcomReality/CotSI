@@ -10,13 +10,13 @@
 //6 beats 0, 1, 3
 
 export const FACTIONS = [
-  { id:0, name:'Crucible', short:'CRU', glyphId:'g-crucible', textGlyph:'[CRU]', base:'#6e2e22', color:'#b84530', glow:'#e87a6a', trait:'Scarshield', desc:'–week enemy final score', terrainCosts:{ hill:6, plateau:6 } },
-  { id:1, name:'Reverie', short:'REV', glyphId:'g-reverie',  textGlyph:'[REV]', base:'#5a3a5a', color:'#8a5aaa', glow:'#b388f0', trait:"Another's Dream", desc:'Dawn random boon', terrainCosts:{ marsh:6 } },
-  { id:2, name:'Verdant', short:'VER', glyphId:'g-verdant',  textGlyph:'[VER]', base:'#3a5a3a', color:'#5a8a4a', glow:'#88d888', trait:"Gaia's Wail", desc:'Cheap forest moves, mobs pacified, fruit++', terrainCosts:{ forest:4, denseForest:6 } },
-  { id:3, name:'Archive', short:'ARC', glyphId:'g-archive',  textGlyph:'[ARC]', base:'#3a4a5a', color:'#5a7a9a', glow:'#8ab8f0', trait:'Everknown', desc:'Relic → +random potency', terrainCosts:{ river:15 } },
-  { id:4, name:'Hearth',  short:'HRT', glyphId:'g-hearth',   textGlyph:'[HRT]', base:'#5a4a22', color:'#9a8a3a', glow:'#efc86b', trait:'Compersion', desc:'Trade -20%', terrainCosts:{ plains:6, desert:6 } },
-  { id:5, name:'Masque',  short:'MSK', glyphId:'g-masque',   textGlyph:'[MSK]', base:'#5a3a4a', color:'#8a5a7a', glow:'#e488c0', trait:'Silent Ovation', desc:'Combat turn +week random', terrainCosts:{ desert:6 } },
-  { id:6, name:'Hollow',  short:'HOL', glyphId:'g-hollow',   textGlyph:'[HOL]', base:'#3a3a44', color:'#5a5a7a', glow:'#a0a8c0', trait:'Vaunted Nothing', desc:'+⌈week/3⌉ per missing HP', terrainCosts:{ denseForest:10 } },
+  { id:0, name:'Crucible', short:'CRU', glyphId:'g-crucible', textGlyph:'[CRU]', base:'#6e2e22', color:'#b84530', glow:'#e87a6a', uiColor:'#e0604a', uiGlow:'#ff9d8a', trait:'Scarshield', desc:'–week enemy final score', terrainCosts:{ hill:6, plateau:6 } },
+  { id:1, name:'Reverie', short:'REV', glyphId:'g-reverie',  textGlyph:'[REV]', base:'#5a3a5a', color:'#8a5aaa', glow:'#b388f0', uiColor:'#b06ae0', uiGlow:'#d4a0ff', trait:"Another's Dream", desc:'Dawn random boon', terrainCosts:{ marsh:6 } },
+  { id:2, name:'Verdant', short:'VER', glyphId:'g-verdant',  textGlyph:'[VER]', base:'#3a5a3a', color:'#5a8a4a', glow:'#88d888', uiColor:'#6ad06a', uiGlow:'#a8f0a8', trait:"Gaia's Wail", desc:'Cheap forest moves, mobs pacified, fruit++', terrainCosts:{ forest:4, denseForest:6 } },
+  { id:3, name:'Archive', short:'ARC', glyphId:'g-archive',  textGlyph:'[ARC]', base:'#3a4a5a', color:'#5a7a9a', glow:'#8ab8f0', uiColor:'#5aa8e0', uiGlow:'#9cc8ff', trait:'Everknown', desc:'Relic → +random potency', terrainCosts:{ river:15 } },
+  { id:4, name:'Hearth',  short:'HRT', glyphId:'g-hearth',   textGlyph:'[HRT]', base:'#5a4a22', color:'#9a8a3a', glow:'#efc86b', uiColor:'#d8b048', uiGlow:'#ffe08a', trait:'Compersion', desc:'Trade -20%', terrainCosts:{ plains:6, desert:6 } },
+  { id:5, name:'Masque',  short:'MSK', glyphId:'g-masque',   textGlyph:'[MSK]', base:'#5a3a4a', color:'#8a5a7a', glow:'#e488c0', uiColor:'#d060a8', uiGlow:'#f0a8d8', trait:'Silent Ovation', desc:'Combat turn +week random', terrainCosts:{ desert:6 } },
+  { id:6, name:'Hollow',  short:'HOL', glyphId:'g-hollow',   textGlyph:'[HOL]', base:'#3a3a44', color:'#5a5a7a', glow:'#a0a8c0', uiColor:'#8080b0', uiGlow:'#b8b8e0', trait:'Vaunted Nothing', desc:'+⌈week/3⌉ per missing HP', terrainCosts:{ denseForest:10 } },
 ];
 
 export const beats = (a,b)=> ((b - a + 7) % 7 === 1) || ((b - a + 7) % 7 === 2) || ((b - a + 7) % 7 === 4);

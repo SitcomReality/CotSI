@@ -11,6 +11,7 @@
   grid-template-columns: 1fr 300px;   /* map expands to fill left space */
   grid-template-rows: var(--header-height) 1fr;
   min-height: 100vh;
+  min-height: 100dvh;                 /* mobile browser-chrome friendly */
   background: var(--abyss);  /* dark table felt behind everything */
 }
 
@@ -37,7 +38,8 @@
 .rightbar {
   grid-area: right;
   position: relative;
-  background: var(--abyss);
+  background: color-mix(in srgb, var(--abyss) 86%, transparent); /* dusk glass — world bleeds through */
+  backdrop-filter: blur(6px);
   border-left: var(--edge) solid var(--crease);
   padding: var(--s3);
   display: flex;
@@ -93,12 +95,4 @@
   flex-direction: column;
 }
 
-/* ── Mobile-responsive: class toggle on <body> ── */
-body.is-mobile #game {
-  grid-template-areas:
-    "header"
-    "map"
-    "right";
-  grid-template-columns: 1fr;
-  grid-template-rows: var(--header-height) 1fr auto;
-}
+/* Desktop only — mobile overrides live in styles/ui/responsive.css */

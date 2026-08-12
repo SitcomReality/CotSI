@@ -17,12 +17,44 @@
 .modal {
   position: fixed;
   inset: 0;
-  background: #0d1018cc;                /* dark table backdrop at ~80% opacity */
+  background: #151127cc;                /* dusk backdrop at ~80% opacity */
   backdrop-filter: blur(4px);
   display: none;                         /* hidden by default */
   align-items: center;
   justify-content: center;
   z-index: 50;
+
+  /* ── Overflow safety (soft-lock prevention) ──
+     The backdrop itself scrolls, so a card taller than the viewport can
+     always be reached — the classic flexbox centering bug (centered
+     content clips its top when it overflows) is avoided by `margin: auto`
+     on the cards below. */
+  overflow-y: auto;
+  overscroll-behavior: contain;          /* keep modal scroll contained */
+  padding: var(--s4);
+  padding: max(var(--s4), env(safe-area-inset-top))
+           max(var(--s4), env(safe-area-inset-right))
+           max(var(--s4), env(safe-area-inset-bottom))
+           max(var(--s4), env(safe-area-inset-left));
+}
+
+/* Cards center when they fit, and start at the top of the scroll area
+   when they don't — nothing unreachable. */
+.modal > * {
+  margin: auto;
+  /* Facet entrance: cards rise into place like a shard settling */
+  animation: modal-facet-in var(--dur-slow, 420ms) var(--ease, cubic-bezier(.22,.61,.36,1)) both;
+}
+
+@keyframes modal-facet-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ── Modal Header Row ──────────────────────────────────────────────────────
@@ -52,4 +84,72 @@
 .modal-round-label {
   font-size: 13px;
   color: var(--ink-mid);
+}
+
+/* ── Sticky action footer ───────────────────────────────────────────────────
+   Always-visible accept bar at the bottom of a scrollable modal card.
+   Wrap a modal's action buttons in .modal-footer so the primary action
+   (Inscribe / Acknowledge / Continue / Yes) stays on screen even when the
+   card content overflows the viewport. Requires the card itself to have
+   max-height + overflow-y: auto (see the per-card styles).
+   ──────────────────────────────────────────────────────────────────────── */
+
+.modal-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-top: var(--s3);
+  padding-top: var(--s3);
+  background: linear-gradient(180deg, transparent, var(--board) 45%);
+  border-top: var(--hair) solid var(--crease);
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-self: stretch; /* span the card width inside centered flex cards */
+}
+
+/* ── Iridescent top glint ───────────────────────────────────────────────────
+   A thin prismatic bar at the top of an important frame — the "Rainbow
+   Aftermath" leaking through the chrome. Add .glint to any card.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.glint {
+  position: relative;
+}
+
+.glint::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--iridescent);
+  background-size: 200% 100%;
+  opacity: 0.55;
+  pointer-events: none;
+  /* Slow prismatic sweep — the Rainbow Aftermath drifting through the rim */
+  animation: glint-shimmer 7s ease-in-out infinite;
+}
+
+@keyframes glint-shimmer {
+  0%, 100% {
+    background-position: 0% 0;
+    opacity: 0.55;
+  }
+  50% {
+    background-position: 100% 0;
+    opacity: 0.8;
+  }
+}
+
+/* ── Reduced motion: kill decorative motion, keep static glints ── */
+@media (prefers-reduced-motion: reduce) {
+  .modal > * {
+    animation: none;
+  }
+  .glint::after {
+    animation: none;
+  }
 }

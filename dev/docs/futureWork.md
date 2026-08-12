@@ -61,15 +61,30 @@ movement. After the final battle, a large reward.
 
 ### 1.4 UI improvements
 
-Open-ended polish bucket — panels, modals, combat UI, clearer affordances.
-Add concrete items here as they get scoped.
+The v5 "Remnant Cosmos" redesign landed: dusk palette, faceted/chamfered
+chrome, iridescent glints, turn-tinted identity (`--turn-*` via
+`src/ui/turnTint.js`), 500 ms minimum bot-turn dwell
+(`MIN_BOT_TURN_MS` in `src/params/ui/uiParams.js`), modal overflow/soft-lock
+fix (sticky `.modal-footer`), and the scrying-pool minimap. Remaining open
+polish:
+
+- Combat modal visual pass (still rectangular/legacy-shaped; deliberately
+  excluded from chamfering for perf).
+- Setup screen layout redesign (currently token-level inheritance only).
+- Tablet/landscape-short audit (see §1.5).
+- Reward/dispatch reveal animations beyond the current veiled pattern.
 
 ### 1.5 Responsiveness / mobile play
 
-The game must keep working when the window resizes or the screen rotates
-(mid-play included). Layout and input currently assume a desktop viewport —
-audit fixed-size layout in `styles/`, panels/overlays, and pointer handling
-for narrow/tall aspect ratios.
+Baseline pass done: ≤900 px single-column stack (compact header with
+scrollable pill strip, map, ledger below), modal overflow safety (backdrop
+scroll, `margin: auto`, card height caps, sticky accept bars), ≥40 px touch
+targets, `100dvh` sizing, safe-area insets (`viewport-fit=cover`), and a
+compact champion dock on small phones. Still open:
+
+- Audit landscape-short (e.g. 640×360) and tablet-portrait layouts mid-play.
+- Verify rotation during an active modal/combat.
+- Pointer/gesture audit (drag-to-pan vs tap) on touch devices.
 
 ### 1.6 Feature reward design & balance
 

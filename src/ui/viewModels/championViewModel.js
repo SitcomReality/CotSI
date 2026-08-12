@@ -9,7 +9,7 @@ export function championVM(state, champ) {
   const maxActionPoints = dailyActionPoints(state, champ);
   return {
     id: champ.id,
-    factionColor: fac.color,
+    factionColor: fac.uiColor || fac.color, /* luminous UI variant — reads on dusk chrome */
     factionGlyphId: fac.glyphId,
     name: fac.name,
     hp: champ.hp,

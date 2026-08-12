@@ -36,6 +36,8 @@ styles/
 │   ├── headerPanel.css, logPanel.css, mainLog.css, minimap.css
 │   ├── heptagramWidget.css, tooltip.css, mapControls.css, fog.css, tile.css,
 │   │   bot-indicator.css
+│   ├── turnChrome.css           # Turn-tint identity layer (consumes --turn-*)
+│   ├── facet.css                # .chamfer low-poly corner cuts
 │   ├── championDetail.css
 │   ├── potencies.css, swatch.css, panel.css
 │   ├── note.css, forms.css, textTreatment.css
@@ -72,7 +74,7 @@ Naming Conventions
 
     Modifiers: BEM -- modifier on the block (.paley-item--f0, .header-panel__champion--dead) or a second state class (.active, .selected, .disabled, .btn.primary). Avoid new is-* / has-* prefixes — the existing ones (.is-mobile, .is-human) are legacy.
 
-    No ID selectors for styling. IDs (#game, #mapMount, #setup, #combatModal) belong to the HTML skeleton / modal roots only; style their contents via classes.
+    No ID selectors for styling. IDs (#game, #mapMount, #setup, #combatModal) belong to the HTML skeleton / modal roots only; style their contents via classes. Accepted exception: the turn-tint frame layer (`turnChrome.css`) styles the header root and modal roots' frames (#gameHeader, #combatModal .modal-card) because those ARE the frames being tinted.
 
 Spacing Scale (fixed)
 
@@ -123,3 +125,17 @@ Quick Rules for Adding CSS
 
 For visual design rules (two-layer system, ink outlines, color architecture, typography,
 state glow conventions, gold budget), see `dev/docs/aestheticConventions.md`.
+
+Shared Chrome Utilities (v5)
+
+    --turn-* tokens: --turn-color / --turn-glow / --turn-base set on <html> by src/ui/turnTint.js on every refreshAll. All player-affiliated chrome reads them; Herald's Prognosis and the death announcement never do (modal--neutral).
+
+    .chamfer (facet.css): 45° corner cut for key cards. Uses filter: drop-shadow because clip-path swallows box-shadows. Never apply to large continuously-animated surfaces (combat arena).
+
+    .glint (modalShell.css): 2px iridescent bar at the top of an important frame.
+
+    .modal-footer (modalShell.css): sticky accept bar inside scrollable modal cards. Every modal's primary action must live in one — a modal that can soft-lock the game is a release blocker.
+
+    Modal overflow pattern: .modal scrolls (overflow-y: auto + safe-area padding); cards cap at calc(100dvh - 2*var(--s4)) with overflow-y: auto; .modal > * uses margin: auto (flex-centering overflow bug).
+
+    Luminous faction variants: --f-*-ui / --f-*-ui-glow (and FACTIONS[].uiColor/uiGlow) are the chrome-layer hues. The world's muted base/accent/glow values are fixed — never reuse ui variants on the world layer.

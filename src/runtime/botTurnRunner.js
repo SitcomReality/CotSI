@@ -15,6 +15,7 @@ import { FACTIONS } from '../game/rules/factionData.js';
 import { runBotTurn as aiDecide } from '../game/state/championAI.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { showBotIndicator, hideBotIndicator } from '../ui/panels/botIndicator.js';
+import { botTurnDwellMs } from './turnPacing.js';
 import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
@@ -49,6 +50,14 @@ export async function runBot() {
     }
     const fac = FACTIONS[ch.faction];
     showBotIndicator(ch.name, fac?.color);
+
+    // Anti-strobe: hold this bot's turn visible for the minimum dwell before
+    // acting. 'animation' group — same reasoning as the move wait below (a
+    // 'bot'-group wait would never resolve while the bot group is paused).
+    const dwell = botTurnDwellMs();
+    if (dwell > 0) {
+      await getClock().wait(dwell, 'animation');
+    }
 
     // Set profiler context: bot deciding
     setGameContext({

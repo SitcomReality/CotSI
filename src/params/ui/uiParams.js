@@ -12,19 +12,19 @@ export const HEPTAGRAM_RADIUS = 14;
 export const HEPTAGRAM_SELECTED_STROKE = 2.5;
 export const HEPTAGRAM_STROKE = 1.6;
 
-// ── Paley SVG ──
-export const PALEY_SVG_WIDTH = 300;
-export const PALEY_SVG_HEIGHT = 250;
-export const PALEY_RADIUS_FACTOR = 0.32;
+// ── Paley SVG (keystone) ──
+export const PALEY_SVG_WIDTH = 320;
+export const PALEY_SVG_HEIGHT = 280;
+export const PALEY_RADIUS_FACTOR = 0.38;
 export const PALEY_CENTER_Y_OFFSET = 4;
-export const PALEY_NODE_RADIUS_SEL = 17;
-export const PALEY_NODE_RADIUS = 14;
-export const PALEY_NODE_STROKE_SEL = 2.5;
-export const PALEY_NODE_STROKE = 1.6;
-export const PALEY_GLYPH_SIZE = 14;
-export const PALEY_ICON_SIZE_HALF = 7;
-export const PALEY_LABEL_OFFSET = 28;
-export const PALEY_LABEL_FONT_SIZE = 9;
+export const PALEY_NODE_RADIUS_SEL = 19;
+export const PALEY_NODE_RADIUS = 16;
+export const PALEY_NODE_STROKE_SEL = 2.8;
+export const PALEY_NODE_STROKE = 1.8;
+export const PALEY_GLYPH_SIZE = 16;
+export const PALEY_ICON_SIZE_HALF = 8;
+export const PALEY_LABEL_OFFSET = 26;
+export const PALEY_LABEL_FONT_SIZE = 10;
 export const PALEY_EDGE_STRIDES = [1, 2, 4];
 
 // ── Default SVG icon size ──
@@ -71,6 +71,7 @@ export const HERALD_REVEAL_MS = 650;
 // ── Runtime timing ──
 export const SETUP_DEFER_MS = 50;
 export const BOT_AUTO_DELAY_MS = 100;
+export const MIN_BOT_TURN_MS = 500;  // minimum visible dwell per bot turn (anti-strobe)
 export const ANIMATION_CUSHION_MS = 30;
 
 // Tooltip

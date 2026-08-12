@@ -5,6 +5,8 @@
 
 .panel {
   background: var(--panel);
+  background-image: var(--nebula);
+  background-size: 260px 260px;
   border: var(--edge) solid var(--panel-border);
   border-radius: var(--r-panel);
   box-shadow: var(--shadow-panel);

@@ -4,15 +4,15 @@
    paper-stack shadows. Glow shadows for state treatments.
    ========================================================================= */
 :root {
-  /* Hard cartoon shadows */
-  --shadow-card:   0 4px 0 #07080b,
+  /* Hard cartoon shadows (inked dusk, not pure black) */
+  --shadow-card:   0 4px 0 #0b0814,
                    0 6px 12px rgba(0,0,0,.5);
-  --shadow-stack:  0 2px 0 #07080b,
-                   0 6px 0 #07080b,
+  --shadow-stack:  0 2px 0 #0b0814,
+                   0 6px 0 #0b0814,
                    0 8px 16px rgba(0,0,0,.55);
-  --shadow-seal:   0 3px 0 #07080b,
+  --shadow-seal:   0 3px 0 #0b0814,
                    inset 0 1px 0 rgba(255,255,255,.08);
-  --shadow-panel:  0 2px 0 #07080b;
+  --shadow-panel:  0 2px 0 #0b0814;
 
   /* Backlight glow shadows (for state treatments — replaces CSS outline) */
   --shadow-glow:   0 0 12px var(--gold);        /* selection glow */

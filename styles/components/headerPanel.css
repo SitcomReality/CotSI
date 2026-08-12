@@ -1,11 +1,14 @@
 .header-panel {
   grid-area: header;
+  position: relative;  /* anchor for #championDetail + #botIndicator (both top:100%) */
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 48px;
   padding: 0 var(--s5);
   background: var(--shadow);
+  background-image: var(--nebula);
+  background-size: 220px 220px;
   border-bottom: var(--edge-bold) solid var(--crease-bold);
   box-shadow: var(--shadow-panel), 0 1px 0 var(--abyss);
   color: var(--ink);
@@ -13,6 +16,19 @@
   font-size: var(--fs-sm);
   font-variant-numeric: var(--tnum);
   gap: var(--s5);
+}
+
+/* Constellation hairline: a thin prismatic thread across the top edge */
+.header-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--iridescent);
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 /* World info (day, week, weather) */

@@ -1,5 +1,5 @@
 <div class="modal" id="combatModal">
-  <div class="modal-card">
+  <div class="modal-card glint">
     <div class="fx-layer"></div>
     <div class="modal-header-row">
       <h2>Supernal Duel — Paley Weave</h2>
