@@ -10,7 +10,7 @@ export const MIN_BASE_DISTANCE_RADIUS_FRACTION = 0.15;
 export const CHAMPION_STARTING_HP = 100;
 /** Champion maximum hit points. */
 export const CHAMPION_MAX_HP = 100;
-/** Base action points per turn (dev/docs/movementDesign.md §5). */
+/** Base action points per turn (dev/docs/movementAndOccupation.md §1). */
 export const CHAMPION_BASE_AP = 60;
 /** Sight range in hexes (field of view). */
 export const CHAMPION_SIGHT_RANGE = 2;

@@ -59,47 +59,19 @@ movement. After the final battle, a large reward.
   (hidden from the map, no movement), escalating battle generation, reward
   hook (`src/game/state/featureRewards.js` pattern).
 
-### 1.4 Movement — action points, terrain costs & multi-step moves
-
-Implemented per `dev/docs/movementDesign.md` (tracker summary below). Movement
-interaction is **click-to-preview → click-to-confirm only** (no walk mode) and
-the reachable highlight is a minimal static outline, per §8 decisions.
-Follow-up tunables are listed in the design doc's §13.
-
-- **Action points (AP)** — the daily "moves" budget is renamed to AP and
-  becomes 60/day (base): the smallest number divisible by every cost in the
-  ladder (LCM(1..6)); every terrain cost and every faction/mob override
-  divides it exactly. `champ.moves` → `champ.actionPoints`.
-- **Terrain costs** — step cost by terrain via the existing `movementCost`
-  field in `src/game/rules/terrainTypes.js` (open ground 10, wood/hill 12,
-  plateau/marsh 15, dense wood 20, river 30, mountains/water/ice ∞), now
-  actually consumed by movement. Passability unifies into cost (∞ = blocked).
-- **Per-entity overrides** — sparse `terrainCosts` tables: factions
-  (`src/game/rules/factionData.js`, e.g. Verdant forest 12→4) and mob
-  archetypes (`src/game/rules/archetypeData/mobs.js`, e.g. waterbound
-  Marginal Goose `river: 4, water: 4`). New pure helper
-  `src/game/rules/movementCosts.js` is the single source of truth.
-- **Multi-step moves** — `movementRange` becomes a weighted shortest-path
-  search (`costs` + `cameFrom`); click-to-preview → click-to-confirm walks the
-  cheapest path (chained animation hops) spending AP per hop; previewing
-  beyond budget shows/walks the longest affordable prefix toward it.
-  Reachable-highlight (minimal static outlines, never in black fog), route
-  preview with destination terminal, and hover terrain-cost tooltip are all
-  precomputed — zero player arithmetic.
-
-### 1.5 UI improvements
+### 1.4 UI improvements
 
 Open-ended polish bucket — panels, modals, combat UI, clearer affordances.
 Add concrete items here as they get scoped.
 
-### 1.6 Responsiveness / mobile play
+### 1.5 Responsiveness / mobile play
 
 The game must keep working when the window resizes or the screen rotates
 (mid-play included). Layout and input currently assume a desktop viewport —
 audit fixed-size layout in `styles/`, panels/overlays, and pointer handling
 for narrow/tall aspect ratios.
 
-### 1.7 Feature reward design & balance
+### 1.6 Feature reward design & balance
 
 Rewards are functional but un-tuned — amounts, tier scaling, and the shared
 `FEATURE_REGROW_DAYS` cadence need a design/balance pass. Edenfall mushrooms

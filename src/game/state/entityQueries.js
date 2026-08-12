@@ -45,7 +45,7 @@ export function occupiedByTrader(state, key) {
 
 /**
  * A hex is blocked for an entity's movement when the terrain is impassable
- * for it (effective cost ∞ — dev/docs/movementDesign.md §4) or the hex is
+ * for it (effective cost ∞ — dev/docs/movementAndOccupation.md §2) or the hex is
  * occupied by something that cannot be walked through (base feature, other
  * champion, mob, or trader). Occupancy rules are unchanged.
  * @param {object} state

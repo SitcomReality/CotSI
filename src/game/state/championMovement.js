@@ -2,7 +2,7 @@
  * championMovement.js — Action-point range, path reconstruction, daily AP,
  * movement execution. Depends on entityQueries, vision, and arrivalInteractions.
  *
- * Movement is budgeted in action points (AP) per dev/docs/movementDesign.md:
+ * Movement is budgeted in action points (AP) per dev/docs/movementAndOccupation.md:
  * every hex has a terrain cost (movementCosts.js); `movementRange` is a
  * weighted shortest-path search over effective costs capped by the
  * champion's AP pool.
@@ -73,10 +73,10 @@ export function pathToKey(range, targetKey) {
 /**
  * The walkable path toward a target hex: the cheapest in-budget path when the
  * hex is reachable, otherwise the longest affordable prefix of the A* route
- * toward it (dev/docs/movementDesign.md §8.4). Shared by click-to-walk, the
- * click-to-preview mode, and the hover path preview, so hover and click
- * always agree. Feature hexes are destination-only (never routed through),
- * matching movementRange. Returns null when no path exists at all.
+ * toward it (dev/docs/movementAndOccupation.md §5, §6). Shared by the
+ * click-to-preview and commit paths, so the previewed route always matches
+ * the walked route. Feature hexes are destination-only (never routed
+ * through), matching movementRange. Returns null when no path exists at all.
  *
  * @param {object} state
  * @param {object} champ

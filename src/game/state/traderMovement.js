@@ -3,7 +3,7 @@
  *
  * Each trader moves toward its target base each world turn, stepping through
  * tiles it can enter while its daily action-point pool lasts
- * (dev/docs/movementDesign.md §11). Traders use the base terrain ladder only.
+ * (dev/docs/movementAndOccupation.md §7). Traders use the base terrain ladder only.
  */
 import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from '../rules/terrainTypes.js';

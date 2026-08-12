@@ -1,8 +1,8 @@
 /**
  * movementCosts.js — Effective per-entity terrain movement costs.
  *
- * Single source of truth for terrain movement costs (dev/docs/movementDesign.md
- * §4): passability is unified into cost — a hex is enterable iff the effective
+ * Single source of truth for terrain movement costs (dev/docs/movementAndOccupation.md
+ * §2): passability is unified into cost — a hex is enterable iff the effective
  * cost is finite. Pure rules: no state access, no mutation.
  *
  *   effectiveCost(entity, terrain) = entity overrides ?? TERRAIN base

@@ -3,8 +3,8 @@
  *
  * Each living mob may harass an adjacent champion (damage + log)
  * or wander through its daily action-point pool to affordable neighboring
- * hexes (terrain costs per the mob's own archetype — dev/docs/movementDesign.md
- * §7, §11).
+ * hexes (terrain costs per the mob's own archetype — dev/docs/movementAndOccupation.md
+ * §4, §7).
  */
 import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
 import { terrainCost, isTerrainBlocked } from '../rules/movementCosts.js';

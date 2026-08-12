@@ -1,7 +1,7 @@
 // 2D overlay layer: minimal reachable-range hint for the active human champion.
 // Priority 5 (above fog, below the path preview).
 //
-// Deliberately understated (dev/docs/movementDesign.md §8): thin STATIC hex
+// Deliberately understated (dev/docs/movementAndOccupation.md §5): thin STATIC hex
 // outlines — no fill wash, no animated marching dashes, no per-hex radial
 // gradients. Every eligible hex batches into ONE path + ONE stroke per frame,
 // so the range reads as a quiet suggestion instead of drowning the landscape,

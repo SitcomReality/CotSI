@@ -1,4 +1,4 @@
-// 2D overlay layer: the click-to-preview route (dev/docs/movementDesign.md §8).
+// 2D overlay layer: the click-to-preview route (dev/docs/movementAndOccupation.md §5).
 // Priority 6 (between movement highlights at 5 and interaction highlights at 7).
 //
 // Drawn ONLY after a click-to-preview (never on hover) and it persists until

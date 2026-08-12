@@ -25,7 +25,7 @@ import { setCameraPanInFlight } from './mapCamera.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { CHAMPION_HEIGHT_OFFSET } from '../params/render/animationParams.js';
 
-// ─── Click-to-preview state (dev/docs/movementDesign.md §8) ────────────────
+// ─── Click-to-preview state (dev/docs/movementAndOccupation.md §5) ──────────
 // Click-to-preview → click-to-confirm is the only move mode: the first click
 // on a hex stores the path; the second click on the same hex commits the walk.
 // Module state resets on commit, cancel, champion change, or champion move

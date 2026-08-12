@@ -32,7 +32,7 @@ export function getTooltipContent(gameState, key, activeChampion) {
   const trader = occupiedByTrader(gameState, key);
 
   /* ---- movement: terrain step cost only (no path computation on hover —
-   *  routes are click-to-preview, dev/docs/movementDesign.md §8) ---- */
+   *  routes are click-to-preview, dev/docs/movementAndOccupation.md §5) ---- */
   let costText = null;
   if (activeChampion && activeChampion.controller === 'human') {
     costText = `${TERRAIN[t.terrain].label} · ${terrainCost(activeChampion, t.terrain)} AP`;

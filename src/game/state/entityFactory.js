@@ -17,7 +17,7 @@ import { terrainCost, isTerrainBlocked } from '../rules/movementCosts.js';
  * Create mobs on unclaimed tiles the mob's archetype can actually enter.
  *
  * Terrain passability follows each mob's own effective movement cost
- * (dev/docs/movementDesign.md §7): waterbound mobs may spawn on water/river
+ * (dev/docs/movementAndOccupation.md §4): waterbound mobs may spawn on water/river
  * tiles; everyone else only on base-passable land.
  *
  * Samples from the materialized spawn candidates (collectSpawnCandidates) —

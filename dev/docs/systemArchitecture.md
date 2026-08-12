@@ -694,7 +694,7 @@ The current report shows **0 known-debt imports**.
 | `dev/docs/mobGeometryAndAnimation.md` | Mob geometry & animation design notes (joint groups, FK chains, runtime proposal) |
 | `dev/docs/clockScheduler.md` | Clock API reference — all timer/scheduling patterns |
 | `dev/docs/gameMechanics.md` | Combat round flow, turn order, biome system |
-| `dev/docs/hexOccupationRules.md` | Who may occupy a hex: champions, mobs, traders, bases |
+| `dev/docs/movementAndOccupation.md` | Movement & AP conventions: terrain costs, occupancy rules, movement identities, pathing |
 | `dev/docs/featureDesign.md` | Feature design: placement, rewards, tiering |
 | `dev/docs/commonTasks.md` | How-to recipes for common changes |
 | `dev/docs/futureWork.md` | Deferred-work tracker (unimplemented work only) |
