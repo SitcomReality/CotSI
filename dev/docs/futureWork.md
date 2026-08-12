@@ -186,5 +186,3 @@ items below remain.
   (~148 lines) → `reportFormatter.js` if it grows past ~1,000 lines
 - `src/game/state/featureRewards.js` (557) — extract the `FEATURES` table +
   card builders → `featureRewardTable.js` if it grows past ~650 lines
-- `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` (1047) —
-  extract the entity path → `entityRecords.js` if it grows past ~1,100 lines

@@ -626,8 +626,8 @@ What each piece demonstrates:
 
 | Concern | File |
 |---|---|
-| Descriptor schema, shapes, defaults, validation, normalization | `src/render/hexmap3d/worldObjects/descriptors/schema.js` |
-| Record generation (randomization) | `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` |
+| Descriptor schema, shapes, defaults, validation, normalization | `src/render/hexmap3d/worldObjects/descriptors/schema.js` (barrel; implementation in `shapeTypes.js`, `descriptorDefaults.js`, `validateShapes.js`, `validateParts.js`, `descriptorValidation.js`, `descriptorNormalize.js`, `descriptorDenormalize.js`) |
+| Record generation (randomization) | `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` (barrel; implementation in `clusterCount.js`, `variantSelection.js`, `itemPlacement.js`, `partScale.js`, `partColor.js`, `partFrames.js`, `tileRecords.js`, `entityRecords.js`) |
 | Records → InstancedMeshes | `src/render/hexmap3d/worldObjects/descriptors/meshAssembly.js`, `../meshBuilder.js` |
 | Shape/material factories (THREE) | `src/render/hexmap3d/worldObjects/descriptors/shapeFactories.js` |
 | Neighbor-blended biome colors | `src/render/hexmap3d/worldObjects/biomeTint.js` |

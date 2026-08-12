@@ -1,0 +1,230 @@
+/**
+ * descriptorNormalize.js — Descriptor normalization.
+ *
+ * `normalizeDescriptor` fills every optional field with its default, resolves
+ * legacy inputs (v3 `materialColor`, the pre-v3 center-height grounding, the
+ * combined `stretchXZ`/`scaleXZ` axes, legacy shape names, v3 object-level
+ * material color), and deep-copies the result so it is JSON-safe. Idempotent.
+ * `normalizePart` is the per-node recursion (shape leaves and groups).
+ */
+import { SHAPE_TYPES, shapeBaseOffset } from './shapeTypes.js';
+import {
+  OBJECT_DEFAULTS,
+  PART_TRANSFORM_DEFAULTS,
+  NESTED_PART_TRANSFORM_DEFAULTS,
+  ENTITY_DRIVEN_KINDS,
+  SCHEMA_VERSION,
+} from './descriptorDefaults.js';
+import { isPlainObject, cloneJson } from './typeChecks.js';
+
+/**
+ * Legacy shape names accepted from older descriptor JSON. `knot` always
+ * rendered as an octahedron (knotGeometries.js) and the snowperson lathe is
+ * now simply `lathe`; remapping lets old downloads keep loading through
+ * normalizeDescriptor.
+ */
+const LEGACY_SHAPE_NAMES = Object.freeze({
+  knot: 'octahedron',
+  snowperson: 'lathe',
+});
+
+/**
+ * Normalize one node of a parts tree (a shape leaf or a group). `nested` marks
+ * nodes below the root: they get the nested transform defaults (no `y`/`lift`)
+ * and skip the legacy grounding migration. Groups keep no shape/params and
+ * their `children` recurse. `legacyGrounding` migrates pre-v3 vertical
+ * placement (see normalizeDescriptor): files authored before the
+ * bottom-anchored convention encoded `transform.y` as the part's CENTER height.
+ * The record path bakes the shape's base offset × Y scale into `y`
+ * (recordBuilder), which compensates a matching `base × scaleY` subtraction
+ * from `transform.y` exactly at scale 1 — so the migration pulls the base out
+ * of the authored center height and the part renders at the same height (its
+ * lowest vertex lands at the old center height, and stretch grows it upward
+ * from there instead of from its center). `lift` / `localPos.y` are pure
+ * offsets and stay as authored. Idempotent: only schemaVersion < SCHEMA_VERSION
+ * triggers it.
+ */
+function normalizePart(part, legacyGrounding = false, nested = false) {
+  if (!isPlainObject(part)) return part;
+  const out = { ...part };
+  const isGroup = Array.isArray(out.children);
+
+  // Shape leaves resolve params + legacy shape names; groups carry neither.
+  if (!isGroup) {
+    const shapeName = LEGACY_SHAPE_NAMES[out.shape] ?? out.shape;
+    const shape = SHAPE_TYPES[shapeName];
+    const params = isPlainObject(out.params) ? out.params : {};
+    out.shape = shapeName;
+    out.params = shape ? { ...shape.defaults, ...params } : { ...params };
+  } else {
+    delete out.shape;
+    delete out.params;
+  }
+
+  // v3 → v4: `materialColor` merges into the single per-part `color`. A literal
+  // `color` wins when both are present — the old instance-color path already
+  // overrode the material color visually. Idempotent: v4 parts carry neither.
+  if (out.materialColor !== undefined) {
+    if (!isGroup && out.color === undefined) out.color = out.materialColor;
+    delete out.materialColor;
+  }
+
+  // Resolve the legacy combined XZ scale into independent scaleX/scaleZ
+  // (an explicit per-axis scale wins over the legacy value).
+  const defaults = isGroup || nested ? NESTED_PART_TRANSFORM_DEFAULTS : PART_TRANSFORM_DEFAULTS;
+  const transform = isPlainObject(out.transform) ? out.transform : {};
+  const merged = { ...defaults, ...transform };
+  if (transform.scaleXZ !== undefined) {
+    if (!('scaleX' in transform)) merged.scaleX = transform.scaleXZ;
+    if (!('scaleZ' in transform)) merged.scaleZ = transform.scaleXZ;
+  }
+  delete merged.scaleXZ;
+  out.transform = merged;
+
+  // Root-only grounding fields (y / lift) and the world-space lean
+  // (tiltAxis / tilt) never appear on groups or nested nodes — the schema
+  // rejects them and the render ignores them. Fold the vertical offsets into
+  // localPos.y (the same convention as the editor's rootToNestedTransform, so
+  // a bottom-anchored root leaf keeps its height when wrapped) and drop the
+  // lean (no nested expression). Idempotent: canonical nodes carry none of
+  // these fields.
+  if (isGroup || nested) {
+    const yFold = (merged.y ?? 0) + (merged.lift ?? 0);
+    if (yFold !== 0) {
+      merged.localPos = {
+        x: merged.localPos?.x ?? 0,
+        y: (merged.localPos?.y ?? 0) + yFold,
+        z: merged.localPos?.z ?? 0,
+      };
+    }
+    delete merged.y;
+    delete merged.lift;
+    delete merged.liftRange;
+    delete merged.tiltAxis;
+    delete merged.tilt;
+  }
+
+  // Resolve the legacy combined stretch axis `xz` into x + z (false pins both).
+  if (isPlainObject(out.stretch) && out.stretch.xz !== undefined) {
+    const stretch = { ...out.stretch };
+    if (stretch.x === undefined) stretch.x = stretch.xz;
+    if (stretch.z === undefined) stretch.z = stretch.xz;
+    delete stretch.xz;
+    out.stretch = stretch;
+  }
+
+  // Legacy (pre-v3) grounding migration — root shape leaves only. Groups have
+  // no geometry and nested nodes have no grounding to migrate.
+  if (!isGroup && !nested && legacyGrounding) {
+    const base = shapeBaseOffset(out.shape, out.params);
+    out.transform.y -= base * (out.transform.scaleY ?? 1);
+  }
+
+  // Children recurse as nested nodes (nested defaults, no grounding).
+  if (isGroup) {
+    out.children = out.children.map((child) => normalizePart(child, legacyGrounding, true));
+  }
+  return out;
+}
+
+/**
+ * Fill every optional field with its default, deep-copying the input.
+ * Idempotent: normalizeDescriptor(normalizeDescriptor(x)) equals
+ * normalizeDescriptor(x). The result is JSON-safe.
+ *
+ * `placement` sub-fields are filled per mode: scatter gets offset
+ * min/max, ring gets ring radii + lean ranges; the other fields stay
+ * absent. `cluster`/`size` halves are filled from the defaults pair.
+ *
+ * @param {object} def - raw descriptor
+ * @returns {object} normalized descriptor
+ */
+export function normalizeDescriptor(def) {
+  const out = cloneJson(isPlainObject(def) ? def : {});
+
+  // v3 → v4: object-level material color moves onto each part that has no
+  // color of its own (the material color was the render fallback for those
+  // parts). Captured from the RAW material before the defaults merge below.
+  const legacyMaterialColor = isPlainObject(out.material) ? out.material.color : undefined;
+
+  // Files older than v3 encoded `transform.y` as the part's CENTER height; the
+  // bottom-anchored convention reads it as bottom height, so only pre-v3 files
+  // are migrated per part (see normalizePart). This floor is a constant on
+  // purpose: bumping SCHEMA_VERSION (e.g. v4's color migration) must not
+  // re-apply the grounding migration to v3+ files.
+  const legacyGrounding = (out.schemaVersion ?? 1) < 3;
+  out.schemaVersion = SCHEMA_VERSION;
+  out.scale = out.scale ?? OBJECT_DEFAULTS.scale;
+  out.variantRule = out.variantRule ?? 'hash';
+  out.cluster = { ...OBJECT_DEFAULTS.cluster, ...(isPlainObject(out.cluster) ? out.cluster : {}) };
+  if (out.cluster.rule === 'moisture') {
+    out.cluster.countsByTerrain = isPlainObject(out.cluster.countsByTerrain)
+      ? out.cluster.countsByTerrain
+      : { forest: [3, 5], denseForest: [4, 7] };
+    out.cluster.densityRange = out.cluster.densityRange ?? [0.55, 0.85];
+    out.cluster.jitter = out.cluster.jitter ?? 1;
+  }
+  out.size = { ...OBJECT_DEFAULTS.size, ...(isPlainObject(out.size) ? out.size : {}) };
+  const rawVariation = isPlainObject(out.variation) ? out.variation : {};
+  // Resolve the legacy combined stretchXZ into independent stretchX/stretchZ
+  // before the defaults merge (an explicit per-axis range wins).
+  if (rawVariation.stretchXZ !== undefined) {
+    if (rawVariation.stretchX === undefined) rawVariation.stretchX = rawVariation.stretchXZ;
+    if (rawVariation.stretchZ === undefined) rawVariation.stretchZ = rawVariation.stretchXZ;
+    delete rawVariation.stretchXZ;
+  }
+  out.variation = { ...OBJECT_DEFAULTS.variation, ...rawVariation };
+  out.placement = { ...OBJECT_DEFAULTS.placement, ...(isPlainObject(out.placement) ? out.placement : {}) };
+  if (out.placement.mode === 'scatter') {
+    out.placement.offsetMin = out.placement.offsetMin ?? 0.15;
+    out.placement.offsetMax = out.placement.offsetMax ?? 0.3;
+  } else if (out.placement.mode === 'ring') {
+    out.placement.ringMin = out.placement.ringMin ?? 0.18;
+    out.placement.ringMax = out.placement.ringMax ?? 0.55;
+    out.placement.leanMin = out.placement.leanMin ?? 0.045;
+    out.placement.leanMax = out.placement.leanMax ?? 0.12;
+  } else if (out.placement.mode === 'jitter') {
+    out.placement.offset = out.placement.offset ?? 0.08;
+    out.placement.tiltMin = out.placement.tiltMin ?? 0;
+    out.placement.tiltMax = out.placement.tiltMax ?? 0;
+    out.placement.tiltSeed = out.placement.tiltSeed ?? 1;
+  }
+  out.emphasis = { ...OBJECT_DEFAULTS.emphasis, ...(isPlainObject(out.emphasis) ? out.emphasis : {}) };
+  out.material = { ...OBJECT_DEFAULTS.material, ...(isPlainObject(out.material) ? out.material : {}) };
+
+  out.parts = (Array.isArray(out.parts) ? out.parts : []).map((p) => normalizePart(p, legacyGrounding));
+  if (Array.isArray(out.variants)) {
+    out.variants = out.variants.map((variant) => {
+      const v = { ...variant };
+      v.parts = (Array.isArray(variant.parts) ? variant.parts : []).map((p) => normalizePart(p, legacyGrounding));
+      v.material = { ...OBJECT_DEFAULTS.material, ...(isPlainObject(variant.material) ? variant.material : {}) };
+      return v;
+    });
+  }
+
+  // v3 → v4 color migration: push the object's material color into every part
+  // that lacks an explicit color, then drop it from the material. Entity parts
+  // are skipped for the push — their instance color comes from the entity
+  // (token or the entity.color fallback), so the material color never rendered
+  // for them — but material.color is removed for every kind. The push walks the
+  // parts trees recursively and touches shape leaves only (groups have no
+  // color). Idempotent: a v4 file has no material.color, so the push no-ops.
+  if (legacyMaterialColor !== undefined) {
+    if (!ENTITY_DRIVEN_KINDS.has(out.kind)) {
+      const push = (node) => {
+        if (Array.isArray(node.children)) {
+          for (const child of node.children) push(child);
+          return;
+        }
+        if (node.color === undefined) node.color = legacyMaterialColor;
+      };
+      for (const part of out.parts) push(part);
+      for (const variant of out.variants ?? []) {
+        for (const part of variant.parts) push(part);
+      }
+    }
+    if (isPlainObject(out.material)) delete out.material.color;
+  }
+
+  return out;
+}

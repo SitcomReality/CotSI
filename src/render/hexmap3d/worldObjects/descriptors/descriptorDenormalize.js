@@ -1,0 +1,168 @@
+/**
+ * descriptorDenormalize.js — Descriptor denormalization.
+ *
+ * `denormalizeDescriptor` strips every optional field equal to its default —
+ * the inverse of normalizeDescriptor — producing the minimal hand-authored
+ * form used by the data files (only non-default fields). Saving an edited
+ * descriptor through denormalizeDescriptor keeps the diff small instead of
+ * writing every default back into the file. Pure, idempotent, JSON-safe.
+ */
+import { SHAPE_TYPES } from './shapeTypes.js';
+import { OBJECT_DEFAULTS, PART_TRANSFORM_DEFAULTS, NESTED_PART_TRANSFORM_DEFAULTS } from './descriptorDefaults.js';
+import { isPlainObject, cloneJson } from './typeChecks.js';
+
+/** Recursive deep-equality for JSON-safe values (objects, arrays, primitives). */
+function sameValue(a, b) {
+  if (a === b) return true;
+  if (Array.isArray(a)) {
+    return Array.isArray(b) && a.length === b.length && a.every((v, i) => sameValue(v, b[i]));
+  }
+  if (isPlainObject(a)) {
+    const aKeys = Object.keys(a);
+    const bKeys = isPlainObject(b) ? Object.keys(b) : null;
+    return !!bKeys && aKeys.length === bKeys.length && aKeys.every((k) => sameValue(a[k], b[k]));
+  }
+  return false;
+}
+
+/** Strip the fields normalizeDescriptor fills for moisture-rule clusters. */
+const MOISTURE_COUNTS_DEFAULT = Object.freeze({ forest: [3, 5], denseForest: [4, 7] });
+
+/**
+ * Strip every optional field equal to its default — the inverse of
+ * normalizeDescriptor — producing the minimal hand-authored form used by the
+ * data files (only non-default fields). Saving an edited descriptor through
+ * denormalizeDescriptor keeps the diff small instead of writing every default
+ * back into the file. Pure, idempotent, JSON-safe.
+ *
+ * `schemaVersion` is deliberately retained: its absence would make a later
+ * normalizeDescriptor run treat the file as pre-v3 and re-apply the legacy
+ * grounding migration (transform.y -= base × scaleY), corrupting values.
+ *
+ * Round-trip invariant: normalizeDescriptor(denormalizeDescriptor(d))
+ * deep-equals normalizeDescriptor(d) for every valid descriptor. The split
+ * migration and the descriptor round-trip tests enforce it.
+ *
+ * @param {object} def - normalized descriptor
+ * @returns {object} minimal descriptor
+ */
+export function denormalizeDescriptor(def) {
+  const out = cloneJson(isPlainObject(def) ? def : {});
+
+  if (out.scale === OBJECT_DEFAULTS.scale) delete out.scale;
+  if (out.variantRule === 'hash') delete out.variantRule;
+
+  if (isPlainObject(out.cluster)) {
+    const cluster = out.cluster;
+    const rule = cluster.rule ?? 'uniform';
+    if (rule === 'uniform') {
+      // min/max only — moisture fields left over from a rule switch are inert.
+      delete cluster.countsByTerrain;
+      delete cluster.densityRange;
+      delete cluster.jitter;
+      if (cluster.min === OBJECT_DEFAULTS.cluster.min) delete cluster.min;
+      if (cluster.max === OBJECT_DEFAULTS.cluster.max) delete cluster.max;
+      delete cluster.rule; // 'uniform' is the default
+    } else {
+      // moisture — counts come from countsByTerrain; min/max are uniform-only.
+      delete cluster.min;
+      delete cluster.max;
+      if (sameValue(cluster.countsByTerrain, MOISTURE_COUNTS_DEFAULT)) delete cluster.countsByTerrain;
+      if (sameValue(cluster.densityRange, [0.55, 0.85])) delete cluster.densityRange;
+      if (cluster.jitter === 1) delete cluster.jitter;
+    }
+    if (Object.keys(cluster).length === 0) delete out.cluster;
+  }
+
+  if (isPlainObject(out.size)) {
+    if (out.size.min === OBJECT_DEFAULTS.size.min) delete out.size.min;
+    if (out.size.max === OBJECT_DEFAULTS.size.max) delete out.size.max;
+    if (Object.keys(out.size).length === 0) delete out.size;
+  }
+
+  if (isPlainObject(out.variation)) {
+    const variation = out.variation;
+    for (const [key, defValue] of Object.entries(OBJECT_DEFAULTS.variation)) {
+      if (sameValue(variation[key], defValue)) delete variation[key];
+    }
+    if (Object.keys(variation).length === 0) delete out.variation;
+  }
+
+  if (isPlainObject(out.placement)) {
+    const placement = out.placement;
+    const mode = placement.mode ?? 'center';
+    // Each placement mode owns a fixed sub-field set; fields left over from
+    // other modes (editor mode switches) are inert and stripped on emit.
+    const MODE_FIELDS = {
+      scatter: ['offsetMin', 'offsetMax', 'separation'],
+      ring: ['ringMin', 'ringMax', 'leanMin', 'leanMax'],
+      jitter: ['offset', 'tiltMin', 'tiltMax', 'tiltSeed', 'separation'],
+      center: [],
+    };
+    const own = new Set(MODE_FIELDS[mode] ?? []);
+    for (const key of Object.keys(placement)) {
+      if (key !== 'mode' && !own.has(key)) delete placement[key];
+    }
+    if (mode === 'scatter') {
+      if (placement.offsetMin === 0.15) delete placement.offsetMin;
+      if (placement.offsetMax === 0.3) delete placement.offsetMax;
+    } else if (mode === 'ring') {
+      if (placement.ringMin === 0.18) delete placement.ringMin;
+      if (placement.ringMax === 0.55) delete placement.ringMax;
+      if (placement.leanMin === 0.045) delete placement.leanMin;
+      if (placement.leanMax === 0.12) delete placement.leanMax;
+    } else if (mode === 'jitter') {
+      if (placement.offset === 0.08) delete placement.offset;
+      if (placement.tiltMin === 0) delete placement.tiltMin;
+      if (placement.tiltMax === 0) delete placement.tiltMax;
+      if (placement.tiltSeed === 1) delete placement.tiltSeed;
+    } else {
+      delete placement.mode; // 'center' is the default
+    }
+    if (placement.separation === 0) delete placement.separation;
+    if (Object.keys(placement).length === 0) delete out.placement;
+  }
+
+  if (isPlainObject(out.emphasis) && out.emphasis.behavior === 'none') delete out.emphasis;
+  if (isPlainObject(out.material) && sameValue(out.material, OBJECT_DEFAULTS.material)) delete out.material;
+
+  const denormPart = (part, nested = false) => {
+    if (!isPlainObject(part)) return part;
+    const p = cloneJson(part);
+    const isGroup = Array.isArray(p.children);
+    const shape = SHAPE_TYPES[p.shape];
+    if (!isGroup && shape && isPlainObject(p.params)) {
+      const params = {};
+      for (const [key, value] of Object.entries(p.params)) {
+        if (!(key in shape.defaults) || !Object.is(value, shape.defaults[key])) params[key] = value;
+      }
+      if (Object.keys(params).length === 0) delete p.params;
+      else p.params = params;
+    }
+    if (isPlainObject(p.transform)) {
+      const defaults = isGroup || nested ? NESTED_PART_TRANSFORM_DEFAULTS : PART_TRANSFORM_DEFAULTS;
+      const transform = {};
+      for (const [key, value] of Object.entries(p.transform)) {
+        if (!(key in defaults) || !Object.is(value, defaults[key])) transform[key] = value;
+      }
+      if (Object.keys(transform).length === 0) delete p.transform;
+      else p.transform = transform;
+    }
+    if (isGroup) {
+      p.children = p.children.map((child) => denormPart(child, true));
+    }
+    return p;
+  };
+
+  out.parts = (Array.isArray(out.parts) ? out.parts : []).map(denormPart);
+  if (Array.isArray(out.variants)) {
+    out.variants = out.variants.map((variant) => {
+      const v = { ...variant };
+      v.parts = (Array.isArray(variant.parts) ? variant.parts : []).map(denormPart);
+      if (isPlainObject(v.material) && sameValue(v.material, OBJECT_DEFAULTS.material)) delete v.material;
+      return v;
+    });
+  }
+
+  return out;
+}

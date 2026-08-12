@@ -221,8 +221,8 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `worldObjects/meshBuilder.js` | Shared InstancedMesh iteration + build utilities (per-instance scale/lean/color + frame placement/orientation) |
 | `worldObjects/tileHash.js` | Deterministic per-tile / per-tree hashing |
 | `worldObjects/worldMeshes.js` | Top-level world-object mesh entry: fruit trees (legacy builder) + descriptor-driven features/decor + bases |
-| `worldObjects/descriptors/schema.js` | Descriptor JSON schema: shapes, cluster/size ranges, emphasis, validation + normalization |
-| `worldObjects/descriptors/recordBuilder.js` | Pure descriptor + tile → instance records (hash-driven determinism) |
+| `worldObjects/descriptors/schema.js` | Descriptor schema API barrel (shapes, defaults, validation, normalization) — implementation in the sibling `shapeTypes.js` / `descriptorDefaults.js` / `typeChecks.js` / `validateShapes.js` / `validateParts.js` / `descriptorValidation.js` / `descriptorNormalize.js` / `descriptorDenormalize.js` |
+| `worldObjects/descriptors/recordBuilder.js` | Record-generation API barrel — implementation in `clusterCount.js` / `variantSelection.js` / `itemPlacement.js` / `partScale.js` / `partColor.js` / `partFrames.js` / `tileRecords.js` / `entityRecords.js` (hash-driven determinism) |
 | `worldObjects/descriptors/shapeFactories.js` | Shape → THREE geometry + material factories |
 | `worldObjects/descriptors/meshAssembly.js` | Descriptor + records → one InstancedMesh per part geometry |
 | `worldObjects/descriptors/gameBuilder.js` | Game-side tile → descriptor resolution (features + grove/hill decor, incl. the Painforest grove variant) + assembly |
