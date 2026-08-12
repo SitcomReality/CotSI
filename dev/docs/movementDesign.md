@@ -195,35 +195,38 @@ target hex's effective cost, deducted from `champ.actionPoints`.
 
 ### Interactions
 
-1. **Reachable highlight** — the per-refresh highlight (currently the 6
-   adjacent hexes from `adjacentPassable`) becomes the full weighted range:
-   every hex the champion can afford this day. Occupied/blocked hexes are
-   never highlighted.
-2. **Hover preview** — hovering any hex shows the tooltip (terrain name +
-   cost, e.g. "Forest · 12 AP"); if a path exists, a path preview (route
-   overlay) plus total: "3 hexes · 36 AP".
-3. **Click to walk** — clicking a reachable hex moves the champion along the
-   cheapest path, hopping hex by hex through the existing movement animator
-   (extended to chain hops), deducting each hop's cost. Clicking works mid-
-   walk? No — one committed path per click; the next click queues only after
-   the current path finishes (animation chaining detail).
-4. **Click beyond budget** — clicking a hex beyond reach auto-paths toward it
-   and walks the **longest affordable prefix** of the path (futureWork §1.4's
-   "farthest reachable tile toward it"). The champion stops where the AP runs
-   out; highlights refresh; the player continues with another click.
+1. **Reachable highlight (minimal)** — the per-refresh highlight is the full
+   weighted range, but drawn deliberately understated: thin STATIC hex
+   outlines (no fill wash, no animated dashes), batched into a single stroke
+   per frame. Hexes in unexplored black fog are never highlighted. (Decided
+   in playtesting: the original animated per-hex wash drowned the landscape.)
+2. **Hover — terrain cost only** — the tooltip shows the hex's step cost for
+   the active champion ("Forest · 12 AP"). No path is computed on hover.
+3. **Click to preview → click to confirm (the ONLY move mode)** — the first
+   click on a hex computes the route and draws it; the second click on the
+   same hex commits the walk. The preview persists until cancelled (Esc or
+   clicking the champion's own hex) and survives hovers; clicking a different
+   hex moves the preview there. The route line starts at the champion's own
+   hex, runs through each path hex, and ends in a distinct white destination
+   terminal (outline + center dot). (Decided in playtesting: click-to-walk
+   was removed.)
+4. **Click beyond budget** — previewing a hex beyond reach shows the
+   **longest affordable prefix** of the A* route toward it (futureWork §1.4's
+   "farthest reachable tile toward it"); committing walks exactly that prefix.
+   The champion stops where the AP runs out; highlights refresh; the player
+   continues with another preview.
 5. **Combat/trade/base adjacency clicks stay as-is** — those resolve before
-   movement, unchanged (they ignore AP entirely).
+   movement, unchanged (they ignore AP entirely, and cancel any pending
+   preview).
 6. **End of day** — when `actionPoints` hits 0 (or the player ends the turn),
    `pulseEnd` fires as today. `confirmModal` wording "End turn with AP
    remaining?" follows the rename.
-0. **Support optional control change** — as well as 'click to walk', the system
-   should support the ability to 'click to preview path & click to confirm'.
-   We will test which is the preferable default after implementation.
 
 ### Cognitive-load safeguards
 
 - **Zero arithmetic in normal play**: reachability is precomputed and drawn;
-  path totals are shown, never implied.
+  the previewed route shows the path and its destination, never implied
+  numbers.
 - **One number in the HUD**: `AP 48/60` (left panel), replacing "Moves 4/5".
 - **Costs are shown on hover only** — no per-hex numbers permanently drawn on
   the map (an optional "show terrain costs" debug overlay can come later).
@@ -245,7 +248,7 @@ target hex's effective cost, deducted from `champ.actionPoints`.
 | `src/game/state/championAI.js` | `runBotTurn` walks the weighted path while cumulative cost ≤ AP (today: `steps = min(moves, path.length)`); target scoring keeps hex-distance decay (cheap) — cost-distance scoring is a listed future refinement |
 | `src/runtime/botTurnRunner.js` | Execute multi-hop bot moves, deducting AP per hop |
 | `src/render/hexmap3d/units/movementAnimator.js` | Chain hops for a path (queue one animation per hop); per-hop duration constant |
-| `src/ui/mapTooltip.js`, `src/render/hexmap3d/interaction/hexHover.js` | Terrain cost + path preview total; range cache now stores the weighted result |
+| `src/ui/mapTooltip.js`, `src/render/hexmap3d/interaction/hexHover.js` | Terrain cost on hover only (no path computation); route preview is click-to-preview via the pathPreview overlay |
 | `src/runtime/mapRefresh.js`, `src/render/overlays/derivedState.js` | `moveHighlights` = weighted range keys (replaces `adjacentPassable`); optional cost-band tinting (phase 2) |
 
 ---
@@ -310,7 +313,8 @@ stepping a champion onto a hex — the ambiguity the user flagged is in the
 - Mob capabilities (§7) — one sparse map per mob in `archetypeData/mobs.js`.
 - Pools (§5) — five constants.
 - Whether the Spur (+10 AP) and Reverie (+10 AP) bonuses survive balance pass.
-- Cost-band tinting of the reachable highlight (phase 2, only if wanted).
+- Reachable-highlight styling (static thin outlines vs a different minimal
+  treatment) and the path-preview destination terminal — overlay params.
 - Cost-distance bot scoring (follow-up).
 
 ---

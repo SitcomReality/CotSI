@@ -5,7 +5,6 @@ import { terrainCost } from '../game/rules/movementCosts.js';
 import { getArchetype } from '../game/rules/archetypes.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { getHumanView } from '../game/state/fogOfWar.js';
-import { pathToward } from '../game/state/championMovement.js';
 import { h } from './domBuilder.js';
 
 const maybe = (test, ...args) => test ? args : [];
@@ -18,17 +17,6 @@ function featureName(kind) {
 }
 
 export function getTooltipContent(gameState, key, activeChampion) {
-  return getTooltipContentAndPreview(gameState, key, activeChampion)?.content ?? null;
-}
-
-/**
- * Build the tooltip DOM plus the path-preview overlay data for a hex.
- * Returns null for unexplored/unknown hexes. The preview (weighted path from
- * the active human champion to this hex, or null) is consumed by the runtime
- * to drive the pathPreview overlay layer.
- * @returns {{ content: HTMLElement, preview: { keys: string[], cost: number } | null } | null}
- */
-export function getTooltipContentAndPreview(gameState, key, activeChampion) {
   const t = gameState.tiles[key];
   if (!t) return null;
 
@@ -43,21 +31,11 @@ export function getTooltipContentAndPreview(gameState, key, activeChampion) {
   const ch = occupiedByChampion(gameState, key);
   const trader = occupiedByTrader(gameState, key);
 
-  /* ---- movement: terrain cost + weighted path (human champion only) ---- */
+  /* ---- movement: terrain step cost only (no path computation on hover —
+   *  routes are click-to-preview, dev/docs/movementDesign.md §8) ---- */
   let costText = null;
-  let pathText = null;
-  let preview = null;
   if (activeChampion && activeChampion.controller === 'human') {
-    const stepCost = terrainCost(activeChampion, t.terrain);
-    costText = `${TERRAIN[t.terrain].label} · ${stepCost} AP`;
-    // Same semantics as a click (pathToward): in-range hexes preview the
-    // cheapest path; out-of-range hexes preview the affordable prefix the
-    // champion would actually walk toward them.
-    const toward = pathToward(gameState, activeChampion, key);
-    if (toward && toward.path.length > 0) {
-      preview = { keys: toward.path, cost: toward.cost };
-      pathText = `Path: ${toward.path.length} hex${toward.path.length > 1 ? 'es' : ''} · ${toward.cost} AP`;
-    }
+    costText = `${TERRAIN[t.terrain].label} · ${terrainCost(activeChampion, t.terrain)} AP`;
   }
 
   /* ---- feature ---- */
@@ -92,9 +70,6 @@ export function getTooltipContentAndPreview(gameState, key, activeChampion) {
       ? [h('span', { class: 'hex-tooltip__trader' }, '₳ Wandering Trader')]
       : []
     ),
-    ...maybe(pathText,
-      h('span', { class: 'hex-tooltip__reachable' }, pathText)
-    ),
   ];
 
   const container = h('div', { class: 'hex-tooltip__inner' }, ...lines);
@@ -105,7 +80,7 @@ export function getTooltipContentAndPreview(gameState, key, activeChampion) {
     container.prepend(exploredTag, ' ');
   }
 
-  return { content: container, preview };
+  return container;
 }
 
 

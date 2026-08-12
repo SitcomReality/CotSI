@@ -55,7 +55,7 @@ READONLY_RULES_DATA = {
 TOLERATED_STATE_READS = {
     'src/game/state/entityQueries.js': {'occupiedByMob', 'occupiedByChampion', 'occupiedByTrader'},
     'src/game/state/fogOfWar.js': {'getHumanView'},
-    'src/game/state/championMovement.js': {'movementRange', 'pathToKey', 'pathToward', 'dailyActionPoints'},
+    'src/game/state/championMovement.js': {'dailyActionPoints'},
     'src/game/state/liveGame.js': {'currentChamp'},
     'src/game/state/combat/index.js': {'sideOf', 'entityFor'},
 }

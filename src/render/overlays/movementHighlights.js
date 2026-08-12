@@ -1,31 +1,23 @@
-// 2D overlay layer: highlights hexes adjacent to the active human champion.
-// Priority 5 (above fog, below selection ring).
+// 2D overlay layer: minimal reachable-range hint for the active human champion.
+// Priority 5 (above fog, below the path preview).
 //
-// Verdigris wash per aestheticConventions §4.4 (--st-move). Gold is reserved
-// for selection (§13.6), so movement reads as a soft green wash instead of the
-// old harsh debug-yellow fill.
+// Deliberately understated (dev/docs/movementDesign.md §8): thin STATIC hex
+// outlines — no fill wash, no animated marching dashes, no per-hex radial
+// gradients. Every eligible hex batches into ONE path + ONE stroke per frame,
+// so the range reads as a quiet suggestion instead of drowning the landscape,
+// at a fraction of the old per-frame cost. Hexes in unexplored black fog are
+// never highlighted.
 
 import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileSurfaceY } from '../hexmap3d/hexMapRenderer.js';
-import { getDerivedMoveHighlights, getHoveredKey } from './overlayStack.js';
+import { getDerivedMoveHighlights, getDerivedHumanView, getHoveredKey } from './overlayStack.js';
 import { TERRAIN } from '../../game/rules/terrainTypes.js';
 import { occupiedByTrader } from '../../game/state/entityQueries.js';
-import { MOVE_ALLOWED_WIDTH, MOVE_HOVER_WIDTH, MOVE_DASH, MOVE_DASH_SPEED, HIGHLIGHT_RADIUS_FRAC, HIGHLIGHT_Y_OFFSET } from '../../params/render/overlayParams.js';
+import { MOVE_ALLOWED_WIDTH, MOVE_HOVER_WIDTH, HIGHLIGHT_RADIUS_FRAC, HIGHLIGHT_Y_OFFSET } from '../../params/render/overlayParams.js';
 
-// ---------------------------------------------------------------------------
-// Visual constants — radial verdigris wash (feathered toward hex edges)
-// ---------------------------------------------------------------------------
-const ALLOWED_FILL_CENTER = 'rgba(0, 204, 136, 0.28)';
-const ALLOWED_FILL_EDGE   = 'rgba(0, 204, 136, 0.06)';
-const ALLOWED_STROKE      = 'rgba(0, 204, 136, 0.85)';
+const ALLOWED_STROKE = 'rgba(0, 204, 136, 0.32)';
+const HOVER_STROKE = '#7affd4';
 
-const HOVER_FILL_CENTER   = 'rgba(0, 204, 136, 0.42)';
-const HOVER_FILL_EDGE     = 'rgba(0, 204, 136, 0.12)';
-const HOVER_STROKE        = '#7affd4';
-
-// ---------------------------------------------------------------------------
-// Render entry point
-// ---------------------------------------------------------------------------
 export function renderMovementHighlights(ctx2d, state, camera, time) {
   const champ = state.champions.find(
     c => c.id === state.activeChampionId && c.alive
@@ -35,73 +27,62 @@ export function renderMovementHighlights(ctx2d, state, camera, time) {
   const allowed = getDerivedMoveHighlights() || [];
   if (allowed.length === 0) return;
 
+  const humanView = getDerivedHumanView();
+  const explored = humanView?.explored || null;
+
   const canvas = ctx2d.canvas;
   const hoveredKey = getHoveredKey();
 
+  // Project every eligible hex, batching the outlines into a single path.
+  let hoveredPoints = null;
+  ctx2d.beginPath();
+  let any = false;
   for (const key of allowed) {
+    // Never advertise movement into unexplored black fog.
+    if (explored && !explored.has(key)) continue;
+
     const tile = state.tiles[key];
     if (!tile) continue;
 
     // Skip hexes occupied by a trader
-    const hasTrader = occupiedByTrader(state, key);
-    if (hasTrader) continue;
+    if (occupiedByTrader(state, key)) continue;
 
     // Safety guard: never highlight impassable terrain
     if (!TERRAIN[tile.terrain]?.passable) continue;
 
     const surfaceY = tileSurfaceY(tile);
     const hc = hexCenter3D(tile.q, tile.r, surfaceY);
-
-    // Project the hex center (for the radial gradient) and all 6 corners
-    const centerScreen = worldToScreen(hc.x, surfaceY + HIGHLIGHT_Y_OFFSET, hc.z, camera, canvas);
-    if (!centerScreen) continue;
-
-    const corners = hexCornersXZ(hc.x, hc.z, HIGHLIGHT_RADIUS_FRAC);
-    const screenPoints = [];
+    const corners3d = hexCornersXZ(hc.x, hc.z, HIGHLIGHT_RADIUS_FRAC);
+    const pts = [];
     let behindCamera = false;
-
-    for (const c of corners) {
+    for (const c of corners3d) {
       const s = worldToScreen(c.x, surfaceY + HIGHLIGHT_Y_OFFSET, c.z, camera, canvas);
-      if (!s) {
-        behindCamera = true;
-        break;
-      }
-      screenPoints.push(s);
+      if (!s) { behindCamera = true; break; }
+      pts.push(s);
     }
-
     if (behindCamera) continue;
 
-    const isHovered = key === hoveredKey;
-    const width  = isHovered ? MOVE_HOVER_WIDTH : MOVE_ALLOWED_WIDTH;
-
-    ctx2d.beginPath();
-    ctx2d.moveTo(screenPoints[0].x, screenPoints[0].y);
-    for (let i = 1; i < 6; i++) {
-      ctx2d.lineTo(screenPoints[i].x, screenPoints[i].y);
-    }
+    ctx2d.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < 6; i++) ctx2d.lineTo(pts[i].x, pts[i].y);
     ctx2d.closePath();
+    if (key === hoveredKey) hoveredPoints = pts;
+    any = true;
+  }
+  if (!any) return;
 
-    // Soft radial wash — brightest at the hex center, feathered at the edges
-    const refDist = Math.sqrt(
-      (screenPoints[0].x - centerScreen.x) ** 2 +
-      (screenPoints[0].y - centerScreen.y) ** 2
-    );
-    const grad = ctx2d.createRadialGradient(
-      centerScreen.x, centerScreen.y, 0,
-      centerScreen.x, centerScreen.y, refDist
-    );
-    grad.addColorStop(0, isHovered ? HOVER_FILL_CENTER : ALLOWED_FILL_CENTER);
-    grad.addColorStop(1, isHovered ? HOVER_FILL_EDGE : ALLOWED_FILL_EDGE);
+  // One stroke for the whole range
+  ctx2d.strokeStyle = ALLOWED_STROKE;
+  ctx2d.lineWidth = MOVE_ALLOWED_WIDTH;
+  ctx2d.stroke();
 
-    ctx2d.fillStyle = grad;
-    ctx2d.fill();
-
-    // Animated marching dash along the hex outline
-    ctx2d.strokeStyle = isHovered ? HOVER_STROKE : ALLOWED_STROKE;
-    ctx2d.setLineDash(MOVE_DASH);
-    ctx2d.lineDashOffset = -time * MOVE_DASH_SPEED;
-    ctx2d.lineWidth = width;
+  // Slightly brighter stroke on the hovered reachable hex
+  if (hoveredPoints) {
+    ctx2d.beginPath();
+    ctx2d.moveTo(hoveredPoints[0].x, hoveredPoints[0].y);
+    for (let i = 1; i < 6; i++) ctx2d.lineTo(hoveredPoints[i].x, hoveredPoints[i].y);
+    ctx2d.closePath();
+    ctx2d.strokeStyle = HOVER_STROKE;
+    ctx2d.lineWidth = MOVE_HOVER_WIDTH;
     ctx2d.stroke();
-    ctx2d.setLineDash([]);
   }
 }

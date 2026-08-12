@@ -8,6 +8,7 @@ import { finishTurn } from '../game/state/worldSimulation.js';
 import { isDigEligible } from '../game/state/turnActions.js';
 import { openConfirmModal } from '../ui/modals/confirmModal.js';
 import { getCombatUI } from './combat/combatState.js';
+import { cancelPendingPreview } from './hexBridge.js';
 
 /**
  * Disable or re-enable the End Turn button with visual feedback.
@@ -43,6 +44,7 @@ export function onEndTurn() {
     openConfirmModal({ title: 'End Turn', message: msg })
       .then(confirmed => {
         if (confirmed) {
+          cancelPendingPreview();
           setTurnLock(true);
           disableEndTurnBtn(true);
           finishTurn(G);
@@ -52,6 +54,7 @@ export function onEndTurn() {
     return;
   }
 
+  cancelPendingPreview();
   setTurnLock(true);
   disableEndTurnBtn(true);
   finishTurn(G);

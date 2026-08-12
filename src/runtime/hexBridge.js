@@ -23,21 +23,24 @@ import { handleTeleportClick } from '../devtools/devTools.js';
 import { CHAMPION_HEIGHT_OFFSET } from '../params/render/animationParams.js';
 
 // ─── Click-to-preview state (dev/docs/movementDesign.md §8) ────────────────
-// In preview mode ('click to preview path & click to confirm'), the first
-// click on a hex stores the path; the second click on the same hex commits
-// the walk. Module state resets on commit, cancel, or champion change.
+// Click-to-preview → click-to-confirm is the only move mode: the first click
+// on a hex stores the path; the second click on the same hex commits the walk.
+// Module state resets on commit, cancel, champion change, or champion move
+// (end turn / teleport can leave the same champion at a new hex).
 let pendingPreviewKey = null;
 let pendingPreviewPath = null;
 let pendingPreviewChampId = null;
+let pendingPreviewStartKey = null; // champion hex when the preview was made
 
 /**
  * Cancel any pending click-to-preview path (Esc, clicking the champion's own
- * hex, or switching move modes). Registered as the 'cancelMovePreview' action.
+ * hex, or ending the turn). Registered as the 'cancelMovePreview' action.
  */
 export function cancelPendingPreview() {
   pendingPreviewKey = null;
   pendingPreviewPath = null;
   pendingPreviewChampId = null;
+  pendingPreviewStartKey = null;
   setPathPreview(null);
 }
 
@@ -132,44 +135,46 @@ export function onHexClick(key) {
   if (pendingPreviewChampId !== null && pendingPreviewChampId !== ch.id) {
     cancelPendingPreview();
   }
+  // Same champion, but moved since the preview was made (ended the turn,
+  // teleported, won combat onto a new hex): the stored route no longer
+  // starts at the champion — the next click previews instead of committing.
+  if (
+    pendingPreviewChampId === ch.id &&
+    pendingPreviewStartKey !== null &&
+    pendingPreviewStartKey !== startKey
+  ) {
+    cancelPendingPreview();
+  }
 
   // One committed path per click (design §8.3): ignore clicks while the
   // champion's multi-hop walk animation is still playing. State is already
   // at the destination, so re-pathing mid-chain would skip the mesh ahead.
   if (isAnimating(ch.id)) return;
 
-  const previewMode = !!(window.__devTools && window.__devTools.movePreviewMode);
-
-  // Click-to-preview → click-to-confirm
-  if (previewMode) {
-    if (key === startKey) {
-      cancelPendingPreview();
-      return;
-    }
-    if (pendingPreviewKey === key && pendingPreviewPath) {
-      // Revalidate at commit time: the world may have moved since the preview
-      // (occupants, features, AP grants) — recompute against fresh state.
-      const targetKey = pendingPreviewKey;
-      cancelPendingPreview();
-      const fresh = pathToward(G, ch, targetKey);
-      if (fresh && fresh.path.length) {
-        walkPath(ch, fresh.path);
-      } else {
-        toast('That path is no longer clear — pick a new destination');
-      }
-      return;
-    }
-    const path = pathToward(G, ch, key);
-    pendingPreviewKey = key;
-    pendingPreviewPath = path ? path.path : null;
-    pendingPreviewChampId = ch.id;
-    setPathPreview(path ? { keys: path.path, cost: path.cost } : null);
+  // Click-to-preview → click-to-confirm is the only move mode (design §8):
+  // the first click on a hex previews the route (persisting until cancelled),
+  // the second click on the same hex commits the walk.
+  if (key === startKey) {
+    cancelPendingPreview();
     return;
   }
-
-  // Click-to-walk (default): walk the path, or as far as AP allows.
-  const path = pathToward(G, ch, key);
-  if (path && path.path.length) {
-    walkPath(ch, path.path);
+  if (pendingPreviewKey === key && pendingPreviewPath) {
+    // Revalidate at commit time: the world may have moved since the preview
+    // (occupants, features, AP grants) — recompute against fresh state.
+    const targetKey = pendingPreviewKey;
+    cancelPendingPreview();
+    const fresh = pathToward(G, ch, targetKey);
+    if (fresh && fresh.path.length) {
+      walkPath(ch, fresh.path);
+    } else {
+      toast('That path is no longer clear — pick a new destination');
+    }
+    return;
   }
+  const path = pathToward(G, ch, key);
+  pendingPreviewKey = key;
+  pendingPreviewPath = path ? path.path : null;
+  pendingPreviewChampId = ch.id;
+  pendingPreviewStartKey = startKey;
+  setPathPreview(path ? { keys: path.path, cost: path.cost } : null);
 }

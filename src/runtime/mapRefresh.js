@@ -49,13 +49,13 @@ let lastFollowedChampKey = null;
 let lastScheduledChampKey = null;
 
 /**
- * Last state the hover path-preview overlay was built for. The overlay draws
- * a route from the active champion; when the champion (or its position/AP)
- * changes while the pointer is parked on a hex, the cached preview goes
- * stale, so refreshMap clears it until the next hover rebuild.
+ * Last champion the click-to-preview overlay was built for ("id@q,r"). The
+ * route is drawn from the active champion, so when the champion or its hex
+ * changes (turn advance, death, teleport) the preview goes stale — refreshMap
+ * clears it until the next click-to-preview. Previews intentionally persist
+ * across hovers and AP changes.
  */
 let lastPreviewChampKey = null;
-let lastPreviewChampAp = null;
 
 function markOccupancyChunksDirty(state) {
   const current = occupiedKeys(state);
@@ -98,15 +98,13 @@ export function refreshMap() {
     : [];
   setDerivedState(humanView, moveHighlights);
 
-  // A stale hover path-preview (built for a previous champion position/AP)
-  // would draw a route that no longer starts at the champion. Clear it when
-  // the champion state it was built for changed; the next hover rebuilds.
-  const previewChampKey = activeChamp ? coordKey(activeChamp.pos) : null;
-  const previewChampAp = activeChamp ? activeChamp.actionPoints : null;
-  if (previewChampKey !== lastPreviewChampKey || previewChampAp !== lastPreviewChampAp) {
+  // A click-to-preview route is drawn from the active champion; when the
+  // champion or its hex changes, the stored route no longer applies. Clear it
+  // until the next click-to-preview.
+  const previewChampKey = activeChamp ? `${activeChamp.id}@${coordKey(activeChamp.pos)}` : null;
+  if (previewChampKey !== lastPreviewChampKey) {
     setPathPreview(null);
     lastPreviewChampKey = previewChampKey;
-    lastPreviewChampAp = previewChampAp;
   }
 
   // Compute interaction-highlight data from ALL adjacent hexes (combat, trade, base)
@@ -220,7 +218,6 @@ export function resetMapInitialized() {
   lastFollowedChampKey = null;
   lastScheduledChampKey = null;
   lastPreviewChampKey = null;
-  lastPreviewChampAp = null;
   disposeMinimap();
   resetInitFlags();
   resetCameraFocus();

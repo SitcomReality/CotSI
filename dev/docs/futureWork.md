@@ -61,9 +61,10 @@ movement. After the final battle, a large reward.
 
 ### 1.4 Movement — action points, terrain costs & multi-step moves
 
-Implemented per `dev/docs/movementDesign.md` (tracker summary below). Follow-up
-tunables and the un-defaulted control choice (walk vs preview mode, §8) are
-listed in the design doc's §13.
+Implemented per `dev/docs/movementDesign.md` (tracker summary below). Movement
+interaction is **click-to-preview → click-to-confirm only** (no walk mode) and
+the reachable highlight is a minimal static outline, per §8 decisions.
+Follow-up tunables are listed in the design doc's §13.
 
 - **Action points (AP)** — the daily "moves" budget is renamed to AP and
   becomes 60/day (base): the smallest number divisible by every cost in the
@@ -78,11 +79,13 @@ listed in the design doc's §13.
   archetypes (`src/game/rules/archetypeData/mobs.js`, e.g. waterbound
   Marginal Goose `river: 4, water: 4`). New pure helper
   `src/game/rules/movementCosts.js` is the single source of truth.
-- **Multi-step moves** — `movementRange` becomes a weighted Dijkstra
-  (`costs` + `cameFrom`); clicking a hex walks the cheapest path (chained
-  animation hops) spending AP per hop; clicking beyond budget walks the
-  longest affordable prefix toward it. Reachable-highlight, hover path
-  preview, and tooltip cost are precomputed — zero player arithmetic.
+- **Multi-step moves** — `movementRange` becomes a weighted shortest-path
+  search (`costs` + `cameFrom`); click-to-preview → click-to-confirm walks the
+  cheapest path (chained animation hops) spending AP per hop; previewing
+  beyond budget shows/walks the longest affordable prefix toward it.
+  Reachable-highlight (minimal static outlines, never in black fog), route
+  preview with destination terminal, and hover terrain-cost tooltip are all
+  precomputed — zero player arithmetic.
 
 ### 1.5 UI improvements
 

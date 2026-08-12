@@ -27,18 +27,19 @@ export const TRADE_RING_ALPHA = 0.85;
 export const HOVER_ALPHA = 0.30;
 export const HIGHLIGHT_Y_OFFSET = 0.06;
 
-// ── Movement highlights ──
-export const MOVE_ALLOWED_WIDTH = 2;
-export const MOVE_HOVER_WIDTH = 3;
-/** Dash pattern for the movement-highlight stroke (screen px). */
-export const MOVE_DASH = [6, 4];
-/** Dash march speed (px per ms of clock time). */
-export const MOVE_DASH_SPEED = 0.02;
+// ── Movement highlights (minimal static range hint) ──
+export const MOVE_ALLOWED_WIDTH = 1.5;
+export const MOVE_HOVER_WIDTH = 2.5;
 
-// ── Path preview (hover / click-to-preview route) ──
+// ── Path preview (click-to-preview route) ──
 export const PATH_PREVIEW_WIDTH = 2.5;
 export const PATH_PREVIEW_LINE_WIDTH = 4;
 export const PATH_PREVIEW_COLOR = '#7affd4';
+/** Destination terminal: distinct outline color/width + center dot radius
+ *  (fraction of the hex corner radius). */
+export const PATH_DEST_COLOR = '#ffffff';
+export const PATH_DEST_WIDTH = 3.5;
+export const PATH_DEST_DOT_FRAC = 0.16;
 
 // ── Selection ring ──
 export const ORBIT_FRAC = 0.50;
