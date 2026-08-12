@@ -21,9 +21,7 @@ Traders already exist as entities — they wander between faction bases
 `src/params/game/economyParams.js` (`TRADER_*`). What's missing is the
 purchase flow: interacting with an adjacent trader is highlighted on the map
 and opens a toast (`openTrader` in `src/ui/combat/combatRewardUI.js`), but the
-transaction itself is still pending. Known stub bug: the toast reads
-`tr.offer`, while traders carry `stock` — it currently renders
-`offers: undefined`.
+transaction itself is still pending (the toast now lists the trader's `stock`).
 
 - Build the buy interface + transaction (gold → item) for trader stock.
 - Faction bases already support buying potencies

@@ -151,7 +151,7 @@ defineArchetype('feature_saintsRib', {
   type: 'feature',
   name: "Saint's Rib",
   archetypeShape: 'arch',
-  tags: ['sere_wastes', 'scorch'],
+  tags: ['scorch'],
   visual: { scale: 2.0 },
 });
 
@@ -175,7 +175,7 @@ defineArchetype('feature_screamroot', {
   type: 'feature',
   name: 'Screamroot',
   archetypeShape: 'plant',
-  tags: ['untouched', 'painforest', 'mourning_marsh'],
+  tags: ['painforest', 'mourning_marsh', 'dustbleed'],
   visual: { scale: 1.0 },
 });
 

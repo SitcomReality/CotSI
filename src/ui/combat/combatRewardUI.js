@@ -26,5 +26,8 @@ export function openRewardModal(champ, rew) {
  * Show a trader offer via toast (stays as-is, not a modal).
  */
 export function openTrader(tr) {
-  toast(`Trader ${tr.name} offers: ${tr.offer}`);
+  const stock = (tr.stock ?? [])
+    .map((i) => `${i.name ?? i.type} (${i.cost})`)
+    .join(', ');
+  toast(`Trader ${tr.name} offers: ${stock}`);
 }

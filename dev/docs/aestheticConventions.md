@@ -589,6 +589,7 @@ Stop and reconsider if you see any of these:
 - Icons of mismatched stroke weight or corner radius
 - A big soft drop shadow on a card (use hard offset shadows)
 - A component that needed its own one-off colour or radius
+- A hardcoded hex in `styles/components/` that duplicates a token (known: the gold/tan literals in `tooltip.css` `.hex-tooltip__*` and `buttonCore.css` / `buttonLegacy.css` — convert on the next design pass)
 - Two different outline conventions on the same page
 - A cross-highlight mechanism not driven by `html[data-cross-highlight]` (e.g. a stray `:has()` reintroduction)
 - Gold used for anything other than CTA / selection / current-turn indicator

@@ -37,7 +37,7 @@ export function frameLocalPos(t, rigidScale, biomeFactor) {
 
 /**
  * A group's frame matrix — how a group offsets, orients, and scales its
- * children: T(localPos) · R(localAxis/localAngle) · R_y(rotY) · S(scale).
+ * children: T(localPos) · R_y(rotY) · R(localAxis/localAngle) · S(scale).
  * The group's localPos is pre-scaled by the item's full rigid factor
  * (itemScale × dispersal × scatter jitter), the same factor its children's
  * own geometry and localPos carry — so the group's offsets move rigidly with
@@ -59,12 +59,12 @@ export function groupFrameMatrix(t, itemScale, scaleMul, jitterScale) {
 }
 
 /**
- * A nested leaf's frame matrix — the leaf's own T(localPos) · R(localAxis/
- * localAngle) · R_y(rotY) · S(scale), with the full scale factor set (stretch,
+ * A nested leaf's frame matrix — the leaf's own T(localPos) · R_y(rotY) ·
+ * R(localAxis/localAngle) · S(scale), with the full scale factor set (stretch,
  * scatter jitter, biome factor). The recordBuilder composes it onto the
  * ancestor frames to bake the leaf's world matrix. Bottom-anchored like the
  * root record path: the shape's base offset (scaled by this leaf's full Y
- * scale) is baked into the frame AFTER the rotations but BEFORE the scale, so
+ * scale) is baked into the frame AFTER the scale but BEFORE the rotations, so
  * the lowest vertex cancels exactly to the leaf's localPos point — a nested
  * leaf's localPos.y is its bottom height in the parent's frame, matching what
  * `y` means at the root.
@@ -87,7 +87,7 @@ export function nestedLeafFrameMatrix(part, descriptor, tile, tileH, i, itemScal
  * The item-level world transform nested leaves sit under — the same slot a
  * root leaf's world rotation occupies: T(placement offset + displacement
  * offset) · R(tilt) · R(rotY), matching meshBuilder's
- * `T · R(rotY) · R(tilt) · …` composition order.
+ * `T · R(tilt) · R(rotY) · …` composition order.
  */
 export function worldBaseMatrix(worldPos, placement, disp) {
   const px = worldPos.x + placement.dx;

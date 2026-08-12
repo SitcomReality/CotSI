@@ -61,7 +61,7 @@ poseable geometry — no new schema work required:
   folds stray root-only fields into `localPos.y` rather than rejecting them,
   but authored code should just write `localPos`.
 
-`recordBuilder.js` `groupFrameMatrix` (~line 645) composes each frame as
+`partFrames.js` `groupFrameMatrix` (~line 48) composes each frame as
 `T(localPos) · R_y(rotY) · R(localAxis/localAngle) · S(scale)`, and
 `collectPart` accumulates ancestor frames so a nested leaf's fully baked
 world matrix is the product of every joint above it. Nested leaves bake their
