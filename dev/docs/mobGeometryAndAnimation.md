@@ -21,7 +21,9 @@ Mobs are **entity descriptors, one file per archetype**:
   `src/render/hexmap3d/worldObjects/descriptors/data/mobs/` (e.g.
   `infernalpaca.js`, `scorpelican.js`), exporting a `<NAME>_VARIANT` block:
   `{ id, parts, material? }`. The variant id must equal the mob's
-  `archetypeName` (resolved via variantRule 'archetype'). A variant may carry
+  `archetypeName` (the entity runtime field, copied from the mob archetype's
+  `archetypeShape` by `entityFactory.js`; resolved via variantRule 'archetype').
+  A variant may carry
   its own `material` (emissive only) — the infernalpaca glows, the others
   don't.
 - `data/mob.js` is a thin barrel: it imports the variant blocks and composes
@@ -59,12 +61,13 @@ poseable geometry — no new schema work required:
   folds stray root-only fields into `localPos.y` rather than rejecting them,
   but authored code should just write `localPos`.
 
-`recordBuilder.js` `groupFrameMatrix` (~line 501) composes each frame as
-`T(localPos) · R(localAxis/localAngle) · R_y(rotY) · S(scale)`, and
+`recordBuilder.js` `groupFrameMatrix` (~line 645) composes each frame as
+`T(localPos) · R_y(rotY) · R(localAxis/localAngle) · S(scale)`, and
 `collectPart` accumulates ancestor frames so a nested leaf's fully baked
 world matrix is the product of every joint above it. Nested leaves bake their
-bottom anchor **after** rotation, **before** scale, so a leaf's lowest vertex
-lands exactly at its `localPos` point.
+bottom anchor **after** scale, **before** rotation (the base offset is applied
+on top of the leaf's own scale, then the rotations are composed above it),
+so a leaf's lowest vertex lands exactly at its `localPos` point.
 
 Net effect: a bone chain renders correctly today — what's missing is only
 per-frame re-rotation at runtime (§5).
@@ -166,10 +169,12 @@ Descriptor records bake **static matrices at build time** (`recordsForEntity`
 writes `InstancedMesh` matrices once). There is no per-frame re-derivation
 hook in the descriptor pipeline.
 
-The opening is `units/unitMeshes.js`: **mob meshes are already rebuilt every
-render pass** (line ~31: "Unit meshes are rebuilt every render pass; these
-materials are built once and marked shared so the per-frame disposal skips
-them"). An animation hook slots between record derivation and mesh build:
+The opening is the per-pass rebuild: **mob meshes are already rebuilt every
+render pass** (`hexMapRenderer` calls `buildUnitMeshes` per pass; the note in
+`shapeFactories.js` ~line 274 reads: "Unit meshes are rebuilt every render
+pass; these materials are built once and marked shared so the per-frame
+disposal skips them"). An animation hook slots between record derivation and
+mesh build:
 
 1. per frame, take the animated entity, `applyAnimation`-style clone with the
    active clip's tracks applied at `t`;

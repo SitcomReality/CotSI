@@ -5,7 +5,7 @@
  * The combat modal DOM skeleton (index.html) has a <div class="fx-layer"> at
  * the top of .modal-card.  That layer is the parent for floating text.
  *
- * Token: .ctok (data-faction)
+ * Pip: .pip (data-faction)
  * Slot:  .play-slot (id sA1/sA2/sB1/sB2)
  * Score: .cs-big (#csLeft, #csRight)
  * Card:  .combatant-card (data-side="first"|"second")
@@ -48,9 +48,9 @@ export function revealSlot(slotEl, factionIdx) {
   slotEl.classList.add('face-up');
 }
 
-// ─── Clash pulse — winning token halo, loser dim ──────────────────────────
+// ─── Clash pulse — winning pip halo, loser dim ──────────────────────────
 /**
- * Highlight the winning faction token and dim the loser.
+ * Highlight the winning faction's pip and dim the loser.
  * Also pulses the appropriate score number.
  *
  * @param {object} reveal  — combat.lastReveal (see processReveal output)
@@ -66,16 +66,16 @@ export function clashPulse(reveal, modalEl) {
   const fWins = first.score > second.score;
   const sWins = second.score > first.score;
 
-  // Find all potency tokens in the modal
-  const allTokens = modalEl.querySelectorAll('.ctok');
+  // Find all potency pips in the modal
+  const allPips = modalEl.querySelectorAll('.pip');
 
-  for (const tok of allTokens) {
-    const idx = Number(tok.dataset.faction);
+  for (const pip of allPips) {
+    const idx = Number(pip.dataset.faction);
     if (idx === fIdx) {
       tok.classList.add(fWins ? 'clash-win' : 'clash-lose');
     }
     if (idx === sIdx) {
-      tok.classList.add(sWins ? 'clash-win' : 'clash-lose');
+      pip.classList.add(sWins ? 'clash-win' : 'clash-lose');
     }
   }
 
@@ -89,8 +89,8 @@ export function clashPulse(reveal, modalEl) {
 
   // Clean up after animation
   const cleanupId = getClock().setTimeout(() => {
-    for (const tok of allTokens) {
-      tok.classList.remove('clash-win', 'clash-lose');
+    for (const pip of allPips) {
+      pip.classList.remove('clash-win', 'clash-lose');
     }
     if (scoreLeft) scoreLeft.classList.remove('score-tick');
     if (scoreRight) scoreRight.classList.remove('score-tick');

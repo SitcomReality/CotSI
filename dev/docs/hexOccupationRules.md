@@ -9,7 +9,7 @@ spawn time and during all movement and pathfinding.
 
 | May occupy | May not occupy |
 |-----------|----------------|
-| Plains, forest, desert, marsh | Mountain, water (impassable terrain) |
+| Any passable terrain: Plains, Forest, Deep wood, Desert, Marsh, Hill, Plateau, Beach, River | Mountain, Broken water, Frozen surface (impassable terrain) |
 | Fruit Tree (*) | Faction base |
 | God's Knot (*) | Another champion |
 | | Mob (aggressive or not) |
@@ -37,10 +37,13 @@ Mobs spawn on and may only wander onto hexes that are **completely vacant**:
 - No other mob
 - No trader
 
+Wandering only applies to **aggressive** mobs and is probabilistic
+(`mob.aggressive && rng < MOB_WANDER_CHANCE` in `mobHarassment.js`); non-aggressive
+mobs stay put.
+
 **Enforcement points:**
-- `createMobs()` in `entityFactory.js` — spawn filter requires passable terrain with no feature.
-- Mob wandering in `runWorldTurn()` in `worldSimulation.js` — checks feature,
-  champion, mob, and trader occupancy.
+- `createMobs()` in `entityFactory.js` — spawn filter requires passable terrain with no feature (and excludes `avoidSpawn` tiles such as rivers via `collectSpawnCandidates` in `tileQueries.js`).
+- Mob wandering in `runMobHarassment()` in `mobHarassment.js` (invoked from `runWorldTurn()` in `worldSimulation.js`) — checks feature, champion, mob, and trader occupancy.
 
 ---
 
@@ -55,14 +58,14 @@ Traders follow the same **completely vacant** rule as mobs:
 - No other trader
 
 **Enforcement points:**
-- `createTraders()` in `entityFactory.js` — spawn filter requires passable terrain with no feature.
-- Trader movement in `runWorldTurn()` in `worldSimulation.js` — checks feature,
-  champion, mob, and trader occupancy.
+- `createTraders()` in `entityFactory.js` — spawn filter requires passable terrain with no feature (and excludes `avoidSpawn` tiles such as rivers via `collectSpawnCandidates` in `tileQueries.js`).
+- Trader movement in `runTraderMovement()` in `traderMovement.js` (invoked from `runWorldTurn()` in `worldSimulation.js`) — checks feature, champion, mob, and trader occupancy.
 
 ---
 
 ## Utility function
 
-`isVacant(state, key)` in `entityQueries.js` encapsulates the complete-vacancy
-check for mobs and traders: passable terrain, no feature, no champion,
-no mob, no trader.
+`isVacant(state, key)` in `entityQueries.js` matches the complete-vacancy check
+for mobs and traders: passable terrain, no feature, no champion, no mob, no trader.
+It is currently referenced only by the test suite — the live spawn and movement
+paths use `collectSpawnCandidates` plus inline `occupiedBy*` checks instead.

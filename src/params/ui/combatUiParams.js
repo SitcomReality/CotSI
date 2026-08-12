@@ -23,5 +23,5 @@ export const ROUND_END_HOLD_MS = 1200;
 
 /** Slot reveal icon size (px). */
 export const REVEAL_ICON_SIZE = 20;
-/** Potency token glyph icon size (px). */
-export const TOKEN_GLYPH_SIZE = 14;
+/** Potency pip glyph icon size (px). */
+export const PIP_GLYPH_SIZE = 14;

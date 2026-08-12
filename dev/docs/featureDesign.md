@@ -83,7 +83,7 @@ All amounts live in `economyParams.js` as `FEATURE_*` constants (tune here).
 | errataSlip | choice | +1 random potency **or** +10 gold |
 | listenerLichen | choice | +1 random potency **or** +8 gold |
 | gildedInitial | choice | +3 attack this turn **or** +3 defense this turn |
-| censerSaint | choice | +4 attack this turn & −4 HP (never fatal) **or** +6 gold |
+| censerSaint | choice | +4 attack this turn & −4 HP (never fatal) **or** +8 gold |
 | waxbloom | regrow | +10 HP |
 | cinderbloom | regrow | +6 HP |
 | scoriaRose | regrow | +2 God's Knots |
@@ -95,8 +95,8 @@ Bot policy (`botFeatureChoice` in featureRewards.js): choice features never open
 a modal for bots — when hurt (≤ 60% HP) they take the conservative side (safe
 knots / gold / defense), when healthy the premium side (risky knots / relic /
 potency / movement / attack); potency picks roll a random faction like digs.
-Bots also score reward-bearing features as path targets (`featureValueForBot` +
-`BOT_FEATURE_SCORES` in aiParams.js) and re-decide after arriving with movement
+Bots also score reward-bearing features as path targets (`featureValueForBot` in
+`featureRewards.js` + `BOT_FEATURE_SCORES` in aiParams.js) and re-decide after arriving with movement
 left over, so movement buffs are used.
 
 Note on the utility features (foolsFire, halfDrawnObelisk, ouroborosLoop,

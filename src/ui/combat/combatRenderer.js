@@ -3,7 +3,7 @@ import { FACTIONS } from '../../game/rules/factionData.js';
 import { setCrossHighlight } from '../heptagramWidget.js';
 import { h } from '../domBuilder.js';
 import { svgIcon } from '../svgIcon.js';
-import { TOKEN_GLYPH_SIZE } from '../../params/ui/combatUiParams.js';
+import { PIP_GLYPH_SIZE } from '../../params/ui/combatUiParams.js';
 
 // ─── Order-pulse state ────────────────────────────────────────────────────
 let _previousOrderKey = null;
@@ -114,15 +114,15 @@ function combatantCard(vm, isActivePicker, phase) {
 
     // Potency grid
     h('div', { class: 'combat-potencys' },
-      ...vm.pots.map(pot => buildToken(pot, phase)),
+      ...vm.pots.map(pot => buildPip(pot, phase)),
     ),
   );
 }
 
-// ─── Potency token builder ──────────────────────────────────────────────
+// ─── Potency pip builder ────────────────────────────────────────────────
 
-function buildToken(pot, phase) {
-  const classes = ['ctok', 'paley-item', 'paley-item--f' + pot.idx];
+function buildPip(pot, phase) {
+  const classes = ['pip', 'paley-item', 'paley-item--f' + pot.idx];
   if (pot.used) classes.push('used');
   if (pot.unavailable) classes.push('unavailable');
   if (pot.pickable) classes.push('pickable');
@@ -141,8 +141,8 @@ function buildToken(pot, phase) {
   }
 
   return h('div', props,
-    h('div', { class: 'ctok__val' }, String(pot.val)),
-    h('div', { class: 'ctok__glyph' }, svgIcon(FACTIONS[pot.idx].glyphId, TOKEN_GLYPH_SIZE)),
+    h('div', { class: 'pip__val' }, String(pot.val)),
+    h('div', { class: 'pip__glyph' }, svgIcon(FACTIONS[pot.idx].glyphId, PIP_GLYPH_SIZE)),
   );
 }
 

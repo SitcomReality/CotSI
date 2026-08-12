@@ -21,7 +21,7 @@ This is the **single authoritative reference** for the CotSI source tree — eve
 ```
 src/
   entrypoint.js   Composition-root entry. Imports bootstrap for side effects only.
-  dev/            Dev tools panel (cheats, perf, bot control). Not part of game UI.
+  devtools/       Dev tools panel (cheats, perf, bot control). Not part of game UI.
   engine/         Reusable-across-games code. Zero knowledge of factions, lore, UI.
   game/           This game's rules and state. No DOM, no Three.js, no wiring.
   runtime/        Composition root. The ONLY layer that may import multiple layers.
@@ -61,10 +61,13 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `binaryHeap.js` | Min-binary-heap priority queue (Dijkstra in connectivityEnforcement) |
 | `chunkGrid.js` | Chunk coordinate math (CHUNK_SIZE=24) for spatial partitioning |
 | `hexGrid.js` | Hex math: neighbors, distance, coordinates, ring queries, cubeRound |
+| `hexProjection.js` | Hex coordinate ↔ world-space projection helpers (minimap) |
+| `mat4.js` | Pure 4×4 matrix math (descriptor pipeline + geometry editor) |
 | `noise.js` | Seeded simplex noise (2D) + FBM for terrain fields |
 | `pathfinding.js` | A\* pathfinding on hex grid |
 | `seededRng.js` | Deterministic PRNG with seed |
 | `shuffle.js` | Fisher-Yates shuffle |
+| `sightCull.js` | Hex visibility culling (camera-distance cap) |
 
 > **⚠️ Hex Axial Coordinate Convention — (q, r) is NOT Cartesian.** The axial q and r axes are 60° apart, not orthogonal. This is a frequent source of bugs:
 > - Never use `Math.cos`/`Math.sin`/`Math.atan2` directly on q/r to produce or modify hex coordinates — use `cubeRound()` or world-space roundtrip instead.
@@ -88,7 +91,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `logHelpers.js` | Utility functions for log message formatting |
 | `paleyScoring.js` | Paley tournament score calculation (7-node tournament) |
 | `terrainTypes.js` | Terrain type constants and default features |
-| `terrainGen/` | Terrain generation pipeline (22 files — see below) |
+| `terrainGen/` | Terrain generation pipeline (23 files — see below) |
 | `tileQueries.js` | Spawn-placement helpers (nearestOpenKey, nearestOpenMultiRing) |
 | `traderStock.js` | Trader stock generation logic |
 | `weatherScript.js` | Weather generation/scripting |
@@ -117,6 +120,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `rivers/riverSources.js` | Selects river source points |
 | `rivers/riverTerrain.js` | Overrides traced river paths to real `river` terrain (clears features) |
 | `rivers/riverTrace.js` | River tracing algorithm |
+| `startingRegion.js` | Eager starting-region chunk selection (spawn regions up front, rest lazy) |
 | `tagging/mountainTagging.js` | Mountain type tagging |
 | `tagging/waterTagging.js` | Water type tagging |
 
@@ -146,6 +150,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `entityFactory.js` | Generic entity creation (non-champion) |
 | `entityQueries.js` | Entity lookup queries (by hex, by faction, by type) |
 | `factionAbilities.js` | Faction-ability logic and activation |
+| `featureRewards.js` | Reward grants for interactive features (direct grants, choice modals, regrowth) |
 | `fogOfWar.js` | Fog-of-war state and visibility queries |
 | `gameFactory.js` | Full game-state factory (initializes a new game) |
 | `gameLog.js` | Game event log: append and query |
@@ -157,6 +162,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `tileAccess.js` | Chunk-aware tile CRUD accessors (get/set/delete) |
 | `tileIteration.js` | Tile iteration helpers (allTileKeys, forEachTile, tileCount) |
 | `chunkDirtyTracking.js` | Dirty-chunk flag management for render culling |
+| `chunkManager.js` | Lazy chunk lifecycle: create/evict/reproduce chunks from the seed |
 | `tileProxy.js` | Backward-compatible `state.tiles` Proxy over chunk storage |
 | `traderMovement.js` | Trader pathfinding and movement (world turn) |
 | `turnActions.js` | Per-turn action processing (movement, interaction) |
@@ -205,6 +211,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `scene/cameraZoomMath.js` | Camera zoom math (levels, smoothing) |
 | `scene/lightSetup.js` | Scene lighting (ambient, directional) |
 | `scene/materials.js` | Shared Three.js materials and material factory |
+| `scene/outline.js` | Comic-book ink outlines (inverted-hull technique) for the Puppet layer |
 | `scene/panAnimation.js` | Camera pan animation (smooth transitions) |
 | `scene/rendererSetup.js` | WebGL renderer setup and configuration |
 | `scene/sceneSetup.js` | Scene initialisation + registers render callback on clock |
@@ -220,7 +227,7 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | `worldObjects/descriptors/meshAssembly.js` | Descriptor + records → one InstancedMesh per part geometry |
 | `worldObjects/descriptors/gameBuilder.js` | Game-side tile → descriptor resolution (features + grove/hill decor, incl. the Painforest grove variant) + assembly |
 | `worldObjects/descriptors/index.js` | Descriptor module barrel (schema constants) |
-| `worldObjects/descriptors/data/` | Descriptor data: one file per object (`<id>.js`, generated by the geometry editor — see `data/index.js`); `base.js`/`mob.js` are table-driven (mobs compose the per-archetype variant files in `data/mobs/`) |
+| `worldObjects/descriptors/data/` | Descriptor data: one file per object (`<id>.js`, generated by the geometry editor — see `data/index.js`); `base.js`/`champion.js`/`mob.js` are table-driven and compose per-variant files (`data/bases/<faction>.js`, `data/champions/<faction>.js` + `champions/shared.js`, `data/mobs/<archetype>.js`) |
 | `worldObjects/fruitTree/index.js` | Fruit-tree module barrel (buildChunkFruitTreeMeshes) |
 | `worldObjects/fruitTree/buildFruitTreeMeshes.js` | Fruit-tree collection + InstancedMesh assembly (the only legacy builder left) |
 | `worldObjects/fruitTree/fruitTreeRecords.js` | Forest-family fruit tree records (trunk/branches + ripening fruit) |
@@ -277,7 +284,6 @@ Every file listed below has a one-line purpose statement. Organized by layer/dir
 | File | Purpose |
 |------|---------|
 | `minimap.js` | Minimap top-level coordinator |
-| `minimapClickHandler.js` | Minimap click -> camera target navigation |
 | `minimapDom.js` | Minimap DOM element creation and layout |
 | `minimapOverlayLayer.js` | Minimap overlay layer (fog, highlights) |
 | `minimapTerrainLayer.js` | Minimap terrain colour layer |
@@ -548,7 +554,7 @@ The current report shows **0 known-debt imports**.
 
 - `python3 dev/scripts/check_imports.py` — verifies every relative import in `src/` resolves, and prints a boundary report of cross-layer imports vs the §2 dependency table.
 - `python3 dev/scripts/check_analysis_imports.py` — verifies every relative import in `dev/tools/analysis/` resolves, including cross-references into `src/`. Does not check layer boundaries (those rules don't apply to the standalone analysis tool).
-- `dev/tests/run.sh` (or `node --test` from the repo root) — unit-test suite for the pure layers (`src/engine/`, `src/game/` rules/state/combat, `src/render/` incl. descriptor round-trip). Zero dependencies; uses Node's built-in `node:test` runner. `dev/tests/` lives outside `src/` so it doesn't affect the boundary report.
+- `dev/tests/run.sh` (or `node --test` from the repo root) — unit-test suite covering the pure layers (`src/engine/`, `src/game/` rules/state/combat, `src/render/` incl. descriptor round-trip) plus the geometry-editor part-tree tests (`dev/tests/geometryEditor/`). Zero dependencies; uses Node's built-in `node:test` runner. `dev/tests/` lives outside `src/` so it doesn't affect the boundary report.
 - `dev/tools/analysis.html` — standalone map-gen analysis page. Not part of the game UI. Opens directly in a browser (served from the same origin).
 - `dev/tools/geometryEditor.html` — standalone object-geometry editor page. Not part of the game UI. Opens directly in a browser (served from the same origin).
 - `python3 dev/scripts/check_geometry_editor_imports.py` — verifies every relative import in `dev/tools/geometryEditor/` resolves, including cross-references into `src/`. Does not check layer boundaries (those rules don't apply to the standalone editor tool).
@@ -659,12 +665,14 @@ The current report shows **0 known-debt imports**.
 | `ui/projectControls.js` | Chrome-bar project actions: save/download/load/new |
 | `ui/formControls.js` | DOM form builders (`el`, `row`, inputs, steppers) |
 | `ui/inspectorHead.js` | Inspector header chrome |
+| `ui/lineDiff.js` | LCS line diff for the save-review modal |
 | `ui/objectTemplates.js` | New-object template presets |
 | `ui/variantQuery.js` | Active variant/parts query from state |
 | `styles/index.css` | Barrel: imports all geometry-editor page stylesheets |
 | `styles/reset.css` | Global reset and base element styles |
 | `styles/layout.css` | Page grid, chrome shell, panel positioning |
 | `styles/chrome.css` | Header action bar, search, load-error |
+| `styles/diff.css` | Save-review diff modal styles |
 | `styles/browser.css` | Object browser panel |
 | `styles/parts.css` | Parts list + parts-tree rows |
 | `styles/fields.css` | Field-row layout (control/stretch/preset rows) |
@@ -682,8 +690,12 @@ The current report shows **0 known-debt imports**.
 | `dev/docs/namingConventions.md` | File naming, banned words, code identifier conventions |
 | `dev/docs/cssConventions.md` | CSS structure, naming, spacing scale, barrel pattern |
 | `dev/docs/aestheticConventions.md` | Visual design system (aspirational, evolving) |
+| `dev/docs/descriptorAuthoring.md` | Descriptor data authoring: schema, randomization, rendering, worked examples |
+| `dev/docs/mobGeometryAndAnimation.md` | Mob geometry & animation design notes (joint groups, FK chains, runtime proposal) |
 | `dev/docs/clockScheduler.md` | Clock API reference — all timer/scheduling patterns |
 | `dev/docs/gameMechanics.md` | Combat round flow, turn order, biome system |
+| `dev/docs/hexOccupationRules.md` | Who may occupy a hex: champions, mobs, traders, bases |
+| `dev/docs/featureDesign.md` | Feature design: placement, rewards, tiering |
 | `dev/docs/commonTasks.md` | How-to recipes for common changes |
 | `dev/docs/futureWork.md` | Deferred-work tracker (unimplemented work only) |
 | `dev/docs/terrainGenNotes.md` | Terrain-gen design notes (noise, calibration, classification) |

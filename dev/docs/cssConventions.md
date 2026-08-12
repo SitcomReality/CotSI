@@ -18,6 +18,8 @@ styles/
 ├── abstracts/
 │   ├── reset.css
 │   ├── variables.css          # @imports all token files below
+│   ├── tokenSheet.css         # Dev-reference sheet — imported last in codex.css,
+│   │                          #   NOT part of the game UI (see its header)
 │   └── tokens/
 │       ├── chrome.css, factions.css, motion.css, pigments.css
 │       ├── shadow.css, shapes.css, spacing.css, states.css, typography.css
@@ -51,25 +53,26 @@ styles/
 
 Import Order in codex.css
 
-Four groups, ordered by rate of change. Later wins:
+Four groups, ordered by rate of change, plus one dev-only appendix. Later wins:
 Group	Order	Purpose
 1. Abstracts	1st	Tokens + reset
 2. Layout	2nd	Page skeleton
 3. Components	3rd	One file per UI piece
 4. UI overrides	4th	Accessibility, responsive overrides
+5. tokenSheet.css	last	Dev-reference token sheet (flagged in codex.css as not part of game UI; candidates for its own entry point)
 
 Use bare @import "path" (no url()). All imports live in codex.css or barrel files.
 Naming Conventions
 
-    File names: lowerCamelCase.css. When a JS module has a companion stylesheet they share the same base name (e.g. combatModal.js ↔ combatModal.css). Visual‑only files are named for the concern (panel.css).
+    File names: lowerCamelCase.css (one legacy kebab-case exception: bot-indicator.css). When a JS module has a companion stylesheet they share the same base name (e.g. combatModal.js ↔ combatModal.css). Visual‑only files are named for the concern (panel.css).
 
     Banned file names: utilities, common, helpers, misc, overrides, styles. Do not create these.
 
-    Class names: kebab-case (.combat-modal, .left-hp-row).
+    Class names: BEM — block__element--modifier (.header-panel__champion, .pip__val, .paley-item--f0). Block names are kebab-case (.combat-modal, .left-hp-row).
 
-    Modifiers: use a second class (.btn.primary, .toast--bad, .active, .selected, .disabled). Avoid is-* / has-* prefixes.
+    Modifiers: BEM -- modifier on the block (.paley-item--f0, .header-panel__champion--dead) or a second state class (.active, .selected, .disabled, .btn.primary). Avoid new is-* / has-* prefixes — the existing ones (.is-mobile, .is-human) are legacy.
 
-    No ID selectors for styling. IDs (#game, #mapMount) belong to the HTML skeleton only.
+    No ID selectors for styling. IDs (#game, #mapMount, #setup, #combatModal) belong to the HTML skeleton / modal roots only; style their contents via classes.
 
 Spacing Scale (fixed)
 

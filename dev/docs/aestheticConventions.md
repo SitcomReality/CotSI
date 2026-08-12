@@ -422,10 +422,12 @@ State comes from `data-state` attributes — `headerStates.js` maps each champio
 ### Cross-highlight (`.paley-item` ↔ heptagram)
 
 Cross-highlighting is driven by a `data-cross-highlight` attribute on `<html>` (set and
-cleared by JS on hover/mouseleave of any `.paley-item--fN` element — see
-`heptagramWidget.js`) — **not** by `:has()` selectors, which triggered cascade clashes
-across the whole page. The rules live in `paleyCrossHighlight.css` /
-`heptagramWidget.css`:
+cleared by JS on hover/mouseleave of the heptagram nodes and the setup-roster cards —
+`heptagramWidget.js`, `setupHeptagram.js`) — **not** by `:has()` selectors, which
+triggered cascade clashes across the whole page. Other `.paley-item--fN` elements
+(combat pips, header-detail potency rows, left-panel rows) currently render the
+highlight style but don't yet drive the attribute. The rules live in
+`paleyCrossHighlight.css` / `heptagramWidget.css`:
 
 ```css
 /* Hovered item itself gets a gold glow */

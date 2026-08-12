@@ -1,6 +1,6 @@
 /* =========================================================================
-   COMBAT MODAL — Potency Grid & Ctok Tokens
-   Seven-column grid of clickable colour tokens
+   COMBAT MODAL — Potency Grid & Pips
+   Seven-column grid of clickable potency pips
    ========================================================================= */
 
 .combat-potencys {
@@ -10,7 +10,7 @@
   margin-top: 8px;
 }
 
-.ctok {
+.pip {
   text-align: center;
   padding: 6px 2px;
   border-radius: 8px;
@@ -21,11 +21,11 @@
   transition: transform 0.2s, opacity 0.2s;
 }
 
-.ctok__val {
+.pip__val {
   font-weight: 800;
 }
 
-.ctok__glyph {
+.pip__glyph {
   width: 14px;
   height: 14px;
   display: flex;
@@ -33,34 +33,34 @@
   justify-content: center;
 }
 
-.ctok.pickable:hover {
+.pip.pickable:hover {
   transform: scale(1.15);
   border-color: var(--gold);
   background: var(--board-hi);
 }
 
-.ctok.used {
+.pip.used {
   opacity: 0.5;
   pointer-events: none;
 }
 
-.ctok.unavailable {
+.pip.unavailable {
   opacity: 0.3;
   pointer-events: none;
 }
 
-.ctok.reveal-pulse {
+.pip.reveal-pulse {
   transform: scale(1.15);
   transition: transform 0.3s;
 }
 
 /* ── Clash Pulse ──────────────────────────────────────────────────────────── */
 
-.ctok.clash-win {
+.pip.clash-win {
   animation: clashPulse 600ms var(--ease-out) both;
 }
 
-.ctok.clash-lose {
+.pip.clash-lose {
   animation: clashLose 600ms var(--ease-out) both;
 }
 

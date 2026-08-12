@@ -11,7 +11,7 @@ The clock owns the `requestAnimationFrame` loop (Three.js renders via `clock.onT
 | Group | Used by | Purpose |
 |-------|---------|---------|
 | `default` | General purpose | Fallback for ungrouped timers |
-| `bot` | `refreshAll.js` | Bot turn auto-advance delay |
+| `bot` | `refreshAll.js`, `mapRefresh.js` (background chunk pre-generation) | Bot turn auto-advance delay, chunk pre-generation |
 | `combat` | `combatFx.js`, `combatState.js` | Combat waits, HP drain, cleanup |
 | `animation` | `botTurnRunner.js` | Champion-movement pacing between hex steps |
 | `ui` | `dispatchModal.js`, `hud.js`, `perfUI.js` | Dispatch reveal, end-turn pulse, perf-panel refresh |
@@ -30,7 +30,7 @@ The clock owns the `requestAnimationFrame` loop (Three.js renders via `clock.onT
 
 ## Speed Control
 
-- `getClock().setSpeed('bot', 2)` — bot turns run at 2× speed (620ms nominal → 310ms real)
+- `getClock().setSpeed('bot', 2)` — bot timers run at 2× speed (e.g. the 100ms auto-advance delay runs in 50ms real time)
 - `getClock().setSpeed('combat', 0.5)` — combat animations at half speed
 - `getClock().getSpeed('bot')` — returns current multiplier (default `1.0`)
 
@@ -82,7 +82,8 @@ getClock().setFrameMarker(null); // clear
 ```
 
 `getFrameTickStart()` returns the `performance.now()` timestamp from the top of the
-current tick (0 outside a tick) — the performance profiler uses it to compute per-frame
+current tick; between ticks it retains the previous tick's timestamp (0 only before the
+first tick or after `dispose()`) — the performance profiler uses it to compute per-frame
 JS time.
 
 ---
@@ -93,11 +94,11 @@ JS time.
 2. **Always specify a group** for gameplay-related tasks; use `'default'` only for generic one-offs
 3. **`onTick` is for per-frame work** (rendering, animation), not delayed logic (use `setTimeout`/`wait`)
 4. **`dispose()` on game restart** — `hexMapRenderer.initHexMap3D()` calls `getClock().dispose()`, which stops the rAF loop and clears all pending tasks
-5. **Unrecognized groups are a silent-failure footgun.** Only the 5 defined groups
-   (`default`, `bot`, `combat`, `animation`, `ui`) can be used for scheduling. Passing an
-   unknown group to `setTimeout`/`setInterval`/`wait` computes the due time against
-   `default` but stores the task under the unknown name — `popExpired` never matches it,
-   so the timer **silently never fires**. Control calls (`pauseGroup`, `resumeGroup`,
+5. **Unknown groups fall back to `default`.** Only the 5 defined groups
+   (`default`, `bot`, `combat`, `animation`, `ui`) exist. Passing an unknown group to
+   `setTimeout`/`setInterval`/`wait` silently schedules the task on `default`
+   (`clockScheduler` resolves `_groups[group] ? group : 'default'`), so a typo doesn't
+   error — the timer just runs at default speed. Control calls (`pauseGroup`, `resumeGroup`,
    `setSpeed`, `getSpeed`, `now`, `isPaused`) DO auto-create unknown groups, so a typo
-   there silently creates a dead group instead of erroring. If a timer never fires, check
-   the group string first.
+   there silently creates a dead group instead of erroring. If a timer fires at the wrong
+   speed, check the group string first.

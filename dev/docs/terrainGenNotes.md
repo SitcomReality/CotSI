@@ -4,19 +4,21 @@ Reference for the procedural terrain generation pipeline (noise, calibration,
 classification). This is not a to-do list — unimplemented work is tracked in
 `dev/docs/futureWork.md`.
 
-- **Calibration is re-runnable** — `dev/tools/analysis.html` has a "Derive
-  Thresholds" button and "Run Tests" button. Any change to noise output
-  distributions (composite changes, new layers) requires regenerating
-  calibration data. Thresholds remain stable percentiles if/when LUT
-  normalization is added.
+- **Calibration is re-runnable** — the batch panel in `dev/tools/analysis.html` has a
+  "Run Batch Analysis" button and a "Derive thresholds" checkbox (threshold derivation
+  runs as part of the batch). Any change to noise output distributions (composite
+  changes, new layers) requires regenerating calibration data. Thresholds remain stable
+  percentiles if/when LUT normalization is added.
 - **Per-phase normalization** — the additive composite spans [0, 2] (two
   fields summed), divided by 2 for [0, 1]. Any future noise layer follows
   the same pattern; only LUTs need regeneration.
-- **Frequencies scale with map radius** — noise frequencies are scaled by
-  1/radius, so terrain at a coordinate differs across radii; cross-radius
-  tile equality is not an invariant (the seam invariant is per-chunk
-  determinism at a fixed radius). Calibration/LUTs are radius-specific.
-- **Frequency separation** — detail (0.020) and ridge (0.008) layers are
+- **Some frequencies scale with map radius** — RIDGE, MOISTURE, and REGION
+  frequencies scale by 1/radius, so terrain at a coordinate differs across
+  radii; ELEVATION_DETAIL and TEMP_VARIATION are absolute (unscaled).
+  Cross-radius tile equality is not an invariant (the seam invariant is
+  per-chunk determinism at a fixed radius). Threshold derivation pools
+  histograms across radii (per-radius stats are kept separately).
+- **Frequency separation** — detail (0.10) and ridge (0.04) layers are
   separated by ~2.5×; new layers should maintain comparable separation.
 - **Slope normalization gotcha** — `SLOPE_NORMALIZATION` uses the 95th
   percentile of aggregate per-tile mean delta (sum of 6 neighbor deltas /

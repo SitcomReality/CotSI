@@ -20,7 +20,10 @@ Traders already exist as entities — they wander between faction bases
 (`src/game/rules/traderStock.js`: heal, potency, weapon) with costs in
 `src/params/game/economyParams.js` (`TRADER_*`). What's missing is the
 purchase flow: interacting with an adjacent trader is highlighted on the map
-but does nothing yet.
+and opens a toast (`openTrader` in `src/ui/combat/combatRewardUI.js`), but the
+transaction itself is still pending. Known stub bug: the toast reads
+`tr.offer`, while traders carry `stock` — it currently renders
+`offers: undefined`.
 
 - Build the buy interface + transaction (gold → item) for trader stock.
 - Faction bases already support buying potencies
@@ -154,9 +157,10 @@ documented in `dev/docs/descriptorAuthoring.md` and
 
 - **fruitTree** — deferred by decision: stays on the procedural builder
   (`worldObjects/fruitTree/`); a simple trunk + grove-family canopy + 1–2
-  hanging fruit, ripe state reflecting the heal/regrow cycle. Migrating it
-  to descriptors would need procedural/part-instancing support in the
-  descriptor model; not worth the churn while it reads well at game scale.
+  hanging fruit, ripe state reflecting the heal/regrow cycle. The descriptor
+  model now supports part instancing (`meshAssembly` groups records by part
+  id into one InstancedMesh), so the original migration blocker is gone —
+  still deferred as not worth the churn while it reads well at game scale.
 - **Champion accents** — minimal per-faction placeholders; richer looks are
   authorable in the editor. Tier-2 mob accents were removed with the
   scorpelican/infernalpaca rework (no tier-2 mob variants remain).
@@ -182,5 +186,5 @@ items below remain.
   (~148 lines) → `reportFormatter.js` if it grows past ~1,000 lines
 - `src/game/state/featureRewards.js` (557) — extract the `FEATURES` table +
   card builders → `featureRewardTable.js` if it grows past ~650 lines
-- `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` (981) —
+- `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` (1047) —
   extract the entity path → `entityRecords.js` if it grows past ~1,100 lines

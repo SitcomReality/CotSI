@@ -10,8 +10,8 @@
     transform: none;
   }
 
-  .ctok.clash-win,
-  .ctok.clash-lose {
+  .pip.clash-win,
+  .pip.clash-lose {
     animation: none;
   }
 

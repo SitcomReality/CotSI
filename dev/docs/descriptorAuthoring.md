@@ -38,7 +38,7 @@ A descriptor never contains THREE.js or any rendering code — it is pure data
 - **Angles:** radians everywhere in the data (the editor displays degrees and
   converts on write). `Math.PI / 2` = 90°.
 - **Colors:** `0xRRGGBB` integers (e.g. `0x3cb371`). Named color *tokens*
-  (strings) are legal only on entity-driven parts — see §6.4.
+  (strings) are legal only on entity-driven parts — see §5.6.
 - **Vertical (Y) is bottom-anchored:** `transform.y` and `transform.lift` are
   the height of the part's **lowest vertex** above the surface; `0` sits flush
   on the ground. Shapes are vertically centered primitives; the pipeline bakes
@@ -403,8 +403,7 @@ A terrain `decor` is scattered and varies per tile, and the grove is the
 flagship example of the variable-properties vocabulary: count, size, part set,
 stretch, and color all come from ranges and per-tile draws rather than fixed
 values. `src/render/hexmap3d/worldObjects/descriptors/data/grove.js` (annotated;
-the shipped file still carries `schemaVersion: 4` — v4 auto-migrates on load,
-and the editor rewrites it to 5 on the next Save):
+the shipped file carries `schemaVersion: 5` — the editor rewrote it on the last Save):
 
 ```js
 export const GROVE_DESCRIPTOR = {
@@ -416,7 +415,7 @@ export const GROVE_DESCRIPTOR = {
   size: { min: 1.3, max: 1.5 },       // trees vary 1.3–1.5× object scale
   variation: { colorJitter: 0.05 },   // slight brightness jitter per tree
   variantRule: 'cluster',             // denseForest→tall, else round; painforest biome→painforest
-  placement: { mode: 'ring' },        // ring around the hex center
+  placement: { mode: 'ring', leanMin: 0.2, leanMax: 0.3 }, // ring around the hex center, slight per-tree lean
   emphasis: { behavior: 'dispersed' },// shrink+step aside when the center is claimed
   parts: [                           // fallback part set — only used if no variant matches
     { id: 'trunk', shape: 'cylinder', stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false },
@@ -428,15 +427,15 @@ export const GROVE_DESCRIPTOR = {
       parts: [
         {
           id: 'trunk', shape: 'cylinder',
-          stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false },
+          stretch: { y: { min: 1, max: 1.2, seed: 6 }, x: false, z: false },
           biomeScale: { biome_tundra: 0.85 },   // stunted on Tundra
           color: 0x8b5e3c,
         },
         {
           id: 'canopy-round', shape: 'sphere',
           // Legacy anchor: canopy bottom = (canopyY·trunkStretch − halfHeight)
-          // = 0.5·s − 0.3, drawn on the trunk's stretch seed (6) so the canopy
-          // tracks the per-tree trunk stretch → [0.15, 0.30].
+          // = 0.5·s − 0.3, drawn on the trunk's stretch seed (6); the shipped
+          // file carries the authored liftRange [0.15, 0.30].
           transform: { liftRange: { min: 0.15, max: 0.3, seed: 6 } },
           stretch: { y: { min: 0.85, max: 1.3, seed: 4 }, x: { min: 0.9, max: 1.15, seed: 5 }, z: { min: 0.9, max: 1.15, seed: 5 } },
           color: 0x3cb371,

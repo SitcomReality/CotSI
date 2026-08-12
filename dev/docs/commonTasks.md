@@ -20,7 +20,7 @@
 2. Give the object a real **ID** (the ID field under Object — new objects start with a session id) and a name.
 3. **Save** — validates, strips defaults, writes `data/<id>.js`, and registers it in `data/index.js`. Both are immediately live: refresh the game to see the object.
 4. Add the gameplay archetype if needed: entry in `src/game/rules/archetypeData/features.js` whose `kind` matches the descriptor `id`.
-5. Done — no builder code; the generic descriptor pipeline renders whatever the data defines. Contract: descriptor `id` === archetype `kind` (the renderer resolves `tile.feature.kind` → `descriptorById(id)` in `gameBuilder.js`). Reload the editor page to browse a newly saved object.
+5. Done — no builder code; the generic descriptor pipeline renders whatever the data defines. Contract: descriptor `id` === archetype `kind` (the renderer resolves `tile.feature.kind` → `descriptorById(id)` in `src/render/hexmap3d/worldObjects/descriptors/gameBuilder.js`). Reload the editor page to browse a newly saved object.
 
 Every non-entity object's record output is pinned by the golden snapshot
 (`dev/tests/render/fixtures/descriptorData.snap.json`). **Save refreshes it
@@ -37,12 +37,12 @@ Entities (faction bases, champions, mobs, traders) are entity-driven descriptors
 1. Open `dev/tools/geometryEditor.html`. Pick the entity in the object list — the occupied/re-roll controls disappear (entities are occupants, not displaced decor) and an **Entity** panel appears.
 2. Pick the variant: **Faction** (bases/champions — also sets the palette colors) and/or **Archetype** (mobs — picks the shape variant). Traders have one fixed look.
 3. Edit parts as usual — edits target the active variant's parts (the parts the preview shows). Entity parts ignore stretch variation (no per-tile hash draws).
-4. **Save** — works for champions and traders (plain descriptor files). Bases and mobs are **table-driven** (`base.js` / `mob.js` derive their descriptor from variant maps the game imports; mobs compose the per-archetype files in `data/mobs/`) — Save rejects them with a 409; hand-edit those files until the maps are decoupled.
+4. **Save** — writes only the **active variant** back to the variant-scoped file (`data/bases/<faction>.js`, `data/champions/<faction>.js`, `data/mobs/<archetype>.js`); the table-driven barrels (`base.js` / `champion.js` / `mob.js`) are never rewritten. A 400 is returned only when no `activeVariant` is known (e.g. the mob `'default'` fallback).
 5. Variant contract for entities: variant `id` === the selecting field (`variantRule 'faction'` → the faction short, `'archetype'` → the archetype shape key from `mob.archetypeName`). Unknown selections fall back to the first variant. Part ids must stay unique across variants — meshAssembly groups records by part id, so two variants sharing an id merge into one geometry.
 
 ## Change Win Conditions
 
-Edit `src/game/state/victoryChecks.js` and the `objectives` object passed from `setupScreen.js`/`gameFactory.js`.
+Edit `src/game/state/victoryChecks.js` and the `objectives` object built in `src/ui/setupActions.js` and passed to `createGame()` in `src/game/state/gameFactory.js`.
 
 ## Schedule a Timed Operation
 
