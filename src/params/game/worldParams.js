@@ -13,6 +13,8 @@ export const MOB_HARASS_DMG_BASE = 4;
 export const MOB_HARASS_DMG_RANGE = 5;
 /** Probability a mob wanders to a random neighbor hex (0-1). */
 export const MOB_WANDER_CHANCE = 0.45;
+/** Mob daily action-point pool for wandering (≈1–2 cheap-terrain steps). */
+export const MOB_DAILY_AP = 20;
 
 /** Maximum number of log entries retained in state. */
 export const MAX_LOG_ENTRIES = 100;

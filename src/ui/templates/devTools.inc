@@ -25,7 +25,8 @@
       <div class="devtools__section">
         <div class="devtools__section-title">Movement</div>
         <div class="devtools__btn-row">
-          <button class="devtools__btn" data-action="dev:cheat:fillMoves">Fill Moves</button>
+          <button class="devtools__btn" data-action="dev:cheat:fillMoves">Fill AP</button>
+          <button class="devtools__btn devtools__btn--toggle" data-action="dev:cheat:moveMode" id="devMoveModeBtn">Move Mode: Walk</button>
           <button class="devtools__btn devtools__btn--toggle" data-action="dev:cheat:teleport" id="devTeleportBtn">Teleport Mode: OFF</button>
         </div>
       </div>

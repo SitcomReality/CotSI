@@ -5,6 +5,7 @@
  */
 
 import { devState } from '../cheats/state.js';
+import { dispatchAction } from '../../shared/actionBus.js';
 
 let _toggleCallback = null;
 
@@ -29,13 +30,17 @@ function _onKeyDown(e) {
     _toggleCallback?.();
     return;
   }
-  // Escape exits teleport mode if active
-  if (e.key === 'Escape' && devState.teleportMode) {
-    devState.teleportMode = false;
-    const btn = document.getElementById('devTeleportBtn');
-    if (btn) {
-      btn.textContent = 'Teleport Mode: OFF';
-      btn.classList.remove('is-active');
+  // Escape exits teleport mode if active, else cancels a pending move preview
+  if (e.key === 'Escape') {
+    if (devState.teleportMode) {
+      devState.teleportMode = false;
+      const btn = document.getElementById('devTeleportBtn');
+      if (btn) {
+        btn.textContent = 'Teleport Mode: OFF';
+        btn.classList.remove('is-active');
+      }
+    } else {
+      dispatchAction('cancelMovePreview');
     }
   }
 }

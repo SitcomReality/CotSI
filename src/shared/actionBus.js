@@ -13,6 +13,17 @@ export function registerAction(action, fn) {
   handlers[action] = fn;
 }
 
+/**
+ * Invoke a registered action handler programmatically (keyboard shortcuts,
+ * non-DOM triggers). No-op when the action is not registered.
+ * @param {string} action
+ * @param {Element} [el]
+ * @param {Event} [e]
+ */
+export function dispatchAction(action, el, e) {
+  handlers[action]?.(el, e);
+}
+
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-action]');
   if (!el) return;

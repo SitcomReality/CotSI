@@ -12,6 +12,8 @@ import {
   getInteractionHighlights,
   setHoveredKey,
   getHoveredKey,
+  setPathPreview,
+  getPathPreview,
 } from './derivedState.js';
 
 let overlay = null;
@@ -45,5 +47,7 @@ export {
   getInteractionHighlights,
   setHoveredKey,
   getHoveredKey,
+  setPathPreview,
+  getPathPreview,
   syncSize,
 };

@@ -2,7 +2,7 @@
  * aiParams.js — Bot AI decision thresholds, weights, and probabilities.
  */
 
-/** Multiplier of baseMove added to bot search radius. */
+/** Multiplier of the champion's daily reach (AP ÷ typical cost) added to bot search radius. */
 export const BOT_SEARCH_MOVE_MULTIPLIER = 2;
 /** Flat extra hexes added to bot target-search radius. */
 export const BOT_SEARCH_PADDING = 5;

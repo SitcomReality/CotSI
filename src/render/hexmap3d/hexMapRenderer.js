@@ -13,6 +13,7 @@ import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/
 import { renderFogOverlay } from '../overlays/fogOverlay.js';
 import { renderSelectionRing } from '../overlays/selectionRing.js';
 import { renderMovementHighlights } from '../overlays/movementHighlights.js';
+import { renderPathPreview } from '../overlays/pathPreview.js';
 import { renderInteractionHighlights } from '../overlays/interactionHighlights.js';
 import { getClock } from '../../shared/clockScheduler.js';
 import { OVERLAY_Z } from '../../params/ui/uiParams.js';
@@ -58,6 +59,7 @@ export function initHexMap3D(mountElement) {
   initEffectsOverlay(ctx);
   registerLayer('fogOverlay', OVERLAY_Z.terrain, renderFogOverlay);
   registerLayer('movementHighlights', OVERLAY_Z.highlight, renderMovementHighlights);
+  registerLayer('pathPreview', OVERLAY_Z.pathPreview, renderPathPreview);
   registerLayer('interactionHighlights', OVERLAY_Z.selection, renderInteractionHighlights);
   registerLayer('selectionRing', OVERLAY_Z.fog, renderSelectionRing);
 

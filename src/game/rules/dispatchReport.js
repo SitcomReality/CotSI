@@ -11,6 +11,7 @@ import { TERRAIN } from './terrainTypes.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
 import { DAYS_PER_WEEK } from '../../params/game/worldParams.js';
 import { HOLLOW_HP_GROUP_SIZE, HOLLOW_WEEK_BLOCK } from '../../params/game/combatParams.js';
+import { SPUR_AP_BONUS } from '../../params/game/championParams.js';
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 
@@ -182,15 +183,14 @@ function equipmentEffects(state, champ, effects) {
 const CONTRIBUTORS = [weatherEffects, artifactEffects, factionEffects, terrainEffects, equipmentEffects];
 
 // ── Movement breakdown ──────────────────────────────────────────────────────
-// Parts mirror the inputs of dailyMoves (game/state/championMovement.js);
-// the total is champ.moves as already computed by beginTurn.
+// Parts mirror the inputs of dailyActionPoints (game/state/championMovement.js);
+// the total is champ.actionPoints as already computed by beginTurn.
 
 function movementReport(state, champ) {
-  const parts = [`${champ.baseMove} base`];
-  if (champ.artifact === 'spur') parts.push(`+1 Pilgrim's Spur`);
-  if (champ.faction === 2) parts.push(`+1 Gaia's Wail`);
+  const parts = [`${champ.baseActionPoints} base`];
+  if (champ.artifact === 'spur') parts.push(`+${SPUR_AP_BONUS} Pilgrim's Spur`);
   if (state.weather.dayLength !== 1) parts.push(`× ${state.weather.dayLength} ${state.weather.name}`);
-  return { parts, total: champ.moves };
+  return { parts, total: champ.actionPoints };
 }
 
 // ── Report ──────────────────────────────────────────────────────────────────

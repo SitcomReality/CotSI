@@ -86,7 +86,7 @@ test('advanceTurn: normal case moves to the next living champion and begins thei
   advanceTurn(state);
 
   assert.equal(state.activeChampionId, 'cB');
-  assert.equal(cB.moves, 5, 'beginTurn granted daily moves');
+  assert.equal(cB.actionPoints, 60, 'beginTurn granted daily action points');
   assert.equal(state.turnLock, false, 'turn lock cleared for the fresh champion');
 });
 
@@ -233,7 +233,7 @@ test('world turn: unripe fruit trees ripen on their due day', () => {
 
 test('world turn: traders step toward their target base', () => {
   const cA = makeChampion({ id: 'cA' });
-  const tr = { id: 'trA', pos: { q: 0, r: 0 }, targetBaseKey: '1,0', movesPerDay: 1 };
+  const tr = { id: 'trA', pos: { q: 0, r: 0 }, targetBaseKey: '1,0' };
   const state = makeState({
     champions: [cA],
     traders: [tr],

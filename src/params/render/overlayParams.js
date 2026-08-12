@@ -35,6 +35,11 @@ export const MOVE_DASH = [6, 4];
 /** Dash march speed (px per ms of clock time). */
 export const MOVE_DASH_SPEED = 0.02;
 
+// ── Path preview (hover / click-to-preview route) ──
+export const PATH_PREVIEW_WIDTH = 2.5;
+export const PATH_PREVIEW_LINE_WIDTH = 4;
+export const PATH_PREVIEW_COLOR = '#7affd4';
+
 // ── Selection ring ──
 export const ORBIT_FRAC = 0.50;
 export const SELECTION_RING_SPEED = 0.002;

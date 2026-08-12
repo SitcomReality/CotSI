@@ -80,6 +80,7 @@ export const TOOLTIP_CURSOR_OFFSET = 12;
 export const OVERLAY_Z = {
   terrain: 0,
   highlight: 5,
+  pathPreview: 6,
   selection: 7,
   fog: 10,
 };

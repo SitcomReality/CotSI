@@ -6,7 +6,7 @@ import { addLogEntry } from './gameLog.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
-import { REVERIE_OUTCOME_RANGE, REVERIE_GOLD_GAIN, REVERIE_MOVE_BONUS, REVERIE_HP_HEAL, FACTION_COUNT } from '../../params/game/factionParams.js';
+import { REVERIE_OUTCOME_RANGE, REVERIE_GOLD_GAIN, REVERIE_AP_BONUS, REVERIE_HP_HEAL, FACTION_COUNT } from '../../params/game/factionParams.js';
 
 export function processReverie(state, ch) {
   const roll = Math.floor(state._rng() * REVERIE_OUTCOME_RANGE);
@@ -14,8 +14,8 @@ export function processReverie(state, ch) {
     ch.gold += REVERIE_GOLD_GAIN;
     recordLedgerEntry(ch, "+4 gold — Another's Dream", 'gain', 'gold');
   } else if (roll === 1) {
-    ch.moves += REVERIE_MOVE_BONUS;
-    recordLedgerEntry(ch, "+1 move — Another's Dream", 'gain', 'move');
+    ch.actionPoints += REVERIE_AP_BONUS;
+    recordLedgerEntry(ch, `+${REVERIE_AP_BONUS} AP — Another's Dream`, 'gain', 'ap');
   } else if (roll === 2) {
     const healed = Math.min(ch.maxHp, ch.hp + REVERIE_HP_HEAL) - ch.hp;
     ch.hp += healed;

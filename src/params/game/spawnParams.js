@@ -33,8 +33,8 @@ export const MOB_COUNT_RADIUS_MULTIPLIER = 2;
 export const MOB_HP_VARIANCE_FRACTION = 0.5;
 /** Number of traders to spawn. */
 export const NUM_TRADERS = 3;
-/** Trader moves per day. */
-export const TRADER_MOVES_PER_DAY = 2;
+/** Trader daily action-point pool (≈3 plains hexes/day). */
+export const TRADER_DAILY_AP = 30;
 /** Maximum ring-search depth for nearest-open-key fallback. */
 export const MAX_SPAWN_SEARCH_RINGS = 100;
 

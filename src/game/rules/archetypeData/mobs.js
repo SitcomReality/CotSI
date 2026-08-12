@@ -48,6 +48,7 @@ defineArchetype('mob_snail_knight', {
   lootGold: [18, 34],
   aggressiveChance: 0.15,
   tags: ['marsh', 'plains'],
+  terrainCosts: { marsh: 6, river: 15 },
   visual: { scale: 1.0, tint: 'factionMutated' },
 });
 
@@ -59,6 +60,7 @@ defineArchetype('mob_tapir', {
   lootGold: [14, 28],
   aggressiveChance: 0.10,
   tags: ['plains', 'forest', 'desert'],
+  terrainCosts: { river: 10, water: 20, marsh: 10 },
   visual: { scale: 1.0, tint: 'factionMutated' },
 });
 
@@ -81,6 +83,7 @@ defineArchetype('mob_goose', {
   lootGold: [6, 12],
   aggressiveChance: 0.70,
   tags: ['plains', 'marsh'],
+  terrainCosts: { river: 4, water: 4 },
   visual: { scale: 1.0, tint: 'factionMutated' },
 });
 

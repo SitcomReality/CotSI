@@ -25,7 +25,7 @@ export function interactBase(ch, tile) {
     // Sanctuary — heal 50% max HP
     const healed = Math.ceil(ch.maxHp * SANCTUARY_HEAL_FRACTION);
     ch.hp = Math.min(ch.maxHp, ch.hp + healed);
-    ch.moves = 0;
+    ch.actionPoints = 0;
     addLogEntry(G, {
       category: LOG_CATEGORY.HEAL,
       subject: championSegment(ch.name, factionMap),
@@ -41,7 +41,7 @@ export function interactBase(ch, tile) {
     if (ch.gold >= cost) {
       ch.gold -= cost;
       ch.potencies[tile.feature.faction]++;
-      ch.moves = 0;
+      ch.actionPoints = 0;
       addLogEntry(G, {
         category: LOG_CATEGORY.ECONOMY,
         subject: championSegment(ch.name, factionMap),

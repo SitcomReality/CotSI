@@ -3,7 +3,6 @@ import { currentChamp } from '../../game/state/liveGame.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { h } from '../domBuilder.js';
 import { POTENCY_BAR_SCALE } from '../../params/ui/uiParams.js';
-
 /**
  * Enable or disable the End Turn button based on whether a human champion is active.
  */
@@ -67,7 +66,7 @@ export function bindLeftPanel(G) {
 
   set('name', vm.name);
   set('hpValue', `${vm.hp}/${vm.maxHp}`);
-  set('moves', `${vm.moves}/${vm.maxMoves}`);
+  set('actionPoints', `${vm.actionPoints}/${vm.maxActionPoints}`);
   set('gold', vm.gold);
   set('relics', vm.relics);
   set('knot', vm.knot);

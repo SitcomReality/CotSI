@@ -6,12 +6,13 @@ let _derivedHumanView = null;
 let _derivedMoveHighlights = null;
 let _interactionHighlights = null;  // Map<hexKey, { type, entity }>
 let _hoveredKey = null;
+let _pathPreview = null;            // { keys: string[], cost: number } | null
 
 /**
  * Store pre-computed derived data.
  * Called by runtime/mapRefresh.js.
  * @param {{ visible: Set<string>, explored: Set<string> }} humanView
- * @param {string[]} moveHighlights — hex keys from adjacentPassable
+ * @param {string[]} moveHighlights — reachable hex keys (weighted AP range)
  */
 export function setDerivedState(humanView, moveHighlights) {
   _derivedHumanView = humanView;
@@ -24,6 +25,18 @@ export function getDerivedHumanView() {
 
 export function getDerivedMoveHighlights() {
   return _derivedMoveHighlights;
+}
+
+/**
+ * Store the path-preview overlay data (hovered or click-previewed route).
+ * @param {{ keys: string[], cost: number } | null} preview
+ */
+export function setPathPreview(preview) {
+  _pathPreview = preview;
+}
+
+export function getPathPreview() {
+  return _pathPreview;
 }
 
 /**

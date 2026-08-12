@@ -7,6 +7,7 @@ import { G, currentChamp, setTurnLock, isTurnLocked } from '../game/state/liveGa
 import { refreshAll } from './refreshAll.js';
 import { finishTurn } from '../game/state/worldSimulation.js';
 import { moveChampion } from '../game/state/championMovement.js';
+import { terrainCost } from '../game/rules/movementCosts.js';
 import { coordKey } from '../engine/rules/hexGrid.js';
 import { startCombat } from './combat/index.js';
 import { resolveCombatSilently } from '../game/state/combat/combatAutoResolve.js';
@@ -136,7 +137,7 @@ export async function runBot() {
           const fromY = fromTile ? tileSurfaceY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
           const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
 
-          moveChampion(G, ch, key, 1);
+          moveChampion(G, ch, key, terrainCost(ch, G.tiles[key].terrain));
 
           // World-space destination after mutation
           const toTile = G.tiles[key];
@@ -158,10 +159,10 @@ export async function runBot() {
           await getClock().wait(MOVE_DURATION + ANIMATION_CUSHION_MS, 'animation');
         }
 
-        // The bot may still have moves after arriving (e.g. from a movement-buff
+        // The bot may still have AP after arriving (e.g. from a movement-buff
         // feature like the Snowperson). Decide again instead of ending the turn;
-        // each move decision consumes at least one move, so this terminates.
-        if (ch.moves > 0) {
+        // each move decision consumes at least one hex of AP, so this terminates.
+        if (ch.actionPoints > 0) {
           decision = aiDecide(G);
           continue;
         }

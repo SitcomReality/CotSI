@@ -39,10 +39,19 @@ test('TERRAIN: every entry has required fields', () => {
 test('TERRAIN: known terrain set is present', () => {
   const expected = [
     'plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau',
-    'mountain', 'water', 'ice', 'beach',
+    'mountain', 'water', 'ice', 'beach', 'river',
   ];
   for (const name of expected) {
     assert.ok(TERRAIN[name], `missing terrain: ${name}`);
+  }
+});
+
+test('TERRAIN: every finite movement cost divides the 60 AP pool', () => {
+  for (const [name, def] of Object.entries(TERRAIN)) {
+    if (Number.isFinite(def.movementCost)) {
+      assert.equal(60 % def.movementCost, 0,
+        `${name} cost ${def.movementCost} must divide 60 (design ladder)`);
+    }
   }
 });
 

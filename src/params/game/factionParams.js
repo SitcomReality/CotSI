@@ -21,7 +21,7 @@ export const REVERIE_OUTCOME_RANGE = 5;
 /** Gold gained from Reverie (roll 0). */
 export const REVERIE_GOLD_GAIN = 4;
 /** Bonus moves from Reverie (roll 1). */
-export const REVERIE_MOVE_BONUS = 1;
+export const REVERIE_AP_BONUS = 10;
 /** HP healed by Reverie (roll 2). */
 export const REVERIE_HP_HEAL = 4;
 

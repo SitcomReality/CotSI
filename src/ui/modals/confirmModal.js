@@ -7,7 +7,7 @@
  *
  *   openConfirmModal({
  *     title: 'End turn?',
- *     message: 'End turn with moves remaining?',
+ *     message: 'End turn with AP remaining?',
  *     confirmText: 'Yes',
  *     cancelText: 'No',
  *   }).then(confirmed => {

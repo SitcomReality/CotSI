@@ -18,8 +18,8 @@ function makeChamp(overrides = {}) {
     hp: 10,
     maxHp: 10,
     pos: { q: 0, r: 0 },
-    baseMove: 3,
-    moves: 3,
+    baseActionPoints: 60,
+    actionPoints: 60,
     artifact: null,
     weapon: 'ash staff',
     armor: 'worn linen',
@@ -212,33 +212,33 @@ test('equipment effects: capitalized weapon; armor verbatim', () => {
   assert.equal(effects.text, 'Ash staff; worn linen.');
 });
 
-test('movement breakdown: base, spur, verdant, and day-length parts', () => {
+test('movement breakdown: base, spur, and day-length parts', () => {
   const movement = (champ, state = makeState()) => buildDispatchReport(state, champ).movement;
 
-  assert.deepEqual(movement(makeChamp()), { parts: ['3 base'], total: 3 });
-  assert.deepEqual(movement(makeChamp({ artifact: 'spur', moves: 4 })), {
-    parts: ['3 base', "+1 Pilgrim's Spur"],
-    total: 4,
+  assert.deepEqual(movement(makeChamp()), { parts: ['60 base'], total: 60 });
+  assert.deepEqual(movement(makeChamp({ artifact: 'spur', actionPoints: 70 })), {
+    parts: ['60 base', "+10 Pilgrim's Spur"],
+    total: 70,
   });
   assert.deepEqual(movement(makeChamp({ faction: 2 })), {
-    parts: ['3 base', "+1 Gaia's Wail"],
-    total: 3,
+    parts: ['60 base'],
+    total: 60,
   });
   assert.deepEqual(
     movement(
-      makeChamp({ artifact: 'spur', faction: 2, moves: 5 }),
+      makeChamp({ artifact: 'spur', actionPoints: 56 }),
       makeState({
         weather: { name: 'Leyline Ebb', dayLength: 0.8, potency: Array(7).fill(0), score: Array(7).fill(0) },
       })
     ),
-    { parts: ['3 base', "+1 Pilgrim's Spur", "+1 Gaia's Wail", '× 0.8 Leyline Ebb'], total: 5 }
+    { parts: ['60 base', "+10 Pilgrim's Spur", '× 0.8 Leyline Ebb'], total: 56 }
   );
 });
 
 test('ledger entries pass through unchanged', () => {
   const ledger = [
     { text: "+2 gold — Beggar-Saint's Ledger", sign: 'gain', type: 'gold' },
-    { text: '+1 move — Another\'s Dream', sign: 'gain', type: 'move' },
+    { text: "+10 AP — Another's Dream", sign: 'gain', type: 'ap' },
   ];
   const report = buildDispatchReport(makeState(), makeChamp(), ledger);
   assert.deepEqual(report.ledger, ledger);

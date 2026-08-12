@@ -98,12 +98,12 @@ test('isBlockedForMovement: terrain, bases, and occupants', () => {
     '7,0': makeTile('mountain'),
   };
   const state = makeState({ tiles, champions: [c1, c2], mobs: [m1], traders: [tr1] });
-  assert.equal(isBlockedForMovement(state, '0,0', c1.id), false, 'own hex passable');
-  assert.equal(isBlockedForMovement(state, '1,0', c1.id), true, 'other champion');
-  assert.equal(isBlockedForMovement(state, '2,0', c1.id), true, 'mob');
-  assert.equal(isBlockedForMovement(state, '3,0', c1.id), true, 'trader');
-  assert.equal(isBlockedForMovement(state, '4,0', c1.id), true, 'base always blocks');
-  assert.equal(isBlockedForMovement(state, '5,0', c1.id), false, 'open plains');
-  assert.equal(isBlockedForMovement(state, '6,0', c1.id), true, 'missing tile');
-  assert.equal(isBlockedForMovement(state, '7,0', c1.id), true, 'impassable terrain');
+  assert.equal(isBlockedForMovement(state, '0,0', c1), false, 'own hex passable');
+  assert.equal(isBlockedForMovement(state, '1,0', c1), true, 'other champion');
+  assert.equal(isBlockedForMovement(state, '2,0', c1), true, 'mob');
+  assert.equal(isBlockedForMovement(state, '3,0', c1), true, 'trader');
+  assert.equal(isBlockedForMovement(state, '4,0', c1), true, 'base always blocks');
+  assert.equal(isBlockedForMovement(state, '5,0', c1), false, 'open plains');
+  assert.equal(isBlockedForMovement(state, '6,0', c1), true, 'missing tile');
+  assert.equal(isBlockedForMovement(state, '7,0', c1), true, 'impassable terrain');
 });

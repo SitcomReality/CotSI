@@ -44,6 +44,7 @@ READONLY_RULES_DATA = {
     'src/game/rules/factionData.js',
     'src/game/rules/terrainTypes.js',
     'src/game/rules/archetypes.js',
+    'src/game/rules/movementCosts.js',
     'src/game/rules/archetypeData/index.js',
 }
 
@@ -54,7 +55,7 @@ READONLY_RULES_DATA = {
 TOLERATED_STATE_READS = {
     'src/game/state/entityQueries.js': {'occupiedByMob', 'occupiedByChampion', 'occupiedByTrader'},
     'src/game/state/fogOfWar.js': {'getHumanView'},
-    'src/game/state/championMovement.js': {'movementRange', 'dailyMoves'},
+    'src/game/state/championMovement.js': {'movementRange', 'pathToKey', 'pathToward', 'dailyActionPoints'},
     'src/game/state/liveGame.js': {'currentChamp'},
     'src/game/state/combat/index.js': {'sideOf', 'entityFor'},
 }

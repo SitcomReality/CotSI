@@ -72,7 +72,7 @@ export function fleeFromCombat(state, combat, fleeingSide) {
 
   // Attacker always ends their turn after combat
   attacker.lastActionCombat = true;
-  attacker.moves = 0;
+  attacker.actionPoints = 0;
 
   const factionMap = buildChampionFactionMap(state.champions);
   addLogEntry(state, {

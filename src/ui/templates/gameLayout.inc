@@ -28,7 +28,7 @@
             <span class="left-champ-name" data-ui="name">—</span>
             <span class="left-champ-moves">
               <svg width="12" height="12"><use href="assets/icons/actions.svg#i-move"/></svg>
-              <span data-ui="moves">—</span>
+              <span data-ui="actionPoints">—</span>
             </span>
           </div>
 

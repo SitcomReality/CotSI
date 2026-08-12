@@ -6,25 +6,27 @@
  *   fill, ink     – Display colours (legacy ASCII fallback)
  *   label         – Display name
  *   passable      – Whether entities can occupy this tile
- *   movementCost  – Per-hex movement cost (Infinity for impassable; not yet consumed by movement logic)
+ *   movementCost  – Per-hex movement cost in action points (∞ for
+ *                   impassable). Base ladder consumed by movement; entities
+ *                   may override per-terrain via terrainCosts (movementCosts.js)
  *   avoidSpawn    – Optional: passable tiles that faction bases / champion starts /
  *                   mobs / traders must never be placed on (e.g. rivers)
  *   mark          – ASCII symbol fallback
  */
 
 export const TERRAIN = {
-  plains:        { fill:'#74ad5d', ink:'#c8e0b8', label:'Plains',          passable:true,  movementCost:1, mark:'' },
-  forest:        { fill:'#4b8e41', ink:'#a0d090', label:'Forest',          passable:true,  movementCost:1, mark:'∷' },
-  denseForest:   { fill:'#2d6b23', ink:'#70b060', label:'Deep wood',       passable:true,  movementCost:2, mark:'♣' },
-  desert:        { fill:'#d6b15b', ink:'#f0d890', label:'Desert',          passable:true,  movementCost:1, mark:'·' },
-  marsh:         { fill:'#819967', ink:'#b8cfa0', label:'Marsh',           passable:true,  movementCost:1, mark:'≈' },
-  hill:          { fill:'#8ba863', ink:'#c8d8b0', label:'Hill',            passable:true,  movementCost:1, mark:'∧' },
-  plateau:       { fill:'#9a9078', ink:'#d0c8b8', label:'Plateau',         passable:true,  movementCost:1, mark:'⊓' },
+  plains:        { fill:'#74ad5d', ink:'#c8e0b8', label:'Plains',          passable:true,  movementCost:10, mark:'' },
+  forest:        { fill:'#4b8e41', ink:'#a0d090', label:'Forest',          passable:true,  movementCost:12, mark:'∷' },
+  denseForest:   { fill:'#2d6b23', ink:'#70b060', label:'Deep wood',       passable:true,  movementCost:20, mark:'♣' },
+  desert:        { fill:'#d6b15b', ink:'#f0d890', label:'Desert',          passable:true,  movementCost:10, mark:'·' },
+  marsh:         { fill:'#819967', ink:'#b8cfa0', label:'Marsh',           passable:true,  movementCost:15, mark:'≈' },
+  hill:          { fill:'#8ba863', ink:'#c8d8b0', label:'Hill',            passable:true,  movementCost:12, mark:'∧' },
+  plateau:       { fill:'#9a9078', ink:'#d0c8b8', label:'Plateau',         passable:true,  movementCost:15, mark:'⊓' },
   mountain:      { fill:'#877c6a', ink:'#c0b8a8', label:'Mountains',       passable:false, movementCost:Infinity, mark:'∧' },
   water:         { fill:'#5f9ac1', ink:'#a0d0e8', label:'Broken water',    passable:false, movementCost:Infinity, mark:'~' },
   ice:           { fill:'#b8d8f0', ink:'#e0f0ff', label:'Frozen surface',  passable:false, movementCost:Infinity, mark:'❄' },
-  beach:         { fill:'#e8d8a0', ink:'#f5ecd0', label:'Beach',           passable:true,  movementCost:1, mark:'∿' },
-  river:         { fill:'#5f9ac1', ink:'#a0d0e8', label:'River',           passable:true,  movementCost:3, avoidSpawn:true, mark:'≈' },
+  beach:         { fill:'#e8d8a0', ink:'#f5ecd0', label:'Beach',           passable:true,  movementCost:10, mark:'∿' },
+  river:         { fill:'#5f9ac1', ink:'#a0d0e8', label:'River',           passable:true,  movementCost:30, avoidSpawn:true, mark:'≈' },
 };
 
 export const DEFAULT_FEATURES = [

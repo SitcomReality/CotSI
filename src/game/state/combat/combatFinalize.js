@@ -28,7 +28,7 @@ export function finalizeCombat(state, attacker, defender, attackerWon){
 
   const factionMap = buildChampionFactionMap(state.champions);
   attacker.lastActionCombat = true;
-  attacker.moves = 0;
+  attacker.actionPoints = 0;
   if(attackerWon && attacker.alive && !defender.alive){
     attacker.pos = {...defender.pos};
     refreshVision(state);

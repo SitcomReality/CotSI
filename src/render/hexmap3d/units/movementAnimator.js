@@ -69,6 +69,12 @@ const activeAnimations = new Map();
  *  scene.  Cleaned up on the next renderHexMap3D pass. */
 const completedAnimations = new Set();
 
+/**
+ * Pending multi-hop chains: championId → { hops, faction, duration, index, onComplete }.
+ * Each hop starts when the previous one finishes (see queuePath).
+ */
+const pendingPaths = new Map();
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
@@ -116,6 +122,29 @@ export function getAnimatingIds() {
 export function queueOrStart(championId, fromPos, toPos, faction, duration = MOVE_ANIM_DURATION, onComplete = null) {
   if (!scene) return;
 
+  // A direct animation is a new intent: drop any pending multi-hop chain.
+  pendingPaths.delete(championId);
+
+  _startHop(championId, fromPos, toPos, faction, duration, onComplete);
+}
+
+/** Start the next hop of a champion's pending chain, if any. */
+function _startNextHop(championId) {
+  const chain = pendingPaths.get(championId);
+  if (!chain) return;
+  if (chain.index >= chain.hops.length) {
+    pendingPaths.delete(championId);
+    if (chain.onComplete) chain.onComplete();
+    return;
+  }
+  const hop = chain.hops[chain.index++];
+  _startHop(championId, hop.from, hop.to, chain.faction, chain.duration, () => {
+    if (pendingPaths.get(championId) === chain) _startNextHop(championId);
+  });
+}
+
+/** Core hop animation (shared by queueOrStart and queuePath chains). */
+function _startHop(championId, fromPos, toPos, faction, duration, onComplete) {
   const existing = activeAnimations.get(championId);
   let actualFromX, actualFromY, actualFromZ;
 
@@ -197,6 +226,32 @@ export function queueOrStart(championId, fromPos, toPos, faction, duration = MOV
 }
 
 /**
+ * Animate a multi-hop movement path as a sequential chain of hops.
+ * Each hop runs for `duration` ms; the next hop starts when the previous
+ * one finishes, so the champion visibly walks hex by hex. Interrupting with
+ * a new queueOrStart/queuePath cancels the rest of the chain.
+ *
+ * @param {string} championId
+ * @param {Array<{from:{x,y,z}, to:{x,y,z}}>} hops — world-space hop pairs
+ * @param {object} faction
+ * @param {number} [duration=MOVE_ANIM_DURATION]
+ * @param {Function} [onComplete] — called when the last hop finishes
+ */
+export function queuePath(championId, hops, faction, duration = MOVE_ANIM_DURATION, onComplete = null) {
+  if (!scene) {
+    if (onComplete) onComplete();
+    return;
+  }
+  if (!hops.length) {
+    if (onComplete) onComplete();
+    return;
+  }
+  const chain = { hops, faction, duration, index: 0, onComplete };
+  pendingPaths.set(championId, chain);
+  _startNextHop(championId);
+}
+
+/**
  * Remove all completed-but-still-visible animation meshes from the scene.
  * Called by renderHexMap3D before building the normal unit meshes so the
  * champion seamlessly transitions from temp mesh → normal InstancedMesh
@@ -214,6 +269,7 @@ export function cleanupCompleted() {
  * completed animations.  Called on game restart / scene teardown.
  */
 export function disposeAll() {
+  pendingPaths.clear();
   for (const [id, anim] of activeAnimations) {
     _removeAnimation(id, anim);
   }

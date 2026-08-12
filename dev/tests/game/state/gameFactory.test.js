@@ -11,7 +11,7 @@ import { FACTIONS } from '../../../../src/game/rules/factionData.js';
 import { WEATHER_SCRIPT } from '../../../../src/game/rules/weatherScript.js';
 import { DEFAULT_POTENCY, OWN_FACTION_POTENCY } from '../../../../src/params/game/factionParams.js';
 import { MIN_MOB_COUNT, MOB_COUNT_RADIUS_MULTIPLIER, NUM_TRADERS } from '../../../../src/params/game/spawnParams.js';
-import { CHAMPION_BASE_MOVE } from '../../../../src/params/game/championParams.js';
+import { CHAMPION_BASE_AP, SPUR_AP_BONUS } from '../../../../src/params/game/championParams.js';
 import { coordKey, distance } from '../../../../src/engine/rules/hexGrid.js';
 
 const SEVEN_BOTS = Array.from({ length: 7 }, (_, faction) => ({ faction, controller: 'bot' }));
@@ -31,7 +31,7 @@ test('createGame: assembles a complete world for 7 bots', () => {
     assert.equal(ch.potencies.length, 7);
     assert.equal(ch.potencies[ch.faction], OWN_FACTION_POTENCY);
     assert.equal(ch.potencies[(ch.faction + 1) % 7], DEFAULT_POTENCY);
-    assert.equal(ch.baseMove, CHAMPION_BASE_MOVE);
+    assert.equal(ch.baseActionPoints, CHAMPION_BASE_AP);
     assert.ok(state.tiles[coordKey(ch.pos)], `champion ${ch.id} stands on a real tile`);
   }
   const positions = new Set(state.champions.map((c) => coordKey(c.pos)));
@@ -58,10 +58,10 @@ test('createGame: assembles a complete world for 7 bots', () => {
   assert.equal(state.herald.order.length, 7);
   assert.deepEqual(state.herald.deathOrder, []);
 
-  // The active champion's first turn has begun (moves granted, vision refreshed).
+  // The active champion's first turn has begun (AP granted, vision refreshed).
   const active = state.champions.find((c) => c.id === state.activeChampionId);
-  assert.ok(active.moves >= CHAMPION_BASE_MOVE && active.moves <= CHAMPION_BASE_MOVE + 1,
-    `active champion has daily moves (got ${active.moves})`);
+  assert.ok(active.actionPoints >= CHAMPION_BASE_AP && active.actionPoints <= CHAMPION_BASE_AP + SPUR_AP_BONUS,
+    `active champion has daily action points (got ${active.actionPoints})`);
   assert.ok(active.visible.length > 0, 'vision refreshed');
   assert.ok(active.explored.length > 0);
 });

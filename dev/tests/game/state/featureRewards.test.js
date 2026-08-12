@@ -115,14 +115,14 @@ test('waxbloom: no reward while spent', () => {
   assert.equal(state.logs.length, 0);
 });
 
-test('snowperson: grants +2 movement this turn and regrows', () => {
-  const champ = humanChamp({ moves: 0 });
+test('snowperson: grants +20 AP this turn and regrows', () => {
+  const champ = humanChamp({ actionPoints: 0 });
   const tile = makeTile('plains', { feature: { kind: 'snowperson' } });
   const state = stateWith(champ, tile);
 
   interactWithFeature(state, champ, tile);
 
-  assert.equal(champ.moves, 2, 'movement buff is temporary by construction');
+  assert.equal(champ.actionPoints, 20, 'AP buff is temporary by construction');
   assert.equal(tile.feature.ripe, false);
 });
 

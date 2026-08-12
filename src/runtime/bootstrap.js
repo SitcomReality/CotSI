@@ -24,6 +24,7 @@ import { startMeasure, endMeasure, enableAllMeasurements, getSnapshot, getMeasur
 import { getClock } from '../shared/clockScheduler.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
 import '../devtools/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
+import { cancelPendingPreview } from './hexBridge.js';
 
 // Action-bus registrations migrated from the now-deleted gameUIBindings.js
 const INSPECT_HINT =
@@ -31,6 +32,7 @@ const INSPECT_HINT =
 registerAction('endTurn', () => onEndTurn());
 registerAction('inspect', () => toast(INSPECT_HINT));
 registerAction('restartToSetup', () => location.reload());
+registerAction('cancelMovePreview', () => cancelPendingPreview());
 
 /** Names of templates to preload before any rendering. */
 const CRITICAL_TEMPLATES = [

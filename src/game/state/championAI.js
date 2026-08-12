@@ -1,13 +1,15 @@
 import { coordKey, distance, hexesWithinRadius } from '../../engine/rules/hexGrid.js';
-import { findPath } from '../../engine/rules/pathfinding.js';
+import { weightedFindPath } from '../../engine/rules/pathfinding.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
-import { movementRange } from './championMovement.js';
-import { occupiedByChampion, occupiedByMob, occupiedByTrader, getChampion } from './entityQueries.js';
+import { terrainCost, isTerrainBlocked } from '../rules/movementCosts.js';
+import { canChampionEnter, getChampion } from './entityQueries.js';
 import { featureValueForBot } from './featureRewards.js';
 import { BOT_SEARCH_MOVE_MULTIPLIER, BOT_SEARCH_PADDING, BOT_TREE_HP_THRESHOLD, BOT_TREE_SCORE_INJURED, BOT_TREE_SCORE_HEALTHY, BOT_KNOT_SCORE, BOT_EXPLORE_BONUS, BOT_DISTANCE_DECAY, BOT_ATTACK_CHAMPION_HP_THRESHOLD, BOT_ATTACK_CHAMPION_CHANCE, BOT_ATTACK_MOB_HP_THRESHOLD, BOT_ATTACK_MOB_CHANCE } from '../../params/game/aiParams.js';
 
 export function botChooseTarget(state, champ){
-  const searchRadius = champ.sight + champ.baseMove * BOT_SEARCH_MOVE_MULTIPLIER + BOT_SEARCH_PADDING;
+  // Search radius in hexes: sight + the champion's daily reach on open ground
+  // (AP pool ÷ typical terrain cost) scaled by the search multiplier.
+  const searchRadius = champ.sight + (champ.baseActionPoints / TERRAIN.plains.movementCost) * BOT_SEARCH_MOVE_MULTIPLIER + BOT_SEARCH_PADDING;
   const searchKeys = hexesWithinRadius(searchRadius)
     .map(c => coordKey({ q: c.q + champ.pos.q, r: c.r + champ.pos.r }));
 
@@ -40,7 +42,7 @@ export function botChooseTarget(state, champ){
     let closestDist = Infinity;
     for (const key of searchKeys) {
       const tile = state.tiles[key];
-      if (!tile || !TERRAIN[tile.terrain].passable) continue;
+      if (!tile || isTerrainBlocked(champ, tile.terrain)) continue;
       if ((champ.explored || []).includes(key)) continue;
       const d = distance(champ.pos, tile);
       if (d < closestDist) {
@@ -70,22 +72,29 @@ export function runBotTurn(state){
   }
   const target = botChooseTarget(state, champ);
   if(!target) return {action:'end'};
-  const path = findPath(champ.pos.q, champ.pos.r, target.pos.q, target.pos.r, champ.id,
-    (key, _isTarget) => {
+  const path = weightedFindPath(champ.pos.q, champ.pos.r, target.pos.q, target.pos.r,
+    (key) => {
       const tile = state.tiles[key];
-      if (!tile || !TERRAIN[tile.terrain].passable) return false;
+      if (!tile) return Infinity;
       // Champions can never occupy a hex with a base, mob, trader,
-      // or another champion — even as the path target.
-      if (tile.feature?.kind === 'base') return false;
-      const occ = occupiedByChampion(state, key);
-      if (occ && occ.id !== champ.id) return false;
-      if (occupiedByMob(state, key)) return false;
-      if (occupiedByTrader(state, key)) return false;
-      return true;
+      // or another champion — even as the path target. Feature hexes are
+      // destination-only (never routed through), matching movementRange.
+      if (key !== coordKey(target.pos) && tile.feature) return Infinity;
+      return canChampionEnter(state, key, champ) ? terrainCost(champ, tile.terrain) : Infinity;
     }
   );
   if(!path || !path.length) return {action:'end'};
-  const steps = Math.min(champ.moves, path.length);
-  const step = path[steps-1];
-  return {action:'move', to: step, cost: steps, path: path.slice(0, steps)};
+  // Walk the longest prefix the AP pool can afford (terrain costs vary).
+  const steps = [];
+  let budget = champ.actionPoints;
+  for (const hex of path) {
+    const cost = terrainCost(champ, state.tiles[coordKey(hex)].terrain);
+    // cost <= 0 would walk without spending AP — disallowed by the ladder
+    // (every cost ≥ 1); guard so the re-decide loop can never spin forever.
+    if (cost <= 0 || cost > budget) break;
+    budget -= cost;
+    steps.push(hex);
+  }
+  if(!steps.length) return {action:'end'};
+  return {action:'move', to: steps[steps.length-1], path: steps};
 }

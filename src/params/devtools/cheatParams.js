@@ -13,8 +13,8 @@ export const CHEAT_KNOT_AMOUNT = 5;
 /** Potency points added per cheat click (all factions). */
 export const CHEAT_POTENCY_AMOUNT = 3;
 
-/** Movement points set by fill-moves cheat. */
-export const CHEAT_FILL_MOVES_AMOUNT = 50;
+/** Action points set by fill-AP cheat. */
+export const CHEAT_FILL_AP_AMOUNT = 60;
 
 /** Default combat damage amount for cheat. */
 export const CHEAT_COMBAT_DAMAGE_DEFAULT = 20;

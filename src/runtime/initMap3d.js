@@ -7,7 +7,8 @@
 import { initHexMap3D, setupMapInteraction3D, fitCameraToMap } from '../render/hexmap3d/hexMapRenderer.js';
 import { setShadowMapExtent } from '../render/hexmap3d/scene/lightSetup.js';
 import { onHexClick } from './hexBridge.js';
-import { getTooltipContent } from '../ui/mapTooltip.js';
+import { getTooltipContentAndPreview } from '../ui/mapTooltip.js';
+import { setPathPreview } from '../render/overlays/overlayStack.js';
 import { refreshZoomDisplay } from './zoomDisplay.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { focusCameraOnHex, setLastCenteredChampionId } from './mapCamera.js';
@@ -57,7 +58,14 @@ export function initMap3D(mountEl, gameState) {
   }
   setupMapInteraction3D(
     onHexClick,
-    (key) => getTooltipContent(G, key, currentChamp()),
+    (key) => {
+      // Tooltip + hover path preview are rebuilt together (once per hovered
+      // hex — the hover handler caches by key).
+      const ch = currentChamp();
+      const data = key !== null ? getTooltipContentAndPreview(G, key, ch) : null;
+      setPathPreview(data ? data.preview : null);
+      return data ? data.content : null;
+    },
     refreshZoomDisplay
   );
   map3dInitialized = true;

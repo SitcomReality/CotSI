@@ -30,7 +30,7 @@ export function renderMovementHighlights(ctx2d, state, camera, time) {
   const champ = state.champions.find(
     c => c.id === state.activeChampionId && c.alive
   );
-  if (!champ || champ.controller !== 'human' || champ.moves <= 0) return;
+  if (!champ || champ.controller !== 'human' || champ.actionPoints <= 0) return;
 
   const allowed = getDerivedMoveHighlights() || [];
   if (allowed.length === 0) return;

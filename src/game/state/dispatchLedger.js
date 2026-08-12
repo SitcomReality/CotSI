@@ -13,7 +13,7 @@
  * @param {Object} champ
  * @param {string} text — display-ready line, e.g. '+9 gold — night dig'
  * @param {'gain'|'loss'|'neutral'} [sign='neutral']
- * @param {'gold'|'hp'|'relic'|'potency'|'move'|'knot'|'info'} [type='info']
+ * @param {'gold'|'hp'|'relic'|'potency'|'ap'|'knot'|'info'} [type='info']
  */
 export function recordLedgerEntry(champ, text, sign = 'neutral', type = 'info') {
   if (!champ || champ.controller !== 'human') return;

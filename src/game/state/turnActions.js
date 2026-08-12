@@ -12,7 +12,7 @@
  */
 import { buildDispatchReport } from '../rules/dispatchReport.js';
 import { getChampion } from './entityQueries.js';
-import { dailyMoves } from './championMovement.js';
+import { dailyActionPoints } from './championMovement.js';
 import { refreshVision } from './fogOfWar.js';
 import { recordLedgerEntry, drainLedger } from './dispatchLedger.js';
 import { processReverie } from './factionAbilities.js';
@@ -29,7 +29,7 @@ export function beginTurn(state, champId) {
   // that have sat with no entities past the grace period.
   evictChunks(state);
 
-  ch.moves = dailyMoves(state, ch);
+  ch.actionPoints = dailyActionPoints(state, ch);
   // Temporary buffs from map features expire when the champion's next turn
   // begins ("until the end of the current turn").
   ch.buffs = { attack: 0, defense: 0 };

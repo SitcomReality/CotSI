@@ -36,10 +36,10 @@ export function onEndTurn() {
   const ch = currentChamp();
   if (!ch || ch.controller !== 'human') return;
 
-  if (ch.moves > 0) {
+  if (ch.actionPoints > 0) {
     const msg = isDigEligible(G, ch)
       ? 'End turn here and dig for rewards?'
-      : 'End turn with moves remaining?';
+      : 'End turn with AP remaining?';
     openConfirmModal({ title: 'End Turn', message: msg })
       .then(confirmed => {
         if (confirmed) {

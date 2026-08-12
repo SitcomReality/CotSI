@@ -69,7 +69,7 @@ export const FEATURE_PERIDEXION_DEFENSE = 2;
 /** God's Knots granted by Scoria Rose (replenishable). */
 export const FEATURE_SCORIA_KNOTS = 2;
 /** Movement buff granted by Snowperson (this turn). */
-export const FEATURE_SNOWPERSON_MOVEMENT = 2;
+export const FEATURE_SNOWPERSON_MOVEMENT = 20;
 /** Defense buff granted by Saint's Rib (this turn). */
 export const FEATURE_RIBS_DEFENSE = 3;
 /** Attack/defense buff offered by Gilded Initial (this turn). */
@@ -91,7 +91,7 @@ export const FEATURE_SCREAMROOT_HP_COST = 8;
 /** God's Knots offered by Screamroot's safe side. */
 export const FEATURE_SCREAMROOT_SAFE_KNOTS = 2;
 /** Movement offered as a choice side (Fool's-Fire, Half-Drawn Obelisk). */
-export const FEATURE_CHOICE_MOVEMENT = 2;
+export const FEATURE_CHOICE_MOVEMENT = 20;
 
 // ---- Dig system ----
 /** Probability threshold for digging up a relic (0-1). */

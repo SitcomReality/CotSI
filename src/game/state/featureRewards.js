@@ -15,7 +15,7 @@
  *   - `attack` / `defense` are stored on `champ.buffs`, reset in `beginTurn`
  *     (turnActions.js) and read per combat round in `applyFinalBonuses`
  *     (combatScoring.js);
- *   - `movement` is granted directly to `champ.moves`, which is per-turn by
+ *   - `movement` is granted directly to `champ.actionPoints`, which is per-turn by
  *     construction.
  *
  * Choice payloads are pure data (no functions) so they can live on
@@ -103,9 +103,9 @@ function relicCard(source) {
 function movementCard(source) {
   return choiceCard({
     id: 'movement',
-    label: `+${FEATURE_CHOICE_MOVEMENT} movement this turn`,
-    type: 'move',
-    effects: [{ icon: 'i-move', label: `+${FEATURE_CHOICE_MOVEMENT} movement this turn` }],
+    label: `+${FEATURE_CHOICE_MOVEMENT} AP this turn`,
+    type: 'ap',
+    effects: [{ icon: 'i-move', label: `+${FEATURE_CHOICE_MOVEMENT} AP this turn` }],
     grant: { kind: 'movement', amount: FEATURE_CHOICE_MOVEMENT },
     claim: `a surge of ${FEATURE_CHOICE_MOVEMENT} steps from the ${source}`,
   });
@@ -520,9 +520,9 @@ function _applyGrant(state, champ, grant, claimText) {
       color = 'var(--ink-mid)';
       break;
     case 'movement':
-      champ.moves += amount;
-      recordLedgerEntry(champ, `+${amount} movement this turn — ${claimText}`, 'gain', 'move');
-      text = `+${amount} movement this turn`;
+      champ.actionPoints += amount;
+      recordLedgerEntry(champ, `+${amount} AP this turn — ${claimText}`, 'gain', 'ap');
+      text = `+${amount} AP this turn`;
       color = 'var(--ink-mid)';
       break;
     default:

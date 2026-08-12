@@ -8,7 +8,7 @@ import { parseKey } from '../../engine/rules/hexGrid.js';
 import { nearestOpenKey } from '../rules/tileQueries.js';
 import { placeBase } from './basePlacer.js';
 import { startMeasure, endMeasure } from '../../shared/measurements.js';
-import { CHAMPION_STARTING_HP, CHAMPION_MAX_HP, CHAMPION_BASE_MOVE, CHAMPION_SIGHT_RANGE, CHAMPION_STARTING_GOLD, MIN_BASE_DISTANCE_FLOOR, MIN_BASE_DISTANCE_RADIUS_FRACTION } from '../../params/game/championParams.js';
+import { CHAMPION_STARTING_HP, CHAMPION_MAX_HP, CHAMPION_BASE_AP, CHAMPION_SIGHT_RANGE, CHAMPION_STARTING_GOLD, MIN_BASE_DISTANCE_FLOOR, MIN_BASE_DISTANCE_RADIUS_FRACTION } from '../../params/game/championParams.js';
 import { FACTION_COUNT, DEFAULT_POTENCY, OWN_FACTION_POTENCY } from '../../params/game/factionParams.js';
 /**
  * Place champions on the map with even radial distribution.
@@ -65,8 +65,8 @@ export function createChampions({ tiles, champions, targets, rand, radius }) {
       pos: start,
       hp: CHAMPION_STARTING_HP,
       maxHp: CHAMPION_MAX_HP,
-      baseMove: CHAMPION_BASE_MOVE,
-      moves: 0,
+      baseActionPoints: CHAMPION_BASE_AP,
+      actionPoints: 0,
       sight: CHAMPION_SIGHT_RANGE,
       gold: CHAMPION_STARTING_GOLD,
       knot: 0,

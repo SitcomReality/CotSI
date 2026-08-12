@@ -59,16 +59,30 @@ movement. After the final battle, a large reward.
   (hidden from the map, no movement), escalating battle generation, reward
   hook (`src/game/state/featureRewards.js` pattern).
 
-### 1.4 Movement — multi-step & terrain costs
+### 1.4 Movement — action points, terrain costs & multi-step moves
 
-- **Multi-step moves** — clicking a tile beyond the champion's range should
-  auto-path to the farthest reachable tile toward it. Currently human
-  movement is one tile per click (`adjacentPassable` in
-  `src/game/state/championMovement.js`); range is a uniform-cost BFS
-  (`movementRange`).
-- **Terrain-based movement costs** — stepping onto a hex should cost by
-  terrain. Add per-terrain cost to `src/game/rules/terrainTypes.js`; the BFS
-  and `moveChampion(state, champ, targetKey, cost)` already take a cost.
+Implemented per `dev/docs/movementDesign.md` (tracker summary below). Follow-up
+tunables and the un-defaulted control choice (walk vs preview mode, §8) are
+listed in the design doc's §13.
+
+- **Action points (AP)** — the daily "moves" budget is renamed to AP and
+  becomes 60/day (base): the smallest number divisible by every cost in the
+  ladder (LCM(1..6)); every terrain cost and every faction/mob override
+  divides it exactly. `champ.moves` → `champ.actionPoints`.
+- **Terrain costs** — step cost by terrain via the existing `movementCost`
+  field in `src/game/rules/terrainTypes.js` (open ground 10, wood/hill 12,
+  plateau/marsh 15, dense wood 20, river 30, mountains/water/ice ∞), now
+  actually consumed by movement. Passability unifies into cost (∞ = blocked).
+- **Per-entity overrides** — sparse `terrainCosts` tables: factions
+  (`src/game/rules/factionData.js`, e.g. Verdant forest 12→4) and mob
+  archetypes (`src/game/rules/archetypeData/mobs.js`, e.g. waterbound
+  Marginal Goose `river: 4, water: 4`). New pure helper
+  `src/game/rules/movementCosts.js` is the single source of truth.
+- **Multi-step moves** — `movementRange` becomes a weighted Dijkstra
+  (`costs` + `cameFrom`); clicking a hex walks the cheapest path (chained
+  animation hops) spending AP per hop; clicking beyond budget walks the
+  longest affordable prefix toward it. Reachable-highlight, hover path
+  preview, and tooltip cost are precomputed — zero player arithmetic.
 
 ### 1.5 UI improvements
 

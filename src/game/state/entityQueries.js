@@ -1,9 +1,10 @@
 /**
  * entityQueries.js — Low-level stateless accessors for champion, mob, trader lookups.
- * Depends only on map utilities (coordKey, parseKey, TERRAIN).
+ * Depends only on map utilities (coordKey, parseKey, TERRAIN) and movementCosts.
  */
 import { coordKey, parseKey } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
+import { isTerrainBlocked } from '../rules/movementCosts.js';
 
 /**
  * A hex is considered "vacant" when it has no interactive features and no
@@ -42,13 +43,40 @@ export function occupiedByTrader(state, key) {
   return state.traders.find(t => coordKey(t.pos) === key);
 }
 
-export function isBlockedForMovement(state, key, movingId) {
+/**
+ * A hex is blocked for an entity's movement when the terrain is impassable
+ * for it (effective cost ∞ — dev/docs/movementDesign.md §4) or the hex is
+ * occupied by something that cannot be walked through (base feature, other
+ * champion, mob, or trader). Occupancy rules are unchanged.
+ * @param {object} state
+ * @param {string} key
+ * @param {object} entity — the moving champion
+ */
+export function isBlockedForMovement(state, key, entity) {
   const tile = state.tiles[key];
-  if (!tile || !TERRAIN[tile.terrain].passable) return true;
+  if (!tile || isTerrainBlocked(entity, tile.terrain)) return true;
   if (tile.feature?.kind === 'base') return true;
   const champ = occupiedByChampion(state, key);
-  if (champ && champ.id !== movingId) return true;
+  if (champ && champ.id !== entity.id) return true;
   if (occupiedByMob(state, key)) return true;
   if (occupiedByTrader(state, key)) return true;
   return false;
+}
+
+/**
+ * Whether a champion may enter a hex: terrain enterable (finite effective
+ * cost) and unoccupied. Shared by pathfinding callers (bot AI, hexBridge).
+ * @param {object} state
+ * @param {string} key
+ * @param {object} champ
+ */
+export function canChampionEnter(state, key, champ) {
+  const tile = state.tiles[key];
+  if (!tile || isTerrainBlocked(champ, tile.terrain)) return false;
+  if (tile.feature?.kind === 'base') return false;
+  const occ = occupiedByChampion(state, key);
+  if (occ && occ.id !== champ.id) return false;
+  if (occupiedByMob(state, key)) return false;
+  if (occupiedByTrader(state, key)) return false;
+  return true;
 }

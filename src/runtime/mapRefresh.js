@@ -7,11 +7,11 @@
 import { renderHexMap3D, getSceneContext, chaseCameraToHex } from '../render/hexmap3d/hexMapRenderer.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { getHumanView } from '../game/state/fogOfWar.js';
-import { adjacentPassable } from '../game/state/championMovement.js';
+import { movementRange } from '../game/state/championMovement.js';
 import { neighbors, coordKey, parseKey } from '../engine/rules/hexGrid.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/minimap.js';
-import { setDerivedState, setInteractionHighlights } from '../render/overlays/overlayStack.js';
+import { setDerivedState, setInteractionHighlights, setPathPreview } from '../render/overlays/overlayStack.js';
 import { startMeasure, endMeasure } from '../devtools/performance/index.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
 import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter } from './mapCamera.js';
@@ -47,6 +47,15 @@ let lastFollowedChampKey = null;
  * queues aren't scheduled on every refresh.
  */
 let lastScheduledChampKey = null;
+
+/**
+ * Last state the hover path-preview overlay was built for. The overlay draws
+ * a route from the active champion; when the champion (or its position/AP)
+ * changes while the pointer is parked on a hex, the cached preview goes
+ * stale, so refreshMap clears it until the next hover rebuild.
+ */
+let lastPreviewChampKey = null;
+let lastPreviewChampAp = null;
 
 function markOccupancyChunksDirty(state) {
   const current = occupiedKeys(state);
@@ -84,9 +93,21 @@ export function refreshMap() {
   const humanView = getHumanView(G);
   const activeChamp = currentChamp();
   const moveHighlights = activeChamp && activeChamp.alive && activeChamp.controller === 'human'
-    ? adjacentPassable(G, activeChamp)
+    ? [...movementRange(G, activeChamp).costs.keys()]
+        .filter((k) => k !== coordKey(activeChamp.pos))
     : [];
   setDerivedState(humanView, moveHighlights);
+
+  // A stale hover path-preview (built for a previous champion position/AP)
+  // would draw a route that no longer starts at the champion. Clear it when
+  // the champion state it was built for changed; the next hover rebuilds.
+  const previewChampKey = activeChamp ? coordKey(activeChamp.pos) : null;
+  const previewChampAp = activeChamp ? activeChamp.actionPoints : null;
+  if (previewChampKey !== lastPreviewChampKey || previewChampAp !== lastPreviewChampAp) {
+    setPathPreview(null);
+    lastPreviewChampKey = previewChampKey;
+    lastPreviewChampAp = previewChampAp;
+  }
 
   // Compute interaction-highlight data from ALL adjacent hexes (combat, trade, base)
   // — not just passable ones, since combat works on blocked hexes too.
@@ -198,6 +219,8 @@ export function resetMapInitialized() {
   lastOccupantKeys = null;
   lastFollowedChampKey = null;
   lastScheduledChampKey = null;
+  lastPreviewChampKey = null;
+  lastPreviewChampAp = null;
   disposeMinimap();
   resetInitFlags();
   resetCameraFocus();
