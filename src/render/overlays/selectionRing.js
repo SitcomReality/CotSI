@@ -4,6 +4,7 @@
 
 import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileSurfaceY } from '../hexmap3d/hexMapRenderer.js';
+import { getDerivedHumanView } from './overlayStack.js';
 import {
   ORBIT_FRAC,
   SELECTION_RING_SPEED,
@@ -21,7 +22,16 @@ export function renderSelectionRing(ctx2d, state, camera, time) {
   const champ = state.champions.find(c => c.id === state.activeChampionId && c.alive);
   if (!champ) return;
 
-  const tile = state.tiles[`${champ.pos.q},${champ.pos.r}`];
+  const champKey = `${champ.pos.q},${champ.pos.r}`;
+
+  // Fog-of-war: this layer renders above the fog overlay, so it must never
+  // reveal a champion the human can't currently see (e.g. a bot acting in
+  // unexplored black fog). The ring only draws when the active champion's
+  // hex is inside the human's vision radius — a human's own hex always is.
+  const humanView = getDerivedHumanView();
+  if (humanView && !humanView.visible.has(champKey)) return;
+
+  const tile = state.tiles[champKey];
   if (!tile) return;
 
   const surfaceY = tileSurfaceY(tile);

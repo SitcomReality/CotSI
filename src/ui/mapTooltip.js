@@ -26,10 +26,10 @@ export function getTooltipContent(gameState, key, activeChampion) {
 
   const visible = humanView.visible.has(key);
 
-  /* ---- entities ---- */
-  const mob = occupiedByMob(gameState, key);
-  const ch = occupiedByChampion(gameState, key);
-  const trader = occupiedByTrader(gameState, key);
+  /* ---- entities (only shown for currently-visible hexes) ---- */
+  const mob = visible ? occupiedByMob(gameState, key) : null;
+  const ch = visible ? occupiedByChampion(gameState, key) : null;
+  const trader = visible ? occupiedByTrader(gameState, key) : null;
 
   /* ---- movement: terrain step cost only (no path computation on hover —
    *  routes are click-to-preview, dev/docs/movementAndOccupation.md §5) ---- */
@@ -38,9 +38,9 @@ export function getTooltipContent(gameState, key, activeChampion) {
     costText = `${TERRAIN[t.terrain].label} · ${terrainCost(activeChampion, t.terrain)} AP`;
   }
 
-  /* ---- feature ---- */
+  /* ---- feature (mutable state — only shown for currently-visible hexes) ---- */
   let featureDesc = '';
-  if (t.feature) {
+  if (visible && t.feature) {
     featureDesc = `◈ ${featureName(t.feature.kind)}`;
     if (t.feature.kind === 'knot' && !t.feature.mined) featureDesc += ` (${t.feature.amount})`;
     if (t.feature.kind === 'fruitTree' && t.feature.ripe !== false) featureDesc += ' 🍃';

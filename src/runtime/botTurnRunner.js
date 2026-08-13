@@ -9,6 +9,7 @@ import { finishTurn } from '../game/state/worldSimulation.js';
 import { moveChampion } from '../game/state/championMovement.js';
 import { terrainCost } from '../game/rules/movementCosts.js';
 import { coordKey } from '../engine/rules/hexGrid.js';
+import { getHumanView } from '../game/state/fogOfWar.js';
 import { startCombat } from './combat/index.js';
 import { resolveCombatSilently } from '../game/state/combat/combatAutoResolve.js';
 import { FACTIONS } from '../game/rules/factionData.js';
@@ -50,6 +51,15 @@ export async function runBot() {
     }
     const fac = FACTIONS[ch.faction];
     showBotIndicator(ch.name, fac?.color);
+
+    // The human's vision is static for the whole bot turn (humans don't move
+    // during bot turns). Bot hops are only animated when BOTH the origin and
+    // destination hexes are currently visible to a human — animating across a
+    // vision boundary (in either direction) would leak the bot's position or
+    // direction of travel through the explored-mist veil or black fog
+    // (fog-of-war convention: out-of-sight hexes reveal no occupant
+    // information).
+    const humanVisible = getHumanView(G).visible;
 
     // Anti-strobe: hold this bot's turn visible for the minimum dwell before
     // acting. 'animation' group — same reasoning as the move wait below (a
@@ -142,7 +152,8 @@ export async function runBot() {
           const key = coordKey(hex);
 
           // World-space origin before the state mutation
-          const fromTile = G.tiles[coordKey(ch.pos)];
+          const fromKey = coordKey(ch.pos);
+          const fromTile = G.tiles[fromKey];
           const fromY = fromTile ? tileSurfaceY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
           const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
 
@@ -154,8 +165,11 @@ export async function runBot() {
           const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
 
           // Start the animation BEFORE refreshAll so isAnimating is true when
-          // buildUnitMeshes runs — the normal mesh skips this champion.
-          if (fac) {
+          // buildUnitMeshes runs — the normal mesh skips this champion. Only
+          // animate hops fully inside the human's current vision: animating a
+          // hop that crosses the vision boundary would reveal the bot's
+          // movement through fog the player must not see through.
+          if (fac && humanVisible.has(fromKey) && humanVisible.has(key)) {
             queueMovement(ch.id, fromWorld, toWorld, fac, MOVE_DURATION);
           }
 

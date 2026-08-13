@@ -11,7 +11,7 @@
 import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileSurfaceY } from '../hexmap3d/hexMapRenderer.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
-import { getInteractionHighlights, getHoveredKey } from './overlayStack.js';
+import { getInteractionHighlights, getHoveredKey, getDerivedHumanView } from './overlayStack.js';
 import {
   HIGHLIGHT_RADIUS_FRAC,
   TEETH_PER_EDGE,
@@ -199,6 +199,12 @@ export function renderInteractionHighlights(ctx2d, state, camera, time) {
   // -----------------------------------------------------------------------
   if (!hoveredKey) return;
   if (interactionHighlights.has(hoveredKey)) return; // already drawn above
+
+  // Fog-of-war + turn gating: interaction hints only apply on the human's
+  // turn, and never reveal occupants of hexes the human can't currently see.
+  if (!isHumanActive) return;
+  const humanView = getDerivedHumanView();
+  if (humanView && !humanView.visible.has(hoveredKey)) return;
 
   const tile = state.tiles[hoveredKey];
   if (!tile) return;
