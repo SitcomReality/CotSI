@@ -85,10 +85,20 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-size: var(--fs-xs);
+  flex: 1;
 }
 
 .trade-gear-name { color: var(--ink); }
 .trade-gear-name.is-empty { color: var(--ink-faint); }
+
+/* Painted-miniature icon for an equipment item (gear rows + offer tiles). */
+.trade-item-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  image-rendering: auto;
+}
 
 /* ── Seller: offer grid ─────────────────────────────────────────────────── */
 

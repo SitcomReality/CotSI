@@ -9,7 +9,7 @@
  * Layer: runtime/ — imports ui/ + render/ by design.
  */
 import { renderCombat as renderCombatUI } from '../../ui/combat/combatRenderer.js';
-import { getCombatantPortrait } from '../../render/hexmap3d/portrait/portraitThumbnail.js';
+import { portraitForCombatant } from '../portraitResolver.js';
 
 /**
  * Render the combat modal, attaching cached 3D portraits for both sides.
@@ -17,8 +17,8 @@ import { getCombatantPortrait } from '../../render/hexmap3d/portrait/portraitThu
  */
 export function renderCombat(combat) {
   const portraits = {
-    first: getCombatantPortrait(combat?.first),
-    second: getCombatantPortrait(combat?.second),
+    first: portraitForCombatant(combat?.first),
+    second: portraitForCombatant(combat?.second),
   };
   renderCombatUI(combat, portraits);
 }

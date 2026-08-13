@@ -6,7 +6,7 @@
  * variants) and delegates parts validation to validateParts.js. The per-field
  * validators for the object-level sections live here too.
  */
-import { OBJECT_KINDS, EMPHASIS_BEHAVIORS, PLACEMENT_MODES, VARIANT_RULES } from './descriptorDefaults.js';
+import { OBJECT_KINDS, ITEM_SLOTS, EMPHASIS_BEHAVIORS, PLACEMENT_MODES, VARIANT_RULES } from './descriptorDefaults.js';
 import {
   isPlainObject, isFiniteNumber, isNonNegativeNumber, isPositiveNumber,
   isColorInt, ID_PATTERN,
@@ -217,9 +217,27 @@ function validateMaterial(material, path, errors) {
   }
 }
 
+const PORTRAIT_KEYS = ['pitch', 'yaw', 'pad', 'raise'];
+
+function validatePortrait(portrait, path, errors) {
+  if (portrait === undefined) return;
+  if (!isPlainObject(portrait)) {
+    errors.push(`${path}: must be an object { pitch?, yaw?, pad?, raise? }`);
+    return;
+  }
+  for (const key of Object.keys(portrait)) {
+    if (!PORTRAIT_KEYS.includes(key)) errors.push(`${path}: unknown field "${key}"`);
+  }
+  if (portrait.pitch !== undefined && !isFiniteNumber(portrait.pitch)) errors.push(`${path}.pitch: must be a number (radians)`);
+  if (portrait.yaw !== undefined && !isFiniteNumber(portrait.yaw)) errors.push(`${path}.yaw: must be a number (radians)`);
+  if (portrait.pad !== undefined && !isPositiveNumber(portrait.pad)) errors.push(`${path}.pad: must be a positive number`);
+  if (portrait.raise !== undefined && !isFiniteNumber(portrait.raise)) errors.push(`${path}.raise: must be a number`);
+}
+
 const OBJECT_KEYS = [
   'schemaVersion', 'id', 'kind', 'displayName', 'parts', 'variants', 'variantRule',
   'scale', 'cluster', 'size', 'variation', 'placement', 'emphasis', 'material',
+  'slot', 'portrait',
 ];
 
 /**
@@ -278,6 +296,17 @@ export function validateDescriptor(def) {
   validatePlacement(def.placement, 'descriptor.placement', errors);
   validateEmphasis(def.emphasis, 'descriptor.emphasis', errors);
   validateMaterial(def.material, 'descriptor.material', errors);
+  validatePortrait(def.portrait, 'descriptor.portrait', errors);
+
+  // `slot` is the item's equipment slot (weapon/armor/…). Required for item
+  // kind, meaningless elsewhere — keep the two kinds from drifting.
+  if (def.kind === 'item') {
+    if (typeof def.slot !== 'string' || !ITEM_SLOTS.includes(def.slot)) {
+      errors.push(`descriptor.slot: item kind requires one of ${ITEM_SLOTS.join(', ')}`);
+    }
+  } else if (def.slot !== undefined) {
+    errors.push('descriptor.slot: only the "item" kind uses a slot');
+  }
 
   for (const key of Object.keys(def)) {
     if (!OBJECT_KEYS.includes(key)) errors.push(`descriptor: unknown field "${key}"`);

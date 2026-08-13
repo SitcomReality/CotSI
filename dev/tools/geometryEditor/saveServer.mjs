@@ -28,7 +28,7 @@
  * POSTs to http://127.0.0.1:8000/save.
  */
 import http from 'node:http';
-import { readFile, writeFile, rename } from 'node:fs/promises';
+import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -40,10 +40,14 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const DATA_DIR = path.join(ROOT, 'src', 'render', 'hexmap3d', 'worldObjects', 'descriptors', 'data');
 const INDEX_PATH = path.join(DATA_DIR, 'index.js');
 const DATA_DIR_REL = path.relative(ROOT, DATA_DIR).replaceAll('\\', '/');
+const ATLAS_DIR = path.join(ROOT, 'assets', 'icons');
+const ATLAS_PNG = path.join(ATLAS_DIR, 'portraitAtlas.png');
+const ATLAS_JSON = path.join(ATLAS_DIR, 'portraitAtlas.json');
 
 const HOST = process.env.HOST || '127.0.0.1';
 const PORT = Number(process.env.PORT || 8000);
-const MAX_BODY = 1024 * 1024; // 1 MB — descriptors are a few KB
+// Descriptors are a few KB; the icon atlas is a multi-MB PNG data URL.
+const MAX_BODY = 8 * 1024 * 1024;
 
 const ID_PATTERN = /^[A-Za-z0-9_-]+$/;
 
@@ -246,6 +250,40 @@ async function handleSave(res, body) {
   return json(res, 200, { ok: true, file, wasNew: isNew });
 }
 
+/**
+ * Write the committed icon atlas (the editor's WebGL render of every portrait/
+ * icon) as assets/icons/portraitAtlas.png + portraitAtlas.json. The PNG comes
+ * in as a data URL; the manifest maps each atlas key to its pixel rect.
+ */
+async function handleAtlasSave(res, body) {
+  let payload;
+  try {
+    payload = JSON.parse(body);
+  } catch {
+    return json(res, 400, { error: 'request body must be valid JSON' });
+  }
+  const { dataUrl, manifest } = payload ?? {};
+  if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/png;base64,')) {
+    return json(res, 400, { error: 'missing "dataUrl" (a PNG data URL)' });
+  }
+  if (!manifest || typeof manifest !== 'object') {
+    return json(res, 400, { error: 'missing "manifest" object' });
+  }
+
+  const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  const png = Buffer.from(base64, 'base64');
+  if (png.length === 0 || !png.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    return json(res, 400, { error: 'dataUrl did not decode to a PNG' });
+  }
+
+  await mkdir(ATLAS_DIR, { recursive: true });
+  await atomicWrite(ATLAS_PNG, png);
+  await atomicWrite(ATLAS_JSON, JSON.stringify(manifest, null, 2) + '\n');
+  const count = Object.keys(manifest.entries ?? {}).length;
+  console.log(`[save/atlas] wrote ${count} entries → assets/icons/portraitAtlas.{png,json}`);
+  return json(res, 200, { ok: true, entries: count });
+}
+
 // ── HTTP plumbing ────────────────────────────────────────────────────────────
 
 function json(res, status, payload) {
@@ -333,6 +371,21 @@ const server = http.createServer(async (req, res) => {
     } catch (err) {
       console.error('[save] failed:', err);
       return json(res, 500, { error: `save failed: ${err.message}` });
+    }
+  }
+
+  if (route === '/save/atlas' && method === 'POST') {
+    let body;
+    try {
+      body = await readBody(req);
+    } catch {
+      return json(res, 413, { error: 'payload too large' });
+    }
+    try {
+      return await handleAtlasSave(res, body);
+    } catch (err) {
+      console.error('[save/atlas] failed:', err);
+      return json(res, 500, { error: `atlas save failed: ${err.message}` });
     }
   }
 

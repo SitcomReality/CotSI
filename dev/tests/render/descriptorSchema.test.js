@@ -93,7 +93,7 @@ test('shape registry covers the shapes the game currently builds', () => {
 });
 
 test('enumerations are exhaustive and frozen', () => {
-  assert.deepEqual(OBJECT_KINDS, ['feature', 'decor', 'mountain', 'base', 'champion', 'mob', 'trader']);
+  assert.deepEqual(OBJECT_KINDS, ['feature', 'decor', 'mountain', 'base', 'champion', 'mob', 'trader', 'item']);
   assert.deepEqual(EMPHASIS_BEHAVIORS, ['none', 'dispersed', 'sunk', 'hidden']);
   assert.deepEqual(PLACEMENT_MODES, ['center', 'scatter', 'ring', 'jitter']);
   assert.deepEqual(VARIANT_RULES, ['hash', 'solitary', 'cluster', 'faction', 'archetype', 'mountain']);

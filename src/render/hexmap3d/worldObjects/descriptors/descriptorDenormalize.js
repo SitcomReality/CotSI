@@ -8,7 +8,7 @@
  * writing every default back into the file. Pure, idempotent, JSON-safe.
  */
 import { SHAPE_TYPES } from './shapeTypes.js';
-import { OBJECT_DEFAULTS, PART_TRANSFORM_DEFAULTS, NESTED_PART_TRANSFORM_DEFAULTS } from './descriptorDefaults.js';
+import { OBJECT_DEFAULTS, PORTRAIT_DEFAULTS, PART_TRANSFORM_DEFAULTS, NESTED_PART_TRANSFORM_DEFAULTS } from './descriptorDefaults.js';
 import { isPlainObject, cloneJson } from './typeChecks.js';
 
 /** Recursive deep-equality for JSON-safe values (objects, arrays, primitives). */
@@ -125,6 +125,17 @@ export function denormalizeDescriptor(def) {
 
   if (isPlainObject(out.emphasis) && out.emphasis.behavior === 'none') delete out.emphasis;
   if (isPlainObject(out.material) && sameValue(out.material, OBJECT_DEFAULTS.material)) delete out.material;
+
+  // Portrait framing — strip sub-fields equal to their defaults, then drop the
+  // field entirely when nothing non-default remains (an all-default portrait
+  // reads as the auto-frame fallback and should not be written to the file).
+  if (isPlainObject(out.portrait)) {
+    const portrait = out.portrait;
+    for (const [key, defValue] of Object.entries(PORTRAIT_DEFAULTS)) {
+      if (sameValue(portrait[key], defValue)) delete portrait[key];
+    }
+    if (Object.keys(portrait).length === 0) delete out.portrait;
+  }
 
   const denormPart = (part, nested = false) => {
     if (!isPlainObject(part)) return part;

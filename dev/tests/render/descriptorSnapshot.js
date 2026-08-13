@@ -29,9 +29,9 @@ export function snapshotTileFor(d) {
   return SNAPSHOT_TILES[d.id] ?? { q: 3, r: -2, terrain: 'plains' };
 }
 
-/** Entity descriptors record via recordsForEntity, not the tile path — they are
- *  excluded from the tile snapshot (they have their own tests). */
-export const SNAPSHOT_ENTITY_KINDS = new Set(['base', 'champion', 'mob', 'trader']);
+/** Entity + item descriptors record via recordsForEntity (single centered
+ *  item), not the tile path — they are excluded from the tile snapshot. */
+export const SNAPSHOT_ENTITY_KINDS = new Set(['base', 'champion', 'mob', 'trader', 'item']);
 
 /** The golden fixture file (a file URL — readFileSync/readFile accept it). */
 export const SNAPSHOT_PATH = new URL('./fixtures/descriptorData.snap.json', import.meta.url);

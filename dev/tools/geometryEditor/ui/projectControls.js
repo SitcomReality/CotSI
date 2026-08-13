@@ -20,6 +20,7 @@ import {
 } from '../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { SAMPLE_OBJECTS } from '../sampleObjects.js';
 import { newObjectTemplate } from './objectTemplates.js';
+import { buildIconAtlas } from '../atlasBuild.js';
 
 /** The data-file path the descriptor id saves to (the per-object convention
  *  data/<id>.js). */
@@ -189,6 +190,34 @@ function bindSaveToGame(els) {
     return openDiffModal({ file, before, after });
   }
 
+  /** Rebuild the committed icon atlas (WebGL, in-browser) and post it to the
+   *  save server, updating #atlas-status as a loading indicator. */
+  async function refreshIconAtlas(base) {
+    const status = els.atlasStatus;
+    const show = (busy, text) => {
+      status.hidden = false;
+      status.textContent = '';
+      if (busy) status.append(el('span', 'dot'));
+      status.append(document.createTextNode(text));
+    };
+    show(true, 'Building icon atlas…');
+    try {
+      const { dataUrl, manifest } = await buildIconAtlas({
+        onProgress: (fraction) => show(true, `Building icon atlas… ${Math.round(fraction * 100)}%`),
+      });
+      const res = await fetch(base + '/save/atlas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataUrl, manifest }),
+      });
+      const json = await res.json().catch(() => null);
+      if (res.ok && json?.ok) show(false, 'Icon atlas saved');
+      else show(false, `Atlas failed: ${json?.error ?? `HTTP ${res.status}`}`);
+    } catch (err) {
+      show(false, `Atlas failed: ${err.message}`);
+    }
+  }
+
   els.saveBtn.addEventListener('click', async () => {
     if (!saveAvailable) return;
     if (!S.descriptor) return;
@@ -243,6 +272,7 @@ function bindSaveToGame(els) {
           (json.wasNew ? ' (Reload this page to browse the new object.)' : '') +
           (json.unregistered ? ' (The barrel data/index.js is hand-composed — add the variant import there to see it in-game.)' : '');
         els.loadError.classList.add('ok');
+        await refreshIconAtlas(saveBase);
       } else {
         const detail = json?.errors?.length ? `\n${json.errors.join('\n')}` : '';
         els.loadError.textContent = `Save failed: ${json?.error ?? `HTTP ${res.status}`}${detail}`;
@@ -327,4 +357,5 @@ export function bindProjectControls(els, ctx) {
   els.newFeatureBtn.addEventListener('click', () => createObject('feature', els, ctx));
   els.newDecorBtn.addEventListener('click', () => createObject('decor', els, ctx));
   els.newMobBtn.addEventListener('click', () => createObject('mob', els, ctx));
+  els.newItemBtn.addEventListener('click', () => createObject('item', els, ctx));
 }

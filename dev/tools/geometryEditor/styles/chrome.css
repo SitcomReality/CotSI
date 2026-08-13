@@ -80,3 +80,29 @@
 #load-error.ok {
   color: var(--verdigris);
 }
+
+/* Icon-atlas build progress — a non-blocking status badge under the bar. */
+#atlas-status {
+  position: absolute;
+  top: 100%;
+  left: var(--s3);
+  z-index: var(--z-toast);
+  color: var(--gold);
+  background: var(--shadow);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  padding: var(--s1) var(--s2);
+}
+#atlas-status .dot {
+  display: inline-block;
+  width: 0.6em;
+  height: 0.6em;
+  margin-right: 0.5em;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: atlas-pulse 1s infinite ease-in-out;
+}
+@keyframes atlas-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}

@@ -10,6 +10,7 @@
 import { SHAPE_TYPES, shapeBaseOffset } from './shapeTypes.js';
 import {
   OBJECT_DEFAULTS,
+  PORTRAIT_DEFAULTS,
   PART_TRANSFORM_DEFAULTS,
   NESTED_PART_TRANSFORM_DEFAULTS,
   ENTITY_DRIVEN_KINDS,
@@ -191,6 +192,14 @@ export function normalizeDescriptor(def) {
   }
   out.emphasis = { ...OBJECT_DEFAULTS.emphasis, ...(isPlainObject(out.emphasis) ? out.emphasis : {}) };
   out.material = { ...OBJECT_DEFAULTS.material, ...(isPlainObject(out.material) ? out.material : {}) };
+
+  // Optional portrait framing — fill any authored sub-fields with the shared
+  // defaults (camera angle / frame pad / raise). Absent `portrait` stays
+  // absent so denormalize can strip it and the framing resolver falls back to
+  // the auto-frame defaults (see descriptorDefaults.js PORTRAIT_DEFAULTS).
+  if (isPlainObject(out.portrait)) {
+    out.portrait = { ...PORTRAIT_DEFAULTS, ...out.portrait };
+  }
 
   out.parts = (Array.isArray(out.parts) ? out.parts : []).map((p) => normalizePart(p, legacyGrounding));
   if (Array.isArray(out.variants)) {

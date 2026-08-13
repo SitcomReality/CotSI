@@ -10,7 +10,7 @@ import { currentChamp } from '../../game/state/liveGame.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { traderHealService } from '../../game/rules/traderStock.js';
 import { buyFromStock, buyHealing } from '../../game/state/trading.js';
-import { getCombatantPortrait, getTraderPortrait, getBasePortrait } from '../../render/hexmap3d/portrait/portraitThumbnail.js';
+import { portraitForCombatant, traderPortrait, basePortrait, itemPortrait } from '../portraitResolver.js';
 import { getTradeVM } from '../../ui/viewModels/tradeViewModel.js';
 import { renderTrade } from '../../ui/trade/tradeRenderer.js';
 import { showModal, hideModal } from '../../ui/modals/modalShell.js';
@@ -32,8 +32,21 @@ function render() {
   if (!session) return;
   const champ = currentChamp();
   if (!champ) return;
-  const vm = getTradeVM(champ, session.seller, session.selectedIndex, getCombatantPortrait(champ));
+  const vm = getTradeVM(champ, session.seller, session.selectedIndex, portraitForCombatant(champ), itemIcons(champ));
   renderTrade(vm);
+}
+
+/** Icons for every equipment item in the seller's offers and the shopper's gear. */
+function itemIcons(champ) {
+  const icons = new Map();
+  const items = [...(session?.seller?.offers ?? [])];
+  items.push(champ?.weapon, champ?.armor);
+  for (const offerOrItem of items) {
+    const item = offerOrItem?.kind === 'equipment' ? offerOrItem.item : offerOrItem;
+    const id = item?.descriptor ?? item?.id;
+    if (id && !icons.has(id)) icons.set(id, itemPortrait(id));
+  }
+  return icons;
 }
 
 /** Open the trade screen with a wandering trader as the seller. */
@@ -42,7 +55,7 @@ export function openTradeWithTrader(trader) {
     seller: {
       name: trader.name || 'Trader',
       subtitle: 'Wandering Trader',
-      portrait: getTraderPortrait(),
+      portrait: traderPortrait(),
       glyphId: null,
       factionBase: null,
       offers: trader.stock, // live reference — purchases drain the shared stock
@@ -63,7 +76,7 @@ export function openTradeWithBase(faction) {
     seller: {
       name: `${fac.name} Base`,
       subtitle: 'Faction Base',
-      portrait: getBasePortrait(faction),
+      portrait: basePortrait(faction),
       glyphId: fac.glyphId,
       factionBase: fac.base,
       offers: [{ kind: 'potency', faction, qty: Infinity, cost: { gold: basePotencyCost(champ) } }],

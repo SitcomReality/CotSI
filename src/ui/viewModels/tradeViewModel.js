@@ -9,13 +9,14 @@ import { FACTIONS } from '../../game/rules/factionData.js';
  * @param {object} seller         — normalized seller (see runtime/trade/trade.js)
  * @param {number} selectedIndex  — selected offer index, or -1
  * @param {string|null} shopperPortrait — champion's portrait data URL
+ * @param {Map<string,string>|null} [itemIcons] — item id → icon data URL (equipment offers)
  * @returns {object} trade VM
  */
-export function getTradeVM(champ, seller, selectedIndex, shopperPortrait) {
+export function getTradeVM(champ, seller, selectedIndex, shopperPortrait, itemIcons = null) {
   const fac = FACTIONS[champ.faction];
 
   const offers = seller.offers.map((offer, index) => {
-    const built = buildOffer(offer, index);
+    const built = buildOffer(offer, index, itemIcons);
     built.selected = index === selectedIndex;
     built.canAfford = canAfford(champ, built.cost);
     return built;
@@ -36,6 +37,8 @@ export function getTradeVM(champ, seller, selectedIndex, shopperPortrait) {
       knot: champ.knot,
       weapon: champ.weapon?.name ?? null,
       armor: champ.armor?.name ?? null,
+      weaponIcon: itemIcons?.get(champ.weapon?.descriptor ?? champ.weapon?.id) ?? null,
+      armorIcon: itemIcons?.get(champ.armor?.descriptor ?? champ.armor?.id) ?? null,
     },
     seller: {
       name: seller.name,
@@ -52,13 +55,15 @@ export function getTradeVM(champ, seller, selectedIndex, shopperPortrait) {
   };
 }
 
-function buildOffer(offer, index) {
+function buildOffer(offer, index, itemIcons) {
   if (offer.kind === 'equipment') {
+    const itemId = offer.item?.descriptor ?? offer.item?.id;
     return {
       index,
       kind: 'equipment',
       label: offer.item.name,
       sublabel: offer.item.slot === 'weapon' ? 'Weapon' : 'Armor',
+      icon: itemIcons?.get(itemId) ?? null,
       cost: { ...offer.cost },
     };
   }

@@ -58,6 +58,15 @@ export function newObjectTemplate(kind) {
       emphasis: { behavior: 'dispersed' },
     };
   }
+  if (kind === 'item') {
+    return {
+      id: `new_item_${suffix}`,
+      kind: 'item',
+      slot: 'weapon',
+      displayName: 'New Item',
+      parts: [templatePart('body', 'box', { width: 0.06, height: 0.22, depth: 0.03 }, { y: 0.11 }, 0x8a5a2b)],
+    };
+  }
   // mob — entity-driven, one archetype variant; colored through the palette.
   return {
     id: `new_mob_${suffix}`,

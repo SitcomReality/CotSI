@@ -34,4 +34,6 @@ export function cacheDom() {
   els.newFeatureBtn = document.getElementById('new-feature-btn');
   els.newDecorBtn = document.getElementById('new-decor-btn');
   els.newMobBtn = document.getElementById('new-mob-btn');
+  els.newItemBtn = document.getElementById('new-item-btn');
+  els.atlasStatus = document.getElementById('atlas-status');
 }

@@ -22,12 +22,14 @@
         <button id="new-feature-btn" class="create-btn" type="button">＋ Feature</button>
         <button id="new-decor-btn" class="create-btn" type="button">＋ Decor</button>
         <button id="new-mob-btn" class="create-btn" type="button">＋ Mob</button>
+        <button id="new-item-btn" class="create-btn" type="button">＋ Item</button>
       </div>
       <div class="chrome-search">
         <input type="text" id="object-filter" placeholder="Filter objects…" spellcheck="false" autocomplete="off">
         <button id="browser-toggle" type="button" aria-expanded="false" aria-controls="browser" title="Show object browser">▸</button>
       </div>
       <div id="load-error" class="info" role="alert"></div>
+      <div id="atlas-status" class="atlas-status" role="status" aria-live="polite" hidden></div>
     </header>
 
     <!-- Floating object browser: hidden until toggled from the header, then

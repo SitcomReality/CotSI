@@ -58,6 +58,13 @@ import { VEGETABLE_LAMB_DESCRIPTOR } from './vegetableLamb.js';
 import { VOLVELLE_DESCRIPTOR } from './volvelle.js';
 import { WAXBLOOM_DESCRIPTOR } from './waxbloom.js';
 import { WITNESS_STONE_DESCRIPTOR } from './witnessStone.js';
+import { AUGUR_MANTLE_DESCRIPTOR } from './augurMantle.js';
+import { CHRONO_QUILL_DESCRIPTOR } from './chronoQuill.js';
+import { HEARTH_ROBE_DESCRIPTOR } from './hearthRobe.js';
+import { MASQUE_KNIFE_DESCRIPTOR } from './masqueKnife.js';
+import { ORICHALCUM_BLADE_DESCRIPTOR } from './orichalcumBlade.js';
+import { THORN_BRAND_DESCRIPTOR } from './thornBrand.js';
+import { VERDANT_CLOAK_DESCRIPTOR } from './verdantCloak.js';
 
 /** Every descriptor, in editor-display order. */
 export const ALL_DESCRIPTORS = [
@@ -101,6 +108,13 @@ export const ALL_DESCRIPTORS = [
   MOB_DESCRIPTOR,
   TRADER_DESCRIPTOR,
   OPEN_TREASURE_CHEST_DESCRIPTOR,
+  AUGUR_MANTLE_DESCRIPTOR,
+  CHRONO_QUILL_DESCRIPTOR,
+  HEARTH_ROBE_DESCRIPTOR,
+  MASQUE_KNIFE_DESCRIPTOR,
+  ORICHALCUM_BLADE_DESCRIPTOR,
+  THORN_BRAND_DESCRIPTOR,
+  VERDANT_CLOAK_DESCRIPTOR,
 ];
 
 const byId = new Map(ALL_DESCRIPTORS.map((d) => [d.id, d]));

@@ -66,9 +66,16 @@ export const OBJECT_CATEGORIES = [
   { id: 'mob', label: 'Mobs', kinds: ['mob'] },
   { id: 'faction', label: 'Faction', kinds: ['base', 'champion'] },
   { id: 'creature', label: 'Creatures', kinds: ['trader'] },
+  { id: 'weapon', label: 'Weapons & Tools', kinds: ['item'] },
+  { id: 'armor', label: 'Armor & Clothes', kinds: ['item'] },
 ];
 
-/** The category a descriptor belongs to (falls back to Features). */
+/** The category a descriptor belongs to. Item kind splits by `slot` (weapon vs
+ *  armor); everything else maps by `kind` (falls back to Features). */
 export function categoryOf(descriptor) {
+  if (descriptor.kind === 'item') {
+    const id = descriptor.slot === 'armor' ? 'armor' : 'weapon';
+    return OBJECT_CATEGORIES.find((c) => c.id === id);
+  }
   return OBJECT_CATEGORIES.find((c) => c.kinds.includes(descriptor.kind)) ?? OBJECT_CATEGORIES[0];
 }

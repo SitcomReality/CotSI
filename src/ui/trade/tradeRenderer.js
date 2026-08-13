@@ -47,18 +47,25 @@ function shopperPlate(champ) {
         h('span', { class: 'trade-resource trade-resource--knot' }, `${champ.knot} knot${champ.knot === 1 ? '' : 's'}`),
       ),
       h('div', { class: 'trade-gear' },
-        gearRow('Weapon', champ.weapon),
-        gearRow('Armor', champ.armor),
+        gearRow('Weapon', champ.weapon, champ.weaponIcon),
+        gearRow('Armor', champ.armor, champ.armorIcon),
       ),
     ),
   );
 }
 
-function gearRow(slot, itemName) {
+function gearRow(slot, itemName, iconUrl) {
   return h('div', { class: 'trade-gear-row' },
     h('span', { class: 'trade-gear-slot' }, slot),
+    itemIcon(iconUrl),
     h('span', { class: 'trade-gear-name' + (itemName ? '' : ' is-empty') }, itemName || '—'),
   );
+}
+
+/** A small painted-miniature icon for an item, or null when there's none. */
+function itemIcon(url) {
+  if (!url) return null;
+  return h('img', { class: 'trade-item-icon', src: url, alt: '' });
 }
 
 // ─── Seller plate ─────────────────────────────────────────────────────────
@@ -89,6 +96,7 @@ function offerTile(offer) {
     dataAction: 'tradeSelect',
     dataIndex: offer.index,
   },
+    itemIcon(offer.icon),
     h('div', { class: 'trade-offer__label' }, offer.label),
     offer.sublabel ? h('div', { class: 'trade-offer__sub' }, offer.sublabel) : null,
   );

@@ -6,6 +6,7 @@
  * schema version, and the default values for every optional field. Shared by
  * the validation, normalization, and denormalization modules.
  */
+import { CAMERA_PITCH, CAMERA_YAW } from '../../../../params/render/cameraParams.js';
 
 // ── Enumerations and defaults ──────────────────────────────────────────────
 
@@ -15,7 +16,16 @@
  * mobs, and traders are entity-driven (records from entity state, one per
  * entity — see recordBuilder.recordsForEntity).
  */
-export const OBJECT_KINDS = Object.freeze(['feature', 'decor', 'mountain', 'base', 'champion', 'mob', 'trader']);
+export const OBJECT_KINDS = Object.freeze(['feature', 'decor', 'mountain', 'base', 'champion', 'mob', 'trader', 'item']);
+
+/**
+ * Equipment slots an `item` descriptor can belong to. Icons are authored as
+ * regular descriptors (kind 'item') and presented in the editor + atlas by
+ * slot; the game's equipment catalog (game/rules/equipment.js) links a catalog
+ * item to its descriptor by id. Extensible as the equip model grows
+ * (tools/clothes/…).
+ */
+export const ITEM_SLOTS = Object.freeze(['weapon', 'armor']);
 
 /** Kinds driven by entity state (recordsForEntity) — their instance colors
  *  come from the entity (part token / entity.color), never from the object
@@ -64,6 +74,23 @@ export const OBJECT_DEFAULTS = Object.freeze({
   placement: { mode: 'center' },
   emphasis: { behavior: 'none' },
   material: {}, // emissive only — colors live on the parts (v4)
+});
+
+/**
+ * Defaults for the optional object-level `portrait` field — how the object is
+ * framed when rendered as a UI icon/portrait (the geometry editor + the icon
+ * atlas). Absent `portrait` means "auto-frame at the map's isometric camera
+ * angle" (the long-standing portrait behavior): pitch/yaw mirror cameraParams,
+ * `pad` is the bounding-sphere frame margin, `raise` shifts the view down so
+ * grounded models sit above center. Any sub-field may be overridden per object;
+ * the framing resolver (render/hexmap3d/portrait/portraitFraming.js) fills the
+ * rest.
+ */
+export const PORTRAIT_DEFAULTS = Object.freeze({
+  pitch: CAMERA_PITCH,
+  yaw: CAMERA_YAW,
+  pad: 1.25,
+  raise: 0.12,
 });
 
 /**

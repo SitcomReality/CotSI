@@ -16,12 +16,15 @@ import {
   selectInput,
   numberInput,
   intInput,
+  degreeInput,
 } from './formControls.js';
 import { inspectorHead } from './inspectorHead.js';
 import { activeVariant } from './variantQuery.js';
 import {
   EMPHASIS_BEHAVIORS,
   PLACEMENT_MODES,
+  ITEM_SLOTS,
+  PORTRAIT_DEFAULTS,
 } from '../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { ENTITY_KINDS } from '../entityView.js';
 import { SAMPLE_OBJECTS } from '../sampleObjects.js';
@@ -61,6 +64,26 @@ export function renderObjectHeader(container) {
   container.append(inspectorHead(d.displayName, `${d.id} · ${d.kind}`));
 }
 
+/** Effective portrait framing value — the authored field or the shared default. */
+function portraitField(d, key) {
+  return d.portrait?.[key] ?? PORTRAIT_DEFAULTS[key];
+}
+
+/** Camera-framing controls for the object's UI icon/portrait (all kinds). */
+function renderPortraitControls(container, ctx) {
+  const d = S.descriptor;
+  const set = (key) => (v) => ctx.mutate(() => {
+    d.portrait ??= {};
+    d.portrait[key] = v;
+  });
+  container.append(subheading('Portrait'));
+  container.append(row('Pitch', degreeInput(portraitField(d, 'pitch'), { step: 2, onChange: set('pitch') })));
+  container.append(row('Yaw', degreeInput(portraitField(d, 'yaw'), { step: 2, onChange: set('yaw') })));
+  container.append(row('Pad', numberInput(portraitField(d, 'pad'), { min: 0.5, step: 0.05, onChange: set('pad') })));
+  container.append(row('Raise', numberInput(portraitField(d, 'raise'), { step: 0.02, onChange: set('raise') })));
+  container.append(el('div', 'hint', 'How this object frames its icon/portrait — leave at defaults for the auto-frame isometric view.'));
+}
+
 /**
  * Render the object-level field sets into `container`. `ctx` supplies
  * `mutate(fn)` for every field change and `onLoaded()` for renames.
@@ -98,9 +121,22 @@ export function renderObjectControls(container, ctx) {
     container.append(el('div', 'hint', 'New objects need a real id before saving to the game — letters, numbers, _ and -.'));
   }
 
+  if (d.kind === 'item') {
+    container.append(el('div', 'mode-banner', 'item — UI icon'));
+    container.append(subheading('Item'));
+    container.append(row('Slot', selectInput(ITEM_SLOTS, d.slot, (v) => ctx.mutate(() => {
+      d.slot = v;
+      ctx.onLoaded(); // the slot moves the item between the weapon/armor browser categories
+    }))));
+    renderPortraitControls(container, ctx);
+    container.append(el('div', 'hint', 'Items render as a single centered icon — cluster/size/placement do not apply.'));
+    return;
+  }
+
   if (ENTITY_KINDS.has(d.kind)) {
     container.append(el('div', 'mode-banner', `${d.kind} — entity-driven`));
     renderEntityControls(container, ctx);
+    renderPortraitControls(container, ctx);
     container.append(el('div', 'hint', 'Entities are singletons at the hex center — cluster/size/placement do not apply.'));
     return;
   }
@@ -186,4 +222,6 @@ export function renderObjectControls(container, ctx) {
   container.append(row('Behavior', selectInput(EMPHASIS_BEHAVIORS, d.emphasis.behavior, (v) => ctx.mutate(() => {
     d.emphasis.behavior = v;
   }))));
+
+  renderPortraitControls(container, ctx);
 }
