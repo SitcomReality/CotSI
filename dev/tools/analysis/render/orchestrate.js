@@ -43,6 +43,7 @@ function getOptions() {
     showMobs: els.toggleMobs.checked,
     showTraders: els.toggleTraders.checked,
     showBases: els.toggleBases.checked,
+    showDungeons: els.toggleDungeons.checked,
     showFeatures: els.toggleFeatures.checked,
     palettes,
     /** Default biome palette (or null) — the single-biome colour scheme used

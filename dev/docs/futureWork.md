@@ -40,8 +40,6 @@ occupancy, no harassment, invisible). Bots ignore dungeons entirely.
 
 Remaining:
 - Bot AI for dungeons (currently human-only).
-- A dedicated dungeon-entrance descriptor in the geometry editor (the map
-  visual currently reuses the obelisk descriptor).
 - Battle + reward balance — see `dev/docs/deferredNotes.md` §5.
 
 ### UI polish

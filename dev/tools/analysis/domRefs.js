@@ -40,6 +40,7 @@ export function cacheDom() {
   els.toggleMobs = $('toggle-mobs');
   els.toggleTraders = $('toggle-traders');
   els.toggleBases = $('toggle-bases');
+  els.toggleDungeons = $('toggle-dungeons');
   els.toggleFeatures = $('toggle-features');
   els.viewMode = $('view-mode');
   els.btnCycleToggle = $('btn-cycle-toggle');

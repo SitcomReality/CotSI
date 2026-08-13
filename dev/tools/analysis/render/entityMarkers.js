@@ -6,7 +6,7 @@
  */
 import { FACTIONS } from '../../../../src/game/rules/factionData.js';
 import { hexToPixel, HEX_SIZE } from './hexMath.js';
-import { BASE_MARKER, MOB_MARKER, TRADER_MARKER, CHAMP_MARKER } from './theme.js';
+import { BASE_MARKER, MOB_MARKER, TRADER_MARKER, CHAMP_MARKER, DUNGEON_MARKER } from './theme.js';
 
 /**
  * Draw base squares on the map.
@@ -27,6 +27,32 @@ export function drawBases(ctx, tiles, baseKeys) {
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = strokeWidth;
     ctx.strokeRect(p.x - halfSize, p.y - halfSize, halfSize * 2, halfSize * 2);
+  }
+}
+
+/**
+ * Draw dungeon diamonds on the map.
+ * A rotated square (diamond) reads distinctly from base squares and the
+ * circular mob/trader/champion markers.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} tiles       — tile map keyed by "q,r"
+ * @param {Set<string>} dungeonKeys — set of "q,r" keys for tiles with dungeons
+ */
+export function drawDungeons(ctx, tiles, dungeonKeys) {
+  const { halfSize, color, stroke, strokeWidth } = DUNGEON_MARKER;
+  for (const key of dungeonKeys) {
+    const tile = tiles[key];
+    if (!tile) continue;
+    const p = hexToPixel(tile.q, tile.r, HEX_SIZE);
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = color;
+    ctx.fillRect(-halfSize, -halfSize, halfSize * 2, halfSize * 2);
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = strokeWidth;
+    ctx.strokeRect(-halfSize, -halfSize, halfSize * 2, halfSize * 2);
+    ctx.restore();
   }
 }
 

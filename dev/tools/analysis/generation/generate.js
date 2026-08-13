@@ -9,6 +9,7 @@ import { makeRng } from '../../../../src/engine/rules/seededRng.js';
 import { createChampions } from '../../../../src/game/state/championFactory.js';
 import { computeSpawnTargets } from '../../../../src/game/state/spawnPosition.js';
 import { createMobs, createTraders } from '../../../../src/game/state/entityFactory.js';
+import { placeDungeons } from '../../../../src/game/state/dungeonPlacement.js';
 import { getArchetype } from '../../../../src/game/rules/archetypes.js';
 
 /**
@@ -56,6 +57,12 @@ export function generateSingleSeed(seedText, radius, biomeDef, params = {}) {
     if (tiles[key].feature?.kind === 'base') baseKeys.add(key);
   }
 
+  // Dungeons mirror gameFactory: placed by count (1 + floor(radius/22)) after
+  // champions/bases, before mobs/traders, so their hexes are claimed first.
+  const dungeonKeys = new Set(
+    placeDungeons({ tiles, rand, used, radius }),
+  );
+
   const mobs = createMobs({ tiles, rand, used, radius });
   const traders = createTraders({ tiles, rand, used, champions });
 
@@ -66,7 +73,7 @@ export function generateSingleSeed(seedText, radius, biomeDef, params = {}) {
   }
 
   return {
-    tiles, champions, mobs, traders, baseKeys,
+    tiles, champions, mobs, traders, baseKeys, dungeonKeys,
     biomeDef, radius, seed: seedText,
     biomeIds: [...biomeIds],
     multiBiome,

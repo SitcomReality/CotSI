@@ -88,5 +88,6 @@ existing mob archetypes scaled by `DUNGEON_BATTLE_SCALE` in
 (`DUNGEON_COMPLETION_*`) is a placeholder bundle. Mob power is still being
 rebalanced, so dungeon fights and rewards get a design/balance pass at the same
 time — not before. Also deferred with it: bot AI for dungeons (human-only for
-now) and a dedicated dungeon-entrance descriptor (the map visual reuses the
-obelisk descriptor).
+now). The map visual is the editable `dungeon` descriptor
+(`descriptors/data/dungeon.js`) — tune the entrance geometry in the geometry
+editor, not by hand.

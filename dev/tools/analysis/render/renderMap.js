@@ -9,7 +9,7 @@
 import { coordKey, hexesWithinRadius } from '../../../../src/engine/rules/hexGrid.js';
 import { hexToPixel, drawHexPath, HEX_SIZE } from './hexMath.js';
 import { resolveFillColor } from './terrainFill.js';
-import { drawBases, drawMobs, drawTraders, drawChampions } from './entityMarkers.js';
+import { drawBases, drawMobs, drawTraders, drawChampions, drawDungeons } from './entityMarkers.js';
 import { drawFeatures } from './featureMarkers.js';
 import { CULL_MARGIN, RIVER, RIVER_BOOST_RADIUS } from './theme.js';
 
@@ -51,6 +51,7 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
   const mobKeys   = new Set();
   const traderKeys = new Set();
   const baseKeys  = new Set();
+  const dungeonKeys = new Set();
 
   if (options.showChampions && champions) {
     for (const ch of champions) {
@@ -83,9 +84,12 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
     ctx.fillStyle = fillColor;
     ctx.fill();
 
-    // Track bases
+    // Track bases + dungeons
     if (options.showBases && tile.feature?.kind === 'base') {
       baseKeys.add(key);
+    }
+    if (options.showDungeons && tile.feature?.kind === 'dungeon') {
+      dungeonKeys.add(key);
     }
   }
 
@@ -132,6 +136,7 @@ export function renderMap(ctx, tiles, entities, camera, options, canvasWidth, ca
 
   // Draw entity markers on top
   if (options.showBases && baseKeys.size > 0) drawBases(ctx, tiles, baseKeys);
+  if (options.showDungeons && dungeonKeys.size > 0) drawDungeons(ctx, tiles, dungeonKeys);
   if (options.showMobs   && mobs)             drawMobs(ctx, mobs, HEX_SIZE);
   if (options.showTraders && traders)         drawTraders(ctx, traders, HEX_SIZE);
   if (options.showChampions && champions)     drawChampions(ctx, champions, HEX_SIZE);

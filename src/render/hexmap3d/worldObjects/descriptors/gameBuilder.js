@@ -39,7 +39,6 @@ import { descriptorById } from './data/index.js';
 import { GROVE_DESCRIPTOR } from './data/grove.js';
 import { HILL_DESCRIPTOR } from './data/hill.js';
 import { KNOT_DESCRIPTOR } from './data/knot.js';
-import { HALF_DRAWN_OBELISK_DESCRIPTOR } from './data/halfDrawnObelisk.js';
 import { MOUNTAIN_DESCRIPTOR } from './data/mountain.js';
 import { biomeTintForTile } from '../biomeTint.js';
 import { coordKey } from '../../../../engine/rules/hexGrid.js';
@@ -111,11 +110,6 @@ function resolveFeatureForTile(tile, occupants) {
   if (kind === 'knot') {
     if (tile.feature.mined) return null;
     return { descriptor: normalizedDescriptor(KNOT_DESCRIPTOR), displacement: { displaced: occupied } };
-  }
-  if (kind === 'dungeon') {
-    // Placeholder entrance visual — reuses the obelisk descriptor until a
-    // dedicated dungeon entrance is authored in the geometry editor.
-    return { descriptor: normalizedDescriptor(HALF_DRAWN_OBELISK_DESCRIPTOR), displacement: { displaced: occupied } };
   }
   if (kind === 'fruitTree') return null; // legacy tree builder
   if (kind === 'tree') {

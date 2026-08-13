@@ -119,7 +119,7 @@ function bindControls() {
   // Entity toggles re-render
   const toggles = [
     els.toggleChamps, els.toggleMobs, els.toggleTraders,
-    els.toggleBases, els.toggleFeatures,
+    els.toggleBases, els.toggleDungeons, els.toggleFeatures,
   ];
   for (const toggle of toggles) {
     if (toggle) toggle.addEventListener('change', renderAndFit);

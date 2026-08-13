@@ -2042,6 +2042,97 @@
       }
     ]
   },
+  "dungeon": {
+    "tile": {
+      "q": 3,
+      "r": -2,
+      "terrain": "plains"
+    },
+    "records": [
+      {
+        "partId": "pillar-left",
+        "x": 1.732,
+        "y": 1.67,
+        "z": -3,
+        "scale": 1.4,
+        "scaleY": 1.4,
+        "localPos": {
+          "x": -0.182,
+          "y": 0,
+          "z": 0
+        },
+        "color": 4868695
+      },
+      {
+        "partId": "pillar-right",
+        "x": 1.732,
+        "y": 1.67,
+        "z": -3,
+        "scale": 1.4,
+        "scaleY": 1.4,
+        "localPos": {
+          "x": 0.182,
+          "y": 0,
+          "z": 0
+        },
+        "color": 4868695
+      },
+      {
+        "partId": "lintel",
+        "x": 1.732,
+        "y": 1.334,
+        "z": -3,
+        "scale": 1.4,
+        "scaleY": 1.4,
+        "lift": 0.84,
+        "color": 4868695
+      },
+      {
+        "partId": "portal",
+        "x": 1.732,
+        "y": 1.544,
+        "z": -3,
+        "scale": 1.4,
+        "scaleY": 1.4,
+        "lift": 0.11199999999999999,
+        "localPos": {
+          "x": 0,
+          "y": 0,
+          "z": 0.13999999999999999
+        },
+        "color": 855318
+      },
+      {
+        "partId": "step-top",
+        "x": 1.732,
+        "y": 1.292,
+        "z": -3,
+        "scale": 1.4,
+        "scaleY": 1.4,
+        "lift": 0.055999999999999994,
+        "localPos": {
+          "x": 0,
+          "y": 0,
+          "z": 0.33599999999999997
+        },
+        "color": 3816006
+      },
+      {
+        "partId": "step-mid",
+        "x": 1.732,
+        "y": 1.292,
+        "z": -3,
+        "scale": 1.4,
+        "scaleY": 1.4,
+        "localPos": {
+          "x": 0,
+          "y": 0,
+          "z": 0.504
+        },
+        "color": 3355455
+      }
+    ]
+  },
   "halfDrawnObelisk": {
     "tile": {
       "q": 3,

@@ -28,6 +28,7 @@ import { TREASURE_CHEST_DESCRIPTOR } from './treasureChest.js';
 import { CINDERBLOOM_DESCRIPTOR } from './cinderbloom.js';
 import { DESERT_SCRUB_DESCRIPTOR } from './desertScrub.js';
 import { DROWNED_COPYIST_DESCRIPTOR } from './drownedCopyist.js';
+import { DUNGEON_DESCRIPTOR } from './dungeon.js';
 import { EDEN_MUSHROOM_DESCRIPTOR } from './edenMushroom.js';
 import { EDEN_SHROOMLET_DESCRIPTOR } from './edenShroomlet.js';
 import { ERRATA_SLIP_DESCRIPTOR } from './errataSlip.js';
@@ -82,6 +83,7 @@ export const ALL_DESCRIPTORS = [
   WITNESS_STONE_DESCRIPTOR,
   DROWNED_COPYIST_DESCRIPTOR,
   CENSER_SAINT_DESCRIPTOR,
+  DUNGEON_DESCRIPTOR,
   HALF_DRAWN_OBELISK_DESCRIPTOR,
   SNOWPERSON_DESCRIPTOR,
   GROVE_DESCRIPTOR,

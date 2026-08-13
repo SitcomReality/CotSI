@@ -21,8 +21,8 @@ import { buildDescriptorMeshes } from '../../../src/render/hexmap3d/worldObjects
 
 const ENTITY_KINDS = new Set(['base', 'champion', 'mob', 'trader']);
 
-test('ALL_DESCRIPTORS covers every migrated object (25 features + tree + 7 decor + mountain + knot + base + champion + mob + trader)', () => {
-  assert.equal(ALL_DESCRIPTORS.length, 39);
+test('ALL_DESCRIPTORS covers every migrated object (26 features + tree + 7 decor + mountain + knot + base + champion + mob + trader)', () => {
+  assert.equal(ALL_DESCRIPTORS.length, 40);
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));
   assert.ok(kinds.has('feature') && kinds.has('decor') && kinds.has('mountain'), 'all tile-driven kinds present');
   assert.ok(kinds.has('base') && kinds.has('champion') && kinds.has('mob') && kinds.has('trader'), 'all entity kinds present');

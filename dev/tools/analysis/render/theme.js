@@ -54,6 +54,14 @@ export const CHAMP_MARKER = {
   strokeWidth: 0.8,
 };
 
+export const DUNGEON_MARKER = {
+  /** Half-side of the diamond in hex-pixels */
+  halfSize: 3,
+  color: '#9b59b6',
+  stroke: '#fff',
+  strokeWidth: 0.7,
+};
+
 // ── Feature markers ─────────────────────────────────────────────────────────────
 
 /**
