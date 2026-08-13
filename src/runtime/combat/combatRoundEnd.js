@@ -13,6 +13,8 @@ import { toast } from '../../ui/hud.js';
 import { renderCombat } from './combatRender.js';
 import { openRewardModal } from '../../ui/combat/combatRewardUI.js';
 import { closeCombat } from './combatLifecycle.js';
+import { resolveDungeonBattleWin } from '../../game/state/dungeonSystem.js';
+import { dailyActionPoints } from '../../game/state/championMovement.js';
 import {
   shakeCard,
   flashCard,
@@ -40,14 +42,35 @@ export async function handleRoundEnd() {
 
   if (result.defenderDead) {
     const rewards = finalizeCombat(G, attacker, defender, true);
+    // Dungeon battle won: advance the run (day 1/2) or complete it (day 3).
+    // A completed run keeps the champion's turn alive for a full move turn.
+    let completion = null;
+    if (defender.dungeonBattle) {
+      completion = resolveDungeonBattleWin(G, attacker);
+      if (completion.completed) {
+        // Full turn after the conquest: restore the day's AP and clear the
+        // combat flag so movement and night-digging work as usual.
+        attacker.actionPoints = dailyActionPoints(G, attacker);
+        attacker.lastActionCombat = false;
+        combat.suppressEndTurn = true;
+      }
+    }
     closeCombat();
     openRewardModal(attacker, {
-      title: 'Victory!',
+      title: completion?.completed ? 'Dungeon Conquered!' : 'Victory!',
       type: 'spoils',
-      body: `${attacker.name} has won the battle!`,
+      body: completion?.completed
+        ? `${attacker.name} has won the battle and claimed the dungeon's hoard!`
+        : `${attacker.name} has won the battle!`,
       rewards: [
         { icon: 'i-gold', label: `+${rewards.gold} gold` },
         { icon: 'i-relic', label: '+1 relic' },
+        ...(completion?.completed
+          ? [
+              { icon: 'i-relic', label: `+${completion.rewards.relic} relic` },
+              { icon: 'd-knot', label: `+${completion.rewards.knots} God's Knots` },
+            ]
+          : []),
       ],
     });
     refreshAll();

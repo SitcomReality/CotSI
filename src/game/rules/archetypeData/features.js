@@ -55,6 +55,18 @@ defineArchetype('feature_treasureChest', {
   visual: { scale: 1.0 },
 });
 
+// Dungeons are NOT biome-spawned — placed by count in gameFactory
+// (dungeonPlacement.js). The archetype only supplies the canonical name
+// (tooltip/logs); the map visual reuses the obelisk descriptor until a
+// dedicated entrance is authored in the geometry editor (gameBuilder.js).
+defineArchetype('feature_dungeon', {
+  type: 'feature',
+  name: 'Dungeon',
+  archetypeShape: 'monument',
+  tags: ['any'],
+  visual: { scale: 1.4 },
+});
+
 defineArchetype('feature_bush', {
   type: 'feature',
   name: 'Scrub Bush',

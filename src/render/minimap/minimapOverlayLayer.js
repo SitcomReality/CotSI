@@ -71,9 +71,9 @@ export function renderOverlayLayer(G, humanView, scale, offsetX, offsetZ) {
     ctx.fillRect(px - MINIMAP_BASE_MARKER_SIZE, py - MINIMAP_BASE_MARKER_SIZE, MINIMAP_BASE_MARKER_SIZE * 2, MINIMAP_BASE_MARKER_SIZE * 2);
   }
 
-  // Draw champions (visible only)
+  // Draw champions (visible only; champions inside dungeons are hidden)
   for (const champ of G.champions) {
-    if (!champ.alive) continue;
+    if (!champ.alive || champ.dungeon) continue;
     const key = coordKey(champ.pos);
     if (!visible.has(key)) continue;
     const { x, z } = hexCenter(champ.pos.q, champ.pos.r);

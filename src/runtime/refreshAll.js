@@ -17,6 +17,8 @@ import { noteTurnStart } from './turnPacing.js';
 import { G, currentChamp, isTurnLocked } from '../game/state/liveGame.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { getCombatUI } from './combat/combatState.js';
+import { startCombat } from './combat/index.js';
+import { createDungeonBattle } from '../game/state/dungeonSystem.js';
 import { getAnimatingIds } from '../render/hexmap3d/units/index.js';
 import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { BOT_AUTO_DELAY_MS } from '../params/ui/uiParams.js';
@@ -117,6 +119,24 @@ export function refreshAll() {
 
   // Show pending reward modal (artifact draft, dig loot, combat spoils, etc.)
   showPendingReward(G);
+
+  // ── Dungeon days 2/3: an in-dungeon human champion is pulled straight into
+  // their next battle at the start of the turn (day 1 entry is triggered by
+  // arrival, then flows through here for battle 1 too). No world-map
+  // interaction happens first — the combat modal owns the turn until it
+  // resolves (win → day advance / completion; flee → eject + turn end).
+  if (
+    ch &&
+    ch.controller === 'human' &&
+    ch.dungeon &&
+    !G.winnerId &&
+    !getCombatUI() &&
+    !anyModalOpen()
+  ) {
+    startCombat(ch, createDungeonBattle(G, ch));
+    endMeasure('refreshAll');
+    return;
+  }
 
   // Bot auto-turn: skip if any modal is open, a turn is locked, or combat is active
   if (

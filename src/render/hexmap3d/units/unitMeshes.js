@@ -90,6 +90,8 @@ export function buildUnitMeshes(state, visible) {
     const trader = state.traders?.find(t => coordKey(t.pos) === key);
 
     if (!champ && !mob && !trader) continue;
+    // Champions inside a dungeon are hidden from the map.
+    if (champ?.dungeon) continue;
 
     const surfaceY = tileSurfaceY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);

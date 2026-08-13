@@ -27,8 +27,9 @@ export function getChampion(state, id) {
 
 export function occupiedByChampion(state, key) {
   const entry = state.spatialIndex?.get(key);
-  if (entry?.type === 'champion') return entry.entity;
-  return state.champions.find(c => c.alive && coordKey(c.pos) === key);
+  if (entry?.type === 'champion' && !entry.entity.dungeon) return entry.entity;
+  // Champions inside a dungeon are hidden — they occupy nothing on the map.
+  return state.champions.find((c) => c.alive && !c.dungeon && coordKey(c.pos) === key);
 }
 
 export function occupiedByMob(state, key) {

@@ -88,7 +88,11 @@ export function featureState({ hasOccupant }) {
 export function occupiedKeys(state) {
   const keys = new Set();
   const add = (list) => {
-    for (const e of list || []) keys.add(coordKey(e.pos));
+    for (const e of list || []) {
+      // Champions inside a dungeon are hidden — they claim no hex center.
+      if (e.dungeon) continue;
+      keys.add(coordKey(e.pos));
+    }
   };
   add(state.champions);
   add(state.mobs);

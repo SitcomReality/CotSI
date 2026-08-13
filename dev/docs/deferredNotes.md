@@ -77,3 +77,16 @@ items below remain.
   (~148 lines) → `reportFormatter.js` if it grows past ~1,000 lines
 - `src/game/state/featureRewards.js` (557) — extract the `FEATURES` table +
   card builders → `featureRewardTable.js` if it grows past ~650 lines
+
+---
+
+## 5. Dungeon combat & reward balance
+
+Dungeons shipped functional but deliberately un-tuned (2026-02): battles use
+existing mob archetypes scaled by `DUNGEON_BATTLE_SCALE` in
+`src/params/game/dungeonParams.js`, and the completion reward
+(`DUNGEON_COMPLETION_*`) is a placeholder bundle. Mob power is still being
+rebalanced, so dungeon fights and rewards get a design/balance pass at the same
+time — not before. Also deferred with it: bot AI for dungeons (human-only for
+now) and a dedicated dungeon-entrance descriptor (the map visual reuses the
+obelisk descriptor).

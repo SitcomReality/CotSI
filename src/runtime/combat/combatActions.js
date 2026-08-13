@@ -23,6 +23,7 @@ import { registerAction } from '../../shared/actionBus.js';
 import { closeCombat } from './combatLifecycle.js';
 import { runCombatFlow } from './combatFlow.js';
 import { refreshAll } from '../refreshAll.js';
+import { fleeDungeon } from '../../game/state/dungeonSystem.js';
 
 // ---- Pick ----
 function pickCombatPower(combat, side, factionIdx) {
@@ -84,6 +85,13 @@ export function initCombat(deps) {
       : (combat.second === combat.attacker ? 'attacker' : 'defender');
 
     fleeFromCombat(G, combat, fleeingRole);
+
+    // Fleeing a dungeon battle also ejects the champion from the dungeon:
+    // progress resets and the re-entry cooldown starts (their turn then ends
+    // via closeCombat).
+    if (combat.defender?.dungeonBattle) {
+      fleeDungeon(G, combat.attacker);
+    }
 
     G.turnLock = false;
     closeCombat();

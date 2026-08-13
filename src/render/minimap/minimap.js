@@ -58,7 +58,7 @@ function overlayFingerprint(G, scale, offsetX, offsetZ) {
   }
   let ents = '';
   for (const champ of G.champions) {
-    if (champ.alive) ents += `c${champ.id}:${champ.pos.q},${champ.pos.r};`;
+    if (champ.alive && !champ.dungeon) ents += `c${champ.id}:${champ.pos.q},${champ.pos.r};`;
   }
   if (G.mobs) {
     for (const mob of G.mobs) {

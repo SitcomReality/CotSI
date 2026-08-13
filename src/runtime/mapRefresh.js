@@ -92,7 +92,10 @@ export function refreshMap() {
   // Pre-compute derived data so render layers don't need to import game/state/
   const humanView = getHumanView(G);
   const activeChamp = currentChamp();
-  const moveHighlights = activeChamp && activeChamp.alive && activeChamp.controller === 'human'
+  // No move/interaction highlights while the champion is inside a dungeon —
+  // dungeon days are combat-only until the run resolves.
+  const inDungeon = !!(activeChamp && activeChamp.dungeon);
+  const moveHighlights = activeChamp && activeChamp.alive && activeChamp.controller === 'human' && !inDungeon
     ? [...movementRange(G, activeChamp).costs.keys()]
         .filter((k) => k !== coordKey(activeChamp.pos))
     : [];
@@ -110,7 +113,7 @@ export function refreshMap() {
   // Compute interaction-highlight data from ALL adjacent hexes (combat, trade, base)
   // — not just passable ones, since combat works on blocked hexes too.
   const interactionHighlights = new Map();
-  if (activeChamp && activeChamp.alive && activeChamp.controller === 'human') {
+  if (activeChamp && activeChamp.alive && activeChamp.controller === 'human' && !inDungeon) {
     for (const n of neighbors(activeChamp.pos)) {
       const key = coordKey(n);
       const mob = occupiedByMob(G, key);

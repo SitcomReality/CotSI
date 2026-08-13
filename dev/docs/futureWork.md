@@ -30,9 +30,19 @@ champion's turn instead of world-map movement. After the final battle, a large
 reward. Fleeing uses the normal rules but ejects the champion and loses all
 progress.
 
-Needs: dungeon feature + placement rules, an "in-dungeon" champion state
-(hidden from the map, no movement), escalating battle generation, reward hook
-(`src/game/state/featureRewards.js` pattern).
+Implemented (`src/game/state/dungeonSystem.js`, `dungeonPlacement.js`,
+`src/game/rules/dungeonRules.js`, `src/params/game/dungeonParams.js`):
+count-driven placement (always ≥1, +1 per 22 radii), human-only entry,
+per-champion runs (battle per day, escalating via `DUNGEON_BATTLE_SCALE`),
+flee → eject + reset + 2-day re-entry cooldown, day-3 completion reward
+(gold + relic + God's Knots) + full turn, hidden champion (no spatial
+occupancy, no harassment, invisible). Bots ignore dungeons entirely.
+
+Remaining:
+- Bot AI for dungeons (currently human-only).
+- A dedicated dungeon-entrance descriptor in the geometry editor (the map
+  visual currently reuses the obelisk descriptor).
+- Battle + reward balance — see `dev/docs/deferredNotes.md` §5.
 
 ### UI polish
 

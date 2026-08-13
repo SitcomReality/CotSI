@@ -37,6 +37,12 @@ export function onEndTurn() {
   const ch = currentChamp();
   if (!ch || ch.controller !== 'human') return;
 
+  // Inside a dungeon the battle is mandatory — the turn cannot be ended early.
+  if (ch.dungeon) {
+    toast('You are inside a dungeon — your battle awaits.');
+    return;
+  }
+
   if (ch.actionPoints > 0) {
     const msg = isDigEligible(G, ch)
       ? 'End turn here and dig for rewards?'

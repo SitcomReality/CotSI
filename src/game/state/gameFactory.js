@@ -18,6 +18,7 @@ import { shuffle } from '../../engine/rules/shuffle.js';
 import { createInitialState } from './initialGameState.js';
 import { createChampions } from './championFactory.js';
 import { createMobs, createTraders } from './entityFactory.js';
+import { placeDungeons } from './dungeonPlacement.js';
 import { refreshVision } from './fogOfWar.js';
 import { beginTurn } from './turnActions.js';
 import { rebuildSpatialIndex } from './spatialIndex.js';
@@ -142,6 +143,11 @@ export function createGame({
       state._baseKeys.add(`${tile.q},${tile.r}`);
     }
   }
+
+  // --- Place dungeons (count = 1 + floor(radius / 22)); claim their hexes ---
+  state._dungeonKeys = new Set(
+    placeDungeons({ tiles, rand, used, radius }),
+  );
 
   // --- Seed the map with mobs and traders ---
   state.mobs = createMobs({ tiles, rand, used, radius });

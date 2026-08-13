@@ -78,6 +78,8 @@ export function createChampions({ tiles, champions, targets, rand, radius }) {
       buffs: { attack: 0, defense: 0 },
       offeredArtifact: false,
       pendingDig: false,
+      dungeon: null,
+      dungeonMemory: {},
       dispatchLedger: [],
       lastActionCombat: false,
       alive: true,

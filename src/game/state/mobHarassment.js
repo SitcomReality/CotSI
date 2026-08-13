@@ -27,7 +27,7 @@ export function runMobHarassment(state) {
   const _factionMap = buildChampionFactionMap(state.champions);
   for (const mob of state.mobs.filter(m => m.alive)) {
     mob.actionPoints = MOB_DAILY_AP;
-    const adj = state.champions.find(c => c.alive && c.faction !== 2 && distance(c.pos, mob.pos) === 1);
+    const adj = state.champions.find(c => c.alive && !c.dungeon && c.faction !== 2 && distance(c.pos, mob.pos) === 1);
     if (adj && state._rng() < MOB_HARASS_CHANCE) {
       const dmg = MOB_HARASS_DMG_BASE + Math.floor(state._rng() * MOB_HARASS_DMG_RANGE);
       adj.hp -= dmg;

@@ -28,6 +28,9 @@ export function recordDeath(state, champ, cause) {
   // Guard: only track actual champions, not mobs or other entities
   if (!state.champions.includes(champ)) return;
 
+  // A dead champion is no longer inside any dungeon.
+  if (champ.dungeon) champ.dungeon = null;
+
   removeFromSpatialIndex(state, coordKey(champ.pos));
 
   state.deathOrder.push(champ.id);

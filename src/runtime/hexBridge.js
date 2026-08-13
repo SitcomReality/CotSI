@@ -15,6 +15,7 @@ import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/sta
 import { parseKey, distance, coordKey } from '../engine/rules/hexGrid.js';
 import { startCombat } from './combat/index.js';
 import { openTradeWithTrader, openTradeWithBase } from './trade/trade.js';
+import { dungeonEntryBlockReason } from '../game/state/dungeonSystem.js';
 import { pulseEnd, toast } from '../ui/hud.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { sanctuaryAtBase } from '../game/state/baseInteraction.js';
@@ -116,9 +117,25 @@ export function onHexClick(key) {
   if (!G || G.dispatch || G.reward || G.winnerId) return;
   const ch = currentChamp();
   if (!ch || ch.controller !== 'human' || ch.actionPoints <= 0) return;
+  // Inside a dungeon: no world-map interaction until the run resolves.
+  if (ch.dungeon) return;
 
   const tile = G.tiles[key];
   if (!tile) return;
+
+  // Dungeon hexes: only walkable onto when the champion may enter. A sealed
+  // dungeon (flee cooldown or already completed) is not a destination.
+  if (tile.feature?.kind === 'dungeon') {
+    const blockReason = dungeonEntryBlockReason(G, ch, key);
+    if (blockReason) {
+      toast(
+        blockReason === 'cooldown'
+          ? 'You fled from this dungeon recently — it is sealed to you for now.'
+          : 'You have already conquered this dungeon.'
+      );
+      return;
+    }
+  }
 
   const mob = occupiedByMob(G, key);
   const other = occupiedByChampion(G, key);

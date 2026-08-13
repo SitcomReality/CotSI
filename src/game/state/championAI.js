@@ -43,6 +43,8 @@ export function botChooseTarget(state, champ){
     for (const key of searchKeys) {
       const tile = state.tiles[key];
       if (!tile || isTerrainBlocked(champ, tile.terrain)) continue;
+      // Dungeons are champion-only (humans) — bots never path onto them.
+      if (tile.feature?.kind === 'dungeon') continue;
       if ((champ.explored || []).includes(key)) continue;
       const d = distance(champ.pos, tile);
       if (d < closestDist) {
@@ -61,8 +63,8 @@ export function botChooseTarget(state, champ){
 export function runBotTurn(state){
   const champ = getChampion(state, state.activeChampionId);
   if(!champ || !champ.alive || champ.controller!=='bot') return false;
-  // adjacent attack?
-  const adjEnemies = state.champions.filter(c=> c.alive && c.id!==champ.id && distance(c.pos, champ.pos)===1);
+  // adjacent attack? (champions inside dungeons are hidden and cannot be attacked)
+  const adjEnemies = state.champions.filter(c=> c.alive && !c.dungeon && c.id!==champ.id && distance(c.pos, champ.pos)===1);
   if(adjEnemies.length && champ.hp>BOT_ATTACK_CHAMPION_HP_THRESHOLD && state._rng()>BOT_ATTACK_CHAMPION_CHANCE){
     return {action:'attackChampion', target: adjEnemies[0]};
   }

@@ -65,6 +65,9 @@ export function shouldBotFlee(entity, combat) {
   if (!entity || !entity.alive) return false;
   if (combat.round <= FLEE_ROUND_DELAY) return false;
 
+  // Dungeon guardians never flee — a fleeing guardian would strand the run.
+  if (entity.dungeonBattle) return false;
+
   // Humans decide on their own — never force-flee
   if (entity.controller === 'human') return false;
 

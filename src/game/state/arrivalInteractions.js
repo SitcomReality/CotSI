@@ -9,6 +9,7 @@ import { LOG_CATEGORY } from '../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { interactWithFeature } from './featureRewards.js';
+import { enterDungeon } from './dungeonSystem.js';
 import { FRUIT_HEAL_VERDANT, FRUIT_HEAL_STANDARD, FRUIT_REGROWTH_DAYS, KNOT_DEFAULT_AMOUNT, CHEST_GOLD_BASE } from '../../params/game/economyParams.js';
 import { FACTION_VERDANT } from '../../params/game/factionParams.js';
 import { markChunkDirty } from './chunkDirtyTracking.js';
@@ -16,6 +17,12 @@ import { markChunkDirty } from './chunkDirtyTracking.js';
 export function interactOnArrival(state, champ) {
   const factionMap = buildChampionFactionMap(state.champions);
   const tile = state.tiles[coordKey(champ.pos)];
+  // Dungeons: entering happens on arrival (human champions only; eligibility
+  // checked inside). Ineligible champions simply stand on the hex.
+  if (tile.feature?.kind === 'dungeon') {
+    enterDungeon(state, champ);
+    return;
+  }
   if (tile.feature?.kind === 'fruitTree' && tile.feature.ripe !== false) {
     if (!tile.feature.nextRewardDay || state.day >= tile.feature.nextRewardDay) {
       const heal = champ.faction === FACTION_VERDANT ? FRUIT_HEAL_VERDANT : FRUIT_HEAL_STANDARD;

@@ -35,7 +35,9 @@ function openCombatModal() {
 /**
  * Close the combat modal and clear state.
  * If the combat initiator (attacker) is the active champion, their turn
- * ends immediately — the turn advances to the next champion.
+ * ends immediately — the turn advances to the next champion. Dungeon day-3
+ * completions suppress that (combat.suppressEndTurn) so the champion keeps
+ * their full move turn after conquering the dungeon.
  */
 export function closeCombat() {
   // Capture attacker identity before combat state is cleared
@@ -49,7 +51,7 @@ export function closeCombat() {
   }
 
   // End the attacker's turn if they started combat and are still active
-  if (attackerId && G && G.activeChampionId === attackerId) {
+  if (attackerId && G && G.activeChampionId === attackerId && !combat?.suppressEndTurn) {
     const endTurn = getFinishAttackerTurn();
     if (endTurn) endTurn();
   }
