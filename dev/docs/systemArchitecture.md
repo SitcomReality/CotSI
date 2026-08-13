@@ -697,6 +697,7 @@ The current report shows **0 known-debt imports**.
 | `dev/docs/movementAndOccupation.md` | Movement & AP conventions: terrain costs, occupancy rules, movement identities, pathing |
 | `dev/docs/featureDesign.md` | Feature design: placement, rewards, tiering |
 | `dev/docs/commonTasks.md` | How-to recipes for common changes |
-| `dev/docs/futureWork.md` | Deferred-work tracker (unimplemented work only) |
+| `dev/docs/futureWork.md` | Future-work tracker (features to be implemented only) |
+| `dev/docs/deferredNotes.md` | Deferred-by-decision content, scale guidance, maintenance follow-ups (non-features) |
 | `dev/docs/terrainGenNotes.md` | Terrain-gen design notes (noise, calibration, classification) |
 | `dev/tools/analysis.html` | Map-gen analysis tool reference (standalone page) |

@@ -104,4 +104,6 @@ Delegate to sub-agents as much as possible. Spawning agents to perform specific 
 
 ## Current Process Underway
 
-Deferred and future work is tracked in `dev/docs/futureWork.md`.
+Deferred and future work is tracked in `dev/docs/futureWork.md` (features to
+implement); deferred-by-decision content and maintenance follow-ups live in
+`dev/docs/deferredNotes.md`.
