@@ -8,6 +8,7 @@
 import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
 import { TERRAIN } from '../rules/terrainTypes.js';
 import { terrainCost, isTerrainBlocked } from '../rules/movementCosts.js';
+import { traderStock } from '../rules/traderStock.js';
 import { occupiedByChampion, occupiedByMob, occupiedByTrader } from './entityQueries.js';
 import { updateSpatialIndex } from './spatialIndex.js';
 import { TRADER_DAILY_AP } from '../../params/game/spawnParams.js';
@@ -49,11 +50,13 @@ export function runTraderMovement(state) {
       tr.actionPoints -= cost;
       updateSpatialIndex(state, oldKey, coordKey(tr.pos), tr, 'trader');
       if (nk === tr.targetBaseKey) {
-        // pick new base from the pre-built base index
+        // pick new base from the pre-built base index, and refresh the stock —
+        // a trader re-stocks each time it reaches a base and heads out again
         const bases = [...(state._baseKeys || [])];
         tr.targetBaseKey = bases.length > 0
           ? bases[Math.floor(state._rng() * bases.length)]
           : nk;
+        tr.stock = traderStock(state._rng);
         break;
       }
     }

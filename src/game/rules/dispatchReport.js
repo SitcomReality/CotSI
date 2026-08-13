@@ -171,10 +171,10 @@ function terrainEffects(state, champ, effects) {
 }
 
 function equipmentEffects(state, champ, effects) {
-  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const label = (it) => (it ? it.name : 'none');
   effects.push({
     source: 'Equipment',
-    text: `${cap(champ.weapon)}; ${champ.armor}.`,
+    text: `${label(champ.weapon)}; ${label(champ.armor)}.`,
     tone: 'neutral',
     category: 'equipment',
   });

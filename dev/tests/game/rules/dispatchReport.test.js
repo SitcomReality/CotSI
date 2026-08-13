@@ -21,8 +21,8 @@ function makeChamp(overrides = {}) {
     baseActionPoints: 60,
     actionPoints: 60,
     artifact: null,
-    weapon: 'ash staff',
-    armor: 'worn linen',
+    weapon: null,
+    armor: null,
     ...overrides,
   };
 }
@@ -207,11 +207,19 @@ test('terrain effects: base, fruit tree, vegetation, and knot lines', () => {
   assert.equal(textFor(makeState(), makeChamp()), 'Standing on Plains.');
 });
 
-test('equipment effects: capitalized weapon; armor verbatim', () => {
-  const effects = buildDispatchReport(makeState(), makeChamp()).effects.find(
-    (e) => e.source === 'Equipment'
+test('equipment effects: item names, or none when slots are empty', () => {
+  const equipment = (champ) =>
+    buildDispatchReport(makeState(), champ).effects.find((e) => e.source === 'Equipment');
+
+  assert.equal(equipment(makeChamp()).text, 'none; none.');
+
+  assert.equal(
+    equipment(makeChamp({
+      weapon: { name: 'Orichalcum Blade', slot: 'weapon' },
+      armor: { name: "Augur's Mantle", slot: 'armor' },
+    })).text,
+    "Orichalcum Blade; Augur's Mantle."
   );
-  assert.equal(effects.text, 'Ash staff; worn linen.');
 });
 
 test('movement breakdown: base, spur, and day-length parts', () => {

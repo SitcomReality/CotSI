@@ -17,6 +17,8 @@ import { checkVictory } from './victoryChecks.js';
 import { startMeasure, endMeasure } from '../../shared/measurements.js';
 import { runMobHarassment } from './mobHarassment.js';
 import { runTraderMovement } from './traderMovement.js';
+import { traderStock } from '../rules/traderStock.js';
+import { DAYS_PER_WEEK } from '../../params/game/worldParams.js';
 import { markChunkDirty } from './chunkDirtyTracking.js';
 
 export function finishTurn(state) {
@@ -118,6 +120,11 @@ function runWorldTurn(state) {
 
   // traders move
   runTraderMovement(state);
+
+  // weekly trader inventory reset — fresh 7-slot stock for the coming week
+  if (state.day % DAYS_PER_WEEK === 0) {
+    for (const tr of state.traders) tr.stock = traderStock(state._rng);
+  }
 
   endMeasure('worldTurn');
 }

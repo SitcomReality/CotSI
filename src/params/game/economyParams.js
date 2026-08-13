@@ -7,12 +7,18 @@
 export const TRADER_HEAL_COST = 14;
 /** Moonberry heal amount. */
 export const TRADER_HEAL_AMOUNT = 10;
-/** Potency purchase cost in gold. */
+/** Potency purchase cost in gold (per pip). */
 export const TRADER_POTENCY_COST = 22;
-/** Weapon purchase cost in gold. */
-export const TRADER_WEAPON_COST = 34;
-/** Weapon secondary-stat bonus. */
-export const TRADER_WEAPON_BONUS = 1;
+/** Number of stock slots a trader offers per reset (one per combat potency pip). */
+export const TRADER_STOCK_SIZE = 7;
+/** Max pips of one faction stacked in a single potency slot. */
+export const TRADER_POTENCY_STACK_MAX = 3;
+/** Relic purchase cost in gold (per relic). */
+export const TRADER_RELIC_COST = 30;
+/** Max relics stacked in a single relic slot. */
+export const TRADER_RELIC_STACK_MAX = 2;
+/** Fraction of an item's gold cost refunded when it is replaced/destroyed. */
+export const EQUIP_REFUND_FRACTION = 0.5;
 
 // ---- Base interaction ----
 /** Sanctuary heal fraction of max HP. */

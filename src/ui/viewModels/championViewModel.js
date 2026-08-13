@@ -20,8 +20,8 @@ export function championVM(state, champ) {
     gold: champ.gold,
     relics: champ.relics,
     knot: champ.knot,
-    weapon: champ.weapon,
-    armor: champ.armor,
+    weapon: champ.weapon?.name ?? '—',
+    armor: champ.armor?.name ?? '—',
     artifactLabel: champ.artifact
       ? (ARTIFACTS.find(a => a.id === champ.artifact)?.name || champ.artifact)
       : '— none —',

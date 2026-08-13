@@ -35,6 +35,8 @@ export const MOB_HP_VARIANCE_FRACTION = 0.5;
 export const NUM_TRADERS = 3;
 /** Trader daily action-point pool (≈3 plains hexes/day). */
 export const TRADER_DAILY_AP = 30;
+/** Trader display names (cycled by index). */
+export const TRADER_NAMES = ['Tinker', 'Chapman', 'Huckster'];
 /** Maximum ring-search depth for nearest-open-key fallback. */
 export const MAX_SPAWN_SEARCH_RINGS = 100;
 
