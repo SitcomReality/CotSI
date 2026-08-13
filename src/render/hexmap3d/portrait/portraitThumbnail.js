@@ -1,15 +1,15 @@
 /**
- * portraitThumbnail.js — One-shot 3D "profile picture" of a combatant.
+ * portraitThumbnail.js — One-shot 3D "profile picture" of a game piece.
  *
- * Renders a single champion/mob miniature (the exact descriptor meshes the hex
- * map uses) into a small transparent PNG data URL, cached per entity, for use
- * as a DOM portrait in the combat screen — and later the trade screen. Built on
- * the shared descriptor pipeline (recordsForEntity → buildDescriptorMeshes →
- * addOutlines), so a portrait is the same painted piece the player sees on the
- * map, ink outline included.
+ * Renders a single entity's descriptor meshes (champion, mob, trader, or a
+ * faction base) — the exact geometry the hex map uses — into a small
+ * transparent PNG data URL, cached per piece, for use as a DOM portrait in the
+ * combat and trade screens. Built on the shared descriptor pipeline
+ * (recordsForEntity → buildDescriptorMeshes → addOutlines), so a portrait is
+ * the same painted piece the player sees on the map, ink outline included.
  *
  * Cost: one lazily-created offscreen WebGLRenderer (preserveDrawingBuffer) is
- * reused for every portrait; each entity renders once and the data URL is
+ * reused for every portrait; each piece renders once and the data URL is
  * cached. Geometries and materials come from the shared shapeFactory/outline
  * caches (marked userData.shared), so nothing here is disposed and shaders only
  * compile once per WebGL context.
@@ -27,11 +27,15 @@ import { addOutlines } from '../scene/outline.js';
 import { addLights } from '../scene/lightSetup.js';
 import { CHAMPION_DESCRIPTOR } from '../worldObjects/descriptors/data/champion.js';
 import { MOB_DESCRIPTOR } from '../worldObjects/descriptors/data/mob.js';
+import { TRADER_DESCRIPTOR } from '../worldObjects/descriptors/data/trader.js';
+import { BASE_DESCRIPTOR } from '../worldObjects/descriptors/data/base.js';
 import { CAMERA_PITCH, CAMERA_YAW } from '../../../params/render/cameraParams.js';
 import { MOB_COLOR_DARKEN } from '../../../params/render/geometryParams.js';
 
 const normalizedChampion = normalizeDescriptor(CHAMPION_DESCRIPTOR);
 const normalizedMob = normalizeDescriptor(MOB_DESCRIPTOR);
+const normalizedTrader = normalizeDescriptor(TRADER_DESCRIPTOR);
+const normalizedBase = normalizeDescriptor(BASE_DESCRIPTOR);
 
 /** Square raster size (CSS px) — crisp at ~112px display on a 2× display. */
 const PORTRAIT_SIZE = 256;
@@ -55,13 +59,18 @@ function darkenHex(hex, f) {
 
 // ─── Entity → descriptor record shape (mirrors units/unitMeshes.js) ────────
 
-function championEntityFor(entity) {
-  const fac = FACTIONS[entity.faction];
+/** Faction index → the entity shape recordsForEntity expects (champion + base). */
+function factionEntityFor(faction) {
+  const fac = FACTIONS[faction];
   if (!fac) return null;
   return {
     faction: fac.short,
     colors: { factionBase: hexColor(fac.base), factionAccent: hexColor(fac.color) },
   };
+}
+
+function championEntityFor(entity) {
+  return factionEntityFor(entity.faction);
 }
 
 function mobEntityFor(entity) {
@@ -135,9 +144,40 @@ function frameCamera(group) {
   camera.updateProjectionMatrix();
 }
 
-// ─── Cache ──────────────────────────────────────────────────────────────────
+// ─── Cache + snapshot ───────────────────────────────────────────────────────
 
 const cache = new Map();
+
+/** Build the group, frame it, render once, and return the PNG data URL. */
+function snapshot(descriptor, records, name) {
+  const group = new THREE.Group();
+  group.name = name;
+  for (const mesh of buildDescriptorMeshes(descriptor, records, name)) {
+    group.add(...addOutlines(mesh));
+  }
+  scene.add(group);
+  frameCamera(group);
+  renderer.render(scene, camera);
+  const url = renderer.domElement.toDataURL('image/png');
+  // Geometries/materials are shared caches — removing the group releases them.
+  scene.remove(group);
+  return url;
+}
+
+/** Run `build` once and cache the result (null on failure, cached too). */
+function cachedPortrait(key, build) {
+  if (cache.has(key)) return cache.get(key);
+  let url = null;
+  try {
+    ensureContext();
+    url = build();
+  } catch (err) {
+    console.warn('[portrait] render failed:', key, err);
+    url = null;
+  }
+  cache.set(key, url);
+  return url;
+}
 
 function portraitKey(entity) {
   const id = entity.id ?? entity.name ?? 'entity';
@@ -145,55 +185,47 @@ function portraitKey(entity) {
 }
 
 /**
- * Return a cached data-URL portrait of a combatant entity, or null when the
- * entity is unsupported or the snapshot cannot be produced (callers should fall
- * back to the faction glyph).
- *
- * @param {object|null} entity — champion or mob entity ({ controller } ⇒
- *   champion, { archetypeName } ⇒ mob)
+ * Cached portrait of a combatant — a champion or mob.
+ * @param {object|null} entity — ({ controller } ⇒ champion, { archetypeName } ⇒ mob)
  * @returns {string|null} PNG data URL
  */
 export function getCombatantPortrait(entity) {
   if (!entity) return null;
+  const isChampion = entity.controller !== undefined;
+  const isMob = entity.archetypeName !== undefined;
+  if (!isChampion && !isMob) return null;
+
+  const descriptor = isChampion ? normalizedChampion : normalizedMob;
+  const shape = isChampion ? championEntityFor(entity) : mobEntityFor(entity);
+  if (!shape) return null;
 
   const key = portraitKey(entity);
-  if (cache.has(key)) return cache.get(key); // may be null (cached fallback)
-
-  let url = null;
-  try {
-    const isChampion = entity.controller !== undefined;
-    const isMob = entity.archetypeName !== undefined;
-    if (!isChampion && !isMob) throw new Error('unsupported entity kind');
-
-    ensureContext();
-
-    const descriptor = isChampion ? normalizedChampion : normalizedMob;
-    const shape = isChampion ? championEntityFor(entity) : mobEntityFor(entity);
-    if (!shape) throw new Error('no faction mapping for entity');
-
+  return cachedPortrait(key, () => {
     const records = recordsForEntity(descriptor, shape, { x: 0, y: 0, z: 0 });
     if (records.length === 0) throw new Error('no records for entity');
+    return snapshot(descriptor, records, `portrait-${key}`);
+  });
+}
 
-    const group = new THREE.Group();
-    group.name = `portrait-${key}`;
-    for (const mesh of buildDescriptorMeshes(descriptor, records, group.name)) {
-      group.add(...addOutlines(mesh));
-    }
-    scene.add(group);
+/** Cached portrait of the wandering trader (teal coin). */
+export function getTraderPortrait() {
+  return cachedPortrait('trader', () => {
+    const records = recordsForEntity(normalizedTrader, { scale: 1 }, { x: 0, y: 0, z: 0 });
+    if (records.length === 0) throw new Error('no records for trader');
+    return snapshot(normalizedTrader, records, 'portrait-trader');
+  });
+}
 
-    frameCamera(group);
-    renderer.render(scene, camera);
-    url = renderer.domElement.toDataURL('image/png');
-
-    // Geometries/materials are shared caches — removing the group releases them.
-    scene.remove(group);
-  } catch (err) {
-    console.warn('[portrait] render failed:', entity.id ?? entity.name, err);
-    url = null;
-  }
-
-  cache.set(key, url);
-  return url;
+/** Cached portrait of a faction base (faction-colored tower). */
+export function getBasePortrait(faction) {
+  const shape = factionEntityFor(faction);
+  if (!shape) return null;
+  const key = `base:${shape.faction}`;
+  return cachedPortrait(key, () => {
+    const records = recordsForEntity(normalizedBase, shape, { x: 0, y: 0, z: 0 });
+    if (records.length === 0) throw new Error('no records for base');
+    return snapshot(normalizedBase, records, `portrait-${key}`);
+  });
 }
 
 /** Drop all cached portraits (e.g. on game restart / scene teardown). */
