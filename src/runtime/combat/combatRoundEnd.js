@@ -10,7 +10,7 @@ import { G } from '../../game/state/liveGame.js';
 import { getCombatUI, wait } from './combatState.js';
 import { refreshAll } from '../refreshAll.js';
 import { toast } from '../../ui/hud.js';
-import { renderCombat } from '../../ui/combat/combatRenderer.js';
+import { renderCombat } from './combatRender.js';
 import { openRewardModal } from '../../ui/combat/combatRewardUI.js';
 import { closeCombat } from './combatLifecycle.js';
 import {

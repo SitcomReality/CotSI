@@ -1,19 +1,114 @@
 /* =========================================================================
-   COMBAT MODAL — Combatant Cards (left & right panels)
+   CONFRONTATION — Participant Plate (combatant card)
+   A participant's side of the duel: 3D portrait, name, badges, HP, potency
+   catalog. Faction identity is carried by --faction-base (background wash),
+   --faction-color (name/accents) and --faction-ui / --faction-ui-glow (the
+   active picker ring), all set inline by the renderer.
    ========================================================================= */
 
 .combatant-card {
   position: relative;
-  background: var(--board-glass);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--s3);
+  background-color: var(--board);
+  background-image:
+    radial-gradient(130% 95% at 50% 0%,
+      color-mix(in srgb, var(--faction-base, #3a3a44) 40%, transparent),
+      transparent 72%),
+    var(--nebula);
   border: var(--edge) solid var(--crease-bold);
-  border-radius: var(--r-panel);
-  padding: 12px;
-  transition: box-shadow 200ms ease;
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 200ms var(--ease), border-color 200ms var(--ease);
 }
 
+/* The side currently choosing wears its own luminous ring + glow. */
 .combatant-card.is-active {
-  /* glow replaces outline per v4 convention */
-  box-shadow: var(--shadow-glow);
+  border-color: var(--faction-ui);
+  box-shadow:
+    0 0 0 var(--edge) var(--faction-ui),
+    0 0 22px color-mix(in srgb, var(--faction-ui-glow) 70%, transparent),
+    var(--shadow-card);
+}
+
+/* ── Portrait ──────────────────────────────────────────────────────────────── */
+
+.combatant-portrait-frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--r);
+  border: var(--edge-bold) solid var(--ink-line);
+  background:
+    radial-gradient(120% 100% at 50% 18%,
+      color-mix(in srgb, var(--faction-base, #3a3a44) 26%, transparent),
+      transparent 78%),
+    var(--board-hi);
+  box-shadow: var(--shadow-panel);
+}
+
+.combatant-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Fallback (no 3D snapshot) — centred faction glyph. */
+.combatant-portrait--fallback {
+  color: var(--faction-color);
+  opacity: 0.85;
+}
+
+/* ── Identity ─────────────────────────────────────────────────────────────── */
+
+.combatant-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.combatant-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--faction-color);
+}
+
+.combatant-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.badge {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+  background: var(--board);
+  border: var(--hair) solid var(--crease-bold);
+  border-radius: var(--r-pill);
+  padding: 2px 8px;
+}
+
+.badge-attacker {
+  color: var(--cinnabar);
+  border-color: color-mix(in srgb, var(--cinnabar) 55%, transparent);
+}
+
+.combatant-hp {
+  margin-top: calc(var(--s1) * -1);
 }
 
 /* ── Card Shake ───────────────────────────────────────────────────────────── */

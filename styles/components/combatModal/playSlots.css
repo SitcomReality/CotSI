@@ -1,31 +1,46 @@
 /* =========================================================================
-   COMBAT MODAL — Pick / Play Slots & Colour Pick Slots
+   CONFRONTATION — Pick / Play Slots (centre stage)
+   Four reveal slots (A's pair → B's pair) shown in the middle, between the
+   two participant plates.
    ========================================================================= */
-
-/* ── Play Slots (visually prominent match display) ───────────────────────── */
 
 .play-slots {
   display: flex;
-  gap: 8px;
+  gap: var(--s2);
   justify-content: center;
-  margin: 10px 0;
+  align-items: center;
+  width: 100%;
 }
 
 .play-slot {
-  width: 92px;
-  height: 60px;
-  border-radius: 10px;
-  border: var(--edge-bold) dashed var(--crease-bold);
+  flex: 1 1 0;
+  min-width: 0;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  border-radius: var(--r-sm);
+  border: var(--edge-bold) dashed var(--crease-bold);
   background: var(--board-glass);
-  transition: box-shadow 0.3s;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+  transition: box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
 }
 
 .play-slot.revealed {
-  box-shadow: 0 0 8px var(--st-reveal);
+  border-style: solid;
+  border-color: var(--slot-color, var(--crease-bold));
+  color: var(--ink);
+  box-shadow: 0 0 10px var(--reveal-glow, var(--st-reveal));
+}
+
+.play-slot.hidden-pick {
+  border-style: dashed;
+  color: var(--ink-faint);
 }
 
 .play-slot.face-up {
@@ -51,19 +66,6 @@
   display: flex;
   align-items: center;
   color: var(--ink-mid);
-}
-
-/* ── Colour Pick Slots (compact, hidden-until-reveal) ────────────────────── */
-
-.combat-slot {
-  transition: opacity 250ms ease, filter 250ms ease;
-}
-
-.combat-slot.is-hidden {
-  opacity: 0.75;
-  filter: grayscale(0.6);
-}
-
-.combat-slot.is-hidden .slot-value {
-  font-family: monospace;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
 }

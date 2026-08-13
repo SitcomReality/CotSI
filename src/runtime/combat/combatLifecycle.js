@@ -7,7 +7,7 @@ import {
   getFinishAttackerTurn,
 } from './combatState.js';
 
-import { renderCombat } from '../../ui/combat/combatRenderer.js';
+import { renderCombat } from './combatRender.js';
 import { showModal, hideModal } from '../../ui/modals/modalShell.js';
 import { runCombatFlow } from './combatFlow.js';
 

@@ -12,7 +12,7 @@ let _previousOrderKey = null;
  * Render the combat modal from the active combat object.
  * @param {object} _combatUI — the active combat state
  */
-export function renderCombat(_combatUI) {
+export function renderCombat(_combatUI, portraits = {}) {
   initOrderPulse();
   if (!_combatUI) return;
   const _humanSide = getHumanSide(_combatUI);
@@ -24,10 +24,10 @@ export function renderCombat(_combatUI) {
 
   // Combatant cards – rebuild from VM
   document.getElementById('leftCombat').replaceChildren(
-    combatantCard(vm.first, vm.activeSide === 'first', vm.phase)
+    combatantCard(vm.first, vm.activeSide === 'first', vm.phase, portraits.first)
   );
   document.getElementById('rightCombat').replaceChildren(
-    combatantCard(vm.second, vm.activeSide === 'second', vm.phase)
+    combatantCard(vm.second, vm.activeSide === 'second', vm.phase, portraits.second)
   );
 
   // Pick slots
@@ -83,38 +83,52 @@ function initOrderPulse() {
 
 // ─── Combatant card builder ──────────────────────────────────────────────
 
-function combatantCard(vm, isActivePicker, phase) {
+function combatantCard(vm, isActivePicker, phase, portraitUrl) {
   const classes = ['combatant-card'];
   if (isActivePicker) classes.push('is-active');
 
-  return h('div', { class: classes.join(' '), dataSide: vm.side },
-    // Name with faction color via custom property
-    h('h3', {
+  const portrait = portraitUrl
+    ? h('img', { class: 'combatant-portrait', src: portraitUrl, alt: vm.name })
+    : h('div', { class: 'combatant-portrait combatant-portrait--fallback' },
+        svgIcon(vm.factionGlyph || 'g-crucible', 40));
+
+  return h('div', {
+      class: classes.join(' '),
+      dataSide: vm.side,
       style: {
         '--faction-color': vm.factionColor,
-        color: 'var(--faction-color)',
+        '--faction-base': vm.factionBase,
+        '--faction-ui': vm.factionUi,
+        '--faction-ui-glow': vm.factionUiGlow,
       },
-    }, vm.name),
+    },
+    // Portrait (3D snapshot, glyph fallback) framed as a painted piece
+    h('div', { class: 'combatant-portrait-frame' }, portrait),
 
-    // Badges row: role (First/Second) and optional Attacker marker
-    h('div', { class: 'combatant-badges' },
-      h('span', { class: 'badge badge-order' }, vm.roleLabel),
-      vm.isAttacker
-        ? h('span', { class: 'badge badge-attacker' }, 'Attacker')
-        : null
-    ),
+    h('div', { class: 'combatant-body' },
+      // Name with faction chroma via custom property
+      h('h3', { class: 'combatant-name' }, vm.name),
 
-    // HP bar
-    h('div', { class: 'hpbar' },
-      h('div', { class: 'hpfill', style: { width: vm.hpPct + '%' } }),
-    ),
+      // Badges row: role (First/Second) and optional Attacker marker
+      h('div', { class: 'combatant-badges' },
+        h('span', { class: 'badge badge-order' }, vm.roleLabel),
+        vm.isAttacker
+          ? h('span', { class: 'badge badge-attacker' }, 'Attacker')
+          : null
+      ),
 
-    // HP text
-    h('div', { class: 'mini' }, `${vm.hp} / ${vm.maxHp} HP`),
+      // HP bar
+      h('div', { class: 'hpbar' },
+        h('div', { class: 'hpfill', style: { width: vm.hpPct + '%' } }),
+      ),
 
-    // Potency grid
-    h('div', { class: 'combat-potencys' },
-      ...vm.pots.map(pot => buildPip(pot, phase)),
+      // HP text
+      h('div', { class: 'mini combatant-hp' }, `${vm.hp} / ${vm.maxHp} HP`),
+
+      // Potency grid
+      h('div', { class: 'combat-potencys' },
+        ...vm.pots.map(pot => buildPip(pot, phase)),
+      ),
     ),
   );
 }

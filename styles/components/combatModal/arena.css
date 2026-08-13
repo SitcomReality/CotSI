@@ -1,10 +1,51 @@
 /* =========================================================================
-   COMBAT MODAL — Arena Grid
-   Three-column layout: challenger | VS | defender
+   CONFRONTATION — Arena Grid
+   Reusable duel/exchange skeleton: participant | stage | participant.
+   Combat renders two combatant plates around a centre stage; trade will reuse
+   this same three-zone layout (shopper | price | trader).
    ========================================================================= */
 
-.combat-arena {
+.confrontation-arena {
   display: grid;
-  grid-template-columns: 1fr 86px 1fr;
-  gap: 14px;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--s4);
+  align-items: stretch;
+}
+
+/* Each participant column just hosts its plate; the card stretches to fill. */
+.confrontation-side {
+  min-width: 0;
+}
+
+.confrontation-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-width: 248px;
+  max-width: 320px;
+  padding: var(--s3);
+  background: var(--board-glass);
+  border: var(--edge) solid var(--crease);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-panel);
+  box-sizing: border-box;
+}
+
+/* Footer (log + flee) sits below the arena, full width. */
+.confrontation-footer {
+  margin-top: var(--s3);
+  text-align: center;
+}
+
+/* ── Portrait: stack the three zones vertically on narrow screens ──────── */
+@media (max-width: 720px) {
+  .confrontation-arena {
+    grid-template-columns: 1fr;
+  }
+  .confrontation-stage {
+    min-width: 0;
+    max-width: none;
+  }
 }

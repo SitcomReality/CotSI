@@ -18,7 +18,7 @@ import { G } from '../../game/state/liveGame.js';
 import { getCombatUI, setFinishAttackerTurn } from './combatState.js';
 import { toast } from '../../ui/hud.js';
 import { FLEE_ROUND_DELAY } from '../../params/game/combatParams.js';
-import { renderCombat } from '../../ui/combat/combatRenderer.js';
+import { renderCombat } from './combatRender.js';
 import { registerAction } from '../../shared/actionBus.js';
 import { closeCombat } from './combatLifecycle.js';
 import { runCombatFlow } from './combatFlow.js';

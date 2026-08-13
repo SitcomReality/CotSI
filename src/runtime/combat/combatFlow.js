@@ -15,7 +15,7 @@ import {
 
 import { G } from '../../game/state/liveGame.js';
 import { getCombatUI, wait } from './combatState.js';
-import { renderCombat } from '../../ui/combat/combatRenderer.js';
+import { renderCombat } from './combatRender.js';
 import { closeCombat } from './combatLifecycle.js';
 import { animateReveal } from '../../ui/combat/combatReveal.js';
 import { handleRoundEnd } from './combatRoundEnd.js';

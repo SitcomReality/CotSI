@@ -1,8 +1,22 @@
 /* =========================================================================
-   COMBAT MODAL — HP Bar Transition
-   Duplicated from stats.css so combat HP bars always get the transition
-   even when rendered outside the standard stat panel.
+   CONFRONTATION — HP Bar
+   Base track + fill for combatant HP bars, plus the drain transition the FX
+   (drainHp) relies on.
    ========================================================================= */
+
+.hpbar {
+  height: 10px;
+  background: var(--shadow);
+  border: var(--hair) solid var(--crease-bold);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+
+.hpfill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--verdigris), var(--verdigris));
+  border-radius: var(--r-pill);
+}
 
 #combatModal .hpfill {
   transition: width var(--dur-slow) var(--ease-out);

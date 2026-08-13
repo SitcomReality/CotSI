@@ -1,12 +1,13 @@
 /* =========================================================================
-   COMBAT MODAL — VS Column (centre cell)
+   CONFRONTATION — Stage (centre column)
+   VS mark, turn order, awaiting prompt, the reveal slots, and the score bar.
    ========================================================================= */
 
-.vs-cell {
+.stage-vs {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 2px;
 }
 
 .vs-text {
@@ -14,16 +15,46 @@
   font-size: 22px;
   color: var(--gold);
   font-weight: 800;
+  line-height: 1;
 }
 
 .combat-order {
-  font-size: 11px;
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+  text-align: center;
+}
+
+.awaiting-prompt {
+  min-height: var(--fs-sm);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  text-align: center;
+}
+
+/* ── Score Bar ───────────────────────────────────────────────────────────── */
+
+.score-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s2);
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--ink-mid);
 }
 
-.combat-actions {
+.cs-big {
+  display: inline-block;
+  min-width: 2ch;
   text-align: center;
-  margin-top: 8px;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--ink);
 }
 
 /* ── Order Pulse ──────────────────────────────────────────────────────────── */
