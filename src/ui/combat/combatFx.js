@@ -72,7 +72,7 @@ export function clashPulse(reveal, modalEl) {
   for (const pip of allPips) {
     const idx = Number(pip.dataset.faction);
     if (idx === fIdx) {
-      tok.classList.add(fWins ? 'clash-win' : 'clash-lose');
+      pip.classList.add(fWins ? 'clash-win' : 'clash-lose');
     }
     if (idx === sIdx) {
       pip.classList.add(sWins ? 'clash-win' : 'clash-lose');
