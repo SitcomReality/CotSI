@@ -1,6 +1,5 @@
 import { fillRewardModal } from '../modals/rewardModal.js';
 import { showModal } from '../modals/modalShell.js';
-import { toast } from '../hud.js';
 
 /**
  * Open the reward modal after combat victory.
@@ -20,20 +19,4 @@ export function openRewardModal(champ, rew) {
     rewards: rew.rewards,
   });
   showModal('rewardModal');
-}
-
-/**
- * Show a trader offer via toast (stays as-is, not a modal).
- */
-export function openTrader(tr) {
-  const label = (i) => {
-    if (i.kind === 'equipment') return i.item.name;
-    if (i.kind === 'potency') return `${i.qty}× potency`;
-    if (i.kind === 'relic') return `${i.qty}× relic`;
-    return i.kind;
-  };
-  const stock = (tr.stock ?? [])
-    .map((i) => `${label(i)} (${i.cost?.gold ?? 0}g)`)
-    .join(', ');
-  toast(`Trader ${tr.name} offers: ${stock}`);
 }

@@ -1,0 +1,249 @@
+/* =========================================================================
+   TRADE SCREEN — Confrontation convention (shopper | stage | seller).
+   Reuses the shared .confrontation-arena/side/stage/footer grid (combatModal/
+   arena.css) and the shared .combatant-portrait-frame portrait tile
+   (combatModal/combatantCard.css); this file adds the trade-specific plates,
+   offer grid, and price stage.
+   ========================================================================= */
+
+/* ── Participant plate (shopper + seller) ───────────────────────────────── */
+
+.trade-plate {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--s3);
+  background-color: var(--board);
+  background-image:
+    radial-gradient(130% 95% at 50% 0%,
+      color-mix(in srgb, var(--faction-base, #3a3a44) 36%, transparent),
+      transparent 72%),
+    var(--nebula);
+  border: var(--edge) solid var(--crease-bold);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+}
+
+.trade-plate-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.trade-plate-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--faction-color, var(--ink));
+}
+
+/* ── Shopper: wealth + gear ─────────────────────────────────────────────── */
+
+.trade-resources {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.trade-resource {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--board-hi);
+  border: var(--hair) solid var(--crease-bold);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+}
+
+.trade-resource--gold { color: var(--gold); }
+.trade-resource--knot { color: var(--verdigris); }
+
+.trade-gear {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.trade-gear-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s2);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  border-top: var(--hair) solid var(--crease);
+  padding-top: var(--s1);
+}
+
+.trade-gear-slot {
+  color: var(--ink-mid);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: var(--fs-xs);
+}
+
+.trade-gear-name { color: var(--ink); }
+.trade-gear-name.is-empty { color: var(--ink-faint); }
+
+/* ── Seller: offer grid ─────────────────────────────────────────────────── */
+
+.trade-offer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s2);
+}
+
+.trade-offer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s2);
+  border-radius: var(--r-sm);
+  background: var(--board-glass);
+  border: var(--edge) solid var(--crease-bold);
+  cursor: pointer;
+  transition: border-color 150ms var(--ease), transform 150ms var(--ease), box-shadow 150ms var(--ease);
+}
+
+.trade-offer:hover {
+  border-color: var(--gold);
+  background: var(--board-hi);
+}
+
+.trade-offer.is-selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 var(--edge) var(--gold), var(--shadow-glow);
+}
+
+.trade-offer.is-unaffordable {
+  opacity: 0.55;
+}
+
+.trade-offer__label {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.15;
+}
+
+.trade-offer__sub {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+}
+
+/* ── Seller: heal service ───────────────────────────────────────────────── */
+
+.trade-heal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--s1);
+  padding: var(--s2);
+  border-radius: var(--r-sm);
+  background: var(--board-glass);
+  border: var(--edge) dashed var(--crease-bold);
+  cursor: pointer;
+  transition: border-color 150ms var(--ease);
+}
+
+.trade-heal:hover { border-color: var(--verdigris); }
+.trade-heal.is-unaffordable { opacity: 0.55; }
+
+.trade-heal__label {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.trade-heal__cost {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  color: var(--gold);
+}
+
+/* ── Stage: selection + price ───────────────────────────────────────────── */
+
+.trade-stage-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  text-align: center;
+}
+
+.trade-stage-mark {
+  font-family: Georgia, serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.trade-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.trade-selection__label {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.trade-selection__sub {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+}
+
+.trade-hint {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+  max-width: 24ch;
+}
+
+.trade-cost-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--s1);
+}
+
+.trade-cost {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+
+.trade-cost--gold { color: var(--gold); }
+.trade-cost--knot { color: var(--verdigris); }
+
+/* ── Footer: buy / close ────────────────────────────────────────────────── */
+
+.trade-actions {
+  display: flex;
+  gap: var(--s2);
+  justify-content: center;
+}
+
+.btn.is-unaffordable {
+  opacity: 0.55;
+}
+
+/* ── Portrait: stack the three zones vertically on narrow screens ───────── */
+@media (max-width: 720px) {
+  .trade-offer-grid {
+    grid-template-columns: 1fr;
+  }
+}

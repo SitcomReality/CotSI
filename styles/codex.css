@@ -30,6 +30,7 @@
 @import "./components/setupScreen.css";
 @import "./components/setupControls.css";
 @import "./components/combatModal.css";
+@import "./components/tradeModal.css";
 @import "./components/dispatchModal.css";
 @import "./components/heraldModal.css";
 @import "./components/deathModal.css";

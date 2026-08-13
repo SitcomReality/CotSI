@@ -16,6 +16,7 @@ import { registerAction, initModalActions } from '../shared/actionBus.js';
 import { preloadTemplates, loadTemplate } from '../ui/templates/templateLoader.js';
 import { onEndTurn } from './endTurn.js';
 import { initCombat } from './combat/index.js';
+import { initTrade } from './trade/trade.js';
 import { toast } from '../ui/hud.js';
 import { finishTurn } from '../game/state/worldSimulation.js';
 import { G } from '../game/state/liveGame.js';
@@ -39,6 +40,7 @@ const CRITICAL_TEMPLATES = [
   'setupScreen',
   'gameLayout',
   'combatModal',
+  'tradeModal',
   'rewardModal',
   'dispatchModal',
   'heraldModal',
@@ -65,6 +67,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadTemplate('setupScreen').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('gameLayout').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('combatModal').then(({ frag }) => root.appendChild(frag));
+    await loadTemplate('tradeModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('rewardModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('dispatchModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('heraldModal').then(({ frag }) => root.appendChild(frag));
@@ -80,6 +83,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         hideBotIndicator();
       },
     });
+    initTrade();
 
     // Enable dev performance instrumentation
     enableAllMeasurements();

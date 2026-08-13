@@ -14,10 +14,10 @@ import { setPathPreview } from '../render/overlays/overlayStack.js';
 import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
 import { parseKey, distance, coordKey } from '../engine/rules/hexGrid.js';
 import { startCombat } from './combat/index.js';
-import { openTrader } from '../ui/combat/combatRewardUI.js';
+import { openTradeWithTrader, openTradeWithBase } from './trade/trade.js';
 import { pulseEnd, toast } from '../ui/hud.js';
 import { FACTIONS } from '../game/rules/factionData.js';
-import { interactBase } from '../game/state/baseInteraction.js';
+import { sanctuaryAtBase } from '../game/state/baseInteraction.js';
 import { setGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { handleTeleportClick } from '../devtools/devTools.js';
 import { animateCenterOnHex, getSceneContext } from '../render/hexmap3d/hexMapRenderer.js';
@@ -136,16 +136,20 @@ export function onHexClick(key) {
   // Adjacent trader → trade
   if (trader && dist === 1) {
     cancelPendingPreview();
-    openTrader(trader);
+    openTradeWithTrader(trader);
     return;
   }
 
-  // Adjacent base → interact
+  // Adjacent base → own faction: sanctuary; foreign: open the trade screen
   if (tile.feature?.kind === 'base' && dist === 1) {
     cancelPendingPreview();
-    const result = interactBase(ch, tile);
-    if (!result.ok) toast(result.reason);
-    refreshAll();
+    if (tile.feature.faction === ch.faction) {
+      const result = sanctuaryAtBase(ch, tile);
+      if (!result.ok) toast(result.reason);
+      refreshAll();
+    } else {
+      openTradeWithBase(tile.feature.faction);
+    }
     return;
   }
 
