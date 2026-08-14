@@ -52,7 +52,7 @@ export function runMobHarassment(state) {
               const tile = state.tiles[k];
               return tile &&
                 !isTerrainBlocked(mob, tile.terrain) &&
-                terrainCost(mob, tile.terrain) <= mob.actionPoints &&
+                terrainCost(mob, tile.terrain, tile.biomeId) <= mob.actionPoints &&
                 !tile.feature &&
                 !occupiedByChampion(state, k) &&
                 !occupiedByMob(state, k) &&
@@ -61,7 +61,7 @@ export function runMobHarassment(state) {
           );
         if (!opts.length) break;
         const key = opts[Math.floor(state._rng() * opts.length)];
-        mob.actionPoints -= terrainCost(mob, state.tiles[key].terrain);
+        mob.actionPoints -= terrainCost(mob, state.tiles[key].terrain, state.tiles[key].biomeId);
         const oldKey = coordKey(mob.pos);
         mob.pos = parseKey(key);
         updateSpatialIndex(state, oldKey, coordKey(mob.pos), mob, 'mob');

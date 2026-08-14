@@ -82,7 +82,7 @@ export function runBotTurn(state){
       // or another champion — even as the path target. Feature hexes are
       // destination-only (never routed through), matching movementRange.
       if (key !== coordKey(target.pos) && tile.feature) return Infinity;
-      return canChampionEnter(state, key, champ) ? terrainCost(champ, tile.terrain) : Infinity;
+      return canChampionEnter(state, key, champ) ? terrainCost(champ, tile.terrain, tile.biomeId) : Infinity;
     }
   );
   if(!path || !path.length) return {action:'end'};
@@ -90,7 +90,7 @@ export function runBotTurn(state){
   const steps = [];
   let budget = champ.actionPoints;
   for (const hex of path) {
-    const cost = terrainCost(champ, state.tiles[coordKey(hex)].terrain);
+    const cost = terrainCost(champ, state.tiles[coordKey(hex)].terrain, state.tiles[coordKey(hex)].biomeId);
     // cost <= 0 would walk without spending AP — disallowed by the ladder
     // (every cost ≥ 1); guard so the re-decide loop can never spin forever.
     if (cost <= 0 || cost > budget) break;

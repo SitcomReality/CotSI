@@ -53,7 +53,7 @@ export function createMobs({ tiles, rand, used, radius }) {
     const pseudo = { archetypeId: archetype.id }; // shape for terrainCost lookup
 
     const land = landPool.filter(k => !used.has(k) && !isTerrainBlocked(pseudo, tiles[k].terrain));
-    const water = waterPool.filter(k => !used.has(k) && Number.isFinite(terrainCost(pseudo, tiles[k].terrain)));
+    const water = waterPool.filter(k => !used.has(k) && Number.isFinite(terrainCost(pseudo, tiles[k].terrain, tiles[k].biomeId)));
     const pool = [...land, ...water];
     if (!pool.length) break;
 

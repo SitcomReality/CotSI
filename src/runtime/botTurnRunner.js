@@ -157,7 +157,7 @@ export async function runBot() {
           const fromY = fromTile ? tileSurfaceY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
           const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
 
-          moveChampion(G, ch, key, terrainCost(ch, G.tiles[key].terrain));
+          moveChampion(G, ch, key, terrainCost(ch, G.tiles[key].terrain, G.tiles[key].biomeId));
 
           // World-space destination after mutation
           const toTile = G.tiles[key];

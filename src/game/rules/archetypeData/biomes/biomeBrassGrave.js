@@ -1,6 +1,6 @@
 /**
- * biomeBrassGrave.js — 'Brass Grave' biome.
- * A supernatural biome of warm brass-toned wasteland with unique features.
+ * biomeBrassGrave.js — 'Titanstain' biome.
+ * A supernatural biome of cold titanflesh and titanblood, with unique features.
  */
 
 import { defineArchetype } from '../../archetypes.js';
@@ -8,7 +8,7 @@ import { defineArchetype } from '../../archetypes.js';
 defineArchetype('biome_brass_grave', {
   type: 'biome',
   id: 'biome_brass_grave',
-  name: 'Brass Grave',
+  name: 'Titanstain',
   origin: 'supernatural',
 
   epicenter: {
@@ -59,6 +59,23 @@ defineArchetype('biome_brass_grave', {
   colors: {
     primary: [0.710, 0.630, 0.420], // #b5a16b — warm brass
     accent: [0.600, 0.680, 0.720],  // #99adb8 — cold patina teal
+  },
+  // Supernatural terrain supersede: mountains stay Titanflesh Mountain, water
+  // becomes titanblood, and every other hex is Titanflesh. movementCost is
+  // uniform (no faction terrain bonuses apply) — see terrainOverrides.js.
+  terrainOverrides: {
+    mountain:    { name: 'Titanflesh Mountain' },
+    water:       { name: 'Titanblood' },
+    ice:         { name: 'Frozen Titanblood' },
+    river:       { name: 'Titanblood River', movementCost: 30 },
+    plains:      { name: 'Titanflesh', movementCost: 10 },
+    beach:       { name: 'Titanflesh', movementCost: 10 },
+    desert:      { name: 'Titanflesh', movementCost: 10 },
+    marsh:       { name: 'Titanflesh', movementCost: 15 },
+    hill:        { name: 'Titanflesh', movementCost: 12 },
+    plateau:     { name: 'Titanflesh', movementCost: 15 },
+    forest:      { name: 'Titanflesh', movementCost: 12 },
+    denseForest: { name: 'Titanflesh', movementCost: 20 },
   },
   terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid'],

@@ -1,5 +1,5 @@
 import { svgIcon } from './svgIcon.js';
-import { TERRAIN } from '../game/rules/terrainTypes.js';
+import { terrainDisplayName } from '../game/rules/terrainOverrides.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { terrainCost } from '../game/rules/movementCosts.js';
 import { getArchetype } from '../game/rules/archetypes.js';
@@ -35,7 +35,7 @@ export function getTooltipContent(gameState, key, activeChampion) {
    *  routes are click-to-preview, dev/docs/movementAndOccupation.md §5) ---- */
   let costText = null;
   if (activeChampion && activeChampion.controller === 'human') {
-    costText = `${TERRAIN[t.terrain].label} · ${terrainCost(activeChampion, t.terrain)} AP`;
+    costText = `${terrainDisplayName(t.biomeId, t.terrain)} · ${terrainCost(activeChampion, t.terrain, t.biomeId)} AP`;
   }
 
   /* ---- feature (mutable state — only shown for currently-visible hexes) ---- */
@@ -50,7 +50,7 @@ export function getTooltipContent(gameState, key, activeChampion) {
   const lines = [
     h('span', { class: 'hex-tooltip__coords' },
       h('b', {}, key),
-      ` — ${costText ?? TERRAIN[t.terrain].label}`
+      ` — ${costText ?? terrainDisplayName(t.biomeId, t.terrain)}`
     ),
     ...maybe(featureDesc,
       h('span', { class: 'hex-tooltip__feature' }, featureDesc)

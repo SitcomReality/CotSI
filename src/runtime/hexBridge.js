@@ -60,7 +60,7 @@ function walkPath(ch, pathKeys) {
     const fromTile = G.tiles[coordKey(ch.pos)];
     const fromY = fromTile ? tileSurfaceY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
     const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
-    const cost = terrainCost(ch, G.tiles[key].terrain);
+    const cost = terrainCost(ch, G.tiles[key].terrain, G.tiles[key].biomeId);
     moveChampion(G, ch, key, cost);
     // Capture world-space destination after mutation
     const toTile = G.tiles[key];

@@ -7,7 +7,7 @@
  * No DOM, no mutation — takes state as a parameter.
  */
 import { FACTIONS, ARTIFACTS } from './factionData.js';
-import { TERRAIN } from './terrainTypes.js';
+import { terrainDisplayName } from './terrainOverrides.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
 import { DAYS_PER_WEEK } from '../../params/game/worldParams.js';
 import { HOLLOW_HP_GROUP_SIZE, HOLLOW_WEEK_BLOCK } from '../../params/game/combatParams.js';
@@ -150,7 +150,7 @@ function factionEffects(state, champ, effects) {
 function terrainEffects(state, champ, effects) {
   const tile = state.tiles[coordKey(champ.pos)];
   if (!tile) return;
-  const label = TERRAIN[tile.terrain]?.label || tile.terrain;
+  const label = terrainDisplayName(tile.biomeId, tile.terrain);
   let text = `Standing on ${label}.`;
   const f = tile.feature;
   if (f?.kind === 'base') {

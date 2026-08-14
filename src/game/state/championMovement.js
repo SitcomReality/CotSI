@@ -39,7 +39,7 @@ export function movementRange(state, champ) {
     for (const n of neighbors(parseKey(cur))) {
       const key = coordKey(n);
       if (isBlockedForMovement(state, key, champ)) continue;
-      const nc = cc + terrainCost(champ, state.tiles[key].terrain);
+      const nc = cc + terrainCost(champ, state.tiles[key].terrain, state.tiles[key].biomeId);
       if (nc <= champ.actionPoints && (costs.get(key) === undefined || nc < costs.get(key))) {
         costs.set(key, nc);
         cameFrom.set(key, cur);
@@ -93,14 +93,14 @@ export function pathToward(state, champ, targetKey, range = movementRange(state,
     const tile = state.tiles[key];
     if (!tile) return Infinity;
     if (key !== targetKey && tile.feature) return Infinity; // destinations only
-    return canChampionEnter(state, key, champ) ? terrainCost(champ, tile.terrain) : Infinity;
+    return canChampionEnter(state, key, champ) ? terrainCost(champ, tile.terrain, tile.biomeId) : Infinity;
   });
   if (!full || !full.length) return null;
   const path = [];
   let budget = champ.actionPoints;
   for (const hex of full) {
     const key = coordKey(hex);
-    const cost = terrainCost(champ, state.tiles[key].terrain);
+    const cost = terrainCost(champ, state.tiles[key].terrain, state.tiles[key].biomeId);
     // cost <= 0 would walk without spending AP — disallowed by the ladder
     // (every cost ≥ 1); guard so callers can never loop on free steps.
     if (cost <= 0 || cost > budget) break;

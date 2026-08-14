@@ -43,7 +43,7 @@ export function runTraderMovement(state) {
           occupiedByChampion(state, nk) || occupiedByMob(state, nk) || occupiedByTrader(state, nk)) {
         break; // blocked — wait out the day
       }
-      const cost = terrainCost(tr, tile.terrain);
+      const cost = terrainCost(tr, tile.terrain, tile.biomeId);
       if (cost > tr.actionPoints) break; // cannot afford the next step
       const oldKey = coordKey(tr.pos);
       tr.pos = { q: bestNbr.q, r: bestNbr.r };

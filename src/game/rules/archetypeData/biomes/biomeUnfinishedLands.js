@@ -60,6 +60,23 @@ defineArchetype('biome_unfinished_lands', {
     primary: [0.940, 0.740, 0.800], // #f0bdcc — light pink
     accent: [0.300, 0.850, 1.000],  // #4dd9ff — electric blue
   },
+  // Supernatural terrain supersede: the regular terrain is re-presented as a
+  // half-formed analogue. movementCost is uniform (no faction terrain bonuses
+  // apply) — see terrainOverrides.js.
+  terrainOverrides: {
+    water:       { name: 'Forespring' },
+    ice:         { name: 'Forespring' },
+    river:       { name: 'Forespring', movementCost: 30 },
+    plains:      { name: 'Yetlands', movementCost: 10 },
+    beach:       { name: 'Yetlands', movementCost: 10 },
+    desert:      { name: 'Yetlands', movementCost: 10 },
+    plateau:     { name: 'Yetlands', movementCost: 15 },
+    mountain:    { name: 'Sky Stalagmite' },
+    forest:      { name: 'Protogrowth', movementCost: 12 },
+    denseForest: { name: 'Protogrowth', movementCost: 20 },
+    marsh:       { name: 'Protogrowth', movementCost: 15 },
+    hill:        { name: 'Half-Hewn Rise', movementCost: 12 },
+  },
   terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid', 'temperate'],
 });

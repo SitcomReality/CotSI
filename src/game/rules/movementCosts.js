@@ -20,6 +20,7 @@
 import { TERRAIN } from './terrainTypes.js';
 import { FACTIONS } from './factionData.js';
 import { getArchetype } from './archetypes.js';
+import { terrainOverride } from './terrainOverrides.js';
 
 /**
  * Sparse per-entity terrain-cost overrides, or null when the entity has none.
@@ -41,11 +42,18 @@ export function terrainCostOverrides(entity) {
 
 /**
  * Effective AP cost for an entity stepping onto a terrain. Infinity = blocked.
+ *
+ * A biome terrain override (`biomeId` → `terrainOverrides[terrain]`) supplies
+ * a uniform cost that every entity pays — supernatural biomes strip faction
+ * terrain bonuses so their terrains feel disruptive and faction-neutral.
  * @param {object|null} entity
  * @param {string} terrain — a TERRAIN key
+ * @param {string|null} [biomeId] — tile's biomeId; absent = no override
  * @returns {number}
  */
-export function terrainCost(entity, terrain) {
+export function terrainCost(entity, terrain, biomeId) {
+  const override = terrainOverride(biomeId, terrain);
+  if (override?.movementCost !== undefined) return override.movementCost;
   const base = TERRAIN[terrain]?.movementCost ?? Infinity;
   const overrides = terrainCostOverrides(entity);
   return overrides?.[terrain] ?? base;
