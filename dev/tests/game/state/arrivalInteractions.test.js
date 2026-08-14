@@ -1,10 +1,10 @@
 /**
  * arrivalInteractions.test.js — Resource harvesting on champion arrival
- * (src/game/state/arrivalInteractions.js): Blessed Font drinking and knot mining.
+ * (src/game/state/features/arrivalInteractions.js): Blessed Font drinking and knot mining.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { interactOnArrival } from '../../../../src/game/state/arrivalInteractions.js';
+import { interactOnArrival } from '../../../../src/game/state/features/arrivalInteractions.js';
 import { makeChampion, makeState, makeTile } from '../../helpers/stateFixture.js';
 import { coordKey } from '../../../../src/engine/rules/hexGrid.js';
 

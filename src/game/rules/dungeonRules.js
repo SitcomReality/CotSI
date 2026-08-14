@@ -1,6 +1,6 @@
 /**
  * dungeonRules.js — Pure dungeon rules (placement math, re-entry timing).
- * Game-specific logic only; state mutations live in game/state/dungeonSystem.js.
+ * Game-specific logic only; state mutations live in game/state/features/dungeonSystem.js.
  */
 import { DUNGEON_COUNT_DIVISOR, DUNGEON_REENTRY_DELAY_DAYS } from '../../params/game/dungeonParams.js';
 

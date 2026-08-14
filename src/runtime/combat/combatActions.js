@@ -23,7 +23,7 @@ import { registerAction } from '../../shared/actionBus.js';
 import { closeCombat } from './combatLifecycle.js';
 import { runCombatFlow } from './combatFlow.js';
 import { refreshAll } from '../refreshAll.js';
-import { fleeDungeon } from '../../game/state/dungeonSystem.js';
+import { fleeDungeon } from '../../game/state/features/dungeonSystem.js';
 
 // ---- Pick ----
 function pickCombatPower(combat, side, factionIdx) {

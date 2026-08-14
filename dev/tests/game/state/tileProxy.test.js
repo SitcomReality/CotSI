@@ -1,10 +1,10 @@
 /**
  * tileProxy.test.js — Backward-compatible state.tiles Proxy backed by chunk
- * storage (src/game/state/tileProxy.js).
+ * storage (src/game/state/world/tileProxy.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createTileProxy } from '../../../../src/game/state/tileProxy.js';
+import { createTileProxy } from '../../../../src/game/state/world/tileProxy.js';
 import { makeState } from '../../helpers/stateFixture.js';
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../../../src/engine/rules/chunkGrid.js';
 

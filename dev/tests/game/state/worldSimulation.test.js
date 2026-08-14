@@ -1,11 +1,11 @@
 /**
  * worldSimulation.test.js — End-of-round world simulation and turn
- * advancement (src/game/state/worldSimulation.js): finishTurn night actions
+ * advancement (src/game/state/world/worldSimulation.js): finishTurn night actions
  * and advanceTurn's order → world turn → dead-champion → victory branches.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { finishTurn, advanceTurn } from '../../../../src/game/state/worldSimulation.js';
+import { finishTurn, advanceTurn } from '../../../../src/game/state/world/worldSimulation.js';
 import { makeChampion, makeMob, makeState, makeTile } from '../../helpers/stateFixture.js';
 import { WEATHER_SCRIPT } from '../../../../src/game/rules/weatherScript.js';
 

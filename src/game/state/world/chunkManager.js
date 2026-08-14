@@ -15,11 +15,11 @@
  * its chunk) and amortized by background pre-generation of a buffer radius
  * ahead of each champion, scheduled by the runtime on the clock's 'bot' group.
  */
-import { tileToChunk, chunkKey, chunkKeyFromTile, localCoord, localKey, hexesInChunk } from '../../engine/rules/chunkGrid.js';
-import { generateChunkTiles } from '../rules/terrainGen/chunkGeneration.js';
-import { getArchetype } from '../rules/archetypes.js';
-import { chunkKeysWithinCap, humanChampionPositions } from '../../engine/rules/sightCull.js';
-import { CHUNK_EVICTION_GRACE_DAYS } from '../../params/game/chunkParams.js';
+import { tileToChunk, chunkKey, chunkKeyFromTile, localCoord, localKey, hexesInChunk } from '../../../engine/rules/chunkGrid.js';
+import { generateChunkTiles } from '../../rules/terrainGen/chunkGeneration.js';
+import { getArchetype } from '../../rules/archetypes.js';
+import { chunkKeysWithinCap, humanChampionPositions } from '../../../engine/rules/sightCull.js';
+import { CHUNK_EVICTION_GRACE_DAYS } from '../../../params/game/chunkParams.js';
 
 /** Whether a hex lies inside the map disc for the given radius. */
 export function isInMap(state, q, r) {

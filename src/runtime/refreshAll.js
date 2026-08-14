@@ -1,4 +1,4 @@
-import { checkVictory } from '../game/state/victoryChecks.js';
+import { checkVictory } from '../game/state/world/victoryChecks.js';
 
 import { refreshMap } from './mapRefresh.js';
 
@@ -18,7 +18,7 @@ import { G, currentChamp, isTurnLocked } from '../game/state/liveGame.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { getCombatUI } from './combat/combatState.js';
 import { startCombat } from './combat/index.js';
-import { createDungeonBattle } from '../game/state/dungeonSystem.js';
+import { createDungeonBattle } from '../game/state/features/dungeonSystem.js';
 import { getAnimatingIds } from '../render/hexmap3d/units/index.js';
 import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { BOT_AUTO_DELAY_MS } from '../params/ui/uiParams.js';

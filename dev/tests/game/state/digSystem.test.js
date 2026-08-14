@@ -1,10 +1,10 @@
 /**
  * digSystem.test.js — Pending dig resolution and dig eligibility
- * (src/game/state/digSystem.js).
+ * (src/game/state/features/digSystem.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolvePendingDig, isDigEligible } from '../../../../src/game/state/digSystem.js';
+import { resolvePendingDig, isDigEligible } from '../../../../src/game/state/features/digSystem.js';
 import { makeChampion, makeMob, makeState, makeTile } from '../../helpers/stateFixture.js';
 
 /** Sequence-driven RNG: returns queued values in order, then 0.5. */

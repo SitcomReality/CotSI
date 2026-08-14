@@ -5,21 +5,21 @@
  * Mob harassment and trader movement have been extracted to
  * mobHarassment.js and traderMovement.js respectively.
  */
-import { coordKey } from '../../engine/rules/hexGrid.js';
-import { weatherForDay } from '../rules/weatherScript.js';
-import { getChampion } from './entityQueries.js';
-import { beginTurn, isDigEligible } from './turnActions.js';
-import { interactOnArrival } from './arrivalInteractions.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
+import { weatherForDay } from '../../rules/weatherScript.js';
+import { getChampion } from '../entities/entityQueries.js';
+import { beginTurn, isDigEligible } from '../turnActions.js';
+import { interactOnArrival } from '../features/arrivalInteractions.js';
 import { addLogEntry } from './gameLog.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
 import { checkVictory } from './victoryChecks.js';
-import { startMeasure, endMeasure } from '../../shared/measurements.js';
-import { runMobHarassment } from './mobHarassment.js';
-import { runTraderMovement } from './traderMovement.js';
-import { traderStock } from '../rules/traderStock.js';
-import { DAYS_PER_WEEK } from '../../params/game/worldParams.js';
-import { advanceRegrowth, refillOnRain } from './featureRegrowth.js';
+import { startMeasure, endMeasure } from '../../../shared/measurements.js';
+import { runMobHarassment } from '../movement/mobHarassment.js';
+import { runTraderMovement } from '../movement/traderMovement.js';
+import { traderStock } from '../../rules/traderStock.js';
+import { DAYS_PER_WEEK } from '../../../params/game/worldParams.js';
+import { advanceRegrowth, refillOnRain } from '../features/featureRegrowth.js';
 
 export function finishTurn(state) {
   const champ = getChampion(state, state.activeChampionId);

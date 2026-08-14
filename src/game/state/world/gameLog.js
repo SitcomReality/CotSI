@@ -8,8 +8,8 @@
  * Layer: game/state/ (mutates G.logs)
  */
 
-import { createLogEntry, LOG_CATEGORY } from '../rules/logGrammar.js';
-import { MAX_LOG_ENTRIES } from '../../params/game/worldParams.js';
+import { createLogEntry, LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { MAX_LOG_ENTRIES } from '../../../params/game/worldParams.js';
 
 /**
  * Add a log entry to game state.

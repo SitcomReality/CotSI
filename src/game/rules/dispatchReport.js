@@ -181,7 +181,7 @@ function equipmentEffects(state, champ, effects) {
 const CONTRIBUTORS = [weatherEffects, artifactEffects, factionEffects, terrainEffects, equipmentEffects];
 
 // ── Movement breakdown ──────────────────────────────────────────────────────
-// Parts mirror the inputs of dailyActionPoints (game/state/championMovement.js);
+// Parts mirror the inputs of dailyActionPoints (game/state/movement/championMovement.js);
 // the total is champ.actionPoints as already computed by beginTurn.
 
 function movementReport(state, champ) {

@@ -1,12 +1,12 @@
 /**
  * factionAbilities.js — Start-of-turn faction-specific effects.
  */
-import { FACTIONS } from '../rules/factionData.js';
-import { addLogEntry } from './gameLog.js';
-import { recordLedgerEntry } from './dispatchLedger.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
-import { REVERIE_OUTCOME_RANGE, REVERIE_GOLD_GAIN, REVERIE_AP_BONUS, REVERIE_HP_HEAL, FACTION_COUNT } from '../../params/game/factionParams.js';
+import { FACTIONS } from '../../rules/factionData.js';
+import { addLogEntry } from '../world/gameLog.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
+import { REVERIE_OUTCOME_RANGE, REVERIE_GOLD_GAIN, REVERIE_AP_BONUS, REVERIE_HP_HEAL, FACTION_COUNT } from '../../../params/game/factionParams.js';
 
 export function processReverie(state, ch) {
   const roll = Math.floor(state._rng() * REVERIE_OUTCOME_RANGE);

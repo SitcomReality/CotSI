@@ -5,20 +5,20 @@
  */
 import { G, currentChamp } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
-import { pathToward, moveChampion } from '../game/state/championMovement.js';
+import { pathToward, moveChampion } from '../game/state/movement/championMovement.js';
 import { terrainCost } from '../game/rules/movementCosts.js';
 import { hillFloorY } from '../render/hexmap3d/worldObjects/hillFloor.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
 import { queuePath, isAnimating, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { setPathPreview } from '../render/overlays/overlayStack.js';
-import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
+import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entities/entityQueries.js';
 import { parseKey, distance, coordKey } from '../engine/rules/hexGrid.js';
 import { startCombat } from './combat/index.js';
 import { openTradeWithTrader, openTradeWithBase } from './trade/trade.js';
-import { dungeonEntryBlockReason } from '../game/state/dungeonSystem.js';
+import { dungeonEntryBlockReason } from '../game/state/features/dungeonSystem.js';
 import { pulseEnd, toast } from '../ui/hud.js';
 import { FACTIONS } from '../game/rules/factionData.js';
-import { sanctuaryAtBase } from '../game/state/baseInteraction.js';
+import { sanctuaryAtBase } from '../game/state/features/baseInteraction.js';
 import { setGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { handleTeleportClick } from '../devtools/devTools.js';
 import { animateCenterOnHex, getSceneContext } from '../render/hexmap3d/hexMapRenderer.js';

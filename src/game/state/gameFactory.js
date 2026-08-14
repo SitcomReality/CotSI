@@ -16,16 +16,16 @@ import { getArchetype } from '../rules/archetypes.js';
 import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
 import { shuffle } from '../../engine/rules/shuffle.js';
 import { createInitialState } from './initialGameState.js';
-import { createChampions } from './championFactory.js';
-import { createMobs, createTraders } from './entityFactory.js';
-import { placeDungeons } from './dungeonPlacement.js';
-import { refreshVision } from './fogOfWar.js';
+import { createChampions } from './entities/championFactory.js';
+import { createMobs, createTraders } from './entities/entityFactory.js';
+import { placeDungeons } from './features/dungeonPlacement.js';
+import { refreshVision } from './world/fogOfWar.js';
 import { beginTurn } from './turnActions.js';
-import { rebuildSpatialIndex } from './spatialIndex.js';
-import { createTileProxy } from './tileProxy.js';
+import { rebuildSpatialIndex } from './entities/spatialIndex.js';
+import { createTileProxy } from './world/tileProxy.js';
 import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
 import { startMeasure, endMeasure } from '../../shared/measurements.js';
-import { computeSpawnTargets } from './spawnPosition.js';
+import { computeSpawnTargets } from './entities/spawnPosition.js';
 
 export function createGame({
   seed = 'glut-17',

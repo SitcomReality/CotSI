@@ -3,7 +3,7 @@
  * Maps "q,r" keys to { type, entity } records. Must be rebuilt on entity
  * spawn and updated on entity move / death.
  */
-import { coordKey } from '../../engine/rules/hexGrid.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
 
 export function rebuildSpatialIndex(state) {
   const idx = new Map();

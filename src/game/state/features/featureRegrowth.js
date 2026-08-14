@@ -17,9 +17,9 @@
  *
  * Layer: game/state — mutates state; imports engine, game/state, params.
  */
-import { coordKey } from '../../engine/rules/hexGrid.js';
-import { markChunkDirty } from './chunkDirtyTracking.js';
-import { FEATURE_REGROW_DAYS } from '../../params/game/economyParams.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
+import { markChunkDirty } from '../world/chunkDirtyTracking.js';
+import { FEATURE_REGROW_DAYS } from '../../../params/game/economyParams.js';
 
 /**
  * Mark a replenishable feature as spent and schedule its regrow after `days`.

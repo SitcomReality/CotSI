@@ -23,17 +23,17 @@
  *
  * Layer: game/state — mutates state; may import engine, game/rules, itself.
  */
-import { coordKey } from '../../engine/rules/hexGrid.js';
-import { addLogEntry } from './gameLog.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { buildChampionFactionMap, championSegment, factionAccentVar } from '../rules/logHelpers.js';
-import { recordLedgerEntry } from './dispatchLedger.js';
-import { getArchetype } from '../rules/archetypes.js';
-import { FACTIONS } from '../rules/factionData.js';
-import { markChunkDirty } from './chunkDirtyTracking.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
+import { addLogEntry } from '../world/gameLog.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { buildChampionFactionMap, championSegment, factionAccentVar } from '../../rules/logHelpers.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
+import { getArchetype } from '../../rules/archetypes.js';
+import { FACTIONS } from '../../rules/factionData.js';
+import { markChunkDirty } from '../world/chunkDirtyTracking.js';
 import { depleteFeature } from './featureRegrowth.js';
-import { FACTION_COUNT } from '../../params/game/factionParams.js';
-import { BOT_FEATURE_SCORES, BOT_FEATURE_HEAL_BONUS, BOT_FONT_HP_THRESHOLD } from '../../params/game/aiParams.js';
+import { FACTION_COUNT } from '../../../params/game/factionParams.js';
+import { BOT_FEATURE_SCORES, BOT_FEATURE_HEAL_BONUS, BOT_FONT_HP_THRESHOLD } from '../../../params/game/aiParams.js';
 import {
   FEATURE_RELIC_AMOUNT,
   FEATURE_CRYSTAL_GOLD,
@@ -59,7 +59,7 @@ import {
   FEATURE_SCREAMROOT_HP_COST,
   FEATURE_SCREAMROOT_SAFE_KNOTS,
   FEATURE_CHOICE_MOVEMENT,
-} from '../../params/game/economyParams.js';
+} from '../../../params/game/economyParams.js';
 
 // ── Canonical names ───────────────────────────────────────────────────────────
 // Every feature's display name comes from the archetype registry so UI text and

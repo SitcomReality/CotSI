@@ -4,7 +4,7 @@
  * Tracks which chunks have been modified and need re-rendering.
  * Used by the render layer to skip unmodified chunks.
  */
-import { tileToChunk, chunkKey } from '../../engine/rules/chunkGrid.js';
+import { tileToChunk, chunkKey } from '../../../engine/rules/chunkGrid.js';
 
 // ---------------------------------------------------------------------------
 // Dirty tracking helpers

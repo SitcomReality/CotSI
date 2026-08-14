@@ -2,9 +2,9 @@
  * entityQueries.js — Low-level stateless accessors for champion, mob, trader lookups.
  * Depends only on map utilities (coordKey, parseKey, TERRAIN) and movementCosts.
  */
-import { coordKey, parseKey } from '../../engine/rules/hexGrid.js';
-import { TERRAIN } from '../rules/terrainTypes.js';
-import { isTerrainBlocked } from '../rules/movementCosts.js';
+import { coordKey, parseKey } from '../../../engine/rules/hexGrid.js';
+import { TERRAIN } from '../../rules/terrainTypes.js';
+import { isTerrainBlocked } from '../../rules/movementCosts.js';
 
 /**
  * A hex is considered "vacant" when it has no interactive features and no

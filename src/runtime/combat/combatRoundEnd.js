@@ -13,8 +13,8 @@ import { toast } from '../../ui/hud.js';
 import { renderCombat } from './combatRender.js';
 import { openRewardModal } from '../../ui/combat/combatRewardUI.js';
 import { closeCombat } from './combatLifecycle.js';
-import { resolveDungeonBattleWin } from '../../game/state/dungeonSystem.js';
-import { dailyActionPoints } from '../../game/state/championMovement.js';
+import { resolveDungeonBattleWin } from '../../game/state/features/dungeonSystem.js';
+import { dailyActionPoints } from '../../game/state/movement/championMovement.js';
 import {
   shakeCard,
   flashCard,

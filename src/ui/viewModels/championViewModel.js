@@ -1,5 +1,5 @@
 import { FACTIONS, potencyWithPrimary, ARTIFACTS } from '../../game/rules/factionData.js';
-import { dailyActionPoints } from '../../game/state/championMovement.js';
+import { dailyActionPoints } from '../../game/state/movement/championMovement.js';
 import { CHAMPION_MAX_HP } from '../../params/game/championParams.js';
 
 export function championVM(state, champ) {

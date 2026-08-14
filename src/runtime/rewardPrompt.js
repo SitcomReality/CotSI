@@ -1,9 +1,9 @@
 import { openArtifactChoiceModal } from '../ui/modals/artifactChoiceModal.js';
 import { fillRewardModal } from '../ui/modals/rewardModal.js';
 import { currentChamp } from '../game/state/liveGame.js';
-import { applyFeatureChoice } from '../game/state/featureRewards.js';
+import { applyFeatureChoice } from '../game/state/features/featureRewards.js';
 import { refreshAll } from './refreshAll.js';
-import { addLogEntry } from '../game/state/gameLog.js';
+import { addLogEntry } from '../game/state/world/gameLog.js';
 import { LOG_CATEGORY } from '../game/rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../game/rules/logHelpers.js';
 

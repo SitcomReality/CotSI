@@ -4,13 +4,13 @@
  * After a combat ends, handles spatial cleanup, loot allocation,
  * log entries, and victory checks.
  */
-import { addLogEntry } from '../gameLog.js';
+import { addLogEntry } from '../world/gameLog.js';
 import { LOG_CATEGORY } from '../../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
-import { refreshVision } from '../fogOfWar.js';
-import { checkVictory } from '../victoryChecks.js';
-import { recordLedgerEntry } from '../dispatchLedger.js';
-import { removeFromSpatialIndex } from '../spatialIndex.js';
+import { refreshVision } from '../world/fogOfWar.js';
+import { checkVictory } from '../world/victoryChecks.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
+import { removeFromSpatialIndex } from '../entities/spatialIndex.js';
 import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { FACTIONS } from '../../rules/factionData.js';
 import { LOOT_GOLD_BASE, LOOT_GOLD_RANGE } from '../../../params/game/combatParams.js';

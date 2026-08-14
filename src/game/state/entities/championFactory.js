@@ -3,13 +3,13 @@
  * Orchestrates spawn positioning, base tile placement, and entity
  * construction for all champion factions.
  */
-import { FACTIONS } from '../rules/factionData.js';
-import { parseKey } from '../../engine/rules/hexGrid.js';
-import { nearestOpenKey } from '../rules/tileQueries.js';
+import { FACTIONS } from '../../rules/factionData.js';
+import { parseKey } from '../../../engine/rules/hexGrid.js';
+import { nearestOpenKey } from '../../rules/tileQueries.js';
 import { placeBase } from './basePlacer.js';
-import { startMeasure, endMeasure } from '../../shared/measurements.js';
-import { CHAMPION_STARTING_HP, CHAMPION_MAX_HP, CHAMPION_BASE_AP, CHAMPION_SIGHT_RANGE, CHAMPION_STARTING_GOLD, MIN_BASE_DISTANCE_FLOOR, MIN_BASE_DISTANCE_RADIUS_FRACTION } from '../../params/game/championParams.js';
-import { FACTION_COUNT, DEFAULT_POTENCY, OWN_FACTION_POTENCY } from '../../params/game/factionParams.js';
+import { startMeasure, endMeasure } from '../../../shared/measurements.js';
+import { CHAMPION_STARTING_HP, CHAMPION_MAX_HP, CHAMPION_BASE_AP, CHAMPION_SIGHT_RANGE, CHAMPION_STARTING_GOLD, MIN_BASE_DISTANCE_FLOOR, MIN_BASE_DISTANCE_RADIUS_FRACTION } from '../../../params/game/championParams.js';
+import { FACTION_COUNT, DEFAULT_POTENCY, OWN_FACTION_POTENCY } from '../../../params/game/factionParams.js';
 /**
  * Place champions on the map with even radial distribution.
  *

@@ -1,12 +1,12 @@
 /**
  * trading.test.js — Trader inventory generation and purchase mutations
- * (src/game/rules/traderStock.js + equipment.js, src/game/state/trading.js).
+ * (src/game/rules/traderStock.js + equipment.js, src/game/state/features/trading.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { traderStock, traderHealService } from '../../../src/game/rules/traderStock.js';
 import { EQUIPMENT_CATALOG, POWERFUL_EQUIPMENT } from '../../../src/game/rules/equipment.js';
-import { equipItem, buyFromStock, buyHealing } from '../../../src/game/state/trading.js';
+import { equipItem, buyFromStock, buyHealing } from '../../../src/game/state/features/trading.js';
 import { TRADER_STOCK_SIZE, EQUIP_REFUND_FRACTION } from '../../../src/params/game/economyParams.js';
 
 /** Deterministic RNG (mulberry32) so tests are reproducible. */

@@ -1,10 +1,10 @@
 /**
  * deathTracker.test.js — Centralized death recording
- * (src/game/state/deathTracker.js).
+ * (src/game/state/world/deathTracker.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { recordDeath } from '../../../../src/game/state/deathTracker.js';
+import { recordDeath } from '../../../../src/game/state/world/deathTracker.js';
 import { makeChampion, makeMob, makeState } from '../../helpers/stateFixture.js';
 import { coordKey } from '../../../../src/engine/rules/hexGrid.js';
 

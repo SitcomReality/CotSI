@@ -9,7 +9,7 @@
 import { currentChamp } from '../../game/state/liveGame.js';
 import { FACTIONS } from '../../game/rules/factionData.js';
 import { traderHealService } from '../../game/rules/traderStock.js';
-import { buyFromStock, buyHealing } from '../../game/state/trading.js';
+import { buyFromStock, buyHealing } from '../../game/state/features/trading.js';
 import { portraitForCombatant, traderPortrait, basePortrait, itemPortrait } from '../portraitResolver.js';
 import { getTradeVM } from '../../ui/viewModels/tradeViewModel.js';
 import { renderTrade } from '../../ui/trade/tradeRenderer.js';

@@ -6,10 +6,10 @@
  */
 import { generateTiles } from '../../../../src/game/rules/terrainGen/index.js';
 import { makeRng } from '../../../../src/engine/rules/seededRng.js';
-import { createChampions } from '../../../../src/game/state/championFactory.js';
-import { computeSpawnTargets } from '../../../../src/game/state/spawnPosition.js';
-import { createMobs, createTraders } from '../../../../src/game/state/entityFactory.js';
-import { placeDungeons } from '../../../../src/game/state/dungeonPlacement.js';
+import { createChampions } from '../../../../src/game/state/entities/championFactory.js';
+import { computeSpawnTargets } from '../../../../src/game/state/entities/spawnPosition.js';
+import { createMobs, createTraders } from '../../../../src/game/state/entities/entityFactory.js';
+import { placeDungeons } from '../../../../src/game/state/features/dungeonPlacement.js';
 import { getArchetype } from '../../../../src/game/rules/archetypes.js';
 
 /**

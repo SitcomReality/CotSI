@@ -1,10 +1,10 @@
-import { coordKey, distance, hexesWithinRadius } from '../../engine/rules/hexGrid.js';
-import { weightedFindPath } from '../../engine/rules/pathfinding.js';
-import { TERRAIN } from '../rules/terrainTypes.js';
-import { terrainCost, isTerrainBlocked } from '../rules/movementCosts.js';
+import { coordKey, distance, hexesWithinRadius } from '../../../engine/rules/hexGrid.js';
+import { weightedFindPath } from '../../../engine/rules/pathfinding.js';
+import { TERRAIN } from '../../rules/terrainTypes.js';
+import { terrainCost, isTerrainBlocked } from '../../rules/movementCosts.js';
 import { canChampionEnter, getChampion } from './entityQueries.js';
-import { featureValueForBot } from './featureRewards.js';
-import { BOT_SEARCH_MOVE_MULTIPLIER, BOT_SEARCH_PADDING, BOT_FONT_HP_THRESHOLD, BOT_FONT_SCORE_INJURED, BOT_FONT_SCORE_HEALTHY, BOT_KNOT_SCORE, BOT_EXPLORE_BONUS, BOT_DISTANCE_DECAY, BOT_ATTACK_CHAMPION_HP_THRESHOLD, BOT_ATTACK_CHAMPION_CHANCE, BOT_ATTACK_MOB_HP_THRESHOLD, BOT_ATTACK_MOB_CHANCE } from '../../params/game/aiParams.js';
+import { featureValueForBot } from '../features/featureRewards.js';
+import { BOT_SEARCH_MOVE_MULTIPLIER, BOT_SEARCH_PADDING, BOT_FONT_HP_THRESHOLD, BOT_FONT_SCORE_INJURED, BOT_FONT_SCORE_HEALTHY, BOT_KNOT_SCORE, BOT_EXPLORE_BONUS, BOT_DISTANCE_DECAY, BOT_ATTACK_CHAMPION_HP_THRESHOLD, BOT_ATTACK_CHAMPION_CHANCE, BOT_ATTACK_MOB_HP_THRESHOLD, BOT_ATTACK_MOB_CHANCE } from '../../../params/game/aiParams.js';
 
 export function botChooseTarget(state, champ){
   // Search radius in hexes: sight + the champion's daily reach on open ground

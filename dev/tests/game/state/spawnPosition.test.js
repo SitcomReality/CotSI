@@ -1,11 +1,11 @@
 /**
  * spawnPosition.test.js — Spawn target metrics
- * (src/game/state/spawnPosition.js): determinism, edge placement, and
+ * (src/game/state/entities/spawnPosition.js): determinism, edge placement, and
  * neighbour equidistance for large maps (R=200).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnTarget, computeSpawnTargets } from '../../../../src/game/state/spawnPosition.js';
+import { spawnTarget, computeSpawnTargets } from '../../../../src/game/state/entities/spawnPosition.js';
 import { distance } from '../../../../src/engine/rules/hexGrid.js';
 import { makeRng } from '../../../../src/engine/rules/seededRng.js';
 

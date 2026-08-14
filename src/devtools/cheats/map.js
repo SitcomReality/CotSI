@@ -5,7 +5,7 @@
  */
 
 import { G } from '../../game/state/liveGame.js';
-import { refreshVision, rebuildExploredCache } from '../../game/state/fogOfWar.js';
+import { refreshVision, rebuildExploredCache } from '../../game/state/world/fogOfWar.js';
 import { toast } from '../../ui/hud.js';
 import { devState } from './state.js';
 

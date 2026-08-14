@@ -3,15 +3,15 @@
  * Reads the tile map and the used-hex set, populates the world with
  * mobs and traders on unclaimed passable tiles.
  */
-import { parseKey } from '../../engine/rules/hexGrid.js';
-import { collectSpawnCandidates } from '../rules/tileQueries.js';
-import { listArchetypes, getArchetype } from '../rules/archetypes.js';
-import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
-import { traderStock } from '../rules/traderStock.js';
-import { MIN_MOB_COUNT, MOB_COUNT_RADIUS_MULTIPLIER, NUM_TRADERS, TRADER_DAILY_AP, TRADER_NAMES, MOB_HP_VARIANCE_FRACTION } from '../../params/game/spawnParams.js';
-import { MOB_DAILY_AP } from '../../params/game/worldParams.js';
-import { FACTION_COUNT, MOB_BASE_POTENCY, MOB_OWN_FACTION_POTENCY_BONUS } from '../../params/game/factionParams.js';
-import { terrainCost, isTerrainBlocked } from '../rules/movementCosts.js';
+import { parseKey } from '../../../engine/rules/hexGrid.js';
+import { collectSpawnCandidates } from '../../rules/tileQueries.js';
+import { listArchetypes, getArchetype } from '../../rules/archetypes.js';
+import '../../rules/archetypeData/index.js'; // side-effect: populate archetype registry
+import { traderStock } from '../../rules/traderStock.js';
+import { MIN_MOB_COUNT, MOB_COUNT_RADIUS_MULTIPLIER, NUM_TRADERS, TRADER_DAILY_AP, TRADER_NAMES, MOB_HP_VARIANCE_FRACTION } from '../../../params/game/spawnParams.js';
+import { MOB_DAILY_AP } from '../../../params/game/worldParams.js';
+import { FACTION_COUNT, MOB_BASE_POTENCY, MOB_OWN_FACTION_POTENCY_BONUS } from '../../../params/game/factionParams.js';
+import { terrainCost, isTerrainBlocked } from '../../rules/movementCosts.js';
 
 /**
  * Create mobs on unclaimed tiles the mob's archetype can actually enter.

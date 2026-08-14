@@ -1,15 +1,15 @@
 /**
  * chunkManager.test.js — Lazy chunk lifecycle: on-demand generation, eviction
- * with delta extraction, and deterministic regeneration (src/game/state/chunkManager.js).
+ * with delta extraction, and deterministic regeneration (src/game/state/world/chunkManager.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ensureChunk, ensureChunkForTile, ensureChunksAround, missingChunksAround,
   evictChunks, generateBaseChunk,
-} from '../../../../src/game/state/chunkManager.js';
-import { getTile, setTile } from '../../../../src/game/state/tileAccess.js';
-import { createTileProxy } from '../../../../src/game/state/tileProxy.js';
+} from '../../../../src/game/state/world/chunkManager.js';
+import { getTile, setTile } from '../../../../src/game/state/world/tileAccess.js';
+import { createTileProxy } from '../../../../src/game/state/world/tileProxy.js';
 import { coordKey } from '../../../../src/engine/rules/hexGrid.js';
 import { tileToChunk, chunkKey, chunkKeyFromTile, localCoord, hexesInChunk } from '../../../../src/engine/rules/chunkGrid.js';
 import { CHUNK_EVICTION_GRACE_DAYS } from '../../../../src/params/game/chunkParams.js';

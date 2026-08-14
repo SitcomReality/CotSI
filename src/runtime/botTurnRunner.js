@@ -5,15 +5,15 @@
  */
 import { G, currentChamp, setTurnLock, isTurnLocked } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
-import { finishTurn } from '../game/state/worldSimulation.js';
-import { moveChampion } from '../game/state/championMovement.js';
+import { finishTurn } from '../game/state/world/worldSimulation.js';
+import { moveChampion } from '../game/state/movement/championMovement.js';
 import { terrainCost } from '../game/rules/movementCosts.js';
 import { coordKey } from '../engine/rules/hexGrid.js';
-import { getHumanView } from '../game/state/fogOfWar.js';
+import { getHumanView } from '../game/state/world/fogOfWar.js';
 import { startCombat } from './combat/index.js';
 import { resolveCombatSilently } from '../game/state/combat/combatAutoResolve.js';
 import { FACTIONS } from '../game/rules/factionData.js';
-import { runBotTurn as aiDecide } from '../game/state/championAI.js';
+import { runBotTurn as aiDecide } from '../game/state/entities/championAI.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { showBotIndicator, hideBotIndicator } from '../ui/panels/botIndicator.js';
 import { botTurnDwellMs } from './turnPacing.js';

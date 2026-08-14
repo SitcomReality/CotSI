@@ -6,17 +6,17 @@
  */
 import { renderHexMap3D, getSceneContext, chaseCameraToHex } from '../render/hexmap3d/hexMapRenderer.js';
 import { G, currentChamp } from '../game/state/liveGame.js';
-import { getHumanView } from '../game/state/fogOfWar.js';
-import { movementRange } from '../game/state/championMovement.js';
+import { getHumanView } from '../game/state/world/fogOfWar.js';
+import { movementRange } from '../game/state/movement/championMovement.js';
 import { neighbors, coordKey, parseKey } from '../engine/rules/hexGrid.js';
-import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
+import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entities/entityQueries.js';
 import { initMinimap, renderMinimap, disposeMinimap } from '../render/minimap/minimap.js';
 import { setDerivedState, setInteractionHighlights, setPathPreview } from '../render/overlays/overlayStack.js';
 import { startMeasure, endMeasure } from '../devtools/performance/index.js';
 import { initMap3D, resetInitFlags } from './initMap3d.js';
 import { focusCameraOnHex, getLastCenteredChampionId, setLastCenteredChampionId, resetCameraFocus, updateCameraStartCenter, isCameraPanInFlight } from './mapCamera.js';
-import { clearDirtyFlags, markChunkDirty } from '../game/state/chunkDirtyTracking.js';
-import { ensureChunk, missingChunksAround } from '../game/state/chunkManager.js';
+import { clearDirtyFlags, markChunkDirty } from '../game/state/world/chunkDirtyTracking.js';
+import { ensureChunk, missingChunksAround } from '../game/state/world/chunkManager.js';
 import { occupiedKeys } from '../render/hexmap3d/worldObjects/decorEmphasis.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { BACKGROUND_BUFFER_CHUNKS, BACKGROUND_GEN_SPREAD_MS } from '../params/game/chunkParams.js';

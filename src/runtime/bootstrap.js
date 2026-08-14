@@ -18,7 +18,7 @@ import { onEndTurn } from './endTurn.js';
 import { initCombat } from './combat/index.js';
 import { initTrade } from './trade/trade.js';
 import { toast } from '../ui/hud.js';
-import { finishTurn } from '../game/state/worldSimulation.js';
+import { finishTurn } from '../game/state/world/worldSimulation.js';
 import { G } from '../game/state/liveGame.js';
 import { hideBotIndicator } from '../ui/panels/botIndicator.js';
 import { startMeasure, endMeasure, enableAllMeasurements, getSnapshot, getMeasurementStats, getFps, startCapture, stopCapture, getCaptureReport, isCaptureActive, setGameContext, getGameContext, clearGameContext } from '../devtools/performance/index.js';

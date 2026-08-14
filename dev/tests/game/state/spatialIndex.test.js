@@ -1,6 +1,6 @@
 /**
  * spatialIndex.test.js — Entity-by-hex spatial index
- * (src/game/state/spatialIndex.js).
+ * (src/game/state/entities/spatialIndex.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,7 +8,7 @@ import {
   rebuildSpatialIndex,
   updateSpatialIndex,
   removeFromSpatialIndex,
-} from '../../../../src/game/state/spatialIndex.js';
+} from '../../../../src/game/state/entities/spatialIndex.js';
 import { makeChampion, makeMob, makeState } from '../../helpers/stateFixture.js';
 
 test('rebuildSpatialIndex: indexes alive entities, skips dead', () => {

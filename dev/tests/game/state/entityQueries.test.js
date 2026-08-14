@@ -1,6 +1,6 @@
 /**
  * entityQueries.test.js — Low-level stateless accessors for champion, mob,
- * trader lookups (src/game/state/entityQueries.js).
+ * trader lookups (src/game/state/entities/entityQueries.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +11,7 @@ import {
   occupiedByMob,
   occupiedByTrader,
   isBlockedForMovement,
-} from '../../../../src/game/state/entityQueries.js';
+} from '../../../../src/game/state/entities/entityQueries.js';
 import { makeChampion, makeMob, makeState, makeTile } from '../../helpers/stateFixture.js';
 import { coordKey } from '../../../../src/engine/rules/hexGrid.js';
 

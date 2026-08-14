@@ -5,7 +5,7 @@
  * potency slot), mutating champion resources and the stock array. Pure state
  * mutations — no DOM, no UI. All currency is per-champion (gold + God's Knots).
  */
-import { EQUIP_REFUND_FRACTION } from '../../params/game/economyParams.js';
+import { EQUIP_REFUND_FRACTION } from '../../../params/game/economyParams.js';
 
 /**
  * Equip `item` into its slot, destroying whatever was there and refunding a

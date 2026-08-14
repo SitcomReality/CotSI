@@ -4,8 +4,8 @@
  * Contains the damage application logic for a combat round:
  * comparing scores, applying HP loss, and checking for death.
  */
-import { recordDeath } from '../deathTracker.js';
-import { recordLedgerEntry } from '../dispatchLedger.js';
+import { recordDeath } from '../world/deathTracker.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
 import { deriveOrder } from './combatState.js';
 
 /**

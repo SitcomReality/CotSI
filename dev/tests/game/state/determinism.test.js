@@ -16,11 +16,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createGame } from '../../../../src/game/state/gameFactory.js';
-import { runBotTurn as aiDecide } from '../../../../src/game/state/championAI.js';
-import { finishTurn } from '../../../../src/game/state/worldSimulation.js';
+import { runBotTurn as aiDecide } from '../../../../src/game/state/entities/championAI.js';
+import { finishTurn } from '../../../../src/game/state/world/worldSimulation.js';
 import { resolveCombatSilently } from '../../../../src/game/state/combat/combatAutoResolve.js';
-import { moveChampion } from '../../../../src/game/state/championMovement.js';
-import { getChampion } from '../../../../src/game/state/entityQueries.js';
+import { moveChampion } from '../../../../src/game/state/movement/championMovement.js';
+import { getChampion } from '../../../../src/game/state/entities/entityQueries.js';
 import { coordKey } from '../../../../src/engine/rules/hexGrid.js';
 import { terrainCost } from '../../../../src/game/rules/movementCosts.js';
 

@@ -11,15 +11,15 @@
  * anything else.
  */
 import { buildDispatchReport } from '../rules/dispatchReport.js';
-import { getChampion } from './entityQueries.js';
-import { dailyActionPoints } from './championMovement.js';
-import { refreshVision } from './fogOfWar.js';
-import { recordLedgerEntry, drainLedger } from './dispatchLedger.js';
-import { processReverie } from './factionAbilities.js';
-import { resolvePendingDig } from './digSystem.js';
-import { processFirstTurnDraft } from './artifactDraft.js';
+import { getChampion } from './entities/entityQueries.js';
+import { dailyActionPoints } from './movement/championMovement.js';
+import { refreshVision } from './world/fogOfWar.js';
+import { recordLedgerEntry, drainLedger } from './world/dispatchLedger.js';
+import { processReverie } from './features/factionAbilities.js';
+import { resolvePendingDig } from './features/digSystem.js';
+import { processFirstTurnDraft } from './features/artifactDraft.js';
 import { ARTIFACT_LEDGER_GOLD, ARTIFACT_BANDAGE_HEAL } from '../../params/game/economyParams.js';
-import { evictChunks } from './chunkManager.js';
+import { evictChunks } from './world/chunkManager.js';
 
 export function beginTurn(state, champId) {
   const ch = getChampion(state, champId);
@@ -61,4 +61,4 @@ export function beginTurn(state, champId) {
   }
 }
 
-export { isDigEligible } from './digSystem.js';
+export { isDigEligible } from './features/digSystem.js';

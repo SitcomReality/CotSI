@@ -1,6 +1,6 @@
 /**
  * featureRewards.test.js — Feature rewards engine
- * (src/game/state/featureRewards.js): direct grants, choice rewards
+ * (src/game/state/features/featureRewards.js): direct grants, choice rewards
  * (human modal payload vs bot policy), replenishable regrow, temp buffs,
  * and bot target scoring.
  */
@@ -8,8 +8,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { coordKey } from '../../../../src/engine/rules/hexGrid.js';
 import '../../../../src/game/rules/archetypeData/features.js'; // registers canonical names
-import { interactWithFeature, applyFeatureChoice, botFeatureChoice, featureValueForBot } from '../../../../src/game/state/featureRewards.js';
-import { interactOnArrival } from '../../../../src/game/state/arrivalInteractions.js';
+import { interactWithFeature, applyFeatureChoice, botFeatureChoice, featureValueForBot } from '../../../../src/game/state/features/featureRewards.js';
+import { interactOnArrival } from '../../../../src/game/state/features/arrivalInteractions.js';
 import { makeChampion, makeTile, makeState } from '../../helpers/stateFixture.js';
 
 const HERE = coordKey({ q: 0, r: 0 });

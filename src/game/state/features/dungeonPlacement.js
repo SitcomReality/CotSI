@@ -9,16 +9,16 @@
  *
  * Layer: game/state — mutates tiles; may import engine, game/rules, itself.
  */
-import { parseKey, distance } from '../../engine/rules/hexGrid.js';
-import { collectSpawnCandidates } from '../rules/tileQueries.js';
-import { dungeonCountForRadius } from '../rules/dungeonRules.js';
+import { parseKey, distance } from '../../../engine/rules/hexGrid.js';
+import { collectSpawnCandidates } from '../../rules/tileQueries.js';
+import { dungeonCountForRadius } from '../../rules/dungeonRules.js';
 import {
   DUNGEON_MIN_CENTER_DIST_FLOOR,
   DUNGEON_MIN_CENTER_DIST_FRACTION,
   DUNGEON_EDGE_MARGIN,
   DUNGEON_MIN_SPACING_FLOOR,
   DUNGEON_MIN_SPACING_FRACTION,
-} from '../../params/game/dungeonParams.js';
+} from '../../../params/game/dungeonParams.js';
 
 const CENTER = { q: 0, r: 0 };
 

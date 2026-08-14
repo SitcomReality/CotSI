@@ -3,17 +3,17 @@
  * Handles the legacy kinds (fruit eating, knot mining, treasure chest opening) and
  * delegates every other kind to the feature rewards engine (featureRewards.js).
  */
-import { coordKey } from '../../engine/rules/hexGrid.js';
-import { addLogEntry } from './gameLog.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
-import { recordLedgerEntry } from './dispatchLedger.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
+import { addLogEntry } from '../world/gameLog.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
 import { interactWithFeature } from './featureRewards.js';
 import { enterDungeon } from './dungeonSystem.js';
 import { depleteFeature } from './featureRegrowth.js';
-import { BLESSED_FONT_HEAL_VERDANT, BLESSED_FONT_HEAL_STANDARD, KNOT_DEFAULT_AMOUNT, CHEST_GOLD_BASE } from '../../params/game/economyParams.js';
-import { FACTION_VERDANT } from '../../params/game/factionParams.js';
-import { markChunkDirty } from './chunkDirtyTracking.js';
+import { BLESSED_FONT_HEAL_VERDANT, BLESSED_FONT_HEAL_STANDARD, KNOT_DEFAULT_AMOUNT, CHEST_GOLD_BASE } from '../../../params/game/economyParams.js';
+import { FACTION_VERDANT } from '../../../params/game/factionParams.js';
+import { markChunkDirty } from '../world/chunkDirtyTracking.js';
 
 export function interactOnArrival(state, champ) {
   const factionMap = buildChampionFactionMap(state.champions);

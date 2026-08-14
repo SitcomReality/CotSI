@@ -1,6 +1,6 @@
 /**
  * dungeonSystem.test.js — In-dungeon champion state, battles, and placement
- * (src/game/state/dungeonSystem.js, src/game/state/dungeonPlacement.js).
+ * (src/game/state/features/dungeonSystem.js, src/game/state/features/dungeonPlacement.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,8 +12,8 @@ import {
   createDungeonBattle,
   resolveDungeonBattleWin,
   fleeDungeon,
-} from '../../../../src/game/state/dungeonSystem.js';
-import { placeDungeons } from '../../../../src/game/state/dungeonPlacement.js';
+} from '../../../../src/game/state/features/dungeonSystem.js';
+import { placeDungeons } from '../../../../src/game/state/features/dungeonPlacement.js';
 import { dungeonCountForRadius } from '../../../../src/game/rules/dungeonRules.js';
 import { createGame } from '../../../../src/game/state/gameFactory.js';
 import { makeChampion, makeState, makeTile } from '../../helpers/stateFixture.js';

@@ -1,6 +1,6 @@
 /**
  * championMovement.test.js — Weighted action-point range, path reconstruction,
- * daily AP, and movement execution (src/game/state/championMovement.js).
+ * daily AP, and movement execution (src/game/state/movement/championMovement.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,7 +10,7 @@ import {
   pathToward,
   dailyActionPoints,
   moveChampion,
-} from '../../../../src/game/state/championMovement.js';
+} from '../../../../src/game/state/movement/championMovement.js';
 import { makeChampion, makeState, makeTile } from '../../helpers/stateFixture.js';
 import { coordKey, parseKey, distance, neighbors, hexesWithinRadius } from '../../../../src/engine/rules/hexGrid.js';
 

@@ -4,7 +4,7 @@
  * Low-level operations to get, set, and delete individual tiles
  * from the chunked storage (state.chunks).
  */
-import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/chunkGrid.js';
+import { tileToChunk, chunkKey, localCoord, localKey } from '../../../engine/rules/chunkGrid.js';
 import { ensureChunkForTile } from './chunkManager.js';
 
 // ---------------------------------------------------------------------------

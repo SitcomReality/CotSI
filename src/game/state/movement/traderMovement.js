@@ -5,13 +5,13 @@
  * tiles it can enter while its daily action-point pool lasts
  * (dev/docs/movementAndOccupation.md §7). Traders use the base terrain ladder only.
  */
-import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
-import { TERRAIN } from '../rules/terrainTypes.js';
-import { terrainCost, isTerrainBlocked } from '../rules/movementCosts.js';
-import { traderStock } from '../rules/traderStock.js';
-import { occupiedByChampion, occupiedByMob, occupiedByTrader } from './entityQueries.js';
-import { updateSpatialIndex } from './spatialIndex.js';
-import { TRADER_DAILY_AP } from '../../params/game/spawnParams.js';
+import { coordKey, parseKey, neighbors, distance } from '../../../engine/rules/hexGrid.js';
+import { TERRAIN } from '../../rules/terrainTypes.js';
+import { terrainCost, isTerrainBlocked } from '../../rules/movementCosts.js';
+import { traderStock } from '../../rules/traderStock.js';
+import { occupiedByChampion, occupiedByMob, occupiedByTrader } from '../entities/entityQueries.js';
+import { updateSpatialIndex } from '../entities/spatialIndex.js';
+import { TRADER_DAILY_AP } from '../../../params/game/spawnParams.js';
 
 /**
  * Run the trader movement phase.

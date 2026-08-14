@@ -7,14 +7,14 @@
  * weighted shortest-path search over effective costs capped by the
  * champion's AP pool.
  */
-import { coordKey, parseKey, neighbors } from '../../engine/rules/hexGrid.js';
-import { weightedFindPath } from '../../engine/rules/pathfinding.js';
-import { isBlockedForMovement, canChampionEnter } from './entityQueries.js';
-import { terrainCost } from '../rules/movementCosts.js';
-import { refreshVision } from './fogOfWar.js';
-import { interactOnArrival } from './arrivalInteractions.js';
-import { updateSpatialIndex } from './spatialIndex.js';
-import { SPUR_AP_BONUS, MIN_DAILY_AP } from '../../params/game/championParams.js';
+import { coordKey, parseKey, neighbors } from '../../../engine/rules/hexGrid.js';
+import { weightedFindPath } from '../../../engine/rules/pathfinding.js';
+import { isBlockedForMovement, canChampionEnter } from '../entities/entityQueries.js';
+import { terrainCost } from '../../rules/movementCosts.js';
+import { refreshVision } from '../world/fogOfWar.js';
+import { interactOnArrival } from '../features/arrivalInteractions.js';
+import { updateSpatialIndex } from '../entities/spatialIndex.js';
+import { SPUR_AP_BONUS, MIN_DAILY_AP } from '../../../params/game/championParams.js';
 
 /**
  * Weighted reachability from the champion's hex within its action-point pool.

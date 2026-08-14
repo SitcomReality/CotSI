@@ -5,12 +5,12 @@
  * Foreign-base potency purchases now go through the trade screen
  * (runtime/trade/trade.js) instead of this quick action.
  */
-import { G } from './liveGame.js';
-import { addLogEntry } from './gameLog.js';
-import { recordLedgerEntry } from './dispatchLedger.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
-import { SANCTUARY_HEAL_FRACTION } from '../../params/game/economyParams.js';
+import { G } from '../liveGame.js';
+import { addLogEntry } from '../world/gameLog.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
+import { SANCTUARY_HEAL_FRACTION } from '../../../params/game/economyParams.js';
 
 /**
  * Heal a champion resting at their own faction's base.

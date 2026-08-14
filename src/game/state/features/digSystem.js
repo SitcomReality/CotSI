@@ -1,16 +1,16 @@
 /**
  * digSystem.js — Pending dig resolution and dig eligibility checks.
  */
-import { FACTIONS } from '../rules/factionData.js';
-import { coordKey } from '../../engine/rules/hexGrid.js';
-import { TERRAIN } from '../rules/terrainTypes.js';
-import { occupiedByMob } from './entityQueries.js';
-import { addLogEntry } from './gameLog.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { buildChampionFactionMap, championSegment, factionAccentVar } from '../rules/logHelpers.js';
-import { recordLedgerEntry } from './dispatchLedger.js';
-import { DIG_RELIC_CHANCE, DIG_POTENCY_CHANCE, DIG_GOLD_BASE, DIG_GOLD_RANDOM, DIG_GOLD_DAY_DIVISOR } from '../../params/game/economyParams.js';
-import { FACTION_EVERKNOWN, FACTION_COUNT } from '../../params/game/factionParams.js';
+import { FACTIONS } from '../../rules/factionData.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
+import { TERRAIN } from '../../rules/terrainTypes.js';
+import { occupiedByMob } from '../entities/entityQueries.js';
+import { addLogEntry } from '../world/gameLog.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { buildChampionFactionMap, championSegment, factionAccentVar } from '../../rules/logHelpers.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
+import { DIG_RELIC_CHANCE, DIG_POTENCY_CHANCE, DIG_GOLD_BASE, DIG_GOLD_RANDOM, DIG_GOLD_DAY_DIVISOR } from '../../../params/game/economyParams.js';
+import { FACTION_EVERKNOWN, FACTION_COUNT } from '../../../params/game/factionParams.js';
 
 export function resolvePendingDig(state, ch) {
   ch.pendingDig = false;

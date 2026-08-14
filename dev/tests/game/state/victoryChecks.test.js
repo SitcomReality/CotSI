@@ -1,9 +1,9 @@
 /**
- * victoryChecks.test.js — Win-condition checks (src/game/state/victoryChecks.js).
+ * victoryChecks.test.js — Win-condition checks (src/game/state/world/victoryChecks.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkVictory } from '../../../../src/game/state/victoryChecks.js';
+import { checkVictory } from '../../../../src/game/state/world/victoryChecks.js';
 import { makeChampion, makeState } from '../../helpers/stateFixture.js';
 
 test('relic race: champion reaching the relic target wins', () => {

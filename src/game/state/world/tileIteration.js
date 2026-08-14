@@ -4,7 +4,7 @@
  * Generator-based and callback-based iteration over all tiles
  * across all chunks, and a tile-count utility.
  */
-import { coordKey } from '../../engine/rules/hexGrid.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { getTile } from './tileAccess.js';
 
 // ---------------------------------------------------------------------------

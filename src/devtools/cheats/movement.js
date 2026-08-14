@@ -6,7 +6,7 @@
 
 import { CHEAT_FILL_AP_AMOUNT } from '../../params/devtools/cheatParams.js';
 import { G, currentChamp } from '../../game/state/liveGame.js';
-import { moveChampion } from '../../game/state/championMovement.js';
+import { moveChampion } from '../../game/state/movement/championMovement.js';
 import { coordKey } from '../../engine/rules/hexGrid.js';
 import { toast } from '../../ui/hud.js';
 import { devState } from './state.js';

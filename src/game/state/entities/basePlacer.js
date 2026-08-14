@@ -6,12 +6,12 @@
  * ring searches never trigger lazy chunk generation — placement cost is
  * bounded by the eager starting region, never the map radius.
  */
-import { distance, parseKey, coordKey, hexRing } from '../../engine/rules/hexGrid.js';
+import { distance, parseKey, coordKey, hexRing } from '../../../engine/rules/hexGrid.js';
 import {
   nearestOpenKey,
-} from '../rules/tileQueries.js';
-import { TERRAIN } from '../rules/terrainTypes.js';
-import { BASE_SEARCH_MAX_RING } from '../../params/game/spawnParams.js';
+} from '../../rules/tileQueries.js';
+import { TERRAIN } from '../../rules/terrainTypes.js';
+import { BASE_SEARCH_MAX_RING } from '../../../params/game/spawnParams.js';
 
 /**
  * Find a base tile for a champion, searching outward from target.

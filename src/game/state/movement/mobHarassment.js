@@ -6,16 +6,16 @@
  * hexes (terrain costs per the mob's own archetype — dev/docs/movementAndOccupation.md
  * §4, §7).
  */
-import { coordKey, parseKey, neighbors, distance } from '../../engine/rules/hexGrid.js';
-import { terrainCost, isTerrainBlocked } from '../rules/movementCosts.js';
-import { occupiedByChampion, occupiedByMob, occupiedByTrader } from './entityQueries.js';
-import { updateSpatialIndex } from './spatialIndex.js';
-import { addLogEntry } from './gameLog.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
-import { recordLedgerEntry } from './dispatchLedger.js';
-import { recordDeath } from './deathTracker.js';
-import { MOB_HARASS_CHANCE, MOB_HARASS_DMG_BASE, MOB_HARASS_DMG_RANGE, MOB_WANDER_CHANCE, MOB_DAILY_AP } from '../../params/game/worldParams.js';
+import { coordKey, parseKey, neighbors, distance } from '../../../engine/rules/hexGrid.js';
+import { terrainCost, isTerrainBlocked } from '../../rules/movementCosts.js';
+import { occupiedByChampion, occupiedByMob, occupiedByTrader } from '../entities/entityQueries.js';
+import { updateSpatialIndex } from '../entities/spatialIndex.js';
+import { addLogEntry } from '../world/gameLog.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
+import { recordDeath } from '../world/deathTracker.js';
+import { MOB_HARASS_CHANCE, MOB_HARASS_DMG_BASE, MOB_HARASS_DMG_RANGE, MOB_WANDER_CHANCE, MOB_DAILY_AP } from '../../../params/game/worldParams.js';
 
 /**
  * Run the mob harassment and wandering phase.

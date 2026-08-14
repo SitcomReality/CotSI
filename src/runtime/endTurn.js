@@ -4,7 +4,7 @@
  */
 import { G, currentChamp, setTurnLock, isTurnLocked } from '../game/state/liveGame.js';
 import { refreshAll } from './refreshAll.js';
-import { finishTurn } from '../game/state/worldSimulation.js';
+import { finishTurn } from '../game/state/world/worldSimulation.js';
 import { isDigEligible } from '../game/state/turnActions.js';
 import { openConfirmModal } from '../ui/modals/confirmModal.js';
 import { getCombatUI } from './combat/combatState.js';

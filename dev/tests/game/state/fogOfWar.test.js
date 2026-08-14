@@ -1,10 +1,10 @@
 /**
  * fogOfWar.test.js — Sight, fog-of-war, human view aggregation
- * (src/game/state/fogOfWar.js).
+ * (src/game/state/world/fogOfWar.js).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { visibleKeysFor, refreshVision, getHumanView, rebuildExploredCache } from '../../../../src/game/state/fogOfWar.js';
+import { visibleKeysFor, refreshVision, getHumanView, rebuildExploredCache } from '../../../../src/game/state/world/fogOfWar.js';
 import { makeChampion, makeState, makeTile } from '../../helpers/stateFixture.js';
 import { coordKey, hexesWithinRadius } from '../../../../src/engine/rules/hexGrid.js';
 

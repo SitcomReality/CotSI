@@ -53,9 +53,9 @@ READONLY_RULES_DATA = {
 # only these exact names are allowed; anything else from these modules is
 # still a boundary violation.
 TOLERATED_STATE_READS = {
-    'src/game/state/entityQueries.js': {'occupiedByMob', 'occupiedByChampion', 'occupiedByTrader'},
-    'src/game/state/fogOfWar.js': {'getHumanView'},
-    'src/game/state/championMovement.js': {'dailyActionPoints'},
+    'src/game/state/entities/entityQueries.js': {'occupiedByMob', 'occupiedByChampion', 'occupiedByTrader'},
+    'src/game/state/world/fogOfWar.js': {'getHumanView'},
+    'src/game/state/movement/championMovement.js': {'dailyActionPoints'},
     'src/game/state/liveGame.js': {'currentChamp'},
     'src/game/state/combat/index.js': {'sideOf', 'entityFor'},
 }

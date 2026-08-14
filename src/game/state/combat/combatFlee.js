@@ -8,12 +8,12 @@
 import { FLEE_MIN_HP } from '../../../params/game/combatParams.js';
 import { applyFinalBonuses } from './combatScoring.js';
 import { moveDamagedBeforeDamager } from './combatDamage.js';
-import { recordLedgerEntry } from '../dispatchLedger.js';
-import { addLogEntry } from '../gameLog.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
+import { addLogEntry } from '../world/gameLog.js';
 import { LOG_CATEGORY } from '../../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
-import { refreshVision } from '../fogOfWar.js';
-import { checkVictory } from '../victoryChecks.js';
+import { refreshVision } from '../world/fogOfWar.js';
+import { checkVictory } from '../world/victoryChecks.js';
 
 /**
  * Resolve combat via flee — apply the current round's damage (with final bonuses)

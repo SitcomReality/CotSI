@@ -7,10 +7,10 @@
  *  - Add a log entry
  */
 import { addLogEntry } from './gameLog.js';
-import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { removeFromSpatialIndex } from './spatialIndex.js';
-import { coordKey } from '../../engine/rules/hexGrid.js';
+import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { removeFromSpatialIndex } from '../entities/spatialIndex.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
 
 /**
  * Record a champion's death in game state.

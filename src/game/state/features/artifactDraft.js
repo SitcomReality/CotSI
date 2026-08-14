@@ -1,10 +1,10 @@
 /**
  * artifactDraft.js — Artifact draft pool selection and first-turn draft logic.
  */
-import { ARTIFACTS } from '../rules/factionData.js';
-import { addLogEntry } from './gameLog.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
+import { ARTIFACTS } from '../../rules/factionData.js';
+import { addLogEntry } from '../world/gameLog.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
 
 export function artifactChoices(state) {
   const pool = [...ARTIFACTS];

@@ -3,8 +3,8 @@ import { terrainDisplayName } from '../game/rules/terrainOverrides.js';
 import { FACTIONS } from '../game/rules/factionData.js';
 import { terrainCost } from '../game/rules/movementCosts.js';
 import { getArchetype } from '../game/rules/archetypes.js';
-import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entityQueries.js';
-import { getHumanView } from '../game/state/fogOfWar.js';
+import { occupiedByMob, occupiedByChampion, occupiedByTrader } from '../game/state/entities/entityQueries.js';
+import { getHumanView } from '../game/state/world/fogOfWar.js';
 import { h } from './domBuilder.js';
 
 const maybe = (test, ...args) => test ? args : [];

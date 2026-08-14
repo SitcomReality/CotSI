@@ -12,7 +12,7 @@ import { worldToScreen } from './screenProjection.js';
 import { hexCenter3D, hexCornersXZ, tileSurfaceY } from '../hexmap3d/hexMapRenderer.js';
 import { getDerivedMoveHighlights, getDerivedHumanView, getHoveredKey } from './overlayStack.js';
 import { TERRAIN } from '../../game/rules/terrainTypes.js';
-import { occupiedByTrader } from '../../game/state/entityQueries.js';
+import { occupiedByTrader } from '../../game/state/entities/entityQueries.js';
 import { MOVE_ALLOWED_WIDTH, MOVE_HOVER_WIDTH, HIGHLIGHT_RADIUS_FRAC, HIGHLIGHT_Y_OFFSET } from '../../params/render/overlayParams.js';
 
 const ALLOWED_STROKE = 'rgba(0, 204, 136, 0.32)';

@@ -24,22 +24,22 @@
  *
  * Layer: game/state — mutates state; may import engine, game/rules, itself.
  */
-import { coordKey } from '../../engine/rules/hexGrid.js';
-import { listArchetypes, getArchetype } from '../rules/archetypes.js';
-import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
-import { addLogEntry } from './gameLog.js';
-import { LOG_CATEGORY } from '../rules/logGrammar.js';
-import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js';
-import { recordLedgerEntry } from './dispatchLedger.js';
-import { dungeonReentryDay } from '../rules/dungeonRules.js';
-import { FACTION_COUNT, MOB_BASE_POTENCY, MOB_OWN_FACTION_POTENCY_BONUS } from '../../params/game/factionParams.js';
-import { MOB_HP_VARIANCE_FRACTION } from '../../params/game/spawnParams.js';
+import { coordKey } from '../../../engine/rules/hexGrid.js';
+import { listArchetypes, getArchetype } from '../../rules/archetypes.js';
+import '../../rules/archetypeData/index.js'; // side-effect: populate archetype registry
+import { addLogEntry } from '../world/gameLog.js';
+import { LOG_CATEGORY } from '../../rules/logGrammar.js';
+import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
+import { recordLedgerEntry } from '../world/dispatchLedger.js';
+import { dungeonReentryDay } from '../../rules/dungeonRules.js';
+import { FACTION_COUNT, MOB_BASE_POTENCY, MOB_OWN_FACTION_POTENCY_BONUS } from '../../../params/game/factionParams.js';
+import { MOB_HP_VARIANCE_FRACTION } from '../../../params/game/spawnParams.js';
 import {
   DUNGEON_BATTLE_SCALE,
   DUNGEON_COMPLETION_GOLD,
   DUNGEON_COMPLETION_RELIC,
   DUNGEON_COMPLETION_KNOTS,
-} from '../../params/game/dungeonParams.js';
+} from '../../../params/game/dungeonParams.js';
 
 /** The canonical display name for the dungeon feature (archetype registry). */
 function dungeonName() {

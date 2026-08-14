@@ -8,11 +8,11 @@
  * the nearest valid hex. This guarantees the result is at the correct
  * hex-distance from center regardless of angle.
  */
-import { cubeRound } from '../../engine/rules/hexGrid.js';
-import { shuffle } from '../../engine/rules/shuffle.js';
-import { PALEY_CYCLES } from '../rules/factionData.js';
-import { FACTION_COUNT } from '../../params/game/factionParams.js';
-import { SPAWN_RING_FRACTION, SPAWN_RING_REFERENCE_RADIUS, SPAWN_RING_RADIUS_SCALE, SPAWN_RING_FRACTION_MAX, MIN_SPAWN_RING, SPAWN_JITTER_FRACTION, MIN_SPAWN_JITTER, SPAWN_EDGE_MARGIN, SPAWN_EDGE_MARGIN_FRACTION, ANGULAR_JITTER_FRACTION } from '../../params/game/spawnParams.js';
+import { cubeRound } from '../../../engine/rules/hexGrid.js';
+import { shuffle } from '../../../engine/rules/shuffle.js';
+import { PALEY_CYCLES } from '../../rules/factionData.js';
+import { FACTION_COUNT } from '../../../params/game/factionParams.js';
+import { SPAWN_RING_FRACTION, SPAWN_RING_REFERENCE_RADIUS, SPAWN_RING_RADIUS_SCALE, SPAWN_RING_FRACTION_MAX, MIN_SPAWN_RING, SPAWN_JITTER_FRACTION, MIN_SPAWN_JITTER, SPAWN_EDGE_MARGIN, SPAWN_EDGE_MARGIN_FRACTION, ANGULAR_JITTER_FRACTION } from '../../../params/game/spawnParams.js';
 
 /**
  * Compute a target hex coordinate for a champion's base, radially distributed.
