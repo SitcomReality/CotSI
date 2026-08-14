@@ -44,8 +44,9 @@ function mixTowardColor(base, tint, influence) {
  * (biomeTint.js returns null for Untouched/Painforest tiles and for tiles with
  * no known biome colors), which keeps the default color.
  */
-export function tileColorForPart(part, descriptor, tileH, i, biomeTint) {
+export function tileColorForPart(part, descriptor, tileH, i, biomeTint, canonical = false) {
   if (part.color === undefined || typeof part.color === 'string') return undefined;
+  if (canonical) return part.color;
   let color = jitteredColor(part.color, descriptor.variation.colorJitter, tileH, i);
   if (part.biomeColor && biomeTint) {
     const influence = Math.min(1, Math.max(0, part.biomeColor.influence ?? 0));

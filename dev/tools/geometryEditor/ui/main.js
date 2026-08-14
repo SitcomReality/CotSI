@@ -63,6 +63,11 @@ function bindControls() {
     rebuild();
   });
 
+  els.canonicalCheck.addEventListener('change', () => {
+    S.canonical = els.canonicalCheck.checked;
+    rebuild();
+  });
+
   els.biomeSelect.addEventListener('change', () => {
     S.biomeId = els.biomeSelect.value || null;
     rebuild();

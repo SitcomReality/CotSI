@@ -16,6 +16,12 @@ export const S = {
   displaced: false,
 
   /**
+   * Canonical preview — the base parts at count 1, authored scale, centered,
+   * no stretch/color jitter: the variation-free "default" look of an object.
+   */
+  canonical: false,
+
+  /**
    * Whether the preview renders the game's ink outlines (inverted-hull twins —
    * see src/render/hexmap3d/scene/outline.js, aestheticConventions §11).
    */

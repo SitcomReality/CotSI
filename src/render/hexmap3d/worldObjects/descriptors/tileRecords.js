@@ -37,14 +37,14 @@ const OPTIONAL_GROUP_SEED = 53;
  * rigidly — the same convention addTreeRecords uses when it bakes the tree
  * scale into the canopy lift.
  */
-function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint) {
+function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint, canonical = false) {
   const t = part.transform;
   const scaleMul = disp?.scaleMul ?? 1;
   const jitterScale = placement.scaleMul ?? 1;
   // Per-biome size factor — stunts (or grows) the part on tiles of specific
   // biomes (part.biomeScale[biomeId], e.g. Tundra's stunted trees).
-  const biomeFactor = part.biomeScale?.[tile.biomeId] ?? 1;
-  const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor);
+  const biomeFactor = canonical ? 1 : (part.biomeScale?.[tile.biomeId] ?? 1);
+  const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor, canonical);
 
   // Bottom-anchored grounding: the shape's base offset (scaled by the record's
   // Y scale) normally bakes into the pivot `y`, so the part's lowest vertex
@@ -111,7 +111,7 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
     record.tiltAxis = tiltAxis;
     record.tilt = tilt;
   }
-  const color = tileColorForPart(part, descriptor, tileH, i, biomeTint);
+  const color = tileColorForPart(part, descriptor, tileH, i, biomeTint, canonical);
   if (color !== undefined) record.color = color;
 
   return record;
@@ -157,7 +157,7 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
   }
 
   if (isRoot) {
-    out.push(recordForPart(descriptor, part, ctx.tile, ctx.worldPos, ctx.tileH, ctx.i, ctx.itemScale, ctx.placement, ctx.disp, ctx.biomeTint));
+    out.push(recordForPart(descriptor, part, ctx.tile, ctx.worldPos, ctx.tileH, ctx.i, ctx.itemScale, ctx.placement, ctx.disp, ctx.biomeTint, ctx.canonical));
     if (nodeFrames) {
       const r = out[out.length - 1];
       // The root origin is the shape's local-origin height — record y (which
@@ -170,14 +170,14 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
     return;
   }
 
-  const biomeFactor = part.biomeScale?.[ctx.tile.biomeId] ?? 1;
+  const biomeFactor = ctx.canonical ? 1 : (part.biomeScale?.[ctx.tile.biomeId] ?? 1);
   const leaf = nestedLeafFrameMatrix(
     part, descriptor, ctx.tile, ctx.tileH, ctx.i, ctx.itemScale,
-    ctx.disp?.scaleMul ?? 1, ctx.placement.scaleMul ?? 1, biomeFactor,
+    ctx.disp?.scaleMul ?? 1, ctx.placement.scaleMul ?? 1, biomeFactor, ctx.canonical,
   );
   const matrix = mat4Multiply(ctx.worldBase, mat4Multiply(frame, leaf));
   const record = { partId: part.id, matrix };
-  const color = tileColorForPart(part, descriptor, ctx.tileH, ctx.i, ctx.biomeTint);
+  const color = tileColorForPart(part, descriptor, ctx.tileH, ctx.i, ctx.biomeTint, ctx.canonical);
   if (color !== undefined) record.color = color;
   out.push(record);
   if (nodeFrames) {
@@ -198,9 +198,27 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
  *        null/undefined keeps every part's default color.
  * @param {string|null} [variantId] - variant id override (the geometry
  *        editor's variant picker); null lets the variantRule decide.
+ * @param {boolean} [canonical] - canonical preview: base parts, one item,
+ *        authored scale, centered, no stretch/color jitter (geometry editor).
  * @returns {object[]} instance records tagged with partId ([] when hidden)
  */
-export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null) {
+export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false) {
+  if (canonical) {
+    const records = [];
+    const ctx = {
+      tile, worldPos, tileH, i: 0,
+      itemScale: descriptor.scale,
+      placement: { dx: 0, dz: 0 },
+      disp: {},
+      biomeTint: null,
+      canonical: true,
+      worldBase: worldBaseMatrix(worldPos, { dx: 0, dz: 0 }, {}),
+    };
+    for (const part of descriptor.parts) {
+      collectPart(descriptor, part, ctx, mat4Identity(), true, records, null);
+    }
+    return records;
+  }
   if (displacement.hidden) return [];
   const count = itemCount(descriptor, tile, tileH);
   if (displacement.displaced && descriptor.emphasis.behavior === 'hidden') return [];
@@ -254,8 +272,23 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
  * For clusters every item's nodes land in the same map; later items overwrite
  * earlier ones (the gizmo drags the shared localPos of the last item's frame).
  */
-export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null) {
+export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false) {
   const frames = new Map();
+  if (canonical) {
+    const ctx = {
+      tile, worldPos, tileH, i: 0,
+      itemScale: descriptor.scale,
+      placement: { dx: 0, dz: 0 },
+      disp: {},
+      biomeTint: null,
+      canonical: true,
+      worldBase: worldBaseMatrix(worldPos, { dx: 0, dz: 0 }, {}),
+    };
+    for (const part of descriptor.parts) {
+      collectPart(descriptor, part, ctx, mat4Identity(), true, [], frames);
+    }
+    return frames;
+  }
   if (displacement.hidden) return frames;
   const count = itemCount(descriptor, tile, tileH);
   if (displacement.displaced && descriptor.emphasis.behavior === 'hidden') return frames;

@@ -14,6 +14,8 @@ export function cacheDom() {
   els.occupiedCheck = document.getElementById('occupied-check');
   els.rerollBtn = document.getElementById('reroll-btn');
   els.occupiedRow = document.getElementById('occupied-row');
+  els.canonicalCheck = document.getElementById('canonical-check');
+  els.canonicalRow = document.getElementById('canonical-row');
   els.rerollRow = document.getElementById('reroll-row');
   els.biomeSelect = document.getElementById('biome-select');
   els.biomeRow = document.getElementById('biome-row');

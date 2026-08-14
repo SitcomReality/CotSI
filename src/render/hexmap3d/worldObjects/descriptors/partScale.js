@@ -44,8 +44,17 @@ export const isGroupNode = (part) => Array.isArray(part.children);
  * X and Z are independent; Y follows the mountain-type rule when the
  * descriptor sizes by mountainType.
  */
-export function leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor) {
+export function leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor, canonical = false) {
   const t = part.transform;
+  if (canonical) {
+    // Canonical preview: authored transform scales only — no stretch jitter,
+    // no mountain-type height bucket, no biome stunting.
+    return {
+      sx: itemScale * scaleMul * jitterScale * t.scaleX * biomeFactor,
+      sy: itemScale * scaleMul * jitterScale * t.scaleY * biomeFactor,
+      sz: itemScale * scaleMul * jitterScale * t.scaleZ * biomeFactor,
+    };
+  }
   const sx = itemScale * scaleMul * jitterScale * t.scaleX * stretchForAxis(part, descriptor, 'x', tileH, i) * biomeFactor;
   const sz = itemScale * scaleMul * jitterScale * t.scaleZ * stretchForAxis(part, descriptor, 'z', tileH, i) * biomeFactor;
   // Mountain-type height rule: scaleY comes from the tile's mountainType tag

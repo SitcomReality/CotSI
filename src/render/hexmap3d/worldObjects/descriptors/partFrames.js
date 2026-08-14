@@ -69,9 +69,9 @@ export function groupFrameMatrix(t, itemScale, scaleMul, jitterScale) {
  * leaf's localPos.y is its bottom height in the parent's frame, matching what
  * `y` means at the root.
  */
-export function nestedLeafFrameMatrix(part, descriptor, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor) {
+export function nestedLeafFrameMatrix(part, descriptor, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor, canonical = false) {
   const t = part.transform;
-  const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor);
+  const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor, canonical);
   const { x, y, z } = frameLocalPos(t, itemScale * scaleMul * jitterScale, biomeFactor);
   const base = shapeBaseOffset(part.shape, part.params);
   let m = mat4Scale(sx, sy, sz);

@@ -91,7 +91,7 @@ export function rebuild() {
   const tile = previewTile();
   const records = ENTITY_KINDS.has(d.kind)
     ? recordsForEntity(d, entityForSelection(S.entity.faction, S.entity.archetype), ORIGIN)
-    : recordsForDescriptor(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId);
+    : recordsForDescriptor(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId, S.canonical);
   showRecords(d, records, { outlines: S.outlines });
 
   // Items = records / parts-of-the-active-variant (variant objects have more
@@ -130,7 +130,7 @@ function currentFrames() {
   const tile = previewTile();
   return ENTITY_KINDS.has(d.kind)
     ? nodeWorldFramesForEntity(d, entityForSelection(S.entity.faction, S.entity.archetype), ORIGIN)
-    : nodeWorldFrames(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId);
+    : nodeWorldFrames(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId, S.canonical);
 }
 
 /**
@@ -163,5 +163,6 @@ export function updateEntityMode() {
   const entity = ENTITY_KINDS.has(S.descriptor?.kind);
   els.biomeRow.style.display = entity ? 'none' : '';
   els.occupiedRow.style.display = entity ? 'none' : '';
+  els.canonicalRow.style.display = entity ? 'none' : '';
   els.rerollRow.style.display = entity ? 'none' : '';
 }

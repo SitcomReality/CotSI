@@ -785,6 +785,33 @@ test('optionalGroups: independent per-tile include/exclude of sub-objects', () =
   assert.deepEqual(ids(TILE), ids({ ...TILE }), 'presence is deterministic per tile');
 });
 
+test('recordsForDescriptor canonical: base parts, one item, centered, no variation', () => {
+  const d = normalizeDescriptor({
+    id: 'canonical-test',
+    kind: 'feature',
+    displayName: 'Canonical',
+    scale: 1.5,
+    size: { min: 0.5, max: 2 },
+    variation: { colorJitter: 0.5, stretchY: [0.5, 2] },
+    cluster: { min: 3, max: 3 },
+    placement: { mode: 'scatter', offsetMin: 0.2, offsetMax: 0.5 },
+    parts: [
+      { id: 'body', shape: 'sphere', color: 0x335577, stretch: { y: { min: 0.5, max: 2, seed: 1 } } },
+    ],
+  });
+  const normal = recordsForDescriptor(d, TILE, POS);
+  assert.equal(normal.length, 3, 'cluster yields 3 items normally');
+
+  const canon = recordsForDescriptor(d, TILE, POS, undefined, {}, null, null, true);
+  assert.equal(canon.length, 1, 'canonical yields one item');
+  assert.equal(canon[0].partId, 'body');
+  assert.equal(canon[0].scale, 1.5, 'authored scale, no size jitter');
+  assert.equal(canon[0].scaleY, 1.5, 'no stretch jitter');
+  assert.equal(canon[0].x, POS.x, 'centered X');
+  assert.equal(canon[0].z, POS.z, 'centered Z');
+  assert.equal(canon[0].color, 0x335577, 'no color jitter');
+});
+
 // ── Per-part stretch (M4: trunk vs canopy stretch ranges) ──────────────────
 
 test('part.stretch overrides the object variation; false pins the axis at 1', () => {
