@@ -20,7 +20,7 @@ import { botTurnDwellMs } from './turnPacing.js';
 import { startMeasure, endMeasure, setGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { queueOrStart as queueMovement, MOVE_DURATION } from '../render/hexmap3d/units/movementAnimator.js';
 import { hexCenter3D } from '../render/hexmap3d/hexWorldSpace.js';
-import { tileSurfaceY } from '../render/hexmap3d/hexMapRenderer.js';
+import { hillFloorY } from '../render/hexmap3d/worldObjects/hillFloor.js';
 import { CHAMPION_HEIGHT_OFFSET } from '../params/render/animationParams.js';
 import { ANIMATION_CUSHION_MS } from '../params/ui/uiParams.js';
 
@@ -154,14 +154,14 @@ export async function runBot() {
           // World-space origin before the state mutation
           const fromKey = coordKey(ch.pos);
           const fromTile = G.tiles[fromKey];
-          const fromY = fromTile ? tileSurfaceY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
+          const fromY = fromTile ? hillFloorY(fromTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
           const fromWorld = hexCenter3D(ch.pos.q, ch.pos.r, fromY);
 
           moveChampion(G, ch, key, terrainCost(ch, G.tiles[key].terrain, G.tiles[key].biomeId));
 
           // World-space destination after mutation
           const toTile = G.tiles[key];
-          const toY = toTile ? tileSurfaceY(toTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
+          const toY = toTile ? hillFloorY(toTile) + CHAMPION_HEIGHT_OFFSET : CHAMPION_HEIGHT_OFFSET;
           const toWorld = hexCenter3D(ch.pos.q, ch.pos.r, toY);
 
           // Start the animation BEFORE refreshAll so isAnimating is true when

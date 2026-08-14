@@ -44,6 +44,7 @@ import { MARSH_REEDS_DESCRIPTOR } from './data/marshReeds.js';
 import { PLATEAU_MOUND_DESCRIPTOR } from './data/plateauMound.js';
 import { DESERT_SCRUB_DESCRIPTOR } from './data/desertScrub.js';
 import { BEACH_DRIFTWOOD_DESCRIPTOR } from './data/beachDriftwood.js';
+import { hillFloorY } from '../hillFloor.js';
 import {
   DECOR_STATE, DECORATION, decorState, isTileOccupied,
 } from '../decorEmphasis.js';
@@ -142,19 +143,13 @@ function resolveGroveForTile(tile, occupants, visible = true) {
  * look: out of sight the mound renders at full size (NORMAL), not sunk or
  * hidden by occupants/features it cannot be seen next to.
  */
-function resolveHillForTile(tile, occupants, visible = true) {
+function resolveHillForTile(tile) {
   if (tile.terrain !== 'hill') return null;
-  const mode = decorState({
-    hasOccupant: visible && isTileOccupied(occupants, tile),
-    hasFeature: visible && !!tile.feature,
-    decoration: DECORATION.HILL,
-  });
+  // The hill mound is the terrain bump itself — objects stand on its peak
+  // (hillFloor.js), so it never de-emphasizes or sinks below them.
   return {
     descriptor: normalizedDescriptor(HILL_DESCRIPTOR),
-    displacement: {
-      hidden: mode === DECOR_STATE.HIDDEN,
-      displaced: mode === DECOR_STATE.SUNK,
-    },
+    displacement: { hidden: false, displaced: false },
   };
 }
 
@@ -243,7 +238,7 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
     return tintCache.get(key);
   };
 
-  const runPass = (resolve, gate) => {
+  const runPass = (resolve, gate, liftToFloor = false) => {
     // Resolve once per tile per pass — the predicate and the record callback
     // both need the result, and each resolver is pure within a pass.
     const resolveCache = new Map();
@@ -257,7 +252,9 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
       (tile) => cachedResolve(tile) !== null,
       (tile, worldPos) => {
         const { descriptor, displacement } = cachedResolve(tile);
-        const records = recordsForDescriptor(descriptor, tile, worldPos, undefined, displacement, tintFor(tile));
+        // Features stand on the hill peak; decor stays grounded on the surface.
+        const pos = liftToFloor ? { ...worldPos, y: hillFloorY(tile) } : worldPos;
+        const records = recordsForDescriptor(descriptor, tile, pos, undefined, displacement, tintFor(tile));
         if (records.length === 0) return null;
         let list = groups.get(descriptor.id);
         if (!list) {
@@ -271,13 +268,13 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
   };
 
   runPass((tile) => resolveMountainForTile(tile), decorVisible);
-  runPass((tile) => resolveFeatureForTile(tile, occupants), visible);
+  runPass((tile) => resolveFeatureForTile(tile, occupants), visible, true);
   runPass(
     (tile) => resolveGroveForTile(tile, occupants, visible.has(`${tile.q},${tile.r}`)),
     decorVisible,
   );
   runPass(
-    (tile) => resolveHillForTile(tile, occupants, visible.has(`${tile.q},${tile.r}`)),
+    (tile) => resolveHillForTile(tile),
     decorVisible,
   );
   runPass(

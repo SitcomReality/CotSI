@@ -1,7 +1,7 @@
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { coordKey } from '../../../engine/rules/hexGrid.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileSurfaceY } from '../terrain/index.js';
+import { hillFloorY } from '../worldObjects/hillFloor.js';
 import { MOB_COLOR_DARKEN } from '../../../params/render/geometryParams.js';
 import { isAnimating } from './movementAnimator.js';
 import { addOutlines } from '../scene/outline.js';
@@ -93,7 +93,7 @@ export function buildUnitMeshes(state, visible) {
     // Champions inside a dungeon are hidden from the map.
     if (champ?.dungeon) continue;
 
-    const surfaceY = tileSurfaceY(tile);
+    const surfaceY = hillFloorY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
 
     if (champ) {

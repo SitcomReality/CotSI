@@ -15,7 +15,7 @@ import { buildChunkWorldMeshes } from '../../../src/render/hexmap3d/worldObjects
 import { tileSurfaceY } from '../../../src/render/hexmap3d/terrain/index.js';
 import { hexCenter3D } from '../../../src/render/hexmap3d/hexWorldSpace.js';
 import {
-  DISPERSED_SCALE, sunkTransform, dispersedSingleOffset,
+  DISPERSED_SCALE, dispersedSingleOffset,
 } from '../../../src/render/hexmap3d/worldObjects/decorEmphasis.js';
 import {
   SCATTER_HASH_SEEDS, SCATTER_SCALE_BASE, SCATTER_SCALE_RANGE,
@@ -111,13 +111,13 @@ test('resolveDescriptorForTile: feature vs decor dispatch', () => {
   assert.deepEqual(mountain.map((r) => r.descriptor.id), ['mountain']);
   assert.deepEqual(mountain[0].displacement, {});
 
-  // Occupied hill sinks; hidden hill (occupant + feature) still resolves but
-  // the hidden flag suppresses records.
+  // The hill mound is the terrain bump — it never sinks, whether occupied or
+  // carrying a feature (objects stand on its peak).
   const hill = resolveDescriptorForTile(TILES[6], OCCUPIED);
-  assert.deepEqual(hill[0].displacement, { hidden: false, displaced: true });
+  assert.deepEqual(hill[0].displacement, { hidden: false, displaced: false });
   const hiddenHill = resolveDescriptorForTile(TILES[7], OCCUPIED);
   assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['treasureChest', 'hill']);
-  assert.deepEqual(hiddenHill[1].displacement, { hidden: true, displaced: false });
+  assert.deepEqual(hiddenHill[1].displacement, { hidden: false, displaced: false });
 
   // Painforest woods resolve the gnarled `painforest` grove variant (descriptor
   // data); the Blessed Font resolves as a feature alongside its terrain decor
@@ -228,19 +228,18 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   assert.ok(peak.sy >= 1.3 && peak.sy <= 1.45, `peak scaleY in [1.3,1.45] (got ${peak.sy})`);
   assert.ok(closeTo(peak.sx, 1), 'mountain XZ scale 1');
 
-  // Hill mound: only the sunk mound contributes (the hidden hill is skipped).
+  // Hill mounds: both hills render their full mound — the mound is the terrain
+  // bump itself (objects stand on its peak), so it never sinks.
   const hill = meshNamed(meshes, 'hill-mound');
-  assert.ok(hill && hill.count === 1, `hill-mound is a single sunk mound (got ${hill.count})`);
-  const sunk = sunkTransform();
+  assert.ok(hill && hill.count === 2, `both hill mounds render at full size (got ${hill.count})`);
   const hillSurface = tileSurfaceY(TILES[6]);
   for (let i = 0; i < hill.count; i++) {
     const p = instInfo(hill, i);
-    // The mound's lowest vertex lands at surface + yOffset: the record y sits
+    // The mound's lowest vertex lands at the surface: the record y sits
     // HILL_BASE·sy below that (HILL_BASE is negative).
-    assert.ok(closeTo(p.y - HILL_BASE * p.sy, hillSurface + sunk.yOffset), `sunk hill ${i} descends below the surface (got ${p.y})`);
-    // The mound is its own size draw × the sunk shrink (p.scale is the
-    // rotation-invariant XZ scale, since the mound carries a 90° Y rotation).
-    assert.ok(closeTo(p.scale, hillItemScale(TILES[6]) * sunk.scale), `sunk hill ${i} shrinks by sunk scale (got ${p.scale})`);
+    assert.ok(closeTo(p.y - HILL_BASE * p.sy, hillSurface), `hill mound ${i} grounded at the surface (got ${p.y})`);
+    // Full size: the mound's own size draw (rotation-invariant XZ scale).
+    assert.ok(closeTo(p.scale, hillItemScale(TILES[6 + i])), `hill mound ${i} at full size (got ${p.scale})`);
   }
 
   // Ground decor: one cluster per terrain, one mesh per part.
@@ -310,9 +309,9 @@ test('resolveDescriptorForTile: decor is unoccupied while out of sight', () => {
   const mountain = resolveDescriptorForTile(TILES[5], OCCUPIED, false);
   assert.deepEqual(mountain.map((r) => r.descriptor.id), ['mountain']);
 
-  // Default (visible) behavior unchanged: occupied hill still sinks.
+  // Default (visible) behavior: the hill mound stays full — objects stand on it.
   const visibleHill = resolveDescriptorForTile(TILES[6], OCCUPIED);
-  assert.deepEqual(visibleHill[0].displacement, { hidden: false, displaced: true });
+  assert.deepEqual(visibleHill[0].displacement, { hidden: false, displaced: false });
 });
 
 test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', () => {

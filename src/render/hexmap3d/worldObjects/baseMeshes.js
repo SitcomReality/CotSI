@@ -1,7 +1,7 @@
 // src/render/hexmap3d/worldObjects/baseMeshes.js
 import { FACTIONS } from '../../../game/rules/factionData.js';
 import { hexCenter3D } from '../hexWorldSpace.js';
-import { tileSurfaceY } from '../terrain/index.js';
+import { hillFloorY } from './hillFloor.js';
 import { normalizeDescriptor } from './descriptors/schema.js';
 import { recordsForEntity } from './descriptors/recordBuilder.js';
 import { buildDescriptorMeshes } from './descriptors/meshAssembly.js';
@@ -59,7 +59,7 @@ function collectBaseRecords(tilesOrArray, visible) {
       if (!tile.feature || tile.feature.kind !== 'base') continue;
       const entity = entityForBaseFeature(tile.feature);
       if (!entity) continue;
-      const surfaceY = tileSurfaceY(tile);
+      const surfaceY = hillFloorY(tile);
       const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
       records.push(...recordsForEntity(normalized, entity, { x, y: surfaceY, z }));
     }
@@ -71,7 +71,7 @@ function collectBaseRecords(tilesOrArray, visible) {
     if (!tile || !tile.feature || tile.feature.kind !== 'base') continue;
     const entity = entityForBaseFeature(tile.feature);
     if (!entity) continue;
-    const surfaceY = tileSurfaceY(tile);
+    const surfaceY = hillFloorY(tile);
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
     records.push(...recordsForEntity(normalized, entity, { x, y: surfaceY, z }));
   }
