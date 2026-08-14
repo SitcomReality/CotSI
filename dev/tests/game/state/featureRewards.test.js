@@ -76,7 +76,7 @@ test('drowned copyist: grants knots + a defense buff for this turn', () => {
 });
 
 test('scenery and unknown kinds are no-ops', () => {
-  for (const kind of ['tree', 'bush', 'mysteryKind']) {
+  for (const kind of ['bush', 'mysteryKind']) {
     const champ = humanChamp();
     const tile = makeTile('plains', { feature: { kind } });
     const state = stateWith(champ, tile);
@@ -325,7 +325,7 @@ test('featureValueForBot: base value, spent gate, and heal bonus', () => {
     'spent features are not targets');
   assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'treasureChest' } })), 34,
     'treasure chest base value');
-  assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'tree' } })), 0,
+  assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'bush' } })), 0,
     'scenery is not a target');
   assert.equal(featureValueForBot(null, hurt, makeTile('plains', { feature: { kind: 'unknownKind' } })), 0,
     'unknown kinds are not targets');

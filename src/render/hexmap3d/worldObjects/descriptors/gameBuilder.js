@@ -10,7 +10,6 @@
  * A tile may resolve to several objects, one group per descriptor:
  *   feature (claims the hex center; gated on the visible set):
  *     knot feature (unmined)      → knot descriptor
- *     tree on open terrain → solitary tree descriptor
  *     any other kind with a descriptor → that descriptor (simple archetypes)
  *   terrain decoration (composes with the feature above; also rendered on
  *   explored-but-out-of-sight tiles, where it shows its unoccupied state):
@@ -109,12 +108,6 @@ function resolveFeatureForTile(tile, occupants) {
     if (tile.feature.mined) return null;
     return { descriptor: normalizedDescriptor(KNOT_DESCRIPTOR), displacement: { displaced: occupied } };
   }
-  if (kind === 'tree') {
-    // On woods this is the grove (or the legacy Painforest grove) — the
-    // solitary landmark renders only on open terrain.
-    if (isWoodsTerrain(tile)) return null;
-    return { descriptor: normalizedDescriptor(descriptorById(kind)), displacement: { displaced: occupied } };
-  }
   const descriptor = kind ? descriptorById(kind) : null;
   if (descriptor?.kind === 'feature') {
     return { descriptor: normalizedDescriptor(descriptor), displacement: { displaced: occupied } };
@@ -130,10 +123,9 @@ function resolveFeatureForTile(tile, occupants) {
  */
 function resolveGroveForTile(tile, occupants, visible = true) {
   if (!isWoodsTerrain(tile)) return null;
-  const kind = tile.feature?.kind;
   const mode = decorState({
     hasOccupant: visible && isTileOccupied(occupants, tile),
-    hasFeature: visible && !!tile.feature && kind !== 'tree',
+    hasFeature: visible && !!tile.feature,
     decoration: DECORATION.GROVE,
   });
   return {

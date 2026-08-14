@@ -25,7 +25,7 @@ test('isDigEligible: false for feature, mob, combat, and impassable terrain', ()
   const tiles = {
     '0,0': makeTile(),
     '1,0': makeTile(),
-    '2,0': makeTile('plains', { feature: { kind: 'tree' } }),
+    '2,0': makeTile('plains', { feature: { kind: 'bush' } }),
     '3,0': makeTile('mountain'),
   };
   const base = makeState({ champions: [champ], mobs: [mob], tiles });

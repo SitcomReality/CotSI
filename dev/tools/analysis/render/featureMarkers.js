@@ -10,7 +10,7 @@ import { FEATURES } from './theme.js';
 /**
  * Draw all visible features on the map.
  *
- * Supported kinds: tree, blessedFont, knot, bush, treasureChest.
+ * Supported kinds: blessedFont, knot, bush, treasureChest.
  * Unknown kinds are silently skipped.
  *
  * @param {CanvasRenderingContext2D} ctx

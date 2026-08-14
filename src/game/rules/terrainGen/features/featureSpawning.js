@@ -98,8 +98,6 @@ export function spawnFeature(roll, terrain, density, features, options = {}) {
     if (!matched) continue;
 
     switch (rule.kind) {
-      case 'tree':
-        return { kind: rule.kind, density };
       case 'blessedFont':
         return { kind: 'blessedFont', nextRewardDay: 1, ripe: true, density };
       case 'knot':

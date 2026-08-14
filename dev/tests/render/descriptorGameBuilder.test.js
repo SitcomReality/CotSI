@@ -47,10 +47,6 @@ const TILES = [
   { q: 10, r: 4, terrain: 'forest', biomeId: 'biome_painforest', moisture: 0.6 },
   // Blessed Font on plains — descriptor data.
   { q: -7, r: 2, terrain: 'plains', feature: { kind: 'blessedFont' } },
-  // Solitary tree on open terrain.
-  { q: 12, r: 6, terrain: 'plains', feature: { kind: 'tree' } },
-  // `tree` on woods IS the grove (no solitary tree mesh).
-  { q: 14, r: -8, terrain: 'forest', moisture: 0.7, feature: { kind: 'tree' } },
   // Dense wood grove — conical (tall) canopy variant.
   { q: 16, r: -5, terrain: 'denseForest', moisture: 0.7 },
   // Ground decor: marsh reeds, plateau mound, desert scrub, beach driftwood.
@@ -128,11 +124,6 @@ test('resolveDescriptorForTile: feature vs decor dispatch', () => {
   const hiddenHill = resolveDescriptorForTile(TILES[7], OCCUPIED);
   assert.deepEqual(hiddenHill.map((r) => r.descriptor.id), ['treasureChest', 'hill']);
   assert.deepEqual(hiddenHill[1].displacement, { hidden: true, displaced: false });
-
-  // `tree` on woods is the grove — no solitary tree descriptor.
-  const treeWoods = resolveDescriptorForTile(TILES[11], OCCUPIED);
-  assert.deepEqual(treeWoods.map((r) => r.descriptor.id), ['grove']);
-  assert.deepEqual(treeWoods[0].displacement, { hidden: false, displaced: false });
 
   // Painforest woods resolve the gnarled `painforest` grove variant (descriptor
   // data); the Blessed Font resolves as a feature alongside its terrain decor
@@ -258,16 +249,6 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
     assert.ok(closeTo(p.sx, hillItemScale(hillTileH, i) * sunk.scale), `sunk hill ${i} shrinks by sunk scale (got ${p.sx})`);
   }
 
-  // Solitary tree on open terrain — trunk + its hash-chosen canopy variant.
-  assert.equal(meshNamed(meshes, 'tree-trunk')?.count, 1);
-  const treeCanopy = meshesStarting(meshes, 'tree-canopy-');
-  assert.equal(treeCanopy.length, 1, 'one solitary-tree canopy variant');
-  assert.equal(treeCanopy[0].count, 1);
-
-  // `tree` on woods produced no solitary tree mesh: the two tree- meshes are
-  // the open-terrain lone tree, and each holds exactly one instance.
-  assert.equal(meshesStarting(meshes, 'tree-').length, 2, 'only the open-terrain tree has tree- meshes');
-
   // Ground decor: one cluster per terrain, one mesh per part.
   const marsh = meshNamed(meshes, 'marshReeds-reed');
   const plateau = meshNamed(meshes, 'plateauMound-mound');
@@ -349,11 +330,10 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
   const meshes = buildChunkDescriptorFeatureMeshes(TILES, visible, OCCUPIED, decor);
 
   // Features stay invisible out of sight: the second bush, the knot, the chest,
-  // the solitary tree, and the Blessed Font all disappear.
+  // and the Blessed Font all disappear.
   assert.equal(meshNamed(meshes, 'bush-body').count, 1, 'only the visible bush renders');
   assert.equal(meshesStarting(meshes, 'knot-').length, 0, 'knot hidden out of sight');
   assert.equal(meshNamed(meshes, 'treasureChest-chest-base'), null, 'treasure chest hidden out of sight');
-  assert.equal(meshNamed(meshes, 'tree-trunk'), null, 'solitary tree hidden out of sight');
   assert.equal(meshesStarting(meshes, 'blessedFont-').length, 0, 'Blessed Font hidden out of sight');
 
   // Terrain decorations render out of sight: the mountain ...
@@ -377,11 +357,11 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
     assert.ok(closeTo(p.y - HILL_BASE * p.sy, hillSurface), `hill mound ${i} grounded at the surface (got ${p.y})`);
   }
 
-  // All five non-Painforest woods tiles render their grove (the visible plain
-  // grove, the two knot tiles, the `tree`-on-woods tile, and the dense wood).
+  // All four non-Painforest woods tiles render their grove (the visible plain
+  // grove, the two knot tiles, and the dense wood).
   const groveTrunk = meshNamed(meshes, 'grove-trunk');
   assert.ok(groveTrunk, 'grove meshes present');
-  assert.ok(groveTrunk.count >= 5, `grove covers the explored woods tiles (got ${groveTrunk.count})`);
+  assert.ok(groveTrunk.count >= 4, `grove covers the explored woods tiles (got ${groveTrunk.count})`);
 });
 
 test('painforest grove (descriptor decor) renders out of sight; Blessed Fonts stay hidden', () => {
@@ -406,7 +386,7 @@ test('painforest grove (descriptor decor) renders out of sight; Blessed Fonts st
 
 // ── Barrel smoke (worldMeshes.js wiring) ─────────────────────────────────
 
-test('buildChunkWorldMeshes still wires tree + descriptor + base + outlines', () => {
+test('buildChunkWorldMeshes wires descriptor + base + outlines', () => {
   const state = {
     tiles: new Map(TILES.map((t) => [`${t.q},${t.r}`, t])),
     champions: [], mobs: [], traders: [],
@@ -417,5 +397,4 @@ test('buildChunkWorldMeshes still wires tree + descriptor + base + outlines', ()
   assert.ok(meshes.length >= 2, 'barrel returns sources + outlines');
   assert.ok(meshes.some((m) => m.name === 'bush-body'), 'descriptor content reaches the barrel');
   assert.ok(meshes.some((m) => m.name === 'bush-body-outline'), 'outline twins included');
-  assert.ok(meshes.some((m) => m.name.startsWith('tree-')), 'tree descriptor still wired');
 });

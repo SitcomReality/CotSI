@@ -2,21 +2,13 @@
  * variantSelection.js — Which variant's parts compose a tile's items (or an
  * entity). Pure — no THREE. See itemSelection in recordBuilder.js.
  */
-import {
-  TREE_VARIANT_HASH_SEEDS,
-  TREE_FOREST_TALL_THRESHOLD,
-  TREE_VARIANT_THRESHOLDS,
-  MOUNTAIN_HASH_SEEDS,
-} from '../../../../params/render/geometryParams.js';
+import { MOUNTAIN_HASH_SEEDS } from '../../../../params/render/geometryParams.js';
 
 /**
  * Which variant's parts compose the items.
  *
  * variantRule 'hash' (default) — roll over the variants list from the tile
  * hash; the generic rule for any content with hash-chosen variants (mountains).
- *
- * variantRule 'solitary' — the legacy lone-tree canopy rule (terrain + coord
- * hash → round/tall/wide), matching the solitary-tree descriptor on open ground.
  *
  * variantRule 'cluster' — replicate clusterVariant(): denseForest groves are
  * conical (tall) pines, everything else round. Painforest woods (forest or
@@ -42,20 +34,6 @@ export function variantFor(descriptor, tile, tileH, explicitId = null) {
     if (forced) return forced;
   }
   const rule = descriptor.variantRule;
-  if (rule === 'solitary') {
-    const hash = ((tile.q * TREE_VARIANT_HASH_SEEDS[0] + tile.r * TREE_VARIANT_HASH_SEEDS[1]) * TREE_VARIANT_HASH_SEEDS[2]) % TREE_VARIANT_HASH_SEEDS[3];
-    let id;
-    if (tile.terrain === 'forest') {
-      id = hash < TREE_FOREST_TALL_THRESHOLD ? 'tall' : 'round';
-    } else if (hash < TREE_VARIANT_THRESHOLDS[0]) {
-      id = 'round';
-    } else if (hash < TREE_VARIANT_THRESHOLDS[1]) {
-      id = 'tall';
-    } else {
-      id = 'wide';
-    }
-    return byId(id) ?? variants[((tileH % variants.length) + variants.length) % variants.length];
-  }
   if (rule === 'cluster') {
     if (tile.biomeId === PAINFOREST_BIOME) {
       return byId('painforest') ?? variants[((tileH % variants.length) + variants.length) % variants.length];

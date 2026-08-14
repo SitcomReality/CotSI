@@ -52,7 +52,6 @@ import { SCORIA_ROSE_DESCRIPTOR } from './scoriaRose.js';
 import { SCREAMROOT_DESCRIPTOR } from './screamroot.js';
 import { SNOWPERSON_DESCRIPTOR } from './snowperson.js';
 import { TRADER_DESCRIPTOR } from './trader.js';
-import { TREE_DESCRIPTOR } from './tree.js';
 import { VEGETABLE_LAMB_DESCRIPTOR } from './vegetableLamb.js';
 import { VOLVELLE_DESCRIPTOR } from './volvelle.js';
 import { WAXBLOOM_DESCRIPTOR } from './waxbloom.js';
@@ -94,7 +93,6 @@ export const ALL_DESCRIPTORS = [
   HALF_DRAWN_OBELISK_DESCRIPTOR,
   SNOWPERSON_DESCRIPTOR,
   GROVE_DESCRIPTOR,
-  TREE_DESCRIPTOR,
   HILL_DESCRIPTOR,
   MOUNTAIN_DESCRIPTOR,
   PLAINS_GRASS_DESCRIPTOR,

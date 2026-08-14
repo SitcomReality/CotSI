@@ -133,4 +133,4 @@ export const NESTED_PART_TRANSFORM_DEFAULTS = Object.freeze({
 });
 
 /** How a descriptor's `variants` list is resolved to the parts of one item. */
-export const VARIANT_RULES = Object.freeze(['hash', 'solitary', 'cluster', 'faction', 'archetype', 'mountain']);
+export const VARIANT_RULES = Object.freeze(['hash', 'cluster', 'faction', 'archetype', 'mountain']);

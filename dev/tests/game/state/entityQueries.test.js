@@ -46,7 +46,7 @@ test('isVacant: champion, mob, and trader occupancy', () => {
 test('isVacant: impassable terrain, missing tile, and feature', () => {
   const tiles = {
     '0,0': makeTile('mountain'),
-    '2,0': makeTile('plains', { feature: { kind: 'tree' } }),
+    '2,0': makeTile('plains', { feature: { kind: 'bush' } }),
   };
   const state = makeState({ tiles });
   assert.equal(isVacant(state, '0,0'), false, 'impassable terrain');

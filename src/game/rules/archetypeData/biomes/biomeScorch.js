@@ -27,13 +27,11 @@ defineArchetype('biome_scorch', {
     waterMaxElevation: 0.08,
   },
 
-  // Scorch: sparse trees, rare Blessed Fonts, scattered knots
-  // Note: blessedFont must come before tree (higher threshold = rarer, first-match-wins)
+  // Scorch: rare Blessed Fonts, scattered knots
   features: [
     // High-roll features — rarest first
     { kind: 'blessedFont', threshold: 0.980, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'saintsRib', threshold: 0.965, compare: 'gt', terrainExclude: [], tier: 'T3' },
-    { kind: 'tree',      threshold: 0.945, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     // Treasure chest — any-biome collectible
     { kind: 'treasureChest',     threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     // Resources

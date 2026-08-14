@@ -29,12 +29,11 @@ defineArchetype('biome_sere_wastes', {
     marshMaxElevation: 0.20,
   },
 
-  // Sere Wastes: sparse everything — rare Blessed Fonts, very rare decorative trees
+  // Sere Wastes: sparse everything — rare Blessed Fonts
   features: [
     // High-roll features — rarest first
     { kind: 'blessedFont',       threshold: 0.985, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'ouroborosLoop',     threshold: 0.970, compare: 'gt', terrainExclude: [], tier: 'T4' },
-    { kind: 'tree',              threshold: 0.965, compare: 'gt', terrainExclude: ['forest', 'denseForest'] },
     // Treasure chest — any-biome collectible
     { kind: 'treasureChest',             threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'listenerLichen',    threshold: 0.025, compare: 'lt', terrainExclude: ['desert'], tier: 'T3' },

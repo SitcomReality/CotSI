@@ -331,9 +331,9 @@ test('undisplaced object ignores its dispersed behavior', () => {
 
 test('variant selection picks one part set deterministically by hash', () => {
   const tree = normalizeDescriptor({
-    id: 'tree',
+    id: 'example',
     kind: 'feature',
-    displayName: 'Tree',
+    displayName: 'Example',
     parts: [{ id: 'trunk', shape: 'cylinder' }],
     variants: [
       { id: 'round', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-round', shape: 'sphere' }] },
@@ -715,43 +715,7 @@ test('moisture cluster count matches clusterCount() and stays in [min, max]', ()
   }
 });
 
-// ── Variant rules (M4: tree migration) ─────────────────────────────────────
-
-/** Solitary tree with round/tall/wide canopy variants. */
-const SOLITARY_TREE = normalizeDescriptor({
-  id: 'tree-solitary',
-  kind: 'feature',
-  displayName: 'Tree',
-  variantRule: 'solitary',
-  placement: { mode: 'jitter' },
-  emphasis: { behavior: 'dispersed' },
-  material: { color: 0x8b5e3c },
-  parts: [{ id: 'trunk', shape: 'cylinder' }],
-  variants: [
-    { id: 'round', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-round', shape: 'sphere', color: 0x3cb371 }] },
-    { id: 'tall', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-tall', shape: 'cone', color: 0x2e8b57 }] },
-    { id: 'wide', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-wide', shape: 'cone', color: 0x66cdaa }] },
-  ],
-});
-
-test('variantRule solitary matches treeVariant(terrain, q, r)', () => {
-  const treeVariant = (terrain, q, r) => {
-    const hash = ((q * 7 + r * 13) * 31) % 17;
-    if (terrain === 'forest') return hash < 10 ? 'tall' : 'round';
-    if (hash < 6) return 'round';
-    if (hash < 11) return 'tall';
-    return 'wide';
-  };
-  const selected = (tile) => {
-    const ids = recordsForDescriptor(SOLITARY_TREE, tile, POS).map((r) => r.partId);
-    return ids.includes('canopy-round') ? 'round' : ids.includes('canopy-tall') ? 'tall' : 'wide';
-  };
-  for (const terrain of ['plains', 'hill', 'marsh', 'forest']) {
-    for (const [q, r] of [[1, 1], [3, -2], [-7, 5], [12, 0], [0, 0], [-3, -9]]) {
-      assert.equal(selected({ q, r, terrain }), treeVariant(terrain, q, r), `${terrain} ${q},${r}`);
-    }
-  }
-});
+// ── Variant rules ───────────────────────────────────────────────────────────
 
 test('variantRule cluster picks tall for denseForest, round otherwise; painforest overrides', () => {
   const grove = normalizeDescriptor({
@@ -833,13 +797,13 @@ test('part.stretch overrides the object variation; false pins the axis at 1', ()
   assert.notEqual(canopy.scale, trunk.scale);
 });
 
-// ── Jitter placement (M4: solitary tree migration) ─────────────────────────
+// ── Jitter placement ────────────────────────────────────────────────────────
 
-test('jitter placement replicates solitaryTreeRecords offsets and lean', () => {
+test('jitter placement replicates deterministic offsets and lean', () => {
   const tree = normalizeDescriptor({
-    id: 'tree-solitary-placement',
+    id: 'jitter-placement',
     kind: 'feature',
-    displayName: 'Tree',
+    displayName: 'Jitter',
     scale: 1.15,
     variation: { stretchY: [1.1, 1.1], stretchXZ: [1.05, 1.05] },
     placement: { mode: 'jitter', offset: 0.08, tiltMin: 0.02, tiltMax: 0.02, tiltSeed: 1 },

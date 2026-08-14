@@ -61,7 +61,7 @@ test('finishTurn: a non-knot feature blocks the night dig', () => {
     currentOrder: ['cA', 'cB'],
     globalOrder: ['cA', 'cB'],
     activeChampionId: 'cA',
-    tiles: { '0,0': makeTile('plains', { feature: { kind: 'tree' } }) },
+    tiles: { '0,0': makeTile('plains', { feature: { kind: 'bush' } }) },
   });
 
   finishTurn(state);

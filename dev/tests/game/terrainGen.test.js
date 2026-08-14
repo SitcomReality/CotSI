@@ -170,13 +170,13 @@ test('Blessed Font climate gate falls through to lower-priority rules', () => {
   // Regression: a blessedFont rule that matches the roll but fails the climate
   // gate (treeLineMax 0 → `elevation < treeLineMax` never true) used to kill
   // the whole roll with `feature: null`. Now the same roll is retried against
-  // the remaining rules, so 'tree' wins on every tile with roll > 0.
+  // the remaining rules, so 'bush' wins on every tile with roll > 0.
   const biomeDef = {
     id: 'test_gateFallthrough',
     terrainRules: { treeLineMax: 0 },
     features: [
       { kind: 'blessedFont', threshold: 0, compare: 'gt' },
-      { kind: 'tree', threshold: 0, compare: 'gt' },
+      { kind: 'bush', threshold: 0, compare: 'gt' },
     ],
   };
   const { tileMap } = generateChunkTiles('gate-fallthrough-seed', 0, 0, RADIUS, biomeDef);
@@ -184,7 +184,7 @@ test('Blessed Font climate gate falls through to lower-priority rules', () => {
   let trees = 0;
   for (const [, tile] of tileMap) {
     if (tile.feature === null) continue; // roll exactly 0 — neither rule matched
-    assert.equal(tile.feature.kind, 'tree',
+    assert.equal(tile.feature.kind, 'bush',
       `gate-failed blessedFont must fall through to tree at ${tile.q},${tile.r} (got ${tile.feature.kind})`);
     trees++;
   }
@@ -223,24 +223,24 @@ test('tiered placement: better features concentrate near the map center', () => 
     terrainRules: {},
     features: [
       { kind: 'foolsFire', threshold: 0.5, compare: 'gt', tier: 'T3' },
-      { kind: 'tree', threshold: 0.5, compare: 'gt' },
+      { kind: 'bush', threshold: 0.5, compare: 'gt' },
     ],
   };
   const radius = 12;
   const tiles = generateTiles('tier-concentration-seed', radius, biomeDef);
-  let centerFire = 0, outerFire = 0, centerTree = 0, outerTree = 0;
+  let centerFire = 0, outerFire = 0, centerBush = 0, outerBush = 0;
   for (const key of Object.keys(tiles)) {
     const [q, r] = key.split(',').map(Number);
     const kind = tiles[key].feature?.kind;
     const center = centerDistance01(q, r, radius) <= 0.5;
     if (kind === 'foolsFire') center ? centerFire++ : outerFire++;
-    else if (kind === 'tree') center ? centerTree++ : outerTree++;
+    else if (kind === 'bush') center ? centerBush++ : outerBush++;
   }
   const fireRatio = centerFire / Math.max(1, outerFire);
-  const treeRatio = centerTree / Math.max(1, outerTree);
-  assert.ok(fireRatio > treeRatio,
+  const bushRatio = centerBush / Math.max(1, outerBush);
+  assert.ok(fireRatio > bushRatio,
     `T3 center:outer ${centerFire}:${outerFire} (${fireRatio.toFixed(2)}) should beat ` +
-    `T1 ${centerTree}:${outerTree} (${treeRatio.toFixed(2)})`);
+    `T1 ${centerBush}:${outerBush} (${bushRatio.toFixed(2)})`);
 });
 
 // ---------------------------------------------------------------------------
@@ -383,11 +383,11 @@ test('assignRiverFlows: hex delta points at the next path tile; tail gets none',
 
 test('applyRiverTerrain: path tiles become river and lose features; water mouths stay', () => {
   const tiles = {
-    '0,0': { q: 0, r: 0, terrain: 'plains', feature: { kind: 'tree' } },
+    '0,0': { q: 0, r: 0, terrain: 'plains', feature: { kind: 'bush' } },
     '1,0': { q: 1, r: 0, terrain: 'forest', feature: { kind: 'blessedFont' } },
     '2,0': { q: 2, r: 0, terrain: 'mountain', feature: null },
     '3,0': { q: 3, r: 0, terrain: 'water', feature: null },
-    '4,0': { q: 4, r: 0, terrain: 'plains', feature: { kind: 'tree' } },
+    '4,0': { q: 4, r: 0, terrain: 'plains', feature: { kind: 'bush' } },
   };
   applyRiverTerrain(tiles, [[
     { q: 0, r: 0 },
@@ -407,7 +407,7 @@ test('applyRiverTerrain: path tiles become river and lose features; water mouths
   assert.equal(tiles['3,0'].terrain, 'water');
   // Tiles off the path are untouched.
   assert.equal(tiles['4,0'].terrain, 'plains');
-  assert.equal(tiles['4,0'].feature.kind, 'tree');
+  assert.equal(tiles['4,0'].feature.kind, 'bush');
 });
 
 // ---------------------------------------------------------------------------

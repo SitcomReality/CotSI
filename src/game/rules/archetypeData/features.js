@@ -4,9 +4,8 @@
  * Each feature archetype defines:
  *   type:           'feature'
  *   name:           Display name
- *   archetypeShape: Geometry identifier used by the renderer.
- *                   'tree' / 'knot' → dedicated builder.
- *                   Anything else → simpleFeatureMeshes.js + FEATURE_VISUALS registry.
+ *   archetypeShape: Geometry identifier used by entity descriptors (mobs,
+ *                   dungeons); vestigial for tile features.
  *   tags:           Biome/terrain affinity tags for spawn rules
  *   visual:         { scale } — render hints
  *
@@ -22,14 +21,6 @@
 import { defineArchetype } from '../archetypes.js';
 
 // ── Existing features ──────────────────────────────────────────────────────────
-
-defineArchetype('feature_tree', {
-  type: 'feature',
-  name: 'Tree',
-  archetypeShape: 'tree',
-  tags: ['forest', 'plains'],
-  visual: { scale: 1.0 },
-});
 
 defineArchetype('feature_blessedFont', {
   type: 'feature',

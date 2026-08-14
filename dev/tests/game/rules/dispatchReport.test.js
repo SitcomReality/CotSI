@@ -178,7 +178,7 @@ test('faction effects: Hollow bonus = ceil(missing/10) × ceil(week/3)', () => {
   assert.equal(week4.text, 'Vaunted Nothing: your wounds add +2 to your final combat score.');
 });
 
-test('terrain effects: base, Blessed Font, vegetation, and knot lines', () => {
+test('terrain effects: base, Blessed Font, bush, and knot lines', () => {
   const at = (feature) =>
     makeState({
       tiles: {
@@ -198,7 +198,6 @@ test('terrain effects: base, Blessed Font, vegetation, and knot lines', () => {
   ));
   assert.equal(textFor(at({ kind: 'blessedFont', ripe: true }), makeChamp()), 'Standing on Plains. The Blessed Font brims.');
   assert.equal(textFor(at({ kind: 'blessedFont', ripe: false }), makeChamp()), 'Standing on Plains. The font is dry.');
-  assert.equal(textFor(at({ kind: 'tree' }), makeChamp()), 'Standing on Plains. A tree stands here.');
   assert.equal(textFor(at({ kind: 'bush' }), makeChamp()), 'Standing on Plains. Dense underbrush crowds the hex.');
   assert.equal(textFor(at({ kind: 'knot', mined: false }), makeChamp()), "Standing on Plains. An unmined God's Knot glimmers.");
   // Mined knot → no glimmer suffix.

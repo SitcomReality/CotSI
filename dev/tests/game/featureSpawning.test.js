@@ -9,14 +9,14 @@ import { canSpawnBlessedFont, featureDensity } from '../../../src/game/rules/ter
 import { KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_MOD, FEATURE_TIERS } from '../../../src/params/game/featureSpawnParams.js';
 
 test('spawnFeature: returns null when no rule matches', () => {
-  const features = [{ kind: 'tree', threshold: 0.9, compare: 'gt' }];
+  const features = [{ kind: 'bush', threshold: 0.9, compare: 'gt' }];
   assert.equal(spawnFeature(0.5, 'plains', 0, features), null);
 });
 
 test('spawnFeature: first matching rule wins (priority order)', () => {
   const features = [
     { kind: 'blessedFont', threshold: 0.9, compare: 'gt' },
-    { kind: 'tree', threshold: 0.5, compare: 'gt' },
+    { kind: 'bush', threshold: 0.5, compare: 'gt' },
   ];
   const f = spawnFeature(0.95, 'plains', 0, features);
   assert.equal(f.kind, 'blessedFont');
@@ -25,39 +25,39 @@ test('spawnFeature: first matching rule wins (priority order)', () => {
 test('spawnFeature: terrainExclude skips a rule', () => {
   const features = [
     { kind: 'blessedFont', threshold: 0.9, compare: 'gt', terrainExclude: ['desert'] },
-    { kind: 'tree', threshold: 0.5, compare: 'gt' },
+    { kind: 'bush', threshold: 0.5, compare: 'gt' },
   ];
   const f = spawnFeature(0.95, 'desert', 0, features);
-  assert.equal(f.kind, 'tree', 'blessedFont must be excluded on desert');
+  assert.equal(f.kind, 'bush', 'blessedFont must be excluded on desert');
 });
 
 test('spawnFeature: terrainOnly restricts a rule to listed terrains', () => {
   const features = [
     { kind: 'blessedFont', threshold: 0.9, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
-    { kind: 'tree', threshold: 0.5, compare: 'gt' },
+    { kind: 'bush', threshold: 0.5, compare: 'gt' },
   ];
   const onForest = spawnFeature(0.95, 'forest', 0, features);
   assert.equal(onForest.kind, 'blessedFont', 'blessedFont allowed on forest');
   const onPlains = spawnFeature(0.95, 'plains', 0, features);
-  assert.equal(onPlains.kind, 'tree', 'blessedFont skipped off-forest, tree wins');
+  assert.equal(onPlains.kind, 'bush', 'blessedFont skipped off-forest, tree wins');
   const onDesert = spawnFeature(0.95, 'desert', 0, features);
-  assert.equal(onDesert.kind, 'tree', 'terrainOnly also excludes desert');
+  assert.equal(onDesert.kind, 'bush', 'terrainOnly also excludes desert');
   const onDenseForest = spawnFeature(0.95, 'denseForest', 0, features);
   assert.equal(onDenseForest.kind, 'blessedFont', 'blessedFont allowed on denseForest');
 });
 
 test('spawnFeature: density modulates threshold (higher density → easier match)', () => {
-  const features = [{ kind: 'tree', threshold: 0.9, compare: 'gt' }];
+  const features = [{ kind: 'bush', threshold: 0.9, compare: 'gt' }];
   // density 0 → effective 0.9; roll 0.85 misses at density 0 but hits at high density.
   assert.equal(spawnFeature(0.85, 'plains', 0, features), null);
   const hit = spawnFeature(0.85, 'plains', 1, features);
-  assert.equal(hit.kind, 'tree', 'high density should lower the effective threshold');
+  assert.equal(hit.kind, 'bush', 'high density should lower the effective threshold');
 });
 
 test('spawnFeature: gt vs lt comparison semantics', () => {
-  const gtRule = [{ kind: 'tree', threshold: 0.5, compare: 'gt' }];
+  const gtRule = [{ kind: 'bush', threshold: 0.5, compare: 'gt' }];
   const ltRule = [{ kind: 'knot', threshold: 0.5, compare: 'lt' }];
-  assert.equal(spawnFeature(0.6, 'plains', 0, gtRule)?.kind, 'tree');
+  assert.equal(spawnFeature(0.6, 'plains', 0, gtRule)?.kind, 'bush');
   assert.equal(spawnFeature(0.4, 'plains', 0, ltRule)?.kind, 'knot');
   assert.equal(spawnFeature(0.4, 'plains', 0, gtRule), null);
   assert.equal(spawnFeature(0.6, 'plains', 0, ltRule), null);
@@ -167,12 +167,12 @@ test('spawnFeature: a rejected tier gate falls through to a lower-priority rule'
   // tree win proves the fallthrough.
   const features = [
     { kind: 'foolsFire', threshold: 0.5, compare: 'gt', tier: 'T3' },
-    { kind: 'tree', threshold: 0.5, compare: 'gt' },
+    { kind: 'bush', threshold: 0.5, compare: 'gt' },
   ];
   let treeWins = 0;
   for (let s = 0; s < 300; s++) {
     const f = spawnFeature(0.9, 'plains', 0, features, { seed: s, q: s, r: s * 3, dist01: 1 });
-    if (f?.kind === 'tree') treeWins++;
+    if (f?.kind === 'bush') treeWins++;
   }
   assert.ok(treeWins > 100, `expected the fallback tree to win often at the edge (got ${treeWins})`);
 });

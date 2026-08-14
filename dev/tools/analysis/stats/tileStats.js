@@ -60,7 +60,6 @@ export function terrainDistribution(tiles) {
 }
 
 export function featureCounts(tiles) {
-  let trees = 0;
   let blessedFonts = 0;
   let knots = 0;
   let bases = 0;
@@ -71,7 +70,6 @@ export function featureCounts(tiles) {
     const f = tiles[key].feature;
     if (!f) continue;
     switch (f.kind) {
-      case 'tree': trees++; break;
       case 'blessedFont': blessedFonts++; break;
       case 'knot': knots++; break;
       case 'base': bases++; break;
@@ -80,7 +78,7 @@ export function featureCounts(tiles) {
     }
   }
 
-  return { trees, blessedFonts, knots, bases, bushes, chests };
+  return { blessedFonts, knots, bases, bushes, chests };
 }
 
 /**

@@ -96,7 +96,7 @@ test('enumerations are exhaustive and frozen', () => {
   assert.deepEqual(OBJECT_KINDS, ['feature', 'decor', 'mountain', 'base', 'champion', 'mob', 'trader', 'item']);
   assert.deepEqual(EMPHASIS_BEHAVIORS, ['none', 'dispersed', 'sunk', 'hidden']);
   assert.deepEqual(PLACEMENT_MODES, ['center', 'scatter', 'ring', 'jitter']);
-  assert.deepEqual(VARIANT_RULES, ['hash', 'solitary', 'cluster', 'faction', 'archetype', 'mountain']);
+  assert.deepEqual(VARIANT_RULES, ['hash', 'cluster', 'faction', 'archetype', 'mountain']);
   assert.ok(Number.isInteger(SCHEMA_VERSION) && SCHEMA_VERSION >= 1);
 });
 
@@ -387,7 +387,7 @@ test('variantRule accepts only known rules and normalizes to hash', () => {
     variants: [{ id: 'a', parts: [{ id: 'p', shape: 'sphere' }] }],
   });
   assert.equal(d.variantRule, 'hash');
-  assert.ok(validateDescriptor({ ...d, variantRule: 'solitary' }).length === 0);
+  assert.ok(validateDescriptor({ ...d, variantRule: 'faction' }).length === 0);
   assert.ok(validateDescriptor({ ...d, variantRule: 'cluster' }).length === 0);
   assert.ok(validateDescriptor({ ...d, variantRule: 'terrain' }).length > 0);
 });

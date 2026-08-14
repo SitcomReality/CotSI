@@ -23,8 +23,7 @@ import {
   SCATTER_SCALE_RANGE,
 } from '../../../../params/render/geometryParams.js';
 
-// Ring-scatter constants mirror TREE_VARIATION.ringJitter / angleJitter in
-// geometryParams.js (0.15 × ring width jitter, ±0.7 rad angular scatter).
+// Ring-scatter constants: 0.15 × ring width jitter, ±0.7 rad angular scatter.
 const RING_JITTER = 0.15;
 const RING_ANGLE_JITTER = 0.7;
 

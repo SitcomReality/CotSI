@@ -160,8 +160,6 @@ function terrainEffects(state, champ, effects) {
         : ` A ${FACTIONS[f.faction].name} base — potency may be bought here.`;
   } else if (f?.kind === 'blessedFont') {
     text += f.ripe === false ? ' The font is dry.' : ' The Blessed Font brims.';
-  } else if (f?.kind === 'tree') {
-    text += ' A tree stands here.';
   } else if (f?.kind === 'bush') {
     text += ` Dense underbrush crowds the hex.`;
   } else if (f?.kind === 'knot' && !f.mined) {
