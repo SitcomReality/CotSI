@@ -408,6 +408,25 @@ test('biomeVariants: validates a biomeId → variantId map against the variants 
   assert.ok(validateDescriptor({ ...d, biomeVariants: 'a' }).some((e) => e.includes('biomeVariants')));
 });
 
+test('optionalGroups: validates id/chance/parts and normalizes chance to 0.5', () => {
+  const d = normalizeDescriptor({
+    id: 'og',
+    kind: 'decor',
+    displayName: 'Optional Groups',
+    parts: [{ id: 'base', shape: 'sphere' }],
+    optionalGroups: [{ id: 'cactus', parts: [{ id: 'stem', shape: 'cylinder' }] }],
+  });
+  assert.equal(d.optionalGroups[0].chance, 0.5, 'chance defaults to 0.5');
+  assert.equal(validateDescriptor(d).length, 0, 'valid group passes');
+  assert.deepEqual(normalizeDescriptor(denormalizeDescriptor(d)).optionalGroups, d.optionalGroups, 'round-trip preserves optionalGroups');
+  assert.ok(validateDescriptor({ ...d, optionalGroups: [{ id: 'cactus', chance: 2, parts: [] }] })
+    .some((e) => e.includes('chance')));
+  assert.ok(validateDescriptor({ ...d, optionalGroups: [
+    { id: 'cactus', parts: [{ id: 'a', shape: 'sphere' }] },
+    { id: 'cactus', parts: [{ id: 'b', shape: 'sphere' }] },
+  ] }).some((e) => e.includes('duplicate group id')));
+});
+
 test('normalizeDescriptor remaps legacy shape names (knot → octahedron, snowperson → lathe)', () => {
   const legacy = {
     id: 'legacy',

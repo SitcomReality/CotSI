@@ -174,6 +174,14 @@ export function denormalizeDescriptor(def) {
       return v;
     });
   }
+  if (Array.isArray(out.optionalGroups)) {
+    out.optionalGroups = out.optionalGroups.map((group) => {
+      const g = { ...group };
+      g.parts = (Array.isArray(group.parts) ? group.parts : []).map(denormPart);
+      if (g.chance === 0.5) delete g.chance;
+      return g;
+    });
+  }
 
   return out;
 }

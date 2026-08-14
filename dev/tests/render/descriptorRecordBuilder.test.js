@@ -766,6 +766,25 @@ test('an explicit variant id forces the variant (the editor variant picker)', ()
   assert.ok(fallback.has('canopy-round') && !fallback.has('canopy-tall'));
 });
 
+test('optionalGroups: independent per-tile include/exclude of sub-objects', () => {
+  const d = normalizeDescriptor({
+    id: 'optional-groups',
+    kind: 'decor',
+    displayName: 'Optional Groups',
+    placement: { mode: 'center' },
+    parts: [{ id: 'base', shape: 'sphere' }],
+    optionalGroups: [
+      { id: 'always', chance: 1, parts: [{ id: 'g-always', shape: 'cylinder' }] },
+      { id: 'never', chance: 0, parts: [{ id: 'g-never', shape: 'cone' }] },
+    ],
+  });
+  const ids = (tile) => new Set(recordsForDescriptor(d, tile, POS).map((r) => r.partId));
+  assert.ok(ids(TILE).has('base'));
+  assert.ok(ids(TILE).has('g-always'), 'chance 1 group always emits');
+  assert.ok(!ids(TILE).has('g-never'), 'chance 0 group never emits');
+  assert.deepEqual(ids(TILE), ids({ ...TILE }), 'presence is deterministic per tile');
+});
+
 // ── Per-part stretch (M4: trunk vs canopy stretch ranges) ──────────────────
 
 test('part.stretch overrides the object variation; false pins the axis at 1', () => {

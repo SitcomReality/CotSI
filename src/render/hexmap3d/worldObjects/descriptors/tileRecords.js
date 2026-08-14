@@ -28,6 +28,9 @@ import { itemCount } from './clusterCount.js';
 import { variantFor } from './variantSelection.js';
 import { resolveDisplacement, clusterPlacements } from './itemPlacement.js';
 
+/** Hash seed offset for optional-group presence rolls (treeHash channel). */
+const OPTIONAL_GROUP_SEED = 53;
+
 /**
  * Build one item's instance records for the given ROOT part. Local offsets
  * (lift / localPos) are pre-scaled by the item scale so the whole item scales
@@ -204,11 +207,21 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
 
   const variant = variantFor(descriptor, tile, tileH, variantId);
   const parts = (variant ?? descriptor).parts;
-  const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);
+
+  // Optional groups — independent per-tile include/exclude of sub-objects
+  // (e.g. desert cactus AND/OR a scraggly dead tree). Each present group emits
+  // one extra item, so the cluster count grows by the number that spawn.
+  const presentGroups = (descriptor.optionalGroups ?? []).filter((group, g) => {
+    const chance = group.chance ?? 0.5;
+    return frac(treeHash(tileH, OPTIONAL_GROUP_SEED + g)) < chance;
+  });
+
+  const totalCount = count + presentGroups.length;
+  const disp = resolveDisplacement(descriptor, totalCount, tileH, displacement.displaced);
 
   const records = [];
-  const placements = clusterPlacements(descriptor, tile, count, tileH, disp);
-  for (let i = 0; i < count; i++) {
+  const placements = clusterPlacements(descriptor, tile, totalCount, tileH, disp);
+  const emitItem = (itemParts, i) => {
     // Per-item size draw — per-item so cluster members vary (treeVariation's
     // scale uses hash i+3). Item 0 keeps the old item-independent roll, so
     // lone objects are unchanged; members draw the decorrelated itemHash so
@@ -220,10 +233,14 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
       tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
       worldBase: worldBaseMatrix(worldPos, placement, disp),
     };
-    for (const part of parts) {
+    for (const part of itemParts) {
       collectPart(descriptor, part, ctx, mat4Identity(), true, records, null);
     }
-  }
+  };
+
+  for (let i = 0; i < count; i++) emitItem(parts, i);
+  presentGroups.forEach((group, g) => emitItem(group.parts, count + g));
+
   return records;
 }
 

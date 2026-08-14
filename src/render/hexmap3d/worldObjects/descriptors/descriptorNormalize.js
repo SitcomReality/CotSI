@@ -210,6 +210,14 @@ export function normalizeDescriptor(def) {
       return v;
     });
   }
+  if (Array.isArray(out.optionalGroups)) {
+    out.optionalGroups = out.optionalGroups.map((group) => {
+      const g = { ...group };
+      g.chance = group.chance ?? 0.5;
+      g.parts = (Array.isArray(group.parts) ? group.parts : []).map((p) => normalizePart(p, legacyGrounding));
+      return g;
+    });
+  }
 
   // v3 → v4 color migration: push the object's material color into every part
   // that lacks an explicit color, then drop it from the material. Entity parts

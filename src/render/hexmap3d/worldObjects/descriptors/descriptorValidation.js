@@ -237,7 +237,7 @@ function validatePortrait(portrait, path, errors) {
 const OBJECT_KEYS = [
   'schemaVersion', 'id', 'kind', 'displayName', 'parts', 'variants', 'variantRule',
   'scale', 'cluster', 'size', 'variation', 'placement', 'emphasis', 'material',
-  'slot', 'portrait', 'biomeVariants',
+  'slot', 'portrait', 'biomeVariants', 'optionalGroups',
 ];
 
 /**
@@ -301,6 +301,31 @@ export function validateDescriptor(def) {
           errors.push(`descriptor.biomeVariants["${biomeId}"]: unknown variant "${variantId}"`);
         }
       }
+    }
+  }
+
+  if (def.optionalGroups !== undefined) {
+    if (!Array.isArray(def.optionalGroups)) {
+      errors.push('descriptor.optionalGroups: must be an array of { id, chance?, parts }');
+    } else {
+      const seenGroupIds = new Set();
+      def.optionalGroups.forEach((group, gi) => {
+        const gpath = `descriptor.optionalGroups[${gi}]`;
+        if (!isPlainObject(group)) {
+          errors.push(`${gpath}: group must be an object { id, chance?, parts }`);
+          return;
+        }
+        if (typeof group.id !== 'string' || !group.id) {
+          errors.push(`${gpath}: missing group id`);
+        } else if (seenGroupIds.has(group.id)) {
+          errors.push(`${gpath}: duplicate group id "${group.id}"`);
+        }
+        seenGroupIds.add(group.id);
+        if (group.chance !== undefined && (typeof group.chance !== 'number' || group.chance < 0 || group.chance > 1)) {
+          errors.push(`${gpath}.chance: must be a number in [0, 1]`);
+        }
+        validatePartsList(group.parts, gpath, errors);
+      });
     }
   }
 
