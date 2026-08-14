@@ -91,9 +91,16 @@ test('emitted variant modules re-import and normalize back to the same variant',
   }
 });
 
-test('every descriptor has a home file (data/<id>.js)', () => {
+test('every descriptor has a home file (data/<subfolder>/<id>.js)', () => {
+  const subfolderFor = (kind) => {
+    if (kind === 'decor' || kind === 'mountain') return 'decor';
+    if (kind === 'feature') return 'features';
+    if (kind === 'item') return 'items';
+    return '';
+  };
   for (const raw of all) {
-    const file = `${raw.id}.js`;
+    const dir = subfolderFor(raw.kind);
+    const file = dir ? `${dir}/${raw.id}.js` : `${raw.id}.js`;
     const p = new URL(`../../../src/render/hexmap3d/worldObjects/descriptors/data/${file}`, import.meta.url);
     assert.ok(existsSync(p), `"${raw.id}" home file data/${file} missing`);
   }

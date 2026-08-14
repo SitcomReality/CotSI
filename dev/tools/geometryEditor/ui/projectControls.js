@@ -22,10 +22,14 @@ import { SAMPLE_OBJECTS } from '../sampleObjects.js';
 import { newObjectTemplate } from './objectTemplates.js';
 import { buildIconAtlas } from '../atlasBuild.js';
 
-/** The data-file path the descriptor id saves to (the per-object convention
- *  data/<id>.js). */
-function targetFile(id) {
-  return `${id}.js`;
+/** The data-file path the descriptor saves to, categorized by kind:
+ *  data/decor/<id>.js, data/features/<id>.js, data/items/<id>.js, or
+ *  data/<id>.js for entities (which save their variant via variantTargetFile). */
+function targetFile(d) {
+  if (d.kind === 'decor' || d.kind === 'mountain') return `decor/${d.id}.js`;
+  if (d.kind === 'feature') return `features/${d.id}.js`;
+  if (d.kind === 'item') return `items/${d.id}.js`;
+  return `${d.id}.js`;
 }
 
 /** The per-variant data-file path for entity kinds (the table-driven save
@@ -238,7 +242,7 @@ function bindSaveToGame(els) {
 
     const isNew = !SAMPLE_OBJECTS.some((o) => o.id === d.id);
     const body = { descriptor: d };
-    let file = targetFile(d.id);
+    let file = targetFile(d);
     // Entity kinds save ONLY the active variant to its own file (mobs/
     // bases/ champions/) — the table-driven barrels are hand-composed and
     // never rewritten. Tile-driven objects save the whole descriptor.

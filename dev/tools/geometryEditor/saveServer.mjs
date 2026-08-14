@@ -63,6 +63,14 @@ const TABLE_DRIVEN = new Map([
   ['champion.js', { dir: 'champions', fileFor: (id) => `${id.toLowerCase()}.js` }],
 ]);
 
+/** The data subfolder a descriptor kind saves into ('' = top-level). */
+function subfolderFor(kind) {
+  if (kind === 'decor' || kind === 'mountain') return 'decor';
+  if (kind === 'feature') return 'features';
+  if (kind === 'item') return 'items';
+  return '';
+}
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -101,11 +109,12 @@ async function atomicWrite(target, content) {
  * Register a brand-new descriptor in data/index.js: insert its import (in the
  * alphabetical import block) and append its export to ALL_DESCRIPTORS.
  */
-async function registerInBarrel(id, exportName) {
+async function registerInBarrel(id, exportName, subfolder = '') {
+  const rel = subfolder ? `${subfolder}/${id}` : id;
   const text = await readFile(INDEX_PATH, 'utf8');
   const lines = text.split('\n');
-  const importLine = `import { ${exportName} } from './${id}.js';`;
-  const spec = `'./${id}.js';`;
+  const importLine = `import { ${exportName} } from './${rel}.js';`;
+  const spec = `'./${rel}.js';`;
 
   // Insert the import before the first import whose specifier sorts after it
   // (the barrel's imports are alphabetical by file name).
@@ -160,7 +169,8 @@ async function handleSave(res, body) {
   const barrel = await importBarrel();
   const knownIds = new Set(barrel.ALL_DESCRIPTORS.map((d) => d.id));
   const isNew = !knownIds.has(id);
-  const file = `${id}.js`;
+  const subfolder = subfolderFor(def.kind);
+  const file = subfolder ? `${subfolder}/${id}.js` : `${id}.js`;
 
   const variantTarget = TABLE_DRIVEN.get(file);
   if (variantTarget) {
@@ -221,7 +231,7 @@ async function handleSave(res, body) {
   await atomicWrite(path.join(DATA_DIR, file), content);
 
   if (isNew) {
-    await registerInBarrel(id, descriptorExportName(id));
+    await registerInBarrel(id, descriptorExportName(id), subfolder);
     console.log(`[save] registered new object ${id} → data/${file}`);
   } else {
     console.log(`[save] updated ${id} → data/${file}`);

@@ -33,17 +33,17 @@ import { buildDescriptorMeshes } from './meshAssembly.js';
 import { recordsForDescriptor } from './recordBuilder.js';
 import { normalizeDescriptor } from './schema.js';
 import { descriptorById } from './data/index.js';
-import { GROVE_DESCRIPTOR } from './data/grove.js';
-import { HILL_DESCRIPTOR } from './data/hill.js';
-import { KNOT_DESCRIPTOR } from './data/knot.js';
-import { MOUNTAIN_DESCRIPTOR } from './data/mountain.js';
+import { GROVE_DESCRIPTOR } from './data/decor/grove.js';
+import { HILL_DESCRIPTOR } from './data/decor/hill.js';
+import { KNOT_DESCRIPTOR } from './data/features/knot.js';
+import { MOUNTAIN_DESCRIPTOR } from './data/decor/mountain.js';
 import { biomeTintForTile } from '../biomeTint.js';
 import { coordKey } from '../../../../engine/rules/hexGrid.js';
-import { PLAINS_GRASS_DESCRIPTOR } from './data/plainsGrass.js';
-import { MARSH_REEDS_DESCRIPTOR } from './data/marshReeds.js';
-import { PLATEAU_MOUND_DESCRIPTOR } from './data/plateauMound.js';
-import { DESERT_SCRUB_DESCRIPTOR } from './data/desertScrub.js';
-import { BEACH_DRIFTWOOD_DESCRIPTOR } from './data/beachDriftwood.js';
+import { PLAINS_GRASS_DESCRIPTOR } from './data/decor/plainsGrass.js';
+import { MARSH_REEDS_DESCRIPTOR } from './data/decor/marshReeds.js';
+import { PLATEAU_MOUND_DESCRIPTOR } from './data/decor/plateauMound.js';
+import { DESERT_SCRUB_DESCRIPTOR } from './data/decor/desertScrub.js';
+import { BEACH_DRIFTWOOD_DESCRIPTOR } from './data/decor/beachDriftwood.js';
 import { hillFloorY } from '../hillFloor.js';
 import {
   DECOR_STATE, DECORATION, decorState, isTileOccupied,

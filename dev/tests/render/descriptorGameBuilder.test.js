@@ -22,7 +22,7 @@ import {
 } from '../../../src/params/render/geometryParams.js';
 import { shapeBaseOffset, normalizeDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { recordsForDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
-import { HILL_DESCRIPTOR } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/hill.js';
+import { HILL_DESCRIPTOR } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/decor/hill.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 

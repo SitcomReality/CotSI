@@ -1,7 +1,7 @@
 /**
  * hillFloor.js — Floor height for objects standing on hill terrain.
  *
- * A hill tile's mound (descriptors/data/hill.js) is a partial sphere whose rim
+ * A hill tile's mound (descriptors/data/decor/hill.js) is a partial sphere whose rim
  * the record grounds at the tile surface; its peak sits at
  * radius·(1 − cos(thetaLength))·scaleY above the surface. Objects (champions,
  * bases, features) stand on that peak, so this module resolves the per-tile
@@ -14,7 +14,7 @@
 import { tileSurfaceY } from '../terrain/index.js';
 import { normalizeDescriptor } from './descriptors/schema.js';
 import { recordsForDescriptor } from './descriptors/recordBuilder.js';
-import { HILL_DESCRIPTOR } from './descriptors/data/hill.js';
+import { HILL_DESCRIPTOR } from './descriptors/data/decor/hill.js';
 
 const normalizedHill = normalizeDescriptor(HILL_DESCRIPTOR);
 const moundPart = HILL_DESCRIPTOR.parts[0];
