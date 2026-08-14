@@ -62,9 +62,11 @@ export function makeMob(overrides = {}) {
 /**
  * Build a minimal tile with the shape state code expects:
  * terrain key (looked up in TERRAIN for passability) + feature slot.
+ * Tiles are identified by axial coordinates, so the fixture carries q/r
+ * (real tiles always do — see featureRegrowth.depleteFeature).
  */
 export function makeTile(terrain = 'plains', overrides = {}) {
-  return { terrain, feature: null, ...overrides };
+  return { terrain, q: 0, r: 0, feature: null, ...overrides };
 }
 
 /**

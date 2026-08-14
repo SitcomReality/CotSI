@@ -19,7 +19,7 @@ import { runMobHarassment } from './mobHarassment.js';
 import { runTraderMovement } from './traderMovement.js';
 import { traderStock } from '../rules/traderStock.js';
 import { DAYS_PER_WEEK } from '../../params/game/worldParams.js';
-import { markChunkDirty } from './chunkDirtyTracking.js';
+import { advanceRegrowth } from './featureRegrowth.js';
 
 export function finishTurn(state) {
   const champ = getChampion(state, state.activeChampionId);
@@ -108,15 +108,7 @@ function runWorldTurn(state) {
   runMobHarassment(state);
 
   // regrow features (moonberries, waxbloom, snowperson, ...)
-  for (const key of state._regrowingFeatures) {
-    const t = state.tiles[key];
-    if (t?.feature && t.feature.nextRewardDay != null && state.day >= t.feature.nextRewardDay) {
-      t.feature.ripe = true;
-      state._regrowingFeatures.delete(key);
-      // Feature state changed — rebuild the chunk so the ready feature shows.
-      markChunkDirty(state, t.q, t.r);
-    }
-  }
+  advanceRegrowth(state);
 
   // traders move
   runTraderMovement(state);

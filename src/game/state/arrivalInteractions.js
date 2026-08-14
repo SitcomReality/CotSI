@@ -10,7 +10,8 @@ import { buildChampionFactionMap, championSegment } from '../rules/logHelpers.js
 import { recordLedgerEntry } from './dispatchLedger.js';
 import { interactWithFeature } from './featureRewards.js';
 import { enterDungeon } from './dungeonSystem.js';
-import { FRUIT_HEAL_VERDANT, FRUIT_HEAL_STANDARD, FRUIT_REGROWTH_DAYS, KNOT_DEFAULT_AMOUNT, CHEST_GOLD_BASE } from '../../params/game/economyParams.js';
+import { depleteFeature } from './featureRegrowth.js';
+import { FRUIT_HEAL_VERDANT, FRUIT_HEAL_STANDARD, KNOT_DEFAULT_AMOUNT, CHEST_GOLD_BASE } from '../../params/game/economyParams.js';
 import { FACTION_VERDANT } from '../../params/game/factionParams.js';
 import { markChunkDirty } from './chunkDirtyTracking.js';
 
@@ -27,11 +28,7 @@ export function interactOnArrival(state, champ) {
     if (!tile.feature.nextRewardDay || state.day >= tile.feature.nextRewardDay) {
       const heal = champ.faction === FACTION_VERDANT ? FRUIT_HEAL_VERDANT : FRUIT_HEAL_STANDARD;
       champ.hp = Math.min(champ.maxHp, champ.hp + heal);
-      tile.feature.nextRewardDay = state.day + FRUIT_REGROWTH_DAYS;
-      tile.feature.ripe = false;
-      state._regrowingFeatures.add(coordKey(champ.pos));
-      // Feature state changed — rebuild the chunk so the fruit regrow shows.
-      markChunkDirty(state, tile.q, tile.r);
+      depleteFeature(state, tile);
       addLogEntry(state, {
         category: LOG_CATEGORY.HEAL,
         subject: championSegment(champ.name, factionMap),

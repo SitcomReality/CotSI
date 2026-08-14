@@ -31,10 +31,10 @@ import { recordLedgerEntry } from './dispatchLedger.js';
 import { getArchetype } from '../rules/archetypes.js';
 import { FACTIONS } from '../rules/factionData.js';
 import { markChunkDirty } from './chunkDirtyTracking.js';
+import { depleteFeature } from './featureRegrowth.js';
 import { FACTION_COUNT } from '../../params/game/factionParams.js';
 import { BOT_FEATURE_SCORES, BOT_FEATURE_HEAL_BONUS, BOT_TREE_HP_THRESHOLD } from '../../params/game/aiParams.js';
 import {
-  FEATURE_REGROW_DAYS,
   FEATURE_RELIC_AMOUNT,
   FEATURE_CRYSTAL_GOLD,
   FEATURE_KNOTS_AMOUNT,
@@ -331,7 +331,7 @@ export function interactWithFeature(state, champ, tile) {
 
   if (spec.class === 'regrow') {
     _grantRewards(state, champ, tile, spec);
-    _setRegrow(state, champ, tile);
+    depleteFeature(state, tile);
     return;
   }
   if (spec.class === 'direct') {
@@ -540,14 +540,6 @@ function _applyGrant(state, champ, grant, claimText) {
 function _grantBuff(champ, name, amount) {
   if (!champ.buffs) champ.buffs = { attack: 0, defense: 0 };
   champ.buffs[name] += amount;
-}
-
-/** Mark a replenishable feature as spent and schedule its regrow. */
-function _setRegrow(state, champ, tile) {
-  tile.feature.nextRewardDay = state.day + FEATURE_REGROW_DAYS;
-  tile.feature.ripe = false;
-  state._regrowingFeatures.add(coordKey(champ.pos));
-  markChunkDirty(state, tile.q, tile.r);
 }
 
 /** Consume a finite feature (de-emphasis restores the decor). */
