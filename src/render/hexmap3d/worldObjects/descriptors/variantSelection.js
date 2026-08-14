@@ -11,14 +11,15 @@ import { MOUNTAIN_HASH_SEEDS } from '../../../../params/render/geometryParams.js
  * hash; the generic rule for any content with hash-chosen variants (mountains).
  *
  * variantRule 'cluster' — replicate clusterVariant(): denseForest groves are
- * conical (tall) pines, everything else round. Painforest woods (forest or
- * denseForest) grow the gnarled `painforest` variant instead — the biome
- * override takes precedence over the terrain canopy family.
+ * conical (tall) pines, everything else round.
+ *
+ * A descriptor's `biomeVariants` (biomeId → variant id) takes precedence over
+ * the variantRule, so a biome overrides its decor's look (e.g. the Painforest
+ * grove's gnarled variant). Data-driven — no hardcoded biome names here.
  *
  * When the rule names an id the descriptor does not define, fall back to the
  * hash roll so a partially-migrated descriptor still renders.
  */
-const PAINFOREST_BIOME = 'biome_painforest';
 
 /**
  * @param {string|null} [explicitId] - variant id override (the geometry
@@ -33,11 +34,14 @@ export function variantFor(descriptor, tile, tileH, explicitId = null) {
     const forced = byId(explicitId);
     if (forced) return forced;
   }
+  // Biome override — a descriptor's per-biome variant wins over the rule.
+  const biomeVariantId = descriptor.biomeVariants?.[tile.biomeId];
+  if (biomeVariantId) {
+    const biomeVariant = byId(biomeVariantId);
+    if (biomeVariant) return biomeVariant;
+  }
   const rule = descriptor.variantRule;
   if (rule === 'cluster') {
-    if (tile.biomeId === PAINFOREST_BIOME) {
-      return byId('painforest') ?? variants[((tileH % variants.length) + variants.length) % variants.length];
-    }
     const id = tile.terrain === 'denseForest' ? 'tall' : 'round';
     return byId(id) ?? variants[((tileH % variants.length) + variants.length) % variants.length];
   }

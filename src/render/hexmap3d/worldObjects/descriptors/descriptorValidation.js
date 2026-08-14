@@ -237,7 +237,7 @@ function validatePortrait(portrait, path, errors) {
 const OBJECT_KEYS = [
   'schemaVersion', 'id', 'kind', 'displayName', 'parts', 'variants', 'variantRule',
   'scale', 'cluster', 'size', 'variation', 'placement', 'emphasis', 'material',
-  'slot', 'portrait',
+  'slot', 'portrait', 'biomeVariants',
 ];
 
 /**
@@ -287,6 +287,21 @@ export function validateDescriptor(def) {
 
   if (def.variantRule !== undefined && !VARIANT_RULES.includes(def.variantRule)) {
     errors.push(`descriptor.variantRule: must be one of ${VARIANT_RULES.join(', ')}`);
+  }
+
+  if (def.biomeVariants !== undefined) {
+    if (!isPlainObject(def.biomeVariants)) {
+      errors.push('descriptor.biomeVariants: must be an object of biomeId → variantId');
+    } else {
+      const variantIds = new Set((def.variants ?? []).map((v) => v?.id));
+      for (const [biomeId, variantId] of Object.entries(def.biomeVariants)) {
+        if (typeof variantId !== 'string' || !variantId) {
+          errors.push(`descriptor.biomeVariants["${biomeId}"]: variantId must be a non-empty string`);
+        } else if (!variantIds.has(variantId)) {
+          errors.push(`descriptor.biomeVariants["${biomeId}"]: unknown variant "${variantId}"`);
+        }
+      }
+    }
   }
 
   if (def.scale !== undefined && !isPositiveNumber(def.scale)) errors.push('descriptor.scale: must be a positive number');

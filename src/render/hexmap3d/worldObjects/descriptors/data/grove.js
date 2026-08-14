@@ -13,6 +13,7 @@ export const GROVE_DESCRIPTOR = {
   size: { min: 1.3, max: 1.5 },
   variation: { colorJitter: 0.05 },
   variantRule: 'cluster',
+  biomeVariants: { biome_painforest: 'painforest' },
   placement: { mode: 'ring', leanMin: 0.2, leanMax: 0.3 },
   emphasis: { behavior: 'dispersed' },
   parts: [

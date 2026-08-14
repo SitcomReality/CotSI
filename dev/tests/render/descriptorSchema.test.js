@@ -392,6 +392,22 @@ test('variantRule accepts only known rules and normalizes to hash', () => {
   assert.ok(validateDescriptor({ ...d, variantRule: 'terrain' }).length > 0);
 });
 
+test('biomeVariants: validates a biomeId → variantId map against the variants list', () => {
+  const d = normalizeDescriptor({
+    id: 'bv',
+    kind: 'decor',
+    displayName: 'Biome Variants',
+    variantRule: 'cluster',
+    parts: [{ id: 'p', shape: 'sphere' }],
+    variants: [{ id: 'a', parts: [{ id: 'p', shape: 'sphere' }] }],
+    biomeVariants: { biome_painforest: 'a' },
+  });
+  assert.equal(validateDescriptor(d).length, 0, 'valid biome→variant map passes');
+  assert.ok(validateDescriptor({ ...d, biomeVariants: { biome_painforest: 'nope' } })
+    .some((e) => e.includes('unknown variant "nope"')));
+  assert.ok(validateDescriptor({ ...d, biomeVariants: 'a' }).some((e) => e.includes('biomeVariants')));
+});
+
 test('normalizeDescriptor remaps legacy shape names (knot → octahedron, snowperson → lathe)', () => {
   const legacy = {
     id: 'legacy',

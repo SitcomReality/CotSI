@@ -717,12 +717,13 @@ test('moisture cluster count matches clusterCount() and stays in [min, max]', ()
 
 // ── Variant rules ───────────────────────────────────────────────────────────
 
-test('variantRule cluster picks tall for denseForest, round otherwise; painforest overrides', () => {
+test('variantRule cluster picks tall for denseForest, round otherwise; biome overrides', () => {
   const grove = normalizeDescriptor({
     id: 'grove-variants',
     kind: 'decor',
     displayName: 'Grove',
     variantRule: 'cluster',
+    biomeVariants: { biome_painforest: 'painforest' },
     cluster: { min: 2, max: 2 },
     placement: { mode: 'ring' },
     parts: [{ id: 'trunk', shape: 'cylinder' }],
