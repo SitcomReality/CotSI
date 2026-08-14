@@ -9,7 +9,7 @@ export const HILL_DESCRIPTOR = {
   id: 'hill',
   kind: 'decor',
   displayName: 'Hill Mound',
-  emphasis: { behavior: 'sunk' },
+  emphasis: { behavior: 'dispersed' },
   parts: [
     {
       id: 'mound',
