@@ -1,8 +1,7 @@
 /**
  * descriptorGameBuilder.test.js — Game-side descriptor resolution + assembly
  * (src/render/hexmap3d/worldObjects/descriptors/gameBuilder.js): tile dispatch
- * parity with the superseded per-kind builders, occupancy de-emphasis, and the
- * one legacy path that stays on the tree builder (the fruitTree feature).
+ * parity with the superseded per-kind builders, and occupancy de-emphasis.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -21,7 +20,6 @@ import {
 import {
   SCATTER_HASH_SEEDS, SCATTER_SCALE_BASE, SCATTER_SCALE_RANGE,
 } from '../../../src/params/render/geometryParams.js';
-import { fruitTreeRecordsForTile } from '../../../src/render/hexmap3d/worldObjects/fruitTree/fruitTreeRecordsForTile.js';
 import { tileHash, treeHash, frac, lerp, itemHash } from '../../../src/render/hexmap3d/worldObjects/tileHash.js';
 import { shapeBaseOffset } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { HILL_DESCRIPTOR } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/hill.js';
@@ -47,8 +45,8 @@ const TILES = [
   { q: -3, r: -4, terrain: 'hill', feature: { kind: 'treasureChest' } },
   // Painforest grove — descriptor data (the gnarled `painforest` variant).
   { q: 10, r: 4, terrain: 'forest', biomeId: 'biome_painforest', moisture: 0.6 },
-  // Fruit tree on plains — legacy builder, NOT descriptor data.
-  { q: -7, r: 2, terrain: 'plains', feature: { kind: 'fruitTree' } },
+  // Blessed Font on plains — descriptor data.
+  { q: -7, r: 2, terrain: 'plains', feature: { kind: 'blessedFont' } },
   // Solitary tree on open terrain.
   { q: 12, r: 6, terrain: 'plains', feature: { kind: 'tree' } },
   // `tree` on woods IS the grove (no solitary tree mesh).
@@ -97,7 +95,7 @@ const hillItemScale = (tileH, i) => lerp(
 
 // ── Tile resolution ─────────────────────────────────────────────────────────
 
-test('resolveDescriptorForTile: feature vs decor vs legacy dispatch', () => {
+test('resolveDescriptorForTile: feature vs decor dispatch', () => {
   const bush = TILES[0];
   const res = resolveDescriptorForTile(bush, OCCUPIED);
   assert.deepEqual(res.map((r) => r.descriptor.id), ['bush', 'plainsGrass']);
@@ -137,11 +135,11 @@ test('resolveDescriptorForTile: feature vs decor vs legacy dispatch', () => {
   assert.deepEqual(treeWoods[0].displacement, { hidden: false, displaced: false });
 
   // Painforest woods resolve the gnarled `painforest` grove variant (descriptor
-  // data); the fruit tree feature resolves to nothing, but the fruit tile's
-  // terrain decor (plains grass) still resolves.
+  // data); the Blessed Font resolves as a feature alongside its terrain decor
+  // (plains grass).
   assert.deepEqual(resolveDescriptorForTile(TILES[8], OCCUPIED).map((r) => r.descriptor.id), ['grove']);
   assert.deepEqual(resolveDescriptorForTile(TILES[8], OCCUPIED)[0].displacement, { hidden: false, displaced: false });
-  assert.deepEqual(resolveDescriptorForTile(TILES[9], OCCUPIED).map((r) => r.descriptor.id), ['plainsGrass']);
+  assert.deepEqual(resolveDescriptorForTile(TILES[9], OCCUPIED).map((r) => r.descriptor.id), ['blessedFont', 'plainsGrass']);
 
   // Ground decor: one descriptor per terrain.
   assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'marsh' }, new Set()).map((r) => r.descriptor.id), ['marshReeds']);
@@ -284,7 +282,7 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   // Grove meshes: the two plain canopy variants (round + tall), the shared
   // trunk, and the four parts of the painforest gnarled variant.
   assert.equal(meshesStarting(meshes, 'grove-').length, 7, 'trunk + two canopy variants + four gnarled painforest parts');
-  assert.equal(meshesStarting(meshes, 'fruit').length, 0);
+  assert.equal(meshesStarting(meshes, 'blessedFont-').length, 4, 'Blessed Font renders its four parts');
 });
 
 test('chunk entry point produces the same meshes as the state entry point', () => {
@@ -293,11 +291,11 @@ test('chunk entry point produces the same meshes as the state entry point', () =
   assert.deepEqual(chunk.map((m) => m.name).sort(), state.map((m) => m.name).sort());
 });
 
-test('painforest grove is descriptor data; fruit trees stay legacy', () => {
+test('painforest grove and Blessed Font are both descriptor data', () => {
   const painforest = TILES[8];
-  const fruit = TILES[9];
+  const font = TILES[9];
 
-  const meshes = buildDescriptorFeatureMeshes({ tiles: new Map([[`${painforest.q},${painforest.r}`, painforest], [`${fruit.q},${fruit.r}`, fruit]]) }, new Set([`${painforest.q},${painforest.r}`, `${fruit.q},${fruit.r}`]), new Set());
+  const meshes = buildDescriptorFeatureMeshes({ tiles: new Map([[`${painforest.q},${painforest.r}`, painforest], [`${font.q},${font.r}`, font]]) }, new Set([`${painforest.q},${painforest.r}`, `${font.q},${font.r}`]), new Set());
 
   // The painforest grove is fully descriptor-driven — its gnarled variant
   // parts render like any other grove variant.
@@ -306,16 +304,13 @@ test('painforest grove is descriptor data; fruit trees stay legacy', () => {
   }
   assert.ok(meshNamed(meshes, 'grove-trunk-gnarled-base').count >= 3, 'painforest grove cluster renders (moisture 0.6 forest → mid density)');
 
-  // The fruit tree is still a legacy feature: no descriptor meshes, no
-  // solitary tree, but the tile's own terrain decor (plains grass) renders.
-  assert.equal(meshesStarting(meshes, 'fruit-').length, 0, 'no descriptor meshes for the legacy fruit tree');
+  // The Blessed Font is descriptor-driven — its parts render, and the tile's
+  // own terrain decor (plains grass) composes alongside it.
+  for (const name of ['blessedFont-font-pedestal', 'blessedFont-font-basin', 'blessedFont-font-water', 'blessedFont-font-rim']) {
+    assert.ok(meshNamed(meshes, name), `${name} mesh present`);
+  }
   assert.equal(meshesStarting(meshes, 'tree-').length, 0, 'no solitary-tree meshes on these tiles');
-  assert.ok(meshNamed(meshes, 'plainsGrass-blade'), 'the fruit tile terrain decor still renders');
-
-  // Legacy tree records are fruit trees only — painforest no longer emits any.
-  assert.deepEqual(fruitTreeRecordsForTile(painforest, centerOf(painforest), new Set()), [], 'painforest grove is fully migrated to descriptors');
-  const fruitRecords = fruitTreeRecordsForTile(fruit, centerOf(fruit), new Set());
-  assert.ok(fruitRecords.some((r) => r.geo === 'fruit-apple'), 'fruit tree still emits fruit records');
+  assert.ok(meshNamed(meshes, 'plainsGrass-blade'), 'the font tile terrain decor still renders');
 });
 
 // ── Explored-but-out-of-sight terrain decoration ───────────────────────────
@@ -354,12 +349,12 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
   const meshes = buildChunkDescriptorFeatureMeshes(TILES, visible, OCCUPIED, decor);
 
   // Features stay invisible out of sight: the second bush, the knot, the chest,
-  // the solitary tree, and the fruit tree all disappear.
+  // the solitary tree, and the Blessed Font all disappear.
   assert.equal(meshNamed(meshes, 'bush-body').count, 1, 'only the visible bush renders');
   assert.equal(meshesStarting(meshes, 'knot-').length, 0, 'knot hidden out of sight');
   assert.equal(meshNamed(meshes, 'treasureChest-chest-base'), null, 'treasure chest hidden out of sight');
   assert.equal(meshNamed(meshes, 'tree-trunk'), null, 'solitary tree hidden out of sight');
-  assert.equal(meshesStarting(meshes, 'fruit').length, 0, 'fruit tree hidden out of sight');
+  assert.equal(meshesStarting(meshes, 'blessedFont-').length, 0, 'Blessed Font hidden out of sight');
 
   // Terrain decorations render out of sight: the mountain ...
   const mountains = meshesStarting(meshes, 'mountain-');
@@ -389,30 +384,24 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
   assert.ok(groveTrunk.count >= 5, `grove covers the explored woods tiles (got ${groveTrunk.count})`);
 });
 
-test('painforest grove (descriptor decor) renders out of sight; fruit trees stay hidden', () => {
+test('painforest grove (descriptor decor) renders out of sight; Blessed Fonts stay hidden', () => {
   const painforest = TILES[8];
-  const fruit = TILES[9];
-  const explored = new Set([`${painforest.q},${painforest.r}`, `${fruit.q},${fruit.r}`]);
+  const font = TILES[9];
+  const explored = new Set([`${painforest.q},${painforest.r}`, `${font.q},${font.r}`]);
   const visible = new Set();
   const state = { tiles: new Map(), champions: [], mobs: [], traders: [] };
 
   // The gnarled grove is terrain decoration — it renders out of sight through
-  // the descriptor path, not the legacy tree builder.
+  // the descriptor path.
   const painMeshes = buildChunkWorldMeshes([painforest], state, visible, explored);
   assert.ok(painMeshes.some((m) => m.name.startsWith('grove-')), 'painforest grove renders out of sight');
-  assert.equal(meshesStarting(painMeshes, 'tree-').length, 0, 'painforest emits no legacy tree meshes');
+  assert.equal(meshesStarting(painMeshes, 'tree-').length, 0, 'painforest emits no solitary tree meshes');
 
-  // The fruit tree (a feature) alone, out of sight, produces nothing — only
+  // The Blessed Font (a feature) alone, out of sight, produces nothing — only
   // the tile's terrain decoration (plains grass) renders out of sight.
-  const fruitMeshes = buildChunkWorldMeshes([fruit], state, visible, explored);
-  assert.equal(meshesStarting(fruitMeshes, 'fruit-').length, 0, 'fruit tree hidden out of sight');
-  assert.ok(fruitMeshes.some((m) => m.name.startsWith('plainsGrass-')), 'plains grass decor still renders out of sight');
-
-  // The migrated painforest grove emits no legacy records — with or without
-  // an occupant, out of sight.
-  const occupied = new Set([`${painforest.q},${painforest.r}`]);
-  assert.deepEqual(fruitTreeRecordsForTile(painforest, centerOf(painforest), new Set(), false), [], 'no legacy records for the migrated painforest grove');
-  assert.deepEqual(fruitTreeRecordsForTile(painforest, centerOf(painforest), occupied, false), [], 'no legacy records even with an occupant');
+  const fontMeshes = buildChunkWorldMeshes([font], state, visible, explored);
+  assert.equal(meshesStarting(fontMeshes, 'blessedFont-').length, 0, 'Blessed Font hidden out of sight');
+  assert.ok(fontMeshes.some((m) => m.name.startsWith('plainsGrass-')), 'plains grass decor still renders out of sight');
 });
 
 // ── Barrel smoke (worldMeshes.js wiring) ─────────────────────────────────
@@ -428,5 +417,5 @@ test('buildChunkWorldMeshes still wires tree + descriptor + base + outlines', ()
   assert.ok(meshes.length >= 2, 'barrel returns sources + outlines');
   assert.ok(meshes.some((m) => m.name === 'bush-body'), 'descriptor content reaches the barrel');
   assert.ok(meshes.some((m) => m.name === 'bush-body-outline'), 'outline twins included');
-  assert.ok(meshes.some((m) => m.name.startsWith('tree-')), 'legacy tree builder still wired');
+  assert.ok(meshes.some((m) => m.name.startsWith('tree-')), 'tree descriptor still wired');
 });

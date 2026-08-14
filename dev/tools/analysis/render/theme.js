@@ -70,12 +70,12 @@ export const DUNGEON_MARKER = {
  * - radius: circle radius in hex-pixels
  * - fill:   fill color
  * - Additional keys are used by specific feature kinds
- *   (crossStroke, crossWidth, crossLen for fruitTree;
+ *   (crossStroke, crossWidth, crossLen for blessedFont;
  *    ringStroke, ringWidth for vine)
  */
 export const FEATURES = {
   tree:      { radius: 1.5, fill: '#2d5a1e' },
-  fruitTree: { radius: 1.8, fill: '#3a8a2a', crossStroke: '#60c040', crossWidth: 0.8, crossLen: 1.2 },
+  blessedFont: { radius: 1.8, fill: '#3a8a2a', crossStroke: '#60c040', crossWidth: 0.8, crossLen: 1.2 },
   knot:      { radius: 1.8, fill: '#c8a832' },
   treasureChest: { radius: 1.8, fill: '#c8a020' },
   bush:      { radius: 1.2, fill: '#5a8a3a' },

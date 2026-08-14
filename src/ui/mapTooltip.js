@@ -43,7 +43,7 @@ export function getTooltipContent(gameState, key, activeChampion) {
   if (visible && t.feature) {
     featureDesc = `◈ ${featureName(t.feature.kind)}`;
     if (t.feature.kind === 'knot' && !t.feature.mined) featureDesc += ` (${t.feature.amount})`;
-    if (t.feature.kind === 'fruitTree' && t.feature.ripe !== false) featureDesc += ' 🍃';
+    if (t.feature.kind === 'blessedFont' && t.feature.ripe !== false) featureDesc += ' 💧';
   }
 
   /* ---- build fragment ---- */

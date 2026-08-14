@@ -69,6 +69,57 @@
       }
     ]
   },
+  "blessedFont": {
+    "tile": {
+      "q": 3,
+      "r": -2,
+      "terrain": "plains"
+    },
+    "records": [
+      {
+        "partId": "font-pedestal",
+        "x": 1.732,
+        "y": 1.327,
+        "z": -3,
+        "scale": 1.1,
+        "scaleY": 1.1,
+        "color": 10133672
+      },
+      {
+        "partId": "font-basin",
+        "x": 1.732,
+        "y": 1.4800000000000002,
+        "z": -3,
+        "scale": 1.1,
+        "scaleY": 1.1,
+        "color": 12173512
+      },
+      {
+        "partId": "font-water",
+        "x": 1.732,
+        "y": 1.561,
+        "z": -3,
+        "scale": 1.1,
+        "scaleY": 1.1,
+        "color": 7329000
+      },
+      {
+        "partId": "font-rim",
+        "x": 1.732,
+        "y": 1.6195000000000002,
+        "z": -3,
+        "scale": 1.1,
+        "scaleY": 1.1,
+        "localAxis": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "localAngle": 1.5708,
+        "color": 14081508
+      }
+    ]
+  },
   "bush": {
     "tile": {
       "q": 3,

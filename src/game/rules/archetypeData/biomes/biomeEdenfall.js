@@ -41,7 +41,7 @@ defineArchetype('biome_edenfall', {
     // Treasure chest — any-biome collectible
     { kind: 'treasureChest',                 threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     // Standard features
-    { kind: 'fruitTree',             threshold: 0.890, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont',           threshold: 0.890, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'tree',                  threshold: 0.830, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     // Resources
     { kind: 'knot',                  threshold: 0.038, compare: 'lt' },

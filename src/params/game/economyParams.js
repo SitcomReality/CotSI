@@ -28,13 +28,11 @@ export const POTENCY_COST_DISCOUNTED = 14;
 /** Standard potency purchase cost. */
 export const POTENCY_COST_STANDARD = 18;
 
-// ---- Fruit trees ----
-/** Fruit heal amount for Verdant faction. */
-export const FRUIT_HEAL_VERDANT = 34;
-/** Fruit heal amount for other factions. */
-export const FRUIT_HEAL_STANDARD = 18;
-/** Days until a fruit tree regrows. */
-export const FRUIT_REGROWTH_DAYS = 4;
+// ---- Blessed Font ----
+/** Blessed Font heal amount for Verdant faction. */
+export const BLESSED_FONT_HEAL_VERDANT = 34;
+/** Blessed Font heal amount for other factions. */
+export const BLESSED_FONT_HEAL_STANDARD = 18;
 
 // ---- God's Knots ----
 /** Default God's Knot amount on a tile. */

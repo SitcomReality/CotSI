@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnFeature, tierAcceptance, centerDistance01 } from '../../../src/game/rules/terrainGen/features/featureSpawning.js';
-import { canSpawnFruitTree, featureDensity } from '../../../src/game/rules/terrainGen/features/featureDensity.js';
+import { canSpawnBlessedFont, featureDensity } from '../../../src/game/rules/terrainGen/features/featureDensity.js';
 import { KNOT_BASE_AMOUNT, KNOT_AMOUNT_VARIATION_MOD, FEATURE_TIERS } from '../../../src/params/game/featureSpawnParams.js';
 
 test('spawnFeature: returns null when no rule matches', () => {
@@ -15,35 +15,35 @@ test('spawnFeature: returns null when no rule matches', () => {
 
 test('spawnFeature: first matching rule wins (priority order)', () => {
   const features = [
-    { kind: 'fruitTree', threshold: 0.9, compare: 'gt' },
+    { kind: 'blessedFont', threshold: 0.9, compare: 'gt' },
     { kind: 'tree', threshold: 0.5, compare: 'gt' },
   ];
   const f = spawnFeature(0.95, 'plains', 0, features);
-  assert.equal(f.kind, 'fruitTree');
+  assert.equal(f.kind, 'blessedFont');
 });
 
 test('spawnFeature: terrainExclude skips a rule', () => {
   const features = [
-    { kind: 'fruitTree', threshold: 0.9, compare: 'gt', terrainExclude: ['desert'] },
+    { kind: 'blessedFont', threshold: 0.9, compare: 'gt', terrainExclude: ['desert'] },
     { kind: 'tree', threshold: 0.5, compare: 'gt' },
   ];
   const f = spawnFeature(0.95, 'desert', 0, features);
-  assert.equal(f.kind, 'tree', 'fruitTree must be excluded on desert');
+  assert.equal(f.kind, 'tree', 'blessedFont must be excluded on desert');
 });
 
 test('spawnFeature: terrainOnly restricts a rule to listed terrains', () => {
   const features = [
-    { kind: 'fruitTree', threshold: 0.9, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont', threshold: 0.9, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'tree', threshold: 0.5, compare: 'gt' },
   ];
   const onForest = spawnFeature(0.95, 'forest', 0, features);
-  assert.equal(onForest.kind, 'fruitTree', 'fruitTree allowed on forest');
+  assert.equal(onForest.kind, 'blessedFont', 'blessedFont allowed on forest');
   const onPlains = spawnFeature(0.95, 'plains', 0, features);
-  assert.equal(onPlains.kind, 'tree', 'fruitTree skipped off-forest, tree wins');
+  assert.equal(onPlains.kind, 'tree', 'blessedFont skipped off-forest, tree wins');
   const onDesert = spawnFeature(0.95, 'desert', 0, features);
   assert.equal(onDesert.kind, 'tree', 'terrainOnly also excludes desert');
   const onDenseForest = spawnFeature(0.95, 'denseForest', 0, features);
-  assert.equal(onDenseForest.kind, 'fruitTree', 'fruitTree allowed on denseForest');
+  assert.equal(onDenseForest.kind, 'blessedFont', 'blessedFont allowed on denseForest');
 });
 
 test('spawnFeature: density modulates threshold (higher density → easier match)', () => {
@@ -75,10 +75,10 @@ test('spawnFeature: knot gets an amount in the documented range', () => {
   }
 });
 
-test('spawnFeature: fruitTree spawns with ripe state', () => {
-  const features = [{ kind: 'fruitTree', threshold: 0.9, compare: 'gt' }];
+test('spawnFeature: blessedFont spawns with ripe state', () => {
+  const features = [{ kind: 'blessedFont', threshold: 0.9, compare: 'gt' }];
   const f = spawnFeature(0.99, 'plains', 0, features);
-  assert.equal(f.kind, 'fruitTree');
+  assert.equal(f.kind, 'blessedFont');
   assert.equal(f.ripe, true);
   assert.equal(f.nextRewardDay, 1);
 });
@@ -90,11 +90,11 @@ test('spawnFeature: unknown rule kind passes through with state', () => {
   assert.equal(f.glow, true);
 });
 
-test('canSpawnFruitTree: climate gate', () => {
-  assert.equal(canSpawnFruitTree(0.3, 0.8, 0.5), true);
-  assert.equal(canSpawnFruitTree(0.3, 0.5, 0.5), false, 'too dry');
-  assert.equal(canSpawnFruitTree(0.6, 0.8, 0.5), false, 'too high');
-  assert.equal(canSpawnFruitTree(0.5, 0.7, 0.5), false, 'elevation equals treeLineMax is not allowed');
+test('canSpawnBlessedFont: climate gate', () => {
+  assert.equal(canSpawnBlessedFont(0.3, 0.8, 0.5), true);
+  assert.equal(canSpawnBlessedFont(0.3, 0.5, 0.5), false, 'too dry');
+  assert.equal(canSpawnBlessedFont(0.6, 0.8, 0.5), false, 'too high');
+  assert.equal(canSpawnBlessedFont(0.5, 0.7, 0.5), false, 'elevation equals treeLineMax is not allowed');
 });
 
 test('featureDensity: returns values in [0, 1]', () => {

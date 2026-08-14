@@ -18,8 +18,8 @@ export const KNOT_AMOUNT_VARIATION_MOD = 3;
 // family with DEFAULT_TERRAIN_RULES.forestMinMoisture (0.58):
 //   moistRamp 0.72            — tree density ramps up only above the
 //                               dense-forest moisture, well past the forest floor.
-//   fruitTreeMinMoisture 0.60 — fruit trees need moisture above the forest floor
-//                               but below the dense-forest ramp.
+//   blessedFontMinMoisture 0.60 — Blessed Fonts need moisture above the forest floor
+//                                  but below the dense-forest ramp.
 // Re-derive the family together if the moisture distribution shifts.
 // ---------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ export const FEATURE_DENSITY = {
   plainsOffset:        0.1,  // plains/hill density: + this
   marshMoistFactor:    0.4,  // marsh density: moisture × this
   desertMoistFactor:   0.15, // desert density: moisture × this
-  fruitTreeMinMoisture: 0.60, // fruit-tree climate gate
+  blessedFontMinMoisture: 0.60, // Blessed Font climate gate
 };
 
 // ---------------------------------------------------------------------------

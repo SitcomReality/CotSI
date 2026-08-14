@@ -58,7 +58,7 @@ test('TERRAIN: every finite movement cost divides the 60 AP pool', () => {
 test('DEFAULT_FEATURES: documented priority order and shape', () => {
   assert.deepEqual(
     DEFAULT_FEATURES.map((f) => f.kind),
-    ['fruitTree', 'tree', 'knot']
+    ['blessedFont', 'tree', 'knot']
   );
   for (const f of DEFAULT_FEATURES) {
     assert.ok(typeof f.threshold === 'number' && f.threshold > 0 && f.threshold < 1,
@@ -67,9 +67,9 @@ test('DEFAULT_FEATURES: documented priority order and shape', () => {
   }
 });
 
-test('DEFAULT_FEATURES: fruitTree is woods-only, tree is excluded from woods, knot is a low-threshold lt rule', () => {
-  const [fruitTree, tree, knot] = DEFAULT_FEATURES;
-  assert.deepEqual(fruitTree.terrainOnly, ['forest', 'denseForest']);
+test('DEFAULT_FEATURES: blessedFont is woods-only, tree is excluded from woods, knot is a low-threshold lt rule', () => {
+  const [blessedFont, tree, knot] = DEFAULT_FEATURES;
+  assert.deepEqual(blessedFont.terrainOnly, ['forest', 'denseForest']);
   assert.ok(tree.terrainExclude.includes('desert'));
   assert.ok(tree.terrainExclude.includes('forest'), 'grove is terrain-driven now — tree must not spawn on woods');
   assert.ok(tree.terrainExclude.includes('denseForest'), 'grove is terrain-driven now — tree must not spawn on deep wood');

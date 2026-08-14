@@ -1,6 +1,6 @@
 /**
  * biomePainforest.js — 'Painforest' biome.
- * Wet temperate biome with abundant fruit trees and deep lush greenery.
+ * Wet temperate biome with abundant Blessed Fonts and deep lush greenery.
  */
 
 import { defineArchetype } from '../../archetypes.js';
@@ -25,9 +25,9 @@ defineArchetype('biome_painforest', {
     mountainThreshold: 0.65,
   },
 
-  // Painforest: abundant fruit trees + decorative trees + bushes on low-moisture tiles
+  // Painforest: abundant Blessed Fonts + decorative trees + bushes on low-moisture tiles
   features: [
-    { kind: 'fruitTree',       threshold: 0.930, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont',     threshold: 0.930, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'peridexionTree',  threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'], tier: 'T3' },
     { kind: 'treasureChest',           threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'screamroot',      threshold: 0.890, compare: 'gt', terrainExclude: ['desert'], tier: 'T3' },

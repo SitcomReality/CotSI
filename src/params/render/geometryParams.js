@@ -21,8 +21,8 @@ export const TREE_TRUNK_Y_FRACTION = 0.4;
 
 // ── Tree cluster + solitary layout ──
 // Every forest/denseForest tile renders a scattered grove (its terrain
-// decoration); fruit trees and lone trees on open ground render one bigger,
-// more distinctive tree. All values are deterministic per tile.
+// decoration); lone trees on open ground render one bigger, more distinctive
+// tree. All values are deterministic per tile.
 
 /** Min/max cluster size by terrain — count scales with the tile's density. */
 export const TREE_CLUSTER_COUNTS = { forest: [3, 5], denseForest: [4, 7] };
@@ -46,10 +46,9 @@ export const TREE_VARIATION = {
   angleJitter:     0.7,    // ± radians of angular scatter around even spacing
 };
 
-/** Solitary-tree treatments (individual trees). */
+/** Solitary-tree treatment (individual trees). */
 export const TREE_SOLITARY = {
-  tree:      { scale: 1.15, stretchY: 1.1,  stretchXZ: 1.05, lean: 0.02 },
-  fruitTree: { scale: 1.1,  stretchY: 1.2,  stretchXZ: 1.1,  lean: 0.015 },
+  tree: { scale: 1.15, stretchY: 1.1, stretchXZ: 1.05, lean: 0.02 },
 };
 
 /** Canopy palette — applied per instance (material stays white). */
@@ -57,12 +56,8 @@ export const TREE_CANOPY_COLORS = {
   round: 0x3CB371,
   tall:  0x2E8B57,
   wide:  0x66CDAA,
-  fruit: 0x7CB342, // Fruit Tree — warm green
   painforest: 0x2E5D2E, // Painforest grove — dark twisted foliage
 };
-
-/** Painforest grove member scale — gnarled trees drawn smaller than the old fruit-tree landmark. */
-export const PAINFOREST_GROVE_SCALE = 0.55;
 
 // ── Decoration de-emphasis (dispersal/sinking) ──
 // When a tile's center is claimed by an occupant (champion/mob/trader) or a
@@ -85,64 +80,6 @@ export const HILL_DECOR = {
   radius: 0.42,         // mound radius (hex radius = 1.0)
   height: 0.28,         // mound height
   color: 0x7A8F5A,      // mossy hill-green tint
-};
-
-// ── Gnarled tree (Painforest groves) ──
-// A single complex tree: 2–3 long trunk segments, each leaning its own direction
-// with severe per-segment angles (a snaking, gnarled trunk that tapers thicker at
-// the bottom), forking into two steep branches — each branch has a chance to bend
-// a second segment — with a leaf ball riding one final tip. This was the original
-// fruit-tree landmark; it now draws Painforest's grove members (twisted trees)
-// and stays parameterized (per-member hash offset, scale, canopy color, optional
-// apple) for reuse by other features/biomes.
-
-/** Trunk segment — tapered cylinder, base length 0.17 (scaled per segment). */
-export const FRUIT_TREE_TRUNK = { bottomR: 0.09, topR: 0.055, height: 0.17, segments: 5 };
-/** Forked branch — thin tapered cylinder, base length 0.26 (scaled per branch). */
-export const FRUIT_TREE_BRANCH = { bottomR: 0.042, topR: 0.026, height: 0.26, segments: 5 };
-/** Leaf ball at the end of one branch. */
-export const FRUIT_TREE_CANOPY = { radius: 0.1, wSegs: 6, hSegs: 4 };
-/** Apple hanging below the other branch tip. */
-export const FRUIT_TREE_APPLE = { radius: 0.06, wSegs: 6, hSegs: 4 };
-
-/** Fruit-tree composition — all values deterministic per tile via hashes. */
-export const FRUIT_TREE = {
-  segmentCount: [2, 3],            // trunk segments (hash-chosen per tree)
-  segmentLen: [0.22, 0.30],        // per-segment length range (× tree scale)
-  segmentLean: [0.12, 0.24],       // per-segment lean from the parent axis (radians)
-  segmentTaper: 0.7,               // per-segment XZ scale multiplier — trunk thickens downward
-  segmentAzDelta: [0.6, 1.3],      // ± per-segment azimuth wander (radians) — trunk snakes
-  branchAzimuth: [0.5, 1.0],       // fork spread from the trunk's curve axis (radians)
-  branchElevation: [0.75, 1.05],   // branch rise above horizontal (radians)
-  branchLenA: [0.27, 0.34],        // leaf branch length (× tree scale)
-  branchLenB: [0.21, 0.28],        // fruit branch length (× tree scale)
-  branchSecondSegChance: 0.6,      // per-branch probability of a 2nd (bent) segment
-  branchSeg2Frac: [0.5, 0.7],      // 2nd-segment length as a fraction of branch length
-  branchBendAzimuth: [0.2, 0.55],  // 2nd-segment azimuth bend (radians)
-  branchBendElevation: [0.1, 0.3], // 2nd-segment extra rise (radians)
-  appleDrop: [0.02, 0.035],        // how far the apple hangs below the branch tip
-  scaleVar: [0.92, 1.08],          // per-tree overall size jitter
-  canopyStretchY: [0.9, 1.1],      // leaf-ball height multiplier
-  canopyStretchXZ: [0.95, 1.1],    // leaf-ball width multiplier
-  canopyTilt: 0.12,                // ± radians of lopsided tilt for the leaf ball
-  canopySink: 0.03,                // how far the ball sinks onto the branch tip
-  colorJitter: 0.04,               // ± brightness jitter for leaf ball + apple
-};
-
-/** Gnarled-tree wood + canopy colors (canopy green usually overridden per biome). */
-export const FRUIT_TREE_COLORS = {
-  branch: 0x9A6B4A, // younger wood — lighter than the trunk
-  apple:  0xE74C3C, // ripe fruit — cartoon apple red
-  unripe: 0x9CCC65, // unripe fruit — small pale green
-};
-
-/** Fruit placement on a forest-family fruit tree — deterministic per tile via hashes. */
-export const FRUIT_TREE_FRUIT = {
-  count: [1, 2],         // how many fruits hang (hash-chosen per tree)
-  drop: [0.03, 0.06],    // distance below the canopy center (× tree scale)
-  radius: [0.10, 0.22],  // horizontal spread from the trunk (× tree scale)
-  jitter: 0.015,         // ± per-fruit axis jitter
-  unripeScale: 0.65,     // unripe fruit is visibly smaller than ripe
 };
 
 // ── Mountain geometries ──

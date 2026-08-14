@@ -19,7 +19,7 @@ import { runMobHarassment } from './mobHarassment.js';
 import { runTraderMovement } from './traderMovement.js';
 import { traderStock } from '../rules/traderStock.js';
 import { DAYS_PER_WEEK } from '../../params/game/worldParams.js';
-import { advanceRegrowth } from './featureRegrowth.js';
+import { advanceRegrowth, refillOnRain } from './featureRegrowth.js';
 
 export function finishTurn(state) {
   const champ = getChampion(state, state.activeChampionId);
@@ -83,6 +83,9 @@ function _runWorldTurn(state) {
   runWorldTurn(state);
   state.day += 1;
   state.weather = weatherForDay(state.day);
+  // Blessed Fonts (and any feature with a rainy-day rule) refill at day start
+  // when the new day's weather is rainy.
+  refillOnRain(state, state.weather.rainy);
   addLogEntry(state, {
     category: LOG_CATEGORY.MARKER,
     subject: { text: `Day ${state.day}: ${state.weather.name} — ${state.weather.text}`, color: 'var(--ink-mid)' },
@@ -107,7 +110,7 @@ function runWorldTurn(state) {
   // mob harass
   runMobHarassment(state);
 
-  // regrow features (moonberries, waxbloom, snowperson, ...)
+  // regrow features (blessed fonts, waxbloom, snowperson, ...)
   advanceRegrowth(state);
 
   // traders move

@@ -90,7 +90,7 @@ test('movementRange: movement costs are per-entity (waterbound mob-like champion
 
 test('movementRange: feature hexes are destination-only (never routed through)', () => {
   const tiles = discTiles(2);
-  tiles['1,0'] = makeTile('plains', { feature: { kind: 'fruitTree', ripe: true } });
+  tiles['1,0'] = makeTile('plains', { feature: { kind: 'blessedFont', ripe: true } });
   const champ = makeChampion({ id: 'cA', pos: { q: 0, r: 0 }, actionPoints: 20 });
   const state = makeState({ champions: [champ], tiles });
 
@@ -135,7 +135,7 @@ test('pathToward: null when no path exists (islanded by water)', () => {
 
 test('pathToward: feature hexes are destination-only on the A* route too', () => {
   const tiles = discTiles(2);
-  tiles['1,0'] = makeTile('plains', { feature: { kind: 'fruitTree', ripe: true } });
+  tiles['1,0'] = makeTile('plains', { feature: { kind: 'blessedFont', ripe: true } });
   const champ = makeChampion({ id: 'cA', pos: { q: 0, r: 0 }, actionPoints: 60 });
   const state = makeState({ champions: [champ], tiles });
 

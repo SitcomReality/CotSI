@@ -1,6 +1,6 @@
 // src/render/hexmap3d/worldObjects/tileHash.js
 // Deterministic per-tile / per-tree hashing — the source of all tile-driven
-// variation. Shared by the fruit-tree builder (fruitTree/) and the descriptor
+// variation. Shared by the descriptor
 // pipeline (descriptors/recordBuilder.js). Stable across chunk rebuilds: the
 // same tile always produces the same records.
 

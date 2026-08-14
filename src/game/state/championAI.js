@@ -4,7 +4,7 @@ import { TERRAIN } from '../rules/terrainTypes.js';
 import { terrainCost, isTerrainBlocked } from '../rules/movementCosts.js';
 import { canChampionEnter, getChampion } from './entityQueries.js';
 import { featureValueForBot } from './featureRewards.js';
-import { BOT_SEARCH_MOVE_MULTIPLIER, BOT_SEARCH_PADDING, BOT_TREE_HP_THRESHOLD, BOT_TREE_SCORE_INJURED, BOT_TREE_SCORE_HEALTHY, BOT_KNOT_SCORE, BOT_EXPLORE_BONUS, BOT_DISTANCE_DECAY, BOT_ATTACK_CHAMPION_HP_THRESHOLD, BOT_ATTACK_CHAMPION_CHANCE, BOT_ATTACK_MOB_HP_THRESHOLD, BOT_ATTACK_MOB_CHANCE } from '../../params/game/aiParams.js';
+import { BOT_SEARCH_MOVE_MULTIPLIER, BOT_SEARCH_PADDING, BOT_FONT_HP_THRESHOLD, BOT_FONT_SCORE_INJURED, BOT_FONT_SCORE_HEALTHY, BOT_KNOT_SCORE, BOT_EXPLORE_BONUS, BOT_DISTANCE_DECAY, BOT_ATTACK_CHAMPION_HP_THRESHOLD, BOT_ATTACK_CHAMPION_CHANCE, BOT_ATTACK_MOB_HP_THRESHOLD, BOT_ATTACK_MOB_CHANCE } from '../../params/game/aiParams.js';
 
 export function botChooseTarget(state, champ){
   // Search radius in hexes: sight + the champion's daily reach on open ground
@@ -19,7 +19,7 @@ export function botChooseTarget(state, champ){
     if(!tile) continue;
     if(!(champ.explored||[]).includes(key)) continue;
     let score=0;
-    if(tile.feature?.kind==='fruitTree' && tile.feature.ripe!==false) score += (champ.hp < BOT_TREE_HP_THRESHOLD ? BOT_TREE_SCORE_INJURED : BOT_TREE_SCORE_HEALTHY);
+    if(tile.feature?.kind==='blessedFont' && tile.feature.ripe!==false) score += (champ.hp < BOT_FONT_HP_THRESHOLD ? BOT_FONT_SCORE_INJURED : BOT_FONT_SCORE_HEALTHY);
     if(tile.feature?.kind==='knot' && !tile.feature.mined) score += BOT_KNOT_SCORE;
     // Reward-bearing features (featureRewards.js kinds); 0 for scenery or spent.
     score += featureValueForBot(state, champ, tile);

@@ -44,14 +44,14 @@ export function featureDensity(terrain, elevation, moisture, slope, treeLineMax)
 }
 
 /**
- * Climate gate for fruit tree spawning.
- * Fruit trees require moisture above threshold and elevation below tree line.
+ * Climate gate for Blessed Font spawning.
+ * Blessed Fonts require moisture above threshold and elevation below tree line.
  *
  * @param {number} elevation    - Continuous elevation [0, 1]
  * @param {number} moisture     - Adjusted moisture [0, 1]
  * @param {number} treeLineMax  - Maximum elevation for tree growth
- * @returns {boolean} True if climate conditions allow fruit trees
+ * @returns {boolean} True if climate conditions allow Blessed Fonts
  */
-export function canSpawnFruitTree(elevation, moisture, treeLineMax) {
-  return moisture > FEATURE_DENSITY.fruitTreeMinMoisture && elevation < treeLineMax;
+export function canSpawnBlessedFont(elevation, moisture, treeLineMax) {
+  return moisture > FEATURE_DENSITY.blessedFontMinMoisture && elevation < treeLineMax;
 }

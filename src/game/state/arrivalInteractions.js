@@ -11,7 +11,7 @@ import { recordLedgerEntry } from './dispatchLedger.js';
 import { interactWithFeature } from './featureRewards.js';
 import { enterDungeon } from './dungeonSystem.js';
 import { depleteFeature } from './featureRegrowth.js';
-import { FRUIT_HEAL_VERDANT, FRUIT_HEAL_STANDARD, KNOT_DEFAULT_AMOUNT, CHEST_GOLD_BASE } from '../../params/game/economyParams.js';
+import { BLESSED_FONT_HEAL_VERDANT, BLESSED_FONT_HEAL_STANDARD, KNOT_DEFAULT_AMOUNT, CHEST_GOLD_BASE } from '../../params/game/economyParams.js';
 import { FACTION_VERDANT } from '../../params/game/factionParams.js';
 import { markChunkDirty } from './chunkDirtyTracking.js';
 
@@ -24,19 +24,19 @@ export function interactOnArrival(state, champ) {
     enterDungeon(state, champ);
     return;
   }
-  if (tile.feature?.kind === 'fruitTree' && tile.feature.ripe !== false) {
+  if (tile.feature?.kind === 'blessedFont' && tile.feature.ripe !== false) {
     if (!tile.feature.nextRewardDay || state.day >= tile.feature.nextRewardDay) {
-      const heal = champ.faction === FACTION_VERDANT ? FRUIT_HEAL_VERDANT : FRUIT_HEAL_STANDARD;
+      const heal = champ.faction === FACTION_VERDANT ? BLESSED_FONT_HEAL_VERDANT : BLESSED_FONT_HEAL_STANDARD;
       champ.hp = Math.min(champ.maxHp, champ.hp + heal);
       depleteFeature(state, tile);
       addLogEntry(state, {
         category: LOG_CATEGORY.HEAL,
         subject: championSegment(champ.name, factionMap),
-        verb: 'eats moonberries',
+        verb: 'drinks from the Blessed Font',
         object: null,
         detail: { text: `+${heal} HP`, color: 'var(--verdigris)' },
       });
-      recordLedgerEntry(champ, `+${heal} HP — moonberry`, 'gain', 'hp');
+      recordLedgerEntry(champ, `+${heal} HP — Blessed Font`, 'gain', 'hp');
     }
   }
   if (tile.feature?.kind === 'knot' && !tile.feature.mined) {
@@ -72,7 +72,7 @@ export function interactOnArrival(state, champ) {
   }
   // Every other kind is handled by the feature rewards engine (tree and bush
   // are scenery and no-op inside).
-  if (tile.feature && tile.feature.kind !== 'fruitTree' && tile.feature.kind !== 'knot' && tile.feature.kind !== 'treasureChest') {
+  if (tile.feature && tile.feature.kind !== 'blessedFont' && tile.feature.kind !== 'knot' && tile.feature.kind !== 'treasureChest') {
     interactWithFeature(state, champ, tile);
   }
 }

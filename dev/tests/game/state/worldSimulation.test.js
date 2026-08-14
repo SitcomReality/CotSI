@@ -212,9 +212,9 @@ test('world turn: lethal harassment records the death', () => {
   assert.equal(state.activeChampionId, null, 'no living champions remain');
 });
 
-test('world turn: unripe fruit trees ripen on their due day', () => {
+test('world turn: unripe Blessed Fonts ripen on their due day', () => {
   const cA = makeChampion({ id: 'cA' });
-  const treeTile = makeTile('plains', { feature: { kind: 'fruitTree', ripe: false, nextRewardDay: 1 } });
+  const treeTile = makeTile('plains', { feature: { kind: 'blessedFont', ripe: false, nextRewardDay: 1 } });
   const state = makeState({
     champions: [cA],
     currentOrder: ['cA'],

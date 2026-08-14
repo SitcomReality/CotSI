@@ -10,7 +10,7 @@ import { FEATURES } from './theme.js';
 /**
  * Draw all visible features on the map.
  *
- * Supported kinds: tree, fruitTree, knot, bush, treasureChest.
+ * Supported kinds: tree, blessedFont, knot, bush, treasureChest.
  * Unknown kinds are silently skipped.
  *
  * @param {CanvasRenderingContext2D} ctx
@@ -32,8 +32,8 @@ export function drawFeatures(ctx, tiles, tileKeys) {
     ctx.arc(p.x, p.y, cfg.radius, 0, Math.PI * 2);
     ctx.fill();
 
-    // fruitTree overlay: cross-hair
-    if (tile.feature.kind === 'fruitTree' && cfg.crossStroke) {
+    // blessedFont overlay: cross-hair
+    if (tile.feature.kind === 'blessedFont' && cfg.crossStroke) {
       ctx.strokeStyle = cfg.crossStroke;
       ctx.lineWidth = cfg.crossWidth;
       ctx.beginPath();

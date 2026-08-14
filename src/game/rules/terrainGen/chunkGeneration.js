@@ -17,7 +17,7 @@ import { classifyTerrain, resolveElevation } from './classification/terrainClass
 import { applySupernaturalOverrides } from './placement/epicenterPlacement.js';
 import { tagMountainType } from './tagging/mountainTagging.js';
 import { waterTypeForTile } from './tagging/waterTagging.js';
-import { featureDensity, canSpawnFruitTree } from './features/featureDensity.js';
+import { featureDensity, canSpawnBlessedFont } from './features/featureDensity.js';
 import { centerDistance01, spawnFeature } from './features/featureSpawning.js';
 
 /**
@@ -53,7 +53,7 @@ export function hexesInExpandedChunk(cq, cr, ringWidth) {
  *   6. Apply supernatural overrides (multi-biome only)
  *   7. Mountain type tagging
  *   8. Water type tagging
- *   9. Sprinkle features (density-modulated + fruit tree climate gate)
+ *   9. Sprinkle features (density-modulated + Blessed Font climate gate)
  *
  * @param {string}   seedText  - Seed string for reproducible generation
  * @param {number}   chunkQ    - Chunk q coordinate
@@ -207,14 +207,14 @@ export function generateChunkTiles(seedText, chunkQ, chunkR, radius, biomeDef = 
     };
     let feature = spawnFeature(roll, tile.terrain, density, features, spawnOptions);
 
-    // Fruit tree climate gate: if conditions aren't suitable, fall through to
+    // Blessed Font climate gate: if conditions aren't suitable, fall through to
     // the remaining feature rules with the same roll (keeps determinism) so a
     // lower-priority rule can still win on this tile.
-    if (feature && feature.kind === 'fruitTree') {
-      if (!canSpawnFruitTree(tile.elevationField, tile.moisture, treeLineMax)) {
+    if (feature && feature.kind === 'blessedFont') {
+      if (!canSpawnBlessedFont(tile.elevationField, tile.moisture, treeLineMax)) {
         feature = spawnFeature(
           roll, tile.terrain, density,
-          features.filter((rule) => rule.kind !== 'fruitTree'),
+          features.filter((rule) => rule.kind !== 'blessedFont'),
           spawnOptions
         );
       }

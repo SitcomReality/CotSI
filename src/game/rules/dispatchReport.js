@@ -103,7 +103,7 @@ function factionEffects(state, champ, effects) {
     case 2:
       effects.push({
         source: 'Faction',
-        text: `Gaia's Wail: mobs will not harass you; moonberries heal double.`,
+        text: `Gaia's Wail: mobs will not harass you; the Blessed Font heals double.`,
         tone: 'boon',
         category: 'faction',
       });
@@ -158,8 +158,8 @@ function terrainEffects(state, champ, effects) {
       f.faction === champ.faction
         ? ` Your faction's base — sanctuary is at hand.`
         : ` A ${FACTIONS[f.faction].name} base — potency may be bought here.`;
-  } else if (f?.kind === 'fruitTree') {
-    text += f.ripe === false ? ' The berries here are spent.' : ' Moonberries hang here.';
+  } else if (f?.kind === 'blessedFont') {
+    text += f.ripe === false ? ' The font is dry.' : ' The Blessed Font brims.';
   } else if (f?.kind === 'tree') {
     text += ' A tree stands here.';
   } else if (f?.kind === 'bush') {

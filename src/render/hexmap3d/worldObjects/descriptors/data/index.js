@@ -15,12 +15,11 @@
  * variant to those per-variant files; the barrels here are never rewritten
  * by a save.
  *
- * Not descriptor-driven (parity gaps, see dev/docs/futureWork.md): fruit trees keep
- * their hard-coded builder (worldObjects/fruitTree/).
  */
 import { OPEN_TREASURE_CHEST_DESCRIPTOR } from './openTreasureChest.js';
 import { BASE_DESCRIPTOR } from './base.js';
 import { BEACH_DRIFTWOOD_DESCRIPTOR } from './beachDriftwood.js';
+import { BLESSED_FONT_DESCRIPTOR } from './blessedFont.js';
 import { BUSH_DESCRIPTOR } from './bush.js';
 import { CENSER_SAINT_DESCRIPTOR } from './censerSaint.js';
 import { CHAMPION_DESCRIPTOR } from './champion.js';
@@ -69,6 +68,7 @@ import { VERDANT_CLOAK_DESCRIPTOR } from './verdantCloak.js';
 /** Every descriptor, in editor-display order. */
 export const ALL_DESCRIPTORS = [
   TREASURE_CHEST_DESCRIPTOR,
+  BLESSED_FONT_DESCRIPTOR,
   BUSH_DESCRIPTOR,
   PALIMPSEST_SLAB_DESCRIPTOR,
   ERRATA_SLIP_DESCRIPTOR,

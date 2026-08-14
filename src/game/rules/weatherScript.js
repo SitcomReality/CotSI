@@ -19,13 +19,13 @@ function formatEffects(potency, score, dayLength) {
 }
 
 export const WEATHER_SCRIPT = [
-  { name:'Rainbow Aftermath', text:formatEffects([-1,0,2,0,2,0,-1],[0,0,1,0,1,0,0],1.0), dayLength:1.0, potency:[-1,0,2,0,2,0,-1], score:[0,0,1,0,1,0,0], tint:'#f5d76a' },
-  { name:'Memory Storm', text:formatEffects([0,2,0,2,0,-1,-1],[0,1,0,1,0,0,0],1.0), dayLength:1.0, potency:[0,2,0,2,0,-1,-1], score:[0,1,0,1,0,0,0], tint:'#8ab8f0' },
-  { name:'Leyline Ebb', text:formatEffects([0,0,-1,-1,-1,0,2],[0,0,-1,-1,-1,0,1],0.8), dayLength:0.8, potency:[0,0,-1,-1,-1,0,2], score:[0,0,-1,-1,-1,0,1], tint:'#8a9cff' },
-  { name:'Ash Rain', text:formatEffects([2,0,-1,0,0,2,0],[1,0,-1,0,0,1,0],1.2), dayLength:1.2, potency:[2,0,-1,0,0,2,0], score:[1,0,-1,0,0,1,0], tint:'#e05a48' },
-  { name:'Quiet Tide', text:formatEffects([0,-1,0,0,1,0,1],[0,0,0,0,1,0,1],1.0), dayLength:1.0, potency:[0,-1,0,0,1,0,1], score:[0,0,0,0,1,0,1], tint:'#d6c49a' },
-  { name:'Overgrowth', text:formatEffects([0,0,2,0,0,-1,0],[0,0,1,0,0,-1,0],1.0), dayLength:1.0, potency:[0,0,2,0,0,-1,0], score:[0,0,1,0,0,-1,0], tint:'#6de98a' },
-  { name:'Dream Fog', text:formatEffects([-1,2,0,1,0,0,0],[-1,1,0,0,0,0,0],1.4), dayLength:1.4, potency:[-1,2,0,1,0,0,0], score:[-1,1,0,0,0,0,0], tint:'#b79aff' },
+  { name:'Rainbow Aftermath', text:formatEffects([-1,0,2,0,2,0,-1],[0,0,1,0,1,0,0],1.0), dayLength:1.0, potency:[-1,0,2,0,2,0,-1], score:[0,0,1,0,1,0,0], tint:'#f5d76a', rainy:false },
+  { name:'Memory Storm', text:formatEffects([0,2,0,2,0,-1,-1],[0,1,0,1,0,0,0],1.0), dayLength:1.0, potency:[0,2,0,2,0,-1,-1], score:[0,1,0,1,0,0,0], tint:'#8ab8f0', rainy:false },
+  { name:'Leyline Ebb', text:formatEffects([0,0,-1,-1,-1,0,2],[0,0,-1,-1,-1,0,1],0.8), dayLength:0.8, potency:[0,0,-1,-1,-1,0,2], score:[0,0,-1,-1,-1,0,1], tint:'#8a9cff', rainy:false },
+  { name:'Ash Rain', text:formatEffects([2,0,-1,0,0,2,0],[1,0,-1,0,0,1,0],1.2), dayLength:1.2, potency:[2,0,-1,0,0,2,0], score:[1,0,-1,0,0,1,0], tint:'#e05a48', rainy:true },
+  { name:'Quiet Tide', text:formatEffects([0,-1,0,0,1,0,1],[0,0,0,0,1,0,1],1.0), dayLength:1.0, potency:[0,-1,0,0,1,0,1], score:[0,0,0,0,1,0,1], tint:'#d6c49a', rainy:false },
+  { name:'Overgrowth', text:formatEffects([0,0,2,0,0,-1,0],[0,0,1,0,0,-1,0],1.0), dayLength:1.0, potency:[0,0,2,0,0,-1,0], score:[0,0,1,0,0,-1,0], tint:'#6de98a', rainy:false },
+  { name:'Dream Fog', text:formatEffects([-1,2,0,1,0,0,0],[-1,1,0,0,0,0,0],1.4), dayLength:1.4, potency:[-1,2,0,1,0,0,0], score:[-1,1,0,0,0,0,0], tint:'#b79aff', rainy:false },
 ];
 
 export function weatherForDay(day){

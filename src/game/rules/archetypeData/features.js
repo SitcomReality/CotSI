@@ -31,12 +31,12 @@ defineArchetype('feature_tree', {
   visual: { scale: 1.0 },
 });
 
-defineArchetype('feature_fruitTree', {
+defineArchetype('feature_blessedFont', {
   type: 'feature',
-  name: 'Moonberry Tree',
-  archetypeShape: 'tree',
+  name: 'Blessed Font',
+  archetypeShape: 'font',
   tags: ['forest', 'plains'],
-  visual: { scale: 1.0 },
+  visual: { scale: 1.1 },
 });
 
 defineArchetype('feature_knot', {

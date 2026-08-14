@@ -1,6 +1,6 @@
 /**
  * arrivalInteractions.test.js — Resource harvesting on champion arrival
- * (src/game/state/arrivalInteractions.js): fruit eating and knot mining.
+ * (src/game/state/arrivalInteractions.js): Blessed Font drinking and knot mining.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,9 +10,9 @@ import { coordKey } from '../../../../src/engine/rules/hexGrid.js';
 
 const here = coordKey({ q: 0, r: 0 });
 
-test('fruit tree: standard faction heals 18 HP and marks the tree spent', () => {
+test('blessed font: standard faction heals 18 HP and marks the font spent', () => {
   const champ = makeChampion({ id: 'cA', pos: { q: 0, r: 0 }, hp: 5, maxHp: 100 });
-  const tile = makeTile('plains', { feature: { kind: 'fruitTree', ripe: true } });
+  const tile = makeTile('plains', { feature: { kind: 'blessedFont', ripe: true } });
   const state = makeState({ champions: [champ], tiles: { [here]: tile } });
 
   interactOnArrival(state, champ);
@@ -24,9 +24,9 @@ test('fruit tree: standard faction heals 18 HP and marks the tree spent', () => 
   assert.equal(state.logs[0].category, 'heal');
 });
 
-test('fruit tree: Verdant (faction 2) heals double (34 HP)', () => {
+test('blessed font: Verdant (faction 2) heals double (34 HP)', () => {
   const champ = makeChampion({ id: 'cA', faction: 2, pos: { q: 0, r: 0 }, hp: 5, maxHp: 100 });
-  const tile = makeTile('plains', { feature: { kind: 'fruitTree', ripe: true } });
+  const tile = makeTile('plains', { feature: { kind: 'blessedFont', ripe: true } });
   const state = makeState({ champions: [champ], tiles: { [here]: tile } });
 
   interactOnArrival(state, champ);
@@ -34,9 +34,9 @@ test('fruit tree: Verdant (faction 2) heals double (34 HP)', () => {
   assert.equal(champ.hp, 39);
 });
 
-test('fruit tree: healing caps at max HP', () => {
+test('blessed font: healing caps at max HP', () => {
   const champ = makeChampion({ id: 'cA', pos: { q: 0, r: 0 }, hp: 90, maxHp: 100 });
-  const tile = makeTile('plains', { feature: { kind: 'fruitTree', ripe: true } });
+  const tile = makeTile('plains', { feature: { kind: 'blessedFont', ripe: true } });
   const state = makeState({ champions: [champ], tiles: { [here]: tile } });
 
   interactOnArrival(state, champ);
@@ -44,11 +44,11 @@ test('fruit tree: healing caps at max HP', () => {
   assert.equal(champ.hp, 100);
 });
 
-test('fruit tree: spent fruit (ripe false) and unripe fruit heal nothing', () => {
+test('blessed font: spent (ripe false) and unripe fonts heal nothing', () => {
   const spent = makeChampion({ id: 'cA', pos: { q: 0, r: 0 }, hp: 5, maxHp: 100 });
   const spentState = makeState({
     champions: [spent],
-    tiles: { [here]: makeTile('plains', { feature: { kind: 'fruitTree', ripe: false } }) },
+    tiles: { [here]: makeTile('plains', { feature: { kind: 'blessedFont', ripe: false } }) },
   });
   interactOnArrival(spentState, spent);
   assert.equal(spent.hp, 5);
@@ -57,10 +57,10 @@ test('fruit tree: spent fruit (ripe false) and unripe fruit heal nothing', () =>
   const unripe = makeChampion({ id: 'cB', pos: { q: 0, r: 0 }, hp: 5, maxHp: 100 });
   const unripeState = makeState({
     champions: [unripe],
-    tiles: { [here]: makeTile('plains', { feature: { kind: 'fruitTree', ripe: true, nextRewardDay: 10 } }) },
+    tiles: { [here]: makeTile('plains', { feature: { kind: 'blessedFont', ripe: true, nextRewardDay: 10 } }) },
   });
   interactOnArrival(unripeState, unripe);
-  assert.equal(unripe.hp, 5, 'future fruit does not heal yet');
+  assert.equal(unripe.hp, 5, 'future font water does not heal yet');
 });
 
 test('knot: mines the default amount and clears the feature', () => {

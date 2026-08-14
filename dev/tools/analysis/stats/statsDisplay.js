@@ -61,7 +61,7 @@ export function formatStats() {
   }
 
   lines.push('');
-  lines.push(`Features:  trees=${featCounts.trees}  fruit=${featCounts.fruitTrees}  knots=${featCounts.knots}  bases=${featCounts.bases}  bushes=${featCounts.bushes}  chests=${featCounts.chests}`);
+  lines.push(`Features:  trees=${featCounts.trees}  fonts=${featCounts.blessedFonts}  knots=${featCounts.knots}  bases=${featCounts.bases}  bushes=${featCounts.bushes}  chests=${featCounts.chests}`);
 
   // Feature composition by distance band (featureDesign.md §3 — tiered placement)
   const tierBands = featureTierBands(tiles, radius);

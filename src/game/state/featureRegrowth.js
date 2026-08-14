@@ -5,7 +5,7 @@
  * consumer goes through here so there is a single source of truth:
  *
  *   - the generic reward engine (featureRewards.js) — regrow-class rewards,
- *   - the legacy tree path (arrivalInteractions.js) — the fruit-tree heal,
+ *   - the Blessed Font path (arrivalInteractions.js) — the font heal,
  *   - the world turn (worldSimulation.js) — the daily regrowth advance.
  *
  * Feature state shape on a tile:
@@ -46,6 +46,28 @@ export function advanceRegrowth(state) {
       t.feature.ripe = true;
       state._regrowingFeatures.delete(key);
       // Feature state changed — rebuild the chunk so the ready feature shows.
+      markChunkDirty(state, t.q, t.r);
+    }
+  }
+}
+
+/**
+ * Refill replenishable features that the weather tops up at day start.
+ *
+ * A Blessed Font refills to full on any rainy day, independent of its
+ * nextRewardDay timer. `rainy` comes from the current day's weather entry
+ * (weatherScript.js `rainy` flag).
+ * @param {object} state — live game state
+ * @param {boolean} rainy — whether the new day's weather is rainy
+ */
+export function refillOnRain(state, rainy) {
+  if (!rainy) return;
+  for (const key of state._regrowingFeatures) {
+    const t = state.tiles[key];
+    if (t?.feature?.kind === 'blessedFont') {
+      t.feature.ripe = true;
+      state._regrowingFeatures.delete(key);
+      // Feature state changed — rebuild the chunk so the refilled font shows.
       markChunkDirty(state, t.q, t.r);
     }
   }

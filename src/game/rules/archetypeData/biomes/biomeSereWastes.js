@@ -1,6 +1,6 @@
 /**
  * biomeSereWastes.js — 'Sere Wastes' biome.
- * Hot arid desert with sparse everything — rare fruit trees, very rare decorative features.
+ * Hot arid desert with sparse everything — rare Blessed Fonts, very rare decorative features.
  */
 
 import { defineArchetype } from '../../archetypes.js';
@@ -29,10 +29,10 @@ defineArchetype('biome_sere_wastes', {
     marshMaxElevation: 0.20,
   },
 
-  // Sere Wastes: sparse everything — rare fruit trees, very rare decorative trees
+  // Sere Wastes: sparse everything — rare Blessed Fonts, very rare decorative trees
   features: [
     // High-roll features — rarest first
-    { kind: 'fruitTree',         threshold: 0.985, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont',       threshold: 0.985, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'ouroborosLoop',     threshold: 0.970, compare: 'gt', terrainExclude: [], tier: 'T4' },
     { kind: 'tree',              threshold: 0.965, compare: 'gt', terrainExclude: ['forest', 'denseForest'] },
     // Treasure chest — any-biome collectible

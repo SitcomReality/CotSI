@@ -166,8 +166,8 @@ test('chunk generation is deterministic per chunk (seam invariant)', () => {
   }
 });
 
-test('fruit-tree climate gate falls through to lower-priority rules', () => {
-  // Regression: a fruitTree rule that matches the roll but fails the climate
+test('Blessed Font climate gate falls through to lower-priority rules', () => {
+  // Regression: a blessedFont rule that matches the roll but fails the climate
   // gate (treeLineMax 0 → `elevation < treeLineMax` never true) used to kill
   // the whole roll with `feature: null`. Now the same roll is retried against
   // the remaining rules, so 'tree' wins on every tile with roll > 0.
@@ -175,7 +175,7 @@ test('fruit-tree climate gate falls through to lower-priority rules', () => {
     id: 'test_gateFallthrough',
     terrainRules: { treeLineMax: 0 },
     features: [
-      { kind: 'fruitTree', threshold: 0, compare: 'gt' },
+      { kind: 'blessedFont', threshold: 0, compare: 'gt' },
       { kind: 'tree', threshold: 0, compare: 'gt' },
     ],
   };
@@ -185,7 +185,7 @@ test('fruit-tree climate gate falls through to lower-priority rules', () => {
   for (const [, tile] of tileMap) {
     if (tile.feature === null) continue; // roll exactly 0 — neither rule matched
     assert.equal(tile.feature.kind, 'tree',
-      `gate-failed fruitTree must fall through to tree at ${tile.q},${tile.r} (got ${tile.feature.kind})`);
+      `gate-failed blessedFont must fall through to tree at ${tile.q},${tile.r} (got ${tile.feature.kind})`);
     trees++;
   }
   assert.ok(trees > 0, 'expected at least one fallback tree in the chunk');
@@ -384,7 +384,7 @@ test('assignRiverFlows: hex delta points at the next path tile; tail gets none',
 test('applyRiverTerrain: path tiles become river and lose features; water mouths stay', () => {
   const tiles = {
     '0,0': { q: 0, r: 0, terrain: 'plains', feature: { kind: 'tree' } },
-    '1,0': { q: 1, r: 0, terrain: 'forest', feature: { kind: 'fruitTree' } },
+    '1,0': { q: 1, r: 0, terrain: 'forest', feature: { kind: 'blessedFont' } },
     '2,0': { q: 2, r: 0, terrain: 'mountain', feature: null },
     '3,0': { q: 3, r: 0, terrain: 'water', feature: null },
     '4,0': { q: 4, r: 0, terrain: 'plains', feature: { kind: 'tree' } },

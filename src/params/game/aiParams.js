@@ -7,12 +7,12 @@ export const BOT_SEARCH_MOVE_MULTIPLIER = 2;
 /** Flat extra hexes added to bot target-search radius. */
 export const BOT_SEARCH_PADDING = 5;
 
-/** Champion HP threshold below which tree-healing targets get a higher score. */
-export const BOT_TREE_HP_THRESHOLD = 60;
-/** Tree target score when champion HP is below threshold (needs healing). */
-export const BOT_TREE_SCORE_INJURED = 28;
-/** Tree target score when champion HP is at or above threshold (healthy). */
-export const BOT_TREE_SCORE_HEALTHY = 10;
+/** Champion HP threshold below which font-healing targets get a higher score. */
+export const BOT_FONT_HP_THRESHOLD = 60;
+/** Blessed Font target score when champion HP is below threshold (needs healing). */
+export const BOT_FONT_SCORE_INJURED = 28;
+/** Blessed Font target score when champion HP is at or above threshold (healthy). */
+export const BOT_FONT_SCORE_HEALTHY = 10;
 /** Knot (God's Knot) target score. */
 export const BOT_KNOT_SCORE = 32;
 /** Base bot target score per reward-bearing feature kind (featureRewards.js). */

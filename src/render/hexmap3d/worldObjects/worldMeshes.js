@@ -1,12 +1,11 @@
-// worldMeshes.js — Top-level feature-mesh entry point: fruit trees (legacy
-// builder), descriptor-driven features + terrain decor, and champion bases.
-import { buildChunkFruitTreeMeshes } from './fruitTree/index.js';
+// worldMeshes.js — Top-level world-object mesh entry point: descriptor-driven
+// features + terrain decor, and champion bases.
 import { buildChunkBaseMeshes } from './baseMeshes.js';
 import { buildChunkDescriptorFeatureMeshes } from './descriptors/gameBuilder.js';
 import { addOutlines } from '../scene/outline.js';
 import { occupiedKeys } from './decorEmphasis.js';
 
-export { buildChunkFruitTreeMeshes, buildChunkBaseMeshes, buildChunkDescriptorFeatureMeshes };
+export { buildChunkBaseMeshes, buildChunkDescriptorFeatureMeshes };
 
 /**
  * Gate set for terrain decorations: `visible` ∪ `explored`. Decor is purely
@@ -33,7 +32,6 @@ export function buildChunkWorldMeshes(chunkTiles, state, visible, explored = new
   const occupants = occupiedKeys(state);
   const decor = decorGate(visible, explored);
 
-  results.push(...buildChunkFruitTreeMeshes(chunkTiles, visible, occupants));
   results.push(...buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decor, state.biomeColors ?? null, state.biomePalettes ?? null));
   results.push(...buildChunkBaseMeshes(chunkTiles, visible));
 

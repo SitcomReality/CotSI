@@ -33,7 +33,7 @@ import { FACTIONS } from '../rules/factionData.js';
 import { markChunkDirty } from './chunkDirtyTracking.js';
 import { depleteFeature } from './featureRegrowth.js';
 import { FACTION_COUNT } from '../../params/game/factionParams.js';
-import { BOT_FEATURE_SCORES, BOT_FEATURE_HEAL_BONUS, BOT_TREE_HP_THRESHOLD } from '../../params/game/aiParams.js';
+import { BOT_FEATURE_SCORES, BOT_FEATURE_HEAL_BONUS, BOT_FONT_HP_THRESHOLD } from '../../params/game/aiParams.js';
 import {
   FEATURE_RELIC_AMOUNT,
   FEATURE_CRYSTAL_GOLD,
@@ -413,7 +413,7 @@ export function featureValueForBot(state, champ, tile) {
   if (!feature || feature.ripe === false) return 0;
   const base = BOT_FEATURE_SCORES[feature.kind];
   if (!base) return 0;
-  if (HEAL_KINDS.has(feature.kind) && champ.hp < BOT_TREE_HP_THRESHOLD) {
+  if (HEAL_KINDS.has(feature.kind) && champ.hp < BOT_FONT_HP_THRESHOLD) {
     return base + BOT_FEATURE_HEAL_BONUS;
   }
   return base;

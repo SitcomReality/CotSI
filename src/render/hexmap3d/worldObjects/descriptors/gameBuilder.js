@@ -3,15 +3,15 @@
  *
  * The descriptor-pipeline replacement for the per-kind builders it supersedes
  * (mountainMeshes.js, knotMeshes.js, simpleFeatureMeshes.js, hillDecorMeshes.js
- * and the solitary-tree half of fruitTree/fruitTreeRecordsForTile.js). Dispatch matches
- * the old builders' rules; once a tile resolves to a descriptor,
+ * and the procedural fruit-tree builder). Dispatch matches the old builders'
+ * rules; once a tile resolves to a descriptor,
  * recordsForDescriptor → buildDescriptorMeshes renders it.
  *
  * A tile may resolve to several objects, one group per descriptor:
  *   feature (claims the hex center; gated on the visible set):
  *     knot feature (unmined)      → knot descriptor
  *     tree on open terrain → solitary tree descriptor
- *     any other kind with a descriptor → that descriptor (26 simple archetypes)
+ *     any other kind with a descriptor → that descriptor (simple archetypes)
  *   terrain decoration (composes with the feature above; also rendered on
  *   explored-but-out-of-sight tiles, where it shows its unoccupied state):
  *     mountain terrain            → mountain descriptor (emphasis 'none')
@@ -26,9 +26,7 @@
  *       clustered growth (reeds/grass/scrub/driftwood) disperses when the
  *       center is claimed, hidden when occupant + feature share it
  *
- * Kept on the legacy tree builder (not migrated — procedural, see
- * descriptors/data/): fruitTree. Champion bases stay on baseMeshes.js
- * (out of scope).
+ * Champion bases stay on baseMeshes.js (out of scope).
  */
 
 import { collectInstances } from '../meshBuilder.js';
@@ -111,7 +109,6 @@ function resolveFeatureForTile(tile, occupants) {
     if (tile.feature.mined) return null;
     return { descriptor: normalizedDescriptor(KNOT_DESCRIPTOR), displacement: { displaced: occupied } };
   }
-  if (kind === 'fruitTree') return null; // legacy tree builder
   if (kind === 'tree') {
     // On woods this is the grove (or the legacy Painforest grove) — the
     // solitary landmark renders only on open terrain.
@@ -134,7 +131,6 @@ function resolveFeatureForTile(tile, occupants) {
 function resolveGroveForTile(tile, occupants, visible = true) {
   if (!isWoodsTerrain(tile)) return null;
   const kind = tile.feature?.kind;
-  if (kind === 'fruitTree') return null; // fruit tree claims the tile — no grove
   const mode = decorState({
     hasOccupant: visible && isTileOccupied(occupants, tile),
     hasFeature: visible && !!tile.feature && kind !== 'tree',

@@ -1,6 +1,6 @@
 /**
  * biomeScorch.js — 'Scorch' biome.
- * Hot dry savanna with sparse trees, rare fruit trees, and scattered knots.
+ * Hot dry savanna with sparse trees, rare Blessed Fonts, and scattered knots.
  */
 
 import { defineArchetype } from '../../archetypes.js';
@@ -27,11 +27,11 @@ defineArchetype('biome_scorch', {
     waterMaxElevation: 0.08,
   },
 
-  // Scorch: sparse trees, rare fruit trees, scattered knots
-  // Note: fruitTree must come before tree (higher threshold = rarer, first-match-wins)
+  // Scorch: sparse trees, rare Blessed Fonts, scattered knots
+  // Note: blessedFont must come before tree (higher threshold = rarer, first-match-wins)
   features: [
     // High-roll features — rarest first
-    { kind: 'fruitTree', threshold: 0.980, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont', threshold: 0.980, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
     { kind: 'saintsRib', threshold: 0.965, compare: 'gt', terrainExclude: [], tier: 'T3' },
     { kind: 'tree',      threshold: 0.945, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
     // Treasure chest — any-biome collectible
