@@ -89,7 +89,7 @@ export const TERRAIN_ELEVATION = {
   marsh: -0.05,
   beach: -0.05,
   hill: 0.25,
-  plateau: 0.35,
+  plateau: 0.70,
   mountain: 0.85,
   water: -0.15,
   ice: -0.12,

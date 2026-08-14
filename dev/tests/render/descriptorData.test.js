@@ -164,26 +164,26 @@ test('mountain: per-variant part ids and mountainType-driven scaleY', () => {
   assert.equal(untagged.scaleY, isolated.scaleY, 'untagged mountains draw the same normal bucket');
 });
 
-test('knot hovers at KNOT_Y_OFFSET and hill mound is a single flattened dome', () => {
+test('knot hovers at KNOT_Y_OFFSET and hill mound is a single pointy mound', () => {
   const knot = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'knot'));
   const [knotRecord] = recordsForDescriptor(knot, { q: 3, r: -2, terrain: 'plains' }, POS);
   assert.equal(knotRecord.y, POS.y + 0.3);
   assert.ok(knotRecord.partId === 'knot');
 
-  // Hill mound is ONE flattened dome: a single ring-placed mound at its own
-  // [0.9, 1.0] size draw (size.min only — max defaults to 1 on normalize),
-  // squashed to 2/3 height (scaleY/scale). The tight ring (0.01-0.02) keeps
-  // it at the hex center. The dome's thetaLength-1.5 band keeps its lowest
-  // vertex above the origin, so the grounded y dips slightly below the
+  // Hill mound is ONE pointy mound: a single near-center partial sphere at its
+  // own [0.9, 1.0] size draw, squashed vertically (scaleY < scale — the 2/3
+  // transform flattening plus per-tile stretch). The tight jitter (offset
+  // 0.01) keeps it at the hex center, and the partial-sphere band's lowest
+  // vertex sits above the origin, so the grounded y dips slightly below the
   // surface to compensate.
   const hill = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'hill'));
   const mounds = recordsForDescriptor(hill, { q: 3, r: -2, terrain: 'hill' }, POS);
   assert.equal(mounds.length, 1, 'hill is a single mound');
   const mound = mounds[0];
   assert.ok(mound.scale >= 0.9 - 1e-9 && mound.scale <= 1 + 1e-9, `mound size ${mound.scale}`);
-  assert.ok(Math.abs(mound.scaleY / mound.scale - 2 / 3) < 1e-9, `dome flattening ${mound.scaleY}/${mound.scale}`);
+  assert.ok(mound.scaleY < mound.scale, `mound vertically squashed (${mound.scaleY}/${mound.scale})`);
   const dist = Math.hypot(mound.x - POS.x, mound.z - POS.z);
-  assert.ok(dist <= 0.02 + 1e-9, `mound ${dist} outside ringMax`);
+  assert.ok(dist <= 0.02 + 1e-9, `mound ${dist} outside jitter`);
   // Sunk: descends below the surface and shrinks (same record count).
   const sunk = recordsForDescriptor(hill, { q: 3, r: -2, terrain: 'hill' }, POS, undefined, { displaced: true });
   assert.equal(sunk.length, 1);

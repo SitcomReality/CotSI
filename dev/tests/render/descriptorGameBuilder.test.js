@@ -20,8 +20,8 @@ import {
 import {
   SCATTER_HASH_SEEDS, SCATTER_SCALE_BASE, SCATTER_SCALE_RANGE,
 } from '../../../src/params/render/geometryParams.js';
-import { tileHash, treeHash, frac, lerp, itemHash } from '../../../src/render/hexmap3d/worldObjects/tileHash.js';
-import { shapeBaseOffset } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { shapeBaseOffset, normalizeDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { recordsForDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
 import { HILL_DESCRIPTOR } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/hill.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
@@ -78,16 +78,10 @@ const meshesStarting = (meshes, prefix) => meshes.filter((m) => m.name.startsWit
 // The hill mound's dome band (thetaLength 1.5) keeps its lowest vertex ABOVE
 // the geometry origin, so shapeBaseOffset is negative — the record y sits that
 // far below the surface and the mound's lowest vertex lands at y + base·sy.
-// The mound draws its own [size.min, size.max] item scale: max defaults to 1
-// when absent (schema normalize merges OBJECT_DEFAULTS.size); item 0 keeps the
-// legacy treeHash roll, cluster members the decorrelated itemHash (see
-// tileHash.js — hill is a single mound today, so only item 0 is used).
 const HILL_BASE = shapeBaseOffset(HILL_DESCRIPTOR.parts[0].shape, HILL_DESCRIPTOR.parts[0].params);
-const hillItemScale = (tileH, i) => lerp(
-  HILL_DESCRIPTOR.size.min,
-  HILL_DESCRIPTOR.size.max ?? 1,
-  i === 0 ? frac(treeHash(tileH, 3)) : itemHash(tileH, i + 3),
-);
+const NORMALIZED_HILL = normalizeDescriptor(HILL_DESCRIPTOR);
+/** The mound's normal (un-sunk) XZ scale on a tile — read from a real record. */
+const hillItemScale = (tile) => recordsForDescriptor(NORMALIZED_HILL, tile, centerOf(tile))[0].scale;
 
 // ── Tile resolution ─────────────────────────────────────────────────────────
 
@@ -239,14 +233,14 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   assert.ok(hill && hill.count === 1, `hill-mound is a single sunk mound (got ${hill.count})`);
   const sunk = sunkTransform();
   const hillSurface = tileSurfaceY(TILES[6]);
-  const hillTileH = tileHash(TILES[6]);
   for (let i = 0; i < hill.count; i++) {
     const p = instInfo(hill, i);
-    // The dome's lowest vertex lands at surface + yOffset: the record y sits
+    // The mound's lowest vertex lands at surface + yOffset: the record y sits
     // HILL_BASE·sy below that (HILL_BASE is negative).
     assert.ok(closeTo(p.y - HILL_BASE * p.sy, hillSurface + sunk.yOffset), `sunk hill ${i} descends below the surface (got ${p.y})`);
-    // The mound is its own [0.9, 1.0] size draw × the sunk shrink.
-    assert.ok(closeTo(p.sx, hillItemScale(hillTileH, i) * sunk.scale), `sunk hill ${i} shrinks by sunk scale (got ${p.sx})`);
+    // The mound is its own size draw × the sunk shrink (p.scale is the
+    // rotation-invariant XZ scale, since the mound carries a 90° Y rotation).
+    assert.ok(closeTo(p.scale, hillItemScale(TILES[6]) * sunk.scale), `sunk hill ${i} shrinks by sunk scale (got ${p.scale})`);
   }
 
   // Ground decor: one cluster per terrain, one mesh per part.
@@ -352,7 +346,7 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
     // Full size (no displacement): the mound draws its own [0.9, 1.0] size
     // (p.scale = hypot(e0, e2), the true XZ scale under the mound's ring rotY).
     assert.ok(p.scale >= 0.9 - 1e-4 && p.scale <= 1 + 1e-4, `hill mound ${i} at full size (got ${p.scale})`);
-    // Grounded dome: the lowest band vertex sits HILL_BASE·sy above the origin,
+    // Grounded mound: the lowest band vertex sits HILL_BASE·sy above the origin,
     // so the record y dips that far below the surface.
     assert.ok(closeTo(p.y - HILL_BASE * p.sy, hillSurface), `hill mound ${i} grounded at the surface (got ${p.y})`);
   }
