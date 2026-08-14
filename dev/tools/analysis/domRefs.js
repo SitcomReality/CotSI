@@ -43,6 +43,7 @@ export function cacheDom() {
   els.toggleDungeons = $('toggle-dungeons');
   els.toggleFeatures = $('toggle-features');
   els.viewMode = $('view-mode');
+  els.btnFitView = $('btn-fit-view');
   els.btnCycleToggle = $('btn-cycle-toggle');
   els.btnNextRandom = $('btn-next-random');
   els.btnPrevSeed = $('btn-prev-seed');

@@ -17,6 +17,10 @@
   border-bottom: 1px solid var(--crease);
 }
 
+#btn-fit-view {
+  width: 100%;
+}
+
 #entity-toggles {
   display: flex;
   flex-direction: column;

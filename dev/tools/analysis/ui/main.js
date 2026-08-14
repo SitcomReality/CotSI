@@ -9,7 +9,7 @@
 import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
 import { generateSingleSeed } from '../generation/generate.js';
-import { renderAndFit } from '../render/orchestrate.js';
+import { render, renderAndFit } from '../render/orchestrate.js';
 import { updateLegend } from '../legend/legend.js';
 import { updateStats } from '../stats/statsDisplay.js';
 import { setupCanvasInteraction } from './canvas.js';
@@ -122,15 +122,20 @@ function bindControls() {
     els.toggleBases, els.toggleDungeons, els.toggleFeatures,
   ];
   for (const toggle of toggles) {
-    if (toggle) toggle.addEventListener('change', renderAndFit);
+    if (toggle) toggle.addEventListener('change', render);
   }
 
-  // View mode
+  // View mode — keep the current camera so zoom/pan survive the change
   els.viewMode.addEventListener('change', () => {
     S.viewMode = els.viewMode.value;
-    renderAndFit();
+    render();
     updateLegend(S.viewMode);
   });
+
+  // Reset zoom/pan to fit the whole map in view
+  if (els.btnFitView) {
+    els.btnFitView.addEventListener('click', renderAndFit);
+  }
 
   // Multi-biome toggle: regenerate and re-render
   els.multiBiomeCheck.addEventListener('change', () => {
