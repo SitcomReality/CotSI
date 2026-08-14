@@ -14,7 +14,7 @@ CotSI is a browser-based hex-crawl strategy game, early in development. Seven fa
 
 **Performance:** Always try to be mindful of performance impacts and consider what performance optimizations can be incorporated. `src/devtools/performance/captureLogger.js` is used during in-game testing to gather detailed frame time data per system.
 
-**Early Development:** Many features aren't fully implemented (eg. trading) and lots of systems are still using limited placeholder values.
+**Early Development:** Many features aren't fully implemented and lots of systems are still using limited placeholder values -- there is no meaningful balance, yet.
 
 **Reference:** Start with `dev/docs/systemArchitecture.md` for the complete file tree, layer architecture, and decision guide.
 
