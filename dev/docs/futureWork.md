@@ -145,6 +145,13 @@ Save seed + list of dirty tiles with their deltas; everything else regenerates
 
 ## Geometry content
 
+- **Decor composition (motifs + weighted slots + alternatives)** — designed
+  in `dev/docs/decorComposition.md` (decisions made, no code yet): decor
+  variants collapse into a weighted `motifs` table per slot; within-object
+  configs (cactus arms) use an `alternatives` node; editor gets a redefined
+  "Show all" canonical view and a tile-strip diversity preview. Implement in
+  the order given there: schema v6 → recordBuilder → data migration (desert
+  first) → editor.
 - **Mob animation runtime** — deferred; the declarative clip spec and
   per-render-pass hook are worked out in `dev/docs/mobGeometryAndAnimation.md`
   §4–5.
