@@ -9,7 +9,7 @@ before implementing specific features or making changes based on this document.
 
 ---
 
-## Near-term features
+## Features to be implemented
 
 ### Equipment — combat integration & sources
 
@@ -41,6 +41,37 @@ occupancy, no harassment, invisible). Bots ignore dungeons entirely.
 Remaining:
 - Bot AI for dungeons (currently human-only).
 - Battle + reward balance — see `dev/docs/deferredNotes.md` §5.
+
+### Onboarding/tutorial
+
+What's the best way to teach new players the mechanics?
+
+### Saving/game state serialization
+
+- Options/settings preserved across sessions (localstorage?)
+- Ability to save an in-progress game -- game state serialization?
+
+### Audio
+
+- SFX system
+- Music
+
+### Options/settings
+
+- Graphics quality
+- Audio
+- Speed(s)?
+- Reset tutorial/tips
+
+### Specialer FX (particles?)
+
+A filled blessed font might emit a glow, ripe peridexion fruit might sparkle, collecting a treasure chest might splash a flourish of coins across the screen?
+
+### Online Multiplayer
+
+- Database connection & game state preservation
+- Game creation, lobbies, room codes etc.
+- Client connection and syncing game state with server
 
 ### UI polish
 

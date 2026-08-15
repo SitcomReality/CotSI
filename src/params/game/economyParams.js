@@ -3,9 +3,9 @@
  */
 
 // ---- Trader economy ----
-/** Moonberry (heal) purchase cost in gold. */
+/** Healing Salve purchase cost in gold. */
 export const TRADER_HEAL_COST = 14;
-/** Moonberry heal amount. */
+/** Healing Salve heal amount. */
 export const TRADER_HEAL_AMOUNT = 10;
 /** Potency purchase cost in gold (per pip). */
 export const TRADER_POTENCY_COST = 22;

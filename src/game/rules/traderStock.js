@@ -65,5 +65,5 @@ export function traderStock(rand) {
 
 /** The infinite healing service every trader offers (separate from the 7 slots). */
 export function traderHealService() {
-  return { kind: 'heal', name: 'Moonberry', cost: { gold: TRADER_HEAL_COST }, heal: TRADER_HEAL_AMOUNT };
+  return { kind: 'heal', name: 'Healing Salve', cost: { gold: TRADER_HEAL_COST }, heal: TRADER_HEAL_AMOUNT };
 }
