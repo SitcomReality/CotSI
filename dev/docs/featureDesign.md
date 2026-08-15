@@ -273,8 +273,10 @@ geometry. No randomness, ever.
 | `cluster` + `size` | How many items, how big | Scattered ground decor | `forest.js` (moisture-scaled 3–5 trees), `bush.js` |
 | `placement` + `emphasis` | Where items sit; how they yield | Most tile decor/features | `forest.js` (ring, dispersed), `plateau.js` (center, sunk) |
 | `variation` + part `stretch` | Per-tile stretch/color jitter | Anything organic (trees, reeds) | `forest.js` trunk/canopy |
-| `variants` + `biomeVariants` | Alternate part sets, biome-pinned | Biome-specific looks (Painforest gnarled woods) | `forest.js`, `denseForest.js` |
-| `optionalGroups` | Per-instance include/exclude sub-objects | "One of several possible things per tile" (desert cactus among scrub/rocks) | synthetic example below |
+| `variants` + `biomeVariants` | Alternate part sets, biome-pinned | Biome-specific looks (features/entities; DECOR moved to `motifs` in v6) | base/mob barrels, knot features |
+| `motifs` + `repeatPenalty` | Weighted per-slot table: which motif fills each cluster slot (decor v6) | Scattered decor whose tile should MIX objects — "two rocks and no cactus" | `desert.js`, `forest.js`, all decor files |
+| `alternatives` | Weighted per-item choice point inside a parts tree (any kind, any depth) | Within-object configs — a cactus choosing none/one/two/elbow arms | `desert.js` `cactus-arms` |
+| `optionalGroups` | Per-instance include/exclude sub-objects | "One of several possible things per tile" (legacy — a motif with a small weight IS an optional group; superseded for decor) | synthetic example below |
 | part `states.empty` | Growth-state keyframes: parts lerp empty → full as a feature refills/ripens | Replenishable features (Blessed Font water, Peridexion fruit) | `blessedFont.js`, `peridexionTree.js` |
 | part `biomeScale` / `biomeColor` | Per-biome size factors / color tinting | Biome-scaled trees, ground-matching decor | `forest.js` (Tundra-stunted), `plateau.js` |
 | Canonical view | Variation-free preview (base parts, one item, authored scale) | Authoring check — "what does the default look like?" | editor toggle |

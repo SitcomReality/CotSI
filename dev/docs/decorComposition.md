@@ -1,10 +1,13 @@
 # Decor Composition — motifs, weighted slots, and alternatives
 
-**Status:** design proposal (no code changes yet). Decided in discussion:
-structural biome looks fold into the compositional system; presence is a
-weighted **slot table**; within-object variety uses an **`alternatives`**
-node; the editor gets a redefined Canonical view, spawn-rule controls, and a
-tile-strip preview.
+**Status: SHIPPED (v6, this branch).** The structural biome looks fold into
+the compositional system; presence is a weighted **slot table**; within-object
+variety uses an **`alternatives`** node; the editor has a motif panel with
+realized shares, spawn-rule controls, an alternatives inspector, and a
+tile-strip preview. The implementation landed in the commits tagged
+`schema v6` / `motif pipeline` / `v5 → v6 migration shim` / `hand-rewrite` /
+`editor: v6 decor composition`; `descriptorAuthoring.md` §5.4 is the
+authoritative authoring guide for the shipped feature.
 
 This doc is the spec the implementation will follow. It extends
 `dev/docs/descriptorAuthoring.md` (which stays the authoritative authoring

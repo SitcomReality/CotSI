@@ -213,6 +213,7 @@ variation: {
 | `biomeScale` | object | Per-biome size factor: `{ biome_tundra: 0.85 }` multiplies the part's scale on tiles of that biome (stunted tundra trees). Scales lift/`localPos` rigidly too. |
 | `biomeColor` | object | Per-part biome tint: `{ source: 'primary' \| 'accent' \| 'terrain', influence: 0..1 }` — mixes the part's color toward the tile's blended biome color by `influence` (see §5.7). |
 | `states` | object | Growth-state keyframes — the part's look at different regrowth stages (see §4.6). Shape leaves only; groups reject it. |
+| `alternatives` | array | **Choice point** (v6): not a shape and not a group — a weighted option table (see §5.4). The node carries `seed` (draw lane) and `default` (preview/catalog option) only; it has no transform, no color, no geometry. Options are `{ id, weight?, parts }` (parts may be empty — the `none` option). |
 
 ### 4.3 Shape registry
 
@@ -372,6 +373,12 @@ anywhere. The pipeline (recordBuilder.js):
 
 ### 5.3 Variant selection
 
+> **v6:** the DECOR path moved to the weighted `motifs` table — see §5.4.
+> Variants + `biomeVariants` pins remain for **features and entity kinds**
+> (and as a deprecated escape hatch for decor). A v5 decor file still loads:
+> `normalizeDescriptor` migrates it in memory (variant → motif, ids
+> uniquified, pins preserved) until it is hand-rewritten.
+
 **A decor is the look of ONE terrain.** Each decor-producing terrain has its
 own descriptor, and the decor's `id` IS the terrain's id: `forest` tiles render
 the `forest` decor, `denseForest` tiles the `denseForest` decor (deep wood),
@@ -424,6 +431,85 @@ brand-new variant and selects it for editing. Reshape the copy (see §7 for the
 per-biome forest), then pin it to a biome in the Per-biome variants section.
 The duplicate workflow is the whole point of the per-biome system: one
 terrain, many biomes, one default look plus a pinned alternate per biome.
+
+### 5.4 Decor composition: motifs, alternatives, and weights (v6)
+
+Every choice point in a decor is a weighted pick, and there are three levels
+(`dev/docs/decorComposition.md` is the full spec):
+
+| Level | Question | Mechanism |
+|---|---|---|
+| Tile | how many items? | `cluster` — the slot count (slots now count OBJECTS, not composites) |
+| Slot | which motif is this item? | `motifs` — a weighted table, one draw per slot |
+| Item | which configuration? | `alternatives` nodes inside the parts tree |
+
+**`motifs`** (decor-level, replaces `variants` on the decor path):
+
+```js
+motifs: [
+  { id: 'cactus', weight: 0.4,
+    biomeWeight: { biome_tundra: 0.05, biome_mourning_marsh: 0.1 },
+    parts: [ /* a small part tree — groups and alternatives allowed */ ] },
+  { id: 'rock', weight: 0.45, parts: [ /* … */ ] },
+],
+```
+
+- `weight` (default 1) — base draw weight. Each slot draws one motif from the
+  table via a uniform hash value against the cumulative weights. **The CDF
+  accumulates over a stable sort by motif id** — inserting or reordering
+  motifs is a content edit, never a world-edit.
+- `biomeWeight` (default 1 per biome) — a per-biome weight *multiplier*:
+  **absent key ≡ 1, present 0 ≡ excluded**. The realized share in a biome is
+  `w_i / Σw` over the filtered table — a factor of 5 makes a motif DOMINANT,
+  not exclusive (use `biomeWeight: 0` to exclude, or a `biomeVariants` pin to
+  guarantee — pins are deprecated for new content).
+- **All-excluded fallback** — if a biome excludes every motif, the draw falls
+  back to each motif's base `weight` (never empty, never all-ones), and
+  validation warns.
+- `repeatPenalty` (decor-level, default 1) — the duplicate-control knob: after
+  each slot pick, the picked motif's weight is multiplied by it and the table
+  renormalized. 1 = independent draws (the inert default), 0 = without
+  replacement, ~0.3–0.6 = soft damping. The shipped decors use 0.35–0.5.
+- A motif may carry its own `size` / `placement` overrides (absent fields
+  inherit the decor-level values), so a rock and a cactus can want different
+  `offsetMax` and size ranges.
+- Biome identity is expressed as **tints and weights, not restated geometry**:
+  the same shapes carry `biomeColor` tints, `biomeScale` sizes, and
+  `biomeWeight` skews per biome.
+
+**`alternatives`** — a parts-tree node at any depth (any kind: decor, feature,
+even nested inside another alternative):
+
+```js
+{ id: 'cactus-arms', seed: 101, default: 'two-straight',
+  alternatives: [
+    { id: 'none',         weight: 0.25, parts: [] },
+    { id: 'one-straight', weight: 0.3,  parts: [ /* arm cylinder */ ] },
+    { id: 'two-straight', weight: 0.3,  parts: [ /* arm left + arm right */ ] },
+    { id: 'elbow',        weight: 0.15, parts: [ /* group: base + rise, hinged */ ] },
+  ] },
+```
+
+- Each item rolls ONE alternative (seeded per node, item-scoped — two cacti on
+  one tile can show different arm configs). The node itself emits no record
+  and carries no transform — **a hinged config wraps its parts in a group**:
+  `group(transform: hinge) → alternatives → elbow: group(base + rise)`.
+- `seed` is an authored integer from the **reserved 100–199 lane**, assigned
+  once at node creation and never recomputed from the id or path (renames and
+  reorders must not reshuffle in-world rolls).
+- `default` names the option "Show all" and the preview radios resolve to —
+  never a `none`. All-zero weights also fall back to `default`, else the first
+  non-empty option.
+- Option ids live in the GLOBAL part-id namespace (two co-candidate arms must
+  not share an id); the editor assigns prefixed storage ids on commit.
+
+**The editor** (§6 of the spec): motif decors get a Motif panel (weight
+inputs, a per-biome grid of realized shares, a "Force motif" picker) instead
+of the Variant section; alternatives get a per-node option table (weights,
+`default`, read-only seed, preview radios, add/remove, group-inside-option);
+"Show all" renders every motif once at authored scale (the piece inventory);
+and a 3×3 tile-strip of real neighbor hashes with a 64-tile histogram is the
+diversity acceptance view.
 
 ### 5.6 Entity-driven path (bases, champions, mobs, traders)
 
@@ -503,12 +589,19 @@ values. One decor per terrain — `src/render/hexmap3d/worldObjects/descriptors/
 is the `forest` terrain's decor, and `decor/denseForest.js` is a **separate**
 descriptor (the deep-wood's conical pines) — never a variant of this one.
 
+> **v6:** the shipped forest is now a `motifs` table (schemaVersion 6) — the
+> default `round` tree plus each structural biome look (`painforest` gnarled,
+> `taiga`, `frost`, `dry`, `dead`, `edenfall`, `marshwood`, `dustbleed`) as a
+> low-weight motif with a home-biome `biomeWeight` lift and cross-biome
+> suppressions (§5.4). The worked example below shows the pre-v6 variant form;
+> the motif form is the same geometry folded into one table.
+
 The forest is also the showcase of the per-biome variant system: every biome
 that can grow forest terrain pins its own look. Titanstain and Unfinished
 Lands never render this decor at all (their `terrainOverrides` swap the forest
 terrain for Titanflesh / Protogrowth), so the pins cover exactly the biomes
-where a forest tile can actually exist (abridged — the shipped file carries
-`schemaVersion: 5`; the editor rewrote it on the last Save):
+where a forest tile can actually exist (abridged — the PRE-v6 variant form; the
+shipped file is the `motifs` table with home-biome `biomeWeight` lifts):
 
 ```js
 export const FOREST_DESCRIPTOR = {
