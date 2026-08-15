@@ -1,11 +1,8 @@
 /**
- * blessedFont.js — Descriptor data for "Blessed Font".
+ * features/blessedFont.js — Descriptor data for "Blessed Font".
  *
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
- *
- * A small stone font/well whose basin fills with blessed water. Mechanically a
- * Moonberry Tree replacement: heals on arrival and replenishes after N days.
  */
 export const BLESSED_FONT_DESCRIPTOR = {
   schemaVersion: 5,
@@ -13,7 +10,6 @@ export const BLESSED_FONT_DESCRIPTOR = {
   kind: 'feature',
   displayName: 'Blessed Font',
   scale: 1.1,
-  placement: { mode: 'center' },
   emphasis: { behavior: 'dispersed' },
   parts: [
     {
@@ -26,27 +22,31 @@ export const BLESSED_FONT_DESCRIPTOR = {
       id: 'font-basin',
       shape: 'cylinder',
       params: { bottomR: 0.24, topR: 0.3, height: 0.2, segments: 8 },
-      transform: { y: 0.12 },
+      transform: { y: 0.12, lift: 0 },
       color: 0xb9c0c8,
     },
     {
       id: 'font-water',
       shape: 'cylinder',
-      params: { bottomR: 0.2, topR: 0.2, height: 0.02, segments: 8 },
-      transform: { y: 0.3 },
-      color: 0x6fd4e8,
-      // Growth state: at growth 0 the font is dry — a tiny dull puddle low in
-      // the bowl; it grows and brightens to the brimming pool above as the
-      // font refills (one step per day, see featureRegrowth.js).
-      states: {
-        empty: { scaleX: 0.35, scaleY: 0.2, scaleZ: 0.35, y: 0.14, color: 0x7e99a6 },
+      params: { bottomR: 0.2, topR: 0.27, height: 0.02, segments: 8 },
+      transform: {
+        y: 0.3,
+        lift: 0,
+        localPos: { x: 0, y: 0.065789210606547, z: 0 },
       },
+      color: 0x6fd4e8,
+      states: { empty: { scaleX: 0.35, scaleY: 0.2, scaleZ: 0.35, y: 0.14, color: 0x7e99a6 } },
     },
     {
       id: 'font-rim',
       shape: 'torus',
       params: { radius: 0.3, tube: 0.045, radialSegs: 6 },
-      transform: { y: 0.32, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 1.5708 },
+      transform: {
+        y: 0.32,
+        lift: 0,
+        localAxis: { x: 1, y: 0, z: 0 },
+        localAngle: 1.5708,
+      },
       color: 0xd6dde4,
     },
   ],
