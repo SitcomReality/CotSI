@@ -238,6 +238,60 @@ export function normalizeDescriptor(def) {
       return v;
     });
   }
+  // v5 → v6 decor migration (in-memory compatibility shim — decorComposition.md
+  // §3.3). A v5 decor carries `variants` (one per biome look) + a fallback
+  // `parts` stub; v6 expresses the same content as a weighted `motifs` table.
+  // The shim: every variant becomes a motif (weight 1, same id), the fallback
+  // `parts` stub is dropped, part ids are UNIQUIFIED across the converted
+  // table (`<variantId>-<partId>` — mandatory: forest.js repeats `trunk` in 9
+  // variant trees, a last-write-wins hazard in meshAssembly's partById), and
+  // `biomeVariants` pins are PRESERVED as-is (a pinned biome forces that
+  // motif on every slot — exactly v5's exclusivity guarantee; the shim must
+  // render the old look, never convert pins into ×3–×5 weight lifts).
+  // Idempotent: a migrated decor carries `motifs` and no `variants`, so a
+  // second pass no-ops. In-memory only — files stay v5 until hand-rewritten.
+  if (out.kind === 'decor' && Array.isArray(out.variants) && out.variants.length > 0 && !Array.isArray(out.motifs)) {
+    const taken = new Set();
+    const rename = (node, variantId) => {
+      if (!isPlainObject(node)) return;
+      const newId = `${variantId}-${node.id}`;
+      let unique = newId;
+      let n = 2;
+      while (taken.has(unique)) unique = `${newId}-${n++}`;
+      taken.add(unique);
+      node.id = unique;
+      if (Array.isArray(node.alternatives)) {
+        const oldToNew = new Map();
+        for (const option of node.alternatives) {
+          if (isPlainObject(option)) {
+            const oId = `${variantId}-${option.id}`;
+            let oUnique = oId;
+            let m = 2;
+            while (taken.has(oUnique)) oUnique = `${oId}-${m++}`;
+            taken.add(oUnique);
+            oldToNew.set(option.id, oUnique);
+            option.id = oUnique;
+            (Array.isArray(option.parts) ? option.parts : []).forEach((child) => rename(child, variantId));
+          }
+        }
+        // Rewrite the node's `default` to the renamed option id.
+        if (typeof node.default === 'string' && oldToNew.has(node.default)) {
+          node.default = oldToNew.get(node.default);
+        }
+      }
+      if (Array.isArray(node.children)) {
+        node.children.forEach((child) => rename(child, variantId));
+      }
+    };
+    out.motifs = out.variants.map((variant) => {
+      const parts = (Array.isArray(variant.parts) ? variant.parts : []).map((p) => normalizePart(p, legacyGrounding));
+      parts.forEach((p) => rename(p, variant.id));
+      return { id: variant.id, weight: 1, biomeWeight: {}, parts };
+    });
+    delete out.variants;
+    delete out.parts;
+  }
+
   // v6 motifs — the decor slot table. Defaults are filled per motif (weight 1,
   // biomeWeight {} — the only strip-able values; `weight: 0` and a present-0
   // biomeWeight entry are meaningful exclusions and stay). Per-motif
@@ -278,12 +332,20 @@ export function normalizeDescriptor(def) {
         }
         if (node.color === undefined) node.color = legacyMaterialColor;
       };
-      for (const part of out.parts) push(part);
+      for (const part of out.parts ?? []) push(part);
       for (const variant of out.variants ?? []) {
         for (const part of variant.parts) push(part);
       }
     }
     if (isPlainObject(out.material)) delete out.material.color;
+  }
+
+  // A decor with motifs carries no fallback `parts` (v6 — the motif table IS
+  // the content; decorComposition.md §2.3). Normalize fills `parts` from the
+  // raw input, so an absent/empty list must end up ABSENT — the migration and
+  // the round-trip both depend on it (parts: [] would break idempotency).
+  if (out.kind === 'decor' && Array.isArray(out.motifs) && Array.isArray(out.parts) && out.parts.length === 0) {
+    delete out.parts;
   }
 
   return out;

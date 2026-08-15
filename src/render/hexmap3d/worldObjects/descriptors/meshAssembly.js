@@ -46,7 +46,7 @@ export function buildDescriptorMeshes(descriptor, records, meshPrefix = 'descrip
     }
     partById.set(node.id, node);
   };
-  for (const part of descriptor.parts) collect(part);
+  for (const part of descriptor.parts ?? []) collect(part);
   for (const variant of descriptor.variants ?? []) {
     for (const part of variant.parts) collect(part);
   }

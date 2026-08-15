@@ -74,6 +74,13 @@ function instInfo(mesh, i) {
 
 const meshNamed = (meshes, name) => meshes.find((m) => m.name === name) ?? null;
 const meshesStarting = (meshes, prefix) => meshes.filter((m) => m.name.startsWith(prefix));
+/** Total instances across a set of meshes. */
+const meshSum = (ms) => ms.reduce((s, m) => s + m.count, 0);
+/** Meshes whose name starts with `prefix` and ends with `suffix` (the v6
+ *  migration prefixes decor part ids with their variant/motif id, so tests
+ *  match by suffix instead of pinning the full id). */
+const meshesEnding = (meshes, prefix, suffix) =>
+  meshes.filter((m) => m.name.startsWith(prefix) && m.name.endsWith(suffix));
 
 // The hill mound's dome band (thetaLength 1.5) keeps its lowest vertex ABOVE
 // the geometry origin, so shapeBaseOffset is negative — the record y sits that
@@ -203,19 +210,20 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   const cPos = instInfo(chest, 0);
   assert.ok(closeTo(cPos.x, cCenter.x + anchor.dx) && closeTo(cPos.z, cCenter.z + anchor.dz), 'chest displaced');
 
-  // Woods: separate forest + denseForest decor descriptors; each renders its
-  // default variant's geometry — forest is a round sphere canopy, denseForest
-  // a conical pine. One canopy per trunk within each descriptor.
-  const forestTrunk = meshNamed(meshes, 'forest-trunk');
-  const forestCanopyRound = meshNamed(meshes, 'forest-canopy-round');
-  const deepTrunk = meshNamed(meshes, 'denseForest-trunk');
-  const deepCanopyTall = meshNamed(meshes, 'denseForest-canopy-tall');
-  assert.ok(forestTrunk && forestCanopyRound && deepTrunk && deepCanopyTall, 'forest + denseForest trunk + canopy meshes');
-  assert.equal(forestTrunk.count, forestCanopyRound.count, 'one round canopy per forest trunk');
-  assert.equal(deepTrunk.count, deepCanopyTall.count, 'one tall canopy per denseForest trunk');
-  assert.ok(forestCanopyRound.geometry instanceof THREE.SphereGeometry, 'forest canopy is a sphere');
-  assert.ok(deepCanopyTall.geometry instanceof THREE.ConeGeometry, 'denseForest canopy is a cone');
-  assert.ok(forestTrunk.count + deepTrunk.count >= 5, `woods cover 4 tiles (got ${forestTrunk.count + deepTrunk.count} trunks)`);
+  // Woods: separate forest + denseForest decor descriptors. Under the v6
+  // migration the unpinned test tiles draw from the motif table, so part ids
+  // carry the motif prefix — match by substring ('-trunk' / '-canopy-') and
+  // assert coverage, not the per-variant 1:1 pairing (the gnarled variant has
+  // two trunk parts and the unpinned table mixes motifs).
+  const trunkOf = (prefix) => meshes.filter((m) => m.name.startsWith(prefix) && m.name.includes('-trunk'));
+  const forestTrunks = trunkOf('forest-');
+  const deepTrunks = trunkOf('denseForest-');
+  assert.ok(forestTrunks.length > 0 && deepTrunks.length > 0, 'forest + denseForest trunk meshes');
+  const forestTrunkCount = meshSum(forestTrunks);
+  const deepTrunkCount = meshSum(deepTrunks);
+  assert.ok(meshes.some((m) => m.name.startsWith('forest-') && m.name.includes('-canopy-')), 'forest canopy meshes');
+  assert.ok(meshes.some((m) => m.name.startsWith('denseForest-') && m.name.includes('-canopy-')), 'denseForest canopy meshes');
+  assert.ok(forestTrunkCount + deepTrunkCount >= 5, `woods cover 4 tiles (got ${forestTrunkCount + deepTrunkCount} trunks)`);
 
   // Knot: exactly one (the mined one is skipped), hovering at KNOT_Y_OFFSET.
   const knots = meshesStarting(meshes, 'knot-');
@@ -255,9 +263,12 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   }
 
   // Woods meshes: forest's round canopy (2 tiles) + gnarled painforest variant
-  // (1 tile), and denseForest's tall canopy (1 tile) — 2 + 4 + 2 parts.
-  assert.equal(meshesStarting(meshes, 'forest-').length + meshesStarting(meshes, 'denseForest-').length, 8, 'forest + denseForest trunks, canopies, and gnarled painforest parts');
-  assert.equal(meshesStarting(meshes, 'blessedFont-').length, 4, 'Blessed Font renders its four parts');
+  // (1 tile), and denseForest's tall canopy (1 tile) — one trunk + canopy pair
+  // per drawn motif; the unpinned tiles mix the table, so only the pinned
+  // painforest look is guaranteed.
+  assert.ok(meshesStarting(meshes, 'forest-').length > 0, 'forest renders');
+  assert.ok(meshesStarting(meshes, 'denseForest-').length > 0, 'denseForest renders');
+  assert.ok(meshesStarting(meshes, 'blessedFont-').length === 4, 'Blessed Font renders its four parts');
 });
 
 test('chunk entry point produces the same meshes as the state entry point', () => {
@@ -273,11 +284,11 @@ test('painforest grove and Blessed Font are both descriptor data', () => {
   const meshes = buildDescriptorFeatureMeshes({ tiles: new Map([[`${painforest.q},${painforest.r}`, painforest], [`${font.q},${font.r}`, font]]) }, new Set([`${painforest.q},${painforest.r}`, `${font.q},${font.r}`]), new Set());
 
   // The painforest grove is fully descriptor-driven — its gnarled variant
-  // parts render like any other grove variant.
-  for (const name of ['forest-trunk-gnarled-base', 'forest-trunk-gnarled-upper', 'forest-branch-gnarled', 'forest-canopy-gnarled']) {
-    assert.ok(meshNamed(meshes, name), `${name} mesh present`);
+  // parts render like any other grove variant (ids carry the motif prefix).
+  for (const suffix of ['trunk-gnarled-base', 'trunk-gnarled-upper', 'branch-gnarled', 'canopy-gnarled']) {
+    assert.ok(meshesEnding(meshes, 'forest-', `-${suffix}`).length > 0, `${suffix} mesh present`);
   }
-  assert.ok(meshNamed(meshes, 'forest-trunk-gnarled-base').count >= 3, 'painforest grove cluster renders (moisture 0.6 forest → mid density)');
+  assert.ok(meshSum(meshesEnding(meshes, 'forest-', '-trunk-gnarled-base')) >= 3, 'painforest grove cluster renders (moisture 0.6 forest → mid density)');
 
   // The Blessed Font is descriptor-driven — its parts render, and the tile's
   // own terrain decor (plains grass) composes alongside it.
@@ -352,13 +363,14 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
   }
 
   // All four woods tiles render their decor (the visible plain forest, the two
-  // knot tiles, and the dense wood) — forest's round trees + denseForest's
-  // conical pines.
-  const forestTrunk = meshNamed(meshes, 'forest-trunk');
-  const deepTrunk = meshNamed(meshes, 'denseForest-trunk');
-  assert.ok(forestTrunk && deepTrunk, 'forest + denseForest meshes present');
-  assert.ok(forestTrunk.count >= 4, `forest covers the explored woods tiles (got ${forestTrunk.count})`);
-  assert.ok(deepTrunk.count >= 4, `denseForest covers its explored tile (got ${deepTrunk.count})`);
+  // knot tiles, and the dense wood) — trunk parts across the motif table (ids
+  // carry the motif prefix under the migration).
+  const trunkCount = (prefix) => meshSum(meshes.filter((m) => m.name.startsWith(prefix) && m.name.includes('-trunk')));
+  const forestTrunkCount = trunkCount('forest-');
+  const deepTrunkCount = trunkCount('denseForest-');
+  assert.ok(forestTrunkCount > 0 && deepTrunkCount > 0, 'forest + denseForest meshes present');
+  assert.ok(forestTrunkCount >= 4, `forest covers the explored woods tiles (got ${forestTrunkCount})`);
+  assert.ok(deepTrunkCount >= 4, `denseForest covers its explored tile (got ${deepTrunkCount})`);
 });
 
 test('painforest grove (descriptor decor) renders out of sight; Blessed Fonts stay hidden', () => {

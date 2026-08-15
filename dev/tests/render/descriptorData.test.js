@@ -124,11 +124,13 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
   const forest = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'forest'));
   const tile = { q: 3, r: -2, terrain: 'forest', moisture: 0.8 };
   const normal = recordsForDescriptor(forest, tile, POS);
-  const count = normal.filter((r) => r.partId === 'trunk').length;
+  // v6 migration: motif part ids carry the variant prefix — match by suffix.
+  const trunkOf = (records) => records.filter((r) => r.partId.endsWith('-trunk'));
+  const count = trunkOf(normal).length;
   assert.ok(count >= 3 && count <= 5, `forest count ${count} outside [3,5]`);
 
   const displaced = recordsForDescriptor(forest, tile, POS, undefined, { displaced: true });
-  const dCount = displaced.filter((r) => r.partId === 'trunk').length;
+  const dCount = trunkOf(displaced).length;
   assert.equal(dCount, count, 'dispersal keeps the same member count');
   for (const record of displaced) {
     const dist = Math.hypot(record.x - POS.x, record.z - POS.z);
@@ -138,7 +140,7 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
   // Sanity: dispersed ring offsets match decorEmphasis' own function (within
   // float tolerance — `record.x = POS.x + dx` loses one ulp on round-trip).
   const expected = dispersedRingOffsets(count, ((3 * 7 + -2 * 13) * 31) % 17);
-  displaced.filter((r) => r.partId === 'trunk').forEach((record, i) => {
+  trunkOf(displaced).forEach((record, i) => {
     assert.ok(Math.abs(record.x - POS.x - expected[i].dx) < 1e-9, `item ${i} dx`);
     assert.ok(Math.abs(record.z - POS.z - expected[i].dz) < 1e-9, `item ${i} dz`);
   });
@@ -146,8 +148,7 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
   // The denseForest decor is a separate object with its own (denser) moisture
   // count range — 4..7 trees per tile.
   const deep = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'denseForest'));
-  const deepCount = recordsForDescriptor(deep, { q: 3, r: -2, terrain: 'denseForest', moisture: 0.8 }, POS)
-    .filter((r) => r.partId === 'trunk').length;
+  const deepCount = trunkOf(recordsForDescriptor(deep, { q: 3, r: -2, terrain: 'denseForest', moisture: 0.8 }, POS)).length;
   assert.ok(deepCount >= 4 && deepCount <= 7, `denseForest count ${deepCount} outside [4,7]`);
 });
 

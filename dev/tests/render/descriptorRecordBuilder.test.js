@@ -717,12 +717,14 @@ test('moisture cluster count matches clusterCount() and stays in [min, max]', ()
 
 // ── Variant rules ───────────────────────────────────────────────────────────
 
-test('a decor descriptor renders its first (default) variant; biome pins swap alternates', () => {
-  // The split-model shape of forest/denseForest: each terrain has its own
-  // descriptor; variants are biome alternates, variants[0] is the default.
+test('a feature renders its first (default) variant; biome pins swap alternates', () => {
+  // Variant selection is a FEATURE/entity-path mechanism — the decor path
+  // moved to the weighted `motifs` table in v6 (a decor with `variants` is
+  // migrated in memory). Features keep the split model: variants are biome
+  // alternates, variants[0] is the default.
   const woods = normalizeDescriptor({
     id: 'woods-decor',
-    kind: 'decor',
+    kind: 'feature',
     displayName: 'Woods',
     biomeVariants: { biome_painforest: 'painforest' },
     cluster: { min: 2, max: 2 },
@@ -749,7 +751,7 @@ test('a decor descriptor renders its first (default) variant; biome pins swap al
 test('variant precedence: explicit picker > biome pin > default variant', () => {
   const woods = normalizeDescriptor({
     id: 'woods-precedence',
-    kind: 'decor',
+    kind: 'feature',
     displayName: 'Woods',
     biomeVariants: { biome_x: 'tall' },
     cluster: { min: 2, max: 2 },
@@ -770,7 +772,7 @@ test('variant precedence: explicit picker > biome pin > default variant', () => 
 test('an explicit variant id forces the variant (the editor variant picker)', () => {
   const woods = normalizeDescriptor({
     id: 'woods-override',
-    kind: 'decor',
+    kind: 'feature',
     displayName: 'Woods',
     biomeVariants: { biome_x: 'tall' },
     cluster: { min: 2, max: 2 },

@@ -417,17 +417,22 @@ export function validateDescriptor(def) {
   /**
    * Validate `biomeVariants` — a biomeId → variantId pin map: every value must
    * name a variant the descriptor defines, so a pin can never silently point
-   * nowhere.
+   * nowhere. Under v6 the pin names a MOTIF id on the decor path (the decor
+   * migration converts variants → motifs with the same ids, so both namespaces
+   * must be accepted).
    */
   if (def.biomeVariants !== undefined) {
     if (!isPlainObject(def.biomeVariants)) {
       errors.push('descriptor.biomeVariants: must be an object of biomeId → variantId');
     } else {
-      const variantIds = new Set((def.variants ?? []).map((v) => v?.id));
+      const pinIds = new Set([
+        ...(def.variants ?? []).map((v) => v?.id),
+        ...(def.motifs ?? []).map((m) => m?.id),
+      ]);
       for (const [biomeId, variantId] of Object.entries(def.biomeVariants)) {
         if (typeof variantId !== 'string' || !variantId) {
           errors.push(`descriptor.biomeVariants["${biomeId}"]: variantId must be a non-empty string`);
-        } else if (!variantIds.has(variantId)) {
+        } else if (!pinIds.has(variantId)) {
           errors.push(`descriptor.biomeVariants["${biomeId}"]: unknown variant "${variantId}"`);
         }
       }

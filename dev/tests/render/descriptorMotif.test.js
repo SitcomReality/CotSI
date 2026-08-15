@@ -14,6 +14,7 @@ import {
   normalizeDescriptor,
   denormalizeDescriptor,
   validateDescriptor,
+  SCHEMA_VERSION,
   MOTIF_SEED,
 } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import {
@@ -468,4 +469,86 @@ test('the v6 fixture round-trips through denormalize and validates', () => {
   const minimal = denormalizeDescriptor(DESERT);
   assert.deepEqual(normalizeDescriptor(minimal), DESERT, 'denormalize broke the motif decor');
   assert.deepEqual(validateDescriptor(minimal), []);
+});
+
+// ── v5 → v6 migration shim (decorComposition.md §3.3) ───────────────────────
+
+/** A small v5 decor with the forest.js shape: `trunk` reused across variants,
+ *  a fallback `parts` stub, and per-biome pins. */
+const V5_WOODS = {
+  schemaVersion: 5,
+  id: 'legacy-woods',
+  kind: 'decor',
+  displayName: 'Legacy Woods',
+  biomeVariants: { biome_painforest: 'painforest' },
+  cluster: { min: 2, max: 2 },
+  placement: { mode: 'ring' },
+  parts: [{ id: 'trunk', shape: 'cylinder' }],
+  variants: [
+    { id: 'round', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-round', shape: 'sphere' }] },
+    { id: 'painforest', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-gnarled', shape: 'sphere' }] },
+  ],
+};
+
+test('v5 decor migrates in memory: variants → motifs, ids uniquified, pins preserved', () => {
+  const d = normalizeDescriptor(V5_WOODS);
+  assert.equal(d.schemaVersion, SCHEMA_VERSION, 'migrated descriptor is v6');
+  assert.deepEqual(d.motifs.map((m) => m.id), ['round', 'painforest'], 'each variant becomes a motif');
+  assert.deepEqual(d.motifs.map((m) => m.weight), [1, 1], 'migrated motifs weigh 1');
+  assert.equal(d.variants, undefined, 'variants dropped after migration');
+  assert.equal(d.parts, undefined, 'fallback parts stub dropped');
+  assert.equal(d.biomeVariants.biome_painforest, 'painforest', 'pins preserved as-is');
+
+  // The `trunk` collision (forest.js repeats it across variants) is uniquified.
+  const ids = d.motifs.flatMap((m) => m.parts.map((p) => p.id));
+  assert.equal(new Set(ids).size, ids.length, 'no duplicate part ids after migration');
+  assert.ok(ids.includes('round-trunk') && ids.includes('painforest-trunk'), 'ids prefixed by variant id');
+
+  // The migrated descriptor validates and round-trips (never written back —
+  // the RAW file stays v5).
+  assert.deepEqual(validateDescriptor(d), []);
+  assert.deepEqual(normalizeDescriptor(d), d, 'migration is idempotent');
+  assert.equal(V5_WOODS.schemaVersion, 5, 'the raw input is untouched (in-memory only)');
+  assert.deepEqual(normalizeDescriptor(denormalizeDescriptor(d)), d, 'denormalize round-trips the migrated form');
+});
+
+test('migration fidelity gate: a pinned biome forces the v5 look on every slot', () => {
+  const d = normalizeDescriptor(V5_WOODS);
+  // biome_painforest is pinned to 'painforest' — every slot renders that
+  // motif's FULL composite (v5's exclusivity guarantee, not a weight lift).
+  const records = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'forest', biomeId: 'biome_painforest' }, POS);
+  const itemRoots = records.filter((r) => r.partId === 'painforest-trunk').length;
+  assert.equal(itemRoots, 2, 'two slots, both the painforest motif');
+  assert.equal(records.length, 4, 'each slot renders the full 2-part composite');
+  assert.ok(records.every((r) => r.partId.startsWith('painforest-')), 'no non-pinned motif slipped in');
+
+  // The migrated file's pins must NOT have become ×3–×5 lifts: the unpinned
+  // (no biome) tile draws from the flat weight-1 table instead of forcing one.
+  const unpinned = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'forest' }, POS);
+  const seenMotifs = new Set(unpinned.map((r) => (r.partId.startsWith('round-') ? 'round' : 'painforest')));
+  assert.equal(seenMotifs.size, 2, 'unpinned tiles draw the mixed table (the hand-rewrite opens the mix)');
+});
+
+test('alternatives `default` references are rewritten by the migration', () => {
+  const v5 = {
+    schemaVersion: 5,
+    id: 'legacy-arms',
+    kind: 'decor',
+    displayName: 'Legacy Arms',
+    variants: [{
+      id: 'cactus',
+      parts: [
+        { id: 'trunk', shape: 'cylinder' },
+        { id: 'arms', seed: 101, default: 'two', alternatives: [
+          { id: 'one', weight: 0.5, parts: [{ id: 'arm-one', shape: 'cylinder' }] },
+          { id: 'two', weight: 0.5, parts: [{ id: 'arm-two', shape: 'cylinder' }] },
+        ] },
+      ],
+    }],
+  };
+  const d = normalizeDescriptor(v5);
+  const arms = d.motifs[0].parts.find((p) => p.id === 'cactus-arms');
+  assert.ok(arms, 'alternatives node id prefixed');
+  assert.equal(arms.default, 'cactus-two', 'default rewritten to the prefixed option id');
+  assert.deepEqual(validateDescriptor(d), []);
 });

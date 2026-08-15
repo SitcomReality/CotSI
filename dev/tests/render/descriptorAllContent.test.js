@@ -77,14 +77,11 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
     }
   }
 
-  // Woods decor parts pair up (one canopy per trunk within forest and
-  // denseForest); knot hovers; mountain is a single hex-tiling mesh.
-  const forestTrunk = meshes.find((m) => m.name === 'forest-trunk');
-  const forestCanopy = meshes.find((m) => m.name === 'forest-canopy-round');
-  const deepTrunk = meshes.find((m) => m.name === 'denseForest-trunk');
-  const deepCanopy = meshes.find((m) => m.name === 'denseForest-canopy-tall');
-  assert.ok(forestTrunk && forestCanopy && forestTrunk.count === forestCanopy.count, 'forest trunk/canopy pair');
-  assert.ok(deepTrunk && deepCanopy && deepTrunk.count === deepCanopy.count, 'denseForest trunk/canopy pair');
+  // Woods decor renders trunk + canopy parts (ids carry the motif prefix under
+  // the v6 migration, so match by substring).
+  const hasPart = (prefix, needle) => meshes.some((m) => m.name.startsWith(prefix) && m.name.includes(needle));
+  assert.ok(hasPart('forest-', '-trunk') && hasPart('forest-', '-canopy-'), 'forest trunk/canopy parts');
+  assert.ok(hasPart('denseForest-', '-trunk') && hasPart('denseForest-', '-canopy-'), 'denseForest trunk/canopy parts');
   const knots = meshes.filter((m) => m.name.startsWith('knot-'));
   assert.equal(knots.length, 1, 'one knot mesh');
   assert.equal(meshes.filter((m) => m.name.startsWith('mountain-')).length, 1, 'one mountain mesh');

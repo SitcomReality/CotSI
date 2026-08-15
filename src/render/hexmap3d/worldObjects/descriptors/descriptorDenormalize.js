@@ -180,6 +180,9 @@ export function denormalizeDescriptor(def) {
   };
 
   out.parts = (Array.isArray(out.parts) ? out.parts : []).map(denormPart);
+  // Empty `parts` is only meaningful as absent (a decor with motifs carries no
+  // fallback) — never emit `parts: []`.
+  if (Array.isArray(out.parts) && out.parts.length === 0) delete out.parts;
   if (Array.isArray(out.variants)) {
     out.variants = out.variants.map((variant) => {
       const v = { ...variant };
