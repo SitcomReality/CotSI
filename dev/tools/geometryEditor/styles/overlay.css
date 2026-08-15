@@ -8,20 +8,66 @@
   pointer-events: none;
 }
 
-/* ── Preview tools (biome picker + occupied toggle + re-roll) ─────────────── */
+/* ── Preview tools (tile context + view toggles + actions) ────────────────── */
 
+/* Collapsible panel pinned to the viewport's top-left. Two rows (tile context,
+   then view toggles + actions) wrap on narrow panes; the bar collapses the
+   whole body so artists can clear the view while orbiting. */
 #preview-tools {
   top: var(--s3);
   left: var(--s3);
   display: flex;
-  align-items: center;
-  gap: var(--s2);
+  flex-direction: column;
+  gap: var(--s1);
+  background: color-mix(in srgb, var(--shadow) 88%, transparent);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  padding: var(--s1) var(--s2);
 }
 
 #preview-tools label,
 #preview-tools button,
 #preview-tools select {
   pointer-events: auto;
+}
+
+.preview-tools-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  color: var(--ink-faint);
+}
+
+#preview-tools-toggle {
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+.preview-tools-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-faint);
+}
+
+#preview-tools-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+#preview-tools.collapsed #preview-tools-body {
+  display: none;
+}
+
+.preview-tools-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  flex-wrap: wrap;
 }
 
 #preview-tools label {
@@ -36,6 +82,7 @@
   padding: 4px var(--s2);
   cursor: pointer;
   user-select: none;
+  white-space: nowrap;
 }
 
 #preview-tools label:hover {
@@ -56,7 +103,7 @@
   font-family: inherit;
   font-size: var(--fs-xs);
   padding: 2px var(--s1);
-  max-width: 150px;
+  max-width: 130px;
 }
 
 #preview-tools select:focus-visible {

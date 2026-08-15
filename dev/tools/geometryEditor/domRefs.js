@@ -27,6 +27,8 @@ export function cacheDom() {
   els.outlineCheck = document.getElementById('outline-check');
   els.resetCameraBtn = document.getElementById('reset-camera-btn');
   els.undoBtn = document.getElementById('undo-btn');
+  els.previewTools = document.getElementById('preview-tools');
+  els.previewToolsToggle = document.getElementById('preview-tools-toggle');
   els.info = document.getElementById('info');
   els.viewport = document.getElementById('viewport');
   els.canvas = document.getElementById('preview-canvas');

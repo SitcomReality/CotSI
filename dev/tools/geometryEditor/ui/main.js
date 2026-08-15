@@ -106,6 +106,15 @@ function bindControls() {
     resetCamera();
   });
 
+  // The preview-tools panel collapses to its title bar — keeps the viewport
+  // clear while orbiting. Pure view chrome, so no preview rebuild is needed.
+  els.previewToolsToggle.addEventListener('click', () => {
+    const collapsed = els.previewTools.classList.toggle('collapsed');
+    els.previewToolsToggle.textContent = collapsed ? '▸' : '▾';
+    els.previewToolsToggle.title = collapsed ? 'Show the preview controls' : 'Hide the preview controls';
+    els.previewToolsToggle.setAttribute('aria-expanded', String(!collapsed));
+  });
+
   els.undoBtn.addEventListener('click', () => {
     undoLastEdit();
   });

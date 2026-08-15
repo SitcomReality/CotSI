@@ -37,11 +37,32 @@
 #inspector {
   grid-column: 1;
   grid-row: 2;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* the column is a flex container — children scroll on their own */
+  overflow: hidden;
   padding: var(--s3) var(--s4) var(--s6);
   background: var(--shadow);
   border-right: 1px solid var(--crease);
   min-width: 0;
+}
+
+/* The parts list and the design fields are two independent panes: the list
+   caps its height and scrolls internally, the fields take the remaining
+   column and scroll beneath it. A selected part's fields never push the list
+   off-screen, and a long biome-pin list never hides the parts. */
+#parts-edit {
+  flex: 0 0 auto;
+  max-height: 40vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
+}
+
+#inspector-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--crease-bold) transparent;
 }

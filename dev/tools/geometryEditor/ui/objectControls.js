@@ -43,6 +43,44 @@ function setBiomePin(d, biomeId, variantId) {
   }
 }
 
+// ── Collapsible sections ────────────────────────────────────────────────────
+//
+// The object-level fields live in foldable <details> sections (the same
+// pattern partInspector/sectionShell.js uses for part fields), so the design
+// fields stay scannable — the long per-biome pin list folds away by default.
+// Which sections the user has open is session state, kept across re-renders.
+
+/** Section registry: `key` → title + default open state. */
+const SECTIONS = {
+  variant: { title: 'Variant', open: true },
+  biomePins: { title: 'Per-biome variants', open: false },
+  cluster: { title: 'Cluster', open: true },
+  size: { title: 'Size', open: true },
+  placement: { title: 'Placement', open: true },
+  emphasis: { title: 'Emphasis', open: true },
+  portrait: { title: 'Portrait', open: false },
+  item: { title: 'Item', open: true },
+  entity: { title: 'Entity', open: true },
+};
+/** Which sections the user has open (session state, persisted across renders). */
+const openSections = new Set(
+  Object.entries(SECTIONS).filter(([, s]) => s.open).map(([key]) => key),
+);
+
+/** A collapsible `<details>` section appended to `container`; its open state
+ *  is tracked in `openSections` so re-renders keep the user's layout. */
+function section(key, container) {
+  const det = el('details', 'inspector-section');
+  det.open = openSections.has(key);
+  det.addEventListener('toggle', () => {
+    if (det.open) openSections.add(key);
+    else openSections.delete(key);
+  });
+  det.append(el('summary', 'section-title', SECTIONS[key].title));
+  container.append(det);
+  return det;
+}
+
 /** Per-biome variant pins — the data-driven alternates that make a decor look
  *  different per biome (e.g. the Painforest woods' gnarled variant). The first
  *  variant is the default look; a pin swaps in an alternate. Different
@@ -51,7 +89,6 @@ function renderBiomeVariantPins(container, ctx) {
   const d = S.descriptor;
   const ids = d.variants.map((v) => v.id);
 
-  container.append(subheading('Per-biome variants'));
   container.append(el('div', 'hint', `Pin an alternate variant to a biome — the first variant (${ids[0]}) is the default look everywhere else. Variants: ${ids.join(', ')}.`));
   for (const biomeId of listArchetypes('biome')) {
     const options = [{ value: '', label: '— default look' }, ...ids.map((id) => ({ value: id, label: id }))];
@@ -108,7 +145,6 @@ function renderPortraitControls(container, ctx) {
     d.portrait ??= {};
     d.portrait[key] = v;
   });
-  container.append(subheading('Portrait'));
   container.append(row('Pitch', degreeInput(portraitField(d, 'pitch'), { step: 2, onChange: set('pitch') })));
   container.append(row('Yaw', degreeInput(portraitField(d, 'yaw'), { step: 2, onChange: set('yaw') })));
   container.append(row('Pad', numberInput(portraitField(d, 'pad'), { min: 0.5, step: 0.05, onChange: set('pad') })));
@@ -155,35 +191,35 @@ export function renderObjectControls(container, ctx) {
 
   if (d.kind === 'item') {
     container.append(el('div', 'mode-banner', 'item — UI icon'));
-    container.append(subheading('Item'));
-    container.append(row('Slot', selectInput(ITEM_SLOTS, d.slot, (v) => ctx.mutate(() => {
+    const itemSection = section('item', container);
+    itemSection.append(row('Slot', selectInput(ITEM_SLOTS, d.slot, (v) => ctx.mutate(() => {
       d.slot = v;
       ctx.onLoaded(); // the slot moves the item between the weapon/armor browser categories
     }))));
-    renderPortraitControls(container, ctx);
+    renderPortraitControls(section('portrait', container), ctx);
     container.append(el('div', 'hint', 'Items render as a single centered icon — cluster/size/placement do not apply.'));
     return;
   }
 
   if (ENTITY_KINDS.has(d.kind)) {
     container.append(el('div', 'mode-banner', `${d.kind} — entity-driven`));
-    renderEntityControls(container, ctx);
-    renderPortraitControls(container, ctx);
+    renderEntityControls(section('entity', container), ctx);
+    renderPortraitControls(section('portrait', container), ctx);
     container.append(el('div', 'hint', 'Entities are singletons at the hex center — cluster/size/placement do not apply.'));
     return;
   }
 
   if ((d.variants ?? []).length > 0) {
-    container.append(subheading('Variant'));
+    const variantSection = section('variant', container);
     const ids = d.variants.map((v) => v.id);
     const current = ids.includes(S.variantId) ? S.variantId : ids[0];
-    container.append(row('Variant', selectInput(ids, current, (v) => ctx.mutate(() => { S.variantId = v; }))));
-    container.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game the first variant is the default look; per-biome pins swap in alternates.'));
-    renderBiomeVariantPins(container, ctx);
+    variantSection.append(row('Variant', selectInput(ids, current, (v) => ctx.mutate(() => { S.variantId = v; }))));
+    variantSection.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game the first variant is the default look; per-biome pins swap in alternates.'));
+    renderBiomeVariantPins(section('biomePins', container), ctx);
   }
 
-  container.append(subheading('Cluster'));
-  container.append(row('Rule', selectInput(['uniform', 'moisture'], d.cluster.rule, (v) => ctx.mutate(() => {
+  const clusterSection = section('cluster', container);
+  clusterSection.append(row('Rule', selectInput(['uniform', 'moisture'], d.cluster.rule, (v) => ctx.mutate(() => {
     d.cluster.rule = v;
     if (v === 'moisture') {
       d.cluster.countsByTerrain ??= { forest: [3, 5], denseForest: [4, 7] };
@@ -195,18 +231,18 @@ export function renderObjectControls(container, ctx) {
     const counts = Object.entries(d.cluster.countsByTerrain)
       .map(([t, pair]) => `${t} ${pair[0]}–${pair[1]}`)
       .join(', ');
-    container.append(el('div', 'hint', `Moisture-driven count (tiles without moisture default to mid-density). ${counts}.`));
+    clusterSection.append(el('div', 'hint', `Moisture-driven count (tiles without moisture default to mid-density). ${counts}.`));
   } else {
-    container.append(row('Min', intInput(d.cluster.min, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.min = v; }) })));
-    container.append(row('Max', intInput(d.cluster.max, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.max = Math.max(v, d.cluster.min); }) })));
+    clusterSection.append(row('Min', intInput(d.cluster.min, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.min = v; }) })));
+    clusterSection.append(row('Max', intInput(d.cluster.max, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.max = Math.max(v, d.cluster.min); }) })));
   }
 
-  container.append(subheading('Size'));
-  container.append(row('Min', numberInput(d.size.min, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.min = v; }) })));
-  container.append(row('Max', numberInput(d.size.max, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.max = Math.max(v, d.size.min); }) })));
+  const sizeSection = section('size', container);
+  sizeSection.append(row('Min', numberInput(d.size.min, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.min = v; }) })));
+  sizeSection.append(row('Max', numberInput(d.size.max, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.max = Math.max(v, d.size.min); }) })));
 
-  container.append(subheading('Placement'));
-  container.append(row('Mode', selectInput(PLACEMENT_MODES, d.placement.mode, (v) => ctx.mutate(() => {
+  const placementSection = section('placement', container);
+  placementSection.append(row('Mode', selectInput(PLACEMENT_MODES, d.placement.mode, (v) => ctx.mutate(() => {
     d.placement.mode = v;
     if (v === 'scatter') {
       d.placement.offsetMin ??= 0.15;
@@ -225,36 +261,36 @@ export function renderObjectControls(container, ctx) {
   }))));
 
   if (d.placement.mode === 'scatter') {
-    container.append(row('Offset min', numberInput(d.placement.offsetMin, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.offsetMin = v; }) })));
-    container.append(row('Offset max', numberInput(d.placement.offsetMax, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.offsetMax = v; }) })));
-    container.append(row('Separation', numberInput(d.placement.separation ?? 0, { min: 0, step: 0.05, onChange: (v) => ctx.mutate(() => {
+    placementSection.append(row('Offset min', numberInput(d.placement.offsetMin, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.offsetMin = v; }) })));
+    placementSection.append(row('Offset max', numberInput(d.placement.offsetMax, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.offsetMax = v; }) })));
+    placementSection.append(row('Separation', numberInput(d.placement.separation ?? 0, { min: 0, step: 0.05, onChange: (v) => ctx.mutate(() => {
       if (v > 0) d.placement.separation = v;
       else delete d.placement.separation;
     }) })));
-    container.append(el('div', 'hint', 'Min world-unit distance between cluster members; 0 = off.'));
+    placementSection.append(el('div', 'hint', 'Min world-unit distance between cluster members; 0 = off.'));
   }
   if (d.placement.mode === 'ring') {
-    container.append(row('Ring min', numberInput(d.placement.ringMin, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.placement.ringMin = v; }) })));
-    container.append(row('Ring max', numberInput(d.placement.ringMax, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.placement.ringMax = v; }) })));
-    container.append(row('Lean min', numberInput(d.placement.leanMin, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.leanMin = v; }) })));
-    container.append(row('Lean max', numberInput(d.placement.leanMax, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.leanMax = v; }) })));
+    placementSection.append(row('Ring min', numberInput(d.placement.ringMin, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.placement.ringMin = v; }) })));
+    placementSection.append(row('Ring max', numberInput(d.placement.ringMax, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.placement.ringMax = v; }) })));
+    placementSection.append(row('Lean min', numberInput(d.placement.leanMin, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.leanMin = v; }) })));
+    placementSection.append(row('Lean max', numberInput(d.placement.leanMax, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.leanMax = v; }) })));
   }
   if (d.placement.mode === 'jitter') {
-    container.append(row('Offset', numberInput(d.placement.offset, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.offset = v; }) })));
-    container.append(row('Separation', numberInput(d.placement.separation ?? 0, { min: 0, step: 0.05, onChange: (v) => ctx.mutate(() => {
+    placementSection.append(row('Offset', numberInput(d.placement.offset, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.offset = v; }) })));
+    placementSection.append(row('Separation', numberInput(d.placement.separation ?? 0, { min: 0, step: 0.05, onChange: (v) => ctx.mutate(() => {
       if (v > 0) d.placement.separation = v;
       else delete d.placement.separation;
     }) })));
-    container.append(el('div', 'hint', 'Min world-unit distance between cluster members; 0 = off.'));
-    container.append(row('Tilt min', numberInput(d.placement.tiltMin, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltMin = v; }) })));
-    container.append(row('Tilt max', numberInput(d.placement.tiltMax, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltMax = v; }) })));
-    container.append(row('Tilt seed', intInput(d.placement.tiltSeed, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltSeed = v; }) })));
+    placementSection.append(el('div', 'hint', 'Min world-unit distance between cluster members; 0 = off.'));
+    placementSection.append(row('Tilt min', numberInput(d.placement.tiltMin, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltMin = v; }) })));
+    placementSection.append(row('Tilt max', numberInput(d.placement.tiltMax, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltMax = v; }) })));
+    placementSection.append(row('Tilt seed', intInput(d.placement.tiltSeed, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltSeed = v; }) })));
   }
 
-  container.append(subheading('Emphasis'));
-  container.append(row('Behavior', selectInput(EMPHASIS_BEHAVIORS, d.emphasis.behavior, (v) => ctx.mutate(() => {
+  const emphasisSection = section('emphasis', container);
+  emphasisSection.append(row('Behavior', selectInput(EMPHASIS_BEHAVIORS, d.emphasis.behavior, (v) => ctx.mutate(() => {
     d.emphasis.behavior = v;
   }))));
 
-  renderPortraitControls(container, ctx);
+  renderPortraitControls(section('portrait', container), ctx);
 }

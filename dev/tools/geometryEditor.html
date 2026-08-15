@@ -43,9 +43,9 @@
       <nav id="object-list" aria-label="Object designs"></nav>
     </aside>
 
-    <!-- Left sidebar: the parts list sits at the top, above the contextual
-         design fields. Its rows expand/collapse in normal flow, pushing the
-         fields (#inspector-body) down. -->
+    <!-- Left sidebar: two independently scrolling panes — the parts list
+         (#parts-edit) caps its height and scrolls internally, the design
+         fields (#inspector-body) scroll in the space below it. -->
     <main id="inspector">
       <section id="parts-edit" aria-label="Parts list"></section>
       <section id="inspector-body" aria-label="Design fields"></section>
@@ -55,45 +55,59 @@
     <section id="viewport">
       <canvas id="preview-canvas"></canvas>
 
+      <!-- Preview controls: a collapsible panel pinned to the viewport's
+           top-left. Tile context (biome/terrain/state) on the first row,
+           view toggles + actions on the second; rows wrap on narrow panes. -->
       <div id="preview-tools">
-        <label id="biome-row">
-          Biome
-          <select id="biome-select" aria-label="Preview-tile biome"></select>
-        </label>
-        <label id="terrain-row">
-          Terrain
-          <select id="terrain-select" aria-label="Preview-tile terrain"
-            title="Preview-tile terrain — drives per-terrain variant pins (terrainVariants), moisture cluster counts, and biome decor overrides"></select>
-        </label>
-        <label id="state-row">
-          State
-          <select id="state-select" aria-label="Growth-state keyframe"
-            title="Preview and edit the growth-state keyframe: full = the authored values (growth 1), empty = the states.empty keyframe (growth 0) — fonts empty / fruit unripe">
-            <option value="1">full — growth 1</option>
-            <option value="0">empty — growth 0</option>
-          </select>
-        </label>
-        <label id="occupied-row">
-          <input type="checkbox" id="occupied-check">
-          Occupied — center claimed
-        </label>
-        <label id="canonical-row">
-          <input type="checkbox" id="canonical-check">
-          Canonical — no variation
-        </label>
-        <label id="floor-row">
-          <input type="checkbox" id="floor-check">
-          Show floor
-        </label>
-        <label id="outline-row">
-          <input type="checkbox" id="outline-check">
-          Ink outline
-        </label>
-        <div id="reroll-row">
-          <button id="reroll-btn">↻ Re-roll variation</button>
+        <div class="preview-tools-bar">
+          <button id="preview-tools-toggle" type="button" aria-expanded="true" aria-controls="preview-tools-body"
+            title="Hide the preview controls">▾</button>
+          <span class="preview-tools-title">Preview</span>
         </div>
-        <button id="undo-btn" type="button" title="Undo the last edit (Ctrl/Cmd+Z)">↩ Undo</button>
-        <button id="reset-camera-btn" type="button" title="Reset to the in-game camera angle (keeps zoom)">⤾ Reset camera</button>
+        <div id="preview-tools-body">
+          <div class="preview-tools-row">
+            <label id="biome-row">
+              Biome
+              <select id="biome-select" aria-label="Preview-tile biome"></select>
+            </label>
+            <label id="terrain-row">
+              Terrain
+              <select id="terrain-select" aria-label="Preview-tile terrain"
+                title="Preview-tile terrain — drives per-terrain variant pins (terrainVariants), moisture cluster counts, and biome decor overrides"></select>
+            </label>
+            <label id="state-row">
+              State
+              <select id="state-select" aria-label="Growth-state keyframe"
+                title="Preview and edit the growth-state keyframe: full = the authored values (growth 1), empty = the states.empty keyframe (growth 0) — fonts empty / fruit unripe">
+                <option value="1">full — growth 1</option>
+                <option value="0">empty — growth 0</option>
+              </select>
+            </label>
+          </div>
+          <div class="preview-tools-row">
+            <label id="occupied-row">
+              <input type="checkbox" id="occupied-check">
+              Occupied
+            </label>
+            <label id="canonical-row">
+              <input type="checkbox" id="canonical-check">
+              Canonical
+            </label>
+            <label id="floor-row">
+              <input type="checkbox" id="floor-check">
+              Floor
+            </label>
+            <label id="outline-row">
+              <input type="checkbox" id="outline-check">
+              Outline
+            </label>
+            <div id="reroll-row">
+              <button id="reroll-btn">↻ Re-roll</button>
+            </div>
+            <button id="undo-btn" type="button" title="Undo the last edit (Ctrl/Cmd+Z)">↩ Undo</button>
+            <button id="reset-camera-btn" type="button" title="Reset to the in-game camera angle (keeps zoom)">⤾ Reset camera</button>
+          </div>
+        </div>
       </div>
 
       <div id="preview-hud">
