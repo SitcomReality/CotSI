@@ -15,11 +15,12 @@ before implementing specific features or making changes based on this document.
 
 The two-slot equip model (weapon / armor), trader + faction-base purchase
 flow, knot-cost "powerful" tier, and non-stacking replace-with-refund are in
-(`src/game/rules/equipment.js`, `src/game/state/trading.js`). Remaining:
+(`src/game/rules/equipment.js`, `src/game/state/features/trading.js`). Remaining:
 
 - Wire an item's `bonus` into combat scoring (currently display-only).
-- More sources beyond traders: dungeon rewards, digs, bases.
-- Durability, and trading items back.
+- Drop sources beyond the existing purchase flow: dungeon completion rewards
+  and dig sites.
+- Durability, and selling items back to traders.
 - Upgrading equipment at God's Knots (the purchase tier exists; upgrading doesn't).
 
 ### Dungeons
@@ -30,7 +31,8 @@ champion's turn instead of world-map movement. After the final battle, a large
 reward. Fleeing uses the normal rules but ejects the champion and loses all
 progress.
 
-Implemented (`src/game/state/dungeonSystem.js`, `dungeonPlacement.js`,
+Implemented (`src/game/state/features/dungeonSystem.js`,
+`src/game/state/features/dungeonPlacement.js`,
 `src/game/rules/dungeonRules.js`, `src/params/game/dungeonParams.js`):
 count-driven placement (always ≥1, +1 per 22 radii), human-only entry,
 per-champion runs (battle per day, escalating via `DUNGEON_BATTLE_SCALE`),
@@ -40,43 +42,76 @@ occupancy, no harassment, invisible). Bots ignore dungeons entirely.
 
 Remaining:
 - Bot AI for dungeons (currently human-only).
-- Battle + reward balance — see `dev/docs/deferredNotes.md` §5.
+- Battle + reward balance — see `dev/docs/deferredNotes.md` §4.
 
-### Onboarding/tutorial
+### Onboarding / tutorial
 
-What's the best way to teach new players the mechanics?
+Nothing built yet; the open question is scope, not whether. Candidate pieces
+(unconfirmed design):
 
-### Saving/game state serialization
+- First-run tips: a few modal/tooltip nudges that teach the core loop
+  (move → fight → trade → dig) without a full tutorial.
+- A help entry point — per-panel "?" buttons or a single overlay — plus a
+  key-terms glossary.
+- A "Reset tutorial/tips" toggle, tied into Options/settings below.
 
-- Options/settings preserved across sessions (localstorage?)
-- Ability to save an in-progress game -- game state serialization?
+### Saving / game state serialization
+
+Nothing persists across sessions today. Needed:
+
+- Settings/options persistence (localStorage).
+- Save an in-progress game — full state serialization + load. The large-map
+  save format (seed + dirty-tile deltas) is designed in Large-map persistence
+  below.
 
 ### Audio
 
-- SFX system
-- Music
+Nothing built (the game is silent today). Needed:
 
-### Options/settings
+- SFX system (UI, combat, feature interactions).
+- Music (ambient tracks).
 
-- Graphics quality
-- Audio
-- Speed(s)?
-- Reset tutorial/tips
+### Options / settings
 
-### Specialer FX (particles?)
+No settings UI exists. `src/render/overlays/graphicsSettings.js` already holds
+effect flags (shadows, fogMist, selectionRing wired to the renderer; glows,
+particles, damageNumbers marked "future"). Needed:
 
-A filled blessed font might emit a glow, ripe peridexion fruit might sparkle, collecting a treasure chest might splash a flourish of coins across the screen?
+- Graphics quality — expose the existing flags as user-facing toggles, and
+  add the "future" flags when the FX land (see Specialer FX).
+- Audio volume/mute — depends on the Audio item.
+- Game speed — a user-facing speed control over the clock speed groups
+  (`dev/docs/clockScheduler.md`).
+- Reset tutorial/tips — depends on the Onboarding item.
+
+### Specialer FX (particles, glows, damage numbers)
+
+An ambient/impact FX pass on top of the static descriptors. The effect flags
+already exist as "future" entries in `graphicsSettings.effects`; water
+sparkles (`src/render/hexmap3d/terrain/waterSparkles.js`) are the precedent
+to build on. Ideas from design:
+
+- Filled God's Knots / Blessed Font glow when charged (the knot currently has
+  a static emissive material; the ask is an animated/charged-up effect).
+- Ripe peridexion fruit sparkles; treasure-chest collect splashes a coin
+  flourish; damage numbers float over hits.
 
 ### Online Multiplayer
 
-- Database connection & game state preservation
+Later-phase feature — nothing built, and the game has no client/server split
+today:
+
+- Database connection & game state preservation.
 - Game creation, lobbies, room codes etc.
-- Client connection and syncing game state with server
+- Client connection and syncing game state with server.
 
 ### UI polish
 
-- Setup screen v5 layout redesign (currently token-level inheritance only).
-- Reward/dispatch reveal animations beyond the current veiled pattern.
+- Setup screen v5 layout redesign — the Remnant-Cosmos pass covered the
+  in-game chrome and modals; the setup screen still runs on token-level
+  inheritance only.
+- Reward/dispatch reveal animations beyond the current veiled pattern
+  (dispatch cards already do a staggered veil; the reward modal has none).
 
 ### Responsive / mobile audit
 

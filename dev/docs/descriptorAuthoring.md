@@ -499,8 +499,8 @@ state while the tile is out of sight; occupants/features gate displacement.
 A terrain `decor` is scattered and varies per tile, and the forest decor is the
 flagship example of the variable-properties vocabulary: count, size, part set,
 stretch, and color all come from ranges and per-tile draws rather than fixed
-values. One decor per terrain — `src/render/hexmap3d/worldObjects/descriptors/data/forest.js`
-is the `forest` terrain's decor, and `denseForest.js` is a **separate**
+values. One decor per terrain — `src/render/hexmap3d/worldObjects/descriptors/data/decor/forest.js`
+is the `forest` terrain's decor, and `decor/denseForest.js` is a **separate**
 descriptor (the deep-wood's conical pines) — never a variant of this one.
 
 The forest is also the showcase of the per-biome variant system: every biome
@@ -665,7 +665,7 @@ root leaves with per-part transforms, non-uniform scale, and local rotations.
 The closed-lid sibling `treasureChest.js` uses the same parts vocabulary
 without the group.
 
-`src/render/hexmap3d/worldObjects/descriptors/data/openTreasureChest.js` (annotated;
+`src/render/hexmap3d/worldObjects/descriptors/data/features/openTreasureChest.js` (annotated;
 default-valued fields omitted for readability):
 
 ```js
@@ -746,7 +746,7 @@ What each piece demonstrates:
    /run/host/usr/bin/node --input-type=module <<'EOF'
    import { normalizeDescriptor, validateDescriptor } from './src/render/hexmap3d/worldObjects/descriptors/schema.js';
    import { recordsForDescriptor } from './src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
-   const { OPEN_TREASURE_CHEST_DESCRIPTOR } = await import('./src/render/hexmap3d/worldObjects/descriptors/data/openTreasureChest.js');
+   const { OPEN_TREASURE_CHEST_DESCRIPTOR } = await import('./src/render/hexmap3d/worldObjects/descriptors/data/features/openTreasureChest.js');
    const d = normalizeDescriptor(OPEN_TREASURE_CHEST_DESCRIPTOR);
    const errors = validateDescriptor(d);
    if (errors.length) { console.error(errors); process.exit(1); }

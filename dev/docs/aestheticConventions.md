@@ -342,10 +342,10 @@ is driven by `html[data-cross-highlight]` (see `paleyCrossHighlight.css` /
 Unchanged from v4 (this layer was working): three-tone toon shader
 (`MeshToonMaterial` + shared gradient map), inverted-hull ink outline pass on
 units/features (`--ink-line`), terrain tiles deliberately not outlined,
-stylized piece scale, grove/cluster decoration rules, `fruitTree` regrowth
-cycles. See the section in the v4 doc for full detail (kept verbatim in
-`dev/docs/aestheticConventions.v4.md` if needed — otherwise this bullet list is
-the summary).
+stylized piece scale, grove/cluster decoration rules, feature regrowth cycles
+(descriptor growth states). See the section in the v4 doc for full detail
+(kept verbatim in `dev/docs/aestheticConventions.v4.md` if needed — otherwise
+this bullet list is the summary).
 
 ---
 

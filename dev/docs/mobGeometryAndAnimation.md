@@ -41,8 +41,7 @@ save writes only the active variant — `data/mobs/<archetype>.js` for mobs,
 `data/bases/<faction>.js` / `data/champions/<faction>.js` for the entity kinds —
 and never rewrites the barrel itself. A variant the barrel does not import
 saves fine but stays unregistered in-game until its import is added by hand.
-Remaining deferred geometry content: fruitTree stays on its procedural builder
-(`dev/docs/deferredNotes.md` §2); the mob animation runtime is tracked in
+Remaining deferred geometry content: the mob animation runtime is tracked in
 `dev/docs/futureWork.md`.
 
 **Adding a new mob archetype = one new `<NAME>_VARIANT` file in `data/mobs/`**

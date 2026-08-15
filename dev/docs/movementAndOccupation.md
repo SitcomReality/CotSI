@@ -9,7 +9,7 @@ supersedes `dev/docs/movementDesign.md` and `dev/docs/hexOccupationRules.md`.
 > and some rules below are the *current conventions* — implemented and tested —
 > not the final design. In particular, a planned change will allow **pathing
 > over** hexes an entity cannot stop on, with some features **collected as you
-> pass** without stopping (e.g. passing through a fruit-tree hex and gaining
+> pass** without stopping (e.g. passing through a Blessed Font hex and gaining
 > its heal mid-route). See [§11 Future directions](#11-future-directions).
 
 ---
@@ -112,14 +112,14 @@ targets, and as intermediate path hexes.
 
 **Champion** — may stop on any hex whose effective cost is finite: all
 passable terrain (plains, forest, deep wood, desert, marsh, hill, plateau,
-beach, river) plus feature hexes (fruit tree, God's Knot, treasure chest,
+beach, river) plus feature hexes (Blessed Font, God's Knot, treasure chest,
 choice features). Arrival interactions fire on entry (`interactOnArrival` in
-`src/game/state/arrivalInteractions.js`): eating fruit, mining knots, opening
-chests, resolving choice features. **Feature hexes are destination-only in
-routing** — paths never pass *through* a feature hex, so the outcome of a
-walk always matches its preview (§7; the planned collect-as-you-pass change
-is §11). Champions can never enter mountain, broken water, or frozen surface
-(∞ for every faction).
+`src/game/state/features/arrivalInteractions.js`): drinking from the Blessed Font,
+mining knots, opening chests, resolving choice features. **Feature hexes are
+destination-only in routing** — paths never pass *through* a feature hex, so
+the outcome of a walk always matches its preview (§7; the planned
+collect-as-you-pass change is §11). Champions can never enter mountain, broken
+water, or frozen surface (∞ for every faction).
 
 **Mob** — may occupy hexes its own archetype can enter (effective cost
 finite — so waterbound mobs may occupy river/water) that are otherwise
@@ -134,7 +134,7 @@ on river keeps bases, champions, mobs, and traders from spawning there.
 
 ### Utility
 
-`isVacant(state, key)` in `src/game/state/entityQueries.js` is the
+`isVacant(state, key)` in `src/game/state/entities/entityQueries.js` is the
 complete-vacancy check (passable terrain, no feature, no champion, no mob, no
 trader). Currently referenced only by the test suite — live spawn and
 movement paths use `collectSpawnCandidates` plus inline `occupiedBy*` checks.
@@ -143,8 +143,8 @@ movement paths use `collectSpawnCandidates` plus inline `occupiedBy*` checks.
 
 | Rule | Where |
 |------|-------|
-| Terrain + occupancy blocking for range | `isBlockedForMovement(state, key, entity)` — `entityQueries.js`, used by `movementRange` |
-| Full enterability (terrain + occupancy) for pathing | `canChampionEnter(state, key, champ)` — `entityQueries.js`, used by bot AI and human pathing (`pathToward`) |
+| Terrain + occupancy blocking for range | `isBlockedForMovement(state, key, entity)` — `entities/entityQueries.js`, used by `movementRange` |
+| Full enterability (terrain + occupancy) for pathing | `canChampionEnter(state, key, champ)` — `entities/entityQueries.js`, used by bot AI and human pathing (`pathToward`) |
 | Reachability + path reconstruction | `movementRange` / `pathToKey` / `pathToward` — `championMovement.js` |
 | Weighted A* | `weightedFindPath` — `engine/rules/pathfinding.js` |
 | Champion spawn/start placement | `collectSpawnCandidates` (`tileQueries.js`) + spawn clearance in `gameFactory.js` |
@@ -152,7 +152,7 @@ movement paths use `collectSpawnCandidates` plus inline `occupiedBy*` checks.
 | Trader spawn (passable, not avoidSpawn, vacant) | `createTraders` — `entityFactory.js` |
 | Mob wandering (vacant + affordable) | `runMobHarassment` — `mobHarassment.js` |
 | Trader movement (vacant + affordable) | `runTraderMovement` — `traderMovement.js` |
-| Arrival interactions | `interactOnArrival` — `arrivalInteractions.js` |
+| Arrival interactions | `interactOnArrival` — `features/arrivalInteractions.js` |
 
 ---
 
@@ -331,7 +331,7 @@ planned changes:
 - **Pathing over non-stoppable hexes** — entities will be able to route
   *through* hexes they cannot stop on (currently everything enterable is
   stoppable, and feature hexes are destination-only).
-- **Collect-as-you-pass** — features such as fruit trees may grant their
+- **Collect-as-you-pass** — features such as the Blessed Font may grant their
   effect (e.g. the heal) when an entity passes through the hex, without
   stopping on it.
 - These changes will rework the destination-only feature rule (§3), the

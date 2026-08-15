@@ -10,9 +10,9 @@
 
 - Map generation: `src/game/rules/terrainGen/` — chunked: `terrainGen/chunkGeneration.js`, flat: `terrainGen/flatGeneration.js` (terrain types in `src/game/rules/terrainTypes.js`)
 - Hex math: `src/engine/rules/hexGrid.js`
-- Feature geometry (new objects): add a descriptor in `src/render/hexmap3d/worldObjects/descriptors/data/` — one file per object (`<id>.js`), authored in the geometry editor (see below). The only hand-written builder left is `worldObjects/fruitTree/`.
-- Feature meshes: `src/render/hexmap3d/worldObjects/descriptors/` (descriptor data + generic builder — new simple features are added as data), legacy builder in `worldObjects/fruitTree/`
-- Visibility/fog: `src/game/state/fogOfWar.js`
+- Feature geometry (new objects): add a descriptor in `src/render/hexmap3d/worldObjects/descriptors/data/` — one file per object (`<id>.js`), authored in the geometry editor (see below). All object geometry is descriptor-driven.
+- Feature meshes: `src/render/hexmap3d/worldObjects/descriptors/` (descriptor data + generic builder — new simple features are added as data)
+- Visibility/fog: `src/game/state/world/fogOfWar.js`
 
 ## Add a New Feature via the Geometry Editor
 
@@ -42,7 +42,7 @@ Entities (faction bases, champions, mobs, traders) are entity-driven descriptors
 
 ## Change Win Conditions
 
-Edit `src/game/state/victoryChecks.js` and the `objectives` object built in `src/ui/setupActions.js` and passed to `createGame()` in `src/game/state/gameFactory.js`.
+Edit `src/game/state/world/victoryChecks.js` and the `objectives` object built in `src/ui/setupActions.js` and passed to `createGame()` in `src/game/state/gameFactory.js`.
 
 ## Schedule a Timed Operation
 

@@ -61,7 +61,7 @@ decor — see §8), and the heal feature is the **Blessed Font** (its trader ite
 Mechanics in code (Aug 2026): knot mining + blessed-font heal/regrow
 (`arrivalInteractions.js`), the reward-choice modal pipeline (`state.reward` →
 reward modal, used by artifact draft, digs, and map-feature choices), and the
-**rewards engine** (`src/game/state/featureRewards.js`) which implements every
+**rewards engine** (`src/game/state/features/featureRewards.js`) which implements every
 feature reward below: direct grants apply silently (log + ledger + consume),
 choice rewards open the modal for humans and apply a deterministic policy for
 bots, replenishable features go unripe on a shared 4-day regrow timer

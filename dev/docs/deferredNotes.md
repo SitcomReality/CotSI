@@ -30,40 +30,26 @@ document are out of date.
 - **Camera caps + fog are tuned to current map scale** — zoom is capped
   (`ZOOM_MAX_FRUSTUM=20`, `DEFAULT_REFERENCE_FRUSTUM=40` in
   `src/params/render/cameraParams.js`), as are `CAMERA_FAR=200` and the
-  scene fog (`src/render/hexmap3d/scene/sceneSetup.js`, 60–160); shadows are radius dependent. A
-  conceptually infinite map still needs terrain-gen's radius semantics
-  removed (`worldShape` falloff, noise scaled by 1/radius, latitude term,
-  distance clamp) plus camera-driven chunk streaming (see persistence in
-  `futureWork.md`).
+  scene fog (`src/render/hexmap3d/scene/sceneSetup.js`, 60–160); shadows are
+  radius dependent. A conceptually infinite map still needs terrain-gen's
+  radius semantics removed (`worldShape` falloff, noise scaled by 1/radius,
+  latitude term, distance clamp) plus camera-driven chunk streaming (see
+  persistence in `futureWork.md`).
 
 ---
 
-## 2. Geometry — deferred by decision
-
-- **fruitTree** — stays on the procedural builder
-  (`src/render/hexmap3d/worldObjects/fruitTree/`); a simple trunk +
-  grove-family canopy + 1–2 hanging fruit, ripe state reflecting the
-  heal/regrow cycle. The descriptor model now supports part instancing
-  (`meshAssembly` groups records by part id into one InstancedMesh), so the
-  original migration blocker is gone — still deferred as not worth the churn
-  while it reads well at game scale. If it ever migrates, the growth-state
-  system is the mechanism to express the ripe cycle: a `states.empty` keyframe
-  on the fruit parts, driven by the feature's continuous `growth`
-  (`descriptorAuthoring.md` §4.6).
-
----
-
-## 3. Feature reward balance
+## 2. Feature reward balance
 
 Rewards are functional but un-tuned — amounts, tier scaling, and the shared
 `FEATURE_REGROW_DAYS` cadence need a design/balance pass. Edenfall mushrooms
 heal on starting values (`FEATURE_EDEN_MUSHROOM_HEAL` /
 `FEATURE_EDEN_SHROOMLET_HEAL` in `src/params/game/economyParams.js`).
-Per-feature reward intent tracked in `dev/docs/featureDesign.md` §5.
+Per-feature reward intent is tracked in `dev/docs/featureDesign.md` §5
+(amounts in §3a).
 
 ---
 
-## 4. Maintenance follow-ups (from techDebtAudit.md)
+## 3. Maintenance follow-ups (from techDebtAudit.md)
 
 Consolidated here when the audit doc was retired (2026-08-11); the rest of that
 document described completed work and now lives in git history. Only the open
@@ -78,14 +64,10 @@ items below remain.
 
 - `src/devtools/performance/reportBuilder.js` (928) — extract `_formatReport`
   (~148 lines) → `reportFormatter.js` if it grows past ~1,000 lines
-- ~~`src/game/state/featureRewards.js`~~ — DONE (2026-08-15): the `FEATURES`
-  table + card builders + canonical names were extracted to
-  `featureRewardTable.js`; the engine (`featureRewards.js`, ~270 lines) keeps
-  entry points + grant application.
 
 ---
 
-## 5. Dungeon combat & reward balance
+## 4. Dungeon combat & reward balance
 
 Dungeons shipped functional but deliberately un-tuned (2026-02): battles use
 existing mob archetypes scaled by `DUNGEON_BATTLE_SCALE` in
@@ -94,5 +76,5 @@ existing mob archetypes scaled by `DUNGEON_BATTLE_SCALE` in
 rebalanced, so dungeon fights and rewards get a design/balance pass at the same
 time — not before. Also deferred with it: bot AI for dungeons (human-only for
 now). The map visual is the editable `dungeon` descriptor
-(`descriptors/data/dungeon.js`) — tune the entrance geometry in the geometry
-editor, not by hand.
+(`src/render/hexmap3d/worldObjects/descriptors/data/features/dungeon.js`) —
+tune the entrance geometry in the geometry editor, not by hand.

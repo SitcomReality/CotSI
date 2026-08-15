@@ -91,13 +91,12 @@ See `src/game/rules/archetypeData/biomes/` for exact definitions.
 
 | Kind | Type | Mechanics | Visual |
 |------|------|-----------|--------|
-| `fruitTree` | resource | Heals on arrival, regrows after `FRUIT_REGROWTH_DAYS` | Forest-family tree, visible ripening fruit (red ripe / green unripe) |
-| `tree` | flora | Decorative only | Tree mesh |
+| `blessedFont` | resource | Heals on arrival, regrows after `FEATURE_REGROW_DAYS` | Font descriptor with dry → filled growth states |
 | `knot` | resource | Mined on arrival for Knot currency | Knot mesh |
 | `treasureChest` | resource | Gold on arrival (10–24g), consumed | Rectangle box descriptor |
 | `bush` | flora | Decorative only | Tuft geometry, green, 1.5x |
 
-These five are the classic kinds; biomes also spawn many more (e.g. `vegetableLamb`,
+These four are the classic kinds; biomes also spawn many more (e.g. `vegetableLamb`,
 `witnessStone`, `screamroot`, `palimpsestSlab`, `gildedInitial`, `saintsRib`), all defined
 in `archetypeData/features.js` and rewarded via `game/state/featureRewards.js`.
 
@@ -112,9 +111,8 @@ defineArchetype('biome_my_new_biome', {
   climateRange: { minElevation: 0, maxElevation: 1, minMoisture: 0, maxMoisture: 1, minTemperature: 0, maxTemperature: 1 },
   terrainRules: { /* overrides merged over DEFAULT_TERRAIN_RULES */ },
   features: [
-    { kind: 'fruitTree', threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
-    { kind: 'tree',      threshold: 0.935, compare: 'gt', terrainExclude: ['desert', 'forest', 'denseForest'] },
-    { kind: 'knot',      threshold: 0.038, compare: 'lt' },
+    { kind: 'blessedFont', threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'knot',        threshold: 0.038, compare: 'lt' },
   ],
   palette: { /* per-terrain [r,g,b] tuples, normalized 0–1 */ },
   colors: { primary: [0.45, 0.67, 0.36], accent: [0.83, 0.69, 0.35] },
