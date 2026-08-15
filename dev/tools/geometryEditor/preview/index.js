@@ -21,7 +21,7 @@
  * overlay.js (selection overlay + gizmo), pointer.js (orbit / select / drag).
  * This barrel re-exports the original public API unchanged.
  */
-export { createPreview, requestRender, setFloorVisible, showRecords, resetCamera } from './scene.js';
+export { createPreview, requestRender, setFloorVisible, showRecords, showRecordsMulti, resetCamera } from './scene.js';
 export { worldAABBForPartIds } from './aabb.js';
 export { updateSelectionOverlay } from './overlay.js';
 export { bindViewportCallbacks } from './viewportState.js';

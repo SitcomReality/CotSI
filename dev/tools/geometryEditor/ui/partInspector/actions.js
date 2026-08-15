@@ -13,8 +13,10 @@ import { inspectorHead } from '../inspectorHead.js';
 import { activeParts } from '../variantQuery.js';
 import {
   isGroupNode,
+  isAlternativesNode,
   findNodeById,
   siblingIds,
+  siblingList,
   nestNode,
   ungroupNode,
   canUngroup,
@@ -22,6 +24,8 @@ import {
   moveIntoGroup,
   canExtract,
   extractNode,
+  freshId,
+  makeAlternativesNode,
 } from '../partTree/index.js';
 
 /** Inspector header for part editing: breadcrumb back to the object. */
@@ -34,8 +38,35 @@ function renderPartHeader(container, node, ctx) {
     S.selectedPartId = null;
     ctx.renderAll();
   });
-  const title = isGroupNode(node) ? `${node.id} · group` : `${node.id} · ${node.shape}`;
+  const kind = isAlternativesNode(node) ? 'alternatives' : isGroupNode(node) ? 'group' : node.shape;
+  const title = `${node.id} · ${kind}`;
   container.append(inspectorHead(title, null, back));
+}
+
+/** Seeds already used by alternatives nodes in the active tree. */
+function takenSeeds() {
+  const seeds = new Set();
+  for (const entry of listNodesOf(activeParts())) {
+    if (entry.node.seed !== undefined) seeds.add(entry.node.seed);
+  }
+  return seeds;
+}
+
+/** Flat node list (walk.js listNodes isn't re-exported — scan inline). */
+function listNodesOf(parts) {
+  const out = [];
+  const walk = (list, parent, depth) => {
+    list.forEach((node, index) => {
+      out.push({ node, parent, depth, index });
+      if (Array.isArray(node.alternatives)) {
+        for (const opt of node.alternatives) walk(opt.parts ?? [], node, depth + 1);
+      } else if (Array.isArray(node.children)) {
+        walk(node.children, node, depth + 1);
+      }
+    });
+  };
+  walk(parts, null, 0);
+  return out;
 }
 
 /**
@@ -47,6 +78,26 @@ function renderPartHeader(container, node, ctx) {
 function renderPartActions(container, entry, ctx) {
   const { node } = entry;
   const actions = el('div', 'part-actions');
+
+  // Convert selection to alternatives: wrap the node in a choice point with
+  // one option holding a copy of it (decorComposition.md §6.2). The node's id
+  // becomes the choice point's id (fresh), and the option keeps a renamed copy
+  // of the wrapped node so its parts are editable per-config.
+  if (!isAlternativesNode(node)) {
+    const toAltBtn = el('button', null, 'Convert to alternatives');
+    toAltBtn.type = 'button';
+    toAltBtn.title = 'Wrap this part in a choice point with one option — add more options to vary its config';
+    toAltBtn.addEventListener('click', () => ctx.mutate(() => {
+      const siblings = siblingList(activeParts(), entry);
+      const choiceId = freshId(activeParts(), `${node.id}-choice`);
+      const copy = JSON.parse(JSON.stringify(node));
+      copy.id = freshId(activeParts(), `${node.id}-config`);
+      const choice = makeAlternativesNode(choiceId, [copy], takenSeeds());
+      siblings.splice(entry.index, 1, choice);
+      S.selectedPartId = choice.id;
+    }));
+    actions.append(toAltBtn);
+  }
 
   const nestBtn = el('button', null, 'Nest into group');
   nestBtn.type = 'button';

@@ -147,9 +147,11 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
   // own — pick one option (seeded per node, item-scoped) and continue the
   // walk with its parts at the SAME depth. The chosen option's parts are
   // walked as siblings of this node, so root options ground like roots and
-  // nested options sit in the ancestor frame.
+  // nested options sit in the ancestor frame. `ctx.previewOptions` (the
+  // editor's per-node preview radios) forces an option for authoring.
   if (Array.isArray(part.alternatives)) {
-    const chosen = resolveAlternatives(part, ctx.tileH, ctx.i, ctx.canonical);
+    const previewOptionId = ctx.previewOptions?.get(part.id) ?? null;
+    const chosen = resolveAlternatives(part, ctx.tileH, ctx.i, ctx.canonical, previewOptionId);
     if (!chosen) return; // empty option table — validated against, never ships
     for (const child of chosen.parts ?? []) {
       collectPart(descriptor, child, ctx, frame, isRoot, out, nodeFrames);
@@ -229,7 +231,7 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
  * @param {object[]|null} records - instance-record accumulator (may be null)
  * @param {Map|null} nodeFrames - per-node { origin, parentRot } map (may be null)
  */
-function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, records, nodeFrames) {
+function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, previewOptions, records, nodeFrames) {
   // v6 decor: a weighted per-slot motif table replaces the variant path.
   const hasMotifs = Array.isArray(descriptor.motifs) && descriptor.motifs.length > 0;
 
@@ -256,6 +258,7 @@ function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTin
           biomeTint: null,
           canonical: true,
           growth,
+          previewOptions,
           worldBase: worldBaseMatrix(worldPos, placement, {}),
         };
         for (const part of motif.parts) {
@@ -272,6 +275,7 @@ function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTin
       biomeTint: null,
       canonical: true,
       growth,
+      previewOptions,
       worldBase: worldBaseMatrix(worldPos, { dx: 0, dz: 0 }, {}),
     };
     for (const part of descriptor.parts) {
@@ -342,6 +346,7 @@ function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTin
     const ctx = {
       tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
       growth,
+      previewOptions,
       worldBase: worldBaseMatrix(worldPos, placement, disp),
     };
     for (const part of itemParts) {
@@ -372,11 +377,14 @@ function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTin
  *        `states.empty` keyframe lerp scale/position/color from the empty
  *        keyframe (growth 0) to their authored base (growth 1). 1 or
  *        undefined renders the authored (full) values.
+ * @param {Map|null} [previewOptions] - node id → option id map forcing
+ *        specific alternatives (the editor's per-node preview radios);
+ *        null renders the hash-driven rolls.
  * @returns {object[]} instance records tagged with partId ([] when hidden)
  */
-export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false, growth) {
+export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false, growth, previewOptions = null) {
   const records = [];
-  walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, records, null);
+  walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, previewOptions, records, null);
   return records;
 }
 
@@ -394,8 +402,8 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
  * come from the same items, placements, and (now) optional groups, so the
  * gizmo always matches the rendered records by construction.
  */
-export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false, growth) {
+export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false, growth, previewOptions = null) {
   const frames = new Map();
-  walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, [], frames);
+  walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, previewOptions, [], frames);
   return frames;
 }

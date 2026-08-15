@@ -17,11 +17,13 @@ import { activeParts } from './variantQuery.js';
 import { SHAPE_TYPES } from '../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import {
   isGroupNode,
+  isAlternativesNode,
   countNodes,
   findNodeById,
   freshId,
   makeGroupNode,
   makeLeafNode,
+  makeAlternativesNode,
 } from './partTree/index.js';
 
 /** Whether the parts list rows are expanded (collapsed hides just the rows). */
@@ -30,24 +32,59 @@ let partsListExpanded = true;
 /** Group ids whose children are hidden in the list (session state). */
 const collapsedGroups = new Set();
 
-/** Append one row per node in `nodes` (the parts array or a group's children). */
-function appendRows(listEl, nodes, depth, ctx) {
+/** Seeds already taken by alternatives nodes in the tree (for fresh nodes). */
+function takenSeeds(parts) {
+  const seeds = new Set();
+  for (const e of listNodesOf(parts)) {
+    if (e.node.seed !== undefined) seeds.add(e.node.seed);
+  }
+  return seeds;
+}
+
+// listNodes isn't re-exported; walk once here for seed scanning.
+function listNodesOf(parts) {
+  const out = [];
+  const walk = (list) => {
+    for (const node of list) {
+      out.push(node);
+      if (Array.isArray(node.alternatives)) {
+        for (const opt of node.alternatives) walk(opt.parts ?? []);
+      } else if (Array.isArray(node.children)) {
+        walk(node.children);
+      }
+    }
+  };
+  walk(parts);
+  return out;
+}
+
+/**
+ * Append one row per node in `nodes` (the parts array, a group's children, or
+ * an option's parts). Alternatives nodes render their option rows beneath
+ * them; each option's parts recurse with the option's id as the parent slot.
+ * `choiceId` names the alternatives node an option subtree belongs to (for the
+ * preview auto-switch when selecting a part inside an option).
+ */
+function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = null) {
   nodes.forEach((node, index) => {
     const group = isGroupNode(node);
+    const alt = isAlternativesNode(node);
     const r = el(
       'div',
       'part-row' +
         (group ? ' group' : '') +
+        (alt ? ' alternatives' : '') +
+        (option ? ' option-row' : '') +
         (node.id === S.selectedPartId ? ' selected' : ''),
     );
     r.style.marginLeft = `${depth * 14}px`;
 
-    // Groups get a fold button that hides/shows their subtree rows.
-    if (group) {
+    // Groups and alternatives nodes get a fold button for their subtree rows.
+    if (group || alt) {
       const collapsed = collapsedGroups.has(node.id);
       const fold = el('button', 'part-fold', collapsed ? '▸' : '▾');
       fold.type = 'button';
-      fold.title = collapsed ? 'Expand group' : 'Collapse group';
+      fold.title = collapsed ? 'Expand' : 'Collapse';
       fold.addEventListener('click', () => {
         if (collapsed) collapsedGroups.delete(node.id);
         else collapsedGroups.add(node.id);
@@ -56,19 +93,23 @@ function appendRows(listEl, nodes, depth, ctx) {
       r.append(fold);
     }
 
-    const label = el(
-      'span',
-      'part-label',
-      group ? `${node.id} · group` : `${node.id} · ${node.shape}`,
-    );
+    const kind = alt ? 'alternatives' : option ? `option · w${node.weight ?? 1}` : group ? 'group' : node.shape;
+    const label = el('span', 'part-label', `${node.id} · ${kind}`);
     label.addEventListener('click', () => {
       S.selectedPartId = node.id;
+      // Selecting a part that lives only inside one option auto-switches the
+      // preview to that option (a part in a non-previewed option has no gizmo
+      // frame — decorComposition.md §6.2).
+      if (choiceId && option) {
+        S.previewOptions = new Map(S.previewOptions).set(choiceId, option.id);
+      }
       ctx.renderAll();
+      ctx.onEdit();
     });
 
     // Growth-state keyframe badge — this part changes between empty (growth 0)
     // and full (growth 1) as its feature regrows.
-    if (!group && node.states?.empty) {
+    if (!group && !alt && node.states?.empty) {
       const badge = el('span', 'part-state-badge', '◐');
       badge.title = 'Has a growth-state keyframe (empty → full)';
       r.append(badge);
@@ -98,7 +139,24 @@ function appendRows(listEl, nodes, depth, ctx) {
     r.append(label, up, down, remove);
     listEl.append(r);
 
-    if (group && !collapsedGroups.has(node.id)) {
+    if (alt && !collapsedGroups.has(node.id)) {
+      // Option rows (with a "+" to add another option) sit directly under the
+      // choice point; each option's parts recurse beneath it.
+      node.alternatives.forEach((opt) => {
+        appendRows(listEl, opt.parts ?? [], depth + 1, ctx, opt, node.id);
+      });
+      const addOption = el('div', 'part-add-row');
+      addOption.style.marginLeft = `${(depth + 1) * 14}px`;
+      const addOptBtn = el('button', null, '+ Add alternative');
+      addOptBtn.type = 'button';
+      addOptBtn.title = 'Add another option to this choice point';
+      addOptBtn.addEventListener('click', () => ctx.mutate(() => {
+        const optId = freshId(activeParts(), `${node.id}-option`);
+        node.alternatives.push({ id: optId, weight: 1, parts: [] });
+      }));
+      addOption.append(addOptBtn);
+      listEl.append(addOption);
+    } else if (group && !collapsedGroups.has(node.id)) {
       appendRows(listEl, node.children, depth + 1, ctx);
     }
   });

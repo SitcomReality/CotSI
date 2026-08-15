@@ -13,6 +13,7 @@ import {
   freshId,
   isGroupNode,
   makeLeafNode,
+  makeAlternativesNode,
   rootToNestedTransform,
   nestNode,
   ungroupNode,
@@ -455,4 +456,49 @@ test('extractNode refuses root nodes and scaled groups', () => {
   }];
   assert.equal(canExtract(findNodeById(scaled, 'c')), false);
   assert.equal(extractNode(scaled, findNodeById(scaled, 'c')), null);
+});
+
+// ── Alternatives nodes (v6 decor composition, decorComposition.md §6.2) ─────
+
+test('listNodes walks alternatives nodes and their option subtrees', () => {
+  const parts = [
+    { id: 'trunk', shape: 'cylinder' },
+    {
+      id: 'arms', seed: 101, default: 'two',
+      alternatives: [
+        { id: 'none', weight: 0.25, parts: [] },
+        { id: 'one', weight: 0.3, parts: [{ id: 'arm-a', shape: 'cylinder' }] },
+        { id: 'two', weight: 0.3, parts: [{ id: 'arm-b', shape: 'cylinder' }, { id: 'arm-c', shape: 'cylinder' }] },
+      ],
+    },
+  ];
+  const entries = listNodes(parts);
+  const ids = entries.map((e) => e.node.id);
+  // Options themselves are not nodes — their PARTS recurse beneath the choice
+  // point, tagged with the owning option + choice node for the editor.
+  assert.deepEqual(ids, ['trunk', 'arms', 'arm-a', 'arm-b', 'arm-c']);
+  const armB = entries.find((e) => e.node.id === 'arm-b');
+  assert.equal(armB.option.id, 'two');
+  assert.equal(armB.choiceId, 'arms');
+  assert.equal(entries.find((e) => e.node.id === 'arm-a').option.id, 'one');
+  // findNodeById reaches option parts; countNodes counts them.
+  assert.equal(findNodeById(parts, 'arm-c').option.id, 'two');
+  assert.equal(countNodes(parts), 5);
+  // siblingList routes to the owning option's parts (arm-a is alone in its
+  // option; arm-b/arm-c share the 'two' option).
+  assert.deepEqual(siblingIds(parts, entries.find((e) => e.node.id === 'arm-a')), []);
+  assert.deepEqual(siblingIds(parts, entries.find((e) => e.node.id === 'arm-b')), ['arm-c']);
+});
+
+test('makeAlternativesNode assigns a fresh seed from the reserved 100–199 lane', () => {
+  const parts = [
+    { id: 'trunk', shape: 'cylinder' },
+    { id: 'arms', seed: 100, alternatives: [{ id: 'x', weight: 1, parts: [] }] },
+  ];
+  const taken = new Set();
+  for (const e of listNodes(parts)) if (e.node.seed !== undefined) taken.add(e.node.seed);
+  const choice = makeAlternativesNode('crown-choice', [{ id: 'crown-copy', shape: 'sphere' }], taken);
+  assert.equal(choice.seed, 101, 'skips the taken seed 100');
+  assert.equal(choice.default, 'crown-choice-option-1');
+  assert.deepEqual(choice.alternatives[0].parts.map((p) => p.id), ['crown-copy']);
 });

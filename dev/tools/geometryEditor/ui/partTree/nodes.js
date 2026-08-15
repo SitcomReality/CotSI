@@ -48,6 +48,31 @@ export function makeLeafNode(shape, id, nested = false) {
   };
 }
 
+/**
+ * A fresh `alternatives` choice point: one option (`<id>-option-1`, weight 1)
+ * holding a copy of the selected node(s) the caller wraps — the "convert
+ * selection to alternatives" entry. `seed` is assigned ONCE from the reserved
+ * 100–199 lane (never recomputed from id/path — renaming or reordering must
+ * not reshuffle in-world rolls, decorComposition.md §2.2).
+ * @param {string} id - the node's id (unique across the tree)
+ * @param {object[]} selectedParts - parts to seed the first option with
+ * @param {Set<string>} takenSeeds - seeds already used in this descriptor
+ */
+export function makeAlternativesNode(id, selectedParts, takenSeeds) {
+  let seed = 100;
+  while (takenSeeds.has(seed)) seed++;
+  takenSeeds.add(seed);
+  const optionId = `${id}-option-1`;
+  return {
+    id,
+    seed,
+    default: optionId,
+    alternatives: [
+      { id: optionId, weight: 1, parts: selectedParts },
+    ],
+  };
+}
+
 /** The node's rotation as a column-major matrix: R(localAxis, localAngle) · R_y(rotY). */
 export function nodeRotationMatrix(t) {
   let r = mat4Identity();

@@ -16,9 +16,11 @@
  */
 export {
   isGroupNode,
+  isAlternativesNode,
   listNodes,
   countNodes,
   findNodeById,
+  siblingList,
   siblingIds,
   descendantLeafIds,
 } from './walk.js';
@@ -26,6 +28,7 @@ export {
   freshId,
   makeGroupNode,
   makeLeafNode,
+  makeAlternativesNode,
   rootToNestedTransform,
 } from './nodes.js';
 export {

@@ -112,3 +112,78 @@
   min-width: 0;
   max-width: none;
 }
+
+/* ── v6 decor composition (motif panel, alternatives, strip) ─────────────── */
+
+.motif-row, .alternative-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+.motif-row .part-label, .alternative-row .part-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.motif-row input, .alternative-row input {
+  width: 64px;
+}
+.motif-grid {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 0.8em;
+}
+.motif-grid th, .motif-grid td {
+  border: 1px solid var(--token-border-subtle, #333);
+  padding: 2px 4px;
+  text-align: left;
+  white-space: nowrap;
+}
+.motif-grid .biome-cell {
+  font-weight: 600;
+}
+.share-cell {
+  position: relative;
+  min-width: 64px;
+}
+.share-cell.excluded {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+.share-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(255, 255, 255, 0.12);
+}
+.share-label {
+  position: relative;
+}
+.readonly-value {
+  font-family: var(--token-font-mono, monospace);
+  opacity: 0.8;
+}
+.alternatives.part-row, .option-row.part-row {
+  font-style: italic;
+}
+
+.strip-histogram {
+  font-family: var(--token-font-mono, monospace);
+  font-size: 0.75em;
+  line-height: 1.4;
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre;
+  margin-top: 6px;
+}
+.histogram-title {
+  font-weight: 600;
+}
+#strip-controls-row {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}

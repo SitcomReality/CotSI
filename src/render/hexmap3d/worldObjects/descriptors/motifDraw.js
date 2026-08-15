@@ -144,14 +144,19 @@ function fallbackSeed(id) {
  * divide-by-zero. The canonical (Show all) preview ignores the hash entirely
  * and resolves to `default`/first non-empty, so the piece inventory is stable.
  *
+ * `previewOptionId` (the editor's per-node preview radio) forces one option —
+ * the authoring equivalent of the variant picker, node-scoped. A stale id
+ * falls back to the defaulted resolution rather than vanishing.
+ *
  * @param {object} node - the alternatives choice point (id, seed?, default?,
  *        alternatives: [{ id, weight?, parts }])
  * @param {number} tileH - tile hash
  * @param {number} i - item index
  * @param {boolean} [canonical=false] - Show-all mode: no hash draw
+ * @param {string|null} [previewOptionId] - forced option id (editor preview)
  * @returns {object} the chosen option
  */
-export function resolveAlternatives(node, tileH, i, canonical = false) {
+export function resolveAlternatives(node, tileH, i, canonical = false, previewOptionId = null) {
   const opts = node.alternatives;
   if (opts.length === 0) return null;
   const defaulted = () => (
@@ -159,6 +164,9 @@ export function resolveAlternatives(node, tileH, i, canonical = false) {
     ?? opts.find((o) => (o.parts ?? []).length > 0)
     ?? opts[0]
   );
+  if (previewOptionId) {
+    return opts.find((o) => o.id === previewOptionId) ?? defaulted();
+  }
   if (canonical) return defaulted();
   const weighted = opts.map((o) => ({ entry: o, w: o.weight ?? 1 }));
   const chosen = resolveWeighted(weighted, itemHash(tileH, i + (node.seed ?? fallbackSeed(node.id))));

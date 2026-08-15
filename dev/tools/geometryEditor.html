@@ -91,7 +91,11 @@
             </label>
             <label id="canonical-row">
               <input type="checkbox" id="canonical-check">
-              Canonical
+              Show all
+            </label>
+            <label id="strip-row">
+              <input type="checkbox" id="strip-check">
+              Strip
             </label>
             <label id="floor-row">
               <input type="checkbox" id="floor-check">
@@ -106,6 +110,13 @@
             </div>
             <button id="undo-btn" type="button" title="Undo the last edit (Ctrl/Cmd+Z)">↩ Undo</button>
             <button id="reset-camera-btn" type="button" title="Reset to the in-game camera angle (keeps zoom)">⤾ Reset camera</button>
+          </div>
+          <div class="preview-tools-row" id="strip-controls-row">
+            <label id="strip-seed-row" title="Land on (and away from) ugly hashes instead of gambling on re-roll">
+              Scrub
+              <input type="range" id="strip-seed" min="0" max="99" value="0">
+            </label>
+            <div id="strip-histogram" class="strip-histogram"></div>
           </div>
         </div>
       </div>

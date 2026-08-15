@@ -32,6 +32,10 @@ export function cacheDom() {
   els.info = document.getElementById('info');
   els.viewport = document.getElementById('viewport');
   els.canvas = document.getElementById('preview-canvas');
+  els.stripRow = document.getElementById('strip-row');
+  els.stripCheck = document.getElementById('strip-check');
+  els.stripSeed = document.getElementById('strip-seed');
+  els.stripHistogram = document.getElementById('strip-histogram');
 
   els.inspector = document.getElementById('inspector');
   els.inspectorBody = document.getElementById('inspector-body');

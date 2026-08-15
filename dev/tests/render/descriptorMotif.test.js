@@ -552,3 +552,22 @@ test('alternatives `default` references are rewritten by the migration', () => {
   assert.equal(arms.default, 'cactus-two', 'default rewritten to the prefixed option id');
   assert.deepEqual(validateDescriptor(d), []);
 });
+
+// ── Editor preview-option forcing (decorComposition.md §6.2) ────────────────
+
+test('previewOptions forces a specific alternative per node (editor preview radio)', () => {
+  // Force the 'none' option — a tile that would normally draw arms shows none.
+  const forcedNone = new Map([['cactus-arms', 'none']]);
+  for (let q = 0; q < 20; q++) {
+    const records = recordsForDescriptor(DESERT, TILE(q), POS, undefined, {}, null, null, false, undefined, forcedNone);
+    assert.ok(!records.some((r) => r.partId.startsWith('arm-') || r.partId.startsWith('elbow-')), `q=${q} forced none still drew arms`);
+  }
+  // Force the elbow option.
+  const forcedElbow = new Map([['cactus-arms', 'elbow']]);
+  const records = recordsForDescriptor(DESERT, TILE(3), POS, undefined, {}, null, null, false, undefined, forcedElbow);
+  assert.ok(records.some((r) => r.partId === 'elbow-base'), 'forced elbow renders the elbow config');
+  // A stale forced id falls back to the defaulted resolution, never vanishes.
+  const stale = new Map([['cactus-arms', 'nope']]);
+  const staleRecords = recordsForDescriptor(DESERT, TILE(3), POS, undefined, {}, null, null, false, undefined, stale);
+  assert.ok(staleRecords.length > 0, 'stale preview option still renders');
+});

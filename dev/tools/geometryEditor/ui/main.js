@@ -33,6 +33,7 @@ function bindControls() {
       S.descriptor.displayName = row.displayName;
       S.selectedPartId = null;
       S.variantId = null;
+      S.previewOptions = new Map();
       S.growth = 1; // a fresh object starts at its full (authored) state
       S.entity.archetype = row.variantId;
       updateEntityMode();
@@ -47,6 +48,7 @@ function bindControls() {
     S.descriptor = next;
     S.selectedPartId = null; // the new object's parts start unselected
     S.variantId = null;      // the new object's variant starts at the first
+    S.previewOptions = new Map(); // ... and no alternatives preview overrides
     S.growth = 1;            // ... and its growth state at full
     // Keep the archetype selection valid for the new object (stale values fall
     // back to the first variant in the record path, but the browser should show
@@ -68,6 +70,16 @@ function bindControls() {
 
   els.canonicalCheck.addEventListener('change', () => {
     S.canonical = els.canonicalCheck.checked;
+    rebuild();
+  });
+
+  els.stripCheck.addEventListener('change', () => {
+    S.strip = els.stripCheck.checked;
+    rebuild();
+  });
+
+  els.stripSeed.addEventListener('input', () => {
+    S.stripOffset = Number(els.stripSeed.value);
     rebuild();
   });
 

@@ -74,25 +74,32 @@ export function setFloorVisible(visible) {
  * @param {{ outlines?: boolean }} [options] - preview presentation options
  */
 export function showRecords(descriptor, records, { outlines = false } = {}) {
+  showRecordsMulti(descriptor, [records], { outlines });
+}
+
+/**
+ * Replace the previewed object with records from SEVERAL tiles at once — the
+ * tile-strip diversity view (decorComposition.md §6.3). Each tile's records
+ * were built at its own translated origin, so the combined set renders the
+ * neighborhood in one pass (records → one InstancedMesh per partId, like the
+ * game's chunk builder). The selection map is cleared — the strip is an
+ * acceptance view, not an editing surface.
+ * @param {object} descriptor - normalized descriptor
+ * @param {object[][]} recordsPerTile - one records array per strip tile
+ * @param {{ outlines?: boolean }} [options] - preview presentation options
+ */
+export function showRecordsMulti(descriptor, recordsPerTile, { outlines = false } = {}) {
   for (const child of [...viewport.objectGroup.children]) {
     viewport.objectGroup.remove(child);
   }
-  let meshes = buildDescriptorMeshes(descriptor, records, descriptor.id);
-  // Ink-outline twins per part mesh — the same pass the game applies to its
-  // features/units (worldMeshes.js / unitMeshes.js → outline.js §11), so the
-  // preview shows exactly what the outlined in-game object looks like.
+  let meshes = buildDescriptorMeshes(descriptor, recordsPerTile.flat(), descriptor.id);
   if (outlines) meshes = meshes.flatMap(addOutlines);
   for (const mesh of meshes) viewport.objectGroup.add(mesh);
 
-  // Mesh names are `${descriptor.id}-${partId}` (meshAssembly.js) — the
-  // partId → mesh map powers worldAABBForPartIds and click-to-select.
   viewport.meshPrefix = descriptor.id;
-  const prefix = descriptor.id + '-';
   viewport.partIdToMesh = new Map();
-  for (const mesh of meshes) {
-    if (mesh.userData.outlineOf) continue; // outline twins are never parts
-    if (mesh.name.startsWith(prefix)) viewport.partIdToMesh.set(mesh.name.slice(prefix.length), mesh);
-  }
+  requestRender();
+}
   requestRender();
 }
 

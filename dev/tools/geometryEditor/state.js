@@ -50,14 +50,30 @@ export const S = {
   terrain: 'forest',
 
   /**
-   * Entity selection for entity-driven descriptors (base/champion/mob/trader).
+   * Whether the preview renders an entity (base/champion/mob/trader).
    * `faction` picks the faction variant + palette; `archetype` picks the shape
    * variant for archetype-rule descriptors (mobs).
    */
   entity: { faction: 'CRU', archetype: null },
 
+  /**
+   * Tile-strip diversity view (decorComposition.md §6.3): when true the
+   * preview renders a 3×3 neighborhood of real hexes instead of one tile, and
+   * the histogram beside it tallies motif draws over 64 hashes. `stripOffset`
+   * is the scrub-seed slider — land on (and away from) ugly hashes.
+   */
+  strip: false,
+  stripOffset: 0,
+
   /** Part id currently selected in the parts list, or null */
   selectedPartId: null,
+
+  /**
+   * Per-node alternatives preview overrides: alternatives node id → forced
+   * option id (the inspector's preview radios, decorComposition.md §6.2).
+   * Empty = hash-driven rolls.
+   */
+  previewOptions: new Map(),
 
   /**
    * Selected variant id for tile-driven descriptors (features/decor/mountain)
