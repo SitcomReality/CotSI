@@ -66,7 +66,7 @@ import { ORICHALCUM_BLADE_DESCRIPTOR } from './items/orichalcumBlade.js';
 import { THORN_BRAND_DESCRIPTOR } from './items/thornBrand.js';
 import { TITANBLOOD_DESCRIPTOR } from './decor/titanblood.js';
 import { TITANFLESH_DESCRIPTOR } from './decor/titanflesh.js';
-import { UNFINISHED_SCRAP_DESCRIPTOR } from './decor/unfinishedScrap.js';
+import { YETLANDS_DESCRIPTOR } from './decor/yetlands.js';
 import { VERDANT_CLOAK_DESCRIPTOR } from './items/verdantCloak.js';
 
 /** Every descriptor, in editor-display order. */
@@ -108,7 +108,7 @@ export const ALL_DESCRIPTORS = [
   BEACH_DESCRIPTOR,
   TITANFLESH_DESCRIPTOR,
   TITANBLOOD_DESCRIPTOR,
-  UNFINISHED_SCRAP_DESCRIPTOR,
+  YETLANDS_DESCRIPTOR,
   FORESPRING_DESCRIPTOR,
   KNOT_DESCRIPTOR,
   BASE_DESCRIPTOR,

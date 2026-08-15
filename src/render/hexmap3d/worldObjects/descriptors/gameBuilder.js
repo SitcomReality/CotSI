@@ -182,7 +182,7 @@ function resolveBiomeDecorForTile(tile, occupants, decorOverrides, visible = tru
   const mode = decorState({
     hasOccupant: visible && isTileOccupied(occupants, tile),
     hasFeature: visible && !!tile.feature,
-    decoration: null, // generic decor — disperses when the center is claimed
+    decoration: DECORATION.GENERIC, // biome-override decor spreads out like any ground decor
   });
   return {
     descriptor: normalizedDescriptor(descriptor),

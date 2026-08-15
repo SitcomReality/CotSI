@@ -1,17 +1,20 @@
 /**
- * unfinishedScrap.js — Descriptor data for "Unfinished Scrap".
+ * yetlands.js — Descriptor data for "Yetlands".
  *
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  *
- * Placeholder decor for the Unfinished Lands biome's land terrains — half-
- * formed shards that will be redesigned into proper crazy geometry.
+ * Placeholder decor for the Unfinished Lands biome's land terrains (which the
+ * biome names "Yetlands") — half-formed shards that will be redesigned into
+ * proper crazy geometry. Wired via the biome decor override
+ * (`terrainOverrides.decor` — the decor's id matches the terrain name, like
+ * the Titanstain biome's `titanflesh`).
  */
-export const UNFINISHED_SCRAP_DESCRIPTOR = {
+export const YETLANDS_DESCRIPTOR = {
   schemaVersion: 5,
-  id: 'unfinishedScrap',
+  id: 'yetlands',
   kind: 'decor',
-  displayName: 'Unfinished Scrap',
+  displayName: 'Yetlands',
   cluster: { min: 2, max: 3 },
   placement: { mode: 'scatter', offsetMin: 0.15, offsetMax: 0.4, separation: 0.4 },
   emphasis: { behavior: 'dispersed' },

@@ -18,7 +18,7 @@ This document is following on from the recent update that was implemented in the
 ## Biomes
 * ✅ DONE — The Brass Grave biome was fully renamed to Titanstain (file biomeBrassGrave.js → biomeTitanstain.js, id biome_brass_grave → biome_titanstain, tags brass_grave → titanstain).
 * ✅ DONE — Titanstain and Unfinished Lands now look distinctly unnatural: they did NOT need to be new terrain types (`tile.terrain` is a mechanics value — movement cost, passability, feature terrain rules, river rules). The per-biome terrain palette is what colors the ground, so both biomes got vivid, alien palettes covering every terrain they produce: Titanstain = sickly titanflesh pinks + titanblood crimson; Unfinished Lands = cold electric ghost cyan. The map analysis tool's biome-view colors were updated too.
-* ✅ DONE — Titanstain and Unfinished Lands have their own decor entries: four placeholder decor descriptors (`titanflesh`, `titanblood`, `unfinishedScrap`, `forespring`) listed in the geometry editor's Decor browser, wired to the map via a biome decor override (`terrainOverrides.decor` + `state.biomeDecorOverrides`). They still need real geometry from the designer.
+* ✅ DONE — Titanstain and Unfinished Lands have their own decor entries: four placeholder decor descriptors (`titanflesh`, `titanblood`, `yetlands`, `forespring`) listed in the geometry editor's Decor browser, wired to the map via a biome decor override (`terrainOverrides.decor` + `state.biomeDecorOverrides`). They still need real geometry from the designer.
 
 ## Geometry:
 ✅ DONE — undo button added to the geometry editor (button + Ctrl/Cmd+Z; `dev/tools/geometryEditor/history.js`).

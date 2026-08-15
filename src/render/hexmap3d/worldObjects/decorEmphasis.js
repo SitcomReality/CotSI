@@ -35,7 +35,9 @@ export const DECOR_STATE = Object.freeze({
 });
 
 /** Terrain decoration kinds the rules know how to de-emphasize. One per
- *  decor-producing terrain (the decor's id IS the terrain's id). */
+ *  decor-producing terrain (the decor's id IS the terrain's id), plus
+ *  GENERIC for biome-override decor (a supernatural biome's replacement
+ *  ground decor — spreads out like any ground decor). */
 export const DECORATION = Object.freeze({
   FOREST: 'forest',     // forest terrain decor — round trees (spreads out)
   DEEP_WOOD: 'deepWood', // denseForest terrain decor — conical pines (spreads out)
@@ -45,6 +47,7 @@ export const DECORATION = Object.freeze({
   PLAINS: 'plains',     // grass blades on plains (spreads out)
   DESERT: 'desert',     // scrub cluster on desert (spreads out)
   BEACH: 'beach',       // driftwood on beach (spreads out)
+  GENERIC: 'generic',   // biome decor override (titanflesh, yetlands, ...) — spreads out
 });
 
 /** Decorations that sink below the surface instead of spreading out. */

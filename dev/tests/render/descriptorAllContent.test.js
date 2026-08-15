@@ -53,7 +53,7 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
     else if (d.id === 'beach') push({ terrain: 'beach' });
     else if (d.id === 'titanflesh') push({ terrain: 'plains', biomeId: 'biome_titanstain' });
     else if (d.id === 'titanblood') push({ terrain: 'water', biomeId: 'biome_titanstain' });
-    else if (d.id === 'unfinishedScrap') push({ terrain: 'plains', biomeId: 'biome_unfinished_lands' });
+    else if (d.id === 'yetlands') push({ terrain: 'plains', biomeId: 'biome_unfinished_lands' });
     else if (d.id === 'forespring') push({ terrain: 'water', biomeId: 'biome_unfinished_lands' });
     else push({ terrain: 'plains', feature: { kind: d.id } }); // tree/simple features
   }
@@ -63,7 +63,7 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
   // from state — gameFactory collects them from the biome archetypes).
   const decorOverrides = new Map([
     ['biome_titanstain', { plains: 'titanflesh', water: 'titanblood' }],
-    ['biome_unfinished_lands', { plains: 'unfinishedScrap', water: 'forespring' }],
+    ['biome_unfinished_lands', { plains: 'yetlands', water: 'forespring' }],
   ]);
   const meshes = buildChunkDescriptorFeatureMeshes(tiles, visible, new Set(), undefined, null, null, decorOverrides);
   assert.ok(meshes.length >= ALL_DESCRIPTORS.length - NON_TILE_KINDS.size, 'at least one mesh per tile-driven descriptor');

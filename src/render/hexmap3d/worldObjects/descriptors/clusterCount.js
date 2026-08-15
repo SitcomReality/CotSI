@@ -23,7 +23,12 @@ export function itemCount(descriptor, tile, tileH) {
     const m = tile.moisture;
     const [a, b] = cluster.densityRange;
     const density = Number.isFinite(m) ? clamp01((m - a) / (b - a)) : 0.5;
-    const [min, max] = cluster.countsByTerrain[tile.terrain] ?? cluster.countsByTerrain.forest;
+    // The terrain's own count range, else the descriptor's first range (the
+    // legacy 'forest' fallback key). A descriptor may legitimately define only
+    // its own terrain (e.g. denseForest.js has just denseForest) — never crash
+    // when the tile's terrain isn't the one the descriptor decorates.
+    const counts = cluster.countsByTerrain ?? {};
+    const [min, max] = counts[tile.terrain] ?? counts.forest ?? counts[Object.keys(counts)[0]] ?? [3, 5];
     const count = Math.round(lerp(min, max, density));
     return Math.min(max, Math.max(min, count + (tileH % (cluster.jitter * 2 + 1)) - cluster.jitter));
   }
