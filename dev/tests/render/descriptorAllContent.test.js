@@ -22,7 +22,7 @@ import { buildDescriptorMeshes } from '../../../src/render/hexmap3d/worldObjects
 const NON_TILE_KINDS = new Set(['base', 'champion', 'mob', 'trader', 'item']);
 
 test('ALL_DESCRIPTORS covers every migrated object (features + decor + mountain + knot + entity + item kinds)', () => {
-  assert.equal(ALL_DESCRIPTORS.length, 47);
+  assert.equal(ALL_DESCRIPTORS.length, 51);
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));
   assert.ok(kinds.has('feature') && kinds.has('decor') && kinds.has('mountain'), 'all tile-driven kinds present');
   assert.ok(kinds.has('base') && kinds.has('champion') && kinds.has('mob') && kinds.has('trader'), 'all entity kinds present');
@@ -50,11 +50,21 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
     else if (d.id === 'plainsGrass') push({ terrain: 'plains' });
     else if (d.id === 'desertScrub') push({ terrain: 'desert' });
     else if (d.id === 'beachDriftwood') push({ terrain: 'beach' });
+    else if (d.id === 'titanflesh') push({ terrain: 'plains', biomeId: 'biome_titanstain' });
+    else if (d.id === 'titanblood') push({ terrain: 'water', biomeId: 'biome_titanstain' });
+    else if (d.id === 'unfinishedScrap') push({ terrain: 'plains', biomeId: 'biome_unfinished_lands' });
+    else if (d.id === 'forespring') push({ terrain: 'water', biomeId: 'biome_unfinished_lands' });
     else push({ terrain: 'plains', feature: { kind: d.id } }); // tree/simple features
   }
 
   const visible = new Set(tiles.map((t) => `${t.q},${t.r}`));
-  const meshes = buildChunkDescriptorFeatureMeshes(tiles, visible, new Set());
+  // The supernatural biome decor overrides (the render layer receives these
+  // from state — gameFactory collects them from the biome archetypes).
+  const decorOverrides = new Map([
+    ['biome_titanstain', { plains: 'titanflesh', water: 'titanblood' }],
+    ['biome_unfinished_lands', { plains: 'unfinishedScrap', water: 'forespring' }],
+  ]);
+  const meshes = buildChunkDescriptorFeatureMeshes(tiles, visible, new Set(), undefined, null, null, decorOverrides);
   assert.ok(meshes.length >= ALL_DESCRIPTORS.length - NON_TILE_KINDS.size, 'at least one mesh per tile-driven descriptor');
 
   for (const d of ALL_DESCRIPTORS) {

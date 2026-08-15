@@ -6,7 +6,7 @@
  */
 import { weatherForDay } from '../rules/weatherScript.js';
 
-export function createInitialState({ seed, radius, biome, biomePalettes, biomeColors, tiles, objectives, rng }) {
+export function createInitialState({ seed, radius, biome, biomePalettes, biomeColors, biomeDecorOverrides, tiles, objectives, rng }) {
   return {
     screen: 'world',
     seed,
@@ -14,6 +14,7 @@ export function createInitialState({ seed, radius, biome, biomePalettes, biomeCo
     biome,
     biomePalettes,
     biomeColors,
+    biomeDecorOverrides,
     day: 1,
     weather: weatherForDay(1),
     tiles,

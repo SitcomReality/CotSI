@@ -43,15 +43,22 @@ defineArchetype('biome_unfinished_lands', {
     { kind: 'knot',             threshold: 0.03, compare: 'lt' },
   ],
 
+  // Half-formed ghost palette — every terrain is a pale, unfinished echo of
+  // itself, washed toward a cold electric cyan. Unnatural, alien vibrancy:
+  // the world is literally not finished being rendered.
   palette: {
-    plains:   [0.650, 0.620, 0.580],  // faded earth
-    desert:   [0.750, 0.680, 0.550],  // bleached sand
-    hill:     [0.580, 0.550, 0.520],  // washed grey-brown
-    plateau:  [0.550, 0.520, 0.500],  // unfinished grey
-    mountain: [0.520, 0.500, 0.480],  // pale incomplete rock
-    water:    [0.400, 0.480, 0.580],  // desaturated blue
-    ice:      [0.650, 0.680, 0.720],  // pale teal
-    beach:    [0.750, 0.700, 0.620],  // faded half-formed sand
+    plains:      [0.520, 0.740, 0.740],  // ghost cyan-green
+    forest:      [0.300, 0.600, 0.640],  // electric teal
+    denseForest: [0.200, 0.460, 0.520],  // deep electric
+    desert:      [0.760, 0.780, 0.720],  // bleached ghost
+    marsh:       [0.420, 0.660, 0.600],  // sickly teal
+    hill:        [0.500, 0.680, 0.680],  // ghost hill
+    plateau:     [0.580, 0.740, 0.720],  // pale ghost plateau
+    mountain:    [0.420, 0.580, 0.640],  // ghost rock
+    water:       [0.180, 0.520, 0.680],  // Forespring
+    ice:         [0.620, 0.840, 0.880],  // pale cyan
+    beach:       [0.760, 0.800, 0.760],  // pale ghost sand
+    river:       [0.180, 0.520, 0.680],  // Forespring
   },
   // Biome signature colors for terrain-decor tinting (decor-consolidation):
   // primary is the biome's hue, accent its secondary highlight; decor parts
@@ -64,18 +71,18 @@ defineArchetype('biome_unfinished_lands', {
   // half-formed analogue. movementCost is uniform (no faction terrain bonuses
   // apply) — see terrainOverrides.js.
   terrainOverrides: {
-    water:       { name: 'Forespring' },
-    ice:         { name: 'Forespring' },
-    river:       { name: 'Forespring', movementCost: 30 },
-    plains:      { name: 'Yetlands', movementCost: 10 },
-    beach:       { name: 'Yetlands', movementCost: 10 },
-    desert:      { name: 'Yetlands', movementCost: 10 },
-    plateau:     { name: 'Yetlands', movementCost: 15 },
+    water:       { name: 'Forespring', decor: 'forespring' },
+    ice:         { name: 'Forespring', decor: 'forespring' },
+    river:       { name: 'Forespring', movementCost: 30, decor: 'forespring' },
+    plains:      { name: 'Yetlands', movementCost: 10, decor: 'unfinishedScrap' },
+    beach:       { name: 'Yetlands', movementCost: 10, decor: 'unfinishedScrap' },
+    desert:      { name: 'Yetlands', movementCost: 10, decor: 'unfinishedScrap' },
+    plateau:     { name: 'Yetlands', movementCost: 15, decor: 'unfinishedScrap' },
     mountain:    { name: 'Sky Stalagmite' },
-    forest:      { name: 'Protogrowth', movementCost: 12 },
-    denseForest: { name: 'Protogrowth', movementCost: 20 },
-    marsh:       { name: 'Protogrowth', movementCost: 15 },
-    hill:        { name: 'Half-Hewn Rise', movementCost: 12 },
+    forest:      { name: 'Protogrowth', movementCost: 12, decor: 'unfinishedScrap' },
+    denseForest: { name: 'Protogrowth', movementCost: 20, decor: 'unfinishedScrap' },
+    marsh:       { name: 'Protogrowth', movementCost: 15, decor: 'unfinishedScrap' },
+    hill:        { name: 'Half-Hewn Rise', movementCost: 12, decor: 'unfinishedScrap' },
   },
   terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid', 'temperate'],

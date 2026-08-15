@@ -27,6 +27,7 @@ import { TREASURE_CHEST_DESCRIPTOR } from './features/treasureChest.js';
 import { CINDERBLOOM_DESCRIPTOR } from './features/cinderbloom.js';
 import { DESERT_SCRUB_DESCRIPTOR } from './decor/desertScrub.js';
 import { DROWNED_COPYIST_DESCRIPTOR } from './features/drownedCopyist.js';
+import { FORESPRING_DESCRIPTOR } from './decor/forespring.js';
 import { DUNGEON_DESCRIPTOR } from './features/dungeon.js';
 import { EDEN_MUSHROOM_DESCRIPTOR } from './features/edenMushroom.js';
 import { EDEN_SHROOMLET_DESCRIPTOR } from './features/edenShroomlet.js';
@@ -62,6 +63,9 @@ import { HEARTH_ROBE_DESCRIPTOR } from './items/hearthRobe.js';
 import { MASQUE_KNIFE_DESCRIPTOR } from './items/masqueKnife.js';
 import { ORICHALCUM_BLADE_DESCRIPTOR } from './items/orichalcumBlade.js';
 import { THORN_BRAND_DESCRIPTOR } from './items/thornBrand.js';
+import { TITANBLOOD_DESCRIPTOR } from './decor/titanblood.js';
+import { TITANFLESH_DESCRIPTOR } from './decor/titanflesh.js';
+import { UNFINISHED_SCRAP_DESCRIPTOR } from './decor/unfinishedScrap.js';
 import { VERDANT_CLOAK_DESCRIPTOR } from './items/verdantCloak.js';
 
 /** Every descriptor, in editor-display order. */
@@ -100,6 +104,10 @@ export const ALL_DESCRIPTORS = [
   PLATEAU_MOUND_DESCRIPTOR,
   DESERT_SCRUB_DESCRIPTOR,
   BEACH_DRIFTWOOD_DESCRIPTOR,
+  TITANFLESH_DESCRIPTOR,
+  TITANBLOOD_DESCRIPTOR,
+  UNFINISHED_SCRAP_DESCRIPTOR,
+  FORESPRING_DESCRIPTOR,
   KNOT_DESCRIPTOR,
   BASE_DESCRIPTOR,
   CHAMPION_DESCRIPTOR,

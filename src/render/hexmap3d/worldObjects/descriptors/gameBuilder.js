@@ -122,8 +122,9 @@ function resolveFeatureForTile(tile, occupants) {
  * so the grove shows its natural (NORMAL) state regardless of what sits on
  * the hex.
  */
-function resolveGroveForTile(tile, occupants, visible = true) {
+function resolveGroveForTile(tile, occupants, decorOverrides, visible = true) {
   if (!isWoodsTerrain(tile)) return null;
+  if (biomeDecorOverrideId(tile, decorOverrides)) return null;
   const mode = decorState({
     hasOccupant: visible && isTileOccupied(occupants, tile),
     hasFeature: visible && !!tile.feature,
@@ -143,8 +144,9 @@ function resolveGroveForTile(tile, occupants, visible = true) {
  * look: out of sight the mound renders at full size (NORMAL), not sunk or
  * hidden by occupants/features it cannot be seen next to.
  */
-function resolveHillForTile(tile) {
+function resolveHillForTile(tile, decorOverrides) {
   if (tile.terrain !== 'hill') return null;
+  if (biomeDecorOverrideId(tile, decorOverrides)) return null;
   // The hill mound is the terrain bump itself — objects stand on its peak
   // (hillFloor.js), so it never de-emphasizes or sinks below them.
   return {
@@ -158,9 +160,10 @@ function resolveHillForTile(tile) {
  * beach), or null. Same visible-gating as the hill mound: out of sight the
  * decor renders in its natural (unclaimed) state.
  */
-function resolveSimpleDecorForTile(tile, occupants, visible = true) {
+function resolveSimpleDecorForTile(tile, occupants, decorOverrides, visible = true) {
   const entry = SIMPLE_DECOR_BY_TERRAIN.get(tile.terrain);
   if (!entry) return null;
+  if (biomeDecorOverrideId(tile, decorOverrides)) return null;
   const mode = decorState({
     hasOccupant: visible && isTileOccupied(occupants, tile),
     hasFeature: visible && !!tile.feature,
@@ -168,6 +171,37 @@ function resolveSimpleDecorForTile(tile, occupants, visible = true) {
   });
   return {
     descriptor: normalizedDescriptor(entry.descriptor),
+    displacement: {
+      hidden: mode === DECOR_STATE.HIDDEN,
+      displaced: mode !== DECOR_STATE.NORMAL,
+    },
+  };
+}
+
+/** The biome decor override id for a tile, or null (decorOverrides is a
+ *  biomeId → { terrainKey → decor descriptor id } map collected in
+ *  gameFactory — the render layer can't import game/rules). */
+function biomeDecorOverrideId(tile, decorOverrides) {
+  return decorOverrides?.get(tile.biomeId)?.[tile.terrain] ?? null;
+}
+
+/**
+ * The biome decor override, or null: a supernatural biome replaces the
+ * terrain-default decor with its own descriptor (titanflesh, forespring, ...).
+ * Behaves like the simple ground decor (disperses when the center is claimed).
+ */
+function resolveBiomeDecorForTile(tile, occupants, decorOverrides, visible = true) {
+  const decorId = biomeDecorOverrideId(tile, decorOverrides);
+  if (!decorId) return null;
+  const descriptor = descriptorById(decorId);
+  if (!descriptor || descriptor.kind !== 'decor') return null;
+  const mode = decorState({
+    hasOccupant: visible && isTileOccupied(occupants, tile),
+    hasFeature: visible && !!tile.feature,
+    decoration: null, // generic decor — disperses when the center is claimed
+  });
+  return {
+    descriptor: normalizedDescriptor(descriptor),
     displacement: {
       hidden: mode === DECOR_STATE.HIDDEN,
       displaced: mode !== DECOR_STATE.NORMAL,
@@ -184,15 +218,18 @@ function resolveSimpleDecorForTile(tile, occupants, visible = true) {
  * @param {boolean} [visible=true] - whether the tile is currently visible;
  *        when false the terrain decorations resolve in their unoccupied state
  *        (features still resolve — visibility gating happens at collect time)
+ * @param {Map|null} [decorOverrides] - biomeId → { terrain → decor id } (the
+ *        biome decor override; null = none)
  * @returns {{ descriptor: object, displacement: object }[]}
  */
-export function resolveDescriptorForTile(tile, occupants, visible = true) {
+export function resolveDescriptorForTile(tile, occupants, visible = true, decorOverrides = null) {
   return [
     resolveMountainForTile(tile),
     resolveFeatureForTile(tile, occupants),
-    resolveGroveForTile(tile, occupants, visible),
-    resolveHillForTile(tile, occupants, visible),
-    resolveSimpleDecorForTile(tile, occupants, visible),
+    resolveBiomeDecorForTile(tile, occupants, decorOverrides, visible),
+    resolveGroveForTile(tile, occupants, decorOverrides, visible),
+    resolveHillForTile(tile, decorOverrides),
+    resolveSimpleDecorForTile(tile, occupants, decorOverrides, visible),
   ].filter(Boolean);
 }
 
@@ -221,7 +258,7 @@ export function resolveDescriptorForTile(tile, occupants, visible = true) {
  *        color); enables the `terrain` tint source (ground-matching decor)
  * @returns {Map<string, object[]>} descriptor id → instance records
  */
-function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible = visible, biomeColors = null, biomePalettes = null) {
+function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible = visible, biomeColors = null, biomePalettes = null, biomeDecorOverrides = null) {
   const groups = new Map();
   // Tile lookup for the tint's neighbor averaging — the Map is used as-is, an
   // array chunk becomes a Map (neighbors outside the chunk are simply skipped).
@@ -270,15 +307,19 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
   runPass((tile) => resolveMountainForTile(tile), decorVisible);
   runPass((tile) => resolveFeatureForTile(tile, occupants), visible, true);
   runPass(
-    (tile) => resolveGroveForTile(tile, occupants, visible.has(`${tile.q},${tile.r}`)),
+    (tile) => resolveBiomeDecorForTile(tile, occupants, biomeDecorOverrides, visible.has(`${tile.q},${tile.r}`)),
     decorVisible,
   );
   runPass(
-    (tile) => resolveHillForTile(tile),
+    (tile) => resolveGroveForTile(tile, occupants, biomeDecorOverrides, visible.has(`${tile.q},${tile.r}`)),
     decorVisible,
   );
   runPass(
-    (tile) => resolveSimpleDecorForTile(tile, occupants, visible.has(`${tile.q},${tile.r}`)),
+    (tile) => resolveHillForTile(tile, biomeDecorOverrides),
+    decorVisible,
+  );
+  runPass(
+    (tile) => resolveSimpleDecorForTile(tile, occupants, biomeDecorOverrides, visible.has(`${tile.q},${tile.r}`)),
     decorVisible,
   );
   return groups;
@@ -305,7 +346,7 @@ function buildGroups(groups) {
  * @returns {THREE.InstancedMesh[]}
  */
 export function buildDescriptorFeatureMeshes(state, visible, occupants, decorVisible = visible) {
-  return buildGroups(collectDescriptorRecords(state.tiles, visible, occupants, decorVisible, state.biomeColors ?? null, state.biomePalettes ?? null));
+  return buildGroups(collectDescriptorRecords(state.tiles, visible, occupants, decorVisible, state.biomeColors ?? null, state.biomePalettes ?? null, state.biomeDecorOverrides ?? null));
 }
 
 /**
@@ -322,6 +363,6 @@ export function buildDescriptorFeatureMeshes(state, visible, occupants, decorVis
  *        color); enables the `terrain` tint source (ground-matching decor)
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decorVisible = visible, biomeColors = null, biomePalettes = null) {
-  return buildGroups(collectDescriptorRecords(chunkTiles, visible, occupants, decorVisible, biomeColors, biomePalettes));
+export function buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decorVisible = visible, biomeColors = null, biomePalettes = null, biomeDecorOverrides = null) {
+  return buildGroups(collectDescriptorRecords(chunkTiles, visible, occupants, decorVisible, biomeColors, biomePalettes, biomeDecorOverrides));
 }
