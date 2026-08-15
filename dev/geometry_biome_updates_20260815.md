@@ -1,6 +1,6 @@
 # Geometry, decor, biome, feature and terrain updates
 
-This document is following on from the recent update that was implemented in the below commits:
+This document is following on from the recent update that was implemented in the below commits. For a full implementation map and the remaining work, see the **hand-off**: `dev/handoff_geometry_biome_updates_20260815.md`.
 
 | # | Commit | What |
 |---|--------|------|
@@ -11,14 +11,19 @@ This document is following on from the recent update that was implemented in the
 | 5 | 2a4bf97 78de369 | Plateau mesa height + hill stacking (objects on the peak) |
 | 6 | 3c1977c a0f8319 fc07491 | Per-biome decor (biomeVariants), optionalGroups, canonical editor view |
 | 7 | 17c77be 1dfc94a | Reorganized descriptors/data and game/state into granular subfolders |
+| 8 | 0439447 | Renamed biome_brass_grave → biome_titanstain everywhere (file + id + tags) |
+| 9 | 313a809 | Vivid supernatural palettes (titanflesh / ghost cyan) + biome decor override + 4 placeholder decor descriptors |
+| 10 | de16ecd | Analysis tool biome colors + geometry editor undo (button + Ctrl/Cmd+Z) |
 
 ## Biomes
-* All instances of 'biomeTitanstain', 'biome_titanstain' etc. should be changed to titanstain, including biomeTitanstain.js.
-* Titanstain and Unfinished Lands terrain don't look any different to the surrounding terrain. Do they need to be actual distinct terrain types, with entries in src/game/rules/terrainTypes.js? Titanflesh/Titanblood and the Unfinished terrain should have their own distinctive and unnatural colors. Part of the reason that 'titanstain' was changed is because there's already a lot of warm earthy colors (browns, oranges) for the kind of vibrant supernatural aesthic we want for these corrupted areas of the map. So these biomes should look quite unnatural, more like Edenfall's terrain in terms of its alien vibrancy. The map analysis tool needs to be updated to show these terrains (and appropriate colors for the biomes).
-* Titanstain and Unfinished Lands terrains need their own decor entries (add placeholder objects so that they appear listed in the Decor items in the geometryEditor).
+* ✅ DONE — The Brass Grave biome was fully renamed to Titanstain (file biomeBrassGrave.js → biomeTitanstain.js, id biome_brass_grave → biome_titanstain, tags brass_grave → titanstain).
+* ✅ DONE — Titanstain and Unfinished Lands now look distinctly unnatural: they did NOT need to be new terrain types (`tile.terrain` is a mechanics value — movement cost, passability, feature terrain rules, river rules). The per-biome terrain palette is what colors the ground, so both biomes got vivid, alien palettes covering every terrain they produce: Titanstain = sickly titanflesh pinks + titanblood crimson; Unfinished Lands = cold electric ghost cyan. The map analysis tool's biome-view colors were updated too.
+* ✅ DONE — Titanstain and Unfinished Lands have their own decor entries: four placeholder decor descriptors (`titanflesh`, `titanblood`, `unfinishedScrap`, `forespring`) listed in the geometry editor's Decor browser, wired to the map via a biome decor override (`terrainOverrides.decor` + `state.biomeDecorOverrides`). They still need real geometry from the designer.
 
 ## Geometry:
-add undo button to geometry editor?
+✅ DONE — undo button added to the geometry editor (button + Ctrl/Cmd+Z; `dev/tools/geometryEditor/history.js`).
+
+NEXT — the growth-state system (below).
 
 We need to better support different geometry for things like the Blessed Font showing its full vs empty state. Currently the Blessed Font always looks empty when it's the sole occupant of a hex, but it always looks full when it's been dispersed to the edge of the hex. There should be a separate flag/state for 'ripe' compared to 'depleted' (or some better nomenclature). Obviously the geometry editor needs to support showing/editing the distinct states. Perhaps individual parts can be hidden when the thing is empty? 
 Or, actually, would it be better if the part wasn't hidden, but instead has an altered property that can change dynamically?
