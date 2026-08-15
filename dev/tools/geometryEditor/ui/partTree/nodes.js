@@ -23,6 +23,23 @@ export function freshId(parts, prefix) {
   return prefix + '-' + n;
 }
 
+/**
+ * Scope a fresh-id stem under the active motif on the v6 decor path
+ * (decorComposition.md §2.2/§6.2 — a part added under motif M stores
+ * `M/localId`, under an option `M/A/localId`), so editor-created ids carry
+ * the motif context, stay unique across motifs without the author
+ * hand-maintaining the global namespace, and the strip histogram's motif
+ * attribution (`partId.startsWith(motifId + '-')`, previewSync.js) sees them.
+ * Stems that already carry the motif prefix pass through unchanged
+ * (hand-authored `cactus-trunk` stays `cactus-trunk` when wrapped into a
+ * choice point). Outside motif decors (`motifId` null) the stem is used
+ * verbatim.
+ */
+export function motifScoped(stem, motifId) {
+  if (!motifId) return stem;
+  return stem.startsWith(`${motifId}-`) ? stem : `${motifId}-${stem}`;
+}
+
 /** A new group node: identity transform (nested field set) + empty children. */
 export function makeGroupNode(id) {
   return {

@@ -13,7 +13,7 @@
  */
 import { S } from '../state.js';
 import { el, selectInput } from './formControls.js';
-import { activeParts } from './variantQuery.js';
+import { activeParts, activeMotif } from './variantQuery.js';
 import { SHAPE_TYPES } from '../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import {
   isGroupNode,
@@ -21,6 +21,7 @@ import {
   countNodes,
   findNodeById,
   freshId,
+  motifScoped,
   makeGroupNode,
   makeLeafNode,
   makeAlternativesNode,
@@ -66,6 +67,10 @@ function listNodesOf(parts) {
  * preview auto-switch when selecting a part inside an option).
  */
 function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = null) {
+  // The active motif scopes new ids added under it (decorComposition.md §6.2
+  // — storage ids carry the motif context so authors never hand-maintain the
+  // global part-id namespace). null outside motif decors.
+  const motifId = activeMotif()?.id;
   nodes.forEach((node, index) => {
     const group = isGroupNode(node);
     const alt = isAlternativesNode(node);
@@ -151,7 +156,7 @@ function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = null) {
       addOptBtn.type = 'button';
       addOptBtn.title = 'Add another option to this choice point';
       addOptBtn.addEventListener('click', () => ctx.mutate(() => {
-        const optId = freshId(activeParts(), `${node.id}-option`);
+        const optId = freshId(activeParts(), motifScoped(`${node.id}-option`, motifId));
         node.alternatives.push({ id: optId, weight: 1, parts: [] });
       }));
       addOption.append(addOptBtn);
@@ -170,6 +175,9 @@ function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = null) {
 export function renderPartsList(container, ctx) {
   container.textContent = '';
   const parts = activeParts();
+  // New ids at the root of the edited tree are scoped under the active motif
+  // on the v6 decor path (decorComposition.md §6.2) — null outside motif decors.
+  const motifId = activeMotif()?.id;
 
   // Header: "Parts (n)" + the expand/collapse toggle — always visible, so the
   // list can be reopened without hunting for a button further down the panel.
@@ -199,7 +207,7 @@ export function renderPartsList(container, ctx) {
   addBtn.addEventListener('click', () => {
     const shape = shapeSelect.value;
     ctx.mutate(() => {
-      const id = freshId(parts, 'part');
+      const id = freshId(parts, motifScoped('part', motifId));
       parts.push(makeLeafNode(shape, id));
       S.selectedPartId = id;
     });
@@ -208,9 +216,9 @@ export function renderPartsList(container, ctx) {
   addGroupBtn.addEventListener('click', () => {
     const shape = shapeSelect.value;
     ctx.mutate(() => {
-      const id = freshId(parts, 'group');
+      const id = freshId(parts, motifScoped('group', motifId));
       const group = makeGroupNode(id);
-      group.children.push(makeLeafNode(shape, freshId(parts, 'part'), true));
+      group.children.push(makeLeafNode(shape, freshId(parts, motifScoped('part', motifId)), true));
       parts.push(group);
       S.selectedPartId = id;
     });

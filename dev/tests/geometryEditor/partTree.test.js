@@ -11,6 +11,7 @@ import {
   findNodeById,
   siblingIds,
   freshId,
+  motifScoped,
   isGroupNode,
   makeLeafNode,
   makeAlternativesNode,
@@ -501,4 +502,19 @@ test('makeAlternativesNode assigns a fresh seed from the reserved 100–199 lane
   assert.equal(choice.seed, 101, 'skips the taken seed 100');
   assert.equal(choice.default, 'crown-choice-option-1');
   assert.deepEqual(choice.alternatives[0].parts.map((p) => p.id), ['crown-copy']);
+});
+
+test('motifScoped scopes fresh-id stems under the active motif (storage ids, §6.2)', () => {
+  // Bare stems get the motif prefix — spec M/localId.
+  assert.equal(motifScoped('part', 'cactus'), 'cactus-part');
+  assert.equal(freshId([], motifScoped('part', 'cactus')), 'cactus-part-1');
+  // Option-internal parts carry M/A — spec M/A/localId.
+  assert.equal(motifScoped('two-straight-part', 'cactus'), 'cactus-two-straight-part');
+  // Already-prefixed stems pass through (hand-authored `cactus-trunk` stays
+  // `cactus-trunk` when wrapped into a choice point — no double prefix).
+  assert.equal(motifScoped('cactus-trunk', 'cactus'), 'cactus-trunk');
+  assert.equal(motifScoped('cactus-arms-choice', 'cactus'), 'cactus-arms-choice');
+  // Outside motif decors the stem is verbatim.
+  assert.equal(motifScoped('part', null), 'part');
+  assert.equal(motifScoped('group', undefined), 'group');
 });

@@ -110,7 +110,7 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| `schemaVersion` | int | 5 | Schema version. Always write `5` (v3/v4 files auto-migrate on load; the editor rewrites them to 5 on the next Save). |
+| `schemaVersion` | int | 5 | Schema version. Write `6` for v6 motif decors (`motifs` / `alternatives`, §5.4); `5` for everything else. Older files (v3/v4/v5) auto-migrate on load; the editor rewrites them to the current version on the next Save. |
 | `id` | string | — | Canonical id, `[A-Za-z0-9_-]`. For a feature this must equal the feature kind the game state uses (`openTreasureChest`). |
 | `kind` | string | — | One of `feature`, `decor`, `mountain`, `base`, `champion`, `mob`, `trader`. |
 | `displayName` | string | — | UI name (editor, tooltips). |
@@ -501,7 +501,11 @@ even nested inside another alternative):
   never a `none`. All-zero weights also fall back to `default`, else the first
   non-empty option.
 - Option ids live in the GLOBAL part-id namespace (two co-candidate arms must
-  not share an id); the editor assigns prefixed storage ids on commit.
+  not share an id). The editor keeps that namespace for you: ids created under
+  a motif are stored motif-scoped (`<motifId>-<localId>`; parts added inside an
+  option: `<motifId>-<optionId>-<localId>`), so the author never
+  hand-maintains global uniqueness — the strip histogram's motif attribution
+  keys off the same prefix.
 
 **The editor** (§6 of the spec): motif decors get a Motif panel (weight
 inputs, a per-biome grid of realized shares, a "Force motif" picker) instead
@@ -894,7 +898,7 @@ What each piece demonstrates:
 | Concern | File |
 |---|---|
 | Descriptor schema, shapes, defaults, validation, normalization | `src/render/hexmap3d/worldObjects/descriptors/schema.js` (barrel; implementation in `shapeTypes.js`, `descriptorDefaults.js`, `validateShapes.js`, `validateParts.js`, `descriptorValidation.js`, `descriptorNormalize.js`, `descriptorDenormalize.js`) |
-| Record generation (randomization) | `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` (barrel; implementation in `clusterCount.js`, `variantSelection.js`, `itemPlacement.js`, `partScale.js`, `partColor.js`, `partFrames.js`, `tileRecords.js`, `entityRecords.js`) |
+| Record generation (randomization) | `src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js` (barrel; implementation in `clusterCount.js`, `variantSelection.js`, `itemPlacement.js`, `partScale.js`, `partColor.js`, `partFrames.js`, `tileRecords.js`, `entityRecords.js`, `motifDraw.js`) |
 | Records → InstancedMeshes | `src/render/hexmap3d/worldObjects/descriptors/meshAssembly.js`, `../meshBuilder.js` |
 | Shape/material factories (THREE) | `src/render/hexmap3d/worldObjects/descriptors/shapeFactories.js` |
 | Neighbor-blended biome colors | `src/render/hexmap3d/worldObjects/biomeTint.js` |

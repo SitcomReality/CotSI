@@ -6,7 +6,7 @@ import {
   mat4Multiply,
 } from '../../../../../src/engine/rules/mat4.js';
 import { isGroupNode, listNodes, siblingList } from './walk.js';
-import { freshId, makeGroupNode, rootToNestedTransform, nodeRotationMatrix, rotateVec3 } from './nodes.js';
+import { freshId, motifScoped, makeGroupNode, rootToNestedTransform, nodeRotationMatrix, rotateVec3 } from './nodes.js';
 
 /**
  * Apply a parent-frame delta to a node's `localPos`, deleting the field when
@@ -27,11 +27,13 @@ export function addLocalDelta(t, dx, dy, dz) {
  * position: the new group (identity transform) replaces the node in its parent
  * list, and the node becomes the group's only child. A nested node keeps its
  * transform untouched; a ROOT leaf converts to the nested field set via
- * rootToNestedTransform. Returns the new group node.
+ * rootToNestedTransform. Returns the new group node. `motifId` (the active
+ * motif, null outside motif decors) scopes the fresh group id under the motif
+ * (decorComposition.md §6.2).
  */
-export function nestNode(parts, entry) {
+export function nestNode(parts, entry, motifId = null) {
   const list = siblingList(parts, entry);
-  const group = makeGroupNode(freshId(parts, 'group'));
+  const group = makeGroupNode(freshId(parts, motifScoped('group', motifId)));
   if (entry.parent === null && !isGroupNode(entry.node)) {
     entry.node.transform = rootToNestedTransform(entry.node.transform);
   }

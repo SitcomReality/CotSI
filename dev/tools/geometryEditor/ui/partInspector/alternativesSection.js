@@ -11,8 +11,8 @@
  */
 import { S } from '../../state.js';
 import { el, row, numberInput, selectInput } from '../formControls.js';
-import { activeParts } from '../variantQuery.js';
-import { freshId, makeGroupNode, makeLeafNode } from '../partTree/index.js';
+import { activeParts, activeMotif } from '../variantQuery.js';
+import { freshId, motifScoped, makeGroupNode, makeLeafNode } from '../partTree/index.js';
 import { SHAPE_TYPES } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 
 /** Select the first leaf shape from the registry for "add group inside option". */
@@ -25,6 +25,9 @@ const firstShape = () => Object.keys(SHAPE_TYPES)[0];
  * @param {object} ctx - the panel mutation context
  */
 export function renderAlternativesSection(container, node, entry, ctx) {
+  // The active motif scopes new ids under this choice point (decorComposition.md
+  // §6.2 — `M/A/localId` for parts inside an option) — null outside motif decors.
+  const motifId = activeMotif()?.id;
   container.append(el('div', 'hint', 'A choice point: every item rolls ONE option by weight (seeded per node). The node carries no position — wrap a hinged config in a group inside the option.'));
 
   // Seed — read-only, from the reserved 100–199 lane.
@@ -70,9 +73,9 @@ export function renderAlternativesSection(container, node, entry, ctx) {
     addGroup.type = 'button';
     addGroup.title = 'Add a group inside this option (hinged configs — the choice point has no transform)';
     addGroup.addEventListener('click', () => ctx.mutate(() => {
-      const gid = freshId(activeParts(), `${node.id}-hinge`);
+      const gid = freshId(activeParts(), motifScoped(`${option.id}-hinge`, motifId));
       const g = makeGroupNode(gid);
-      g.children.push(makeLeafNode(firstShape(), freshId(activeParts(), 'part'), true));
+      g.children.push(makeLeafNode(firstShape(), freshId(activeParts(), motifScoped(`${option.id}-part`, motifId)), true));
       option.parts.push(g);
     }));
     orow.append(addGroup);
@@ -97,7 +100,7 @@ export function renderAlternativesSection(container, node, entry, ctx) {
   const addBtn = el('button', null, '＋ Add alternative');
   addBtn.type = 'button';
   addBtn.addEventListener('click', () => ctx.mutate(() => {
-    const optId = freshId(activeParts(), `${node.id}-option`);
+    const optId = freshId(activeParts(), motifScoped(`${node.id}-option`, motifId));
     options.push({ id: optId, weight: 1, parts: [] });
   }));
   container.append(addBtn);

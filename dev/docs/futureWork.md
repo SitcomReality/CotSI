@@ -173,6 +173,3 @@ biomeWeight, editor motif panel + strip) is in. Planned follow-ups:
   would need 15–20+ slots per tile, which the current separation solver
   can't pack. A per-motif visual-mass footprint would let cluster counts
   rise safely.
-- **Storage ids on commit** (decorComposition.md §6.2) — the editor
-  assigns prefixed storage ids for parts added under a motif/option; the
-  tree shows local names. Currently the author manages global ids by hand.

@@ -26,6 +26,7 @@ export {
 } from './walk.js';
 export {
   freshId,
+  motifScoped,
   makeGroupNode,
   makeLeafNode,
   makeAlternativesNode,

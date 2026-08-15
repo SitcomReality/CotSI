@@ -10,7 +10,7 @@
 import { S } from '../../state.js';
 import { el, selectInput } from '../formControls.js';
 import { inspectorHead } from '../inspectorHead.js';
-import { activeParts } from '../variantQuery.js';
+import { activeParts, activeMotif } from '../variantQuery.js';
 import {
   isGroupNode,
   isAlternativesNode,
@@ -25,6 +25,7 @@ import {
   canExtract,
   extractNode,
   freshId,
+  motifScoped,
   makeAlternativesNode,
 } from '../partTree/index.js';
 
@@ -89,9 +90,10 @@ function renderPartActions(container, entry, ctx) {
     toAltBtn.title = 'Wrap this part in a choice point with one option — add more options to vary its config';
     toAltBtn.addEventListener('click', () => ctx.mutate(() => {
       const siblings = siblingList(activeParts(), entry);
-      const choiceId = freshId(activeParts(), `${node.id}-choice`);
+      const motifId = activeMotif()?.id; // scope storage ids under the motif (§6.2)
+      const choiceId = freshId(activeParts(), motifScoped(`${node.id}-choice`, motifId));
       const copy = JSON.parse(JSON.stringify(node));
-      copy.id = freshId(activeParts(), `${node.id}-config`);
+      copy.id = freshId(activeParts(), motifScoped(`${node.id}-config`, motifId));
       const choice = makeAlternativesNode(choiceId, [copy], takenSeeds());
       siblings.splice(entry.index, 1, choice);
       S.selectedPartId = choice.id;
@@ -103,7 +105,7 @@ function renderPartActions(container, entry, ctx) {
   nestBtn.type = 'button';
   nestBtn.title = 'Wrap this part in a fresh group — its position is preserved';
   nestBtn.addEventListener('click', () => ctx.mutate(() => {
-    const group = nestNode(activeParts(), entry);
+    const group = nestNode(activeParts(), entry, activeMotif()?.id);
     S.selectedPartId = group.id;
   }));
   actions.append(nestBtn);
