@@ -78,8 +78,10 @@ items below remain.
 
 - `src/devtools/performance/reportBuilder.js` (928) — extract `_formatReport`
   (~148 lines) → `reportFormatter.js` if it grows past ~1,000 lines
-- `src/game/state/featureRewards.js` (557) — extract the `FEATURES` table +
-  card builders → `featureRewardTable.js` if it grows past ~650 lines
+- ~~`src/game/state/featureRewards.js`~~ — DONE (2026-08-15): the `FEATURES`
+  table + card builders + canonical names were extracted to
+  `featureRewardTable.js`; the engine (`featureRewards.js`, ~270 lines) keeps
+  entry points + grant application.
 
 ---
 

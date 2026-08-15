@@ -69,6 +69,14 @@ The intention is to get an external third-party to help provide some geometry us
 
 ## Was deferred, still to be implemented
 
-* Hill stacking
-    Champions/bases/features sit at the mound peak; the per-tile peak height correctly varies with the stretch hash and objects always sit at the correct height in the center of a hill.
-    Off-center surface-normal orientation was intentionally deferred (needs in-game tuning).
+* Hill stacking — the center/peak case is done (champions/bases/features sit
+  at the mound peak; the per-tile peak height varies correctly with the
+  stretch hash). The off-center surface-normal orientation for
+  dispersed/scattered items on hill tiles is still deferred — it needs the
+  mound's ellipsoid normal at the item's offset and in-game tuning.
+
+✅ DONE — the featureDesign.md designer contract (§8 "Authoring geometry") and
+the featureRewards split (featureRewardTable.js + featureRewards.js). The only
+remaining work is the decor geometry itself, for the external graphic
+designer, using the now-complete toolkit (one decor per terrain, biome
+variants, optional groups, growth states).

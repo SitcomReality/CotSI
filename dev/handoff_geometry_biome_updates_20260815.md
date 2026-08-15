@@ -86,19 +86,20 @@ follow-up pass (the current one) tightened the model per design feedback:
   in-game (`gameBuilder` + `biomeDecorOverrides`) and needs no editor exposure
   — it's per-terrain-decor, not per-variant.
 
-### C. Decor redesigns (for the external graphic designer)
-- Desert: cactus becomes one `optionalGroup` among several (per-instance include/exclude).
-- Plateau: lose mesa geometry → generic per-biome flora/debris.
-- Titanflesh/Unfinished Lands: replace the 4 placeholders with real crazy geometry.
-- Marsh/Plains: more distinctive geometry.
-- **`featureDesign.md` must become the designer's contract** — it needs an "Authoring geometry" section covering: `variants`, `variantRule`, `biomeVariants`, `optionalGroups`, the canonical view, and (once built) growth states. Only that one doc should be required reading.
+### C. ~~Decor redesigns + the designer contract~~ contract ✅ DONE — geometry still for the external designer
+- ✅ **`featureDesign.md` is now the designer's contract** — new §8 "Authoring geometry" covers the whole toolkit: one-decor-per-terrain (decor id = terrain id), `variants[0]` default + `biomeVariants`, `optionalGroups`, the canonical view, growth states, the editor/save loop, and the test contract — with inline worked examples and pointers to shipped descriptor files. The stale content audit (Moonberry Tree → Blessed Font/Healing Salve, removed tree feature row, grove references) is done. `descriptorAuthoring.md` remains the deep field reference; only §8 is required reading.
+- Still **for the external graphic designer** (the mechanisms they'll use are all shipped and documented):
+  - Desert: cactus becomes one `optionalGroup` among several (per-instance include/exclude).
+  - Plateau: lose mesa geometry → generic per-biome flora/debris.
+  - Titanflesh/Yetlands: replace the placeholders with real crazy geometry.
+  - Marsh/Plains: more distinctive geometry.
 
-### D. Hill stacking follow-up
-- Off-center surface-normal orientation for dispersed/scattered items on hill tiles was intentionally deferred (needs in-game tuning). `hillFloor.js` handles the center/peak case; the normal math for off-center needs the mound's ellipsoid normal at the item's offset.
+### D. Hill stacking follow-up — still deferred (needs in-game tuning)
+- Off-center surface-normal orientation for dispersed/scattered items on hill tiles remains intentionally deferred. `hillFloor.js` handles the center/peak case; the normal math for off-center needs the mound's ellipsoid normal at the item's offset, and the visual result needs in-game tuning before it ships.
 
-### E. Housekeeping notes
-- `featureRewards.js` (~500 lines) could be split further (reward table vs grant application + choice cards) — the regrowth half is already extracted.
-- `featureDesign.md` may still contain stale text (e.g. "Moonberry Tree", biome table) — audit it when doing B/C.
+### E. Housekeeping — ✅ DONE
+- **`featureRewards.js` split** — the ~550-line engine is now two files: `featureRewardTable.js` (the FEATURES reward table + canonical names + choice-card builders — pure data) and `featureRewards.js` (entry points + grant application). No behavior change; the 36 reward/arrival tests pin it.
+- **`featureDesign.md` stale text audit** — done as part of C (Moonberry Tree → Blessed Font / Healing Salve, removed the deleted `tree` feature row, `fruitTree` → `blessedFont`, grove/solitary references, header status).
 
 ---
 

@@ -1,8 +1,11 @@
-# Feature Design — Taxonomy & Placement (DRAFT, pending review)
+# Feature Design — Taxonomy & Placement
 
-Working design for the feature-system redesign. Companion to `src/game/rules/archetypeData/features.js`
-and the biome feature rules. Status: **design questions answered (Aug 2026)** — placement and
-rewards are implemented; visuals and balance remain to refine (§3a amounts are first-pass defaults).
+Working design for the feature-system redesign, and **the contract for authoring
+object geometry** (see §8 "Authoring geometry"). Companion to
+`src/game/rules/archetypeData/features.js` and the biome feature rules.
+Status: **design questions answered (Aug 2026)** — placement and rewards are
+implemented; visuals and balance remain to refine (§3a amounts are first-pass
+defaults).
 
 ---
 
@@ -12,7 +15,7 @@ rewards are implemented; visuals and balance remain to refine (§3a amounts are 
   combat spoils, and base purchases. Map features grant only:
   - **Finite resources:** relics, potencies, gold, God's Knots — some grant directly (e.g. knots),
     some offer a choice (artifact-draft-style modal).
-  - **Replenishable resources:** healing (timer-based regrow, e.g. Moonberry Tree) and temporary
+  - **Replenishable resources:** healing (timer-based regrow, e.g. the Blessed Font) and temporary
     buffs that expire at the end of the current turn (bonus movement this turn, combat buff for
     combats this turn). Replenishable features re-offer their reward after a regrow timer.
 - **Tiered + banded placement.** Better features are more frequent toward the map center, rarer
@@ -24,8 +27,9 @@ rewards are implemented; visuals and balance remain to refine (§3a amounts are 
 - **De-emphasis preserved.** A feature scoots to the hex edge when an occupant claims the center
   and persists as a reminder until collected. (Visual/spread refinement deferred.)
 - **Vocabulary:** one canonical name per thing (see `dev/docs/namingConventions.md` §6). The early
-  codex visual-theme word is extinct (Aug 2026): the plain tree is **Tree**, the heal tree is
-  **Moonberry Tree** and its fruit are *moonberries*.
+  codex visual-theme word is extinct (Aug 2026): the plain tree is **Tree** (pure
+decor — see §8), and the heal feature is the **Blessed Font** (its trader item is
+**Healing Salve**).
 
 ## 2. Decisions locked (Aug 2026)
 
@@ -42,7 +46,7 @@ rewards are implemented; visuals and balance remain to refine (§3a amounts are 
    rule) are removed from code, tests, and the analysis tool.
 6. **Shared-feature dedup.** Waxbloom is Frigid Silence's exclusive (removed from Tundra);
    Saint's Rib is Scorch's exclusive. The remaining shared/any features stay only because they
-   are mechanically and thematically distinct: chest = gold, Moonberry Tree = heal, God's Knot =
+   are mechanically and thematically distinct: chest = gold, Blessed Font = heal, God's Knot =
    resources, Tree/Bush = scenery. The player-facing feature suite stays small and memorable.
 
 ## 3. Reward classes
@@ -51,10 +55,10 @@ rewards are implemented; visuals and balance remain to refine (§3a amounts are 
 |-------|----------|--------|--------|---------|
 | Finite | direct | relics / gold / knots / potency, fixed amounts | consumed on use (one-shot) | God's Knot, Treasure Chest |
 | Finite | choice | pick 1 of 2–3 offers (relic vs gold vs potency…) | consumed on pick | Null Lily, Volvelle, Screamroot |
-| Replenishable | heal | HP, on a regrow timer | reward returns after N days | Moonberry Tree |
+| Replenishable | heal | HP, on a regrow timer | reward returns after N days | Blessed Font |
 | Replenishable | temp buff | bonus movement this turn / combat buff this turn | end of current turn | Snowperson, Gilded Initial |
 
-Mechanics in code (Aug 2026): knot mining + moonberry heal/regrow
+Mechanics in code (Aug 2026): knot mining + blessed-font heal/regrow
 (`arrivalInteractions.js`), the reward-choice modal pipeline (`state.reward` →
 reward modal, used by artifact draft, digs, and map-feature choices), and the
 **rewards engine** (`src/game/state/featureRewards.js`) which implements every
@@ -110,7 +114,7 @@ side later.
 
 | Tier | Meaning | Center bias | Examples |
 |------|---------|-------------|----------|
-| T1 | Common, small direct rewards | uniform | God's Knot, Moonberry Tree |
+| T1 | Common, small direct rewards | uniform | God's Knot, Blessed Font |
 | T2 | Uncommon, moderate direct | mild ramp toward center | Treasure Chest, Vegetable Lamb, renewable knot/heal |
 | T3 | Rare, choices / relics / potencies / temp buffs | strong center bias (rare near edge) | Palimpsest Slab, Null Lily, Saint's Rib |
 | T4 | Very rare, richest center rewards | center only | Errata Slip, Ouroboros Loop, Half-Drawn Obelisk |
@@ -122,7 +126,7 @@ Concrete values: `T1 {gate 1.0}`, `T2 {gate 0.55}`, `T3 {gate 0.2}`, `T4 {gate 0
 inner 0.5}` — i.e. T2/T3 ramp linearly to full acceptance at the center, and T4
 spawns only inside the inner half of the map. Rules carry their tier on the
 biome feature rule (`tier: 'T3'`); rules without one behave as T1 (scenery and
-knot/moonberry are untiered). The per-rule gate rolls use their own noise
+knot/blessed-font are untiered). The per-rule gate rolls use their own noise
 channel (`NOISE_CHANNEL_FEATURE_TIER` + rule index), so gating is deterministic
 and independent of the spawn roll.
 
@@ -137,10 +141,9 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 
 | Kind | Name | Status | Tier | Reward | Class | Scope | Notes |
 |------|------|--------|------|--------|-------|-------|-------|
-| tree | Tree | live | — | none (scenery) | — | any | grove/solitary decor |
 | bush | Scrub Bush | live | — | none (scenery) | — | any | |
 | knot | God's Knot | live | T1 | knots, direct | finite | any | works today |
-| fruitTree | Moonberry Tree | live | T1 | heal | replenishable | any | works today (18/34, 4d regrow) |
+| blessedFont | Blessed Font | live | T1 | heal | replenishable | any | works today (18/34, 4d regrow) |
 | treasureChest | Treasure Chest | live | T2 | gold, direct | finite | any | rectangle box descriptor; deterministic amount at spawn (10–24g) |
 | vegetableLamb | Vegetable Lamb | live | T2 | knots + small heal, direct | finite | sig (Untouched) | |
 | witnessStone | Witness-Stone | live | T3 | relic vs gold choice | finite | shared (Untouched, Scorch) | amounts in §3a |
@@ -151,7 +154,7 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 | halfDrawnObelisk | Half-Drawn Obelisk | live | T4 | utility (teleport) **or** reward choice | finite | sig (Unfinished Lands) | utility-as-choice |
 | volvelle | Volvelle | live | T3 | potency choice (which faction) | finite | sig (Titanstain) | implemented — see §3a |
 | censerSaint | Censer Saint | live | T3 | risk-reward choice (buff vs cost) | finite | sig (Titanstain) | implemented — see §3a |
-| scoriaRose | Scoria Rose | live | T2 | knots, renewable (regrow) | replenishable | sig (Titanstain) | reuse moonberry regrow timer — done |
+| scoriaRose | Scoria Rose | live | T2 | knots, renewable (regrow) | replenishable | sig (Titanstain) | reuse the shared regrow timer — done |
 | cinderbloom | Cinderbloom | live | T2 | renewable small heal vs overlap | replenishable | sig (Titanstain) | overlaps Scoria Rose; revisit |
 | peridexionTree | Peridexion Tree | live | T3 | heal + tempbuff (combat this turn) | replenishable | sig (Painforest) | |
 | drownedCopyist | Drowned Copyist | live | T3 | knots + tempbuff, direct | finite | sig (Mourning Marsh) | |
@@ -198,5 +201,138 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 7. **Shared-feature dedup** — resolved: waxbloom and saintsRib became signatures; the rest stay
    shared only if mechanically distinct.
 8. **UI-naming debt** — done (Aug 2026): `mapTooltip.js` displays canonical display names via the
-   archetype registry (`getArchetype` → `feature_${kind}` with fallback); the `tree` vs `fruitTree`
-   tooltip bug is fixed.
+   archetype registry (`getArchetype` → `feature_${kind}` with fallback); the
+   early tree-vs-fruitTree tooltip confusion is gone — trees are pure decor
+   and features render their canonical names.
+
+---
+
+## 8. Authoring geometry — the designer's contract
+
+This section is the **only required reading** for authoring object geometry —
+for an LLM or a human designer generating the JS for game objects. It covers
+what a descriptor is, how an object is made to vary (per tile, per biome, per
+growth stage), and the editor/save loop. The exhaustive field-by-field
+reference lives in `dev/docs/descriptorAuthoring.md`; every shipped descriptor
+in `src/render/hexmap3d/worldObjects/descriptors/data/` is a worked example.
+The geometry editor (`dev/tools/geometryEditor.html`) authors and tweaks all of
+this visually.
+
+### 8.1 What a descriptor is
+
+Every game object's appearance is **one plain-JS data file**:
+`data/<kind>/<id>.js` exporting `const <ID>_DESCRIPTOR = { ... }`
+(id `blessedFont` → `BLESSED_FONT_DESCRIPTOR`; camelCase splits:
+`denseForest` → `DENSE_FOREST_DESCRIPTOR`). Kinds: `decor`, `feature`,
+`mountain`, plus entity kinds (`base`, `champion`, `mob`, `trader`, `item`).
+A descriptor declares:
+
+- **`parts`** — a tree of shapes with per-part transforms and colors. Shape
+  leaves (`cylinder`, `sphere`, `cone`, `torus`, `box`, `dodecahedron`,
+  `octahedron`, `lathe`) carry `params`, `transform` (position / rotation /
+  non-uniform `scaleX/Y/Z`) and `color`; **groups** (`children` arrays) share
+  one transform so sub-assemblies move or hinge together.
+- **`cluster`** — how many items share a tile (uniform count, or moisture-
+  scaled count), **`size`** — per-item scale range, **`variation`** — per-axis
+  stretch ranges + color jitter.
+- **`placement`** — where items sit in the hex (`center` / `scatter` / `ring`
+  / `jitter`); **`emphasis`** — what happens when a champion or feature claims
+  the hex center (`dispersed` / `sunk` / `hidden`).
+- **`variants` + `biomeVariants`** — alternate part sets, per biome.
+- **`optionalGroups`** — independent per-instance include/exclude sub-objects.
+- Part **`states`** — growth-state keyframes for features that refill/ripen.
+
+Every per-tile draw (count, size, stretch, color, placement) is a **pure
+function of the tile hash** — the same tile always produces identical
+geometry. No randomness, ever.
+
+### 8.2 The rules that shape content
+
+1. **One decor per terrain.** A terrain decor's `id` IS the terrain's id:
+   `plains` tiles render the `plains` decor, `forest` → `forest`,
+   `denseForest` → `denseForest` (Deep wood), `desert` → `desert`, and so on.
+   Different terrains are **separate descriptor files**, never variants of one
+   another (`gameBuilder.js`'s `SIMPLE_DECOR_BY_TERRAIN` dispatches by id).
+2. **The first variant is the default look.** `variants[0]` renders on every
+   tile unless a biome pins an alternate; `biomeVariants: { biomeId: variantId }`
+   swaps in a biome-specific look (the `forest` and `denseForest` decors both
+   pin the gnarled `painforest` variant for Painforest woods).
+3. **Features and decor compose.** A tile resolves to its feature (knot,
+   Blessed Font, chest, ...) at the hex center **and** its terrain decor around
+   it; decor yields to the feature/occupant via `emphasis`. A feature's `id`
+   must equal the `kind` the game state uses.
+4. **Supernatural biomes override terrain decor by name.** A biome's
+   `terrainOverrides` can rename a terrain and swap its decor (`decor: 'yetlands'`);
+   the override decor's id matches the terrain name it decorates (like
+   Titanstain's `titanflesh`).
+
+### 8.3 The mechanism menu
+
+| Mechanism | What it does | When to use | Shipped example |
+|---|---|---|---|
+| `cluster` + `size` | How many items, how big | Scattered ground decor | `forest.js` (moisture-scaled 3–5 trees), `bush.js` |
+| `placement` + `emphasis` | Where items sit; how they yield | Most tile decor/features | `forest.js` (ring, dispersed), `plateau.js` (center, sunk) |
+| `variation` + part `stretch` | Per-tile stretch/color jitter | Anything organic (trees, reeds) | `forest.js` trunk/canopy |
+| `variants` + `biomeVariants` | Alternate part sets, biome-pinned | Biome-specific looks (Painforest gnarled woods) | `forest.js`, `denseForest.js` |
+| `optionalGroups` | Per-instance include/exclude sub-objects | "One of several possible things per tile" (desert cactus among scrub/rocks) | synthetic example below |
+| part `states.empty` | Growth-state keyframes: parts lerp empty → full as a feature refills/ripens | Replenishable features (Blessed Font water, Peridexion fruit) | `blessedFont.js`, `peridexionTree.js` |
+| part `biomeScale` / `biomeColor` | Per-biome size factors / color tinting | Biome-scaled trees, ground-matching decor | `forest.js` (Tundra-stunted), `plateau.js` |
+| Canonical view | Variation-free preview (base parts, one item, authored scale) | Authoring check — "what does the default look like?" | editor toggle |
+
+**Optional groups, concretely** — each present group adds one extra item to
+the tile when its `chance` rolls (deterministic per tile):
+
+```js
+optionalGroups: [
+  { id: 'dead-scrub', chance: 0.5, parts: [{ id: 'scrub-twigs', shape: 'cone',
+      params: { bottomR: 0.08, height: 0.2 }, color: 0x8a7a55 }] },
+  { id: 'sun-bleached-rock', chance: 0.4, parts: [{ id: 'rock', shape: 'dodecahedron',
+      params: { radius: 0.09 }, color: 0xd8cfc0 }] },
+],
+```
+
+**Growth states, concretely** — the part's authored values are its FULL look;
+`states.empty` is its depleted look, lerped by the feature's daily `growth`
+(0 → 1, one step per day):
+
+```js
+{ id: 'font-water', shape: 'cylinder', transform: { y: 0.3 }, color: 0x6fd4e8,
+  states: { empty: { scaleY: 0.2, y: 0.14, color: 0x7e99a6 } } },
+```
+
+### 8.4 Worked examples to copy from
+
+- **A terrain decor with biome variation** — `data/decor/forest.js` (default
+  round trees → gnarled Painforest pin; moisture count; ring placement;
+  per-tree stretch; biome size/color). `denseForest.js` is the same pattern
+  for deep wood.
+- **A simple ground decor** — `data/decor/plains.js`, `data/decor/marsh.js`
+  (scatter cluster, dispersed emphasis).
+- **A centralized feature with a growth state** — `data/features/blessedFont.js`
+  (center placement, `states.empty` water keyframe).
+- **A feature with grouped sub-assemblies** — `data/features/openTreasureChest.js`
+  (the hinged-lid group: one shared transform swings several parts together).
+- **A centralized mound decor** — `data/decor/plateau.js` (center, sunk
+  emphasis).
+
+### 8.5 The editor + save loop
+
+1. Open `dev/tools/geometryEditor.html` (served by `dev/tools/geometryEditor/saveServer.sh`,
+   which also serves the game) — browse decor/features/items, pick the
+   preview tile's terrain/biome, toggle occupied / canonical / growth state.
+2. Edit parts, variants, biome pins, optional groups in the inspector; the
+   preview re-renders live; the parts list shows which parts are growth-keyed
+   (◐ badge).
+3. **Save** writes `data/<kind>/<id>.js` (kind-aware paths), refreshes the
+   golden snapshot fixture, and the round-trip tests pin that the file
+   re-imports exactly. Don't hand-edit a generated file — the next Save
+   overwrites it. Hand-authored new descriptors round-trip fine; open + Save
+   them in the editor once to adopt them.
+
+The test contract after any geometry change: `node --test` (full suite),
+`python3 dev/scripts/check_imports.py`, `check_analysis_imports.py`,
+`check_geometry_editor_imports.py`. The descriptor tests
+(`dev/tests/render/descriptor*`) and the golden snapshot
+(`dev/tests/render/fixtures/descriptorData.snap.json`,
+regenerated by `dev/scripts/regenerate_descriptor_snapshot.sh`) are the ones
+that catch drift.
