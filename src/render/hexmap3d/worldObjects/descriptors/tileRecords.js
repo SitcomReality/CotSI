@@ -28,6 +28,11 @@ import {
 import { itemCount } from './clusterCount.js';
 import { variantFor } from './variantSelection.js';
 import { resolveDisplacement, clusterPlacements } from './itemPlacement.js';
+import {
+  effectiveMotifTable,
+  motifForSlot,
+  resolveAlternatives,
+} from './motifDraw.js';
 
 /** Hash seed offset for optional-group presence rolls (treeHash channel). */
 const OPTIONAL_GROUP_SEED = 53;
@@ -138,6 +143,20 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
  *        every leaf and group (see nodeWorldFrames)
  */
 function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
+  // Alternatives choice point: no geometry, no transform, no record of its
+  // own — pick one option (seeded per node, item-scoped) and continue the
+  // walk with its parts at the SAME depth. The chosen option's parts are
+  // walked as siblings of this node, so root options ground like roots and
+  // nested options sit in the ancestor frame.
+  if (Array.isArray(part.alternatives)) {
+    const chosen = resolveAlternatives(part, ctx.tileH, ctx.i, ctx.canonical);
+    if (!chosen) return; // empty option table — validated against, never ships
+    for (const child of chosen.parts ?? []) {
+      collectPart(descriptor, child, ctx, frame, isRoot, out, nodeFrames);
+    }
+    return;
+  }
+
   if (isGroupNode(part)) {
     const t = part.transform;
     const scaleMul = ctx.disp?.scaleMul ?? 1;
@@ -211,7 +230,40 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
  * @param {Map|null} nodeFrames - per-node { origin, parentRot } map (may be null)
  */
 function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, records, nodeFrames) {
+  // v6 decor: a weighted per-slot motif table replaces the variant path.
+  const hasMotifs = Array.isArray(descriptor.motifs) && descriptor.motifs.length > 0;
+
   if (canonical) {
+    if (hasMotifs) {
+      // "Show all" — the authoring view (decorComposition.md §3.1): every
+      // motif forced, one item each, at authored scale, default colors, no
+      // stretch/jitter, laid out in a ring (heuristic spacing — the editor
+      // can refine with real AABBs). Alternatives resolve to `default`/first
+      // non-empty (they are separate configs, not simultaneous geometry);
+      // biome tint / biomeScale / biomeWeight are ignored — this is the piece
+      // inventory, and the biome selector must not fight it.
+      const motifs = descriptor.motifs;
+      const n = motifs.length;
+      const radius = n <= 1 ? 0 : Math.max(0.4, 0.55 * Math.sqrt(n));
+      motifs.forEach((motif, mi) => {
+        const angle = (mi / n) * Math.PI * 2;
+        const placement = { dx: Math.cos(angle) * radius, dz: Math.sin(angle) * radius };
+        const ctx = {
+          tile, worldPos, tileH, i: 0,
+          itemScale: descriptor.scale,
+          placement,
+          disp: {},
+          biomeTint: null,
+          canonical: true,
+          growth,
+          worldBase: worldBaseMatrix(worldPos, placement, {}),
+        };
+        for (const part of motif.parts) {
+          collectPart(descriptor, part, ctx, mat4Identity(), true, records, nodeFrames);
+        }
+      });
+      return;
+    }
     const ctx = {
       tile, worldPos, tileH, i: 0,
       itemScale: descriptor.scale,
@@ -231,8 +283,36 @@ function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTin
   const count = itemCount(descriptor, tile, tileH);
   if (displacement.displaced && descriptor.emphasis.behavior === 'hidden') return;
 
-  const variant = variantFor(descriptor, tile, tileH, variantId);
-  const parts = (variant ?? descriptor).parts;
+  // Per-slot item parts: motif draws on the decor path, the variant's parts
+  // everywhere else. Each slot also remembers its MOTIF (for per-motif
+  // size/placement overrides); optional-group slots carry null.
+  const slotParts = new Array(count);
+  const slotMotifs = new Array(count);
+  let repeatPenalty = 1;
+  if (hasMotifs) {
+    let table = effectiveMotifTable(descriptor, tile.biomeId);
+    repeatPenalty = descriptor.repeatPenalty ?? 1;
+    for (let i = 0; i < count; i++) {
+      let motif = motifForSlot(descriptor, tile.biomeId, tileH, i, table, variantId);
+      if (!motif && repeatPenalty < 1) {
+        // Without-replacement exhaustion: repeatPenalty zeroed every remaining
+        // weight before the tile's slots were filled. Restart the cycle with a
+        // fresh table (the same per-cycle guarantee, never an empty slot).
+        table = effectiveMotifTable(descriptor, tile.biomeId);
+        motif = motifForSlot(descriptor, tile.biomeId, tileH, i, table, variantId);
+      }
+      slotParts[i] = motif?.parts ?? [];
+      slotMotifs[i] = motif ?? null;
+      if (repeatPenalty < 1 && motif) {
+        const entry = table.find((t) => t.entry === motif);
+        if (entry) entry.w *= repeatPenalty; // renormalized on the next draw
+      }
+    }
+  } else {
+    const variant = variantFor(descriptor, tile, tileH, variantId);
+    const parts = (variant ?? descriptor).parts;
+    for (let i = 0; i < count; i++) slotParts[i] = parts;
+  }
 
   // Optional groups — independent per-tile include/exclude of sub-objects
   // (e.g. desert cactus AND/OR a scraggly dead tree). Each present group emits
@@ -245,14 +325,19 @@ function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTin
   const totalCount = count + presentGroups.length;
   const disp = resolveDisplacement(descriptor, totalCount, tileH, displacement.displaced);
 
-  const placements = clusterPlacements(descriptor, tile, totalCount, tileH, disp);
-  const emitItem = (itemParts, i) => {
+  // Per-item placement, honoring per-motif `placement` overrides (absent
+  // fields inherit the decor-level values).
+  const placementFor = (i) => (i < count && slotMotifs[i]?.placement) ?? null;
+  const placements = clusterPlacements(descriptor, tile, totalCount, tileH, disp, placementFor);
+  const emitItem = (itemParts, motif, i) => {
     // Per-item size draw — per-item so cluster members vary (treeVariation's
     // scale uses hash i+3). Item 0 keeps the old item-independent roll, so
     // lone objects are unchanged; members draw the decorrelated itemHash so
-    // the every-third-index correlation can't clone member sizes.
+    // the every-third-index correlation can't clone member sizes. Per-motif
+    // `size` overrides inherit from the decor-level range.
     const sizeT = i === 0 ? frac(treeHash(tileH, i + 3)) : itemHash(tileH, i + 3);
-    const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, sizeT);
+    const size = motif?.size ? { ...descriptor.size, ...motif.size } : descriptor.size;
+    const itemScale = descriptor.scale * lerp(size.min, size.max, sizeT);
     const placement = placements[i];
     const ctx = {
       tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
@@ -264,8 +349,8 @@ function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTin
     }
   };
 
-  for (let i = 0; i < count; i++) emitItem(parts, i);
-  presentGroups.forEach((group, g) => emitItem(group.parts, count + g));
+  for (let i = 0; i < count; i++) emitItem(slotParts[i], slotMotifs[i], i);
+  presentGroups.forEach((group, g) => emitItem(group.parts, null, count + g));
 }
 
 /**

@@ -125,19 +125,21 @@ function placementTilt(placement, dx, dz, tileH, i) {
 /**
  * Per-item placement inside the hex. Dispersed offsets override the object's
  * own placement mode, but the item keeps its lean (dispersed items still tilt
- * exactly like the per-kind builders apply it).
+ * exactly like the per-kind builders apply it). `placement` is the item's
+ * effective placement — the decor-level placement merged with a per-motif
+ * override (absent fields inherit; tileRecords passes the merge).
  *
  * @returns {object} { dx, dz, rotY, scaleMul?, tiltAxis?, tilt? }
  */
-function itemPlacement(descriptor, i, count, tileH, disp, jitter) {
+function itemPlacement(placement, i, count, tileH, disp, jitter) {
   // Dispersed single item — the shared corner anchor overrides the position,
   // but displaced simple features kept BOTH their scatter rotation and their
   // per-tile size jitter (simpleFeatureMeshes.js multiplied DISPERSED_SCALE
   // onto the already-jittered scale). Jitter-mode solitary trees reset to 0
   // and center objects have no rotation or size jitter.
   if (disp && disp.dx !== undefined) {
-    const tilt = placementTilt(descriptor.placement, disp.dx, disp.dz, tileH, i);
-    const scatter = descriptor.placement.mode === 'scatter';
+    const tilt = placementTilt(placement, disp.dx, disp.dz, tileH, i);
+    const scatter = placement.mode === 'scatter';
     const rotY = scatter ? jitter.rotY : 0;
     return {
       dx: disp.dx, dz: disp.dz, rotY,
@@ -147,12 +149,11 @@ function itemPlacement(descriptor, i, count, tileH, disp, jitter) {
   }
   if (disp && disp.ring) {
     const { dx, dz } = disp.ring[i];
-    const tilt = placementTilt(descriptor.placement, dx, dz, tileH, i);
+    const tilt = placementTilt(placement, dx, dz, tileH, i);
     // Dispersed groves kept each tree's ring rotation (treeVariation rotY).
     const rotY = frac(treeHash(tileH, i + 7)) * Math.PI * 2;
     return { dx, dz, rotY, ...(tilt ?? {}) };
   }
-  const placement = descriptor.placement;
   if (placement.mode === 'scatter') {
     return {
       dx: jitter.dx,
@@ -252,12 +253,17 @@ function spreadCluster(placements, separation, maxPasses = 6) {
  * — the spread the offset radii can't give (they move items away from the hex
  * center, not away from each other). Displaced clusters (dispersal ring /
  * corner anchor) keep their authored emphasis layout, which is already spread.
+ *
+ * `placementFor` optionally supplies a per-item placement OVERRIDE (a motif's
+ * own `placement` — decorComposition.md §2.1); each item's effective placement
+ * is the decor-level placement merged over it, so absent fields inherit.
  */
-export function clusterPlacements(descriptor, tile, count, tileH, disp) {
+export function clusterPlacements(descriptor, tile, count, tileH, disp, placementFor = null) {
   const placements = [];
   for (let i = 0; i < count; i++) {
-    const jitter = descriptor.placement.mode === 'scatter' ? scatterJitter(tile, descriptor.placement, tileH, i) : null;
-    placements.push(itemPlacement(descriptor, i, count, tileH, disp, jitter));
+    const merged = placementFor ? { ...descriptor.placement, ...(placementFor(i) ?? {}) } : descriptor.placement;
+    const jitter = merged.mode === 'scatter' ? scatterJitter(tile, merged, tileH, i) : null;
+    placements.push(itemPlacement(merged, i, count, tileH, disp, jitter));
   }
   const separation = descriptor.placement.separation ?? 0;
   if (separation > 0 && count > 1 && !disp) spreadCluster(placements, separation);

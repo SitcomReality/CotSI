@@ -311,6 +311,19 @@ function validateMotifs(motifs, path, errors, seen) {
       motif.parts.forEach((part, pi) => validatePart(part, `${mpath}.parts[${pi}]`, errors, seen));
     }
   });
+
+  // Dev-time warning: a biome whose filter excludes EVERY motif falls back to
+  // base weights at draw time — usually a typo that zeroed the whole table and
+  // must not ship silently (decorComposition.md §2.1).
+  if (motifs.length > 0 && biomeIds.size > 0) {
+    for (const biomeId of biomeIds) {
+      const total = motifs.reduce((sum, m) => sum + (m.weight ?? 1) * (m.biomeWeight?.[biomeId] ?? 1), 0);
+      if (total <= 0) {
+        // eslint-disable-next-line no-console
+        console.warn(`[descriptor] biome "${biomeId}" excludes every motif of "${motifs[0]?.id ?? path}" — the table falls back to base weights at draw time`);
+      }
+    }
+  }
 }
 
 /**
