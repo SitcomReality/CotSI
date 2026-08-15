@@ -3,12 +3,6 @@
  *
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
- * The terrain decor for `forest` tiles — one decor per terrain, so this is a
- * separate object from `denseForest` (deep wood). The first variant ('round')
- * is the default look; `biomeVariants` pins a dedicated look per biome —
- * the Taiga stunts Tundra's trees, the Sere Wastes grow bare dead trees,
- * Scorch dries its woodland, Edenfall purples its canopies, and so on.
- * Biome pins work through the geometry editor's Per-biome variants section.
  */
 export const FOREST_DESCRIPTOR = {
   schemaVersion: 5,
@@ -274,7 +268,7 @@ export const FOREST_DESCRIPTOR = {
         {
           id: 'trunk',
           shape: 'cylinder',
-          params: { bottomR: 0.09, topR: 0.07, height: 0.5 },
+          params: { bottomR: 0.15, topR: 0.09, height: 0.5 },
           stretch: {
             y: { min: 0.9, max: 1.2, seed: 6 },
             x: false,
@@ -283,6 +277,7 @@ export const FOREST_DESCRIPTOR = {
           biomeScale: { biome_sere_wastes: 0.8 },
           color: 0x7a6a55,
           biomeColor: { source: 'terrain', influence: 0.3 },
+          transform: { localAngle: 0, localAxis: { x: 0, y: 1, z: 0 } },
         },
         {
           id: 'branch-dead-a',
@@ -291,9 +286,9 @@ export const FOREST_DESCRIPTOR = {
           transform: {
             y: 0,
             lift: 0,
-            localPos: { x: 0.02, y: 0.3, z: 0 },
+            localPos: { x: 0.01, y: 0.35, z: -0.1 },
             localAxis: { x: 1, y: 0, z: 0 },
-            localAngle: 0.9,
+            localAngle: -0.7504915783575618,
           },
           stretch: {
             y: { min: 0.8, max: 1.2, seed: 6 },
@@ -310,9 +305,9 @@ export const FOREST_DESCRIPTOR = {
           transform: {
             y: 0,
             lift: 0,
-            localPos: { x: -0.03, y: 0.36, z: 0.02 },
-            localAxis: { x: 1, y: 0, z: 0 },
-            localAngle: -1.05,
+            localPos: { x: -0.07, y: 0.36, z: 0.02 },
+            localAxis: { x: 0, y: 0, z: 1 },
+            localAngle: 0.5235987755982989,
           },
           stretch: {
             y: { min: 0.8, max: 1.2, seed: 6 },
@@ -329,7 +324,7 @@ export const FOREST_DESCRIPTOR = {
           transform: {
             y: 0,
             lift: 0,
-            localPos: { x: 0.04, y: 0.44, z: -0.02 },
+            localPos: { x: 0, y: 0.35, z: 0.13 },
             localAxis: { x: 1, y: 0, z: 0 },
             localAngle: 1.25,
           },
