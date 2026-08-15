@@ -6,6 +6,7 @@
  * resolution (`entityColorForPart`). Pure — no THREE.
  */
 import { frac, treeHash } from '../tileHash.js';
+import { stateColor } from './partStates.js';
 
 /**
  * Color with a small deterministic brightness jitter, as an integer —
@@ -36,18 +37,21 @@ function mixTowardColor(base, tint, influence) {
 }
 
 /**
- * The instance color for a tile-path part: brightness jitter from the object's
+ * The instance color for a tile-path part: the growth-state base color (empty
+ * keyframe → base by `growth`), then brightness jitter from the object's
  * colorJitter, then the per-part biome tint. String `color` values are named
  * tokens for the entity record path (recordsForEntity) — the tile path has no
  * entity to resolve them, so they are skipped here rather than fed into the
  * color-jitter bit math. `biomeTint` is null when the tile has no tint
  * (biomeTint.js returns null for Untouched/Painforest tiles and for tiles with
- * no known biome colors), which keeps the default color.
+ * no known biome colors), which keeps the default color. `growth` is the
+ * continuous 0..1 feature growth; 1 (or undefined) keeps the authored color.
  */
-export function tileColorForPart(part, descriptor, tileH, i, biomeTint, canonical = false) {
+export function tileColorForPart(part, descriptor, tileH, i, biomeTint, canonical = false, growth) {
   if (part.color === undefined || typeof part.color === 'string') return undefined;
-  if (canonical) return part.color;
-  let color = jitteredColor(part.color, descriptor.variation.colorJitter, tileH, i);
+  let color = stateColor(part, growth);
+  if (canonical) return color;
+  color = jitteredColor(color, descriptor.variation.colorJitter, tileH, i);
   if (part.biomeColor && biomeTint) {
     const influence = Math.min(1, Math.max(0, part.biomeColor.influence ?? 0));
     const tint = biomeTint[part.biomeColor.source];

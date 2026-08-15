@@ -13,9 +13,20 @@ import { COLOR_TOKEN_PATTERN } from './typeChecks.js';
 import { isPlainObject, isPositiveNumber, isFiniteNumber, isColorInt, isColorToken } from './typeChecks.js';
 import { validateShapeParams, validateTransform } from './validateShapes.js';
 
-const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale', 'children'];
+const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale', 'states', 'children'];
 
 const STRETCH_AXES = ['x', 'y', 'z', 'xz']; // 'xz' is the legacy combined axis
+
+/**
+ * Growth-state keyframes a part may carry. `states.empty` is the part's look
+ * at growth 0 (depleted/empty); the part's authored base values are its look
+ * at growth 1 (full). The render lerps each overridden field from the empty
+ * keyframe to the base by the feature's continuous `growth` value, so a
+ * depleted font's water can be a tiny dull puddle that grows to a vivid
+ * brimming pool, or unripe fruit can be small and green before it swells and
+ * colors. Only shape leaves carry states (groups have no visuals of their own).
+ */
+const EMPTY_STATE_KEYS = ['scaleX', 'scaleY', 'scaleZ', 'y', 'localPos', 'color'];
 
 /**
  * Biome tint sources a part may pull from. `primary` tints toward the biome's
@@ -101,6 +112,48 @@ function validateStretch(stretch, path, errors) {
 }
 
 /**
+ * Validate a part's `states` — the growth-state keyframes. Only the `empty`
+ * keyframe exists today (the base values ARE the full state); it carries
+ * optional overrides for the fields the render lerps: per-axis scale, the
+ * root bottom height `y`, the nested `localPos`, and `color`. Any subset may
+ * be present — unlisted fields keep their base (full) value at every growth.
+ */
+function validateStates(states, path, errors) {
+  if (!isPlainObject(states)) {
+    errors.push(`${path}: must be an object { empty }`);
+    return;
+  }
+  for (const key of Object.keys(states)) {
+    if (key !== 'empty') errors.push(`${path}: unknown state "${key}"`);
+  }
+  const empty = states.empty;
+  if (empty === undefined) return;
+  if (!isPlainObject(empty)) {
+    errors.push(`${path}.empty: must be an object of keyframe overrides`);
+    return;
+  }
+  for (const key of Object.keys(empty)) {
+    if (!EMPTY_STATE_KEYS.includes(key)) errors.push(`${path}.empty: unknown field "${key}"`);
+  }
+  if (empty.scaleX !== undefined && !isPositiveNumber(empty.scaleX)) errors.push(`${path}.empty.scaleX: must be a positive number`);
+  if (empty.scaleY !== undefined && !isPositiveNumber(empty.scaleY)) errors.push(`${path}.empty.scaleY: must be a positive number`);
+  if (empty.scaleZ !== undefined && !isPositiveNumber(empty.scaleZ)) errors.push(`${path}.empty.scaleZ: must be a positive number`);
+  if (empty.y !== undefined && !isFiniteNumber(empty.y)) errors.push(`${path}.empty.y: must be a number`);
+  if (empty.color !== undefined && !isColorInt(empty.color)) errors.push(`${path}.empty.color: must be an integer 0..0xFFFFFF`);
+  if (empty.localPos !== undefined) {
+    if (!isPlainObject(empty.localPos)) {
+      errors.push(`${path}.empty.localPos: must be an object { x, y, z }`);
+    } else {
+      for (const axis of ['x', 'y', 'z']) {
+        if (empty.localPos[axis] !== undefined && !isFiniteNumber(empty.localPos[axis])) {
+          errors.push(`${path}.empty.localPos.${axis}: must be a number`);
+        }
+      }
+    }
+  }
+}
+
+/**
  * Validate a single node of a parts tree: either a shape leaf or a group
  * (a `children` array). `seen` is the id set shared across the whole parts set
  * (fallback `parts` or one variant's `parts`) — ids must be unique across the
@@ -135,6 +188,7 @@ export function validatePart(part, path, errors, seen = new Set(), nested = fals
     if (part.stretch !== undefined) errors.push(`${path}${label}: groups have no stretch`);
     if (part.biomeColor !== undefined) errors.push(`${path}${label}: groups have no biomeColor`);
     if (part.biomeScale !== undefined) errors.push(`${path}${label}: groups have no biomeScale`);
+    if (part.states !== undefined) errors.push(`${path}${label}: groups have no states`);
     part.children.forEach((child, ci) => validatePart(child, `${path}.children[${ci}]`, errors, seen, true));
   } else {
     if (part.children !== undefined) errors.push(`${path}${label}: children must be an array`);
@@ -156,6 +210,7 @@ export function validatePart(part, path, errors, seen = new Set(), nested = fals
     if (part.stretch !== undefined) validateStretch(part.stretch, `${path}${label}.stretch`, errors);
     if (part.biomeColor !== undefined) validateBiomeColor(part.biomeColor, `${path}${label}.biomeColor`, errors);
     if (part.biomeScale !== undefined) validateBiomeScale(part.biomeScale, `${path}${label}.biomeScale`, errors);
+    if (part.states !== undefined) validateStates(part.states, `${path}${label}.states`, errors);
   }
 
   // Groups use the nested field set at any depth (they are never grounded);

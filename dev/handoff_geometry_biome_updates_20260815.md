@@ -51,13 +51,16 @@ The trader's "Moonberry" heal item was renamed **"Healing Salve"** (`af91fdd`).
 
 ## 3. Still to implement (in priority order)
 
-### A. Growth states for features (the big one — design agreed in the companion doc)
-Goal: Blessed Font shows empty vs full; Peridexion fruit grows/ripens; a daily tween between exhausted and fully-grown.
+### A. ~~Growth states for features~~ ✅ IMPLEMENTED (2026-08-15, next pass)
+Blessed Font shows empty vs full; Peridexion fruit grows/ripens; a daily step toward fully-grown. What landed:
 
-- **Design (user-approved direction):** parts carry a *state range* (two keyframes, e.g. `{ empty: {scale, y, color}, full: {...} }`); the render picks a continuous **0..1 `growth`** value and lerps scale/position/color. Not hide/show.
-- **Hooks that already exist:** `featureRegrowth.js` tracks `ripe` + `nextRewardDay`; `worldSimulation.js` advances the day; `refillOnRain` sets `ripe=true`. The boolean `ripe` should be promoted to a continuous `growth` (or the render computes it from `day` vs `nextRewardDay`). The descriptor pipeline (`recordsForDescriptor`/`collectPart`/`leafScaleXYZ`/`tileColorForPart`) already has the `canonical` flag pattern to copy for a `growth`/`state` param.
-- **Editor:** needs a "state: empty/full" toggle to preview/edit the two keyframes (alongside canonical/variant).
-- **Files to touch:** `featureRegrowth.js` (or a new growth module), `worldSimulation.js`, `gameBuilder.js`/`tileRecords.js` (thread `growth`), the Blessed Font + Peridexion descriptors, editor `previewSync.js` + a state toggle.
+- **State model:** features carry continuous `growth` 0..1 plus the maintained `ripe` boolean (ripe ⇔ growth = 1). `featureRegrowth.js` sets `growth = 0` on deplete (with `regrowDays`), steps `1/regrowDays` per world turn in `advanceRegrowth` (marking chunks dirty each day so the rebuild shows the new level), and `refillOnRain` sets growth = 1. `ripe`/`nextRewardDay` semantics are unchanged, so all existing consumers/tests kept working.
+- **Descriptor data:** part-level `states.empty` keyframe — `{ scaleX?, scaleY?, scaleZ?, y?, localPos?, color? }` (shape leaves only, validated). The part's base values ARE the full state; the render lerps empty → base by growth (`partStates.js` `stateTransform`/`stateColor`, threaded through `recordsForDescriptor`/`nodeWorldFrames` → `leafScaleXYZ`/`tileColorForPart`/`nestedLeafFrameMatrix`). `gameBuilder` feeds `tile.feature.growth` on the feature pass; decor passes stay growth 1.
+- **Descriptors:** Blessed Font `font-water` (tiny dull puddle low in the bowl → brimming vivid pool) and Peridexion Tree `sweet-fruit-1/2/3` (small unripe green berries → vivid ripe fruit).
+- **Editor:** "State" toggle (full/empty) on the preview bar previews and edits the active keyframe — the Y/localPos/scale/color inspector rows write `states.empty` in empty mode (gizmo drags too), keyframed parts get a ◐ badge. Authoring reference: `descriptorAuthoring.md` §4.6.
+- **Tests:** 680/680 green (`node --test`); new `dev/tests/render/descriptorGrowth.test.js` (9 tests: root + nested lerp, no-op guarantees, partial keyframes, validation); growth-step/rain-refill/deplete tests in `worldSimulation.test.js`/`featureRewards.test.js`.
+
+Notes for the next dev: the `growth` value is game-driven (a feature's daily progress) — nothing animates in real time. Only features use it today, but the pipeline accepts any 0..1 growth per descriptor resolution, so decor/mountain kinds could keyframe too (e.g. a biome-driven decor stage) by passing a value in `gameBuilder`'s `runPass`. The snapshot fixture is unaffected (default growth renders the base records), but re-running `dev/scripts/regenerate_descriptor_snapshot.sh` after any descriptor edit is still the rule.
 
 ### B. Per-biome decor authoring clarity (editor)
 - The editor only exposes `Variant` (one per-object list); `biomeVariants` is data-driven but **not editable in the UI**. Add editor support: pick a variant per biome.

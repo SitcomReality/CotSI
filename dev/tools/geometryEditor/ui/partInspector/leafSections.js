@@ -8,6 +8,7 @@ import { el, row, numberInput, intInput, selectInput, colorInput } from '../form
 import { SHAPE_TYPES } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { ENTITY_KINDS } from '../../entityView.js';
 import { section } from './sectionShell.js';
+import { editingEmptyState, emptyKeyframe } from './stateKeyframes.js';
 
 /** Shape params (leaves only): enum/int/number rows from the SHAPE_TYPES registry. */
 function renderShapeSection(container, part, ctx) {
@@ -25,11 +26,19 @@ function renderShapeSection(container, part, ctx) {
   }
 }
 
-/** Color — leaves only (groups are pure containers, no visuals of their own). */
+/** Color — leaves only (groups are pure containers, no visuals of their own).
+ *  When the State toggle is "empty" (tile-driven kinds), the color row edits
+ *  the `states.empty` keyframe — the color lerps to the base as the feature
+ *  regrows (e.g. dull puddle → vibrant water, unripe → ripe fruit). */
 function renderColorSection(container, part, ctx) {
   const d = S.descriptor;
   const sec = section('color', container);
-  sec.append(el('div', 'hint', 'Every part has its own color — the object has no base color (v4).'));
+  const empty = editingEmptyState();
+  if (empty) {
+    sec.append(el('div', 'hint', 'Editing the EMPTY keyframe (growth 0) — this color lerps to the full-state color as the feature regrows.'));
+  } else {
+    sec.append(el('div', 'hint', 'Every part has its own color — the object has no base color (v4).'));
+  }
   if (ENTITY_KINDS.has(d.kind)) {
     const TOKENS = ['factionBase', 'factionAccent', 'factionBody'];
     const isToken = typeof part.color === 'string' && TOKENS.includes(part.color);
@@ -42,7 +51,11 @@ function renderColorSection(container, part, ctx) {
       sec.append(row('Custom color', colorInput(typeof part.color === 'number' ? part.color : 0xffffff, (v) => ctx.mutate(() => { part.color = v; }))));
     }
   } else {
-    sec.append(row('Color', colorInput(part.color ?? 0xffffff, (v) => ctx.mutate(() => { part.color = v; }))));
+    const value = empty ? (part.states?.empty?.color ?? part.color ?? 0xffffff) : (part.color ?? 0xffffff);
+    sec.append(row('Color', colorInput(value, (v) => ctx.mutate(() => {
+      if (empty) emptyKeyframe(part).color = v;
+      else part.color = v;
+    }))));
   }
 }
 

@@ -139,3 +139,13 @@
   overflow: hidden;
   white-space: nowrap;
 }
+
+/* Growth-state keyframe badge — marks parts that change between empty and
+   full as their feature regrows (see partStates.js / stateKeyframes.js). */
+.part-state-badge {
+  flex-shrink: 0;
+  margin-left: var(--s1);
+  color: var(--verdigris);
+  font-size: var(--fs-sm);
+  cursor: help;
+}

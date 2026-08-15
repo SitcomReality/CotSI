@@ -53,6 +53,11 @@ export const PERIDEXION_TREE_DESCRIPTOR = {
           params: { radius: 0.045 },
           transform: { localPos: { x: 0.2, y: 0.5095492505920869, z: 0.15 } },
           color: 0xffb703,
+          // Growth state: unripe fruit is a tiny green berry that swells and
+          // ripens to the vivid amber shown above as the tree regrows.
+          states: {
+            empty: { scaleX: 0.3, scaleY: 0.3, scaleZ: 0.3, color: 0x7fa98a },
+          },
         },
         {
           id: 'sweet-fruit-2',
@@ -60,6 +65,9 @@ export const PERIDEXION_TREE_DESCRIPTOR = {
           params: { radius: 0.04 },
           transform: { localPos: { x: -0.16741687136577313, y: 0.5600057005521863, z: -0.18 } },
           color: 0xf72585,
+          states: {
+            empty: { scaleX: 0.3, scaleY: 0.3, scaleZ: 0.3, color: 0x7fa98a },
+          },
         },
         {
           id: 'sweet-fruit-3',
@@ -67,6 +75,9 @@ export const PERIDEXION_TREE_DESCRIPTOR = {
           params: { radius: 0.042 },
           transform: { localPos: { x: -0.22, y: 0.5082262213180648, z: 0.12 } },
           color: 0xffb703,
+          states: {
+            empty: { scaleX: 0.3, scaleY: 0.3, scaleZ: 0.3, color: 0x7fa98a },
+          },
         },
         {
           id: 'guardian-dove',

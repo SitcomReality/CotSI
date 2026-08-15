@@ -9,6 +9,7 @@
  * no THREE.
  */
 import { frac, treeHash, lerp } from '../tileHash.js';
+import { stateTransform } from './partStates.js';
 
 /**
  * Stretch multiplier for one axis of a part. The part's own `stretch` override
@@ -39,13 +40,14 @@ export const isGroupNode = (part) => Array.isArray(part.children);
 /**
  * Per-part non-uniform scale (X/Y/Z) — item scale × dispersal × scatter
  * jitter × transform scale × per-axis stretch (part override or the object's
- * variation ranges) × biome factor. Shared by the root-leaf record path and
- * the nested-frame matrix path so a part renders identically at any depth.
- * X and Z are independent; Y follows the mountain-type rule when the
- * descriptor sizes by mountainType.
+ * variation ranges) × biome factor, with the growth-state scale lerp applied
+ * on top (empty keyframe → base, `growth` in 0..1). Shared by the root-leaf
+ * record path and the nested-frame matrix path so a part renders identically
+ * at any depth. X and Z are independent; Y follows the mountain-type rule when
+ * the descriptor sizes by mountainType.
  */
-export function leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor, canonical = false) {
-  const t = part.transform;
+export function leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor, canonical = false, growth) {
+  const t = stateTransform(part, growth);
   if (canonical) {
     // Canonical preview: authored transform scales only — no stretch jitter,
     // no mountain-type height bucket, no biome stunting.

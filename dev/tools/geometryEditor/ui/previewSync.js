@@ -91,7 +91,7 @@ export function rebuild() {
   const tile = previewTile();
   const records = ENTITY_KINDS.has(d.kind)
     ? recordsForEntity(d, entityForSelection(S.entity.faction, S.entity.archetype), ORIGIN)
-    : recordsForDescriptor(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId, S.canonical);
+    : recordsForDescriptor(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId, S.canonical, S.growth);
   showRecords(d, records, { outlines: S.outlines });
 
   // Items = records / parts-of-the-active-variant (variant objects have more
@@ -114,6 +114,7 @@ export function rebuild() {
       `${items} item(s) × ${parts} part(s) = ${records.length} instance record(s)\n` +
       `hash ${S.tileH} · ${S.displaced ? 'occupied (displaced)' : 'normal'}` +
       (variant ? ` · variant ${variant.id}` : '') +
+      (S.growth < 1 ? ' · state empty' : ' · state full') +
       (biome ? ` · biome ${biome}` : '');
   }
 
@@ -130,7 +131,7 @@ function currentFrames() {
   const tile = previewTile();
   return ENTITY_KINDS.has(d.kind)
     ? nodeWorldFramesForEntity(d, entityForSelection(S.entity.faction, S.entity.archetype), ORIGIN)
-    : nodeWorldFrames(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId, S.canonical);
+    : nodeWorldFrames(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId, S.canonical, S.growth);
 }
 
 /**
@@ -158,10 +159,12 @@ export function refreshSelectionOverlay() {
   });
 }
 
-/** Hide the tile-preview controls (biome / occupied / re-roll) for entity-driven objects. */
+/** Hide the tile-preview controls (biome / state / occupied / re-roll) for entity-driven objects. */
 export function updateEntityMode() {
   const entity = ENTITY_KINDS.has(S.descriptor?.kind);
   els.biomeRow.style.display = entity ? 'none' : '';
+  els.stateRow.style.display = entity ? 'none' : '';
+  els.stateSelect.value = S.growth < 1 ? '0' : '1';
   els.occupiedRow.style.display = entity ? 'none' : '';
   els.canonicalRow.style.display = entity ? 'none' : '';
   els.rerollRow.style.display = entity ? 'none' : '';

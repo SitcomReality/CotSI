@@ -66,6 +66,14 @@ function appendRows(listEl, nodes, depth, ctx) {
       ctx.renderAll();
     });
 
+    // Growth-state keyframe badge — this part changes between empty (growth 0)
+    // and full (growth 1) as its feature regrows.
+    if (!group && node.states?.empty) {
+      const badge = el('span', 'part-state-badge', '◐');
+      badge.title = 'Has a growth-state keyframe (empty → full)';
+      r.append(badge);
+    }
+
     // Reorder / remove act on the sibling array (the passed `nodes`).
     const up = el('button', null, '↑');
     const down = el('button', null, '↓');

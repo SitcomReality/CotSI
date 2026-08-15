@@ -60,6 +60,14 @@
           Biome
           <select id="biome-select" aria-label="Preview-tile biome"></select>
         </label>
+        <label id="state-row">
+          State
+          <select id="state-select" aria-label="Growth-state keyframe"
+            title="Preview and edit the growth-state keyframe: full = the authored values (growth 1), empty = the states.empty keyframe (growth 0) — fonts empty / fruit unripe">
+            <option value="1">full — growth 1</option>
+            <option value="0">empty — growth 0</option>
+          </select>
+        </label>
         <label id="occupied-row">
           <input type="checkbox" id="occupied-check">
           Occupied — center claimed

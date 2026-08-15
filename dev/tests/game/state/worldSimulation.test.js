@@ -6,6 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { finishTurn, advanceTurn } from '../../../../src/game/state/world/worldSimulation.js';
+import { depleteFeature, refillOnRain } from '../../../../src/game/state/features/featureRegrowth.js';
 import { makeChampion, makeMob, makeState, makeTile } from '../../helpers/stateFixture.js';
 import { WEATHER_SCRIPT } from '../../../../src/game/rules/weatherScript.js';
 
@@ -214,7 +215,7 @@ test('world turn: lethal harassment records the death', () => {
 
 test('world turn: unripe Blessed Fonts ripen on their due day', () => {
   const cA = makeChampion({ id: 'cA' });
-  const treeTile = makeTile('plains', { feature: { kind: 'blessedFont', ripe: false, nextRewardDay: 1 } });
+  const treeTile = makeTile('plains', { feature: { kind: 'blessedFont', ripe: false, nextRewardDay: 1, growth: 0.75, regrowDays: 4 } });
   const state = makeState({
     champions: [cA],
     currentOrder: ['cA'],
@@ -228,7 +229,86 @@ test('world turn: unripe Blessed Fonts ripen on their due day', () => {
   advanceTurn(state);
 
   assert.equal(treeTile.feature.ripe, true);
+  assert.equal(treeTile.feature.growth, 1, 'growth completes on the due day');
   assert.equal(state._regrowingFeatures.size, 0);
+});
+
+test('world turn: regrowing features grow one step per day toward full', () => {
+  const cA = makeChampion({ id: 'cA' });
+  const font = makeTile('plains', { feature: { kind: 'blessedFont', ripe: false, nextRewardDay: 4, growth: 0, regrowDays: 4 } });
+  const state = makeState({
+    champions: [cA],
+    currentOrder: ['cA'],
+    globalOrder: ['cA'],
+    activeChampionId: 'cA',
+    day: 1,
+    _regrowingFeatures: new Set(['0,0']),
+    tiles: { '0,0': font },
+  });
+
+  // One world turn per day: 0 → 0.25 → 0.5 → 0.75 → 1 (ripe on the due day).
+  const turns = 4;
+  for (let i = 0; i < turns; i++) {
+    advanceTurn(state);
+  }
+
+  assert.equal(font.feature.growth, 1, 'full after regrowDays steps');
+  assert.equal(font.feature.ripe, true);
+  assert.equal(state._regrowingFeatures.size, 0);
+});
+
+test('world turn: growth step uses the feature\'s own regrowDays', () => {
+  const cA = makeChampion({ id: 'cA' });
+  const font = makeTile('plains', { feature: { kind: 'blessedFont', ripe: false, nextRewardDay: 5, growth: 0, regrowDays: 2 } });
+  const state = makeState({
+    champions: [cA],
+    currentOrder: ['cA'],
+    globalOrder: ['cA'],
+    activeChampionId: 'cA',
+    day: 1,
+    _regrowingFeatures: new Set(['0,0']),
+    tiles: { '0,0': font },
+  });
+
+  advanceTurn(state); // day 1 world turn — first step
+
+  assert.equal(font.feature.growth, 0.5, 'one 1/regrowDays step per day');
+  assert.equal(font.feature.ripe, false, 'not ripe until the due day');
+});
+
+test('depleteFeature: resets growth to 0 and records the regrow cycle', () => {
+  const font = makeTile('plains', { feature: { kind: 'blessedFont', ripe: true } });
+  const state = makeState({ day: 3, tiles: { '0,0': font } });
+
+  depleteFeature(state, font);
+
+  assert.equal(font.feature.ripe, false);
+  assert.equal(font.feature.growth, 0, 'depleted feature renders empty');
+  assert.equal(font.feature.nextRewardDay, 7, 'day 3 + 4 regrow days');
+  assert.equal(font.feature.regrowDays, 4);
+  assert.ok(state._regrowingFeatures.has('0,0'));
+});
+
+test('refillOnRain: rainy days refill Blessed Fonts to full immediately', () => {
+  const font = makeTile('plains', { feature: { kind: 'blessedFont', ripe: false, nextRewardDay: 5, growth: 0.5, regrowDays: 4 } });
+  const state = makeState({ tiles: { '0,0': font }, _regrowingFeatures: new Set(['0,0']) });
+
+  refillOnRain(state, true);
+
+  assert.equal(font.feature.ripe, true);
+  assert.equal(font.feature.growth, 1, 'rain refills the font to full');
+  assert.equal(state._regrowingFeatures.size, 0);
+});
+
+test('refillOnRain: dry days leave regrowing features untouched', () => {
+  const font = makeTile('plains', { feature: { kind: 'blessedFont', ripe: false, nextRewardDay: 5, growth: 0.5, regrowDays: 4 } });
+  const state = makeState({ tiles: { '0,0': font }, _regrowingFeatures: new Set(['0,0']) });
+
+  refillOnRain(state, false);
+
+  assert.equal(font.feature.growth, 0.5);
+  assert.equal(font.feature.ripe, false);
+  assert.equal(state._regrowingFeatures.size, 1);
 });
 
 test('world turn: traders step toward their target base', () => {

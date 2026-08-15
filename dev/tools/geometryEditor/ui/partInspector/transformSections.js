@@ -6,6 +6,7 @@
 import { el, row, numberInput, selectInput, degreeInput, DEG_TO_RAD } from '../formControls.js';
 import { isGroupNode } from '../partTree/index.js';
 import { section } from './sectionShell.js';
+import { editingEmptyState, emptyKeyframe, emptyLocalPos, pruneZeroLocalPos } from './stateKeyframes.js';
 import {
   AXIS3_PRESETS,
   AXIS3_OPTIONS,
@@ -30,23 +31,44 @@ function setLocalPos(t, axis, v) {
 
 /** Position: ground heights for root leaves, frame localPos for every node.
  *  Groups are never grounded (schema: the nested field set at any depth), so
- *  Y/Lift stay off root groups — only root shape leaves may set them. */
+ *  Y/Lift stay off root groups — only root shape leaves may set them.
+ *  When the State toggle is "empty", the Y and localPos rows edit the
+ *  `states.empty` keyframe instead of the base transform — the values lerp to
+ *  the base as the feature regrows. Lift is base-only (not keyframed). */
 function renderPositionSection(container, entry, ctx) {
   const { node, parent } = entry;
   const t = node.transform ?? (node.transform = {});
+  const empty = editingEmptyState();
   const sec = section('position', container);
+  if (empty) {
+    sec.append(el('div', 'hint', 'Editing the EMPTY keyframe (growth 0) — these values lerp to the full-state values as the feature regrows.'));
+  }
   if (parent === null && !isGroupNode(node)) {
     sec.append(el('div', 'hint', 'Y / Lift / localPos are world offsets (item-scaled). The part\'s lowest vertex lands at Y + Lift (+ localPos.y).'));
-    sec.append(row('Y (bottom height)', numberInput(t.y ?? 0, { onChange: (v) => ctx.mutate(() => { t.y = v; }) })));
+    const yValue = empty ? (node.states?.empty?.y ?? t.y ?? 0) : (t.y ?? 0);
+    sec.append(row('Y (bottom height)', numberInput(yValue, { onChange: (v) => ctx.mutate(() => {
+      if (empty) emptyKeyframe(node).y = v;
+      else t.y = v;
+    }) })));
     sec.append(row('Lift (bottom height)', numberInput(t.lift ?? 0, { onChange: (v) => ctx.mutate(() => { t.lift = v; }) })));
   } else if (parent === null) {
     sec.append(el('div', 'hint', 'Groups are never grounded — localPos offsets in the item frame (pre-scale units).'));
   } else {
     sec.append(el('div', 'hint', 'localPos offsets in the parent frame (pre-scale units); a leaf\'s bottom sits at its localPos point.'));
   }
-  sec.append(row('localPos X', numberInput(t.localPos?.x ?? 0, { onChange: (v) => ctx.mutate(() => setLocalPos(t, 'x', v)) })));
-  sec.append(row('localPos Y', numberInput(t.localPos?.y ?? 0, { onChange: (v) => ctx.mutate(() => setLocalPos(t, 'y', v)) })));
-  sec.append(row('localPos Z', numberInput(t.localPos?.z ?? 0, { onChange: (v) => ctx.mutate(() => setLocalPos(t, 'z', v)) })));
+  const lpValue = (axis) => empty ? (node.states?.empty?.localPos?.[axis] ?? t.localPos?.[axis] ?? 0) : (t.localPos?.[axis] ?? 0);
+  const writeLp = (axis, v) => ctx.mutate(() => {
+    if (empty) {
+      const lp = emptyLocalPos(node);
+      lp[axis] = v;
+      pruneZeroLocalPos(node);
+    } else {
+      setLocalPos(t, axis, v);
+    }
+  });
+  sec.append(row('localPos X', numberInput(lpValue('x'), { onChange: (v) => writeLp('x', v) })));
+  sec.append(row('localPos Y', numberInput(lpValue('y'), { onChange: (v) => writeLp('y', v) })));
+  sec.append(row('localPos Z', numberInput(lpValue('z'), { onChange: (v) => writeLp('z', v) })));
 }
 
 /** Rotation: local axis/angle + rotY for every node, world tilt for roots only. */
@@ -109,14 +131,29 @@ function renderRotationSection(container, entry, ctx) {
   }
 }
 
-/** Per-axis scale — every node can stretch or squash on any axis. */
+/** Per-axis scale — every node can stretch or squash on any axis. When the
+ *  State toggle is "empty", the rows edit the `states.empty` keyframe. */
 function renderScaleSection(container, entry, ctx) {
   const t = entry.node.transform ?? (entry.node.transform = {});
+  const empty = editingEmptyState();
   const sec = section('scale', container);
-  sec.append(el('div', 'hint', 'Independent per-axis scale — stretch or squash the part on any axis (base 1).'));
-  sec.append(row('scaleX', numberInput(t.scaleX ?? 1, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleX = v; }) })));
-  sec.append(row('scaleY', numberInput(t.scaleY ?? 1, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleY = v; }) })));
-  sec.append(row('scaleZ', numberInput(t.scaleZ ?? 1, { min: 0.01, onChange: (v) => ctx.mutate(() => { t.scaleZ = v; }) })));
+  if (empty) {
+    sec.append(el('div', 'hint', 'Editing the EMPTY keyframe (growth 0) — these scales lerp to the full-state scales as the feature regrows.'));
+  }
+  const axisSlot = (axis) => {
+    const key = `scale${axis}`;
+    return {
+      read: () => empty ? (entry.node.states?.empty?.[key] ?? t[key] ?? 1) : (t[key] ?? 1),
+      write: (v) => ctx.mutate(() => {
+        if (empty) emptyKeyframe(entry.node)[key] = v;
+        else t[key] = v;
+      }),
+    };
+  };
+  for (const axis of ['X', 'Y', 'Z']) {
+    const slot = axisSlot(axis);
+    sec.append(row(`scale${axis}`, numberInput(slot.read(), { min: 0.01, onChange: (v) => slot.write(v) })));
+  }
 }
 
 export { setLocalPos, renderPositionSection, renderRotationSection, renderScaleSection };

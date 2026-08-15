@@ -35,6 +35,12 @@ export const BLESSED_FONT_DESCRIPTOR = {
       params: { bottomR: 0.2, topR: 0.2, height: 0.02, segments: 8 },
       transform: { y: 0.3 },
       color: 0x6fd4e8,
+      // Growth state: at growth 0 the font is dry — a tiny dull puddle low in
+      // the bowl; it grows and brightens to the brimming pool above as the
+      // font refills (one step per day, see featureRegrowth.js).
+      states: {
+        empty: { scaleX: 0.35, scaleY: 0.2, scaleZ: 0.35, y: 0.14, color: 0x7e99a6 },
+      },
     },
     {
       id: 'font-rim',

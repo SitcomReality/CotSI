@@ -28,6 +28,14 @@ export const S = {
   outlines: false,
 
   /**
+   * Growth-state keyframe the preview shows and the inspector edits: 1 =
+   * "full" (the part's authored base values), 0 = "empty" (the `states.empty`
+   * keyframe, if the part carries one). See partStates.js — tile-driven
+   * features regrow one step per day toward growth 1 in-game.
+   */
+  growth: 1,
+
+  /**
    * Biome id for the preview tile (e.g. 'biome_edenfall'), or null for a plain
    * tile. Sets the per-part biomeScale (stunted Tundra trees, small Painforest
    * groves) and the biome-color influence preview (Edenfall purple leaves).

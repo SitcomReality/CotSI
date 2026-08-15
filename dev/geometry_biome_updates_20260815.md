@@ -23,7 +23,16 @@ This document is following on from the recent update that was implemented in the
 ## Geometry:
 ✅ DONE — undo button added to the geometry editor (button + Ctrl/Cmd+Z; `dev/tools/geometryEditor/history.js`).
 
-NEXT — the growth-state system (below).
+✅ DONE — the growth-state system (design below, now implemented). Features
+carry a continuous `growth` 0 → 1 (`featureRegrowth.js` steps it 1/regrowDays
+per world turn); parts may carry a `states.empty` keyframe (scaleX/Y/Z, root
+`y`, nested `localPos`, color) and the render lerps from the empty look to the
+authored full look by growth — no hide/show, no real-time animation. The
+Blessed Font's water and the Peridexion Tree's fruit use it, and the geometry
+editor has a State toggle (full/empty) that previews and edits the two
+keyframes (badge ◐ on keyframed parts). Authoring reference: `descriptorAuthoring.md` §4.6.
+
+The original design note below is kept for reference.
 
 We need to better support different geometry for things like the Blessed Font showing its full vs empty state. Currently the Blessed Font always looks empty when it's the sole occupant of a hex, but it always looks full when it's been dispersed to the edge of the hex. There should be a separate flag/state for 'ripe' compared to 'depleted' (or some better nomenclature). Obviously the geometry editor needs to support showing/editing the distinct states. Perhaps individual parts can be hidden when the thing is empty? 
 Or, actually, would it be better if the part wasn't hidden, but instead has an altered property that can change dynamically?

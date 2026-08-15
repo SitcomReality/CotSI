@@ -186,6 +186,18 @@ function biomeDecorOverrideId(tile, decorOverrides) {
 }
 
 /**
+ * The continuous 0..1 growth of a tile's feature — the regrow/ripen progress
+ * `featureRegrowth.js` advances one step per world turn. Absent = full (fresh
+ * spawns are ripe); clamped defensively. Parts with a `states.empty` keyframe
+ * lerp toward the empty look at growth 0.
+ */
+function featureGrowth(tile) {
+  const g = tile.feature?.growth;
+  if (typeof g !== 'number' || !Number.isFinite(g)) return 1;
+  return Math.min(1, Math.max(0, g));
+}
+
+/**
  * The biome decor override, or null: a supernatural biome replaces the
  * terrain-default decor with its own descriptor (titanflesh, forespring, ...).
  * Behaves like the simple ground decor (disperses when the center is claimed).
@@ -275,7 +287,7 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
     return tintCache.get(key);
   };
 
-  const runPass = (resolve, gate, liftToFloor = false) => {
+  const runPass = (resolve, gate, liftToFloor = false, growthFor = null) => {
     // Resolve once per tile per pass — the predicate and the record callback
     // both need the result, and each resolver is pure within a pass.
     const resolveCache = new Map();
@@ -291,7 +303,7 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
         const { descriptor, displacement } = cachedResolve(tile);
         // Features stand on the hill peak; decor stays grounded on the surface.
         const pos = liftToFloor ? { ...worldPos, y: hillFloorY(tile) } : worldPos;
-        const records = recordsForDescriptor(descriptor, tile, pos, undefined, displacement, tintFor(tile));
+        const records = recordsForDescriptor(descriptor, tile, pos, undefined, displacement, tintFor(tile), null, false, growthFor ? growthFor(tile) : 1);
         if (records.length === 0) return null;
         let list = groups.get(descriptor.id);
         if (!list) {
@@ -305,7 +317,7 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
   };
 
   runPass((tile) => resolveMountainForTile(tile), decorVisible);
-  runPass((tile) => resolveFeatureForTile(tile, occupants), visible, true);
+  runPass((tile) => resolveFeatureForTile(tile, occupants), visible, true, featureGrowth);
   runPass(
     (tile) => resolveBiomeDecorForTile(tile, occupants, biomeDecorOverrides, visible.has(`${tile.q},${tile.r}`)),
     decorVisible,

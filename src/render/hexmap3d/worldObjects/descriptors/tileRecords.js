@@ -17,6 +17,7 @@ import {
 import { shapeBaseOffset } from './shapeTypes.js';
 import { leafScaleXYZ, isGroupNode, LIFT_RANGE_SEED } from './partScale.js';
 import { tileColorForPart } from './partColor.js';
+import { stateTransform } from './partStates.js';
 import {
   frameLocalPos,
   groupFrameMatrix,
@@ -37,14 +38,14 @@ const OPTIONAL_GROUP_SEED = 53;
  * rigidly — the same convention addTreeRecords uses when it bakes the tree
  * scale into the canopy lift.
  */
-function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint, canonical = false) {
-  const t = part.transform;
+function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint, canonical = false, growth) {
+  const t = stateTransform(part, growth);
   const scaleMul = disp?.scaleMul ?? 1;
   const jitterScale = placement.scaleMul ?? 1;
   // Per-biome size factor — stunts (or grows) the part on tiles of specific
   // biomes (part.biomeScale[biomeId], e.g. Tundra's stunted trees).
   const biomeFactor = canonical ? 1 : (part.biomeScale?.[tile.biomeId] ?? 1);
-  const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor, canonical);
+  const { sx, sy, sz } = leafScaleXYZ(descriptor, part, tile, tileH, i, itemScale, scaleMul, jitterScale, biomeFactor, canonical, growth);
 
   // Bottom-anchored grounding: the shape's base offset (scaled by the record's
   // Y scale) normally bakes into the pivot `y`, so the part's lowest vertex
@@ -111,7 +112,7 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
     record.tiltAxis = tiltAxis;
     record.tilt = tilt;
   }
-  const color = tileColorForPart(part, descriptor, tileH, i, biomeTint, canonical);
+  const color = tileColorForPart(part, descriptor, tileH, i, biomeTint, canonical, growth);
   if (color !== undefined) record.color = color;
 
   return record;
@@ -157,7 +158,7 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
   }
 
   if (isRoot) {
-    out.push(recordForPart(descriptor, part, ctx.tile, ctx.worldPos, ctx.tileH, ctx.i, ctx.itemScale, ctx.placement, ctx.disp, ctx.biomeTint, ctx.canonical));
+    out.push(recordForPart(descriptor, part, ctx.tile, ctx.worldPos, ctx.tileH, ctx.i, ctx.itemScale, ctx.placement, ctx.disp, ctx.biomeTint, ctx.canonical, ctx.growth));
     if (nodeFrames) {
       const r = out[out.length - 1];
       // The root origin is the shape's local-origin height — record y (which
@@ -173,11 +174,11 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
   const biomeFactor = ctx.canonical ? 1 : (part.biomeScale?.[ctx.tile.biomeId] ?? 1);
   const leaf = nestedLeafFrameMatrix(
     part, descriptor, ctx.tile, ctx.tileH, ctx.i, ctx.itemScale,
-    ctx.disp?.scaleMul ?? 1, ctx.placement.scaleMul ?? 1, biomeFactor, ctx.canonical,
+    ctx.disp?.scaleMul ?? 1, ctx.placement.scaleMul ?? 1, biomeFactor, ctx.canonical, ctx.growth,
   );
   const matrix = mat4Multiply(ctx.worldBase, mat4Multiply(frame, leaf));
   const record = { partId: part.id, matrix };
-  const color = tileColorForPart(part, descriptor, ctx.tileH, ctx.i, ctx.biomeTint, ctx.canonical);
+  const color = tileColorForPart(part, descriptor, ctx.tileH, ctx.i, ctx.biomeTint, ctx.canonical, ctx.growth);
   if (color !== undefined) record.color = color;
   out.push(record);
   if (nodeFrames) {
@@ -200,9 +201,13 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
  *        editor's variant picker); null lets the variantRule decide.
  * @param {boolean} [canonical] - canonical preview: base parts, one item,
  *        authored scale, centered, no stretch/color jitter (geometry editor).
+ * @param {number} [growth] - continuous 0..1 feature growth: parts with a
+ *        `states.empty` keyframe lerp scale/position/color from the empty
+ *        keyframe (growth 0) to their authored base (growth 1). 1 or
+ *        undefined renders the authored (full) values.
  * @returns {object[]} instance records tagged with partId ([] when hidden)
  */
-export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false) {
+export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false, growth) {
   if (canonical) {
     const records = [];
     const ctx = {
@@ -212,6 +217,7 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
       disp: {},
       biomeTint: null,
       canonical: true,
+      growth,
       worldBase: worldBaseMatrix(worldPos, { dx: 0, dz: 0 }, {}),
     };
     for (const part of descriptor.parts) {
@@ -249,6 +255,7 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
     const placement = placements[i];
     const ctx = {
       tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
+      growth,
       worldBase: worldBaseMatrix(worldPos, placement, disp),
     };
     for (const part of itemParts) {
@@ -272,7 +279,7 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
  * For clusters every item's nodes land in the same map; later items overwrite
  * earlier ones (the gizmo drags the shared localPos of the last item's frame).
  */
-export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false) {
+export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false, growth) {
   const frames = new Map();
   if (canonical) {
     const ctx = {
@@ -282,6 +289,7 @@ export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(til
       disp: {},
       biomeTint: null,
       canonical: true,
+      growth,
       worldBase: worldBaseMatrix(worldPos, { dx: 0, dz: 0 }, {}),
     };
     for (const part of descriptor.parts) {
@@ -308,6 +316,7 @@ export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(til
     const placement = placements[i];
     const ctx = {
       tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
+      growth,
       worldBase: worldBaseMatrix(worldPos, placement, disp),
     };
     for (const part of parts) {

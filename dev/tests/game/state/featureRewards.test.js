@@ -99,6 +99,7 @@ test('waxbloom: heals, then goes unripe on a regrow timer', () => {
 
   assert.equal(champ.hp, 40, '+10 HP');
   assert.equal(tile.feature.ripe, false);
+  assert.equal(tile.feature.growth, 0, 'spent feature resets to the depleted (empty) state');
   assert.equal(tile.feature.nextRewardDay, 5, 'day 1 + 4 regrow days');
   assert.ok(state._regrowingFeatures.has(HERE));
   assert.ok(tile.feature, 'replenishable feature persists');

@@ -46,7 +46,10 @@ document are out of date.
   heal/regrow cycle. The descriptor model now supports part instancing
   (`meshAssembly` groups records by part id into one InstancedMesh), so the
   original migration blocker is gone — still deferred as not worth the churn
-  while it reads well at game scale.
+  while it reads well at game scale. If it ever migrates, the growth-state
+  system is the mechanism to express the ripe cycle: a `states.empty` keyframe
+  on the fruit parts, driven by the feature's continuous `growth`
+  (`descriptorAuthoring.md` §4.6).
 
 ---
 

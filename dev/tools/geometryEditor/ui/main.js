@@ -15,6 +15,7 @@ import { createPreview, setFloorVisible, bindViewportCallbacks, resetCamera } fr
 import { bindEditorPanel, refreshEditorPanel, undoLastEdit } from './editorPanel.js';
 import { activeParts } from './variantQuery.js';
 import { findNodeById, addLocalDelta } from './partTree/index.js';
+import { editingEmptyState, emptyLocalPos, pruneZeroLocalPos } from './partInspector/stateKeyframes.js';
 import { ENTITY_KINDS } from '../entityView.js';
 import { renderObjectList, populateObjects, bindOverlays, syncChromeHeight } from './objectBrowser.js';
 import { populateBiomeSelect, rebuild, refreshSelectionOverlay, updateEntityMode } from './previewSync.js';
@@ -32,6 +33,7 @@ function bindControls() {
       S.descriptor.displayName = row.displayName;
       S.selectedPartId = null;
       S.variantId = null;
+      S.growth = 1; // a fresh object starts at its full (authored) state
       S.entity.archetype = row.variantId;
       updateEntityMode();
       refreshEditorPanel();
@@ -45,6 +47,7 @@ function bindControls() {
     S.descriptor = next;
     S.selectedPartId = null; // the new object's parts start unselected
     S.variantId = null;      // the new object's variant starts at the first
+    S.growth = 1;            // ... and its growth state at full
     // Keep the archetype selection valid for the new object (stale values fall
     // back to the first variant in the record path, but the browser should show
     // what the preview actually renders).
@@ -66,6 +69,12 @@ function bindControls() {
   els.canonicalCheck.addEventListener('change', () => {
     S.canonical = els.canonicalCheck.checked;
     rebuild();
+  });
+
+  els.stateSelect.addEventListener('change', () => {
+    S.growth = els.stateSelect.value === '0' ? 0 : 1;
+    rebuild();
+    refreshEditorPanel(); // the inspector edits the active keyframe's fields
   });
 
   els.biomeSelect.addEventListener('change', () => {
@@ -131,13 +140,20 @@ function init() {
       refreshSelectionOverlay();
     },
     // Gizmo drags commit through the panel's mutate flow (rebuild + re-render),
-    // so the preview, the wireframe and the inspector stay in lockstep.
+    // so the preview, the wireframe and the inspector stay in lockstep. In the
+    // empty growth state the drag edits the `states.empty` localPos keyframe.
     onMutateLocalPos: (partId, delta) => {
       const entry = findNodeById(activeParts(), partId);
       if (!entry) return;
       panelCtx.mutate(() => {
         const t = entry.node.transform ?? (entry.node.transform = {});
-        addLocalDelta(t, delta.x, delta.y, delta.z);
+        if (editingEmptyState()) {
+          const lp = emptyLocalPos(entry.node);
+          addLocalDelta(lp, delta.x, delta.y, delta.z);
+          pruneZeroLocalPos(entry.node);
+        } else {
+          addLocalDelta(t, delta.x, delta.y, delta.z);
+        }
       });
     },
   });

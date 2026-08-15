@@ -211,6 +211,7 @@ variation: {
 | `stretch` | object | Per-part per-axis stretch override: `{ y: { min, max, seed } }`, or `false` to pin an axis at 1 (no stretch). Overrides the object-level `variation` ranges. |
 | `biomeScale` | object | Per-biome size factor: `{ biome_tundra: 0.85 }` multiplies the part's scale on tiles of that biome (stunted tundra trees). Scales lift/`localPos` rigidly too. |
 | `biomeColor` | object | Per-part biome tint: `{ source: 'primary' \| 'accent' \| 'terrain', influence: 0..1 }` — mixes the part's color toward the tile's blended biome color by `influence` (see §5.7). |
+| `states` | object | Growth-state keyframes — the part's look at different regrowth stages (see §4.6). Shape leaves only; groups reject it. |
 
 ### 4.3 Shape registry
 
@@ -300,6 +301,58 @@ Rotating the group's `localAxis`/`localAngle` swings the lid + straps rigidly
 about the hinge. **Author groups in the geometry editor** (`dev/tools/geometryEditor.html`:
 "Nest into group", "move into group", "Move out of group", "Ungroup") — the
 editor keeps the transforms exact, and Save round-trips the tree.
+
+### 4.6 Growth states (regrowth / ripening)
+
+Features that replenish (the Blessed Font's water, the Peridexion Tree's
+fruit, any future regrow-class reward) can change appearance as they refill.
+Each day, `featureRegrowth.js` advances the feature's continuous `growth`
+0 → 1 (one step of `1/regrowDays` per world turn); the render lerps keyframed
+parts between their **empty** look (growth 0) and their authored **full** look
+(growth 1). There is no real-time animation — the object simply sits one step
+closer to full each day, and the chunk rebuild shows it.
+
+A part opts in with a `states` field; only the `empty` keyframe exists today —
+**the part's base values ARE the full state**, so descriptors without `states`
+render identically at every growth and never carry the field:
+
+```js
+{ id: 'font-water', shape: 'cylinder',
+  params: { bottomR: 0.2, topR: 0.2, height: 0.02 },
+  transform: { y: 0.3 },                 // full: water brims at the rim
+  color: 0x6fd4e8,                       // full: vivid
+  states: {
+    empty: {                              // growth 0: dry font
+      scaleX: 0.35, scaleY: 0.2, scaleZ: 0.35,   // a tiny puddle
+      y: 0.14,                            // low in the bowl
+      color: 0x7e99a6,                    // dull
+    },
+  },
+}
+```
+
+Each field the keyframe lists lerps from the empty value to the base over
+growth 0 → 1; unlisted fields keep their base at every growth. Supported
+keyframe fields:
+
+| Field | Meaning |
+|---|---|
+| `scaleX`, `scaleY`, `scaleZ` | Per-axis scale multipliers at growth 0 (e.g. `scaleY: 0.2` = a flat puddle that swells upward as it fills). |
+| `y` | Root-leaves only: the bottom height at growth 0 (e.g. the puddle sitting low in the bowl). |
+| `localPos` | `{ x, y, z }` — nested leaves only: the position in the parent frame at growth 0. |
+| `color` | The color at growth 0, channel-lerped to the base color (e.g. unripe green → ripe amber). |
+
+Only shape leaves carry `states` (groups have no visuals — validation rejects
+it). Per-instance variation still applies **on top**: stretch/`biomeScale`
+scale and color jitter/biome tint run after the state lerp, so a half-grown
+font still jitters like any other tile.
+
+**In the geometry editor:** the "State" toggle (`full — growth 1` /
+`empty — growth 0`) switches the preview between the two keyframes; with
+"empty" selected, the inspector's Y / localPos / scale / color rows edit the
+`states.empty` keyframe (the part list marks keyframed parts with a ◐ badge).
+The game state drives `growth` in play; the editor just authors the two
+keyframes.
 
 ## 5. How randomization works
 
