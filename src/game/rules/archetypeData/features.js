@@ -80,7 +80,7 @@ defineArchetype('feature_volvelle', {
   type: 'feature',
   name: 'Volvelle',
   archetypeShape: 'disc',
-  tags: ['brass_grave'],
+  tags: ['titanstain'],
   visual: { scale: 0.9 },
 });
 
@@ -104,7 +104,7 @@ defineArchetype('feature_scoriaRose', {
   type: 'feature',
   name: 'Scoria Rose',
   archetypeShape: 'plant',
-  tags: ['brass_grave'],
+  tags: ['titanstain'],
   visual: { scale: 0.8 },
 });
 
@@ -170,7 +170,7 @@ defineArchetype('feature_censerSaint', {
   type: 'feature',
   name: 'Censer Saint',
   archetypeShape: 'censer',
-  tags: ['brass_grave'],
+  tags: ['titanstain'],
   visual: { scale: 1.1 },
 });
 
@@ -210,7 +210,7 @@ defineArchetype('feature_cinderbloom', {
   type: 'feature',
   name: 'Cinderbloom',
   archetypeShape: 'plant',
-  tags: ['brass_grave'],
+  tags: ['titanstain'],
   visual: { scale: 0.8 },
 });
 

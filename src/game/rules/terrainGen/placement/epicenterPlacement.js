@@ -16,7 +16,7 @@ import { SUPERNATURAL_BIOMES } from '../classification/biomeSelection.js';
  * placement. N scales with map area via EPICENTER_CONFIG.density.
  *
  * Biome assignment uses low-frequency FBM noise for natural regional
- * clustering — brass_grave and unfinished_lands form broad contiguous
+ * clustering — titanstain and unfinished_lands form broad contiguous
  * patches rather than a perfectly random scatter.
  *
  * Fully deterministic for a given (baseSeed, radius) pair.

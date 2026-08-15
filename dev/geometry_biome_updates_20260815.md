@@ -13,8 +13,8 @@ This document is following on from the recent update that was implemented in the
 | 7 | 17c77be 1dfc94a | Reorganized descriptors/data and game/state into granular subfolders |
 
 ## Biomes
-* All instances of 'biomeBrassGrave', 'biome_brass_grave' etc. should be changed to titanstain, including biomeBrassGrave.js.
-* Titanstain and Unfinished Lands terrain don't look any different to the surrounding terrain. Do they need to be actual distinct terrain types, with entries in src/game/rules/terrainTypes.js? Titanflesh/Titanblood and the Unfinished terrain should have their own distinctive and unnatural colors. Part of the reason that 'brass grave' was changed is because there's already a lot of warm earthy colors (browns, oranges) for the kind of vibrant supernatural aesthic we want for these corrupted areas of the map. So these biomes should look quite unnatural, more like Edenfall's terrain in terms of its alien vibrancy. The map analysis tool needs to be updated to show these terrains (and appropriate colors for the biomes).
+* All instances of 'biomeTitanstain', 'biome_titanstain' etc. should be changed to titanstain, including biomeTitanstain.js.
+* Titanstain and Unfinished Lands terrain don't look any different to the surrounding terrain. Do they need to be actual distinct terrain types, with entries in src/game/rules/terrainTypes.js? Titanflesh/Titanblood and the Unfinished terrain should have their own distinctive and unnatural colors. Part of the reason that 'titanstain' was changed is because there's already a lot of warm earthy colors (browns, oranges) for the kind of vibrant supernatural aesthic we want for these corrupted areas of the map. So these biomes should look quite unnatural, more like Edenfall's terrain in terms of its alien vibrancy. The map analysis tool needs to be updated to show these terrains (and appropriate colors for the biomes).
 * Titanstain and Unfinished Lands terrains need their own decor entries (add placeholder objects so that they appear listed in the Decor items in the geometryEditor).
 
 ## Geometry:

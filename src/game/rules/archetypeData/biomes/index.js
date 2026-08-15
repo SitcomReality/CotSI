@@ -3,7 +3,7 @@
  * Each file registers itself via defineArchetype() as a side effect.
  */
 
-import './biomeBrassGrave.js';
+import './biomeTitanstain.js';
 import './biomeDefault.js';
 import './biomeDustbleed.js';
 import './biomeEdenfall.js';

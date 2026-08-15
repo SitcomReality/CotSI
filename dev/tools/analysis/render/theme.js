@@ -21,7 +21,7 @@ export const BIOME_COLORS = {
   scorch:       '#be5f00',   // Scorch — burnt orange
   edenfall:     '#8a4a9a',   // Edenfall — purple (distinctive, keep)
   dustbleed:    '#8b2a2a',   // Dustbleed — deep rusty blood-red (distinctive)
-  brass_grave:  '#6b4000',   // Titanstain — olive-brass
+  titanstain:  '#6b4000',   // Titanstain — olive-brass
   frigid_silence: '#73badb', // Frigid Silence — icy blue
   mourning_marsh: '#006b54', // Mourning Marsh — muted green
   unfinished_lands: '#ffb5ef', // Unfinished Lands — warm taupe-grey

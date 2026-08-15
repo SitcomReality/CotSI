@@ -16,7 +16,7 @@ const BIOME_PRIORITY_ORDER = [
 
 /** Supernatural biomes — placed by jittered-grid epicenter pass (A8), never by climate. */
 const SUPERNATURAL_BIOMES = [
-  'biome_brass_grave',
+  'biome_titanstain',
   'biome_unfinished_lands',
 ];
 

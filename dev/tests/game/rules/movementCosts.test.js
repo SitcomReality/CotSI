@@ -107,13 +107,13 @@ test('supernatural biome terrain override: uniform cost + display name', () => {
   // Without the biome, the faction discount still applies.
   assert.equal(terrainCost(verdant, 'forest'), 4);
   // Titanflesh (plains) — uniform 10.
-  assert.equal(terrainCost(null, 'plains', 'biome_brass_grave'), 10);
+  assert.equal(terrainCost(null, 'plains', 'biome_titanstain'), 10);
   // Impassable terrain stays impassable (Forespring water, Sky Stalagmite mountain).
   assert.equal(terrainCost(null, 'water', 'biome_unfinished_lands'), Infinity);
-  assert.equal(terrainCost(null, 'mountain', 'biome_brass_grave'), Infinity);
+  assert.equal(terrainCost(null, 'mountain', 'biome_titanstain'), Infinity);
 
   assert.equal(terrainDisplayName('biome_unfinished_lands', 'mountain'), 'Sky Stalagmite');
-  assert.equal(terrainDisplayName('biome_brass_grave', 'plains'), 'Titanflesh');
+  assert.equal(terrainDisplayName('biome_titanstain', 'plains'), 'Titanflesh');
   assert.equal(terrainDisplayName(null, 'plains'), 'Plains');
   assert.equal(terrainOverride('biome_unfinished_lands', 'hill').name, 'Half-Hewn Rise');
 });

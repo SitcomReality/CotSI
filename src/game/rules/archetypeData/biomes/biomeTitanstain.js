@@ -1,13 +1,13 @@
 /**
- * biomeBrassGrave.js — 'Titanstain' biome.
+ * biomeTitanstain.js — 'Titanstain' biome.
  * A supernatural biome of cold titanflesh and titanblood, with unique features.
  */
 
 import { defineArchetype } from '../../archetypes.js';
 
-defineArchetype('biome_brass_grave', {
+defineArchetype('biome_titanstain', {
   type: 'biome',
-  id: 'biome_brass_grave',
+  id: 'biome_titanstain',
   name: 'Titanstain',
   origin: 'supernatural',
 

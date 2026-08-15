@@ -149,10 +149,10 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 | errataSlip | Errata Slip | live | T4 | utility (terrain change) **or** reward choice | finite | sig (Unfinished Lands) | utility-as-choice |
 | gildedInitial | Gilded Initial | live | T3 | tempbuff (combat this turn), choice of buff | replenishable | shared (Untouched, Unfinished Lands) | needs end-of-turn expiry |
 | halfDrawnObelisk | Half-Drawn Obelisk | live | T4 | utility (teleport) **or** reward choice | finite | sig (Unfinished Lands) | utility-as-choice |
-| volvelle | Volvelle | live | T3 | potency choice (which faction) | finite | sig (Brass Grave) | implemented — see §3a |
-| censerSaint | Censer Saint | live | T3 | risk-reward choice (buff vs cost) | finite | sig (Brass Grave) | implemented — see §3a |
-| scoriaRose | Scoria Rose | live | T2 | knots, renewable (regrow) | replenishable | sig (Brass Grave) | reuse moonberry regrow timer — done |
-| cinderbloom | Cinderbloom | live | T2 | renewable small heal vs overlap | replenishable | sig (Brass Grave) | overlaps Scoria Rose; revisit |
+| volvelle | Volvelle | live | T3 | potency choice (which faction) | finite | sig (Titanstain) | implemented — see §3a |
+| censerSaint | Censer Saint | live | T3 | risk-reward choice (buff vs cost) | finite | sig (Titanstain) | implemented — see §3a |
+| scoriaRose | Scoria Rose | live | T2 | knots, renewable (regrow) | replenishable | sig (Titanstain) | reuse moonberry regrow timer — done |
+| cinderbloom | Cinderbloom | live | T2 | renewable small heal vs overlap | replenishable | sig (Titanstain) | overlaps Scoria Rose; revisit |
 | peridexionTree | Peridexion Tree | live | T3 | heal + tempbuff (combat this turn) | replenishable | sig (Painforest) | |
 | drownedCopyist | Drowned Copyist | live | T3 | knots + tempbuff, direct | finite | sig (Mourning Marsh) | |
 | foolsFire | Fool's-Fire | live | T3 | utility (teleport) **or** reward choice | finite | sig (Mourning Marsh) | utility-as-choice |
@@ -177,7 +177,7 @@ exclusive) / **shared** (multiple biomes, not exclusive).
 | Untouched (default) | Vegetable Lamb | exclusive |
 | Painforest | Peridexion Tree | exclusive |
 | Edenfall | Eden Mushroom / Eden Shroomlet | exclusive (two-feature set) |
-| Brass Grave | Volvelle | exclusive |
+| Titanstain | Volvelle | exclusive |
 | Unfinished Lands | Half-Drawn Obelisk | exclusive |
 | Sere Wastes | Ouroboros Loop | exclusive |
 | Mourning Marsh | Drowned Copyist | exclusive |
