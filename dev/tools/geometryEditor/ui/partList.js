@@ -183,7 +183,7 @@ export function renderPartsList(container, ctx) {
   // list can be reopened without hunting for a button further down the panel.
   // The count covers groups and leaves alike.
   const head = el('div', 'parts-head');
-  head.append(el('span', 'parts-title', `Parts (${countNodes(parts)})`));
+  head.append(el('span', 'parts-title', `Parts (${countNodes(parts)})${motifId ? ` · motif ${motifId}` : ''}`));
   const toggle = el('button', 'parts-collapse', partsListExpanded ? '▾' : '▸');
   toggle.type = 'button';
   toggle.title = partsListExpanded ? 'Collapse the parts list' : 'Expand the parts list';

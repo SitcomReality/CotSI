@@ -46,6 +46,19 @@ export function renderMotifControls(container, ctx) {
   const motifSection = section('motifs', container);
   const ids = motifs.map((m) => m.id);
 
+  // Editing-motif picker (the variant picker's role, motif ids only): selects
+  // which motif the parts list and preview edit, and forces that motif on the
+  // strip (catalog mode) so it can be authored in isolation.
+  const force = el('div', 'variant-picker');
+  const picker = selectInput(
+    [{ value: '', label: '— real rolls (weights)' }, ...ids.map((id) => ({ value: id, label: id }))],
+    S.variantId ?? '',
+    (v) => ctx.mutate(() => { S.variantId = v || null; }),
+  );
+  force.append(picker);
+  motifSection.append(row('Force motif', force));
+  motifSection.append(el('div', 'hint', 'Which motif the parts list edits. Forced, every slot draws it (catalog mode) — the strip switches to it. In-game: pins > force > weights.'));
+
   // Weight inputs + duplicate / delete per motif.
   motifs.forEach((motif, mi) => {
     const mrow = el('div', 'motif-row');
@@ -85,17 +98,6 @@ export function renderMotifControls(container, ctx) {
     d.motifs.push({ id, weight: 1, biomeWeight: {}, parts: [] });
   }));
   motifSection.append(addBtn);
-
-  // Force motif picker — the variant picker's role, motif ids only.
-  const force = el('div', 'variant-picker');
-  const picker = selectInput(
-    [{ value: '', label: '— real rolls (weights)' }, ...ids.map((id) => ({ value: id, label: id }))],
-    S.variantId ?? '',
-    (v) => ctx.mutate(() => { S.variantId = v || null; }),
-  );
-  force.append(picker);
-  motifSection.append(row('Force motif', force));
-  motifSection.append(el('div', 'hint', 'When forced, every slot draws that motif (catalog mode) — the strip switches to it. In-game: pins > force > weights.'));
 
   // Per-biome realized-share grid — biome rows × motif columns.
   const biomes = listArchetypes('biome');

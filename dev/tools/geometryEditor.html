@@ -56,8 +56,8 @@
       <canvas id="preview-canvas"></canvas>
 
       <!-- Preview controls: a collapsible panel pinned to the viewport's
-           top-left. Tile context (biome/terrain/state) on the first row,
-           view toggles + actions on the second; rows wrap on narrow panes. -->
+           top-left. Tile context (biome/state) on the first row, view toggles
+           + actions on the second; rows wrap on narrow panes. -->
       <div id="preview-tools">
         <div class="preview-tools-bar">
           <button id="preview-tools-toggle" type="button" aria-expanded="true" aria-controls="preview-tools-body"
@@ -69,11 +69,6 @@
             <label id="biome-row">
               Biome
               <select id="biome-select" aria-label="Preview-tile biome"></select>
-            </label>
-            <label id="terrain-row">
-              Terrain
-              <select id="terrain-select" aria-label="Preview-tile terrain"
-                title="Preview-tile terrain — drives per-terrain variant pins (terrainVariants), moisture cluster counts, and biome decor overrides"></select>
             </label>
             <label id="state-row">
               State

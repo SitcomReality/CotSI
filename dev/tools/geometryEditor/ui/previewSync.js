@@ -37,13 +37,26 @@ const PREVIEW_TILE = { q: 1, r: 0, terrain: 'forest' };
 const ORIGIN = { x: 0, y: 0, z: 0 };
 
 /**
- * The preview tile, with the editor's selected terrain + biome applied
- * (S.terrain / S.biomeId). The terrain drives per-terrain variant pins,
- * moisture cluster counts, and biome decor overrides; a null biome keeps a
- * plain tile — default part colors and full sizes.
+ * The preview tile's terrain, derived from the descriptor: decors and
+ * mountains are bound to exactly one terrain — the decor's id IS the terrain's
+ * id (gameBuilder's SIMPLE_DECOR_BY_TERRAIN dispatch) — so the terrain is
+ * never a free choice; a feature has no terrain of its own and previews on
+ * the plain default. Only descriptors whose id is a real TERRAIN key use it
+ * as terrain (the biome-override decors — titanflesh, forespring, … — keep
+ * the default tile).
  */
-function previewTile() {
-  const tile = { ...PREVIEW_TILE, terrain: S.terrain };
+function previewTerrain(d) {
+  return TERRAIN[d.id] ? d.id : 'forest';
+}
+
+/**
+ * The preview tile, with the editor's selected biome applied (S.biomeId) and
+ * the terrain derived from the descriptor (previewTerrain). The terrain
+ * feeds moisture cluster counts and the `terrain` biome-tint source; a null
+ * biome keeps a plain tile — default part colors and full sizes.
+ */
+function previewTile(d) {
+  const tile = { ...PREVIEW_TILE, terrain: previewTerrain(d) };
   if (S.biomeId) tile.biomeId = S.biomeId;
   return tile;
 }
@@ -87,18 +100,6 @@ export function populateBiomeSelect() {
   els.biomeSelect.value = S.biomeId ?? '';
 }
 
-/** Fill the preview-tile terrain selector: every registered terrain. */
-export function populateTerrainSelect() {
-  const options = Object.entries(TERRAIN).map(([id, def]) => ({ value: id, label: `${def.label} (${id})` }));
-  els.terrainSelect.replaceChildren(...options.map((o) => {
-    const opt = document.createElement('option');
-    opt.value = o.value;
-    opt.textContent = o.label;
-    return opt;
-  }));
-  els.terrainSelect.value = S.terrain;
-}
-
 /** True while the loaded descriptor came from JSON, not a built-in sample. */
 export function isCustomDescriptor() {
   return !!S.descriptor && !SAMPLE_OBJECTS.some((d) => d.id === S.descriptor.id);
@@ -112,7 +113,7 @@ export function rebuild() {
     return;
   }
   const d = S.descriptor;
-  const tile = previewTile();
+  const tile = previewTile(d);
   const records = ENTITY_KINDS.has(d.kind)
     ? recordsForEntity(d, entityForSelection(S.entity.faction, S.entity.archetype), ORIGIN)
     : recordsForDescriptor(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId, S.canonical, S.growth, S.previewOptions);
@@ -139,7 +140,7 @@ export function rebuild() {
       `hash ${S.tileH} · ${S.displaced ? 'occupied (displaced)' : 'normal'}` +
       (motif ? ` · editing motif ${motif.id}` : variant ? ` · variant ${variant.id}` : '') +
       (S.growth < 1 ? ' · state empty' : ' · state full') +
-      ` · terrain ${S.terrain}` +
+      ` · terrain ${previewTerrain(d)}` +
       (biome ? ` · biome ${biome}` : '') +
       (S.strip ? ' · strip mode' : '');
   }
@@ -154,7 +155,7 @@ export function rebuild() {
  */
 function currentFrames() {
   const d = S.descriptor;
-  const tile = previewTile();
+  const tile = previewTile(d);
   return ENTITY_KINDS.has(d.kind)
     ? nodeWorldFramesForEntity(d, entityForSelection(S.entity.faction, S.entity.archetype), ORIGIN)
     : nodeWorldFrames(d, tile, ORIGIN, S.tileH, { displaced: S.displaced }, previewTint(tile), S.variantId, S.canonical, S.growth, S.previewOptions);
@@ -189,7 +190,6 @@ export function refreshSelectionOverlay() {
 export function updateEntityMode() {
   const entity = ENTITY_KINDS.has(S.descriptor?.kind);
   els.biomeRow.style.display = entity ? 'none' : '';
-  els.terrainRow.style.display = entity ? 'none' : '';
   els.stateRow.style.display = entity ? 'none' : '';
   els.stateSelect.value = S.growth < 1 ? '0' : '1';
   els.occupiedRow.style.display = entity ? 'none' : '';
@@ -211,7 +211,7 @@ export function stripTiles() {
   const out = [];
   for (let dq = -1; dq <= 1; dq++) {
     for (let dr = -1; dr <= 1; dr++) {
-      const tile = { q: cq + dq, r: cr + dr, terrain: S.terrain, moisture: 0.6 };
+      const tile = { q: cq + dq, r: cr + dr, terrain: previewTerrain(S.descriptor), moisture: 0.6 };
       if (S.biomeId) tile.biomeId = S.biomeId;
       out.push({ tile, origin: { x: hexCenter(dq, dr).x, y: 0, z: hexCenter(dq, dr).z } });
     }
@@ -248,7 +248,7 @@ export function updateStripHistogram() {
   let items = 0;
   let dupTiles = 0;
   for (let q = 0; q < N; q++) {
-    const tile = { q: q + S.stripOffset * 7, r: -2, terrain: S.terrain, moisture: 0.6 };
+    const tile = { q: q + S.stripOffset * 7, r: -2, terrain: previewTerrain(d), moisture: 0.6 };
     if (S.biomeId) tile.biomeId = S.biomeId;
     const records = recordsForDescriptor(d, tile, { x: 0, y: 0, z: 0 }, undefined, {}, previewTint(tile), S.variantId, false, S.growth, S.previewOptions);
     const perTile = new Map();

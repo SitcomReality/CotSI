@@ -43,13 +43,6 @@ export const S = {
   biomeId: null,
 
   /**
-   * Terrain of the preview tile (e.g. 'forest' | 'denseForest' | 'marsh').
-   * One decor per terrain — switching the terrain previews that decor (its
-   * default look, moisture cluster counts, and biome decor overrides).
-   */
-  terrain: 'forest',
-
-  /**
    * Whether the preview renders an entity (base/champion/mob/trader).
    * `faction` picks the faction variant + palette; `archetype` picks the shape
    * variant for archetype-rule descriptors (mobs).

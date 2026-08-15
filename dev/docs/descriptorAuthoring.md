@@ -425,9 +425,10 @@ per-part authoring. `normalizeDescriptor` migrates old files (`'cluster'` →
 
 **In the geometry editor:** the object controls list every registered biome
 with one variant select per row ("— default look" clears a pin), and the
-preview bar's Biome / Terrain selectors render the pinned looks — switch the
-terrain to `denseForest` to see the deep-wood decor, or the biome to
-Painforest for the gnarled woods.
+preview bar's Biome selector renders the pinned looks — switch the biome to
+Painforest for the gnarled woods. (The preview tile's terrain is derived from
+the descriptor — each decor is bound to the terrain its id names — so there
+is no terrain selector.)
 
 **Creating a new variant** — the "＋ Duplicate" button in the Variant section
 copies the currently edited look (the active variant's parts, or the fallback
