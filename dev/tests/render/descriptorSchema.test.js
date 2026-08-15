@@ -18,6 +18,10 @@ import {
   denormalizeDescriptor,
   shapeBaseOffset,
 } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+// Populate the biome archetype registry — biomeWeight keys validate against
+// the registered biome id list (the same list the editor's biome rows come
+// from), and the v6 motif tests must exercise that check.
+import '../../../src/game/rules/archetypeData/index.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -892,4 +896,154 @@ test('normalize folds stale root-only fields off groups and nested nodes', () =>
   // Idempotent: re-normalizing the folded result is a no-op.
   assert.deepEqual(normalizeDescriptor(stale), stale);
   assert.deepEqual(normalizeDescriptor(nested), nested);
+});
+
+// ── v6 decor composition: motifs + alternatives (decorComposition.md) ───────
+
+/** A minimal valid v6 motif decor (the §4 desert skeleton, reduced). */
+const MOTIF_DECOR = {
+  schemaVersion: 6,
+  id: 'motif-decor',
+  kind: 'decor',
+  displayName: 'Motif Decor',
+  cluster: { min: 2, max: 4 },
+  placement: { mode: 'scatter', offsetMin: 0.15, offsetMax: 0.45 },
+  motifs: [
+    { id: 'rock', weight: 0.45, parts: [{ id: 'rock-a', shape: 'dodecahedron', params: { radius: 0.13 } }] },
+    {
+      id: 'cactus',
+      weight: 0.4,
+      biomeWeight: { biome_tundra: 0.05, biome_mourning_marsh: 0.1 },
+      parts: [
+        { id: 'cactus-trunk', shape: 'cylinder', params: { bottomR: 0.1, topR: 0.085, height: 0.55, segments: 6 } },
+        {
+          id: 'cactus-arms', seed: 101, default: 'two-straight',
+          alternatives: [
+            { id: 'none', weight: 0.25, parts: [] },
+            { id: 'one-straight', weight: 0.3, parts: [{ id: 'arm-one-a', shape: 'cylinder', params: { bottomR: 0.04, topR: 0.03, height: 0.2, segments: 5 } }] },
+            { id: 'two-straight', weight: 0.3, parts: [{ id: 'arm-two-a', shape: 'cylinder' }, { id: 'arm-two-b', shape: 'cylinder' }] },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+test('v6 motif decor validates (weights, biomeWeight, alternatives with empty none)', () => {
+  const normalized = normalizeDescriptor(MOTIF_DECOR);
+  assert.equal(normalized.schemaVersion, SCHEMA_VERSION);
+  assert.equal(normalized.repeatPenalty, 1, 'repeatPenalty defaults to 1 (inert)');
+  assert.equal(normalized.motifs[0].weight, 0.45, 'authored motif weight survives');
+  assert.deepEqual(normalized.motifs[0].biomeWeight, {}, 'absent biomeWeight fills to {} on normalize');
+  assert.deepEqual(normalized.motifs[1].biomeWeight, { biome_tundra: 0.05, biome_mourning_marsh: 0.1 });
+  assert.equal(normalized.motifs[1].parts[1].alternatives[0].weight, 0.25, 'option weights survive');
+  assert.deepEqual(validateDescriptor(normalized), []);
+  assert.deepEqual(validateDescriptor(MOTIF_DECOR), [], 'raw v6 form validates too');
+});
+
+test('motifs and variants are mutually exclusive on decor; content is required', () => {
+  const both = { ...MOTIF_DECOR, variants: [{ id: 'v', parts: [{ id: 'x', shape: 'sphere' }] }] };
+  assert.ok(validateDescriptor(both).some((e) => e.includes('never both')));
+  // A decor with neither motifs, variants, nor parts is empty content.
+  const empty = { ...MOTIF_DECOR, motifs: undefined };
+  delete empty.variants;
+  assert.ok(validateDescriptor({ ...empty, parts: undefined }).some((e) => e.includes('needs content')));
+});
+
+test('motif validation: duplicate ids, negative weights, bad biomeWeight keys, bad parts', () => {
+  assert.ok(validateDescriptor({
+    ...MOTIF_DECOR,
+    motifs: [...MOTIF_DECOR.motifs, { id: 'rock', weight: 1, parts: [{ id: 'z', shape: 'sphere' }] }],
+  }).some((e) => e.includes('duplicate motif id "rock"')));
+  assert.ok(validateDescriptor({
+    ...MOTIF_DECOR,
+    motifs: [{ id: 'a', weight: -1, parts: [{ id: 'p', shape: 'sphere' }] }],
+  }).some((e) => e.includes('weight') && e.includes('>= 0')));
+  assert.ok(validateDescriptor({
+    ...MOTIF_DECOR,
+    motifs: [{ id: 'a', biomeWeight: { biome_not_a_biome: 2 }, parts: [{ id: 'p', shape: 'sphere' }] }],
+  }).some((e) => e.includes('unknown biome id "biome_not_a_biome"')));
+  assert.ok(validateDescriptor({
+    ...MOTIF_DECOR,
+    motifs: [{ id: 'a', parts: [] }],
+  }).some((e) => e.includes('parts: required non-empty array')));
+  // A motif with unknown fields is rejected.
+  assert.ok(validateDescriptor({
+    ...MOTIF_DECOR,
+    motifs: [{ id: 'a', weight: 1, foo: 2, parts: [{ id: 'p', shape: 'sphere' }] }],
+  }).some((e) => e.includes('unknown field "foo"')));
+});
+
+test('alternatives: geometry fields rejected, seed range enforced, default must exist', () => {
+  const withTransform = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  withTransform.motifs[1].parts[1].transform = { localPos: { x: 0, y: 0, z: 0 } };
+  assert.ok(validateDescriptor(withTransform).some((e) => e.includes('carry no transform')), 'transform is rejected on a choice point');
+
+  const badSeed = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  badSeed.motifs[1].parts[1].seed = 42; // outside the reserved 100–199 lane
+  assert.ok(validateDescriptor(badSeed).some((e) => e.includes('reserved 100–199 draw lane')));
+
+  const badDefault = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  badDefault.motifs[1].parts[1].default = 'nope';
+  assert.ok(validateDescriptor(badDefault).some((e) => e.includes('unknown option "nope"')));
+
+  const negWeight = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  negWeight.motifs[1].parts[1].alternatives[1].weight = -0.5;
+  assert.ok(validateDescriptor(negWeight).some((e) => e.includes('weight') && e.includes('>= 0')));
+
+  // Options may not set shape/params themselves — they only carry parts.
+  const optionShape = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  optionShape.motifs[1].parts[1].alternatives[1].shape = 'sphere';
+  assert.ok(validateDescriptor(optionShape).some((e) => e.includes('option has no "shape"')));
+});
+
+test('part ids are global across parts + motifs + alternatives + optionalGroups', () => {
+  // A part id reused between a motif and an optional group collides (they
+  // render together on one tile → one partById map in meshAssembly).
+  const collision = {
+    ...MOTIF_DECOR,
+    optionalGroups: [{ id: 'g', chance: 1, parts: [{ id: 'rock-a', shape: 'sphere' }] }],
+  };
+  assert.ok(validateDescriptor(collision).some((e) => e.includes('duplicate part id "rock-a"')));
+  // Two alternatives options sharing an id collide too (co-candidate arms).
+  const armCollision = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  armCollision.motifs[1].parts[1].alternatives[1].parts[0].id = 'arm-two-b';
+  assert.ok(validateDescriptor(armCollision).some((e) => e.includes('duplicate part id "arm-two-b"')));
+});
+
+test('denormalize strips only weight:1 and empty biomeWeight (exclusions survive)', () => {
+  const d = normalizeDescriptor(MOTIF_DECOR);
+  const minimal = denormalizeDescriptor(d);
+  assert.equal(minimal.motifs[0].weight, 0.45, 'authored non-default weights are not stripped');
+  assert.equal(minimal.motifs[0].biomeWeight, undefined, 'empty biomeWeight is stripped');
+  assert.deepEqual(minimal.motifs[1].biomeWeight, { biome_tundra: 0.05, biome_mourning_marsh: 0.1 }, 'authored biomeWeight entries are preserved');
+  assert.equal(minimal.motifs[1].parts[1].alternatives[0].weight, 0.25, 'authored option weight survives');
+  assert.equal(minimal.repeatPenalty, undefined, 'repeatPenalty 1 is stripped');
+  assert.deepEqual(normalizeDescriptor(minimal), d, 'round-trip restores the normalized form');
+
+  // A weight-1 motif and a weight-1 option strip to nothing.
+  const weightOne = normalizeDescriptor({
+    ...MOTIF_DECOR,
+    motifs: [
+      { id: 'w1', weight: 1, parts: [{ id: 'w1p', shape: 'sphere' }] },
+      { id: 'w2', parts: [{ id: 'w2p', shape: 'sphere' }] },
+    ],
+  });
+  const minimalOne = denormalizeDescriptor(weightOne);
+  assert.equal(minimalOne.motifs[0].weight, undefined, 'weight 1 is stripped');
+  assert.equal(minimalOne.motifs[1].weight, undefined, 'weight 1 (defaulted) is stripped');
+  assert.deepEqual(normalizeDescriptor(minimalOne), weightOne, 'round-trip restores the weight-1 motifs');
+
+  // `weight: 0` and a present-0 biomeWeight entry are exclusions — preserved.
+  const excluded = normalizeDescriptor({
+    ...MOTIF_DECOR,
+    repeatPenalty: 0,
+    motifs: [
+      { id: 'dead', weight: 0, biomeWeight: { biome_scorch: 0 }, parts: [{ id: 'rib', shape: 'cylinder' }] },
+    ],
+  });
+  const minimalExcluded = denormalizeDescriptor(excluded);
+  assert.equal(minimalExcluded.motifs[0].weight, 0, 'weight 0 is preserved');
+  assert.deepEqual(minimalExcluded.motifs[0].biomeWeight, { biome_scorch: 0 }, 'biomeWeight 0 entry is preserved');
+  assert.equal(minimalExcluded.repeatPenalty, 0, 'repeatPenalty 0 is preserved');
 });

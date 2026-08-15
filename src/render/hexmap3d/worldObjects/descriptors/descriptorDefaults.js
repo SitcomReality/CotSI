@@ -54,9 +54,27 @@ export const PLACEMENT_MODES = Object.freeze(['center', 'scatter', 'ring', 'jitt
  * array) whose transform composes onto its descendants, so sub-assemblies
  * (hinged lids, attached straps) share one transform instead of duplicating
  * numbers. v4 files need no migration — groups are optional, absent means the
- * flat all-leaves model.
+ * flat all-leaves model. v6 adds the decor composition system: `motifs` (a
+ * weighted per-slot table replacing `variants` on the decor path),
+ * decor-level `repeatPenalty`, part-tree `alternatives` nodes (weighted
+ * choice points with authored `seed` + `default`), and per-motif
+ * `biomeWeight`/`size`/`placement` overrides. v5 decor files migrate in
+ * memory via normalizeDescriptor (variant → motif shim, §decorComposition.md
+ * §3.3); the shim never writes back — a decor stays v5 until hand-rewritten.
  */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
+
+/**
+ * Reserved tile-hash seed lanes (decorComposition.md §3.2). Every weighted
+ * draw on the tile path uses its own offset so choices never correlate:
+ * size (i+3), placement (i+13/17/19/23), tilt (tiltSeed+i),
+ * optionalGroups (53), motif draw (61), alternatives (authored 100–199).
+ * Do not reuse these offsets for new draws.
+ */
+export const MOTIF_SEED = 61;
+export const OPTIONAL_GROUP_SEED = 53;
+export const ALTERNATIVE_SEED_MIN = 100;
+export const ALTERNATIVE_SEED_MAX = 199;
 
 /**
  * Defaults for optional object-level fields. Values mirror the current game

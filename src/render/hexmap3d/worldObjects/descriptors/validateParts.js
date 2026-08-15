@@ -10,10 +10,11 @@
  */
 import { SHAPE_TYPES } from './shapeTypes.js';
 import { COLOR_TOKEN_PATTERN } from './typeChecks.js';
-import { isPlainObject, isPositiveNumber, isFiniteNumber, isColorInt, isColorToken } from './typeChecks.js';
+import { isPlainObject, isPositiveNumber, isFiniteNumber, isColorInt, isColorToken, ID_PATTERN } from './typeChecks.js';
 import { validateShapeParams, validateTransform } from './validateShapes.js';
+import { ALTERNATIVE_SEED_MIN, ALTERNATIVE_SEED_MAX } from './descriptorDefaults.js';
 
-const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale', 'states', 'children'];
+const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale', 'states', 'children', 'alternatives', 'seed', 'default'];
 
 const STRETCH_AXES = ['x', 'y', 'z', 'xz']; // 'xz' is the legacy combined axis
 
@@ -154,12 +155,13 @@ function validateStates(states, path, errors) {
 }
 
 /**
- * Validate a single node of a parts tree: either a shape leaf or a group
- * (a `children` array). `seen` is the id set shared across the whole parts set
- * (fallback `parts` or one variant's `parts`) — ids must be unique across the
- * entire subtree because records and InstancedMeshes are keyed by partId.
- * `nested` marks nodes below the root, which use the nested transform field
- * set (no `y`/`lift`/`tilt`).
+ * Validate a single node of a parts tree: either a shape leaf, a group (a
+ * `children` array), or an `alternatives` choice point (an `alternatives`
+ * array — no shape, no children, no transform). `seen` is the id set shared
+ * across the whole parts set (fallback `parts` or one variant's `parts`) —
+ * ids must be unique across the entire subtree because records and
+ * InstancedMeshes are keyed by partId. `nested` marks nodes below the root,
+ * which use the nested transform field set (no `y`/`lift`/`tilt`).
  * @param {object} part - the node
  * @param {string} path - error prefix, e.g. `descriptor.parts[0]`
  * @param {string[]} errors - accumulator
@@ -178,8 +180,27 @@ export function validatePart(part, path, errors, seen = new Set(), nested = fals
     seen.add(part.id);
   }
 
+  const isAlternatives = Array.isArray(part.alternatives);
   const isGroup = Array.isArray(part.children);
-  if (isGroup) {
+  if (isAlternatives) {
+    // A choice point: not a shape and not a group — it emits no geometry of
+    // its own and carries no position, so the full geometry field set is
+    // rejected (STRICTER than the group rule, which keeps `transform`).
+    if (part.shape !== undefined) errors.push(`${path}${label}: alternatives nodes have no shape`);
+    if (part.params !== undefined) errors.push(`${path}${label}: alternatives nodes have no params`);
+    if (part.transform !== undefined) errors.push(`${path}${label}: alternatives nodes carry no transform — wrap a hinged config in a group`);
+    if (part.color !== undefined) errors.push(`${path}${label}: alternatives nodes have no color`);
+    if (part.materialColor !== undefined) errors.push(`${path}${label}: alternatives nodes have no materialColor`);
+    if (part.stretch !== undefined) errors.push(`${path}${label}: alternatives nodes have no stretch`);
+    if (part.biomeColor !== undefined) errors.push(`${path}${label}: alternatives nodes have no biomeColor`);
+    if (part.biomeScale !== undefined) errors.push(`${path}${label}: alternatives nodes have no biomeScale`);
+    if (part.states !== undefined) errors.push(`${path}${label}: alternatives nodes have no states`);
+    if (isGroup) errors.push(`${path}${label}: a node is either alternatives or a group, not both`);
+    if (part.seed !== undefined && !(Number.isInteger(part.seed) && part.seed >= ALTERNATIVE_SEED_MIN && part.seed <= ALTERNATIVE_SEED_MAX)) {
+      errors.push(`${path}${label}.seed: must be an integer in the reserved ${ALTERNATIVE_SEED_MIN}–${ALTERNATIVE_SEED_MAX} draw lane`);
+    }
+    validateAlternativesNode(part, path, errors, seen, nested);
+  } else if (isGroup) {
     if (part.children.length === 0) errors.push(`${path}${label}: group must have at least one child`);
     if (part.shape !== undefined) errors.push(`${path}${label}: groups have no shape — a part is either a shape leaf or a group (children)`);
     if (part.params !== undefined) errors.push(`${path}${label}: groups have no params`);
@@ -221,15 +242,72 @@ export function validatePart(part, path, errors, seen = new Set(), nested = fals
   }
 }
 
-function validatePartsList(parts, path, errors) {
+function validatePartsList(parts, path, errors, seen) {
   if (!Array.isArray(parts) || parts.length === 0) {
     errors.push(`${path}.parts: required non-empty array`);
     return;
   }
-  const seen = new Set();
+  const shared = seen ?? new Set();
   parts.forEach((part, i) => {
-    validatePart(part, `${path}.parts[${i}]`, errors, seen);
+    validatePart(part, `${path}.parts[${i}]`, errors, shared);
   });
+}
+
+/**
+ * Validate an `alternatives` choice point's option table. Each option is
+ * `{ id, weight?, parts }` — `parts` MAY be empty (the `none` option), the one
+ * list in the schema that allows it. Option ids live in the GLOBAL part-id
+ * namespace (two co-candidate arms must not share an id), so they claim the
+ * shared `seen` set too. `weight` must be >= 0 (0 = never drawn). `default`
+ * must name an option that exists. Options reject the explicit geometry field
+ * set (they are parts lists, not shapes), but tolerate unknown NON-geometry
+ * keys: the node may grow `biomeWeight` per option in a later schema rev, so
+ * the validator must not reject keys it expects to gain meaning.
+ */
+function validateAlternativesNode(part, path, errors, seen, nested) {
+  const list = part.alternatives;
+  if (list.length === 0) {
+    errors.push(`${path}${part.id ? ` "${part.id}"` : ''}: alternatives must be a non-empty array`);
+    return;
+  }
+  const optionIds = new Set();
+  list.forEach((option, oi) => {
+    const opath = `${path}.alternatives[${oi}]`;
+    if (!isPlainObject(option)) {
+      errors.push(`${opath}: option must be an object { id, weight?, parts }`);
+      return;
+    }
+    // An option is a parts list entry, not a shape — the explicit geometry
+    // field set is rejected; unknown non-geometry keys are tolerated (future
+    // per-option fields like biomeWeight).
+    for (const key of ['shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale', 'states', 'children', 'alternatives', 'seed', 'default']) {
+      if (option[key] !== undefined) errors.push(`${opath}: option has no "${key}" — config lives on the choice-point node, geometry in its parts`);
+    }
+    if (typeof option.id !== 'string' || !option.id) {
+      errors.push(`${opath}: missing option id`);
+    } else {
+      if (!ID_PATTERN.test(option.id)) errors.push(`${opath}.id: must match /^[A-Za-z0-9_-]+$/`);
+      if (seen.has(option.id)) errors.push(`${opath}: duplicate part id "${option.id}"`);
+      seen.add(option.id);
+      optionIds.add(option.id);
+    }
+    if (option.weight !== undefined && (typeof option.weight !== 'number' || !Number.isFinite(option.weight) || option.weight < 0)) {
+      errors.push(`${opath}.weight: must be a number >= 0`);
+    }
+    // The one schema list whose `parts` may be empty — the `none` option.
+    if (!Array.isArray(option.parts)) {
+      errors.push(`${opath}.parts: required array (may be empty for a "none" option)`);
+    } else {
+      option.parts.forEach((child, ci) => validatePart(child, `${opath}.parts[${ci}]`, errors, seen, nested));
+    }
+  });
+  if (part.default !== undefined) {
+    if (typeof part.default !== 'string' || !part.default) {
+      errors.push(`${path}.default: must name an option id`);
+    } else if (!optionIds.has(part.default)) {
+      errors.push(`${path}.default: unknown option "${part.default}"`);
+    }
+  }
 }
 
 export { validatePartsList };

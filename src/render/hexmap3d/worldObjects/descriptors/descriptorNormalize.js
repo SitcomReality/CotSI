@@ -48,7 +48,23 @@ const LEGACY_SHAPE_NAMES = Object.freeze({
 function normalizePart(part, legacyGrounding = false, nested = false) {
   if (!isPlainObject(part)) return part;
   const out = { ...part };
+  const isAlternatives = Array.isArray(out.alternatives);
   const isGroup = Array.isArray(out.children);
+
+  // Alternatives choice points carry no geometry and no transform — they only
+  // need their option parts normalized (with the same root/nested context as
+  // the node's siblings, so option parts ground like any sibling).
+  if (isAlternatives) {
+    delete out.shape;
+    delete out.params;
+    delete out.transform;
+    out.alternatives = out.alternatives.map((option) => {
+      const o = { ...option };
+      o.parts = (Array.isArray(option.parts) ? option.parts : []).map((p) => normalizePart(p, legacyGrounding, nested));
+      return o;
+    });
+    return out;
+  }
 
   // Shape leaves resolve params + legacy shape names; groups carry neither.
   if (!isGroup) {
@@ -222,6 +238,21 @@ export function normalizeDescriptor(def) {
       return v;
     });
   }
+  // v6 motifs — the decor slot table. Defaults are filled per motif (weight 1,
+  // biomeWeight {} — the only strip-able values; `weight: 0` and a present-0
+  // biomeWeight entry are meaningful exclusions and stay). Per-motif
+  // `size`/`placement` are overrides that inherit decor-level values at draw
+  // time (motifDraw.js merges), so they are NOT filled here.
+  if (Array.isArray(out.motifs)) {
+    out.motifs = out.motifs.map((motif) => {
+      const m = { ...motif };
+      m.weight = motif.weight ?? 1;
+      m.biomeWeight = isPlainObject(motif.biomeWeight) ? { ...motif.biomeWeight } : {};
+      m.parts = (Array.isArray(motif.parts) ? motif.parts : []).map((p) => normalizePart(p, legacyGrounding));
+      return m;
+    });
+  }
+  out.repeatPenalty = out.repeatPenalty ?? 1;
   if (Array.isArray(out.optionalGroups)) {
     out.optionalGroups = out.optionalGroups.map((group) => {
       const g = { ...group };

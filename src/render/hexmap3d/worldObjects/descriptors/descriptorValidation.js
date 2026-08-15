@@ -11,7 +11,8 @@ import {
   isPlainObject, isFiniteNumber, isNonNegativeNumber, isPositiveNumber,
   isColorInt, ID_PATTERN,
 } from './typeChecks.js';
-import { validatePartsList } from './validateParts.js';
+import { validatePartsList, validatePart } from './validateParts.js';
+import { listArchetypes } from '../../../../game/rules/archetypes.js';
 
 const CLUSTER_KEYS = ['min', 'max', 'rule', 'countsByTerrain', 'densityRange', 'jitter'];
 const CLUSTER_RULES = ['uniform', 'moisture'];
@@ -237,8 +238,80 @@ function validatePortrait(portrait, path, errors) {
 const OBJECT_KEYS = [
   'schemaVersion', 'id', 'kind', 'displayName', 'parts', 'variants', 'variantRule',
   'scale', 'cluster', 'size', 'variation', 'placement', 'emphasis', 'material',
-  'slot', 'portrait', 'biomeVariants', 'optionalGroups',
+  'slot', 'portrait', 'biomeVariants', 'optionalGroups', 'motifs', 'repeatPenalty',
 ];
+
+const MOTIF_KEYS = ['id', 'weight', 'biomeWeight', 'size', 'placement', 'parts'];
+
+/**
+ * The registered biome id list, when the archetype registry is populated (the
+ * game and the geometry editor load it; bare Node runs may not). A `biomeWeight`
+ * key that is not registered must not silently no-op (unlike biomeScale /
+ * biomeVariants keys today) — reject it whenever we can see the registry.
+ */
+function registeredBiomeIds() {
+  return new Set(listArchetypes('biome'));
+}
+
+/**
+ * Validate a decor's `motifs` — the weighted per-slot table replacing
+ * `variants` on the decor path (decorComposition.md §2.1). Each motif is
+ * `{ id, weight?, biomeWeight?, size?, placement?, parts }`; motif ids are
+ * unique; `weight` >= 0 (default 1); `biomeWeight` is a sparse per-biome
+ * multiplier (absent key ≡ 1, present 0 ≡ excluded) whose keys must be
+ * registered biome ids; `size`/`placement` are per-motif overrides (absent
+ * fields inherit the decor-level values); `parts` is a regular parts list
+ * (groups + alternatives allowed, non-empty).
+ */
+function validateMotifs(motifs, path, errors, seen) {
+  if (!Array.isArray(motifs) || motifs.length === 0) {
+    errors.push(`${path}: must be a non-empty array of { id, weight?, biomeWeight?, size?, placement?, parts }`);
+    return;
+  }
+  const biomeIds = registeredBiomeIds();
+  const seenMotifIds = new Set();
+  motifs.forEach((motif, mi) => {
+    const mpath = `${path}[${mi}]`;
+    if (!isPlainObject(motif)) {
+      errors.push(`${mpath}: motif must be an object { id, weight?, biomeWeight?, size?, placement?, parts }`);
+      return;
+    }
+    if (typeof motif.id !== 'string' || !motif.id) {
+      errors.push(`${mpath}: missing motif id`);
+    } else {
+      if (!ID_PATTERN.test(motif.id)) errors.push(`${mpath}.id: must match /^[A-Za-z0-9_-]+$/`);
+      if (seenMotifIds.has(motif.id)) errors.push(`${mpath}: duplicate motif id "${motif.id}"`);
+      seenMotifIds.add(motif.id);
+    }
+    for (const key of Object.keys(motif)) {
+      if (!MOTIF_KEYS.includes(key)) errors.push(`${mpath}: unknown field "${key}"`);
+    }
+    if (motif.weight !== undefined && (typeof motif.weight !== 'number' || !Number.isFinite(motif.weight) || motif.weight < 0)) {
+      errors.push(`${mpath}.weight: must be a number >= 0`);
+    }
+    if (motif.biomeWeight !== undefined) {
+      if (!isPlainObject(motif.biomeWeight)) {
+        errors.push(`${mpath}.biomeWeight: must be an object of biome id → multiplier (absent ≡ 1, 0 ≡ excluded)`);
+      } else {
+        for (const [biomeId, factor] of Object.entries(motif.biomeWeight)) {
+          if (typeof factor !== 'number' || !Number.isFinite(factor) || factor < 0) {
+            errors.push(`${mpath}.biomeWeight.${biomeId}: must be a number >= 0`);
+          }
+          if (biomeIds.size > 0 && !biomeIds.has(biomeId)) {
+            errors.push(`${mpath}.biomeWeight: unknown biome id "${biomeId}" (registered: ${[...biomeIds].join(', ')})`);
+          }
+        }
+      }
+    }
+    validateSize(motif.size, `${mpath}.size`, errors);
+    validatePlacement(motif.placement, `${mpath}.placement`, errors);
+    if (!Array.isArray(motif.parts) || motif.parts.length === 0) {
+      errors.push(`${mpath}.parts: required non-empty array`);
+    } else {
+      motif.parts.forEach((part, pi) => validatePart(part, `${mpath}.parts[${pi}]`, errors, seen));
+    }
+  });
+}
 
 /**
  * Validate a descriptor. Accepts raw (un-normalized) descriptors — optional
@@ -260,7 +333,26 @@ export function validateDescriptor(def) {
     errors.push(`descriptor.kind: must be one of ${OBJECT_KINDS.join(', ')}`);
   }
 
-  validatePartsList(def.parts, 'descriptor', errors);
+  // One part-id namespace across the trees that RENDER TOGETHER — the
+  // descriptor's `parts`, every motif's parts (incl. nested alternatives), and
+  // every optional group share one set, because one tile renders all of them
+  // and meshAssembly keys meshes by bare partId from a merged partById map.
+  // Variant parts keep per-variant scoping: only ONE variant renders per item,
+  // and entity/feature barrels rely on the fallback convention that `parts`
+  // re-declares variants[0]'s ids (spec: entity kinds and mountain are
+  // untouched). Cross-variant id reuse is a content hazard the decor migration
+  // uniquifies (forest.js's `trunk`), not a validator rejection.
+  const seen = new Set();
+
+  // The fallback `parts` list is OPTIONAL on the decor path (v6 motifs replace
+  // it — decorComposition.md §2.3); every other kind still requires it.
+  // An empty array is treated as absent (normalizeDescriptor fills `parts: []`
+  // for decor files that author none).
+  if (def.kind === 'decor') {
+    if (Array.isArray(def.parts) && def.parts.length > 0) validatePartsList(def.parts, 'descriptor', errors, seen);
+  } else {
+    validatePartsList(def.parts, 'descriptor', errors, seen);
+  }
 
   if (def.variants !== undefined) {
     if (!Array.isArray(def.variants) || def.variants.length === 0) {
@@ -283,6 +375,26 @@ export function validateDescriptor(def) {
         validateMaterial(variant.material, `${vpath}.material`, errors);
       });
     }
+  }
+
+  // v6 decor composition: `motifs` is the decor path's weighted slot table and
+  // is mutually exclusive with `variants` — a descriptor carrying both is
+  // rejected outright, and the record path never falls through to `parts`.
+  // (Transitional v5 decor files may carry `variants` without `motifs`; the
+  // in-memory shim in normalizeDescriptor gives every decor `motifs` before
+  // the record path runs — decorComposition.md §2.1 / §3.3.)
+  if (def.kind === 'decor') {
+    if (def.motifs !== undefined && def.variants !== undefined) {
+      errors.push('descriptor: decor kind may carry `motifs` OR legacy `variants`, never both');
+    }
+    if (def.motifs === undefined && !Array.isArray(def.variants) && !Array.isArray(def.parts)) {
+      errors.push('descriptor: decor kind needs content — `motifs`, legacy `variants`, or `parts`');
+    }
+  }
+  if (def.motifs !== undefined) {
+    validateMotifs(def.motifs, 'descriptor.motifs', errors, seen);
+  }  if (def.repeatPenalty !== undefined && (typeof def.repeatPenalty !== 'number' || !Number.isFinite(def.repeatPenalty) || def.repeatPenalty < 0 || def.repeatPenalty > 1)) {
+    errors.push('descriptor.repeatPenalty: must be a number in [0, 1] (1 = independent draws, 0 = without replacement)');
   }
 
   if (def.variantRule !== undefined && !VARIANT_RULES.includes(def.variantRule)) {
@@ -329,7 +441,7 @@ export function validateDescriptor(def) {
         if (group.chance !== undefined && (typeof group.chance !== 'number' || group.chance < 0 || group.chance > 1)) {
           errors.push(`${gpath}.chance: must be a number in [0, 1]`);
         }
-        validatePartsList(group.parts, gpath, errors);
+        validatePartsList(group.parts, gpath, errors, seen);
       });
     }
   }

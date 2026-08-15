@@ -246,16 +246,13 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
     assert.ok(closeTo(p.scale, hillItemScale(TILES[6 + i])), `hill mound ${i} at full size (got ${p.scale})`);
   }
 
-  // Ground decor: one cluster per terrain, one mesh per part.
-  const marsh = meshNamed(meshes, 'marsh-reed');
-  const plateau = meshNamed(meshes, 'plateau-mound');
-  const grass = meshNamed(meshes, 'plains-blade');
-  const scrub = meshNamed(meshes, 'desert-cactus-stem');
-  const driftwood = meshNamed(meshes, 'beach-driftwood-log');
-  for (const m of [marsh, plateau, grass, scrub, driftwood]) {
-    assert.ok(m && m.count >= 1, `${m?.name ?? 'missing mesh'} renders at least one instance`);
+  // Ground decor: one cluster per terrain, one mesh per part. Mesh names are
+  // content (part ids change as decor is authored) — assert the decor renders
+  // per terrain instead of pinning part ids.
+  for (const terrain of ['marsh', 'plateau', 'plains', 'desert', 'beach']) {
+    const decorMeshes = meshesStarting(meshes, `${terrain}-`);
+    assert.ok(decorMeshes.length > 0, `${terrain} decor renders at least one mesh`);
   }
-  assert.equal(plateau.count, 1, 'plateau mound is a single center-placed mound');
 
   // Woods meshes: forest's round canopy (2 tiles) + gnarled painforest variant
   // (1 tile), and denseForest's tall canopy (1 tile) — 2 + 4 + 2 parts.
@@ -288,7 +285,7 @@ test('painforest grove and Blessed Font are both descriptor data', () => {
     assert.ok(meshNamed(meshes, name), `${name} mesh present`);
   }
   assert.equal(meshesStarting(meshes, 'tree-').length, 0, 'no solitary-tree meshes on these tiles');
-  assert.ok(meshNamed(meshes, 'plains-blade'), 'the font tile terrain decor still renders');
+  assert.ok(meshesStarting(meshes, 'plains-').length > 0, 'the font tile terrain decor still renders');
 });
 
 // ── Explored-but-out-of-sight terrain decoration ───────────────────────────

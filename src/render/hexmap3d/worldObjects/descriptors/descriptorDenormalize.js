@@ -140,7 +140,21 @@ export function denormalizeDescriptor(def) {
   const denormPart = (part, nested = false) => {
     if (!isPlainObject(part)) return part;
     const p = cloneJson(part);
+    const isAlternatives = Array.isArray(p.alternatives);
     const isGroup = Array.isArray(p.children);
+    if (isAlternatives) {
+      delete p.shape;
+      delete p.params;
+      delete p.transform;
+      p.alternatives = p.alternatives.map((option) => {
+        const o = cloneJson(option);
+        // Only `weight: 1` may be stripped — a 0 is a meaningful exclusion.
+        if (o.weight === 1) delete o.weight;
+        o.parts = (Array.isArray(option.parts) ? option.parts : []).map((child) => denormPart(child, nested));
+        return o;
+      });
+      return p;
+    }
     const shape = SHAPE_TYPES[p.shape];
     if (!isGroup && shape && isPlainObject(p.params)) {
       const params = {};
@@ -174,6 +188,19 @@ export function denormalizeDescriptor(def) {
       return v;
     });
   }
+  if (Array.isArray(out.motifs)) {
+    out.motifs = out.motifs.map((motif) => {
+      const m = { ...motif };
+      // Only `weight: 1` and an EMPTY `biomeWeight` may be stripped — `weight:
+      // 0` and `biomeWeight: { biome_x: 0 }` are meaningful exclusions and must
+      // survive the round-trip (decorComposition.md §3.3).
+      if (m.weight === 1) delete m.weight;
+      if (isPlainObject(m.biomeWeight) && Object.keys(m.biomeWeight).length === 0) delete m.biomeWeight;
+      m.parts = (Array.isArray(motif.parts) ? motif.parts : []).map(denormPart);
+      return m;
+    });
+  }
+  if (out.repeatPenalty === 1) delete out.repeatPenalty;
   if (Array.isArray(out.optionalGroups)) {
     out.optionalGroups = out.optionalGroups.map((group) => {
       const g = { ...group };

@@ -86,6 +86,7 @@ test('records are deterministic across calls', () => {
 test('simple features: one record, legacy scatter bounds', () => {
   for (const raw of ALL_DESCRIPTORS) {
     if (ENTITY_KINDS.has(raw.kind)) continue; // entity descriptors have no placement
+    if (raw.kind !== 'feature') continue;     // decor uses the v6 motifs path, not `parts`
     if (raw.placement?.mode !== 'scatter') continue; // trees use jitter placement
     const d = normalizeDescriptor(raw);
     const [record] = recordsForDescriptor(d, { q: 3, r: -2, terrain: 'plains' }, POS);
