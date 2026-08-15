@@ -1,117 +1,141 @@
+/**
+ * decor/desert.js — Descriptor data for "Desert Growth".
+ *
+ * Generated file: edit this object in the geometry editor
+ * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
+ */
 export const DESERT_DESCRIPTOR = {
-  schemaVersion: 5,
+  schemaVersion: 6,
   id: 'desert',
   kind: 'decor',
   displayName: 'Desert Growth',
-  cluster: { min: 2, max: 4, rule: 'uniform' },
+  cluster: { min: 6, max: 8, rule: 'uniform' },
   size: { min: 0.9, max: 1.2 },
   variation: { colorJitter: 0.06 },
   placement: { mode: 'scatter', offsetMin: 0.15, offsetMax: 0.45, separation: 0.42 },
   emphasis: { behavior: 'dispersed' },
-  biomeVariants: {
-    biome_painforest: 'crimson-waste',
-    biome_tundra: 'coldwaste',
-    biome_frigid_silence: 'coldwaste',
-    biome_scorch: 'blaze-flats',
-    biome_sere_wastes: 'bonedunes',
-    biome_edenfall: 'violet-oasis',
-    biome_mourning_marsh: 'saltflats',
-    biome_dustbleed: 'teal-dunes',
-  },
-  variants: [
+  repeatPenalty: 0.4,
+  motifs: [
     {
-      id: 'saguaro',
+      id: 'cactus',
+      weight: 0.4,
+      biomeWeight: { biome_tundra: 0.05, biome_frigid_silence: 0.05, biome_mourning_marsh: 0.1 },
       parts: [
         {
-          id: 'desert-saguaro-trunk',
+          id: 'cactus-trunk',
           shape: 'cylinder', params: { bottomR: 0.1, topR: 0.085, height: 0.55, segments: 6 },
-          transform: { localPos: { x: 0, y: 0, z: 0 } },
           stretch: { y: { min: 0.9, max: 1.25, seed: 6 }, x: false, z: false },
           color: 0x4c8a4a,
           biomeColor: { source: 'primary', influence: 0.45 },
+          biomeScale: { biome_edenfall: 1.1, biome_dustbleed: 1.05 },
         },
         {
-          id: 'desert-saguaro-arm-a',
-          shape: 'cylinder', params: { bottomR: 0.04, topR: 0.03, height: 0.2, segments: 5 },
-          transform: { localPos: { x: 0.12, y: 0.22, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.9 },
-          color: 0x4c8a4a,
-          biomeColor: { source: 'primary', influence: 0.45 },
+          id: 'cactus-arms', seed: 101, default: 'two-straight',
+          alternatives: [
+            { id: 'none', weight: 0.25, parts: [] },
+            {
+              id: 'one-straight', weight: 0.3,
+              parts: [
+                {
+                  id: 'arm-one-a',
+                  shape: 'cylinder', params: { bottomR: 0.04, topR: 0.03, height: 0.2, segments: 5 },
+                  transform: { localPos: { x: 0.12, y: 0.22, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.9 },
+                  color: 0x4c8a4a,
+                  biomeColor: { source: 'primary', influence: 0.45 },
+                },
+              ],
+            },
+            {
+              id: 'two-straight', weight: 0.3,
+              parts: [
+                {
+                  id: 'arm-two-a',
+                  shape: 'cylinder', params: { bottomR: 0.04, topR: 0.03, height: 0.2, segments: 5 },
+                  transform: { localPos: { x: 0.12, y: 0.22, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.9 },
+                  color: 0x4c8a4a,
+                  biomeColor: { source: 'primary', influence: 0.45 },
+                },
+                {
+                  id: 'arm-two-b',
+                  shape: 'cylinder', params: { bottomR: 0.035, topR: 0.025, height: 0.16, segments: 5 },
+                  transform: { localPos: { x: -0.12, y: 0.26, z: 0.01 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: 0.85 },
+                  color: 0x4c8a4a,
+                  biomeColor: { source: 'primary', influence: 0.45 },
+                },
+              ],
+            },
+            {
+              id: 'elbow', weight: 0.15,
+              parts: [
+                // Hinged arm — the hinge lives OUTSIDE the choice point, in a
+                // group (the choice point cannot carry a transform), so the
+                // base + rise share one localPos/localAngle (the commented-out
+                // "better cactus" in the pre-v6 file).
+                {
+                  id: 'elbow-hinge',
+                  transform: { localPos: { x: 0.12, y: 0.22, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.9 },
+                  children: [
+                    {
+                      id: 'elbow-base',
+                      shape: 'cylinder', params: { bottomR: 0.045, topR: 0.045, height: 0.16, segments: 5 },
+                      transform: { localAxis: { x: 0, y: 0, z: 1 }, localAngle: 1.57 },
+                      color: 0x4c8a4a,
+                    },
+                    {
+                      id: 'elbow-rise',
+                      shape: 'cylinder', params: { bottomR: 0.042, topR: 0.042, height: 0.25, segments: 5 },
+                      transform: { localPos: { x: -0.13, y: 0.04, z: 0 } },
+                      color: 0x4c8a4a,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
+      ],
+    },
+    {
+      id: 'rock',
+      weight: 0.45,
+      parts: [
         {
-          id: 'desert-saguaro-arm-b',
-          shape: 'cylinder', params: { bottomR: 0.035, topR: 0.025, height: 0.16, segments: 5 },
-          transform: { localPos: { x: -0.12, y: 0.26, z: 0.01 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: 0.85 },
-          color: 0x4c8a4a,
-          biomeColor: { source: 'primary', influence: 0.45 },
-        },
-        {
-          id: 'desert-saguaro-rock',
+          id: 'rock-a',
           shape: 'dodecahedron', params: { radius: 0.13 },
-          transform: { localPos: { x: 0.32, y: 0, z: 0.1 }, scaleY: 0.7, scaleX: 1.2, scaleZ: 1.1 },
+          transform: { scaleY: 0.7, scaleX: 1.2, scaleZ: 1.1 },
           color: 0xc49a6c,
           biomeColor: { source: 'terrain', influence: 0.45 },
         },
+      ],
+    },
+    {
+      id: 'shrub',
+      weight: 0.2,
+      parts: [
         {
-          id: 'desert-saguaro-shrub',
+          id: 'shrub-a',
           shape: 'cone', params: { bottomR: 0.16, height: 0.18, radialSegs: 6, heightSegs: 1 },
-          transform: { localPos: { x: -0.28, y: 0, z: -0.08 }, scaleY: 0.7, scaleX: 1.5, scaleZ: 1.5 },
+          transform: { scaleY: 0.7, scaleX: 1.5, scaleZ: 1.5 },
           color: 0x9a8845,
           biomeColor: { source: 'terrain', influence: 0.5 },
         },
       ],
     },
     {
-      id: 'crimson-waste',
+      id: 'cold-mound',
+      weight: 0.05,
+      biomeWeight: { biome_tundra: 0.7, biome_frigid_silence: 0.7 },
       parts: [
         {
-          id: 'desert-pain-cactus-trunk',
-          shape: 'cylinder', params: { bottomR: 0.09, topR: 0.08, height: 0.5, segments: 6 },
-          transform: { localPos: { x: 0, y: 0, z: 0 } },
-          stretch: { y: { min: 0.9, max: 1.25, seed: 6 }, x: false, z: false },
-          color: 0x755b6d,
-          biomeColor: { source: 'primary', influence: 0.5 },
-        },
-        {
-          id: 'desert-pain-cactus-arm',
-          shape: 'cylinder', params: { bottomR: 0.035, topR: 0.03, height: 0.18, segments: 5 },
-          transform: { localPos: { x: 0.12, y: 0.2, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.9 },
-          color: 0x755b6d,
-        },
-        {
-          id: 'desert-pain-cactus-arm-b',
-          shape: 'cylinder', params: { bottomR: 0.03, topR: 0.025, height: 0.15, segments: 5 },
-          transform: { localPos: { x: -0.11, y: 0.24, z: 0.01 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: 0.85 },
-          color: 0x755b6d,
-        },
-        {
-          id: 'desert-pain-rock',
-          shape: 'dodecahedron', params: { radius: 0.14 },
-          transform: { localPos: { x: 0.3, y: 0, z: 0.08 }, scaleY: 0.7, scaleX: 1.2, scaleZ: 1.1 },
-          color: 0x6a4f5e,
-          biomeColor: { source: 'terrain', influence: 0.4 },
-        },
-        {
-          id: 'desert-pain-shrub',
-          shape: 'cone', params: { bottomR: 0.15, height: 0.17, radialSegs: 6, heightSegs: 1 },
-          transform: { localPos: { x: -0.27, y: 0, z: -0.07 }, scaleY: 0.7, scaleX: 1.5, scaleZ: 1.5 },
-          color: 0x9d4d6b,
-          biomeColor: { source: 'primary', influence: 0.6 },
-        },
-      ],
-    },
-    {
-      id: 'coldwaste',
-      parts: [
-        {
-          id: 'desert-cold-mound',
+          id: 'cold-mound-a',
           shape: 'spheroid', params: { radius: 0.13 },
-          transform: { localPos: { x: 0, y: 0, z: 0 }, scaleY: 0.6, scaleX: 1.4, scaleZ: 1.4 },
+          transform: { scaleY: 0.6, scaleX: 1.4, scaleZ: 1.4 },
           color: 0xb4c4c8,
           biomeColor: { source: 'terrain', influence: 0.45 },
           biomeScale: { biome_tundra: 0.85, biome_frigid_silence: 0.85 },
         },
         {
-          id: 'desert-cold-agave',
+          id: 'cold-agave',
           shape: 'cone', params: { bottomR: 0.2, height: 0.18, radialSegs: 6, heightSegs: 1 },
           transform: { localPos: { x: -0.05, y: 0, z: -0.05 }, scaleY: 0.55, scaleX: 1.6, scaleZ: 1.6 },
           color: 0x9db8b0,
@@ -119,14 +143,7 @@ export const DESERT_DESCRIPTOR = {
           biomeScale: { biome_tundra: 0.85, biome_frigid_silence: 0.85 },
         },
         {
-          id: 'desert-cold-rock',
-          shape: 'dodecahedron', params: { radius: 0.12 },
-          transform: { localPos: { x: 0.25, y: 0, z: 0.08 }, scaleY: 0.7, scaleX: 1.2, scaleZ: 1.1 },
-          color: 0x8fa6ae,
-          biomeColor: { source: 'terrain', influence: 0.4 },
-        },
-        {
-          id: 'desert-cold-spar',
+          id: 'cold-spar',
           shape: 'cylinder', params: { bottomR: 0.025, topR: 0.015, height: 0.25, segments: 5 },
           transform: { localPos: { x: -0.22, y: 0, z: 0.12 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.8 },
           color: 0xb8d4da,
@@ -135,266 +152,53 @@ export const DESERT_DESCRIPTOR = {
       ],
     },
     {
-      id: 'blaze-flats',
+      id: 'salt-crust',
+      weight: 0.1,
+      biomeWeight: { biome_mourning_marsh: 0.6 },
       parts: [
         {
-          id: 'desert-scorch-cactus',
-          shape: 'cylinder', params: { bottomR: 0.08, topR: 0.07, height: 0.45, segments: 6 },
-          transform: { localPos: { x: 0, y: 0, z: 0 } },
-          stretch: { y: { min: 0.85, max: 1.15, seed: 6 }, x: false, z: false },
-          color: 0xa4a04b,
-          biomeColor: { source: 'terrain', influence: 0.5 },
-        },
-        {
-          id: 'desert-scorch-arm',
-          shape: 'cylinder', params: { bottomR: 0.03, topR: 0.022, height: 0.15, segments: 5 },
-          transform: { localPos: { x: 0.12, y: 0.18, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.9 },
-          color: 0xa4a04b,
-        },
-        {
-          id: 'desert-scorch-rock',
-          shape: 'dodecahedron', params: { radius: 0.14 },
-          transform: { localPos: { x: 0.3, y: 0, z: 0.09 }, scaleY: 0.7, scaleX: 1.2, scaleZ: 1.1 },
-          color: 0xd2b98e,
-          biomeColor: { source: 'terrain', influence: 0.5 },
-        },
-        {
-          id: 'desert-scorch-stub',
-          shape: 'cylinder', params: { bottomR: 0.035, topR: 0.025, height: 0.2, segments: 5 },
-          transform: { localPos: { x: -0.2, y: 0, z: -0.05 } },
-          color: 0xb29d6b,
-          biomeColor: { source: 'terrain', influence: 0.45 },
-        },
-        {
-          id: 'desert-scorch-shrub',
-          shape: 'cone', params: { bottomR: 0.13, height: 0.14, radialSegs: 6, heightSegs: 1 },
-          transform: { localPos: { x: -0.28, y: 0, z: -0.1 }, scaleY: 0.65, scaleX: 1.5, scaleZ: 1.5 },
-          color: 0xbb984a,
-          biomeColor: { source: 'terrain', influence: 0.5 },
-        },
-      ],
-    },
-    {
-      id: 'bonedunes',
-      parts: [
-        {
-          id: 'desert-bone-cactus',
-          shape: 'cylinder', params: { bottomR: 0.08, topR: 0.07, height: 0.5, segments: 6 },
-          transform: { localPos: { x: 0, y: 0, z: 0 } },
-          stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false },
-          color: 0xd9cdb4,
-          biomeColor: { source: 'terrain', influence: 0.55 },
-        },
-        {
-          id: 'desert-bone-arm',
-          shape: 'cylinder', params: { bottomR: 0.03, topR: 0.025, height: 0.16, segments: 5 },
-          transform: { localPos: { x: 0.12, y: 0.22, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.9 },
-          color: 0xd9cdb4,
-        },
-        {
-          id: 'desert-bone-rock',
-          shape: 'dodecahedron', params: { radius: 0.14 },
-          transform: { localPos: { x: 0.3, y: 0, z: 0.08 }, scaleY: 0.7, scaleX: 1.2, scaleZ: 1.1 },
-          color: 0xcfc0a4,
-          biomeColor: { source: 'terrain', influence: 0.55 },
-        },
-        {
-          id: 'desert-bone-rib',
-          shape: 'cylinder', params: { bottomR: 0.045, topR: 0.02, height: 0.4, segments: 5 },
-          transform: { localPos: { x: -0.18, y: 0, z: 0.03 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -1.1 },
-          color: 0xe2d7bd,
-          biomeColor: { source: 'terrain', influence: 0.5 },
-        },
-        {
-          id: 'desert-bone-chip',
-          shape: 'cube', params: { size: 0.05 },
-          transform: { localPos: { x: -0.06, y: 0, z: 0.13 } },
-          color: 0xe6dcc3,
-        },
-      ],
-    },
-    {
-      id: 'violet-oasis',
-      parts: [
-        {
-          id: 'desert-eden-cactus',
-          shape: 'cylinder', params: { bottomR: 0.1, topR: 0.085, height: 0.55, segments: 6 },
-          transform: { localPos: { x: 0, y: 0, z: 0 } },
-          stretch: { y: { min: 0.9, max: 1.25, seed: 6 }, x: false, z: false },
-          color: 0x8e6cb5,
-          biomeColor: { source: 'primary', influence: 0.6 },
-          biomeScale: { biome_edenfall: 1.1 },
-        },
-        {
-          id: 'desert-eden-arm-a',
-          shape: 'cylinder', params: { bottomR: 0.04, topR: 0.03, height: 0.2, segments: 5 },
-          transform: { localPos: { x: 0.12, y: 0.22, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.9 },
-          color: 0x8e6cb5,
-          biomeColor: { source: 'primary', influence: 0.6 },
-        },
-        {
-          id: 'desert-eden-arm-b',
-          shape: 'cylinder', params: { bottomR: 0.035, topR: 0.025, height: 0.16, segments: 5 },
-          transform: { localPos: { x: -0.12, y: 0.26, z: 0.01 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: 0.85 },
-          color: 0x8e6cb5,
-        },
-        {
-          id: 'desert-eden-crystal',
-          shape: 'dodecahedron', params: { radius: 0.1 },
-          transform: { localPos: { x: 0.3, y: 0, z: 0.08 }, scaleY: 1.8, scaleX: 0.6, scaleZ: 0.6, localAngle: 0.5 },
-          color: 0xc38ef0,
-          biomeColor: { source: 'accent', influence: 0.7 },
-        },
-        {
-          id: 'desert-eden-rock',
-          shape: 'dodecahedron', params: { radius: 0.12 },
-          transform: { localPos: { x: -0.25, y: 0, z: -0.05 }, scaleY: 0.7, scaleX: 1.2, scaleZ: 1.1 },
-          color: 0x6a4a7d,
-          biomeColor: { source: 'primary', influence: 0.4 },
-        },
-      ],
-    },
-    {
-      id: 'saltflats',
-      parts: [
-        {
-          id: 'desert-salt-mound',
+          id: 'salt-mound',
           shape: 'spheroid', params: { radius: 0.14 },
-          transform: { localPos: { x: 0, y: 0, z: 0 }, scaleY: 0.4, scaleX: 1.6, scaleZ: 1.6 },
+          transform: { scaleY: 0.4, scaleX: 1.6, scaleZ: 1.6 },
           color: 0x8e9490,
           biomeColor: { source: 'terrain', influence: 0.55 },
         },
         {
-          id: 'desert-salt-crust',
+          id: 'salt-crust-a',
           shape: 'cube', params: { size: 0.07 },
           transform: { localPos: { x: -0.2, y: 0, z: -0.02 } },
           color: 0xa5aeab,
           biomeColor: { source: 'terrain', influence: 0.5 },
         },
         {
-          id: 'desert-salt-stalk',
+          id: 'salt-stalk',
           shape: 'cylinder', params: { bottomR: 0.02, topR: 0.032, height: 0.32, segments: 5 },
           transform: { localPos: { x: 0.14, y: 0, z: -0.06 } },
           stretch: { y: { min: 0.85, max: 1.15, seed: 6 }, x: false, z: false },
           color: 0x6f7c76,
           biomeColor: { source: 'terrain', influence: 0.5 },
         },
-        {
-          id: 'desert-salt-stub',
-          shape: 'cylinder', params: { bottomR: 0.03, topR: 0.02, height: 0.18, segments: 5 },
-          transform: { localPos: { x: -0.08, y: 0, z: 0.13 } },
-          color: 0x7f8a84,
-          biomeColor: { source: 'terrain', influence: 0.55 },
-        },
       ],
     },
     {
-      id: 'teal-dunes',
+      id: 'dead-cactus',
+      weight: 0.05,
+      biomeWeight: { biome_sere_wastes: 0.5, biome_scorch: 0.3 },
       parts: [
         {
-          id: 'desert-teal-cactus',
-          shape: 'cylinder', params: { bottomR: 0.09, topR: 0.08, height: 0.5, segments: 6 },
-          transform: { localPos: { x: 0, y: 0, z: 0 } },
-          stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false },
-          color: 0x2e9e95,
-          biomeColor: { source: 'accent', influence: 0.65 },
-          biomeScale: { biome_dustbleed: 1.05 },
+          id: 'dead-rib',
+          shape: 'cylinder', params: { bottomR: 0.045, topR: 0.02, height: 0.4, segments: 5 },
+          transform: { localPos: { x: -0.18, y: 0, z: 0.03 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -1.1 },
+          color: 0xe2d7bd,
+          biomeColor: { source: 'terrain', influence: 0.5 },
         },
         {
-          id: 'desert-teal-arm',
-          shape: 'cylinder', params: { bottomR: 0.035, topR: 0.03, height: 0.18, segments: 5 },
-          transform: { localPos: { x: 0.12, y: 0.2, z: 0 }, localAxis: { x: 0, y: 0, z: 1 }, localAngle: -0.9 },
-          color: 0x2e9e95,
-        },
-        {
-          id: 'desert-teal-crystal',
-          shape: 'dodecahedron', params: { radius: 0.11 },
-          transform: { localPos: { x: 0.27, y: 0, z: 0.06 }, scaleY: 1.7, scaleX: 0.6, scaleZ: 0.6, localAngle: 0.5 },
-          color: 0x69e2dd,
-          biomeColor: { source: 'accent', influence: 0.75 },
-        },
-        {
-          id: 'desert-teal-rock',
-          shape: 'dodecahedron', params: { radius: 0.12 },
-          transform: { localPos: { x: -0.23, y: 0, z: -0.05 }, scaleY: 0.7, scaleX: 1.2, scaleZ: 1.1 },
-          color: 0x5b8985,
-          biomeColor: { source: 'terrain', influence: 0.4 },
-        },
-        {
-          id: 'desert-teal-shrub',
-          shape: 'cone', params: { bottomR: 0.14, height: 0.16, radialSegs: 6, heightSegs: 1 },
-          transform: { localPos: { x: -0.27, y: 0, z: -0.08 }, scaleY: 0.7, scaleX: 1.5, scaleZ: 1.5 },
-          color: 0x4fc2b9,
-          biomeColor: { source: 'accent', influence: 0.6 },
+          id: 'dead-chip',
+          shape: 'cube', params: { size: 0.05 },
+          transform: { localPos: { x: -0.06, y: 0, z: 0.13 } },
+          color: 0xe6dcc3,
         },
       ],
     },
   ],
 };
-
-/**
-BETTER LOOKING (OR ALTERNATIVE?) CACTUS:
-
-
-export const DESERT_DESCRIPTOR = {
-  schemaVersion: 5,
-  id: 'desert',
-  kind: 'decor',
-  displayName: 'Desert',
-  scale: 1.1,
-  cluster: { max: 3 },
-  placement: { mode: 'scatter', offsetMin: 0.16, offsetMax: 0.42, separation: 0.5 },
-  emphasis: { behavior: 'dispersed' },
-  variation: { stretchY: [0.85, 1.3], colorJitter: 0.04 },
-  parts: [
-    {
-      id: 'cactus-stem',
-      shape: 'cylinder',
-      params: { bottomR: 0.065, topR: 0.065, height: 0.62 },
-      color: 0x2e6f40,
-      biomeColor: { source: 'primary', influence: 0.35 },
-    },
-    {
-      id: 'left-arm-group',
-      transform: { localPos: { x: -0.05, y: 0.28, z: 0 } },
-      children: [
-        {
-          id: 'arm-base-l',
-          shape: 'cylinder',
-          params: { bottomR: 0.045, topR: 0.045, height: 0.16, segments: 5 },
-          transform: { localAxis: { x: 0, y: 0, z: 1 }, localAngle: 1.57 },
-          color: 0x2e6f40,
-        },
-        {
-          id: 'arm-rise-l',
-          shape: 'cylinder',
-          params: { bottomR: 0.042, topR: 0.042, height: 0.25, segments: 5 },
-          transform: { localPos: { x: -0.13, y: 0.04, z: 0 } },
-          color: 0x2e6f40,
-        },
-      ],
-    },
-    {
-      id: 'right-arm-group',
-      transform: { localPos: { x: 0.05, y: 0.36, z: 0.02 } },
-      children: [
-        {
-          id: 'arm-base-r',
-          shape: 'cylinder',
-          params: { bottomR: 0.045, topR: 0.045, height: 0.13, segments: 5 },
-          transform: { localAxis: { x: 0, y: 0, z: 1 }, localAngle: -1.57 },
-          color: 0x2a663b,
-        },
-        {
-          id: 'arm-rise-r',
-          shape: 'cylinder',
-          params: { bottomR: 0.042, topR: 0.042, height: 0.2, segments: 5 },
-          transform: { localPos: { x: 0.11, y: 0.04, z: 0 } },
-          color: 0x2a663b,
-        },
-      ],
-    },
-  ],
-};
-
-*/
