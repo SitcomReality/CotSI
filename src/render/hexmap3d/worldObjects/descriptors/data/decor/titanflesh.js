@@ -1,35 +1,79 @@
-/**
- * titanflesh.js — Descriptor data for "Titanflesh".
- *
- * Generated file: edit this object in the geometry editor
- * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
- *
- * Placeholder decor for the Titanstain biome's land terrains — fleshy lumps
- * and veins that will be redesigned into proper crazy geometry.
- */
 export const TITANFLESH_DESCRIPTOR = {
   schemaVersion: 5,
   id: 'titanflesh',
   kind: 'decor',
-  displayName: 'Titanflesh',
-  cluster: { min: 2, max: 3 },
-  placement: { mode: 'scatter', offsetMin: 0.15, offsetMax: 0.4, separation: 0.4 },
+  displayName: 'Titanflesh Growths',
+  cluster: { min: 2, max: 4, rule: 'uniform' },
+  size: { min: 0.9, max: 1.3 },
+  variation: {
+    stretchY: [0.75, 1.35],
+    stretchX: [0.85, 1.25],
+    stretchZ: [0.85, 1.25],
+    colorJitter: 0.06,
+  },
+  placement: { mode: 'scatter', offsetMin: 0.12, offsetMax: 0.42, separation: 0.36 },
   emphasis: { behavior: 'dispersed' },
   parts: [
     {
-      id: 'flesh-lump',
-      shape: 'sphere',
-      params: { radius: 0.08 },
-      color: 0xe8b0c0,
-      biomeColor: { source: 'terrain', influence: 0.7 },
+      id: 'titan-spire',
+      shape: 'cone',
+      params: { bottomR: 0.09, height: 0.38, radialSegs: 6, heightSegs: 2 },
+      transform: { localPos: { x: -0.12, y: 0, z: -0.03 } },
+      stretch: { y: { min: 0.85, max: 1.35, seed: 6 }, x: false, z: false },
+      color: 0x7c3b48,
+      biomeColor: { source: 'primary', influence: 0.55 },
     },
     {
-      id: 'flesh-vein',
+      id: 'titan-tooth',
       shape: 'cylinder',
-      params: { bottomR: 0.02, topR: 0.02, height: 0.22, segments: 5 },
-      transform: { localAxis: { x: 1, y: 0, z: 0 }, localAngle: 1.57 },
-      color: 0xa02050,
-      biomeColor: { source: 'accent', influence: 0.6 },
+      params: { bottomR: 0.028, topR: 0.012, height: 0.24, segments: 5 },
+      transform: {
+        localPos: { x: 0.18, y: 0, z: 0.07 },
+        localAxis: { x: 0, y: 0, z: 1 },
+        localAngle: -0.7,
+      },
+      stretch: { y: { min: 0.8, max: 1.25, seed: 8 }, x: false, z: false },
+      color: 0xd8d0c0,
+      biomeColor: { source: 'terrain', influence: 0.3 },
+    },
+    {
+      id: 'titan-boil',
+      shape: 'spheroid',
+      params: { radius: 0.13 },
+      transform: {
+        localPos: { x: 0.05, y: 0, z: -0.12 },
+        scaleY: 0.7,
+        scaleX: 1.4,
+        scaleZ: 1.4,
+      },
+      color: 0x9c4a5a,
+      biomeColor: { source: 'primary', influence: 0.6 },
+    },
+    {
+      id: 'titan-nodule',
+      shape: 'dodecahedron',
+      params: { radius: 0.08 },
+      transform: {
+        localPos: { x: -0.26, y: 0, z: 0.12 },
+        scaleY: 1.4,
+        localAxis: { x: 1, y: 1, z: 0 },
+        localAngle: 0.4,
+      },
+      color: 0x6e2f3d,
+      biomeColor: { source: 'accent', influence: 0.45 },
+    },
+    {
+      id: 'titan-tendril',
+      shape: 'cylinder',
+      params: { bottomR: 0.02, topR: 0.042, height: 0.2, segments: 5 },
+      transform: {
+        localPos: { x: 0.26, y: 0, z: -0.08 },
+        tiltAxis: { x: 1, z: 0 },
+        tilt: 0.6,
+      },
+      stretch: { y: { min: 0.7, max: 1.3, seed: 10 }, x: false, z: false },
+      color: 0x582535,
+      biomeColor: { source: 'primary', influence: 0.55 },
     },
   ],
 };
