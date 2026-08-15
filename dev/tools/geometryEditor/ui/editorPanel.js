@@ -10,6 +10,7 @@
  */
 import { S } from '../state.js';
 import { activeParts } from './variantQuery.js';
+import { pushUndo, popUndo, restoreUndo } from '../history.js';
 import { findNodeById } from './partTree/index.js';
 import { renderPartsList } from './partList.js';
 import { renderObjectHeader, renderObjectControls } from './objectControls.js';
@@ -22,9 +23,20 @@ let onLoaded = () => {};
 
 // ── Mutation flow ───────────────────────────────────────────────────────────
 
-/** Apply a descriptor mutation, rebuild the preview, then re-render. */
+/** Apply a descriptor mutation, rebuild the preview, then re-render. The
+ *  pre-edit state is snapshotted first so the change is undoable. */
 function mutate(fn) {
+  pushUndo();
   fn();
+  onEdit();
+  renderAll();
+}
+
+/** Restore the most recent pre-edit snapshot and re-render (undo button). */
+export function undoLastEdit() {
+  const snap = popUndo();
+  if (!snap) return;
+  restoreUndo(snap);
   onEdit();
   renderAll();
 }

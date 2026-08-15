@@ -12,7 +12,7 @@ import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
 import { SAMPLE_OBJECTS, MOB_ROWS } from '../sampleObjects.js';
 import { createPreview, setFloorVisible, bindViewportCallbacks, resetCamera } from '../preview/index.js';
-import { bindEditorPanel, refreshEditorPanel } from './editorPanel.js';
+import { bindEditorPanel, refreshEditorPanel, undoLastEdit } from './editorPanel.js';
 import { activeParts } from './variantQuery.js';
 import { findNodeById, addLocalDelta } from './partTree/index.js';
 import { ENTITY_KINDS } from '../entityView.js';
@@ -89,6 +89,20 @@ function bindControls() {
 
   els.resetCameraBtn.addEventListener('click', () => {
     resetCamera();
+  });
+
+  els.undoBtn.addEventListener('click', () => {
+    undoLastEdit();
+  });
+
+  // Ctrl/Cmd+Z undoes the last edit (unless the focus is in a text field).
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      e.preventDefault();
+      undoLastEdit();
+    }
   });
 }
 
