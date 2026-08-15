@@ -124,13 +124,16 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
   const forest = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'forest'));
   const tile = { q: 3, r: -2, terrain: 'forest', moisture: 0.8 };
   const normal = recordsForDescriptor(forest, tile, POS);
-  // v6 migration: motif part ids carry the variant prefix — match by suffix.
-  const trunkOf = (records) => records.filter((r) => r.partId.endsWith('-trunk'));
-  const count = trunkOf(normal).length;
+  // v6: motif part ids carry the motif prefix, and some trunk parts are named
+  // -trunk-base/-trunk-upper — count ITEMS by distinct root origins instead.
+  const itemCount = (records) => new Set(
+    records.filter((r) => r.x !== undefined).map((r) => `${r.x.toFixed(6)},${r.z.toFixed(6)}`),
+  ).size;
+  const count = itemCount(normal);
   assert.ok(count >= 3 && count <= 5, `forest count ${count} outside [3,5]`);
 
   const displaced = recordsForDescriptor(forest, tile, POS, undefined, { displaced: true });
-  const dCount = trunkOf(displaced).length;
+  const dCount = itemCount(displaced);
   assert.equal(dCount, count, 'dispersal keeps the same member count');
   for (const record of displaced) {
     const dist = Math.hypot(record.x - POS.x, record.z - POS.z);
@@ -140,7 +143,13 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
   // Sanity: dispersed ring offsets match decorEmphasis' own function (within
   // float tolerance — `record.x = POS.x + dx` loses one ulp on round-trip).
   const expected = dispersedRingOffsets(count, ((3 * 7 + -2 * 13) * 31) % 17);
-  trunkOf(displaced).forEach((record, i) => {
+  const rootRecords = displaced.filter((r) => r.x !== undefined);
+  const seen = new Set();
+  rootRecords.forEach((record) => {
+    const key = `${record.x.toFixed(6)},${record.z.toFixed(6)}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    const i = seen.size - 1;
     assert.ok(Math.abs(record.x - POS.x - expected[i].dx) < 1e-9, `item ${i} dx`);
     assert.ok(Math.abs(record.z - POS.z - expected[i].dz) < 1e-9, `item ${i} dz`);
   });
@@ -148,7 +157,7 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
   // The denseForest decor is a separate object with its own (denser) moisture
   // count range — 4..7 trees per tile.
   const deep = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'denseForest'));
-  const deepCount = trunkOf(recordsForDescriptor(deep, { q: 3, r: -2, terrain: 'denseForest', moisture: 0.8 }, POS)).length;
+  const deepCount = itemCount(recordsForDescriptor(deep, { q: 3, r: -2, terrain: 'denseForest', moisture: 0.8 }, POS));
   assert.ok(deepCount >= 4 && deepCount <= 7, `denseForest count ${deepCount} outside [4,7]`);
 });
 

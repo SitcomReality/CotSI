@@ -78,10 +78,13 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
   }
 
   // Woods decor renders trunk + canopy parts (ids carry the motif prefix under
-  // the v6 migration, so match by substring).
-  const hasPart = (prefix, needle) => meshes.some((m) => m.name.startsWith(prefix) && m.name.includes(needle));
-  assert.ok(hasPart('forest-', '-trunk') && hasPart('forest-', '-canopy-'), 'forest trunk/canopy parts');
-  assert.ok(hasPart('denseForest-', '-trunk') && hasPart('denseForest-', '-canopy-'), 'denseForest trunk/canopy parts');
+  // the v6 migration, so match by substring; gnarled trunks are -trunk-base/
+  // -trunk-upper and the marshwood/violetwood canopies are -crown).
+  const hasPart = (prefix, needles) => meshes.some((m) => m.name.startsWith(prefix) && needles.some((n) => m.name.includes(n)));
+  const TRUNK = ['-trunk'];
+  const CANOPY = ['-canopy', '-crown'];
+  assert.ok(hasPart('forest-', TRUNK) && hasPart('forest-', CANOPY), 'forest trunk/canopy parts');
+  assert.ok(hasPart('denseForest-', TRUNK) && hasPart('denseForest-', CANOPY), 'denseForest trunk/canopy parts');
   const knots = meshes.filter((m) => m.name.startsWith('knot-'));
   assert.equal(knots.length, 1, 'one knot mesh');
   assert.equal(meshes.filter((m) => m.name.startsWith('mountain-')).length, 1, 'one mountain mesh');
