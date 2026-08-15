@@ -808,6 +808,42 @@ test('optionalGroups: independent per-tile include/exclude of sub-objects', () =
   assert.deepEqual(ids(TILE), ids({ ...TILE }), 'presence is deterministic per tile');
 });
 
+// ── Shared tile walk (records + frames) ─────────────────────────────────────
+
+test('frames ≡ records: nodeWorldFrames emits the SAME partId set as records (optional groups included)', () => {
+  // Characterization pin for the unified tile walk: before the refactor
+  // nodeWorldFrames duplicated recordsForDescriptor's loop but never emitted
+  // optionalGroups, so the gizmo silently skipped group parts the preview
+  // rendered. Both entry points now share one walk with two sinks — the frame
+  // partId set must equal the record partId set on every tile and hash.
+  const d = normalizeDescriptor({
+    id: 'frames-records',
+    kind: 'decor',
+    displayName: 'Frames ≡ Records',
+    cluster: { min: 2, max: 4 },
+    placement: { mode: 'center' },
+    parts: [{ id: 'base', shape: 'sphere' }],
+    optionalGroups: [
+      { id: 'always', chance: 1, parts: [{ id: 'g-always', shape: 'cylinder' }] },
+      { id: 'never', chance: 0, parts: [{ id: 'g-never', shape: 'cone' }] },
+    ],
+  });
+  for (let q = 0; q < 20; q++) {
+    const tile = { q, r: 3, terrain: 'plains' };
+    const tileH = ((q * 7 + 3 * 13) * 31) % 17;
+    const records = recordsForDescriptor(d, tile, POS);
+    const frames = nodeWorldFrames(d, tile, POS);
+    const recordIds = new Set(records.map((r) => r.partId));
+    assert.deepEqual(new Set(frames.keys()), recordIds, `q=${q} frame/record partId sets diverge`);
+    // Group parts only exist when their group spawns (the never-group's parts
+    // must be absent from BOTH the records and the frames).
+    assert.ok(!frames.has('g-never'), `q=${q} never-group emitted a frame`);
+    if (records.some((r) => r.partId === 'g-always')) {
+      assert.ok(frames.has('g-always'), `q=${q} g-always rendered but has no frame`);
+    }
+  }
+});
+
 test('recordsForDescriptor canonical: base parts, one item, centered, no variation', () => {
   const d = normalizeDescriptor({
     id: 'canonical-test',

@@ -187,6 +187,88 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
 }
 
 /**
+ * The one tile item walk — shared by recordsForDescriptor (records sink) and
+ * nodeWorldFrames (frame sink). Computes the item list (variant or motifs,
+ * cluster count, optional groups, displacement, placements) and walks every
+ * item's parts through collectPart once, feeding BOTH sinks: `records` (the
+ * instance-record accumulator) and `nodeFrames` (the editor's per-node world
+ * frame map). Either may be null to skip that sink. This is the single source
+ * of truth for the tile path — the two public entry points differ only in
+ * which sink they pass, so selection frames match rendered records by
+ * construction (including optional groups, which both now emit).
+ *
+ * @param {object} descriptor - normalized descriptor
+ * @param {object} tile       - tile ({ q, r, terrain, moisture?, ... })
+ * @param {object} worldPos   - { x, y, z } hex center in world space (y = tile surface)
+ * @param {number} tileH      - precomputed tile hash
+ * @param {object} displacement - { displaced?: boolean, hidden?: boolean }
+ * @param {object} biomeTint  - { primary, accent } blended biome color tuples or null
+ * @param {string|null} variantId - variant id override (editor variant picker)
+ * @param {boolean} canonical - canonical preview: base parts, one item,
+ *        authored scale, centered, no stretch/color jitter (geometry editor).
+ * @param {number} [growth] - continuous 0..1 feature growth (see below)
+ * @param {object[]|null} records - instance-record accumulator (may be null)
+ * @param {Map|null} nodeFrames - per-node { origin, parentRot } map (may be null)
+ */
+function walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, records, nodeFrames) {
+  if (canonical) {
+    const ctx = {
+      tile, worldPos, tileH, i: 0,
+      itemScale: descriptor.scale,
+      placement: { dx: 0, dz: 0 },
+      disp: {},
+      biomeTint: null,
+      canonical: true,
+      growth,
+      worldBase: worldBaseMatrix(worldPos, { dx: 0, dz: 0 }, {}),
+    };
+    for (const part of descriptor.parts) {
+      collectPart(descriptor, part, ctx, mat4Identity(), true, records, nodeFrames);
+    }
+    return;
+  }
+  if (displacement.hidden) return;
+  const count = itemCount(descriptor, tile, tileH);
+  if (displacement.displaced && descriptor.emphasis.behavior === 'hidden') return;
+
+  const variant = variantFor(descriptor, tile, tileH, variantId);
+  const parts = (variant ?? descriptor).parts;
+
+  // Optional groups — independent per-tile include/exclude of sub-objects
+  // (e.g. desert cactus AND/OR a scraggly dead tree). Each present group emits
+  // one extra item, so the cluster count grows by the number that spawn.
+  const presentGroups = (descriptor.optionalGroups ?? []).filter((group, g) => {
+    const chance = group.chance ?? 0.5;
+    return frac(treeHash(tileH, OPTIONAL_GROUP_SEED + g)) < chance;
+  });
+
+  const totalCount = count + presentGroups.length;
+  const disp = resolveDisplacement(descriptor, totalCount, tileH, displacement.displaced);
+
+  const placements = clusterPlacements(descriptor, tile, totalCount, tileH, disp);
+  const emitItem = (itemParts, i) => {
+    // Per-item size draw — per-item so cluster members vary (treeVariation's
+    // scale uses hash i+3). Item 0 keeps the old item-independent roll, so
+    // lone objects are unchanged; members draw the decorrelated itemHash so
+    // the every-third-index correlation can't clone member sizes.
+    const sizeT = i === 0 ? frac(treeHash(tileH, i + 3)) : itemHash(tileH, i + 3);
+    const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, sizeT);
+    const placement = placements[i];
+    const ctx = {
+      tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
+      growth,
+      worldBase: worldBaseMatrix(worldPos, placement, disp),
+    };
+    for (const part of itemParts) {
+      collectPart(descriptor, part, ctx, mat4Identity(), true, records, nodeFrames);
+    }
+  };
+
+  for (let i = 0; i < count; i++) emitItem(parts, i);
+  presentGroups.forEach((group, g) => emitItem(group.parts, count + g));
+}
+
+/**
  * Generate instance records for one tile from a (normalized) descriptor.
  *
  * @param {object} descriptor - normalized descriptor
@@ -208,64 +290,8 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
  * @returns {object[]} instance records tagged with partId ([] when hidden)
  */
 export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false, growth) {
-  if (canonical) {
-    const records = [];
-    const ctx = {
-      tile, worldPos, tileH, i: 0,
-      itemScale: descriptor.scale,
-      placement: { dx: 0, dz: 0 },
-      disp: {},
-      biomeTint: null,
-      canonical: true,
-      growth,
-      worldBase: worldBaseMatrix(worldPos, { dx: 0, dz: 0 }, {}),
-    };
-    for (const part of descriptor.parts) {
-      collectPart(descriptor, part, ctx, mat4Identity(), true, records, null);
-    }
-    return records;
-  }
-  if (displacement.hidden) return [];
-  const count = itemCount(descriptor, tile, tileH);
-  if (displacement.displaced && descriptor.emphasis.behavior === 'hidden') return [];
-
-  const variant = variantFor(descriptor, tile, tileH, variantId);
-  const parts = (variant ?? descriptor).parts;
-
-  // Optional groups — independent per-tile include/exclude of sub-objects
-  // (e.g. desert cactus AND/OR a scraggly dead tree). Each present group emits
-  // one extra item, so the cluster count grows by the number that spawn.
-  const presentGroups = (descriptor.optionalGroups ?? []).filter((group, g) => {
-    const chance = group.chance ?? 0.5;
-    return frac(treeHash(tileH, OPTIONAL_GROUP_SEED + g)) < chance;
-  });
-
-  const totalCount = count + presentGroups.length;
-  const disp = resolveDisplacement(descriptor, totalCount, tileH, displacement.displaced);
-
   const records = [];
-  const placements = clusterPlacements(descriptor, tile, totalCount, tileH, disp);
-  const emitItem = (itemParts, i) => {
-    // Per-item size draw — per-item so cluster members vary (treeVariation's
-    // scale uses hash i+3). Item 0 keeps the old item-independent roll, so
-    // lone objects are unchanged; members draw the decorrelated itemHash so
-    // the every-third-index correlation can't clone member sizes.
-    const sizeT = i === 0 ? frac(treeHash(tileH, i + 3)) : itemHash(tileH, i + 3);
-    const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, sizeT);
-    const placement = placements[i];
-    const ctx = {
-      tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
-      growth,
-      worldBase: worldBaseMatrix(worldPos, placement, disp),
-    };
-    for (const part of itemParts) {
-      collectPart(descriptor, part, ctx, mat4Identity(), true, records, null);
-    }
-  };
-
-  for (let i = 0; i < count; i++) emitItem(parts, i);
-  presentGroups.forEach((group, g) => emitItem(group.parts, count + g));
-
+  walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, records, null);
   return records;
 }
 
@@ -278,50 +304,13 @@ export function recordsForDescriptor(descriptor, tile, worldPos, tileH = tileHas
  * rotation's inverse is its transpose, so `deltaLocal = R_parentᵀ · deltaWorld`.
  * For clusters every item's nodes land in the same map; later items overwrite
  * earlier ones (the gizmo drags the shared localPos of the last item's frame).
+ *
+ * This shares the one tile item walk with recordsForDescriptor — the frames
+ * come from the same items, placements, and (now) optional groups, so the
+ * gizmo always matches the rendered records by construction.
  */
 export function nodeWorldFrames(descriptor, tile, worldPos, tileH = tileHash(tile), displacement = {}, biomeTint = null, variantId = null, canonical = false, growth) {
   const frames = new Map();
-  if (canonical) {
-    const ctx = {
-      tile, worldPos, tileH, i: 0,
-      itemScale: descriptor.scale,
-      placement: { dx: 0, dz: 0 },
-      disp: {},
-      biomeTint: null,
-      canonical: true,
-      growth,
-      worldBase: worldBaseMatrix(worldPos, { dx: 0, dz: 0 }, {}),
-    };
-    for (const part of descriptor.parts) {
-      collectPart(descriptor, part, ctx, mat4Identity(), true, [], frames);
-    }
-    return frames;
-  }
-  if (displacement.hidden) return frames;
-  const count = itemCount(descriptor, tile, tileH);
-  if (displacement.displaced && descriptor.emphasis.behavior === 'hidden') return frames;
-
-  const variant = variantFor(descriptor, tile, tileH, variantId);
-  const parts = (variant ?? descriptor).parts;
-  const disp = resolveDisplacement(descriptor, count, tileH, displacement.displaced);
-  const placements = clusterPlacements(descriptor, tile, count, tileH, disp);
-
-  for (let i = 0; i < count; i++) {
-    // Per-item size draw — per-item so cluster members vary (treeVariation's
-    // scale uses hash i+3). Item 0 keeps the old item-independent roll, so
-    // lone objects are unchanged; members draw the decorrelated itemHash so
-    // the every-third-index correlation can't clone member sizes.
-    const sizeT = i === 0 ? frac(treeHash(tileH, i + 3)) : itemHash(tileH, i + 3);
-    const itemScale = descriptor.scale * lerp(descriptor.size.min, descriptor.size.max, sizeT);
-    const placement = placements[i];
-    const ctx = {
-      tile, worldPos, tileH, i, itemScale, placement, disp, biomeTint,
-      growth,
-      worldBase: worldBaseMatrix(worldPos, placement, disp),
-    };
-    for (const part of parts) {
-      collectPart(descriptor, part, ctx, mat4Identity(), true, [], frames);
-    }
-  }
+  walkTileItems(descriptor, tile, worldPos, tileH, displacement, biomeTint, variantId, canonical, growth, [], frames);
   return frames;
 }
