@@ -44,3 +44,26 @@
   padding: 3px var(--s1);
   font-size: var(--fs-xs);
 }
+
+/* Variant picker: the variant select shares its line with the duplicate
+   button, so the row never wraps under the section title. */
+.variant-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.variant-picker select {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.variant-picker .create-btn {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}

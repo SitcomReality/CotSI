@@ -99,6 +99,58 @@ function renderBiomeVariantPins(container, ctx) {
   }
 }
 
+// ── Variant duplication ──────────────────────────────────────────────────────
+
+/** A fresh variant id derived from `base` (`<base>-copy`, then numbered),
+ *  unique among `used`. */
+function freshVariantId(used, base) {
+  const stem = `${base}-copy`;
+  if (!used.includes(stem)) return stem;
+  let n = 2;
+  while (used.includes(`${stem}-${n}`)) n++;
+  return `${stem}-${n}`;
+}
+
+/**
+ * Duplicate the current look into a NEW variant, selected for editing right
+ * away. The source is the active variant when the descriptor has variants; a
+ * descriptor with only a fallback `parts` list gets its look converted into
+ * the default variant first (same geometry — variants[0] is the default look
+ * convention), then the copy lands after it.
+ *
+ * This is the per-biome decor workflow: duplicate the default look (e.g. the
+ * lush `round` forest), reshape the copy into a biome-appropriate tree (bare
+ * dead branches for Sere Wastes), then pin the new variant to that biome in
+ * the Per-biome variants section. Entity kinds never reach this — their
+ * variants are selected by faction/archetype, not the picker.
+ */
+function duplicateVariant(d, ctx) {
+  const hasVariants = Array.isArray(d.variants) && d.variants.length > 0;
+  const source = activeVariant();
+  const sourceParts = source?.parts ?? d.parts;
+  const used = (d.variants ?? []).map((v) => v.id);
+  const suggested = freshVariantId(used, source?.id ?? 'default');
+  const raw = window.prompt('New variant id — a copy of the current look:', suggested);
+  if (raw === null) return; // cancelled
+  const clean = raw.trim().replace(/[^A-Za-z0-9_-]/g, '_');
+  if (!clean) return;
+  if (used.includes(clean)) {
+    window.alert(`Variant id "${clean}" already exists — pick a different name.`);
+    return;
+  }
+  ctx.mutate(() => {
+    if (!hasVariants) {
+      // Convert the fallback look into variants[0] — the default look.
+      d.variants = [{
+        id: freshVariantId([clean], 'default'),
+        parts: JSON.parse(JSON.stringify(d.parts)),
+      }];
+    }
+    d.variants.push({ id: clean, parts: JSON.parse(JSON.stringify(sourceParts)) });
+    S.variantId = clean;
+  });
+}
+
 /** Entity kinds: faction/archetype picker instead of cluster/size/placement. */
 function renderEntityControls(container, ctx) {
   const d = S.descriptor;
@@ -209,13 +261,31 @@ export function renderObjectControls(container, ctx) {
     return;
   }
 
-  if ((d.variants ?? []).length > 0) {
-    const variantSection = section('variant', container);
+  // Tile-driven kinds only (entity/item returned above). The Variant section
+  // always shows — a decor with a single look still needs the duplicate path
+  // to start a per-biome variant (e.g. a cold-desert look for the desert).
+  const variantSection = section('variant', container);
+  const hasVariants = (d.variants ?? []).length > 0;
+  if (hasVariants) {
     const ids = d.variants.map((v) => v.id);
     const current = ids.includes(S.variantId) ? S.variantId : ids[0];
-    variantSection.append(row('Variant', selectInput(ids, current, (v) => ctx.mutate(() => { S.variantId = v; }))));
+    const picker = el('div', 'variant-picker');
+    picker.append(selectInput(ids, current, (v) => ctx.mutate(() => { S.variantId = v; })));
+    const dupBtn = el('button', 'create-btn', '＋ Duplicate');
+    dupBtn.type = 'button';
+    dupBtn.title = 'Create a new variant from a copy of the current look — then pin it to biomes below';
+    dupBtn.addEventListener('click', () => duplicateVariant(d, ctx));
+    picker.append(dupBtn);
+    variantSection.append(row('Variant', picker));
     variantSection.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game the first variant is the default look; per-biome pins swap in alternates.'));
     renderBiomeVariantPins(section('biomePins', container), ctx);
+  } else {
+    const dupBtn = el('button', 'create-btn', '＋ Duplicate variant');
+    dupBtn.type = 'button';
+    dupBtn.title = 'Create a new variant from a copy of the current look — then pin it to biomes below';
+    dupBtn.addEventListener('click', () => duplicateVariant(d, ctx));
+    variantSection.append(row('Variants', dupBtn));
+    variantSection.append(el('div', 'hint', 'This object has one look. Duplicate it to give different biomes different geometry (e.g. a dead-tree forest for Sere Wastes) — the copy becomes a variant you can pin to biomes.'));
   }
 
   const clusterSection = section('cluster', container);
