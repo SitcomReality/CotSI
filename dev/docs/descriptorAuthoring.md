@@ -416,6 +416,15 @@ preview bar's Biome / Terrain selectors render the pinned looks — switch the
 terrain to `denseForest` to see the deep-wood decor, or the biome to
 Painforest for the gnarled woods.
 
+**Creating a new variant** — the "＋ Duplicate" button in the Variant section
+copies the currently edited look (the active variant's parts, or the fallback
+`parts` list when the object has no variants yet — that list is converted into
+the default variant first, preserving the `variants[0]` convention) into a
+brand-new variant and selects it for editing. Reshape the copy (see §7 for the
+per-biome forest), then pin it to a biome in the Per-biome variants section.
+The duplicate workflow is the whole point of the per-biome system: one
+terrain, many biomes, one default look plus a pinned alternate per biome.
+
 ### 5.6 Entity-driven path (bases, champions, mobs, traders)
 
 An entity is a single item at the hex center: count is 1, placement is center,
@@ -492,8 +501,14 @@ flagship example of the variable-properties vocabulary: count, size, part set,
 stretch, and color all come from ranges and per-tile draws rather than fixed
 values. One decor per terrain — `src/render/hexmap3d/worldObjects/descriptors/data/forest.js`
 is the `forest` terrain's decor, and `denseForest.js` is a **separate**
-descriptor (the deep-wood's conical pines) — never a variant of this one
-(annotated; the shipped file carries `schemaVersion: 5` — the editor rewrote it on the last Save):
+descriptor (the deep-wood's conical pines) — never a variant of this one.
+
+The forest is also the showcase of the per-biome variant system: every biome
+that can grow forest terrain pins its own look. Titanstain and Unfinished
+Lands never render this decor at all (their `terrainOverrides` swap the forest
+terrain for Titanflesh / Protogrowth), so the pins cover exactly the biomes
+where a forest tile can actually exist (abridged — the shipped file carries
+`schemaVersion: 5`; the editor rewrote it on the last Save):
 
 ```js
 export const FOREST_DESCRIPTOR = {
@@ -504,7 +519,16 @@ export const FOREST_DESCRIPTOR = {
   cluster: { rule: 'moisture', countsByTerrain: { forest: [3, 5] } }, // count scales with tile moisture
   size: { min: 1.3, max: 1.5 },       // trees vary 1.3–1.5× object scale
   variation: { colorJitter: 0.05 },   // slight brightness jitter per tree
-  biomeVariants: { biome_painforest: 'painforest' }, // the gnarled variant is Painforest-only
+  biomeVariants: {                    // one pinned look per biome that grows forest
+    biome_painforest: 'painforest',   //   gnarled Painforest woods
+    biome_tundra: 'taiga',            //   stunted conical pines
+    biome_frigid_silence: 'frost',    //   snow-capped pines
+    biome_scorch: 'dry',              //   sun-bleached dry woodland
+    biome_sere_wastes: 'dead',        //   bare dead trees, broken branches
+    biome_edenfall: 'edenfall',       //   tall two-lobe purple canopies
+    biome_mourning_marsh: 'marshwood',//   short squat murky woodland
+    biome_dustbleed: 'dustbleed',     //   quenched teal, crystal-studded
+  },
   placement: { mode: 'ring', leanMin: 0.2, leanMax: 0.3 }, // ring around the hex center, slight per-tree lean
   emphasis: { behavior: 'dispersed' },// shrink+step aside when the center is claimed
   parts: [                           // fallback part set — only used if no variant matches
@@ -534,18 +558,67 @@ export const FOREST_DESCRIPTOR = {
         },
       ],
     },
+    // … painforest (the gnarled multi-part bent trunk, pinned above) …
     {
-      id: 'painforest',               // biome-pinned alternate: gnarled multi-part bent trunk
+      id: 'dead',                     // Sere Wastes: a dead tree — no leaves at all
       parts: [
-        { id: 'trunk-gnarled-base',   shape: 'cylinder', params: { bottomR: 0.13, topR: 0.08, height: 0.3, segments: 5 }, transform: { localAxis: { x: 1, y: 0, z: 0 }, localAngle: 0.12 }, stretch: { y: { min: 0.9, max: 1.15, seed: 6 }, x: false, z: false }, biomeScale: { biome_painforest: 0.55 }, color: 0x8b5e3c },
-        { id: 'trunk-gnarled-upper',  shape: 'cylinder', params: { topR: 0.05, height: 0.24, segments: 5 }, transform: { localPos: { x: 0, y: 0.3, z: 0.02 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: -0.15 }, stretch: { y: { min: 0.9, max: 1.15, seed: 6 }, x: false, z: false }, biomeScale: { biome_painforest: 0.55 }, color: 0x8b5e3c },
-        { id: 'branch-gnarled',       shape: 'cylinder', params: { bottomR: 0.045, topR: 0.025, height: 0.3, segments: 5 }, transform: { localPos: { x: 0.02, y: 0.52, z: 0.03 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 0.7 }, stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false }, biomeScale: { biome_painforest: 0.55 }, color: 0x8b5e3c },
-        { id: 'canopy-gnarled',       shape: 'sphere', params: { radius: 0.26 }, transform: { localPos: { x: 0.02, y: 0.78, z: 0.21 } }, color: 0x2e5d2e, biomeScale: { biome_painforest: 0.55 } },
+        { id: 'trunk',          shape: 'cylinder', params: { bottomR: 0.09, topR: 0.07, height: 0.5, segments: 6 },
+          stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false },
+          biomeScale: { biome_sere_wastes: 0.8 }, color: 0x7a6a55,   // bone-dry bark
+          biomeColor: { source: 'terrain', influence: 0.3 } },       // ground-matching bleached wood
+        { id: 'branch-dead-a',  shape: 'cylinder', params: { bottomR: 0.035, topR: 0.02, height: 0.3, segments: 5 },
+          transform: { localPos: { x: 0.02, y: 0.3, z: 0 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 0.9 },
+          stretch: { y: { min: 0.8, max: 1.2, seed: 6 }, x: false, z: false },
+          biomeScale: { biome_sere_wastes: 0.8 }, color: 0x6e5f4d },
+        { id: 'branch-dead-b',  shape: 'cylinder', params: { bottomR: 0.03, topR: 0.018, height: 0.24, segments: 5 },
+          transform: { localPos: { x: -0.03, y: 0.36, z: 0.02 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: -1.05 },
+          stretch: { y: { min: 0.8, max: 1.2, seed: 6 }, x: false, z: false },
+          biomeScale: { biome_sere_wastes: 0.8 }, color: 0x6e5f4d },
+        { id: 'branch-dead-c',  shape: 'cylinder', params: { bottomR: 0.025, topR: 0.015, height: 0.2, segments: 5 },
+          transform: { localPos: { x: 0.04, y: 0.44, z: -0.02 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 1.25 },
+          stretch: { y: { min: 0.8, max: 1.2, seed: 6 }, x: false, z: false },
+          biomeScale: { biome_sere_wastes: 0.8 }, color: 0x6e5f4d },
       ],
     },
+    {
+      id: 'frost',                    // Frigid Silence: a snow-capped pine
+      parts: [
+        { id: 'trunk',       shape: 'cylinder', params: { bottomR: 0.07, topR: 0.05, height: 0.45, segments: 6 },
+          stretch: { y: { min: 0.9, max: 1.15, seed: 6 }, x: false, z: false },
+          biomeScale: { biome_frigid_silence: 0.85 }, color: 0x4a3f33 },
+        { id: 'canopy-frost', shape: 'cone', params: { bottomR: 0.22, height: 0.42, radialSegs: 6, heightSegs: 2 },
+          transform: { liftRange: { min: 0.3, max: 0.42, seed: 6 } },  // cone base tucks into the trunk top
+          stretch: { y: { min: 0.9, max: 1.2, seed: 4 }, x: { min: 0.85, max: 1.1, seed: 5 }, z: { min: 0.85, max: 1.1, seed: 5 } },
+          color: 0x3a5a4a, biomeColor: { source: 'terrain', influence: 0.5 },  // cold taiga green
+          biomeScale: { biome_frigid_silence: 0.85 } },
+        { id: 'snowcap',     shape: 'cone', params: { bottomR: 0.1, height: 0.16, radialSegs: 6, heightSegs: 1 },
+          transform: { localPos: { x: 0, y: 0.64, z: 0 } },            // perched in the cone's upper taper
+          stretch: { y: { min: 0.8, max: 1.1, seed: 4 }, x: false, z: false },
+          color: 0xdfe6ec, biomeColor: { source: 'accent', influence: 0.6 },  // pale frost accent
+          biomeScale: { biome_frigid_silence: 0.85 } },
+      ],
+    },
+    // … taiga, dry, edenfall, marshwood, dustbleed — see the table below …
   ],
 };
 ```
+
+The rest of the forest's biome looks, each a small variation on the same
+vocabulary (all part ids unique within their variant; all canopies track the
+trunk's stretch seed 6 through `liftRange`; `biomeScale` sizes the whole
+variant for its biome):
+
+| Variant | Biome | Look | The trick |
+|---|---|---|---|
+| `round` | default (Untouched) | lush puffball | the canonical look — `variants[0]` |
+| `painforest` | Painforest | gnarled bent trunk | 3-part trunk, `localAxis`/`localAngle` per segment |
+| `taiga` | Tundra | stunted conical pine | cone canopy, `biomeScale: 0.8`, terrain-tinted |
+| `frost` | Frigid Silence | snow-capped pine | cone + a small pale `snowcap` cone at its apex |
+| `dry` | Scorch | sun-bleached dry woodland | short trunk, low flat sphere, `biomeScale: 0.8` |
+| `dead` | Sere Wastes | dead tree, broken branches | **no canopy** — 3 bare branch cylinders at staggered heights/angles |
+| `edenfall` | Edenfall | tall lush purple | two stacked spheres (two-lobe crown), `biomeScale: 1.1` |
+| `marshwood` | Mourning Marsh | squat murky tree | short trunk, wide squashed sphere (`stretchY` low / `stretchXZ` high) |
+| `dustbleed` | Dustbleed | quenched teal, crystal-studded | a `dodecahedron` crystal shard perched on the canopy, accent-tinted |
 
 What each mechanism contributes, at a glance:
 
@@ -553,23 +626,36 @@ What each mechanism contributes, at a glance:
   `gameBuilder` maps terrain → decor by it. The deep-wood look is a separate
   descriptor (`denseForest.js`), not a variant.
 - **`variants[0]` is the default look** — every forest tile renders `round`
-  unless a biome pins an alternate; `biomeVariants` swaps in `painforest` for
-  Painforest tiles.
+  unless a biome pins an alternate; `biomeVariants` swaps in one dedicated
+  look per biome. A biome with no pin (e.g. `biome_default`) keeps the
+  default — that is how a shared look survives while only the biomes that
+  need a different tree get one.
 - **Variable properties** — everything about a forest is a range, not a fixed
   value: count (moisture rule), size (1.3–1.5×), part set (default vs biome
   pin), per-tree stretch, biome size/color, brightness jitter. The chest (§8)
   is the opposite: one fixed, centralized object.
 - `cluster.rule: 'moisture'` — wetter forest tiles get more trees
   (`countsByTerrain.forest` → 3–5; the denseForest decor carries its own
-  4–7 range).
+  4–7 range). Sere Wastes and Scorch tiles are dry, so their forests are
+  automatically sparse without any per-variant count.
 - `placement.ring` — members circle the hex center; `emphasis.dispersed`
   pushes them to the hex edge and shrinks them when the center is claimed.
 - `stretch` — per-tree random trunk height and canopy puffiness (deterministic
   per tile, seeded hash draws); `x: false` / `z: false` pin the trunk's width.
-- `biomeScale` — Tundra trees shrink to 85%, Painforest to 55%.
+- `liftRange` — the canopy base tracks the trunk's stretch draw (same seed 6)
+  so a tall tree's canopy rides high and a short tree's rides low; the
+  per-variant ranges tuck each canopy shape into its trunk (a cone base
+  overlaps less than a sphere, so `taiga`'s range hugs the trunk top while
+  `round`'s swallows it).
+- `biomeScale` — Tundra/Frigid/Sere/Scorch trees shrink to 80–85% of the
+  default; Edenfall's grow to 110%; Painforest's gnarled groves to 55%.
 - `biomeColor` — canopy green leans into the tile's blended biome color
-  (primary for the round variant).
-- `color` per part — trunk brown vs canopy green, jittered ±0.05 brightness.
+  (`primary` for the round variant, the biome's `terrain` surface color for
+  the ground-matching conifers, `accent` for frost snow and Dustbleed's
+  crystals).
+- `color` per part — trunk brown vs canopy green, jittered ±0.05 brightness;
+  a dead tree's branches are darker than its trunk, the frost snowcap is
+  pale, the crystal is turquoise.
 
 ## 8. Worked example: a centralized feature — the Open Treasure Chest
 
