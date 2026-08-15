@@ -29,14 +29,14 @@ test('decorState: unclaimed tile keeps its decoration at normal', () => {
 
 test('decorState: a feature alone disperses the decoration', () => {
   assert.equal(
-    decorState({ hasOccupant: false, hasFeature: true, decoration: DECORATION.GROVE }),
+    decorState({ hasOccupant: false, hasFeature: true, decoration: DECORATION.FOREST }),
     DECOR_STATE.DISPERSED,
   );
 });
 
 test('decorState: an occupant alone disperses the decoration', () => {
   assert.equal(
-    decorState({ hasOccupant: true, hasFeature: false, decoration: DECORATION.GROVE }),
+    decorState({ hasOccupant: true, hasFeature: false, decoration: DECORATION.FOREST }),
     DECOR_STATE.DISPERSED,
   );
 });
@@ -49,7 +49,7 @@ test('decorState: mounds sink, the clustered growth disperses', () => {
     for (const sunk of [DECORATION.HILL, DECORATION.PLATEAU]) {
       assert.equal(decorState({ ...claimed, decoration: sunk }), DECOR_STATE.SUNK);
     }
-    for (const dispersed of [DECORATION.GROVE, DECORATION.MARSH, DECORATION.PLAINS, DECORATION.DESERT, DECORATION.BEACH]) {
+    for (const dispersed of [DECORATION.FOREST, DECORATION.DEEP_WOOD, DECORATION.MARSH, DECORATION.PLAINS, DECORATION.DESERT, DECORATION.BEACH]) {
       assert.equal(decorState({ ...claimed, decoration: dispersed }), DECOR_STATE.DISPERSED);
     }
   }

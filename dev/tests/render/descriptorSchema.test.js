@@ -394,7 +394,7 @@ test('variantRule accepts only known rules and normalizes to hash', () => {
   assert.ok(validateDescriptor({ ...d, variantRule: 'terrain' }).length > 0);
 });
 
-test('legacy variantRule "cluster" migrates to terrainVariants + hash', () => {
+test('legacy variantRule "cluster" retires to hash and drops terrainVariants', () => {
   const d = normalizeDescriptor({
     id: 'legacy-cluster',
     kind: 'decor',
@@ -406,23 +406,10 @@ test('legacy variantRule "cluster" migrates to terrainVariants + hash', () => {
       { id: 'tall', parts: [{ id: 'p', shape: 'sphere' }] },
     ],
   });
-  assert.equal(d.variantRule, 'hash');
-  assert.deepEqual(d.terrainVariants, { denseForest: 'tall', forest: 'round' }, 'terrain half of the old rule becomes terrainVariants');
-  assert.deepEqual(normalizeDescriptor(d).terrainVariants, d.terrainVariants, 'migration is idempotent');
+  assert.equal(d.variantRule, 'hash', 'the retired rule falls back to hash');
+  assert.equal(d.terrainVariants, undefined, 'terrainVariants (an interim-schema concept) is dropped — terrains are separate decor objects');
+  assert.deepEqual(normalizeDescriptor(d), d, 'migration is idempotent');
   assert.deepEqual(validateDescriptor(d), [], 'migrated descriptor validates');
-});
-
-test('legacy "cluster" migration drops pins whose variant id is missing', () => {
-  const partial = normalizeDescriptor({
-    id: 'legacy-cluster-partial',
-    kind: 'decor',
-    displayName: 'Legacy Cluster Partial',
-    variantRule: 'cluster',
-    parts: [{ id: 'p', shape: 'sphere' }],
-    variants: [{ id: 'only', parts: [{ id: 'p', shape: 'sphere' }] }],
-  });
-  assert.equal(partial.terrainVariants, undefined, 'no matching variants → no terrain map injected');
-  assert.deepEqual(validateDescriptor(partial), [], 'custom legacy files stay valid');
 });
 
 test('biomeVariants: validates a biomeId → variantId map against the variants list', () => {
@@ -440,22 +427,21 @@ test('biomeVariants: validates a biomeId → variantId map against the variants 
   assert.ok(validateDescriptor({ ...d, biomeVariants: 'a' }).some((e) => e.includes('biomeVariants')));
 });
 
-test('terrainVariants: validates a terrain → variantId map against the variants list', () => {
+test('terrainVariants is gone: the field is dropped and rejected by validation', () => {
+  // An interim-schema file carrying terrainVariants loads cleanly — normalize
+  // drops the field (different terrains are separate decor objects now).
   const d = normalizeDescriptor({
     id: 'tv',
     kind: 'decor',
-    displayName: 'Terrain Variants',
+    displayName: 'Decor',
     parts: [{ id: 'p', shape: 'sphere' }],
-    variants: [
-      { id: 'round', parts: [{ id: 'p', shape: 'sphere' }] },
-      { id: 'tall', parts: [{ id: 'p', shape: 'sphere' }] },
-    ],
-    terrainVariants: { forest: 'round', denseForest: 'tall' },
+    variants: [{ id: 'round', parts: [{ id: 'p', shape: 'sphere' }] }],
+    terrainVariants: { forest: 'round' },
   });
-  assert.equal(validateDescriptor(d).length, 0, 'valid terrain→variant map passes');
-  assert.ok(validateDescriptor({ ...d, terrainVariants: { forest: 'nope' } })
-    .some((e) => e.includes('unknown variant "nope"')));
-  assert.ok(validateDescriptor({ ...d, terrainVariants: 'a' }).some((e) => e.includes('terrainVariants')));
+  assert.equal(d.terrainVariants, undefined, 'terrainVariants dropped on normalize');
+  assert.equal(validateDescriptor(d).length, 0, 'normalized descriptor validates');
+  assert.ok(validateDescriptor({ ...d, terrainVariants: { forest: 'round' } })
+    .some((e) => e.includes('unknown field "terrainVariants"')), 'raw terrainVariants is rejected');
 });
 
 test('optionalGroups: validates id/chance/parts and normalizes chance to 0.5', () => {

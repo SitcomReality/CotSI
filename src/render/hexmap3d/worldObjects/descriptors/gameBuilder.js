@@ -14,16 +14,18 @@
  *   terrain decoration (composes with the feature above; also rendered on
  *   explored-but-out-of-sight tiles, where it shows its unoccupied state):
  *     mountain terrain            → mountain descriptor (emphasis 'none')
- *     forest/denseForest          → grove descriptor; the Painforest biome
- *       picks its gnarled `painforest` variant. Dispersed to a ring near the
- *       hex edge when a non-tree feature claims the center, hidden when an
- *       occupant and feature share the tile
+ *     forest/denseForest          → forest / denseForest decor descriptors;
+ *       a biome pin (biomeVariants) picks the look — Painforest woods grow the
+ *       gnarled variant. Dispersed to a ring near the hex edge when a
+ *       non-tree feature claims the center, hidden when an occupant and
+ *       feature share the tile
  *     hill terrain                → hill descriptor; sunk below the surface
  *       when the center is claimed, hidden when occupant + feature share it
  *     marsh/plateau/plains/desert/beach → ground decor descriptor
- *       (groundDecor.js): the plateau mound sinks like the hill mound, the
- *       clustered growth (reeds/grass/scrub/driftwood) disperses when the
- *       center is claimed, hidden when occupant + feature share it
+ *       (one decor per terrain — the decor's id IS the terrain's): the
+ *       plateau mound sinks like the hill mound, the clustered growth
+ *       (reeds/grass/scrub/driftwood) disperses when the center is claimed,
+ *       hidden when occupant + feature share it
  *
  * Champion bases stay on baseMeshes.js (out of scope).
  */
@@ -33,46 +35,39 @@ import { buildDescriptorMeshes } from './meshAssembly.js';
 import { recordsForDescriptor } from './recordBuilder.js';
 import { normalizeDescriptor } from './schema.js';
 import { descriptorById } from './data/index.js';
-import { GROVE_DESCRIPTOR } from './data/decor/grove.js';
+import { FOREST_DESCRIPTOR } from './data/decor/forest.js';
+import { DENSE_FOREST_DESCRIPTOR } from './data/decor/denseForest.js';
 import { HILL_DESCRIPTOR } from './data/decor/hill.js';
 import { KNOT_DESCRIPTOR } from './data/features/knot.js';
 import { MOUNTAIN_DESCRIPTOR } from './data/decor/mountain.js';
 import { biomeTintForTile } from '../biomeTint.js';
 import { coordKey } from '../../../../engine/rules/hexGrid.js';
-import { PLAINS_GRASS_DESCRIPTOR } from './data/decor/plainsGrass.js';
-import { MARSH_REEDS_DESCRIPTOR } from './data/decor/marshReeds.js';
-import { PLATEAU_MOUND_DESCRIPTOR } from './data/decor/plateauMound.js';
-import { DESERT_SCRUB_DESCRIPTOR } from './data/decor/desertScrub.js';
-import { BEACH_DRIFTWOOD_DESCRIPTOR } from './data/decor/beachDriftwood.js';
+import { PLAINS_DESCRIPTOR } from './data/decor/plains.js';
+import { MARSH_DESCRIPTOR } from './data/decor/marsh.js';
+import { PLATEAU_DESCRIPTOR } from './data/decor/plateau.js';
+import { DESERT_DESCRIPTOR } from './data/decor/desert.js';
+import { BEACH_DESCRIPTOR } from './data/decor/beach.js';
 import { hillFloorY } from '../hillFloor.js';
 import {
   DECOR_STATE, DECORATION, decorState, isTileOccupied,
 } from '../decorEmphasis.js';
 
-/** Terrains whose default look is a scattered tree grove. */
-const GROVE_TERRAINS = new Set(['forest', 'denseForest']);
-
 /**
- * True for a woods tile: the grove is the terrain decoration (descriptor
- * data — Painforest woods pick the gnarled `painforest` grove variant via
- * recordBuilder's cluster rule).
- */
-function isWoodsTerrain(tile) {
-  return GROVE_TERRAINS.has(tile.terrain);
-}
-
-/**
- * The simple ground-level terrain decorations — one named decor per terrain,
- * table-driven so a tile's decor comes from its terrain. Plateau mounds sink
- * like hill mounds; the clustered growth (reeds, grass, scrub, driftwood)
- * disperses when the hex center is claimed. Water, river, and ice stay bare.
+ * The ground-level terrain decorations — one named decor per terrain,
+ * table-driven so a tile's decor comes from its terrain and the decor's id IS
+ * the terrain's id (`forest` tiles → the `forest` decor, `desert` → `desert`,
+ * ...). Plateau mounds sink like hill mounds; the clustered growth (reeds,
+ * grass, scrub, driftwood, woods) disperses when the hex center is claimed.
+ * Water, river, and ice stay bare.
  */
 const SIMPLE_DECOR_BY_TERRAIN = new Map([
-  ['marsh', { descriptor: MARSH_REEDS_DESCRIPTOR, decoration: DECORATION.MARSH }],
-  ['plateau', { descriptor: PLATEAU_MOUND_DESCRIPTOR, decoration: DECORATION.PLATEAU }],
-  ['plains', { descriptor: PLAINS_GRASS_DESCRIPTOR, decoration: DECORATION.PLAINS }],
-  ['desert', { descriptor: DESERT_SCRUB_DESCRIPTOR, decoration: DECORATION.DESERT }],
-  ['beach', { descriptor: BEACH_DRIFTWOOD_DESCRIPTOR, decoration: DECORATION.BEACH }],
+  ['forest', { descriptor: FOREST_DESCRIPTOR, decoration: DECORATION.FOREST }],
+  ['denseForest', { descriptor: DENSE_FOREST_DESCRIPTOR, decoration: DECORATION.DEEP_WOOD }],
+  ['marsh', { descriptor: MARSH_DESCRIPTOR, decoration: DECORATION.MARSH }],
+  ['plateau', { descriptor: PLATEAU_DESCRIPTOR, decoration: DECORATION.PLATEAU }],
+  ['plains', { descriptor: PLAINS_DESCRIPTOR, decoration: DECORATION.PLAINS }],
+  ['desert', { descriptor: DESERT_DESCRIPTOR, decoration: DECORATION.DESERT }],
+  ['beach', { descriptor: BEACH_DESCRIPTOR, decoration: DECORATION.BEACH }],
 ]);
 
 /**
@@ -114,29 +109,6 @@ function resolveFeatureForTile(tile, occupants) {
     return { descriptor: normalizedDescriptor(descriptor), displacement: { displaced: occupied } };
   }
   return null;
-}
-
-/**
- * The grove terrain decoration, or null. `visible` gates the unoccupied look:
- * while a tile is out of sight its occupants and features are not rendered,
- * so the grove shows its natural (NORMAL) state regardless of what sits on
- * the hex.
- */
-function resolveGroveForTile(tile, occupants, decorOverrides, visible = true) {
-  if (!isWoodsTerrain(tile)) return null;
-  if (biomeDecorOverrideId(tile, decorOverrides)) return null;
-  const mode = decorState({
-    hasOccupant: visible && isTileOccupied(occupants, tile),
-    hasFeature: visible && !!tile.feature,
-    decoration: DECORATION.GROVE,
-  });
-  return {
-    descriptor: normalizedDescriptor(GROVE_DESCRIPTOR),
-    displacement: {
-      hidden: mode === DECOR_STATE.HIDDEN,
-      displaced: mode === DECOR_STATE.DISPERSED,
-    },
-  };
 }
 
 /**
@@ -239,7 +211,6 @@ export function resolveDescriptorForTile(tile, occupants, visible = true, decorO
     resolveMountainForTile(tile),
     resolveFeatureForTile(tile, occupants),
     resolveBiomeDecorForTile(tile, occupants, decorOverrides, visible),
-    resolveGroveForTile(tile, occupants, decorOverrides, visible),
     resolveHillForTile(tile, decorOverrides),
     resolveSimpleDecorForTile(tile, occupants, decorOverrides, visible),
   ].filter(Boolean);
@@ -248,7 +219,7 @@ export function resolveDescriptorForTile(tile, occupants, visible = true, decorO
 /**
  * Collect instance records from every gated tile, grouped by descriptor id.
  * Runs one pass per resolution rule so a tile may contribute to several groups
- * (a knot on a forest tile resolves to both the knot and the dispersed grove).
+ * (a knot on a forest tile resolves to both the knot and the forest decor).
  *
  * Terrain decorations are purely cosmetic — they may render on explored tiles
  * outside the view radius (fog doesn't hide them the way it hides features and
@@ -320,10 +291,6 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
   runPass((tile) => resolveFeatureForTile(tile, occupants), visible, true, featureGrowth);
   runPass(
     (tile) => resolveBiomeDecorForTile(tile, occupants, biomeDecorOverrides, visible.has(`${tile.q},${tile.r}`)),
-    decorVisible,
-  );
-  runPass(
-    (tile) => resolveGroveForTile(tile, occupants, biomeDecorOverrides, visible.has(`${tile.q},${tile.r}`)),
     decorVisible,
   );
   runPass(

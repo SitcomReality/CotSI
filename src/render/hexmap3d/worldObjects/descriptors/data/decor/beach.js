@@ -4,11 +4,11 @@
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
-export const BEACH_DRIFTWOOD_DESCRIPTOR = {
+export const BEACH_DESCRIPTOR = {
   schemaVersion: 5,
-  id: 'beachDriftwood',
+  id: 'beach',
   kind: 'decor',
-  displayName: 'Beach Driftwood',
+  displayName: 'Beach',
   cluster: { min: 2, max: 3 },
   placement: {
     mode: 'jitter',

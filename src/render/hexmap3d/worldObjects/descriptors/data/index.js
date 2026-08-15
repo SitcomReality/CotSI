@@ -18,36 +18,37 @@
  */
 import { OPEN_TREASURE_CHEST_DESCRIPTOR } from './features/openTreasureChest.js';
 import { BASE_DESCRIPTOR } from './base.js';
-import { BEACH_DRIFTWOOD_DESCRIPTOR } from './decor/beachDriftwood.js';
+import { BEACH_DESCRIPTOR } from './decor/beach.js';
 import { BLESSED_FONT_DESCRIPTOR } from './features/blessedFont.js';
 import { BUSH_DESCRIPTOR } from './features/bush.js';
 import { CENSER_SAINT_DESCRIPTOR } from './features/censerSaint.js';
 import { CHAMPION_DESCRIPTOR } from './champion.js';
 import { TREASURE_CHEST_DESCRIPTOR } from './features/treasureChest.js';
 import { CINDERBLOOM_DESCRIPTOR } from './features/cinderbloom.js';
-import { DESERT_SCRUB_DESCRIPTOR } from './decor/desertScrub.js';
+import { DENSE_FOREST_DESCRIPTOR } from './decor/denseForest.js';
+import { DESERT_DESCRIPTOR } from './decor/desert.js';
 import { DROWNED_COPYIST_DESCRIPTOR } from './features/drownedCopyist.js';
 import { FORESPRING_DESCRIPTOR } from './decor/forespring.js';
+import { FOREST_DESCRIPTOR } from './decor/forest.js';
 import { DUNGEON_DESCRIPTOR } from './features/dungeon.js';
 import { EDEN_MUSHROOM_DESCRIPTOR } from './features/edenMushroom.js';
 import { EDEN_SHROOMLET_DESCRIPTOR } from './features/edenShroomlet.js';
 import { ERRATA_SLIP_DESCRIPTOR } from './features/errataSlip.js';
 import { FOOLS_FIRE_DESCRIPTOR } from './features/foolsFire.js';
 import { GILDED_INITIAL_DESCRIPTOR } from './features/gildedInitial.js';
-import { GROVE_DESCRIPTOR } from './decor/grove.js';
 import { HALF_DRAWN_OBELISK_DESCRIPTOR } from './features/halfDrawnObelisk.js';
 import { HILL_DESCRIPTOR } from './decor/hill.js';
 import { KNOT_DESCRIPTOR } from './features/knot.js';
 import { LISTENER_LICHEN_DESCRIPTOR } from './features/listenerLichen.js';
-import { MARSH_REEDS_DESCRIPTOR } from './decor/marshReeds.js';
+import { MARSH_DESCRIPTOR } from './decor/marsh.js';
 import { MOB_DESCRIPTOR } from './mob.js';
 import { MOUNTAIN_DESCRIPTOR } from './decor/mountain.js';
 import { NULL_LILY_DESCRIPTOR } from './features/nullLily.js';
 import { OUROBOROS_LOOP_DESCRIPTOR } from './features/ouroborosLoop.js';
 import { PALIMPSEST_SLAB_DESCRIPTOR } from './features/palimpsestSlab.js';
 import { PERIDEXION_TREE_DESCRIPTOR } from './features/peridexionTree.js';
-import { PLAINS_GRASS_DESCRIPTOR } from './decor/plainsGrass.js';
-import { PLATEAU_MOUND_DESCRIPTOR } from './decor/plateauMound.js';
+import { PLAINS_DESCRIPTOR } from './decor/plains.js';
+import { PLATEAU_DESCRIPTOR } from './decor/plateau.js';
 import { SAINTS_RIB_DESCRIPTOR } from './features/saintsRib.js';
 import { SCORIA_ROSE_DESCRIPTOR } from './features/scoriaRose.js';
 import { SCREAMROOT_DESCRIPTOR } from './features/screamroot.js';
@@ -96,14 +97,15 @@ export const ALL_DESCRIPTORS = [
   DUNGEON_DESCRIPTOR,
   HALF_DRAWN_OBELISK_DESCRIPTOR,
   SNOWPERSON_DESCRIPTOR,
-  GROVE_DESCRIPTOR,
+  FOREST_DESCRIPTOR,
+  DENSE_FOREST_DESCRIPTOR,
   HILL_DESCRIPTOR,
   MOUNTAIN_DESCRIPTOR,
-  PLAINS_GRASS_DESCRIPTOR,
-  MARSH_REEDS_DESCRIPTOR,
-  PLATEAU_MOUND_DESCRIPTOR,
-  DESERT_SCRUB_DESCRIPTOR,
-  BEACH_DRIFTWOOD_DESCRIPTOR,
+  PLAINS_DESCRIPTOR,
+  MARSH_DESCRIPTOR,
+  PLATEAU_DESCRIPTOR,
+  DESERT_DESCRIPTOR,
+  BEACH_DESCRIPTOR,
   TITANFLESH_DESCRIPTOR,
   TITANBLOOD_DESCRIPTOR,
   UNFINISHED_SCRAP_DESCRIPTOR,

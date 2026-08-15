@@ -7,25 +7,34 @@ import { MOUNTAIN_HASH_SEEDS } from '../../../../params/render/geometryParams.js
 /**
  * Which variant's parts compose the items.
  *
- * Precedence (highest first):
- *   1. `explicitId` — the editor's variant picker forces one variant.
- *   2. `biomeVariants[biomeId]` — a biome pins its decor's look (e.g. the
- *      Painforest grove's gnarled variant).
- *   3. `terrainVariants[terrain]` — a terrain pins its look (e.g. denseForest
- *      groves grow conical 'tall' pines, forest the round ones).
- *   4. `variantRule` — the fallback rule (see below).
+ * A decor is the look of ONE terrain (each terrain has its own descriptor —
+ * `forest` and `denseForest` are separate objects, never variants of one
+ * another), so the only variant dimension on the tile path is the biome:
  *
- * The legacy 'cluster' rule (denseForest→tall, else→round) was retired: its
- * terrain half is now `terrainVariants` and its biome half `biomeVariants`;
- * normalizeDescriptor migrates old files.
+ *   variants[0]     — the DEFAULT look: every tile renders it unless a pin
+ *                     matches (this is why the first variant is the base
+ *                     look, and later ones are alternates).
+ *   biomeVariants   — { biomeId: variantId } pins an alternate to a biome
+ *                     (e.g. the Painforest woods' gnarled variant).
+ *   explicitId      — the editor's variant picker forces one variant while
+ *                     authoring; a stale id falls through.
+ *
+ * Precedence (highest first):
+ *   1. `explicitId` — the editor forces a variant for preview/editing.
+ *   2. `biomeVariants[biomeId]` — a biome pins its look.
+ *   3. default — variants[0], unless `variantRule` says otherwise (below).
+ *
+ * variantRule 'mountain' — legacy mountainMeshes.js roll over the variants
+ * list (the mountain descriptor has no biome pins).
  *
  * variantRule 'hash' (default) — roll over the variants list from the tile
- * hash; the generic rule for any content with hash-chosen variants (mountains).
+ * hash; kept for content that genuinely wants hash-chosen variants (no
+ * descriptor uses it today).
  *
- * variantRule 'mountain' — legacy mountainMeshes.js roll.
- *
- * A rule that names an id the descriptor does not define falls back to the
- * hash roll so a partially-migrated descriptor still renders.
+ * A rule that names an id the descriptor does not define falls back so a
+ * partially-migrated descriptor still renders. The legacy 'cluster' rule
+ * (denseForest→tall, else→round) is retired — different terrains are now
+ * separate descriptors (normalizeDescriptor migrates old files).
  */
 
 /**
@@ -41,18 +50,16 @@ export function variantFor(descriptor, tile, tileH, explicitId = null) {
     const forced = byId(explicitId);
     if (forced) return forced;
   }
-  // Biome override — a descriptor's per-biome variant wins over the terrain
-  // map and the rule.
+  // Biome override — a descriptor's per-biome variant wins over the default.
   const biomeVariantId = descriptor.biomeVariants?.[tile.biomeId];
   if (biomeVariantId) {
     const biomeVariant = byId(biomeVariantId);
     if (biomeVariant) return biomeVariant;
   }
-  // Terrain override — e.g. denseForest groves are conical pines.
-  const terrainVariantId = descriptor.terrainVariants?.[tile.terrain];
-  if (terrainVariantId) {
-    const terrainVariant = byId(terrainVariantId);
-    if (terrainVariant) return terrainVariant;
+  // A biome-pinned descriptor renders its first (default) variant everywhere
+  // else — variants are biome alternates, not hash-rolled content.
+  if (descriptor.biomeVariants && Object.keys(descriptor.biomeVariants).length > 0) {
+    return variants[0];
   }
   const rule = descriptor.variantRule;
   if (rule === 'mountain') {

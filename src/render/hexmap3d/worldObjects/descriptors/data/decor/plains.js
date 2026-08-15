@@ -4,11 +4,11 @@
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
-export const PLAINS_GRASS_DESCRIPTOR = {
+export const PLAINS_DESCRIPTOR = {
   schemaVersion: 5,
-  id: 'plainsGrass',
+  id: 'plains',
   kind: 'decor',
-  displayName: 'Plains Grass',
+  displayName: 'Plains',
   cluster: { min: 6, max: 9 },
   size: { min: 0.85, max: 1.2 },
   placement: {

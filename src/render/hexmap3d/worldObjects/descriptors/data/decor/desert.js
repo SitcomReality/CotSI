@@ -4,11 +4,11 @@
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
-export const DESERT_SCRUB_DESCRIPTOR = {
+export const DESERT_DESCRIPTOR = {
   schemaVersion: 5,
-  id: 'desertScrub',
+  id: 'desert',
   kind: 'decor',
-  displayName: 'Desert Scrub',
+  displayName: 'Desert',
   scale: 1.1,
   cluster: { max: 3 },
   placement: { mode: 'scatter', offsetMin: 0.16, offsetMax: 0.42, separation: 0.5 },

@@ -136,8 +136,9 @@ export const NESTED_PART_TRANSFORM_DEFAULTS = Object.freeze({
  * How a descriptor's `variants` list is resolved to the parts of one item.
  * Tile-driven kinds: 'hash' (default) rolls from the tile hash; 'mountain'
  * keeps the legacy mountain hash roll. The legacy 'cluster' rule is retired —
- * its terrain half is now the `terrainVariants` map and its biome half
- * `biomeVariants` (normalizeDescriptor migrates old files). Entity-driven
+ * different terrains are separate decor objects, so a decor's only variant
+ * dimension is the biome (variants[0] is the default look, `biomeVariants`
+ * pins alternates — normalizeDescriptor migrates old files). Entity-driven
  * kinds: 'faction' picks variant id === entity.faction, 'archetype' picks
  * variant id === entity.archetype.
  */

@@ -34,7 +34,7 @@ test('data covers every FEATURE_VISUALS kind plus decor/mountain/knot content', 
     'snowperson',
   ];
   for (const id of expectedSimple) assert.ok(ids.has(id), `missing simple feature "${id}"`);
-  for (const id of ['grove', 'hill', 'mountain', 'knot', 'marshReeds', 'plateauMound', 'plainsGrass', 'desertScrub', 'beachDriftwood']) {
+  for (const id of ['forest', 'denseForest', 'hill', 'mountain', 'knot', 'marsh', 'plateau', 'plains', 'desert', 'beach']) {
     assert.ok(ids.has(id), `missing migrated object "${id}"`);
   }
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));
@@ -119,14 +119,14 @@ test('simple feature displacement lands on the corner anchor and shrinks', () =>
   assert.ok(record.scale <= bush.scale * DISPERSED_SCALE + 1e-9);
 });
 
-test('grove: moisture-driven count, ring placement, dispersed ring + shrink', () => {
-  const grove = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'grove'));
+test('woods decor: moisture-driven count, ring placement, dispersed ring + shrink', () => {
+  const forest = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'forest'));
   const tile = { q: 3, r: -2, terrain: 'forest', moisture: 0.8 };
-  const normal = recordsForDescriptor(grove, tile, POS);
+  const normal = recordsForDescriptor(forest, tile, POS);
   const count = normal.filter((r) => r.partId === 'trunk').length;
-  assert.ok(count >= 3 && count <= 5, `grove count ${count} outside [3,5]`);
+  assert.ok(count >= 3 && count <= 5, `forest count ${count} outside [3,5]`);
 
-  const displaced = recordsForDescriptor(grove, tile, POS, undefined, { displaced: true });
+  const displaced = recordsForDescriptor(forest, tile, POS, undefined, { displaced: true });
   const dCount = displaced.filter((r) => r.partId === 'trunk').length;
   assert.equal(dCount, count, 'dispersal keeps the same member count');
   for (const record of displaced) {
@@ -141,6 +141,13 @@ test('grove: moisture-driven count, ring placement, dispersed ring + shrink', ()
     assert.ok(Math.abs(record.x - POS.x - expected[i].dx) < 1e-9, `item ${i} dx`);
     assert.ok(Math.abs(record.z - POS.z - expected[i].dz) < 1e-9, `item ${i} dz`);
   });
+
+  // The denseForest decor is a separate object with its own (denser) moisture
+  // count range — 4..7 trees per tile.
+  const deep = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'denseForest'));
+  const deepCount = recordsForDescriptor(deep, { q: 3, r: -2, terrain: 'denseForest', moisture: 0.8 }, POS)
+    .filter((r) => r.partId === 'trunk').length;
+  assert.ok(deepCount >= 4 && deepCount <= 7, `denseForest count ${deepCount} outside [4,7]`);
 });
 
 test('mountain: per-variant part ids and mountainType-driven scaleY', () => {

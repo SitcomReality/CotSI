@@ -88,7 +88,7 @@ const hillItemScale = (tile) => recordsForDescriptor(NORMALIZED_HILL, tile, cent
 test('resolveDescriptorForTile: feature vs decor dispatch', () => {
   const bush = TILES[0];
   const res = resolveDescriptorForTile(bush, OCCUPIED);
-  assert.deepEqual(res.map((r) => r.descriptor.id), ['bush', 'plainsGrass']);
+  assert.deepEqual(res.map((r) => r.descriptor.id), ['bush', 'plains']);
   assert.deepEqual(res[0].displacement, { displaced: false });
 
   // Occupied simple feature is displaced.
@@ -97,13 +97,13 @@ test('resolveDescriptorForTile: feature vs decor dispatch', () => {
 
   // Knot on forest resolves to BOTH the knot and the dispersed grove.
   const knot = resolveDescriptorForTile(TILES[3], OCCUPIED);
-  assert.deepEqual(knot.map((r) => r.descriptor.id), ['knot', 'grove']);
+  assert.deepEqual(knot.map((r) => r.descriptor.id), ['knot', 'forest']);
   assert.deepEqual(knot[0].displacement, { displaced: false });
   assert.deepEqual(knot[1].displacement, { hidden: false, displaced: true });
 
   // Mined knot: no knot, but the grove still disperses.
   const mined = resolveDescriptorForTile(TILES[4], OCCUPIED);
-  assert.deepEqual(mined.map((r) => r.descriptor.id), ['grove']);
+  assert.deepEqual(mined.map((r) => r.descriptor.id), ['forest']);
   assert.deepEqual(mined[0].displacement, { hidden: false, displaced: true });
 
   // Mountain: no displacement (emphasis 'none').
@@ -122,16 +122,16 @@ test('resolveDescriptorForTile: feature vs decor dispatch', () => {
   // Painforest woods resolve the gnarled `painforest` grove variant (descriptor
   // data); the Blessed Font resolves as a feature alongside its terrain decor
   // (plains grass).
-  assert.deepEqual(resolveDescriptorForTile(TILES[8], OCCUPIED).map((r) => r.descriptor.id), ['grove']);
+  assert.deepEqual(resolveDescriptorForTile(TILES[8], OCCUPIED).map((r) => r.descriptor.id), ['forest']);
   assert.deepEqual(resolveDescriptorForTile(TILES[8], OCCUPIED)[0].displacement, { hidden: false, displaced: false });
-  assert.deepEqual(resolveDescriptorForTile(TILES[9], OCCUPIED).map((r) => r.descriptor.id), ['blessedFont', 'plainsGrass']);
+  assert.deepEqual(resolveDescriptorForTile(TILES[9], OCCUPIED).map((r) => r.descriptor.id), ['blessedFont', 'plains']);
 
   // Ground decor: one descriptor per terrain.
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'marsh' }, new Set()).map((r) => r.descriptor.id), ['marshReeds']);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plateau' }, new Set()).map((r) => r.descriptor.id), ['plateauMound']);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plains' }, new Set()).map((r) => r.descriptor.id), ['plainsGrass']);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'desert' }, new Set()).map((r) => r.descriptor.id), ['desertScrub']);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'beach' }, new Set()).map((r) => r.descriptor.id), ['beachDriftwood']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'marsh' }, new Set()).map((r) => r.descriptor.id), ['marsh']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plateau' }, new Set()).map((r) => r.descriptor.id), ['plateau']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plains' }, new Set()).map((r) => r.descriptor.id), ['plains']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'desert' }, new Set()).map((r) => r.descriptor.id), ['desert']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'beach' }, new Set()).map((r) => r.descriptor.id), ['beach']);
 
   // Water, river, and ice stay bare — no terrain decor.
   assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'water' }, new Set()), []);
@@ -140,16 +140,17 @@ test('resolveDescriptorForTile: feature vs decor dispatch', () => {
 });
 
 test('one named decor per decor-producing terrain', () => {
+  // One decor per terrain — the decor's id IS the terrain's id.
   const EXPECTED = {
-    plains: 'plainsGrass',
-    forest: 'grove',
-    denseForest: 'grove',
-    desert: 'desertScrub',
-    marsh: 'marshReeds',
+    plains: 'plains',
+    forest: 'forest',
+    denseForest: 'denseForest',
+    desert: 'desert',
+    marsh: 'marsh',
     hill: 'hill',
-    plateau: 'plateauMound',
+    plateau: 'plateau',
     mountain: 'mountain',
-    beach: 'beachDriftwood',
+    beach: 'beach',
   };
   const isDecor = (r) => r.descriptor.kind === 'decor' || r.descriptor.kind === 'mountain';
   for (const [terrain, decorId] of Object.entries(EXPECTED)) {
@@ -202,16 +203,19 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   const cPos = instInfo(chest, 0);
   assert.ok(closeTo(cPos.x, cCenter.x + anchor.dx) && closeTo(cPos.z, cCenter.z + anchor.dz), 'chest displaced');
 
-  // Grove: one canopy per trunk; the round (forest) and tall (denseForest)
-  // variants each render their own geometry — round is a sphere, tall a cone.
-  const groveTrunk = meshNamed(meshes, 'grove-trunk');
-  const groveCanopyRound = meshNamed(meshes, 'grove-canopy-round');
-  const groveCanopyTall = meshNamed(meshes, 'grove-canopy-tall');
-  assert.ok(groveTrunk && groveCanopyRound && groveCanopyTall, 'grove trunk + per-variant canopy meshes');
-  assert.equal(groveTrunk.count, groveCanopyRound.count + groveCanopyTall.count, 'one canopy per trunk');
-  assert.ok(groveCanopyRound.geometry instanceof THREE.SphereGeometry, 'round grove canopy is a sphere');
-  assert.ok(groveCanopyTall.geometry instanceof THREE.ConeGeometry, 'tall grove canopy is a cone');
-  assert.ok(groveTrunk.count >= 5, `grove covers 5 woods tiles (got ${groveTrunk.count})`);
+  // Woods: separate forest + denseForest decor descriptors; each renders its
+  // default variant's geometry — forest is a round sphere canopy, denseForest
+  // a conical pine. One canopy per trunk within each descriptor.
+  const forestTrunk = meshNamed(meshes, 'forest-trunk');
+  const forestCanopyRound = meshNamed(meshes, 'forest-canopy-round');
+  const deepTrunk = meshNamed(meshes, 'denseForest-trunk');
+  const deepCanopyTall = meshNamed(meshes, 'denseForest-canopy-tall');
+  assert.ok(forestTrunk && forestCanopyRound && deepTrunk && deepCanopyTall, 'forest + denseForest trunk + canopy meshes');
+  assert.equal(forestTrunk.count, forestCanopyRound.count, 'one round canopy per forest trunk');
+  assert.equal(deepTrunk.count, deepCanopyTall.count, 'one tall canopy per denseForest trunk');
+  assert.ok(forestCanopyRound.geometry instanceof THREE.SphereGeometry, 'forest canopy is a sphere');
+  assert.ok(deepCanopyTall.geometry instanceof THREE.ConeGeometry, 'denseForest canopy is a cone');
+  assert.ok(forestTrunk.count + deepTrunk.count >= 5, `woods cover 4 tiles (got ${forestTrunk.count + deepTrunk.count} trunks)`);
 
   // Knot: exactly one (the mined one is skipped), hovering at KNOT_Y_OFFSET.
   const knots = meshesStarting(meshes, 'knot-');
@@ -243,19 +247,19 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   }
 
   // Ground decor: one cluster per terrain, one mesh per part.
-  const marsh = meshNamed(meshes, 'marshReeds-reed');
-  const plateau = meshNamed(meshes, 'plateauMound-mound');
-  const grass = meshNamed(meshes, 'plainsGrass-blade');
-  const scrub = meshNamed(meshes, 'desertScrub-cactus-stem');
-  const driftwood = meshNamed(meshes, 'beachDriftwood-driftwood-log');
+  const marsh = meshNamed(meshes, 'marsh-reed');
+  const plateau = meshNamed(meshes, 'plateau-mound');
+  const grass = meshNamed(meshes, 'plains-blade');
+  const scrub = meshNamed(meshes, 'desert-cactus-stem');
+  const driftwood = meshNamed(meshes, 'beach-driftwood-log');
   for (const m of [marsh, plateau, grass, scrub, driftwood]) {
     assert.ok(m && m.count >= 1, `${m?.name ?? 'missing mesh'} renders at least one instance`);
   }
   assert.equal(plateau.count, 1, 'plateau mound is a single center-placed mound');
 
-  // Grove meshes: the two plain canopy variants (round + tall), the shared
-  // trunk, and the four parts of the painforest gnarled variant.
-  assert.equal(meshesStarting(meshes, 'grove-').length, 7, 'trunk + two canopy variants + four gnarled painforest parts');
+  // Woods meshes: forest's round canopy (2 tiles) + gnarled painforest variant
+  // (1 tile), and denseForest's tall canopy (1 tile) — 2 + 4 + 2 parts.
+  assert.equal(meshesStarting(meshes, 'forest-').length + meshesStarting(meshes, 'denseForest-').length, 8, 'forest + denseForest trunks, canopies, and gnarled painforest parts');
   assert.equal(meshesStarting(meshes, 'blessedFont-').length, 4, 'Blessed Font renders its four parts');
 });
 
@@ -273,10 +277,10 @@ test('painforest grove and Blessed Font are both descriptor data', () => {
 
   // The painforest grove is fully descriptor-driven — its gnarled variant
   // parts render like any other grove variant.
-  for (const name of ['grove-trunk-gnarled-base', 'grove-trunk-gnarled-upper', 'grove-branch-gnarled', 'grove-canopy-gnarled']) {
+  for (const name of ['forest-trunk-gnarled-base', 'forest-trunk-gnarled-upper', 'forest-branch-gnarled', 'forest-canopy-gnarled']) {
     assert.ok(meshNamed(meshes, name), `${name} mesh present`);
   }
-  assert.ok(meshNamed(meshes, 'grove-trunk-gnarled-base').count >= 3, 'painforest grove cluster renders (moisture 0.6 forest → mid density)');
+  assert.ok(meshNamed(meshes, 'forest-trunk-gnarled-base').count >= 3, 'painforest grove cluster renders (moisture 0.6 forest → mid density)');
 
   // The Blessed Font is descriptor-driven — its parts render, and the tile's
   // own terrain decor (plains grass) composes alongside it.
@@ -284,7 +288,7 @@ test('painforest grove and Blessed Font are both descriptor data', () => {
     assert.ok(meshNamed(meshes, name), `${name} mesh present`);
   }
   assert.equal(meshesStarting(meshes, 'tree-').length, 0, 'no solitary-tree meshes on these tiles');
-  assert.ok(meshNamed(meshes, 'plainsGrass-blade'), 'the font tile terrain decor still renders');
+  assert.ok(meshNamed(meshes, 'plains-blade'), 'the font tile terrain decor still renders');
 });
 
 // ── Explored-but-out-of-sight terrain decoration ───────────────────────────
@@ -302,7 +306,7 @@ test('resolveDescriptorForTile: decor is unoccupied while out of sight', () => {
   // Knot on forest out of sight: the knot still resolves (collect-time gating
   // hides it), but the grove is unoccupied instead of dispersed.
   const knot = resolveDescriptorForTile(TILES[3], OCCUPIED, false);
-  assert.deepEqual(knot.map((r) => r.descriptor.id), ['knot', 'grove']);
+  assert.deepEqual(knot.map((r) => r.descriptor.id), ['knot', 'forest']);
   assert.deepEqual(knot[1].displacement, { hidden: false, displaced: false });
 
   // Mountain out of sight resolves as always (emphasis 'none').
@@ -350,11 +354,14 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
     assert.ok(closeTo(p.y - HILL_BASE * p.sy, hillSurface), `hill mound ${i} grounded at the surface (got ${p.y})`);
   }
 
-  // All four non-Painforest woods tiles render their grove (the visible plain
-  // grove, the two knot tiles, and the dense wood).
-  const groveTrunk = meshNamed(meshes, 'grove-trunk');
-  assert.ok(groveTrunk, 'grove meshes present');
-  assert.ok(groveTrunk.count >= 4, `grove covers the explored woods tiles (got ${groveTrunk.count})`);
+  // All four woods tiles render their decor (the visible plain forest, the two
+  // knot tiles, and the dense wood) — forest's round trees + denseForest's
+  // conical pines.
+  const forestTrunk = meshNamed(meshes, 'forest-trunk');
+  const deepTrunk = meshNamed(meshes, 'denseForest-trunk');
+  assert.ok(forestTrunk && deepTrunk, 'forest + denseForest meshes present');
+  assert.ok(forestTrunk.count >= 4, `forest covers the explored woods tiles (got ${forestTrunk.count})`);
+  assert.ok(deepTrunk.count >= 4, `denseForest covers its explored tile (got ${deepTrunk.count})`);
 });
 
 test('painforest grove (descriptor decor) renders out of sight; Blessed Fonts stay hidden', () => {
@@ -364,17 +371,17 @@ test('painforest grove (descriptor decor) renders out of sight; Blessed Fonts st
   const visible = new Set();
   const state = { tiles: new Map(), champions: [], mobs: [], traders: [] };
 
-  // The gnarled grove is terrain decoration — it renders out of sight through
-  // the descriptor path.
+  // The gnarled forest decor is terrain decoration — it renders out of sight
+  // through the descriptor path.
   const painMeshes = buildChunkWorldMeshes([painforest], state, visible, explored);
-  assert.ok(painMeshes.some((m) => m.name.startsWith('grove-')), 'painforest grove renders out of sight');
+  assert.ok(painMeshes.some((m) => m.name.startsWith('forest-')), 'painforest forest decor renders out of sight');
   assert.equal(meshesStarting(painMeshes, 'tree-').length, 0, 'painforest emits no solitary tree meshes');
 
   // The Blessed Font (a feature) alone, out of sight, produces nothing — only
   // the tile's terrain decoration (plains grass) renders out of sight.
   const fontMeshes = buildChunkWorldMeshes([font], state, visible, explored);
   assert.equal(meshesStarting(fontMeshes, 'blessedFont-').length, 0, 'Blessed Font hidden out of sight');
-  assert.ok(fontMeshes.some((m) => m.name.startsWith('plainsGrass-')), 'plains grass decor still renders out of sight');
+  assert.ok(fontMeshes.some((m) => m.name.startsWith('plains-')), 'plains decor still renders out of sight');
 });
 
 // ── Barrel smoke (worldMeshes.js wiring) ─────────────────────────────────

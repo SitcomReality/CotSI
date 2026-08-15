@@ -22,7 +22,7 @@ import { buildDescriptorMeshes } from '../../../src/render/hexmap3d/worldObjects
 const NON_TILE_KINDS = new Set(['base', 'champion', 'mob', 'trader', 'item']);
 
 test('ALL_DESCRIPTORS covers every migrated object (features + decor + mountain + knot + entity + item kinds)', () => {
-  assert.equal(ALL_DESCRIPTORS.length, 51);
+  assert.equal(ALL_DESCRIPTORS.length, 52);
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));
   assert.ok(kinds.has('feature') && kinds.has('decor') && kinds.has('mountain'), 'all tile-driven kinds present');
   assert.ok(kinds.has('base') && kinds.has('champion') && kinds.has('mob') && kinds.has('trader'), 'all entity kinds present');
@@ -42,14 +42,15 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
   for (const d of ALL_DESCRIPTORS) {
     if (NON_TILE_KINDS.has(d.kind)) continue; // covered by the entity test below
     if (d.id === 'mountain') push({ terrain: 'mountain', mountainType: 'normal' });
-    else if (d.id === 'grove') push({ terrain: 'forest', moisture: 0.6 });
+    else if (d.id === 'forest') push({ terrain: 'forest', moisture: 0.6 });
+    else if (d.id === 'denseForest') push({ terrain: 'denseForest', moisture: 0.6 });
     else if (d.id === 'hill') push({ terrain: 'hill' });
     else if (d.id === 'knot') push({ terrain: 'forest', feature: { kind: 'knot' } });
-    else if (d.id === 'marshReeds') push({ terrain: 'marsh' });
-    else if (d.id === 'plateauMound') push({ terrain: 'plateau' });
-    else if (d.id === 'plainsGrass') push({ terrain: 'plains' });
-    else if (d.id === 'desertScrub') push({ terrain: 'desert' });
-    else if (d.id === 'beachDriftwood') push({ terrain: 'beach' });
+    else if (d.id === 'marsh') push({ terrain: 'marsh' });
+    else if (d.id === 'plateau') push({ terrain: 'plateau' });
+    else if (d.id === 'plains') push({ terrain: 'plains' });
+    else if (d.id === 'desert') push({ terrain: 'desert' });
+    else if (d.id === 'beach') push({ terrain: 'beach' });
     else if (d.id === 'titanflesh') push({ terrain: 'plains', biomeId: 'biome_titanstain' });
     else if (d.id === 'titanblood') push({ terrain: 'water', biomeId: 'biome_titanstain' });
     else if (d.id === 'unfinishedScrap') push({ terrain: 'plains', biomeId: 'biome_unfinished_lands' });
@@ -76,11 +77,14 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
     }
   }
 
-  // Grove parts pair up (one canopy per trunk); knot hovers; mountain is a
-  // single hex-tiling mesh.
-  const groveTrunk = meshes.find((m) => m.name === 'grove-trunk');
-  const groveCanopyRound = meshes.find((m) => m.name === 'grove-canopy-round');
-  assert.ok(groveTrunk && groveCanopyRound && groveTrunk.count === groveCanopyRound.count, 'grove trunk/canopy pair');
+  // Woods decor parts pair up (one canopy per trunk within forest and
+  // denseForest); knot hovers; mountain is a single hex-tiling mesh.
+  const forestTrunk = meshes.find((m) => m.name === 'forest-trunk');
+  const forestCanopy = meshes.find((m) => m.name === 'forest-canopy-round');
+  const deepTrunk = meshes.find((m) => m.name === 'denseForest-trunk');
+  const deepCanopy = meshes.find((m) => m.name === 'denseForest-canopy-tall');
+  assert.ok(forestTrunk && forestCanopy && forestTrunk.count === forestCanopy.count, 'forest trunk/canopy pair');
+  assert.ok(deepTrunk && deepCanopy && deepTrunk.count === deepCanopy.count, 'denseForest trunk/canopy pair');
   const knots = meshes.filter((m) => m.name.startsWith('knot-'));
   assert.equal(knots.length, 1, 'one knot mesh');
   assert.equal(meshes.filter((m) => m.name.startsWith('mountain-')).length, 1, 'one mountain mesh');

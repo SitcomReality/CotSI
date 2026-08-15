@@ -4,11 +4,11 @@
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
-export const PLATEAU_MOUND_DESCRIPTOR = {
+export const PLATEAU_DESCRIPTOR = {
   schemaVersion: 5,
-  id: 'plateauMound',
+  id: 'plateau',
   kind: 'decor',
-  displayName: 'Plateau Mound',
+  displayName: 'Plateau',
   emphasis: { behavior: 'sunk' },
   parts: [
     {

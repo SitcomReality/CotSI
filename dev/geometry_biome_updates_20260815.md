@@ -40,10 +40,11 @@ For example, when the blessed font is empty, the 'water' part could be tiny and 
 
 ### Tree grove & per-biome decor (& feature?) changes:
 
-✅ DONE — the editor now authors per-biome and per-terrain variant pins
-(biomeVariants / terrainVariants), and the grove's `variantRule: 'cluster'`
-conflation was split into those two data-driven maps. Full details in the
-hand-off item B.
+✅ DONE — one decor per terrain, with per-biome variant pins in the editor.
+The decor's id IS the terrain's id (`forest`, `denseForest`, `plains`, ...);
+the grove split into `forest` + `denseForest` descriptors, each with its own
+Painforest variant; `terrainVariants` was removed (different terrains are
+separate decor objects, never variants). Full details in the hand-off item B.
 
 "Per-biome decor — the mechanism is data-driven (biomeVariants); Scorch/Edenfall/etc. will need their own tree variants authored in the editor to actually *look* different."
 

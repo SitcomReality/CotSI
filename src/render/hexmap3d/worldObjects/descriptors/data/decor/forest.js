@@ -1,21 +1,22 @@
 /**
- * grove.js — Descriptor data for "Tree Grove".
+ * forest.js — Descriptor data for "Forest".
  *
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
+ *
+ * The terrain decor for `forest` tiles — one decor per terrain, so this is a
+ * separate object from `denseForest` (deep wood). The first variant ('round')
+ * is the default look; the 'painforest' variant is pinned to the Painforest
+ * biome via biomeVariants (other biomes can pin their own alternates).
  */
-export const GROVE_DESCRIPTOR = {
+export const FOREST_DESCRIPTOR = {
   schemaVersion: 5,
-  id: 'grove',
+  id: 'forest',
   kind: 'decor',
-  displayName: 'Tree Grove',
-  cluster: { rule: 'moisture' },
+  displayName: 'Forest',
+  cluster: { rule: 'moisture', countsByTerrain: { forest: [3, 5] } },
   size: { min: 1.3, max: 1.5 },
   variation: { colorJitter: 0.05 },
-  // Data-driven variant pins — no hardcoded rule: denseForest groves grow the
-  // conical 'tall' pines, forest the round ones (variantRule falls back to the
-  // hash roll elsewhere), and Painforest always grows the gnarled variant.
-  terrainVariants: { denseForest: 'tall', forest: 'round' },
   biomeVariants: { biome_painforest: 'painforest' },
   placement: { mode: 'ring', leanMin: 0.2, leanMax: 0.3 },
   emphasis: { behavior: 'dispersed' },
@@ -62,40 +63,6 @@ export const GROVE_DESCRIPTOR = {
           },
           color: 0x3cb371,
           biomeColor: { source: 'primary', influence: 0.8 },
-          biomeScale: { biome_tundra: 0.85 },
-        },
-      ],
-    },
-    {
-      id: 'tall',
-      parts: [
-        {
-          id: 'trunk',
-          shape: 'cylinder',
-          stretch: {
-            y: { min: 0.9, max: 1.2, seed: 6 },
-            x: false,
-            z: false,
-          },
-          biomeScale: { biome_tundra: 0.85 },
-          transform: { scaleY: 0.8 },
-          color: 0x8b5e3c,
-        },
-        {
-          id: 'canopy-tall',
-          shape: 'cone',
-          transform: {
-            y: 0,
-            lift: 0,
-            liftRange: { min: 0.162, max: 0.336, seed: 6 },
-          },
-          stretch: {
-            y: { min: 0.85, max: 1.3, seed: 4 },
-            x: { min: 0.9, max: 1.15, seed: 5 },
-            z: { min: 0.9, max: 1.15, seed: 5 },
-          },
-          color: 0x2e8b57,
-          biomeColor: { source: 'accent', influence: 0.7 },
           biomeScale: { biome_tundra: 0.85 },
         },
       ],

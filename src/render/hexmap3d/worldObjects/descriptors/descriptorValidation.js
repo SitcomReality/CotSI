@@ -237,7 +237,7 @@ function validatePortrait(portrait, path, errors) {
 const OBJECT_KEYS = [
   'schemaVersion', 'id', 'kind', 'displayName', 'parts', 'variants', 'variantRule',
   'scale', 'cluster', 'size', 'variation', 'placement', 'emphasis', 'material',
-  'slot', 'portrait', 'biomeVariants', 'terrainVariants', 'optionalGroups',
+  'slot', 'portrait', 'biomeVariants', 'optionalGroups',
 ];
 
 /**
@@ -290,27 +290,24 @@ export function validateDescriptor(def) {
   }
 
   /**
-   * Validate a per-key variant pin map — `biomeVariants` (biomeId → variantId)
-   * or `terrainVariants` (terrain → variantId): every value must name a
-   * variant the descriptor defines, so a pin can never silently point nowhere.
+   * Validate `biomeVariants` — a biomeId → variantId pin map: every value must
+   * name a variant the descriptor defines, so a pin can never silently point
+   * nowhere.
    */
-  const validateVariantPinMap = (map, mapName, errors) => {
-    if (map === undefined) return;
-    if (!isPlainObject(map)) {
-      errors.push(`descriptor.${mapName}: must be an object of ${mapName === 'biomeVariants' ? 'biomeId' : 'terrain'} → variantId`);
-      return;
-    }
-    const variantIds = new Set((def.variants ?? []).map((v) => v?.id));
-    for (const [key, variantId] of Object.entries(map)) {
-      if (typeof variantId !== 'string' || !variantId) {
-        errors.push(`descriptor.${mapName}["${key}"]: variantId must be a non-empty string`);
-      } else if (!variantIds.has(variantId)) {
-        errors.push(`descriptor.${mapName}["${key}"]: unknown variant "${variantId}"`);
+  if (def.biomeVariants !== undefined) {
+    if (!isPlainObject(def.biomeVariants)) {
+      errors.push('descriptor.biomeVariants: must be an object of biomeId → variantId');
+    } else {
+      const variantIds = new Set((def.variants ?? []).map((v) => v?.id));
+      for (const [biomeId, variantId] of Object.entries(def.biomeVariants)) {
+        if (typeof variantId !== 'string' || !variantId) {
+          errors.push(`descriptor.biomeVariants["${biomeId}"]: variantId must be a non-empty string`);
+        } else if (!variantIds.has(variantId)) {
+          errors.push(`descriptor.biomeVariants["${biomeId}"]: unknown variant "${variantId}"`);
+        }
       }
     }
-  };
-  validateVariantPinMap(def.biomeVariants, 'biomeVariants', errors);
-  validateVariantPinMap(def.terrainVariants, 'terrainVariants', errors);
+  }
 
   if (def.optionalGroups !== undefined) {
     if (!Array.isArray(def.optionalGroups)) {

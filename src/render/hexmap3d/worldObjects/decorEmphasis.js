@@ -13,10 +13,11 @@
 // the rules are unit-testable; mesh builders apply the returned transforms.
 //
 // De-emphasis modes:
-//   dispersed — shrink and move outward (grove trees, displaced features).
-//               A single item always lands on the same anchor: the upper-left
-//               corner of the hex, just inside the edge, so the visual
-//               language is consistent across every single-item case.
+//   dispersed — shrink and move outward (forest/deep-wood trees, reeds, grass,
+//               displaced features). A single item always lands on the same
+//               anchor: the upper-left corner of the hex, just inside the
+//               edge, so the visual language is consistent across every
+//               single-item case.
 //   sunk      — shrink and descend below the tile surface (hill mounds, which
 //               cannot spread out).
 //   hidden    — not rendered at all (a decoration behind a feature + occupant).
@@ -33,9 +34,11 @@ export const DECOR_STATE = Object.freeze({
   HIDDEN: 'hidden',
 });
 
-/** Terrain decoration kinds the rules know how to de-emphasize. */
+/** Terrain decoration kinds the rules know how to de-emphasize. One per
+ *  decor-producing terrain (the decor's id IS the terrain's id). */
 export const DECORATION = Object.freeze({
-  GROVE: 'grove',       // forest/denseForest tree grove (spreads out)
+  FOREST: 'forest',     // forest terrain decor — round trees (spreads out)
+  DEEP_WOOD: 'deepWood', // denseForest terrain decor — conical pines (spreads out)
   HILL: 'hill',         // raised mound on hill terrain (sinks)
   PLATEAU: 'plateau',   // flat-top mound on plateau terrain (sinks)
   MARSH: 'marsh',       // reed cluster on marsh (spreads out)

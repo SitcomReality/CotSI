@@ -4,11 +4,11 @@
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
-export const MARSH_REEDS_DESCRIPTOR = {
+export const MARSH_DESCRIPTOR = {
   schemaVersion: 3,
-  id: 'marshReeds',
+  id: 'marsh',
   kind: 'decor',
-  displayName: 'Marsh Reeds',
+  displayName: 'Marsh',
   cluster: { min: 4, max: 7 },
   size: { max: 1.25 },
   placement: { mode: 'jitter', offset: 0.12, tiltMin: 0.04, tiltMax: 0.16 },

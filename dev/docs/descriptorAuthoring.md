@@ -47,7 +47,7 @@ A descriptor never contains THREE.js or any rendering code — it is pure data
   from its base, never below it. `transform.liftRange` draws that height from
   `[min, max]` by a seeded hash instead of a fixed `lift` — author it with the
   seed of the part it tracks (e.g. the trunk's stretch seed) so one part's
-  bottom follows another's per-tile draw (see the grove canopy anchor, §5.3).
+  bottom follows another's per-tile draw (see the forest canopy anchor, §5.3).
 - **Transform order at render:** place → spin (`rotY`, world Y) + lean
   (`tiltAxis`/`tilt`, world space) → lift/`localPos` (local frame) → local
   rotation (`localAxis`/`localAngle`, local frame) → scale.
@@ -58,8 +58,8 @@ One file per object in `src/render/hexmap3d/worldObjects/descriptors/data/`:
 
 - File name: `<id>.js` (lowerCamelCase id).
 - Export name: the id converted to SCREAMING_SNAKE + `_DESCRIPTOR`
-  (`edenMushroom` → `EDEN_MUSHROOM_DESCRIPTOR`, `plainsGrass` →
-  `PLAINS_GRASS_DESCRIPTOR`). The conversion splits camelCase words and maps
+  (`edenMushroom` → `EDEN_MUSHROOM_DESCRIPTOR`, `plains` →
+  `PLAINS_DESCRIPTOR`). The conversion splits camelCase words and maps
   `-`/`_` to `_`.
 - The export is the descriptor literal — **only non-default fields** (the
   emitter strips defaults; `normalizeDescriptor` re-fills them on load).
@@ -125,7 +125,6 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
 | `parts` | array | — | The part list (used when no variant is chosen). |
 | `variants` | array | — | Optional alternative part sets (see §5.3). |
 | `biomeVariants` | object | — | Per-biome variant pins: `{ biomeId: variantId }` (see §5.3). |
-| `terrainVariants` | object | — | Per-terrain variant pins: `{ terrain: variantId }` (see §5.3). |
 
 **cluster:**
 - `rule: 'uniform'` — count drawn from `[min, max]` by the tile hash.
@@ -373,34 +372,49 @@ anywhere. The pipeline (recordBuilder.js):
 
 ### 5.3 Variant selection
 
-`variants` is a list of `{ id, parts }`. Which variant composes a tile's items
-is resolved by **precedence** (highest first):
+**A decor is the look of ONE terrain.** Each decor-producing terrain has its
+own descriptor, and the decor's `id` IS the terrain's id: `forest` tiles render
+the `forest` decor, `denseForest` tiles the `denseForest` decor (deep wood),
+`desert` tiles the `desert` decor, and so on. The game's dispatch table
+(`gameBuilder.js` `SIMPLE_DECOR_BY_TERRAIN`) maps terrain → decor by that id;
+different terrains are **never** variants of one another.
 
-1. **Explicit picker** — the record path's `variantId` override (the editor's
-   Variant picker) forces one variant while authoring; a stale id falls through.
-2. **`biomeVariants`** — `{ biomeId: variantId }` pins a variant to a biome:
-   every tile of that biome renders it (e.g. the Painforest grove's gnarled
-   variant). The strongest data-driven override.
-3. **`terrainVariants`** — `{ terrain: variantId }` pins a variant to a terrain
-   (e.g. denseForest groves grow the conical `tall` pines, forest the `round`
-   ones). Biomes still win over terrains.
-4. **`variantRule`** — the fallback rule:
-   - `'hash'` (default) — roll over the variant list by tile hash. The generic rule for hash-chosen content.
-   - `'mountain'` — legacy mountain roll: hash raw `(q, r)` with `MOUNTAIN_HASH_SEEDS` (`((q·13 + r·7)·19) % 100`) so per-tile `classic`/`offpeak` assignments match the pre-migration `mountainMeshes.js` builder.
-   - `'faction'` / `'archetype'` — **entity-driven**: variant id must equal the entity's `faction` (e.g. `'CRU'`) or `archetype` (e.g. `'bear'`); unknown values fall back to the first variant.
+So on the tile path the only variant dimension is the **biome**:
 
-A pin (or rule) naming an id the descriptor doesn't define falls back down the
-chain, so a partially-migrated descriptor still renders. The legacy `'cluster'`
-and `'solitary'` rules were **retired**: their terrain half is now
-`terrainVariants`, their biome half `biomeVariants`. `normalizeDescriptor`
-migrates old files (`'cluster'` → `'hash'` + `terrainVariants { denseForest:
-'tall', forest: 'round' }`, dropping pins whose variant id is missing).
+- **`variants[0]` is the DEFAULT look** — every tile renders it unless a biome
+  pins an alternate. Put the canonical look first, alternates after.
+- **`biomeVariants`** — `{ biomeId: variantId }` pins an alternate to a biome:
+  every tile of that biome renders it (e.g. the `forest` and `denseForest`
+  decors both pin the gnarled `painforest` variant for Painforest woods).
+- **Explicit picker** — the editor's Variant picker (a record-path
+  `variantId` override) forces one variant while authoring; a stale id falls
+  through.
+
+Precedence (highest first): explicit picker → `biomeVariants[biomeId]` →
+default (`variants[0]`). A descriptor with `biomeVariants` never hash-rolls —
+variants are biome alternates, not per-tile lottery content.
+
+`variantRule` remains for the two non-biome cases:
+
+- `'mountain'` — legacy mountain roll over the `classic`/`offpeak` variants:
+  hash raw `(q, r)` with `MOUNTAIN_HASH_SEEDS` (`((q·13 + r·7)·19) % 100`) so
+  per-tile assignments match the pre-migration `mountainMeshes.js` builder.
+- `'hash'` (default) — roll over the variant list by tile hash. Kept for
+  content that genuinely wants hash-chosen variants; no current decor uses it.
+- `'faction'` / `'archetype'` — **entity-driven**: variant id must equal the
+  entity's `faction` (e.g. `'CRU'`) or `archetype` (e.g. `'bear'`); unknown
+  values fall back to the first variant.
+
+The legacy `'cluster'` and `'solitary'` rules were **retired** — the
+terrain/height distinctions they hardcoded are now separate descriptors or
+per-part authoring. `normalizeDescriptor` migrates old files (`'cluster'` →
+`'hash'`, dropping any interim `terrainVariants` field).
 
 **In the geometry editor:** the object controls list every registered biome
-and terrain with one variant select per row ("— follow rule" clears a pin), and
-the preview bar's Biome / Terrain selectors render the pinned looks — switch
-the terrain to `denseForest` to see the grove's conical pines, or the biome to
-Painforest for the gnarled ones.
+with one variant select per row ("— default look" clears a pin), and the
+preview bar's Biome / Terrain selectors render the pinned looks — switch the
+terrain to `denseForest` to see the deep-wood decor, or the biome to
+Painforest for the gnarled woods.
 
 ### 5.6 Entity-driven path (bases, champions, mobs, traders)
 
@@ -466,28 +480,31 @@ descriptor (+ tile / entity)
 
 In-game dispatch (gameBuilder.js): each tile resolves to its feature (by
 `tile.feature.kind` → descriptor id) plus its terrain decoration (mountains,
-grove on forest/denseForest, hill mounds, and one ground decor per
-marsh/plateau/plains/desert/beach). Decorations resolve in their unoccupied
+forest/denseForest woods, hill mounds, and one ground decor per
+marsh/plateau/plains/desert/beach — the decor's id IS the terrain's id).
+Decorations resolve in their unoccupied
 state while the tile is out of sight; occupants/features gate displacement.
 
-## 7. Worked example: a decor with variable properties — the Tree Grove
+## 7. Worked example: a decor with variable properties — the Forest
 
-A terrain `decor` is scattered and varies per tile, and the grove is the
+A terrain `decor` is scattered and varies per tile, and the forest decor is the
 flagship example of the variable-properties vocabulary: count, size, part set,
 stretch, and color all come from ranges and per-tile draws rather than fixed
-values. `src/render/hexmap3d/worldObjects/descriptors/data/grove.js` (annotated;
-the shipped file carries `schemaVersion: 5` — the editor rewrote it on the last Save):
+values. One decor per terrain — `src/render/hexmap3d/worldObjects/descriptors/data/forest.js`
+is the `forest` terrain's decor, and `denseForest.js` is a **separate**
+descriptor (the deep-wood's conical pines) — never a variant of this one
+(annotated; the shipped file carries `schemaVersion: 5` — the editor rewrote it on the last Save):
 
 ```js
-export const GROVE_DESCRIPTOR = {
+export const FOREST_DESCRIPTOR = {
   schemaVersion: 5,
-  id: 'grove',
+  id: 'forest',                       // the decor's id IS the terrain's id
   kind: 'decor',                      // terrain decoration, not a feature
-  displayName: 'Tree Grove',
-  cluster: { rule: 'moisture' },      // count scales with tile moisture
+  displayName: 'Forest',
+  cluster: { rule: 'moisture', countsByTerrain: { forest: [3, 5] } }, // count scales with tile moisture
   size: { min: 1.3, max: 1.5 },       // trees vary 1.3–1.5× object scale
   variation: { colorJitter: 0.05 },   // slight brightness jitter per tree
-  variantRule: 'cluster',             // denseForest→tall, else round; painforest biome→painforest
+  biomeVariants: { biome_painforest: 'painforest' }, // the gnarled variant is Painforest-only
   placement: { mode: 'ring', leanMin: 0.2, leanMax: 0.3 }, // ring around the hex center, slight per-tree lean
   emphasis: { behavior: 'dispersed' },// shrink+step aside when the center is claimed
   parts: [                           // fallback part set — only used if no variant matches
@@ -496,7 +513,7 @@ export const GROVE_DESCRIPTOR = {
   ],
   variants: [
     {
-      id: 'round',                    // deciduous canopy
+      id: 'round',                    // DEFAULT look (variants[0]) — every non-pinned tile
       parts: [
         {
           id: 'trunk', shape: 'cylinder',
@@ -518,16 +535,7 @@ export const GROVE_DESCRIPTOR = {
       ],
     },
     {
-      id: 'tall',                     // denseForest pine: cone canopy, accent tint
-      parts: [
-        { id: 'trunk', shape: 'cylinder', stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false }, biomeScale: { biome_tundra: 0.85 }, transform: { scaleY: 0.8 }, color: 0x8b5e3c },
-        // Tall canopy: canopyY 0.58, halfHeight 0.36 → [0.58·0.9−0.36, 0.58·1.2−0.36]
-        // = [0.162, 0.336] on the trunk's seed 6.
-        { id: 'canopy-tall', shape: 'cone', transform: { liftRange: { min: 0.162, max: 0.336, seed: 6 } }, stretch: { y: { min: 0.85, max: 1.3, seed: 4 }, x: { min: 0.9, max: 1.15, seed: 5 }, z: { min: 0.9, max: 1.15, seed: 5 } }, color: 0x2e8b57, biomeColor: { source: 'accent', influence: 0.7 }, biomeScale: { biome_tundra: 0.85 } },
-      ],
-    },
-    {
-      id: 'painforest',               // gnarled Painforest grove: multi-part bent trunk
+      id: 'painforest',               // biome-pinned alternate: gnarled multi-part bent trunk
       parts: [
         { id: 'trunk-gnarled-base',   shape: 'cylinder', params: { bottomR: 0.13, topR: 0.08, height: 0.3, segments: 5 }, transform: { localAxis: { x: 1, y: 0, z: 0 }, localAngle: 0.12 }, stretch: { y: { min: 0.9, max: 1.15, seed: 6 }, x: false, z: false }, biomeScale: { biome_painforest: 0.55 }, color: 0x8b5e3c },
         { id: 'trunk-gnarled-upper',  shape: 'cylinder', params: { topR: 0.05, height: 0.24, segments: 5 }, transform: { localPos: { x: 0, y: 0.3, z: 0.02 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: -0.15 }, stretch: { y: { min: 0.9, max: 1.15, seed: 6 }, x: false, z: false }, biomeScale: { biome_painforest: 0.55 }, color: 0x8b5e3c },
@@ -541,29 +549,35 @@ export const GROVE_DESCRIPTOR = {
 
 What each mechanism contributes, at a glance:
 
-- **Variable properties** — everything about a grove is a range, not a fixed
-  value: count (moisture rule), size (1.3–1.5×), part set (`variantRule`),
-  per-tree stretch, biome size/color, brightness jitter. The chest (§8) is the
-  opposite: one fixed, centralized object.
-- `cluster.rule: 'moisture'` — wetter forest tiles get more trees.
-- `variantRule: 'cluster'` — the terrain/biome picks the part set: round
-  deciduous canopies, tall pines, or the gnarled multi-part Painforest trees.
+- **One decor per terrain** — the decor's `id` is the terrain's id, and
+  `gameBuilder` maps terrain → decor by it. The deep-wood look is a separate
+  descriptor (`denseForest.js`), not a variant.
+- **`variants[0]` is the default look** — every forest tile renders `round`
+  unless a biome pins an alternate; `biomeVariants` swaps in `painforest` for
+  Painforest tiles.
+- **Variable properties** — everything about a forest is a range, not a fixed
+  value: count (moisture rule), size (1.3–1.5×), part set (default vs biome
+  pin), per-tree stretch, biome size/color, brightness jitter. The chest (§8)
+  is the opposite: one fixed, centralized object.
+- `cluster.rule: 'moisture'` — wetter forest tiles get more trees
+  (`countsByTerrain.forest` → 3–5; the denseForest decor carries its own
+  4–7 range).
 - `placement.ring` — members circle the hex center; `emphasis.dispersed`
   pushes them to the hex edge and shrinks them when the center is claimed.
 - `stretch` — per-tree random trunk height and canopy puffiness (deterministic
   per tile, seeded hash draws); `x: false` / `z: false` pin the trunk's width.
 - `biomeScale` — Tundra trees shrink to 85%, Painforest to 55%.
 - `biomeColor` — canopy green leans into the tile's blended biome color
-  (primary for round, accent for tall).
+  (primary for the round variant).
 - `color` per part — trunk brown vs canopy green, jittered ±0.05 brightness.
 
 ## 8. Worked example: a centralized feature — the Open Treasure Chest
 
-The chest is the opposite of the grove (§7): one fixed, centralized object
-with a moving sub-assembly. It shows schema v5 groups (the hinged lid), root
-leaves with per-part transforms, non-uniform scale, and local rotations. The
-closed-lid sibling `treasureChest.js` uses the same parts vocabulary without
-the group.
+The chest is the opposite of the forest decor (§7): one fixed, centralized
+object with a moving sub-assembly. It shows schema v5 groups (the hinged lid),
+root leaves with per-part transforms, non-uniform scale, and local rotations.
+The closed-lid sibling `treasureChest.js` uses the same parts vocabulary
+without the group.
 
 `src/render/hexmap3d/worldObjects/descriptors/data/openTreasureChest.js` (annotated;
 default-valued fields omitted for readability):
@@ -613,7 +627,7 @@ export const OPEN_TREASURE_CHEST_DESCRIPTOR = {
 What each piece demonstrates:
 
 - **Central placement** — no `placement` field, so the default `mode: 'center'`
-  puts one item at the hex center. Contrast the scattered grove (§7).
+  puts one item at the hex center. Contrast the scattered forest decor (§7).
 - **Emphasis** — the chest *yields* rather than disappears: any occupant
   (champion, trader, mob) claims the hex center, so `dispersed` shrinks the
   chest and steps it aside instead of burying it. Use `behavior: 'hidden'` if
@@ -666,7 +680,8 @@ What each piece demonstrates:
    import { recordsForDescriptor } from './src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
    const POS = { x: 1.732, y: 1.25, z: -3.0 };
    const TILES = {
-     grove: { q: 3, r: -2, terrain: 'forest', moisture: 0.8 },
+     forest: { q: 3, r: -2, terrain: 'forest', moisture: 0.8 },
+     denseForest: { q: 3, r: -2, terrain: 'denseForest', moisture: 0.8 },
      hill: { q: 3, r: -2, terrain: 'hill' },
      mountain: { q: 3, r: -2, terrain: 'mountain', mountainType: 'peak' },
    };

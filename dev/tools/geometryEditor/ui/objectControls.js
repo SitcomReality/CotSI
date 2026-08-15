@@ -30,48 +30,35 @@ import { ENTITY_KINDS } from '../entityView.js';
 import { SAMPLE_OBJECTS } from '../sampleObjects.js';
 import { FACTIONS } from '../../../../src/game/rules/factionData.js';
 import { listArchetypes, getArchetype } from '../../../../src/game/rules/archetypes.js';
-import { TERRAIN } from '../../../../src/game/rules/terrainTypes.js';
 
-/** Set or clear one pin in a per-key variant map (biomeVariants / terrainVariants).
- *  Empty value clears the pin; an empty map is dropped so denormalize emits no
- *  `{}` noise. */
-function setVariantPin(d, mapKey, key, variantId) {
+/** Set or clear one biome pin in `biomeVariants`. Empty value clears the pin;
+ *  an empty map is dropped so denormalize emits no `{}` noise. */
+function setBiomePin(d, biomeId, variantId) {
   if (variantId) {
-    d[mapKey] = { ...(d[mapKey] ?? {}), [key]: variantId };
-  } else if (d[mapKey]) {
-    d[mapKey] = { ...d[mapKey] };
-    delete d[mapKey][key];
-    if (Object.keys(d[mapKey]).length === 0) delete d[mapKey];
+    d.biomeVariants = { ...(d.biomeVariants ?? {}), [biomeId]: variantId };
+  } else if (d.biomeVariants) {
+    d.biomeVariants = { ...d.biomeVariants };
+    delete d.biomeVariants[biomeId];
+    if (Object.keys(d.biomeVariants).length === 0) delete d.biomeVariants;
   }
 }
 
-/** One per-key pin row: friendly label + variant select ('— follow rule' clears). */
-function variantPinRow(container, ctx, d, mapKey, key, label) {
-  const ids = d.variants.map((v) => v.id);
-  const options = [{ value: '', label: '— follow rule' }, ...ids.map((id) => ({ value: id, label: id }))];
-  const current = d[mapKey]?.[key] ?? '';
-  container.append(row(label, selectInput(options, current, (v) => ctx.mutate(() => {
-    setVariantPin(d, mapKey, key, v);
-  }))));
-}
-
-/** Per-biome + per-terrain variant pins — the data-driven overrides that make
- *  a decor look different per biome or terrain (e.g. the Painforest grove's
- *  gnarled variant, denseForest's conical pines). */
-function renderVariantPins(container, ctx) {
+/** Per-biome variant pins — the data-driven alternates that make a decor look
+ *  different per biome (e.g. the Painforest woods' gnarled variant). The first
+ *  variant is the default look; a pin swaps in an alternate. Different
+ *  terrains are separate decor objects, so there is no per-terrain picker. */
+function renderBiomeVariantPins(container, ctx) {
   const d = S.descriptor;
   const ids = d.variants.map((v) => v.id);
 
   container.append(subheading('Per-biome variants'));
-  container.append(el('div', 'hint', `Pin a variant to a biome — every tile of that biome renders this variant, ahead of the terrain pin and the rule. Variants: ${ids.join(', ')}.`));
+  container.append(el('div', 'hint', `Pin an alternate variant to a biome — the first variant (${ids[0]}) is the default look everywhere else. Variants: ${ids.join(', ')}.`));
   for (const biomeId of listArchetypes('biome')) {
-    variantPinRow(container, ctx, d, 'biomeVariants', biomeId, getArchetype(biomeId)?.name ?? biomeId);
-  }
-
-  container.append(subheading('Per-terrain variants'));
-  container.append(el('div', 'hint', 'Pin a variant to a terrain — e.g. denseForest groves grow the conical pines while forest grows round ones. Biomes still win over terrains.'));
-  for (const [terrain, def] of Object.entries(TERRAIN)) {
-    variantPinRow(container, ctx, d, 'terrainVariants', terrain, def.label);
+    const options = [{ value: '', label: '— default look' }, ...ids.map((id) => ({ value: id, label: id }))];
+    const current = d.biomeVariants?.[biomeId] ?? '';
+    container.append(row(getArchetype(biomeId)?.name ?? biomeId, selectInput(options, current, (v) => ctx.mutate(() => {
+      setBiomePin(d, biomeId, v);
+    }))));
   }
 }
 
@@ -191,8 +178,8 @@ export function renderObjectControls(container, ctx) {
     const ids = d.variants.map((v) => v.id);
     const current = ids.includes(S.variantId) ? S.variantId : ids[0];
     container.append(row('Variant', selectInput(ids, current, (v) => ctx.mutate(() => { S.variantId = v; }))));
-    container.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game precedence: this picker (while authoring) > biome pin > terrain pin > variantRule/hash.'));
-    renderVariantPins(container, ctx);
+    container.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game the first variant is the default look; per-biome pins swap in alternates.'));
+    renderBiomeVariantPins(container, ctx);
   }
 
   container.append(subheading('Cluster'));

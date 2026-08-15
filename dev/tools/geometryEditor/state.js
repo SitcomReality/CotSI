@@ -44,8 +44,8 @@ export const S = {
 
   /**
    * Terrain of the preview tile (e.g. 'forest' | 'denseForest' | 'marsh').
-   * Drives per-terrain variant pins (terrainVariants), moisture cluster
-   * counts, and biome decor overrides in the preview.
+   * One decor per terrain — switching the terrain previews that decor (its
+   * default look, moisture cluster counts, and biome decor overrides).
    */
   terrain: 'forest',
 

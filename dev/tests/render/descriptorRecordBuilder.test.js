@@ -717,39 +717,40 @@ test('moisture cluster count matches clusterCount() and stays in [min, max]', ()
 
 // ── Variant rules ───────────────────────────────────────────────────────────
 
-test('terrainVariants picks tall for denseForest, round for forest; biome pins win', () => {
-  const grove = normalizeDescriptor({
-    id: 'grove-variants',
+test('a decor descriptor renders its first (default) variant; biome pins swap alternates', () => {
+  // The split-model shape of forest/denseForest: each terrain has its own
+  // descriptor; variants are biome alternates, variants[0] is the default.
+  const woods = normalizeDescriptor({
+    id: 'woods-decor',
     kind: 'decor',
-    displayName: 'Grove',
-    terrainVariants: { denseForest: 'tall', forest: 'round' },
+    displayName: 'Woods',
     biomeVariants: { biome_painforest: 'painforest' },
     cluster: { min: 2, max: 2 },
     placement: { mode: 'ring' },
     parts: [{ id: 'trunk', shape: 'cylinder' }],
     variants: [
       { id: 'round', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-round', shape: 'sphere' }] },
-      { id: 'tall', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-tall', shape: 'cone' }] },
       { id: 'painforest', parts: [{ id: 'trunk-gnarled', shape: 'cylinder' }, { id: 'canopy-gnarled', shape: 'sphere' }] },
     ],
   });
-  const idsFor = (tile) => new Set(recordsForDescriptor(grove, tile, POS).map((r) => r.partId));
-  assert.ok(idsFor({ q: 4, r: 4, terrain: 'denseForest' }).has('canopy-tall') && !idsFor({ q: 4, r: 4, terrain: 'denseForest' }).has('canopy-round'));
-  assert.ok(idsFor({ q: 4, r: 4, terrain: 'forest' }).has('canopy-round') && !idsFor({ q: 4, r: 4, terrain: 'forest' }).has('canopy-tall'));
-  // Painforest woods always grow the gnarled variant — on forest AND denseForest.
-  for (const terrain of ['forest', 'denseForest']) {
-    const ids = idsFor({ q: 4, r: 4, terrain, biomeId: 'biome_painforest' });
-    assert.ok(ids.has('canopy-gnarled'), `${terrain} painforest picks the gnarled variant`);
-    assert.ok(!ids.has('canopy-round') && !ids.has('canopy-tall'));
+  const idsFor = (tile, explicitId) => new Set(recordsForDescriptor(woods, tile, POS, undefined, {}, null, explicitId).map((r) => r.partId));
+  // Any non-pinned tile renders the default (first) variant — never a hash roll.
+  for (const terrain of ['forest', 'denseForest', 'hill']) {
+    assert.ok(idsFor({ q: 4, r: 4, terrain }).has('canopy-round'), `${terrain} renders the default variant`);
+    assert.ok(!idsFor({ q: 4, r: 4, terrain }).has('canopy-gnarled'));
   }
+  // The pinned biome swaps in the alternate.
+  const pinned = idsFor({ q: 4, r: 4, terrain: 'forest', biomeId: 'biome_painforest' });
+  assert.ok(pinned.has('canopy-gnarled') && !pinned.has('canopy-round'), 'biome pin picks the alternate');
+  // The explicit picker (editor) beats the pin.
+  assert.ok(idsFor({ q: 4, r: 4, terrain: 'forest', biomeId: 'biome_painforest' }, 'round').has('canopy-round'));
 });
 
-test('variant precedence: explicit picker > biome pin > terrain pin > hash rule', () => {
-  const grove = normalizeDescriptor({
-    id: 'grove-precedence',
+test('variant precedence: explicit picker > biome pin > default variant', () => {
+  const woods = normalizeDescriptor({
+    id: 'woods-precedence',
     kind: 'decor',
-    displayName: 'Grove',
-    terrainVariants: { forest: 'round' },
+    displayName: 'Woods',
     biomeVariants: { biome_x: 'tall' },
     cluster: { min: 2, max: 2 },
     placement: { mode: 'ring' },
@@ -759,23 +760,19 @@ test('variant precedence: explicit picker > biome pin > terrain pin > hash rule'
       { id: 'tall', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-tall', shape: 'cone' }] },
     ],
   });
-  const idsFor = (tile, explicitId) => new Set(recordsForDescriptor(grove, tile, POS, undefined, {}, null, explicitId).map((r) => r.partId));
-  const forest = { q: 4, r: 4, terrain: 'forest' };
-  assert.ok(idsFor({ ...forest, biomeId: 'biome_x' }).has('canopy-tall'), 'biome pin beats the terrain pin');
-  assert.ok(idsFor(forest).has('canopy-round'), 'terrain pin applies where no biome pin');
-  assert.ok(idsFor({ ...forest, biomeId: 'biome_x' }, 'round').has('canopy-round'), 'explicit picker beats both pins');
-  // Unpinned terrain rolls the hash — deterministic per tile, one variant composes.
-  const hill = { q: 4, r: 4, terrain: 'hill' };
-  assert.deepEqual([...idsFor(hill)], [...idsFor(hill)], 'hash fallback is deterministic');
-  assert.equal(idsFor(hill).size, 2, 'one variant composes the item');
+  const idsFor = (tile, explicitId) => new Set(recordsForDescriptor(woods, tile, POS, undefined, {}, null, explicitId).map((r) => r.partId));
+  const tile = { q: 4, r: 4, terrain: 'forest' };
+  assert.ok(idsFor(tile).has('canopy-round'), 'default (first) variant with no pin');
+  assert.ok(idsFor({ ...tile, biomeId: 'biome_x' }).has('canopy-tall'), 'biome pin beats the default');
+  assert.ok(idsFor({ ...tile, biomeId: 'biome_x' }, 'round').has('canopy-round'), 'explicit picker beats the pin');
 });
 
 test('an explicit variant id forces the variant (the editor variant picker)', () => {
-  const grove = normalizeDescriptor({
-    id: 'grove-override',
+  const woods = normalizeDescriptor({
+    id: 'woods-override',
     kind: 'decor',
-    displayName: 'Grove',
-    terrainVariants: { forest: 'round' },
+    displayName: 'Woods',
+    biomeVariants: { biome_x: 'tall' },
     cluster: { min: 2, max: 2 },
     placement: { mode: 'ring' },
     parts: [{ id: 'trunk', shape: 'cylinder' }],
@@ -784,11 +781,11 @@ test('an explicit variant id forces the variant (the editor variant picker)', ()
       { id: 'tall', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-tall', shape: 'cone' }] },
     ],
   });
-  const tile = { q: 4, r: 4, terrain: 'forest' }; // would pick 'round' by terrain pin
-  const forced = new Set(recordsForDescriptor(grove, tile, POS, undefined, {}, null, 'tall').map((r) => r.partId));
-  assert.ok(forced.has('canopy-tall') && !forced.has('canopy-round'), 'explicit id wins over the terrain pin');
-  // A stale id (variant removed while editing) falls through to the terrain pin.
-  const fallback = new Set(recordsForDescriptor(grove, tile, POS, undefined, {}, null, 'nope').map((r) => r.partId));
+  const tile = { q: 4, r: 4, terrain: 'forest' }; // would pick the default 'round'
+  const forced = new Set(recordsForDescriptor(woods, tile, POS, undefined, {}, null, 'tall').map((r) => r.partId));
+  assert.ok(forced.has('canopy-tall') && !forced.has('canopy-round'), 'explicit id wins over the default');
+  // A stale id (variant removed while editing) falls through to the default.
+  const fallback = new Set(recordsForDescriptor(woods, tile, POS, undefined, {}, null, 'nope').map((r) => r.partId));
   assert.ok(fallback.has('canopy-round') && !fallback.has('canopy-tall'));
 });
 
