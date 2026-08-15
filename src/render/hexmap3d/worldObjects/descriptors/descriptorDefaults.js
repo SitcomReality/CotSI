@@ -132,5 +132,13 @@ export const NESTED_PART_TRANSFORM_DEFAULTS = Object.freeze({
   scaleZ: 1,
 });
 
-/** How a descriptor's `variants` list is resolved to the parts of one item. */
-export const VARIANT_RULES = Object.freeze(['hash', 'cluster', 'faction', 'archetype', 'mountain']);
+/**
+ * How a descriptor's `variants` list is resolved to the parts of one item.
+ * Tile-driven kinds: 'hash' (default) rolls from the tile hash; 'mountain'
+ * keeps the legacy mountain hash roll. The legacy 'cluster' rule is retired —
+ * its terrain half is now the `terrainVariants` map and its biome half
+ * `biomeVariants` (normalizeDescriptor migrates old files). Entity-driven
+ * kinds: 'faction' picks variant id === entity.faction, 'archetype' picks
+ * variant id === entity.archetype.
+ */
+export const VARIANT_RULES = Object.freeze(['hash', 'faction', 'archetype', 'mountain']);

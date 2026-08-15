@@ -717,12 +717,12 @@ test('moisture cluster count matches clusterCount() and stays in [min, max]', ()
 
 // ── Variant rules ───────────────────────────────────────────────────────────
 
-test('variantRule cluster picks tall for denseForest, round otherwise; biome overrides', () => {
+test('terrainVariants picks tall for denseForest, round for forest; biome pins win', () => {
   const grove = normalizeDescriptor({
     id: 'grove-variants',
     kind: 'decor',
     displayName: 'Grove',
-    variantRule: 'cluster',
+    terrainVariants: { denseForest: 'tall', forest: 'round' },
     biomeVariants: { biome_painforest: 'painforest' },
     cluster: { min: 2, max: 2 },
     placement: { mode: 'ring' },
@@ -744,12 +744,13 @@ test('variantRule cluster picks tall for denseForest, round otherwise; biome ove
   }
 });
 
-test('an explicit variant id forces the variant (the editor variant picker)', () => {
+test('variant precedence: explicit picker > biome pin > terrain pin > hash rule', () => {
   const grove = normalizeDescriptor({
-    id: 'grove-override',
+    id: 'grove-precedence',
     kind: 'decor',
     displayName: 'Grove',
-    variantRule: 'cluster',
+    terrainVariants: { forest: 'round' },
+    biomeVariants: { biome_x: 'tall' },
     cluster: { min: 2, max: 2 },
     placement: { mode: 'ring' },
     parts: [{ id: 'trunk', shape: 'cylinder' }],
@@ -758,10 +759,35 @@ test('an explicit variant id forces the variant (the editor variant picker)', ()
       { id: 'tall', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-tall', shape: 'cone' }] },
     ],
   });
-  const tile = { q: 4, r: 4, terrain: 'forest' }; // would pick 'round' by rule
+  const idsFor = (tile, explicitId) => new Set(recordsForDescriptor(grove, tile, POS, undefined, {}, null, explicitId).map((r) => r.partId));
+  const forest = { q: 4, r: 4, terrain: 'forest' };
+  assert.ok(idsFor({ ...forest, biomeId: 'biome_x' }).has('canopy-tall'), 'biome pin beats the terrain pin');
+  assert.ok(idsFor(forest).has('canopy-round'), 'terrain pin applies where no biome pin');
+  assert.ok(idsFor({ ...forest, biomeId: 'biome_x' }, 'round').has('canopy-round'), 'explicit picker beats both pins');
+  // Unpinned terrain rolls the hash — deterministic per tile, one variant composes.
+  const hill = { q: 4, r: 4, terrain: 'hill' };
+  assert.deepEqual([...idsFor(hill)], [...idsFor(hill)], 'hash fallback is deterministic');
+  assert.equal(idsFor(hill).size, 2, 'one variant composes the item');
+});
+
+test('an explicit variant id forces the variant (the editor variant picker)', () => {
+  const grove = normalizeDescriptor({
+    id: 'grove-override',
+    kind: 'decor',
+    displayName: 'Grove',
+    terrainVariants: { forest: 'round' },
+    cluster: { min: 2, max: 2 },
+    placement: { mode: 'ring' },
+    parts: [{ id: 'trunk', shape: 'cylinder' }],
+    variants: [
+      { id: 'round', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-round', shape: 'sphere' }] },
+      { id: 'tall', parts: [{ id: 'trunk', shape: 'cylinder' }, { id: 'canopy-tall', shape: 'cone' }] },
+    ],
+  });
+  const tile = { q: 4, r: 4, terrain: 'forest' }; // would pick 'round' by terrain pin
   const forced = new Set(recordsForDescriptor(grove, tile, POS, undefined, {}, null, 'tall').map((r) => r.partId));
-  assert.ok(forced.has('canopy-tall') && !forced.has('canopy-round'), 'explicit id wins over the rule');
-  // A stale id (variant removed while editing) falls through to the rule.
+  assert.ok(forced.has('canopy-tall') && !forced.has('canopy-round'), 'explicit id wins over the terrain pin');
+  // A stale id (variant removed while editing) falls through to the terrain pin.
   const fallback = new Set(recordsForDescriptor(grove, tile, POS, undefined, {}, null, 'nope').map((r) => r.partId));
   assert.ok(fallback.has('canopy-round') && !fallback.has('canopy-tall'));
 });

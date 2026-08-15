@@ -12,7 +12,10 @@ export const GROVE_DESCRIPTOR = {
   cluster: { rule: 'moisture' },
   size: { min: 1.3, max: 1.5 },
   variation: { colorJitter: 0.05 },
-  variantRule: 'cluster',
+  // Data-driven variant pins — no hardcoded rule: denseForest groves grow the
+  // conical 'tall' pines, forest the round ones (variantRule falls back to the
+  // hash roll elsewhere), and Painforest always grows the gnarled variant.
+  terrainVariants: { denseForest: 'tall', forest: 'round' },
   biomeVariants: { biome_painforest: 'painforest' },
   placement: { mode: 'ring', leanMin: 0.2, leanMax: 0.3 },
   emphasis: { behavior: 'dispersed' },

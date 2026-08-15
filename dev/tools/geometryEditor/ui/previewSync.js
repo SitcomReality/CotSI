@@ -27,17 +27,22 @@ import { findNodeById, descendantLeafIds } from './partTree/index.js';
 import { biomeTintForTile } from '../../../../src/render/hexmap3d/worldObjects/biomeTint.js';
 import { listArchetypes, getArchetype } from '../../../../src/game/rules/archetypes.js';
 import { ENTITY_KINDS, entityForSelection } from '../entityView.js';
+import { TERRAIN } from '../../../../src/game/rules/terrainTypes.js';
 
 /** The tile the preview renders on — a stable hex with a hash. */
 const PREVIEW_TILE = { q: 1, r: 0, terrain: 'forest' };
 const ORIGIN = { x: 0, y: 0, z: 0 };
 
 /**
- * The preview tile, with the editor's selected biome applied (S.biomeId).
- * A null biome keeps a plain tile — default part colors and full sizes.
+ * The preview tile, with the editor's selected terrain + biome applied
+ * (S.terrain / S.biomeId). The terrain drives per-terrain variant pins,
+ * moisture cluster counts, and biome decor overrides; a null biome keeps a
+ * plain tile — default part colors and full sizes.
  */
 function previewTile() {
-  return S.biomeId ? { ...PREVIEW_TILE, biomeId: S.biomeId } : PREVIEW_TILE;
+  const tile = { ...PREVIEW_TILE, terrain: S.terrain };
+  if (S.biomeId) tile.biomeId = S.biomeId;
+  return tile;
 }
 
 /** Biome signature colors (biome id → { primary, accent }), for the preview
@@ -79,6 +84,18 @@ export function populateBiomeSelect() {
   els.biomeSelect.value = S.biomeId ?? '';
 }
 
+/** Fill the preview-tile terrain selector: every registered terrain. */
+export function populateTerrainSelect() {
+  const options = Object.entries(TERRAIN).map(([id, def]) => ({ value: id, label: `${def.label} (${id})` }));
+  els.terrainSelect.replaceChildren(...options.map((o) => {
+    const opt = document.createElement('option');
+    opt.value = o.value;
+    opt.textContent = o.label;
+    return opt;
+  }));
+  els.terrainSelect.value = S.terrain;
+}
+
 /** True while the loaded descriptor came from JSON, not a built-in sample. */
 export function isCustomDescriptor() {
   return !!S.descriptor && !SAMPLE_OBJECTS.some((d) => d.id === S.descriptor.id);
@@ -115,6 +132,7 @@ export function rebuild() {
       `hash ${S.tileH} · ${S.displaced ? 'occupied (displaced)' : 'normal'}` +
       (variant ? ` · variant ${variant.id}` : '') +
       (S.growth < 1 ? ' · state empty' : ' · state full') +
+      ` · terrain ${S.terrain}` +
       (biome ? ` · biome ${biome}` : '');
   }
 
@@ -159,10 +177,11 @@ export function refreshSelectionOverlay() {
   });
 }
 
-/** Hide the tile-preview controls (biome / state / occupied / re-roll) for entity-driven objects. */
+/** Hide the tile-preview controls (biome / terrain / state / occupied / re-roll) for entity-driven objects. */
 export function updateEntityMode() {
   const entity = ENTITY_KINDS.has(S.descriptor?.kind);
   els.biomeRow.style.display = entity ? 'none' : '';
+  els.terrainRow.style.display = entity ? 'none' : '';
   els.stateRow.style.display = entity ? 'none' : '';
   els.stateSelect.value = S.growth < 1 ? '0' : '1';
   els.occupiedRow.style.display = entity ? 'none' : '';

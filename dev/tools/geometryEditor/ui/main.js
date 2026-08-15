@@ -18,7 +18,7 @@ import { findNodeById, addLocalDelta } from './partTree/index.js';
 import { editingEmptyState, emptyLocalPos, pruneZeroLocalPos } from './partInspector/stateKeyframes.js';
 import { ENTITY_KINDS } from '../entityView.js';
 import { renderObjectList, populateObjects, bindOverlays, syncChromeHeight } from './objectBrowser.js';
-import { populateBiomeSelect, rebuild, refreshSelectionOverlay, updateEntityMode } from './previewSync.js';
+import { populateBiomeSelect, populateTerrainSelect, rebuild, refreshSelectionOverlay, updateEntityMode } from './previewSync.js';
 
 function bindControls() {
   els.objectList.addEventListener('click', (e) => {
@@ -82,6 +82,12 @@ function bindControls() {
     rebuild();
   });
 
+  els.terrainSelect.addEventListener('change', () => {
+    S.terrain = els.terrainSelect.value || 'forest';
+    rebuild();
+    refreshEditorPanel(); // per-terrain pins / moisture counts can change the object fields
+  });
+
   els.rerollBtn.addEventListener('click', () => {
     S.tileH = (S.tileH * 17 + 5) % 89;
     rebuild();
@@ -119,6 +125,7 @@ function init() {
   cacheDom();
   syncChromeHeight();
   populateBiomeSelect();
+  populateTerrainSelect();
   populateObjects();
   bindControls();
   bindOverlays();

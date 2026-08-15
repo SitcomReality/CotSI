@@ -124,6 +124,8 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
 | `material` | object | `{}` | Object-level material: `emissive` (0xRRGGBB) + `emissiveIntensity`. **No color here — colors live on parts (v4).** |
 | `parts` | array | — | The part list (used when no variant is chosen). |
 | `variants` | array | — | Optional alternative part sets (see §5.3). |
+| `biomeVariants` | object | — | Per-biome variant pins: `{ biomeId: variantId }` (see §5.3). |
+| `terrainVariants` | object | — | Per-terrain variant pins: `{ terrain: variantId }` (see §5.3). |
 
 **cluster:**
 - `rule: 'uniform'` — count drawn from `[min, max]` by the tile hash.
@@ -371,16 +373,34 @@ anywhere. The pipeline (recordBuilder.js):
 
 ### 5.3 Variant selection
 
-`variants` is a list of `{ id, parts }`. The rule:
+`variants` is a list of `{ id, parts }`. Which variant composes a tile's items
+is resolved by **precedence** (highest first):
 
-- `'hash'` (default) — roll over the variant list by tile hash. The generic rule for hash-chosen content.
-- `'mountain'` — legacy mountain roll: hash raw `(q, r)` with `MOUNTAIN_HASH_SEEDS` (`((q·13 + r·7)·19) % 100`) so per-tile `classic`/`offpeak` assignments match the pre-migration `mountainMeshes.js` builder.
-- `'cluster'` — grove rule: `denseForest` → `tall`, everything else → `round`; the `biome_painforest` biome forces the `painforest` variant.
-- `'solitary'` — lone-tree rule: canopy shape by terrain + coord hash (ids `round`/`tall`/`wide`).
-- `'faction'` / `'archetype'` — **entity-driven**: variant id must equal the entity's `faction` (e.g. `'CRU'`) or `archetype` (e.g. `'bear'`); unknown values fall back to the first variant.
+1. **Explicit picker** — the record path's `variantId` override (the editor's
+   Variant picker) forces one variant while authoring; a stale id falls through.
+2. **`biomeVariants`** — `{ biomeId: variantId }` pins a variant to a biome:
+   every tile of that biome renders it (e.g. the Painforest grove's gnarled
+   variant). The strongest data-driven override.
+3. **`terrainVariants`** — `{ terrain: variantId }` pins a variant to a terrain
+   (e.g. denseForest groves grow the conical `tall` pines, forest the `round`
+   ones). Biomes still win over terrains.
+4. **`variantRule`** — the fallback rule:
+   - `'hash'` (default) — roll over the variant list by tile hash. The generic rule for hash-chosen content.
+   - `'mountain'` — legacy mountain roll: hash raw `(q, r)` with `MOUNTAIN_HASH_SEEDS` (`((q·13 + r·7)·19) % 100`) so per-tile `classic`/`offpeak` assignments match the pre-migration `mountainMeshes.js` builder.
+   - `'faction'` / `'archetype'` — **entity-driven**: variant id must equal the entity's `faction` (e.g. `'CRU'`) or `archetype` (e.g. `'bear'`); unknown values fall back to the first variant.
 
-The editor can force one variant id for preview (the record path accepts a
-`variantId` override); in-game the rule decides.
+A pin (or rule) naming an id the descriptor doesn't define falls back down the
+chain, so a partially-migrated descriptor still renders. The legacy `'cluster'`
+and `'solitary'` rules were **retired**: their terrain half is now
+`terrainVariants`, their biome half `biomeVariants`. `normalizeDescriptor`
+migrates old files (`'cluster'` → `'hash'` + `terrainVariants { denseForest:
+'tall', forest: 'round' }`, dropping pins whose variant id is missing).
+
+**In the geometry editor:** the object controls list every registered biome
+and terrain with one variant select per row ("— follow rule" clears a pin), and
+the preview bar's Biome / Terrain selectors render the pinned looks — switch
+the terrain to `denseForest` to see the grove's conical pines, or the biome to
+Painforest for the gnarled ones.
 
 ### 5.6 Entity-driven path (bases, champions, mobs, traders)
 

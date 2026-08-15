@@ -7,17 +7,24 @@ import { MOUNTAIN_HASH_SEEDS } from '../../../../params/render/geometryParams.js
 /**
  * Which variant's parts compose the items.
  *
+ * Precedence (highest first):
+ *   1. `explicitId` — the editor's variant picker forces one variant.
+ *   2. `biomeVariants[biomeId]` — a biome pins its decor's look (e.g. the
+ *      Painforest grove's gnarled variant).
+ *   3. `terrainVariants[terrain]` — a terrain pins its look (e.g. denseForest
+ *      groves grow conical 'tall' pines, forest the round ones).
+ *   4. `variantRule` — the fallback rule (see below).
+ *
+ * The legacy 'cluster' rule (denseForest→tall, else→round) was retired: its
+ * terrain half is now `terrainVariants` and its biome half `biomeVariants`;
+ * normalizeDescriptor migrates old files.
+ *
  * variantRule 'hash' (default) — roll over the variants list from the tile
  * hash; the generic rule for any content with hash-chosen variants (mountains).
  *
- * variantRule 'cluster' — replicate clusterVariant(): denseForest groves are
- * conical (tall) pines, everything else round.
+ * variantRule 'mountain' — legacy mountainMeshes.js roll.
  *
- * A descriptor's `biomeVariants` (biomeId → variant id) takes precedence over
- * the variantRule, so a biome overrides its decor's look (e.g. the Painforest
- * grove's gnarled variant). Data-driven — no hardcoded biome names here.
- *
- * When the rule names an id the descriptor does not define, fall back to the
+ * A rule that names an id the descriptor does not define falls back to the
  * hash roll so a partially-migrated descriptor still renders.
  */
 
@@ -34,17 +41,20 @@ export function variantFor(descriptor, tile, tileH, explicitId = null) {
     const forced = byId(explicitId);
     if (forced) return forced;
   }
-  // Biome override — a descriptor's per-biome variant wins over the rule.
+  // Biome override — a descriptor's per-biome variant wins over the terrain
+  // map and the rule.
   const biomeVariantId = descriptor.biomeVariants?.[tile.biomeId];
   if (biomeVariantId) {
     const biomeVariant = byId(biomeVariantId);
     if (biomeVariant) return biomeVariant;
   }
-  const rule = descriptor.variantRule;
-  if (rule === 'cluster') {
-    const id = tile.terrain === 'denseForest' ? 'tall' : 'round';
-    return byId(id) ?? variants[((tileH % variants.length) + variants.length) % variants.length];
+  // Terrain override — e.g. denseForest groves are conical pines.
+  const terrainVariantId = descriptor.terrainVariants?.[tile.terrain];
+  if (terrainVariantId) {
+    const terrainVariant = byId(terrainVariantId);
+    if (terrainVariant) return terrainVariant;
   }
+  const rule = descriptor.variantRule;
   if (rule === 'mountain') {
     // Legacy mountainMeshes.js roll: hash raw (q, r) with MOUNTAIN_HASH_SEEDS
     // so per-tile classic/offpeak assignments match the pre-migration render

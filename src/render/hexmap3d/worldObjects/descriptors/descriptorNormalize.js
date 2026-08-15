@@ -157,6 +157,25 @@ export function normalizeDescriptor(def) {
   out.schemaVersion = SCHEMA_VERSION;
   out.scale = out.scale ?? OBJECT_DEFAULTS.scale;
   out.variantRule = out.variantRule ?? 'hash';
+
+  // Legacy v5 'cluster' rule — it conflated terrain (denseForest→'tall',
+  // else→'round') with biome (via biomeVariants). The terrain half is now the
+  // data-driven `terrainVariants` map; migrate the rule so old files keep
+  // rendering. Pins whose variant id the descriptor doesn't define are dropped
+  // so partially-custom legacy files stay valid. Idempotent: a migrated file
+  // carries variantRule 'hash' + terrainVariants, so a second pass no-ops.
+  if (out.variantRule === 'cluster') {
+    out.variantRule = 'hash';
+    if (!isPlainObject(out.terrainVariants)) {
+      out.terrainVariants = { denseForest: 'tall', forest: 'round' };
+      const ids = new Set((Array.isArray(out.variants) ? out.variants : []).map((v) => v?.id));
+      for (const [t, id] of Object.entries(out.terrainVariants)) {
+        if (!ids.has(id)) delete out.terrainVariants[t];
+      }
+      if (Object.keys(out.terrainVariants).length === 0) delete out.terrainVariants;
+    }
+  }
+
   out.cluster = { ...OBJECT_DEFAULTS.cluster, ...(isPlainObject(out.cluster) ? out.cluster : {}) };
   if (out.cluster.rule === 'moisture') {
     out.cluster.countsByTerrain = isPlainObject(out.cluster.countsByTerrain)

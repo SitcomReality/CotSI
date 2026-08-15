@@ -40,7 +40,14 @@ For example, when the blessed font is empty, the 'water' part could be tiny and 
 
 ### Tree grove & per-biome decor (& feature?) changes:
 
+✅ DONE — the editor now authors per-biome and per-terrain variant pins
+(biomeVariants / terrainVariants), and the grove's `variantRule: 'cluster'`
+conflation was split into those two data-driven maps. Full details in the
+hand-off item B.
+
 "Per-biome decor — the mechanism is data-driven (biomeVariants); Scorch/Edenfall/etc. will need their own tree variants authored in the editor to actually *look* different."
+
+The original note below is kept for reference.
 
 Unfortunately, we still don't have the ability to easily have differences between terrain decor in different biomes, at least not through anything exposed in the geometryEditor interface.
 The tree grove currently has a "Variant" option which is the only way to apply a distinction to a particular biome, and that's exclusively for Painforest. The whole tree grove object is a weird situation, with its per-painforest variation, and then it's two other variations that are based on terrain, not biome? In general, this tree grove situation might have railroaded our geometry designs in a weird way, leaving us with weirdly blended systems that effected how we designed all of this -- or at least, this has happened within the geometry editor interface, which still conveys this system as being that restrictive.

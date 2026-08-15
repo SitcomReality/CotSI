@@ -62,10 +62,10 @@ Blessed Font shows empty vs full; Peridexion fruit grows/ripens; a daily step to
 
 Notes for the next dev: the `growth` value is game-driven (a feature's daily progress) — nothing animates in real time. Only features use it today, but the pipeline accepts any 0..1 growth per descriptor resolution, so decor/mountain kinds could keyframe too (e.g. a biome-driven decor stage) by passing a value in `gameBuilder`'s `runPass`. The snapshot fixture is unaffected (default growth renders the base records), but re-running `dev/scripts/regenerate_descriptor_snapshot.sh` after any descriptor edit is still the rule.
 
-### B. Per-biome decor authoring clarity (editor)
-- The editor only exposes `Variant` (one per-object list); `biomeVariants` is data-driven but **not editable in the UI**. Add editor support: pick a variant per biome.
-- The grove's `variantRule: 'cluster'` conflates terrain (denseForest→tall, else→round) with biome (painforest→gnarled). Consider splitting into separate, clearly-named concepts so the editor stops "railroading" designs.
-- The biome→decor **override** (different descriptor per biome) already works in-game (`gameBuilder` + `biomeDecorOverrides`); the editor doesn't need to expose it for authoring, just remember it exists when adding decor.
+### B. ~~Per-biome decor authoring clarity (editor)~~ ✅ IMPLEMENTED (2026-08-15, next pass)
+- **Editor pins:** the object controls now list every registered biome and terrain with one variant select per row ("— follow rule" clears a pin), writing `biomeVariants` / `terrainVariants`. The preview bar gained a **Terrain** selector alongside Biome, so pinned looks render live (denseForest → conical pines, Painforest → gnarled).
+- **Grove split:** `variantRule: 'cluster'` (which conflated terrain denseForest→tall/else→round with biome painforest→gnarled) is **retired** — the grove now carries `terrainVariants: { denseForest: 'tall', forest: 'round' }` + `biomeVariants: { biome_painforest: 'painforest' }`. Variant resolution precedence is now explicit: picker > `biomeVariants` > `terrainVariants` > `variantRule` (hash/mountain/faction/archetype). `normalizeDescriptor` migrates legacy `'cluster'` files to `'hash'` + `terrainVariants` (dropping pins whose variant id is missing).
+- The biome→decor **override** (different descriptor per biome) still works in-game (`gameBuilder` + `biomeDecorOverrides`) and needs no editor exposure — it's per-terrain-decor, not per-variant.
 
 ### C. Decor redesigns (for the external graphic designer)
 - Desert: cactus becomes one `optionalGroup` among several (per-instance include/exclude).

@@ -43,6 +43,13 @@ export const S = {
   biomeId: null,
 
   /**
+   * Terrain of the preview tile (e.g. 'forest' | 'denseForest' | 'marsh').
+   * Drives per-terrain variant pins (terrainVariants), moisture cluster
+   * counts, and biome decor overrides in the preview.
+   */
+  terrain: 'forest',
+
+  /**
    * Entity selection for entity-driven descriptors (base/champion/mob/trader).
    * `faction` picks the faction variant + palette; `archetype` picks the shape
    * variant for archetype-rule descriptors (mobs).
