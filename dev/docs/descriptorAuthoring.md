@@ -8,6 +8,12 @@ author new object models without touching the renderer.
 > then produce a single ES module file per the **Deliverable** section. The
 > game's pipeline — validation, randomization, and rendering — needs no help
 > from you beyond the data.
+>
+> For world context you will not get from this document — what the biomes and
+> terrain look like and their exact colors, the factions and their palettes, and
+> the physical scale of the world — see the companion references in
+> `dev/docs/context/`: `biomesAndTerrain.md`, `factions.md`, and
+> `sceneConventions.md`.
 
 ---
 
