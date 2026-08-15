@@ -3,7 +3,7 @@
  *
  * Splits the editing UI across focused modules and stitches them together:
  * the parts list (partList.js) renders into `#parts-edit`, and the contextual
- * inspector — objectControls.js when no part is selected, partInspector/
+ * inspector — objectInspector/ when no part is selected, partInspector/
  * when one is — into `#inspector-body`. Owns the panel session (DOM refs, the
  * preview rebuild hook) and the `ctx` object passed to every renderer, which
  * keeps the dependency graph acyclic.
@@ -13,7 +13,7 @@ import { activeParts } from './variantQuery.js';
 import { pushUndo, popUndo, restoreUndo } from '../history.js';
 import { findNodeById } from './partTree/index.js';
 import { renderPartsList } from './partList.js';
-import { renderObjectHeader, renderObjectControls } from './objectControls.js';
+import { renderObjectHeader, renderObjectControls } from './objectInspector/index.js';
 import { renderPartInspector } from './partInspector/index.js';
 import { bindProjectControls } from './projectControls.js';
 

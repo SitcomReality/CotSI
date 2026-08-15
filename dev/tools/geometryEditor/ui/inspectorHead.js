@@ -1,8 +1,8 @@
 /**
  * inspectorHead.js — Inspector header (title/meta + optional breadcrumb).
  *
- * Shared by the object-level header (objectControls.js) and the selected-part
- * header (partInspector.js); the parts list above has its own slim header
+ * Shared by the object-level header (objectInspector/) and the selected-part
+ * header (partInspector/); the parts list above has its own slim header
  * (see partList.js).
  */
 import { el } from './formControls.js';

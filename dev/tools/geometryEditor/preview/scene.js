@@ -100,8 +100,6 @@ export function showRecordsMulti(descriptor, recordsPerTile, { outlines = false 
   viewport.partIdToMesh = new Map();
   requestRender();
 }
-  requestRender();
-}
 
 /**
  * Reset the orbit to the in-game camera angle (cameraParams: CAMERA_YAW 30°,
