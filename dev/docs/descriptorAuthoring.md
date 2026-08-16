@@ -76,7 +76,7 @@ entity files (`base.js`, `champion.js`, `mob.js`) compose their variant maps
 from per-variant files the editor DOES write: mobs from `data/mobs/<archetype>.js`,
 bases from `data/bases/<faction>.js`, champions from `data/champions/<faction>.js`
 (each a `<NAME>_VARIANT` block — see `variantExportName`/`emitVariantModule` in
-`dev/tools/geometryEditor/emitDescriptor.js`). The editor Save writes ONLY the
+`dev/tools/geometryEditor/emitDescriptor/`). The editor Save writes ONLY the
 active variant's file; the barrels stay hand-composed and are never rewritten
 by a save. Champions compose their shared pedestal stand from
 `data/champions/shared.js`; the base variants are fully self-contained.
@@ -911,6 +911,6 @@ What each piece demonstrates:
 | Neighbor-blended biome colors | `src/render/hexmap3d/worldObjects/biomeTint.js` |
 | In-game tile dispatch | `src/render/hexmap3d/worldObjects/descriptors/gameBuilder.js` |
 | Descriptor data | `src/render/hexmap3d/worldObjects/descriptors/data/` |
-| Editor emit/format rules | `dev/tools/geometryEditor/emitDescriptor.js` |
+| Editor emit/format rules | `dev/tools/geometryEditor/emitDescriptor/` |
 | Deterministic hashes | `src/render/hexmap3d/worldObjects/tileHash.js` |
 | Dispersal/sinking | `src/render/hexmap3d/worldObjects/decorEmphasis.js` |
