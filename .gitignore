@@ -1,5 +1,7 @@
+.reasonix/
+.vscode/
+media/
 __pycache__/
 dev/map_analysis_data/
 dev/sitcoms notes.txt
-media/
 CotSI.code-workspace
