@@ -438,15 +438,16 @@ test('no biomeTint keeps the default color', () => {
   assert.equal(record.color, 0xffffff);
 });
 
-test('Untouched/Painforest tiles keep default colors end to end', () => {
-  // biomeTintForTile returns null for Painforest tiles, so the record keeps
-  // the default part color even with biome colors present.
+test('Painforest tiles tint like every biome end to end', () => {
+  // No biome suppresses swatch tints anymore — a Painforest tile with known
+  // biome colors tints its records exactly like any other biome.
   const pain = { q: 3, r: -2, terrain: 'forest', biomeId: 'biome_painforest' };
   const tiles = new Map([['3,-2', pain]]);
-  const colors = new Map([['biome_painforest', { foliage: [0.38, 0.62, 0.28], exotic: [0.16, 0.42, 0.38] }]]);
-  assert.equal(biomeTintForTile(pain, tiles, colors), null);
-  const [record] = recordsForDescriptor(TINTED, pain, POS, undefined, {}, biomeTintForTile(pain, tiles, colors));
-  assert.equal(record.color, 0xffffff);
+  const colors = new Map([['biome_painforest', { foliage: [1, 0, 0], bloom: [0, 1, 0] }]]);
+  const tint = biomeTintForTile(pain, tiles, colors);
+  assert.ok(tint, 'Painforest tile gets a tint');
+  const [record] = recordsForDescriptor(TINTED, pain, POS, undefined, {}, tint);
+  assert.equal(record.color, 0xff8080);
 });
 
 // ── Per-biome size (M5: biomeScale) ─────────────────────────────────────────

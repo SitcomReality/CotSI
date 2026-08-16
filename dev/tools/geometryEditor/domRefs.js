@@ -21,6 +21,7 @@ export function cacheDom() {
   els.rerollRow = document.getElementById('reroll-row');
   els.biomeSelect = document.getElementById('biome-select');
   els.biomeRow = document.getElementById('biome-row');
+  els.biomeTintHint = document.getElementById('biome-tint-hint');
   els.floorCheck = document.getElementById('floor-check');
   els.outlineCheck = document.getElementById('outline-check');
   els.resetCameraBtn = document.getElementById('reset-camera-btn');

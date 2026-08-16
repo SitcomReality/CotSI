@@ -134,3 +134,14 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.2; }
 }
+
+/* Swatch-tint status under the preview biome select — reminds authors that
+ * the preview only tints once a biome is picked (with none selected, every
+ * part shows its authored color). */
+.biome-tint-hint {
+  display: block;
+  color: var(--gold);
+  font-size: 0.85em;
+  line-height: 1.35;
+  margin-top: var(--s1);
+}

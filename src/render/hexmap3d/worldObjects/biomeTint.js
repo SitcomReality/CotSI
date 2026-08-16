@@ -14,13 +14,12 @@
  * follows), and neighbors outside the decor gate (visible ∪ explored) are
  * skipped, standing in for the terrain blend's `explored` set.
  *
- * Untouched (biome_default) and Painforest (biome_painforest) never signature
- * tint: their decor keeps the default part colors per the design rule, so no
- * swatch colors are computed for tiles of those biomes. Their colors still
- * bleed into NEIGHBOR tiles' blends — the check applies to the tile's own
- * biome only. The `terrain` source is different: it matches decor to the
- * ground it sits on, so it applies in every biome (including the default-tint
- * ones), whenever the biome palettes are known.
+ * Every biome's decor takes the swatch tint (there is no per-biome
+ * suppression — biomes with unique terrain keep their colors unique by never
+ * sharing decor with other biomes; anything that must stay untinted uses a
+ * motif). A tile whose biome has no known colors simply never tints. The
+ * `terrain` source is different: it matches decor to the ground it sits on,
+ * so it applies in every biome whenever the biome palettes are known.
  *
  * Pure module: no THREE, no game state — it reads `biomeColors` (biome id →
  * { foliage, wood, soil, stone, bloom, exotic }) and `biomePalettes` (biome
@@ -29,14 +28,6 @@
  */
 import { neighbors, coordKey } from '../../../engine/rules/hexGrid.js';
 import { TERRAIN_BLEND_FACTOR, TERRAIN_COLOR } from '../../../params/render/terrainParams.js';
-
-/** Biomes whose decor keeps the default part colors (never tinted). */
-const DEFAULT_TINT_BIOMES = new Set(['biome_default', 'biome_painforest']);
-
-/** Whether a tile of this biome takes a biome tint (Untouched/Painforest don't). */
-export function isDefaultTintBiome(biomeId) {
-  return DEFAULT_TINT_BIOMES.has(biomeId);
-}
 
 /**
  * One color tuple: own pulled toward the average of all parts by `factor`
@@ -89,7 +80,7 @@ function terrainColorFor(tile, biomePalettes) {
  *                                 when nothing can be computed
  */
 export function biomeTintForTile(tile, tilesByKey, biomeColors, decorGate = null, biomePalettes = null) {
-  const wantSignature = biomeColors && !DEFAULT_TINT_BIOMES.has(tile.biomeId);
+  const wantSignature = !!biomeColors;
   const ownSignature = wantSignature ? biomeColors.get(tile.biomeId) : null;
   const wantTerrain = !!biomePalettes;
 

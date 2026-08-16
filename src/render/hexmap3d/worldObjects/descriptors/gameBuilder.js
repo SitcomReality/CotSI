@@ -235,8 +235,9 @@ export function resolveDescriptorForTile(tile, occupants, visible = true, decorO
  * @param {Set<string>}  visible      - Set of "q,r" keys currently visible
  * @param {Set<string>}  occupants    - "q,r" keys of tiles with an occupant
  * @param {Set<string>}  [decorVisible=visible] - gate for terrain decorations
- * @param {Map|null}     [biomeColors] - biome id → { primary, accent }; when
- *        absent every part keeps its default color (no signature tint)
+ * @param {Map|null}     [biomeColors] - biome id → color swatches
+ *        (foliage/wood/soil/stone/bloom/exotic); when absent every part keeps
+ *        its default color (no swatch tint)
  * @param {Map|null}     [biomePalettes] - biome id → palette (terrain type →
  *        color); enables the `terrain` tint source (ground-matching decor)
  * @returns {Map<string, object[]>} descriptor id → instance records
@@ -335,9 +336,10 @@ export function buildDescriptorFeatureMeshes(state, visible, occupants, decorVis
  * @param {Set<string>} occupants - "q,r" keys of tiles with an occupant
  * @param {Set<string>} [decorVisible=visible] - gate for terrain decorations
  *        (visible ∪ explored); features stay gated on `visible`
- * @param {Map|null} [biomeColors] - biome id → { primary, accent } (state
- *        carries it; the chunk entry point has no state, so callers pass it —
- *        see worldMeshes.js). Absent = default part colors, no signature tint.
+ * @param {Map|null} [biomeColors] - biome id → color swatches
+ *        (foliage/wood/soil/stone/bloom/exotic; state carries them, the chunk
+ *        entry point has no state, so callers pass them — see worldMeshes.js).
+ *        Absent = default part colors, no swatch tint.
  * @param {Map|null} [biomePalettes] - biome id → palette (terrain type →
  *        color); enables the `terrain` tint source (ground-matching decor)
  * @returns {THREE.InstancedMesh[]}

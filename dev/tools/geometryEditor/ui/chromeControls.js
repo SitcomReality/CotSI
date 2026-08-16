@@ -34,6 +34,17 @@ function applyRestoredControls() {
   S.biomeId = els.biomeSelect.value || null;
   S.variantId = els.motifSelect.value || null;
   S.outlines = els.outlineCheck.checked;
+  updateBiomeTintHint();
+}
+
+/** Remind authors that the preview only swatch-tints once a biome is picked —
+ *  with none selected every part shows its authored color. */
+function updateBiomeTintHint() {
+  const hint = els.biomeTintHint;
+  if (!hint) return;
+  hint.textContent = els.biomeSelect.value
+    ? ''
+    : 'No biome — parts show their authored colors. Pick a biome to preview swatch tints.';
 }
 
 /**
@@ -114,6 +125,7 @@ export function bindChromeControls({ rebuild, refreshEditorPanel, renderObjectLi
 
   els.biomeSelect.addEventListener('change', () => {
     S.biomeId = els.biomeSelect.value || null;
+    updateBiomeTintHint();
     rebuild();
   });
 

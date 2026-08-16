@@ -302,9 +302,9 @@ Terrain decor parts may declare `biomeColor: { source, influence }`:
   is pulled toward the average of its explored land neighbors (factor 0.8), so
   an Edenfall tree beside Painforest tiles gets its purple foliage diluted by
   green.
-- Tiles of **Untouched** and **Painforest** never *signature*-tint (any swatch
-  source) — a design rule (their decor keeps default colors); the `terrain`
-  tint still applies, and their colors still bleed into neighbors.
+- Every biome's decor swatch-tints; only tiles with no known biome colors
+  keep the authored part colors. The `terrain` tint still applies wherever
+  palettes are known, and every biome's colors bleed into neighbors.
 - Requires a numeric literal part color (string tokens have no tint). Water and
   river neighbors never participate in the blend.
 

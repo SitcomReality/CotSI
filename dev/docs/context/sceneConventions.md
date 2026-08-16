@@ -43,9 +43,8 @@ objects to *fit*: right size, right color source, right density. Complements
    color via `biomeColor: { source, influence }`:
    - `source: 'foliage' | 'wood' | 'soil' | 'stone' | 'bloom' | 'exotic'` —
      the biome's material-class color swatches (see biomesAndTerrain §7.2);
-     pick the swatch matching the material the part depicts. Swatch tints are
-     skipped entirely on **Untouched** and **Painforest** tiles (design rule —
-     their decor keeps default colors).
+     pick the swatch matching the material the part depicts. Every biome
+     swatch-tints; tiles with no known biome colors keep the authored colors.
    - `source: 'terrain'` — the tile's own ground color (biome palette entry
      for its terrain, neighbor-blended) — ground matching, applies everywhere.
    - `influence` 0…1, and the tint requires a **numeric literal** part color.

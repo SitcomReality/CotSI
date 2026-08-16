@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { biomeTintForTile, isDefaultTintBiome } from '../../../src/render/hexmap3d/worldObjects/biomeTint.js';
+import { biomeTintForTile } from '../../../src/render/hexmap3d/worldObjects/biomeTint.js';
 import { TERRAIN_BLEND_FACTOR, TERRAIN_COLOR } from '../../../src/params/render/terrainParams.js';
 
 // Arbitrary-but-real biome color swatches (0-1 tuples): Edenfall purple/gold
@@ -29,10 +29,21 @@ const PAIN = {
   bloom: [0.82, 0.25, 0.40],
   exotic: [0.16, 0.42, 0.38],
 };
+// Untouched — the default game biome; it tints like every other (there is no
+// per-biome suppression anymore).
+const DEFAULT_BIOME = {
+  foliage: [0.455, 0.678, 0.365],
+  wood: [0.545, 0.369, 0.235],
+  soil: [0.541, 0.420, 0.290],
+  stone: [0.55, 0.55, 0.55],
+  bloom: [0.839, 0.694, 0.357],
+  exotic: [0.750, 0.280, 0.320],
+};
 
 const COLORS = new Map([
   ['biome_edenfall', EDEN],
   ['biome_painforest', PAIN],
+  ['biome_default', DEFAULT_BIOME],
 ]);
 
 // Per-terrain palettes, like state.biomePalettes (terrain type → 0-1 tuple).
@@ -47,11 +58,11 @@ const closeTo = (a, b, eps = 1e-9) => Math.abs(a - b) < eps;
 const allClose = (a, b) => a.length === b.length && a.every((v, i) => closeTo(v, b[i]));
 const swatchKeys = (obj) => Object.keys(obj).filter((k) => k !== 'terrain').sort();
 
-test('isDefaultTintBiome marks Untouched and Painforest, not others', () => {
-  assert.equal(isDefaultTintBiome('biome_default'), true);
-  assert.equal(isDefaultTintBiome('biome_painforest'), true);
-  assert.equal(isDefaultTintBiome('biome_edenfall'), false);
-  assert.equal(isDefaultTintBiome(undefined), false);
+test('every biome swatch-tints — including the default game biome', () => {
+  // There is no per-biome tint suppression: any tile with known biome colors
+  // takes the swatch tint, Untouched (the default single-biome game) included.
+  const tile = { q: 0, r: 0, biomeId: 'biome_default' };
+  assert.deepEqual(biomeTintForTile(tile, new Map(), COLORS), DEFAULT_BIOME);
 });
 
 test('isolated tile blends with nothing: tint is its own swatches', () => {
@@ -112,18 +123,17 @@ test('neighbors outside the decor gate are skipped', () => {
   assert.deepEqual(gated, EDEN);
 });
 
-test('Untouched and Painforest tiles never tint, whatever their neighbors', () => {
+test('neighboring Painforest colors bleed into the blend like any biome', () => {
+  // No biome is exempt: Painforest's own tile tints, and its colors dilute
+  // neighbors' blends exactly like every other biome's.
   const tiles = new Map([
-    ['0,0', { q: 0, r: 0, biomeId: 'biome_default' }],
-    ['1,0', { q: 1, r: 0, biomeId: 'biome_edenfall' }],
-  ]);
-  const tiles2 = new Map([
-    ['0,0', { q: 0, r: 0, biomeId: 'biome_painforest' }],
-    ['1,0', { q: 1, r: 0, biomeId: 'biome_edenfall' }],
+    ['0,0', { q: 0, r: 0, biomeId: 'biome_edenfall' }],
+    ['1,0', { q: 1, r: 0, biomeId: 'biome_painforest' }],
   ]);
   const gate = new Set(['0,0', '1,0']);
-  assert.equal(biomeTintForTile(tiles.get('0,0'), tiles, COLORS, gate), null);
-  assert.equal(biomeTintForTile(tiles2.get('0,0'), tiles2, COLORS, gate), null);
+  const tint = biomeTintForTile(tiles.get('0,0'), tiles, COLORS, gate);
+  assert.ok(tint.foliage[0] < EDEN.foliage[0], 'Painforest red bleeds into Edenfall');
+  assert.deepEqual(biomeTintForTile({ q: 0, r: 0, biomeId: 'biome_painforest' }, new Map(), COLORS), PAIN, 'Painforest tile tints with its own swatches');
 });
 
 test('missing colors or biome id yield no tint', () => {
@@ -141,12 +151,12 @@ test('terrain source is the tile\'s own palette color (no neighbors)', () => {
   assert.deepEqual(tint, { ...EDEN, terrain: EDEN_PALETTE.hill });
 });
 
-test('terrain tint applies in default-tint biomes (swatch tints do not)', () => {
-  // Painforest never signature-tints, but its decor should still match the
-  // ground it sits on.
+test('terrain tint rides alongside the swatch tints on the same tile', () => {
+  // Painforest tints like every biome — swatches AND the ground-matching
+  // terrain source both apply.
   const tile = { q: 0, r: 0, biomeId: 'biome_painforest', terrain: 'hill' };
   const tint = biomeTintForTile(tile, new Map(), COLORS, null, PALETTES);
-  assert.deepEqual(tint, { terrain: PAIN_PALETTE.hill });
+  assert.deepEqual(tint, { ...PAIN, terrain: PAIN_PALETTE.hill });
 });
 
 test('terrain source blends toward neighbors\' terrain colors', () => {

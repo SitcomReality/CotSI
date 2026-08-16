@@ -38,9 +38,9 @@ const EMPTY_STATE_KEYS = ['scaleX', 'scaleY', 'scaleZ', 'y', 'localPos', 'color'
  * supernatural bits. `terrain` tints toward the tile's own terrain surface
  * color (its biome palette entry for the tile's terrain type,
  * neighbor-blended) — ground-matching decor such as hill and plateau mounds.
- * The influence strength is 0..1, where 0 keeps the part's default color (also
- * the behavior in Untouched and Painforest for the swatch sources, whose
- * tiles never signature-tint; `terrain` still tints there).
+ * The influence strength is 0..1, where 0 keeps the part's default color.
+ * Every biome swatch-tints; tiles with no known biome colors keep the
+ * authored color (`terrain` still tints wherever palettes are known).
  */
 const BIOME_COLOR_SOURCES = ['foliage', 'wood', 'soil', 'stone', 'bloom', 'exotic', 'terrain'];
 

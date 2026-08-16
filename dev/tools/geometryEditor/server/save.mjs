@@ -125,17 +125,28 @@ export async function handleSave(res, body) {
   // data/ → record determinism. A save legitimately changes the saved object's
   // records, so refresh the fixture right here — editing geometry and saving
   // must never leave the test suite red. Entity saves (table-driven) return
-  // above; entities aren't in the tile snapshot. The dynamic import with a
-  // cache-buster re-evaluates schema/recordBuilder from disk, so a long-lived
-  // server refreshes the fixture with the same code the game and tests load.
+  // above; entities aren't in the tile snapshot. The dynamic imports below
+  // carry unique query strings (cache-busters), so a long-lived server
+  // re-evaluates everything from disk with the same code the game and tests
+  // load.
   try {
-    const { writeDescriptorSnapshot } = await import('../../../tests/render/descriptorSnapshot.js?snapshot=' + Date.now());
-    // importBarrel() re-evaluates data/index.js but its static imports of the
-    // data files stay cached from the first load — substitute a fresh import
-    // of the file we just wrote so the snapshot reflects the saved geometry.
-    const fresh = await import(pathToFileURL(path.join(DATA_DIR, file)).href + '?snap=' + Date.now());
-    const freshDef = fresh[descriptorExportName(id)];
-    const descriptors = barrel.ALL_DESCRIPTORS.map((d) => (d.id === id ? freshDef : d));
+    const snapshot = await import('../../../tests/render/descriptorSnapshot.js?snapshot=' + Date.now());
+    const { writeDescriptorSnapshot, SNAPSHOT_ENTITY_KINDS } = snapshot;
+    // The barrel's static imports of the data files stay cached from the
+    // server's first load, so refreshing only the just-saved file would mix
+    // fresh + stale geometry into the fixture (a save of any other object
+    // then bakes in the stale copy). Re-import every tile-driven data file
+    // from disk — the snapshot must always match what's on disk.
+    const descriptors = await Promise.all(
+      barrel.ALL_DESCRIPTORS
+        .filter((d) => !SNAPSHOT_ENTITY_KINDS.has(d.kind))
+        .map(async (d) => {
+          const sub = subfolderFor(d.kind);
+          const rel = sub ? `${sub}/${d.id}.js` : `${d.id}.js`;
+          const mod = await import(pathToFileURL(path.join(DATA_DIR, rel)).href + '?snap=' + Date.now());
+          return mod[descriptorExportName(d.id)];
+        }),
+    );
     const refreshed = await writeDescriptorSnapshot(descriptors);
     console.log(refreshed ? '[save] refreshed golden snapshot' : '[save] golden snapshot unchanged');
   } catch (err) {

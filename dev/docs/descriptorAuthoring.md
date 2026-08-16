@@ -554,9 +554,11 @@ Painforest tiles gets its purple diluted by green. Rules:
   same way. This is ground-matching: decor using it can never mismatch the
   surface it sits on (hill and plateau mounds use it).
 - `influence: 0` keeps the default color; `1` fully replaces it.
-- Tiles of `biome_default` (Untouched) and `biome_painforest` never
-  *signature*-tint (any swatch source); their `terrain` tint still applies,
-  and their colors still bleed into *neighbor* tiles' blends.
+- Every biome's decor swatch-tints; only tiles with no known biome colors
+  keep the authored part colors. The `terrain` tint still applies wherever
+  palettes are known, and every biome's colors bleed into *neighbor* tiles'
+  blends. Something that must stay untinted per-biome is better expressed as
+  a motif (a biome-pinned motif whose parts carry no `biomeColor`).
 - Tiles with no known biome colors never tint; tiles with no palette never
   terrain-tint.
 - Requires a numeric (literal) part color — tokens have no tint.

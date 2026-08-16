@@ -2411,7 +2411,7 @@
           "z": -0.9892149421944781
         },
         "tilt": 0.225,
-        "color": 3978353
+        "color": 16777215
       },
       {
         "partId": "edenfall-trunk",
@@ -2427,7 +2427,7 @@
           "z": 0.5476882834638945
         },
         "tilt": 0.254,
-        "color": 4263191
+        "color": 7092794
       },
       {
         "partId": "edenfall-canopy-low",
@@ -2480,7 +2480,7 @@
           "z": 0.261522028417451
         },
         "tilt": 0.283,
-        "color": 4016189
+        "color": 7294274
       },
       {
         "partId": "dustbleed-canopy",
