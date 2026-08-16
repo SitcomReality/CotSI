@@ -16,7 +16,7 @@ CotSI is a browser-based hex-crawl strategy game, early in development. Seven fa
 
 **Early Development:** Many features aren't fully implemented and lots of systems are still using limited placeholder values -- there is no meaningful balance, yet.
 
-**Reference:** Start with `dev/docs/systemArchitecture.md` for the complete file tree, layer architecture, and decision guide.
+**Reference:** Start with `dev/docs/systemArchitecture.md` for the layer architecture and decision guide; `dev/docs/sourceTree.md` holds the complete file-by-file inventory; the standalone tools are covered by `dev/tools/analysis/README.md` and `dev/tools/geometryEditor/README.md`.
 
 ---
 
@@ -75,7 +75,8 @@ window.__gameState; // same object as G
 
 | Document | Covers |
 |----------|--------|
-| `dev/docs/systemArchitecture.md` | Full system architecture: principles, file tree, decision guide, boundary debt |
+| `dev/docs/systemArchitecture.md` | Layer architecture: principles, dependency rules, interaction pattern, decision guide, boundary debt |
+| `dev/docs/sourceTree.md` | Complete `src/` file inventory (one-line purpose per file, grouped by layer) |
 | `dev/docs/namingConventions.md` | File naming, banned words, code identifier conventions, interaction pattern |
 | `dev/docs/cssConventions.md` | CSS structure, naming, spacing scale, barrel pattern |
 | `dev/docs/aestheticConventions.md` | Visual design system (aspirational, evolving) |
@@ -88,7 +89,8 @@ window.__gameState; // same object as G
 | `dev/docs/gameMechanics.md` | Combat round flow, turn order, biome system |
 | `dev/docs/terrainGenNotes.md` | Terrain-gen design notes: noise, calibration, classification, supernatural biomes |
 | `dev/docs/commonTasks.md` | How-to recipes for common changes |
-| `dev/tools/analysis.html` | Standalone map-gen analysis tool (not part of the game) |
+| `dev/tools/analysis/README.md` | Standalone map-gen analysis tool (not part of the game) — reference & inventory |
+| `dev/tools/geometryEditor/README.md` | Standalone object-geometry editor (not part of the game) — reference & inventory |
 
 ---
 

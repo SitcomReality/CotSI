@@ -1,6 +1,6 @@
 # CotSI — Naming Conventions
 
-This document covers naming and style rules for the CotSI codebase. For architecture, layer taxonomy, and the complete file tree, see `dev/docs/systemArchitecture.md`.
+This document covers naming and style rules for the CotSI codebase. For architecture and layer taxonomy see `dev/docs/systemArchitecture.md`; for the complete file tree see `dev/docs/sourceTree.md`.
 
 ---
 
