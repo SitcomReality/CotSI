@@ -85,8 +85,14 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
   const CANOPY = ['-canopy', '-crown'];
   assert.ok(hasPart('forest-', TRUNK) && hasPart('forest-', CANOPY), 'forest trunk/canopy parts');
   assert.ok(hasPart('denseForest-', TRUNK) && hasPart('denseForest-', CANOPY), 'denseForest trunk/canopy parts');
-  const knots = meshes.filter((m) => m.name.startsWith('knot-'));
-  assert.equal(knots.length, 1, 'one knot mesh');
+  // The knot renders one mesh per authored part (parts are edited in the
+  // geometry editor) — derive the expectation from the descriptor so adding
+  // or removing a part never leaves this test stale.
+  const knotDesc = ALL_DESCRIPTORS.find((d) => d.id === 'knot');
+  assert.ok(knotDesc, 'knot descriptor present');
+  for (const part of knotDesc.parts) {
+    assert.ok(meshes.some((m) => m.name.startsWith(`knot-${part.id}`)), `knot part "${part.id}" renders a mesh`);
+  }
   assert.equal(meshes.filter((m) => m.name.startsWith('mountain-')).length, 1, 'one mountain mesh');
 });
 

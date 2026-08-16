@@ -23,6 +23,7 @@ import {
 import { shapeBaseOffset, normalizeDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { recordsForDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
 import { HILL_DESCRIPTOR } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/decor/hill.js';
+import { KNOT_DESCRIPTOR } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/features/knot.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -225,11 +226,18 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   assert.ok(meshes.some((m) => m.name.startsWith('denseForest-') && (m.name.includes('-canopy') || m.name.includes('-crown'))), 'denseForest canopy meshes');
   assert.ok(forestTrunkCount + deepTrunkCount >= 5, `woods cover 4 tiles (got ${forestTrunkCount + deepTrunkCount} trunks)`);
 
-  // Knot: exactly one (the mined one is skipped), hovering at KNOT_Y_OFFSET.
-  const knots = meshesStarting(meshes, 'knot-');
-  assert.equal(knots.length, 1);
-  assert.equal(knots[0].count, 1);
-  const knotPos = instInfo(knots[0], 0);
+  // Knot: one instance per authored part (the mined knot is skipped); the
+  // core octahedron hovers at KNOT_Y_OFFSET. Parts are edited in the geometry
+  // editor, so derive the expectation from the descriptor instead of pinning
+  // a mesh count.
+  for (const part of KNOT_DESCRIPTOR.parts) {
+    const partMeshes = meshesStarting(meshes, `knot-${part.id}`);
+    assert.ok(partMeshes.length >= 1, `knot part "${part.id}" renders a mesh`);
+    for (const m of partMeshes) assert.equal(m.count, 1, `knot mesh "${m.name}" has one instance (mined skipped)`);
+  }
+  const knotCore = meshNamed(meshes, 'knot-knot');
+  assert.ok(knotCore, 'knot core octahedron mesh');
+  const knotPos = instInfo(knotCore, 0);
   assert.ok(closeTo(knotPos.y, tileSurfaceY(TILES[3]) + 0.3), 'knot hovers at KNOT_Y_OFFSET');
 
   // Mountain: one instance, peak height bucket, XZ scale 1 (hex-tiling base).
