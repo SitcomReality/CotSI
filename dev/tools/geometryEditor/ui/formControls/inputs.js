@@ -1,38 +1,17 @@
 /**
- * formControls.js — Generic form-control builders for the geometry editor.
- *
- * Pure DOM construction: every function takes values + an onChange callback and
- * returns a ready element. No project state or imports — the rows, inputs,
- * steppers and dropdowns built here are reused by the object controls, the
- * part inspector and the parts list.
+ * inputs.js — The input controls: number/int/degree inputs with the −/+
+ * stepper shell, dropdowns, color and text inputs. Pure DOM construction —
+ * every function takes values + an onChange callback and returns a ready
+ * element; the −/+ buttons fire the same commit path as manual editing.
  */
-
-/** Create an element with an optional class name and text content. */
-function el(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
-/** A labelled control row: label on the left, the control on the right. */
-function row(labelText, control) {
-  const r = el('div', 'control-row');
-  r.append(el('label', null, labelText), control);
-  return r;
-}
-
-/** Small uppercase sub-heading used to group dynamic field sets. */
-function subheading(labelText) {
-  return el('div', 'section-title', labelText);
-}
+import { el } from './layout.js';
 
 /**
  * A number input wrapped in the custom −/+ stepper shell (see stepperWrap).
  * The wrapper is what rows append; manual typing still works and both paths
  * fire the same onChange, so the mutate() flow applies to stepper edits too.
  */
-function numberInput(value, { min, step = 0.01, onChange }) {
+export function numberInput(value, { min, step = 0.01, onChange }) {
   const input = el('input');
   input.type = 'number';
   input.value = String(value);
@@ -47,7 +26,7 @@ function numberInput(value, { min, step = 0.01, onChange }) {
 }
 
 /** Integer variant of numberInput — steps by 1, parses with parseInt. */
-function intInput(value, { min, onChange }) {
+export function intInput(value, { min, onChange }) {
   const input = el('input');
   input.type = 'number';
   input.value = String(value);
@@ -61,7 +40,7 @@ function intInput(value, { min, onChange }) {
   return stepperWrap(input, commit);
 }
 
-const DEG_TO_RAD = Math.PI / 180;
+export const DEG_TO_RAD = Math.PI / 180;
 const RAD_TO_DEG = 180 / Math.PI;
 
 /**
@@ -71,7 +50,7 @@ const RAD_TO_DEG = 180 / Math.PI;
  * render never change); only the editor's number entry is in degrees. The
  * displayed value is rounded to 2 decimals so e.g. 0.12 rad reads as 6.88°.
  */
-function degreeInput(value, { step = 5, onChange }) {
+export function degreeInput(value, { step = 5, onChange }) {
   const displayed = Math.round(value * RAD_TO_DEG * 100) / 100;
   return numberInput(displayed, { step, onChange: (deg) => onChange(deg * DEG_TO_RAD) });
 }
@@ -82,7 +61,7 @@ function degreeInput(value, { step = 5, onChange }) {
  * path as manual editing. The bound button (at min / max) is disabled, and
  * both buttons follow the input's disabled state.
  */
-function stepperWrap(input, commit) {
+export function stepperWrap(input, commit) {
   const wrap = el('div', 'num-step');
   const minus = el('button', 'num-step-btn', '−');
   const plus = el('button', 'num-step-btn', '+');
@@ -128,7 +107,7 @@ function stepperWrap(input, commit) {
  * Dropdown. Options are plain strings (label = value) or { value, label }
  * pairs (e.g. biome ids with friendly labels).
  */
-function selectInput(options, value, onChange) {
+export function selectInput(options, value, onChange) {
   const select = el('select');
   for (const opt of options) {
     const o = el('option', null, typeof opt === 'string' ? opt : opt.label);
@@ -140,7 +119,7 @@ function selectInput(options, value, onChange) {
   return select;
 }
 
-function colorInput(value, onChange) {
+export function colorInput(value, onChange) {
   const input = el('input');
   input.type = 'color';
   input.value = '#' + value.toString(16).padStart(6, '0');
@@ -151,7 +130,7 @@ function colorInput(value, onChange) {
   return input;
 }
 
-function textInput(value, onChange) {
+export function textInput(value, onChange) {
   const input = el('input');
   input.type = 'text';
   input.value = value;
@@ -162,17 +141,3 @@ function textInput(value, onChange) {
   });
   return input;
 }
-
-export {
-  el,
-  row,
-  subheading,
-  numberInput,
-  intInput,
-  degreeInput,
-  DEG_TO_RAD,
-  stepperWrap,
-  selectInput,
-  colorInput,
-  textInput,
-};

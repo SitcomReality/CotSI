@@ -4,7 +4,7 @@
  * picker that edits the `states.empty` keyframe in the empty growth state.
  */
 import { S } from '../../../state.js';
-import { el, row, selectInput, colorInput } from '../../formControls.js';
+import { el, row, selectInput, colorInput } from '../../formControls/index.js';
 import { ENTITY_KINDS } from '../../../entityView.js';
 import { section } from '../sectionShell.js';
 import { editingEmptyState, emptyKeyframe } from '../stateKeyframes.js';

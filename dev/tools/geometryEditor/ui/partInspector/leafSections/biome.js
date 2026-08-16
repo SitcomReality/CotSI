@@ -2,7 +2,7 @@
  * biome.js — Biome-tint section (leaves only): the source selector
  * (primary / accent / terrain) and the influence slider.
  */
-import { el, row, numberInput, selectInput } from '../../formControls.js';
+import { el, row, numberInput, selectInput } from '../../formControls/index.js';
 import { section } from '../sectionShell.js';
 
 /** Biome tint — leaves only. */

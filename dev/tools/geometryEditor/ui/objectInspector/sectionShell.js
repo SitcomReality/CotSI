@@ -6,7 +6,7 @@
  * stay scannable — the long per-biome pin list folds away by default.
  * Which sections the user has open is session state, kept across re-renders.
  */
-import { el } from '../formControls.js';
+import { el } from '../formControls/index.js';
 
 /** Section registry: `key` → title + default open state. */
 const SECTIONS = {

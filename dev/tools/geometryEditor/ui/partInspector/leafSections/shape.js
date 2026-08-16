@@ -3,7 +3,7 @@
  * by the SHAPE_TYPES registry. Groups are pure containers (no visuals of
  * their own), so this field never appears for group nodes.
  */
-import { row, selectInput, intInput, numberInput } from '../../formControls.js';
+import { row, selectInput, intInput, numberInput } from '../../formControls/index.js';
 import { SHAPE_TYPES } from '../../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { section } from '../sectionShell.js';
 

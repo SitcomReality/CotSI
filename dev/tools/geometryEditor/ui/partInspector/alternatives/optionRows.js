@@ -4,7 +4,7 @@
  * (the hinged-elbow pattern), and remove.
  */
 import { S } from '../../../state.js';
-import { el, numberInput } from '../../formControls.js';
+import { el, numberInput } from '../../formControls/index.js';
 import { activeParts } from '../../variantQuery.js';
 import { freshId, motifScoped, listNodes, makeGroupNode, makeLeafNode } from '../../partTree/index.js';
 import { renameNodeId } from '../../renameIds.js';

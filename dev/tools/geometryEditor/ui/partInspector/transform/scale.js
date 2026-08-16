@@ -3,7 +3,7 @@
  * every node. When the State toggle is "empty", the rows edit the
  * `states.empty` keyframe.
  */
-import { el, row, numberInput } from '../../formControls.js';
+import { el, row, numberInput } from '../../formControls/index.js';
 import { section } from '../sectionShell.js';
 import { editingEmptyState, emptyKeyframe } from '../stateKeyframes.js';
 

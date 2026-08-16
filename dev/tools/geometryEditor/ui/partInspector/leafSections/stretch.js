@@ -3,7 +3,7 @@
  * (follow / fixed / custom) with the min/max/seed inputs for custom axes.
  */
 import { S } from '../../../state.js';
-import { el, numberInput, intInput, selectInput } from '../../formControls.js';
+import { el, numberInput, intInput, selectInput } from '../../formControls/index.js';
 import { ENTITY_KINDS } from '../../../entityView.js';
 import { section } from '../sectionShell.js';
 

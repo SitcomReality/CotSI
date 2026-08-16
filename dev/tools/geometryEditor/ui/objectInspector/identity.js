@@ -5,7 +5,7 @@
  * refresh the object browser).
  */
 import { S } from '../../state.js';
-import { el, row, textInput } from '../formControls.js';
+import { el, row, textInput } from '../formControls/index.js';
 import { inspectorHead } from '../inspectorHead.js';
 import { SAMPLE_OBJECTS } from '../../sampleObjects.js';
 

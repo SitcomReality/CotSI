@@ -7,7 +7,7 @@
  * button that converts the fallback look into variants[0] and copies it — the
  * per-biome decor workflow: reshape the copy for a biome, then pin it.
  */
-import { el, row, selectInput } from '../formControls.js';
+import { el, row, selectInput } from '../formControls/index.js';
 import { S } from '../../state.js';
 import { section } from './sectionShell.js';
 import { renderBiomeVariantPins } from './biomePins.js';

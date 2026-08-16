@@ -3,7 +3,7 @@
  * rotY for every node, world tilt for roots only. Angles are displayed and
  * stepped in degrees; values are stored in radians.
  */
-import { el, row, numberInput, selectInput, degreeInput, DEG_TO_RAD } from '../../formControls.js';
+import { el, row, numberInput, selectInput, degreeInput, DEG_TO_RAD } from '../../formControls/index.js';
 import { isGroupNode } from '../../partTree/index.js';
 import { section } from '../sectionShell.js';
 import {

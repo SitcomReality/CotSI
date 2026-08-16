@@ -5,7 +5,7 @@
  * every descendant leaf), so the numbers always match the highlight. Groups
  * report their children's union; a leaf reports its own.
  */
-import { el, row } from '../formControls.js';
+import { el, row } from '../formControls/index.js';
 import { descendantLeafIds } from '../partTree/index.js';
 import { worldAABBForPartIds } from '../../preview/index.js';
 import { section } from './sectionShell.js';

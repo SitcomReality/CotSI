@@ -3,7 +3,7 @@
  * icon/portrait (all kinds): pitch / yaw / pad / raise over the shared
  * defaults. Leave at defaults for the auto-frame isometric view.
  */
-import { el, row, numberInput, degreeInput } from '../formControls.js';
+import { el, row, numberInput, degreeInput } from '../formControls/index.js';
 import { S } from '../../state.js';
 import { PORTRAIT_DEFAULTS } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 

@@ -4,7 +4,7 @@
  * multiplier (0 = excluded, struck through; 1 = default, clears the key) with
  * the realized share w_i/Σw drawn as a bar behind it.
  */
-import { el, numberInput } from '../../formControls.js';
+import { el, numberInput } from '../../formControls/index.js';
 import { listArchetypes, getArchetype } from '../../../../../../src/game/rules/archetypes.js';
 import { effectiveMotifTable } from '../../../../../../src/render/hexmap3d/worldObjects/descriptors/motifDraw.js';
 

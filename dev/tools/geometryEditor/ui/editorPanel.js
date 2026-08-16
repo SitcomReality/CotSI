@@ -12,10 +12,10 @@ import { S } from '../state.js';
 import { activeParts } from './variantQuery.js';
 import { pushUndo, popUndo, restoreUndo } from '../history.js';
 import { findNodeById } from './partTree/index.js';
-import { renderPartsList } from './partList.js';
+import { renderPartsList } from './partList/index.js';
 import { renderObjectIdentity, renderMotifPanel, renderFieldSections } from './objectInspector/index.js';
 import { renderPartInspector } from './partInspector/index.js';
-import { bindProjectControls } from './projectControls.js';
+import { bindProjectControls } from './projectControls/index.js';
 
 let els = null;
 let onEdit = () => {};

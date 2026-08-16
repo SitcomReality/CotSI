@@ -8,7 +8,7 @@
  * also refresh the object browser).
  */
 import { S } from '../../state.js';
-import { el, row, selectInput } from '../formControls.js';
+import { el, row, selectInput } from '../formControls/index.js';
 import { ENTITY_KINDS } from '../../entityView.js';
 import { ITEM_SLOTS } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { section } from './sectionShell.js';

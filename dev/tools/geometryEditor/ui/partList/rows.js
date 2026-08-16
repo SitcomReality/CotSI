@@ -1,34 +1,19 @@
 /**
- * partList.js — Parts list for the geometry editor sidebar.
- *
- * Renders into `#parts-edit` at the top of the inspector column: a
- * "Parts (n)" header with an expand/collapse toggle, an always-visible add
- * row (shape select + "+ Add part" / "+ Group" buttons), and the part rows
- * only while expanded. Parts are a tree now — groups (rendered as
- * `id · group`, collapsible via a ▸/▾ fold button) can hold nested leaves —
- * so the rows render recursively with depth indentation. Each row: label
- * (click to select), ↑/↓ to reorder within its siblings, ✕ to remove the
- * whole subtree. Expanded rows sit in normal flow, pushing the design fields
- * (#fields-body) down the column.
+ * rows.js — Recursive part-row rendering for the parts list: one row per node
+ * in the active parts tree — fold buttons for groups/alternatives, the label
+ * (click to select), growth-state keyframe badges, and the ↑/↓/✕ sibling
+ * actions. Alternatives nodes render their option rows beneath them.
  */
-import { S } from '../state.js';
-import { el, selectInput } from './formControls.js';
-import { activeParts, activeMotif } from './variantQuery.js';
-import { SHAPE_TYPES } from '../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { S } from '../../state.js';
+import { el } from '../formControls/index.js';
+import { activeParts, activeMotif } from '../variantQuery.js';
 import {
   isGroupNode,
   isAlternativesNode,
-  countNodes,
   findNodeById,
   freshId,
   motifScoped,
-  makeGroupNode,
-  makeLeafNode,
-  makeAlternativesNode,
-} from './partTree/index.js';
-
-/** Whether the parts list rows are expanded (collapsed hides just the rows). */
-let partsListExpanded = true;
+} from '../partTree/index.js';
 
 /** Group ids whose children are hidden in the list (session state). */
 const collapsedGroups = new Set();
@@ -66,7 +51,7 @@ function listNodesOf(parts) {
  * `choiceId` names the alternatives node an option subtree belongs to (for the
  * preview auto-switch when selecting a part inside an option).
  */
-function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = null) {
+export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = null) {
   // The active motif scopes new ids added under it (decorComposition.md §6.2
   // — storage ids carry the motif context so authors never hand-maintain the
   // global part-id namespace). null outside motif decors.
@@ -165,71 +150,4 @@ function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = null) {
       appendRows(listEl, node.children, depth + 1, ctx);
     }
   });
-}
-
-/**
- * Render the parts list into `container`. `ctx` supplies the panel hooks:
- * `ctx.mutate(fn)` for descriptor changes, `ctx.renderAll()` for pure
- * re-renders (selection clicks, fold/collapse toggles).
- */
-export function renderPartsList(container, ctx) {
-  container.textContent = '';
-  const parts = activeParts();
-  // New ids at the root of the edited tree are scoped under the active motif
-  // on the v6 decor path (decorComposition.md §6.2) — null outside motif decors.
-  const motifId = activeMotif()?.id;
-
-  // Header: "Parts (n)" + the expand/collapse toggle — always visible, so the
-  // list can be reopened without hunting for a button further down the panel.
-  // The count covers groups and leaves alike.
-  const head = el('div', 'parts-head');
-  head.append(el('span', 'parts-title', `Parts (${countNodes(parts)})${motifId ? ` · motif ${motifId}` : ''}`));
-  const toggle = el('button', 'parts-collapse', partsListExpanded ? '▾' : '▸');
-  toggle.type = 'button';
-  toggle.title = partsListExpanded ? 'Collapse the parts list' : 'Expand the parts list';
-  toggle.setAttribute('aria-label', toggle.title);
-  toggle.setAttribute('aria-expanded', String(partsListExpanded));
-  toggle.setAttribute('aria-controls', 'parts-list');
-  toggle.addEventListener('click', () => {
-    partsListExpanded = !partsListExpanded;
-    ctx.renderAll();
-  });
-  head.append(toggle);
-  container.append(head);
-
-  // Add row: shape select + buttons stay on one compact line, and remain
-  // visible even while the list is collapsed. "+ Add part" appends a root
-  // leaf; "+ Group" appends a group already holding one leaf of the chosen
-  // shape, so the group renders something the moment it exists.
-  const addRow = el('div', 'part-add-row');
-  const shapeSelect = selectInput(Object.keys(SHAPE_TYPES), Object.keys(SHAPE_TYPES)[0], () => {});
-  const addBtn = el('button', null, '+ Add part');
-  addBtn.addEventListener('click', () => {
-    const shape = shapeSelect.value;
-    ctx.mutate(() => {
-      const id = freshId(parts, motifScoped('part', motifId));
-      parts.push(makeLeafNode(shape, id));
-      S.selectedPartId = id;
-    });
-  });
-  const addGroupBtn = el('button', null, '+ Group');
-  addGroupBtn.addEventListener('click', () => {
-    const shape = shapeSelect.value;
-    ctx.mutate(() => {
-      const id = freshId(parts, motifScoped('group', motifId));
-      const group = makeGroupNode(id);
-      group.children.push(makeLeafNode(shape, freshId(parts, motifScoped('part', motifId)), true));
-      parts.push(group);
-      S.selectedPartId = id;
-    });
-  });
-  addRow.append(shapeSelect, addBtn, addGroupBtn);
-  container.append(addRow);
-
-  // Rows only when expanded — they sit in normal flow, pushing the design
-  // fields (#fields-body) down the column.
-  const list = el('div', 'parts-list');
-  list.id = 'parts-list';
-  if (partsListExpanded) appendRows(list, parts, 0, ctx);
-  container.append(list);
 }

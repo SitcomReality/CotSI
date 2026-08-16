@@ -5,7 +5,7 @@
  * default open state) so the panel stays scannable. Which sections the user
  * has open is session state, tracked in `openSections` across re-renders.
  */
-import { el } from '../formControls.js';
+import { el } from '../formControls/index.js';
 
 /** Inspector sections: `key` → default open state. */
 const SECTIONS = {

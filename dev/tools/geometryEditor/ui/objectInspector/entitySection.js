@@ -4,7 +4,7 @@
  * (when the variant rule is archetype) picks the shape variant. Traders have
  * a single fixed look and just get a note.
  */
-import { el, row, selectInput } from '../formControls.js';
+import { el, row, selectInput } from '../formControls/index.js';
 import { S } from '../../state.js';
 import { FACTIONS } from '../../../../../src/game/rules/factionData.js';
 

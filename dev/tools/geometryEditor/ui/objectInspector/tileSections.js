@@ -4,7 +4,7 @@
  * singletons). Each renderer appends its rows into the section `container`
  * it is handed; `d` is the descriptor, `ctx` supplies `mutate()`.
  */
-import { el, row, selectInput, numberInput, intInput } from '../formControls.js';
+import { el, row, selectInput, numberInput, intInput } from '../formControls/index.js';
 import { EMPHASIS_BEHAVIORS, PLACEMENT_MODES } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 
 /** Cluster: uniform min/max counts, or moisture-driven counts by terrain. */

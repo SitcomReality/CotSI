@@ -11,7 +11,7 @@
  * rows live in optionRows.js.
  */
 import { S } from '../../../state.js';
-import { el, row, selectInput } from '../../formControls.js';
+import { el, row, selectInput } from '../../formControls/index.js';
 import { activeParts, activeMotif } from '../../variantQuery.js';
 import { freshId, motifScoped } from '../../partTree/index.js';
 import { renderOptionRows } from './optionRows.js';

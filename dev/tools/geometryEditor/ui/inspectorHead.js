@@ -5,7 +5,7 @@
  * header (partInspector/); the parts list above has its own slim header
  * (see partList.js).
  */
-import { el } from './formControls.js';
+import { el } from './formControls/index.js';
 
 /** Inspector head: title/meta (and optional breadcrumb back to the object). */
 export function inspectorHead(title, meta, back) {

@@ -4,7 +4,7 @@
  * "empty", the Y and localPos rows edit the `states.empty` keyframe instead of
  * the base transform — the values lerp to the base as the feature regrows.
  */
-import { el, row, numberInput } from '../../formControls.js';
+import { el, row, numberInput } from '../../formControls/index.js';
 import { isGroupNode } from '../../partTree/index.js';
 import { section } from '../sectionShell.js';
 import { editingEmptyState, emptyKeyframe, emptyLocalPos, pruneZeroLocalPos } from '../stateKeyframes.js';

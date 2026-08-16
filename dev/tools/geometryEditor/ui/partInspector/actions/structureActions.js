@@ -5,7 +5,7 @@
  * through the ctx mutation flow.
  */
 import { S } from '../../../state.js';
-import { el, selectInput } from '../../formControls.js';
+import { el, selectInput } from '../../formControls/index.js';
 import { activeParts, activeMotif } from '../../variantQuery.js';
 import {
   isGroupNode,

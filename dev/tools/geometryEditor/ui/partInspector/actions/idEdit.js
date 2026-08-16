@@ -5,7 +5,7 @@
  * when it is a choice point.
  */
 import { S } from '../../../state.js';
-import { el, row } from '../../formControls.js';
+import { el, row } from '../../formControls/index.js';
 import { activeParts } from '../../variantQuery.js';
 import { listNodes } from '../../partTree/index.js';
 import { renameNodeId } from '../../renameIds.js';

@@ -4,7 +4,7 @@
  * ＋ Add motif button. The per-biome grid lives in biomeGrid.js.
  */
 import { S } from '../../../state.js';
-import { el, numberInput } from '../../formControls.js';
+import { el, numberInput } from '../../formControls/index.js';
 import { renameMotifId } from '../../renameIds.js';
 
 /** A fresh motif id derived from `base`, unique among `used`. */

@@ -3,7 +3,7 @@
  * controls.
  */
 import { S } from '../../../state.js';
-import { el } from '../../formControls.js';
+import { el } from '../../formControls/index.js';
 import { inspectorHead } from '../../inspectorHead.js';
 import { isAlternativesNode, isGroupNode } from '../../partTree/index.js';
 

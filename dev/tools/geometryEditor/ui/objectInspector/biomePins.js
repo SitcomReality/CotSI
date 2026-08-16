@@ -6,7 +6,7 @@
  * default look; a pin swaps in an alternate. Different terrains are separate
  * decor objects, so there is no per-terrain picker.
  */
-import { el, row, selectInput } from '../formControls.js';
+import { el, row, selectInput } from '../formControls/index.js';
 import { S } from '../../state.js';
 import { listArchetypes, getArchetype } from '../../../../../src/game/rules/archetypes.js';
 
