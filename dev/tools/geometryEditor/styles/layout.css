@@ -152,9 +152,10 @@
   min-width: 0;
 }
 
-/* The motifs panel's biome grid is wider than the panel — let the table scroll
-   horizontally INSIDE the panel instead of blowing out the floating panel
-   (the table itself is width:max-content, see motifs.css). */
+/* The motifs panel's biome grid fills the panel (width:100%, fixed layout,
+   see motifs.css); wide tables scroll horizontally INSIDE this body with the
+   biome-name column pinned by position:sticky, instead of blowing out the
+   floating panel. */
 #motifs-body {
   min-width: 0;
   overflow-x: auto;

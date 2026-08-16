@@ -10,8 +10,10 @@ import { el } from './layout.js';
  * A number input wrapped in the custom −/+ stepper shell (see stepperWrap).
  * The wrapper is what rows append; manual typing still works and both paths
  * fire the same onChange, so the mutate() flow applies to stepper edits too.
+ * Pass `stepper: false` for dense contexts (e.g. the motif biome grid) where
+ * the −/+ buttons don't fit — the raw input is returned unwrapped.
  */
-export function numberInput(value, { min, step = 0.01, onChange }) {
+export function numberInput(value, { min, step = 0.01, onChange, stepper = true }) {
   const input = el('input');
   input.type = 'number';
   input.value = String(value);
@@ -22,7 +24,7 @@ export function numberInput(value, { min, step = 0.01, onChange }) {
     if (Number.isFinite(v)) onChange(v);
   };
   input.addEventListener('change', commit);
-  return stepperWrap(input, commit);
+  return stepper ? stepperWrap(input, commit) : input;
 }
 
 /** Integer variant of numberInput — steps by 1, parses with parseInt. */

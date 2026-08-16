@@ -122,7 +122,7 @@
 #select-panel {
   top: var(--s3);
   right: var(--s3);
-  width: 400px;
+  width: 460px;
   max-width: calc(100% - 2 * var(--s3));
   max-height: calc(100% - 2 * var(--s3));
   display: flex;
@@ -168,7 +168,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--s1);
-  flex: 1 1 0;
+  /* `1 1 auto` (not `1 1 0`): with a zero flex-basis this body collapsed to
+     0 height whenever the panel's content exceeded max-height — the panel
+     then flexed its other children to fit and the scroll body vanished.
+     Content-based basis keeps it hugging its content when short and
+     shrinking (then scrolling) when the panel hits max-height. */
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;

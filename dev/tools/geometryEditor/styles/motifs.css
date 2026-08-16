@@ -32,16 +32,26 @@
   font-size: var(--fs-xs);
   white-space: nowrap;
 }
+
+/* ── The per-biome grid ──────────────────────────────────────────────────── */
+
+/* Fills the panel instead of growing with the cells: `table-layout: fixed`
+   shares the width equally between the motif columns (the biome-name column
+   claims a fixed slice), so the grid never overflows for typical motif
+   counts and every column stays editable. */
 .motif-grid {
-  width: max-content; /* grow with the biome×motif cells, never shrink-wrap */
-  min-width: 100%;    /* ... but never narrower than the panel */
-  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  /* separate + 0 spacing (not collapse): collapsed borders don't move with
+     the sticky biome column, leaving a borderless gap while scrolling. */
+  border-collapse: separate;
+  border-spacing: 0;
   margin-top: 8px;
   font-size: 0.8em;
 }
 .motif-grid th, .motif-grid td {
   border: 1px solid var(--token-border-subtle, #333);
-  padding: 1px 3px;
+  padding: 2px 3px;
   text-align: left;
   white-space: nowrap;
 }
@@ -50,23 +60,56 @@
   font-weight: 600;
   background: color-mix(in srgb, var(--board-hi) 60%, transparent);
 }
+/* Motif-id headers and biome names are longer than their columns — clip with
+   an ellipsis and keep the full text in the title tooltip (set in JS). */
+.motif-grid th:not(:first-child),
+.motif-grid td.biome-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Sticky biome-name column: when a wide table scrolls horizontally inside
+   #motifs-body, the row identity stays pinned on the left. Needs an opaque
+   background so scrolling cells don't show through the panel's translucency. */
+.motif-grid th:first-child,
+.motif-grid td.biome-cell {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--shadow);
+}
+.motif-grid th:first-child {
+  width: 110px;
+}
 .motif-grid .biome-cell {
   font-weight: 600;
   color: var(--ink-mid);
 }
+
+/* A share cell is the editable multiplier with the realized share drawn as a
+   full-height tint behind the (transparent-background) input — the grid reads
+   as a heatmap; the exact % lives in the cell/input tooltips. */
 .share-cell {
   position: relative;
-  min-width: 66px;
-  display: flex;
-  align-items: center;
-  gap: 3px;
+  min-width: 0;
 }
-/* The editable per-biome multiplier — the raw biomeWeight value, 0 = excluded. */
 .share-cell input[type="number"] {
-  position: relative;
-  width: 40px;
+  position: relative;   /* above the share bar */
+  display: block;
+  width: 100%;
+  min-width: 0;
   padding: 1px 2px;
   font-size: 0.9em;
+  text-align: center;
+  background: transparent;
+  border: none;         /* the cell border is the grid line */
+}
+.share-cell input[type="number"]:hover {
+  background: color-mix(in srgb, var(--ink-faint) 18%, transparent);
+}
+/* Focus ring restored — forms.css's input:focus-visible is lower-specificity
+   than the border:none base above, so the ring must be re-declared here. */
+.share-cell input[type="number"]:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-faint) 30%, transparent);
 }
 .share-cell.excluded {
   text-decoration: line-through;
@@ -81,10 +124,25 @@
   background: rgba(255, 255, 255, 0.12);
   pointer-events: none;
 }
-.share-label {
-  position: relative;
-  font-size: 0.85em;
+
+/* ── Number spinners off in the motifs panel ─────────────────────────────── */
+
+/* The #inspector rules in forms.css don't reach the floating select panel,
+   so the native increment/decrement arrows would show on every number input
+   here. The grid cells are bare inputs; the row weight / alternative inputs
+   keep their custom −/+ stepper shells (see forms.css). In Firefox
+   `appearance` maps to -moz-appearance, so the -moz declaration must come
+   last to win. */
+#motifs-body input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
+#motifs-body input[type="number"]::-webkit-outer-spin-button,
+#motifs-body input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* Motif rows: the id is editable (renames rewrite biomeVariants pins and
    motif-scoped part prefixes); a zero base weight reads as excluded. */
 .motif-row .motif-id-input {
