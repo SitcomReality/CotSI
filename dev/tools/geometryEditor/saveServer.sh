@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launch the geometry editor save server (see saveServer.mjs).
+# Launch the geometry editor save server (see server/index.mjs).
 # Resolves node like dev/tests/run.sh (falls back to the Flatpak host node).
 # Usage: dev/tools/geometryEditor/saveServer.sh [PORT]
 set -euo pipefail
@@ -14,4 +14,4 @@ else
   exit 1
 fi
 
-exec env PORT="${1:-${PORT:-8000}}" "$NODE_BIN" dev/tools/geometryEditor/saveServer.mjs
+exec env PORT="${1:-${PORT:-8000}}" "$NODE_BIN" dev/tools/geometryEditor/server/index.mjs
