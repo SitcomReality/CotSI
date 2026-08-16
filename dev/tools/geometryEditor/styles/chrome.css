@@ -29,6 +29,12 @@
   padding: 3px 7px;
   white-space: nowrap;
 }
+/* `display: inline-flex` above outranks the UA sheet's `[hidden] { display:
+   none }`, so an online server's `hidden` attribute was ignored and the offline
+   warning kept showing. Re-assert it explicitly. */
+.save-status[hidden] {
+  display: none;
+}
 .save-status::before {
   content: '●';
   color: var(--crimson);

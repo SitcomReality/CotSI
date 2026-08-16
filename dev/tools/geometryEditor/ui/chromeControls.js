@@ -15,12 +15,35 @@ import { undoLastEdit } from './editorPanel.js';
 import { setFloorVisible, resetCamera } from '../preview/index.js';
 
 /**
+ * Apply the browser-restored form-control state to S before binding the change
+ * listeners. Checkboxes and range inputs survive a reload with their last
+ * values, but nothing pushes them into S until a change event fires — so a
+ * checked #outline-check would sit visually on while the preview rendered
+ * without outlines. Reading the restored DOM once at startup closes that gap;
+ * the controls below are never re-initialized from S later (their init code
+ * either leaves them alone or resets them to match S), so the DOM stays the
+ * session source of truth. The floor toggle needs the preview scene, so main.js
+ * applies it right after createPreview.
+ */
+function applyRestoredControls() {
+  S.displaced = els.occupiedCheck.checked;
+  S.canonical = els.canonicalCheck.checked;
+  S.strip = els.stripCheck.checked;
+  S.stripOffset = Number(els.stripSeed.value);
+  S.growth = els.stateSelect.value === '0' ? 0 : 1;
+  S.biomeId = els.biomeSelect.value || null;
+  S.variantId = els.motifSelect.value || null;
+  S.outlines = els.outlineCheck.checked;
+}
+
+/**
  * Bind every chrome control. `hooks` supplies the state→UI reactions:
  * rebuild() (preview), refreshEditorPanel() (inspector re-render),
  * renderObjectList(filter) (browser list), updateEntityMode() (tile-control
  * visibility for entity kinds).
  */
 export function bindChromeControls({ rebuild, refreshEditorPanel, renderObjectList, updateEntityMode }) {
+  applyRestoredControls();
   els.objectList.addEventListener('click', (e) => {
     const item = e.target.closest('.dobj-item');
     if (!item) return;

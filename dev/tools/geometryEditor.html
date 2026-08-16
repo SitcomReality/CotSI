@@ -44,30 +44,33 @@
       <nav id="object-list" aria-label="Object designs"></nav>
     </aside>
 
-    <!-- Left sidebar: collapsible panels — Object identity, Parts list,
-         Motif list (v6 decors), and the remaining design Fields. Each panel
-         folds so the column stays scannable; the parts list keeps its own
-         capped internal scroll. -->
+    <!-- Left sidebar: two columns. The selection column holds the panels that
+         pick WHAT you're editing — Object identity, Parts list, Motif list
+         (v6 decors). The fields column holds #fields-panel, the dynamic list
+         of properties for the selected thing, so it can stay wider and scroll
+         independently of the selection panels. -->
     <main id="inspector">
-      <section class="inspector-panel" id="object-panel">
-        <div class="panel-head" data-panel="object" role="button" tabindex="0" aria-expanded="true"
-          title="Object identity — name, id, kind">
-          <span class="panel-title">Object</span>
-          <span class="panel-fold" aria-hidden="true">▾</span>
-        </div>
-        <div class="panel-body" id="object-body"></div>
-      </section>
-      <section class="inspector-panel" id="parts-panel">
-        <div class="panel-body" id="parts-edit" aria-label="Parts list"></div>
-      </section>
-      <section class="inspector-panel" id="motifs-panel" hidden>
-        <div class="panel-head" data-panel="motifs" role="button" tabindex="0" aria-expanded="true"
-          title="Motif weights, per-biome multipliers, and the realized-share grid">
-          <span class="panel-title">Motifs</span>
-          <span class="panel-fold" aria-hidden="true">▾</span>
-        </div>
-        <div class="panel-body" id="motifs-body"></div>
-      </section>
+      <div id="inspector-select">
+        <section class="inspector-panel" id="object-panel">
+          <div class="panel-head" data-panel="object" role="button" tabindex="0" aria-expanded="true"
+            title="Object identity — name, id, kind">
+            <span class="panel-title">Object</span>
+            <span class="panel-fold" aria-hidden="true">▾</span>
+          </div>
+          <div class="panel-body" id="object-body"></div>
+        </section>
+        <section class="inspector-panel" id="parts-panel">
+          <div class="panel-body" id="parts-edit" aria-label="Parts list"></div>
+        </section>
+        <section class="inspector-panel" id="motifs-panel" hidden>
+          <div class="panel-head" data-panel="motifs" role="button" tabindex="0" aria-expanded="true"
+            title="Motif weights, per-biome multipliers, and the realized-share grid">
+            <span class="panel-title">Motifs</span>
+            <span class="panel-fold" aria-hidden="true">▾</span>
+          </div>
+          <div class="panel-body" id="motifs-body"></div>
+        </section>
+      </div>
       <section class="inspector-panel" id="fields-panel">
         <div class="panel-head" data-panel="fields" role="button" tabindex="0" aria-expanded="true"
           title="The remaining design fields — variant, cluster, size, placement, emphasis, portrait">

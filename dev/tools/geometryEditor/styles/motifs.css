@@ -6,7 +6,7 @@
 .motif-row, .alternative-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 3px 0;
 }
 .motif-row .part-label, .alternative-row .part-label {
@@ -20,15 +20,28 @@
 .motif-row input, .alternative-row input {
   width: 64px;
 }
+/* Option rows carry radio + id + weight + group + remove on one line — the
+   fields column is wide enough now, but keep the action buttons compact so
+   the editable id keeps the room. */
+.alternative-row .option-id-input {
+  font-size: var(--fs-xs);
+}
+.alternative-row button {
+  flex-shrink: 0;
+  padding: 2px 5px;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
 .motif-grid {
-  width: 100%;
+  width: max-content; /* grow with the biome×motif cells, never shrink-wrap */
+  min-width: 100%;    /* ... but never narrower than the panel */
   border-collapse: collapse;
   margin-top: 8px;
   font-size: 0.8em;
 }
 .motif-grid th, .motif-grid td {
   border: 1px solid var(--token-border-subtle, #333);
-  padding: 2px 4px;
+  padding: 1px 3px;
   text-align: left;
   white-space: nowrap;
 }
@@ -43,15 +56,15 @@
 }
 .share-cell {
   position: relative;
-  min-width: 84px;
+  min-width: 66px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 /* The editable per-biome multiplier — the raw biomeWeight value, 0 = excluded. */
 .share-cell input[type="number"] {
   position: relative;
-  width: 48px;
+  width: 40px;
   padding: 1px 2px;
   font-size: 0.9em;
 }

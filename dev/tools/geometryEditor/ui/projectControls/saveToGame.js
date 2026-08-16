@@ -89,8 +89,13 @@ export function bindSaveToGame(els) {
 
   (async () => {
     const probe = async () => {
+      // Probe the save server's own origin first — in the common setup (editor
+      // served by Live Server, save server on :8000) that succeeds immediately,
+      // so the same-origin fallback never fires its guaranteed 404 and the
+      // console stays quiet. Same-origin only matters when the save server
+      // serves the editor page itself on a custom port; it is the fallback.
       const base =
-        (await probeSaveBase('')) ?? (await probeSaveBase(SAVE_FALLBACK_ORIGIN));
+        (await probeSaveBase(SAVE_FALLBACK_ORIGIN)) ?? (await probeSaveBase(''));
       enable(base !== null, base ?? '');
     };
     await probe();

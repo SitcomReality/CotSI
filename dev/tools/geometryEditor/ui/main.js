@@ -12,7 +12,7 @@
 import { S } from '../state.js';
 import { els, cacheDom } from '../domRefs.js';
 import { SAMPLE_OBJECTS } from '../sampleObjects.js';
-import { createPreview, bindViewportCallbacks } from '../preview/index.js';
+import { createPreview, bindViewportCallbacks, setFloorVisible } from '../preview/index.js';
 import { bindEditorPanel, refreshEditorPanel } from './editorPanel.js';
 import { activeParts } from './variantQuery.js';
 import { findNodeById, addLocalDelta } from './partTree/index.js';
@@ -34,6 +34,10 @@ function init() {
   renderObjectList();
   updateEntityMode();
   createPreview(els.canvas);
+  // The floor toggle is a checkbox like the others — its restored state must
+  // apply to the (now created) floor scene, or the checkbox lies about the
+  // preview on reload.
+  setFloorVisible(els.floorCheck.checked);
   const panelCtx = bindEditorPanel(els, rebuild, () => {
     renderObjectList(els.objectFilter.value);
     updateEntityMode(); // a loaded entity JSON must hide the tile-preview controls
