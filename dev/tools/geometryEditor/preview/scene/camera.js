@@ -21,12 +21,17 @@ export function updateCamera() {
 
 /**
  * Reset the orbit to the in-game camera angle (cameraParams: CAMERA_YAW 30°,
- * CAMERA_PITCH ≈51.4°). The editor's phi is a polar angle from the Y axis, so
- * the game's elevation pitch maps to π/2 − pitch; theta is the yaw. Zoom
- * (radius) and the preview target stay as the user left them.
+ * CAMERA_PITCH ≈51.4°). Both cameras are spherical around their target —
+ * the game looks from (cos p·sin y, sin p, cos p·cos y) and the editor's
+ * orbit from (sin φ·cos θ, cos φ, sin φ·sin θ) — so the same view direction
+ * maps as phi = π/2 − pitch and theta = π/2 − yaw (NOT yaw: the editor's
+ * theta is measured from +x, the game's yaw from +z). With this the reset
+ * view is the true in-game angle, and "Use current camera view" (portrait
+ * panel) reproduces the default portrait framing at reset. Zoom (radius)
+ * and the preview target stay as the user left them.
  */
 export function resetCamera() {
-  viewport.orbit.theta = CAMERA_YAW;
+  viewport.orbit.theta = Math.PI / 2 - CAMERA_YAW;
   viewport.orbit.phi = Math.PI / 2 - CAMERA_PITCH;
   viewport.dirty = true;
 }
