@@ -10,7 +10,7 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
   kind: 'feature',
   displayName: 'Eden Mushroom',
   scale: 2.5,
-  placement: { mode: 'scatter' },
+  placement: { mode: 'scatter', separation: 0.65 },
   emphasis: { behavior: 'dispersed' },
   parts: [
     {
@@ -42,10 +42,10 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
     {
       id: 'part-3-choice-1',
       seed: 100,
-      default: 'part-3-choice-1-option-1',
+      default: 'part-3-choice-1-option-2',
       alternatives: [
         {
-          id: 'part-3-choice-1-option-1',
+          id: 'part-3-choice-1-option-2',
           weight: 0.3,
           parts: [
             {
@@ -61,7 +61,10 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
             },
           ],
         },
+        { id: 'part-3-choice-1-option-1', weight: 0.5, parts: [] },
       ],
     },
   ],
+  cluster: { max: 2 },
+  size: { min: 0.5 },
 };
