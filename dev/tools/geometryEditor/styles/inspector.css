@@ -1,3 +1,8 @@
+/* inspector.css — generic inspector chrome: the inspector header, section
+   sub-headings, the entity-mode callout, the collapsible field sections, and
+   the part-actions row. The v6 decor composition (motif panel, alternatives,
+   strip histogram) lives in motifs.css. */
+
 /* ── Inspector header ─────────────────────────────────────────────────────── */
 
 .inspector-head {
@@ -111,111 +116,4 @@
   flex: 1;
   min-width: 0;
   max-width: none;
-}
-
-/* ── v6 decor composition (motif panel, alternatives, strip) ─────────────── */
-
-.motif-row, .alternative-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 0;
-}
-.motif-row .part-label, .alternative-row .part-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.motif-row input, .alternative-row input {
-  width: 64px;
-}
-.motif-grid {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 8px;
-  font-size: 0.8em;
-}
-.motif-grid th, .motif-grid td {
-  border: 1px solid var(--token-border-subtle, #333);
-  padding: 2px 4px;
-  text-align: left;
-  white-space: nowrap;
-}
-.motif-grid th {
-  color: var(--ink-faint);
-  font-weight: 600;
-  background: color-mix(in srgb, var(--board-hi) 60%, transparent);
-}
-.motif-grid .biome-cell {
-  font-weight: 600;
-  color: var(--ink-mid);
-}
-.share-cell {
-  position: relative;
-  min-width: 84px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-/* The editable per-biome multiplier — the raw biomeWeight value, 0 = excluded. */
-.share-cell input[type="number"] {
-  position: relative;
-  width: 48px;
-  padding: 1px 2px;
-  font-size: 0.9em;
-}
-.share-cell.excluded {
-  text-decoration: line-through;
-  opacity: 0.55;
-}
-.share-cell.excluded input[type="number"] {
-  color: var(--crimson);
-}
-.share-bar {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: rgba(255, 255, 255, 0.12);
-  pointer-events: none;
-}
-.share-label {
-  position: relative;
-  font-size: 0.85em;
-}
-/* Motif rows: the id is editable (renames rewrite biomeVariants pins and
-   motif-scoped part prefixes); a zero base weight reads as excluded. */
-.motif-row .motif-id-input {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-}
-.motif-row.weight-zero .motif-id-input {
-  color: var(--crimson);
-}
-.readonly-value {
-  font-family: var(--token-font-mono, monospace);
-  opacity: 0.8;
-}
-.alternatives.part-row, .option-row.part-row {
-  font-style: italic;
-}
-
-.strip-histogram {
-  font-family: var(--token-font-mono, monospace);
-  font-size: 0.75em;
-  line-height: 1.4;
-  max-height: 160px;
-  overflow: auto;
-  white-space: pre;
-  margin-top: 6px;
-}
-.histogram-title {
-  font-weight: 600;
-}
-#strip-controls-row {
-  flex-wrap: wrap;
-  align-items: flex-start;
 }

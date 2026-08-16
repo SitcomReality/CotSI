@@ -628,42 +628,97 @@ The current report shows **0 known-debt imports**.
 | `domRefs.js` | DOM element cache (`els` object) |
 | `entityView.js` | Entity-kind registry + selection helpers |
 | `sampleObjects.js` | Sample descriptors, object categories, mob rows |
-| `emitDescriptor.js` | Descriptor → `src/…/descriptors/data/<id>.js` serialization |
-| `saveServer.mjs` / `saveServer.sh` | Dev save server: writes descriptor files into `src/` |
+| `atlasBuild.js` | In-browser WebGL icon-atlas builder (portraits for assets/icons/) |
+| `emitDescriptor/index.js` | Barrel: descriptor → `src/…/descriptors/data/<id>.js` serialization |
+| `emitDescriptor/exportNames.js` | id → SCREAMING_SNAKE export-name conventions |
+| `emitDescriptor/format.js` | Descriptor → JS source-literal formatter |
+| `server/index.mjs` | Dev save server entry: router + listener (run via saveServer.sh) |
+| `server/paths.mjs` | Repo paths, port, table-driven entity layout, MIME table |
+| `server/http.mjs` | HTTP plumbing: JSON/static responses, body reader |
+| `server/write.mjs` | Atomic data-file writes + barrel registration |
+| `server/save.mjs` | POST /save handler: validate → emit → write → snapshot refresh |
+| `server/atlas.mjs` | POST /save/atlas handler: commit the icon atlas |
+| `server/descriptor.mjs` | GET /save/descriptor handler: on-disk source for the review diff |
+| `saveServer.sh` | Launches `server/index.mjs` (node resolution like dev/tests/run.sh) |
 | `preview/index.js` | Barrel: public 3D-viewport API (createPreview, showRecords, selection overlay, AABB) |
 | `preview/viewportState.js` | Shared viewport runtime handles (renderer, scene, camera, orbit, …) |
-| `preview/scene.js` | Scene lifecycle: renderer/camera setup, mesh rebuild, render loop |
-| `preview/overlay.js` | Selection wireframe + move-gizmo overlay |
-| `preview/pointer.js` | Orbit / click-select / gizmo-drag pointer input + raycasting |
+| `preview/scene/index.js` | Scene construction + dirty-flag render loop |
+| `preview/scene/camera.js` | Orbit camera update + in-game camera reset |
+| `preview/scene/records.js` | Record arrays → InstancedMesh display (+ outlines, strip multi-tile) |
+| `preview/overlay/index.js` | Selection wireframe + origin marker (composes the gizmo) |
+| `preview/overlay/gizmo.js` | 3-axis translation arrows + drag frame + raycast picking |
+| `preview/pointer/index.js` | Orbit / click-select / gizmo-drag pointer input |
+| `preview/pointer/math.js` | NDC / raycast / gizmo-plane math |
 | `preview/floor.js` | Hex tile floor + floor-reference plane builders |
 | `preview/aabb.js` | World-AABB computation for selected part ids |
-| `ui/main.js` | Entry point: startup orchestration + header control bindings |
+| `ui/main.js` | Entry point: startup orchestration + viewport/panel bindings |
+| `ui/chromeControls.js` | Chrome control wiring (browser pick, preview toggles, undo, panel folds) |
 | `ui/editorPanel.js` | Panel context (`mutate`/`renderAll`) + object/part inspector dispatch |
-| `ui/objectBrowser.js` | Floating object browser: search, category collapse, overlay choreography |
-| `ui/previewSync.js` | State→preview bridge: rebuild, biome select, selection overlay |
-| `ui/objectControls.js` | Object-level inspector fields |
-| `ui/partList.js` | Parts-tree list: fold, reorder, add/remove |
+| `ui/objectBrowser/index.js` | Barrel: floating object browser |
+| `ui/objectBrowser/list.js` | Category-collapsible sample list + search filter |
+| `ui/objectBrowser/panel.js` | Floating-panel open/close + overlay choreography |
+| `ui/previewSync/index.js` | Barrel: state→preview bridge (rebuild, biome select, selection overlay) |
+| `ui/previewSync/tile.js` | Preview-tile derivation + biome tint |
+| `ui/previewSync/strip.js` | 3×3 tile-strip view + motif histogram |
+| `ui/projectControls/index.js` | Chrome-bar project actions: download/load/new |
+| `ui/projectControls/saveToGame.js` | Save-to-game flow: probe, review gate, POST /save |
+| `ui/projectControls/saveReviewModal.js` | Side-by-side diff modal for save review |
+| `ui/projectControls/atlasSave.js` | Icon-atlas rebuild + POST after a successful save |
+| `ui/partList/index.js` | Parts-list header + add row (list session state) |
+| `ui/partList/rows.js` | Recursive part-row rendering (fold, reorder, remove) |
+| `ui/objectInspector/index.js` | Barrel: object-level inspector |
+| `ui/objectInspector/identity.js` | Object panel: name/id rows |
+| `ui/objectInspector/render.js` | Motifs panel + Fields-panel kind dispatch |
+| `ui/objectInspector/motifSection/index.js` | Barrel: v6 motif composition panel |
+| `ui/objectInspector/motifSection/motifList.js` | Motif id/weight rows + add/duplicate/delete |
+| `ui/objectInspector/motifSection/biomeGrid.js` | Per-biome weight grid with realized shares |
+| `ui/objectInspector/variantSection.js` | Variant picker + duplicate |
+| `ui/objectInspector/tileSections.js` | Cluster/size/placement/emphasis sections |
+| `ui/objectInspector/entitySection.js` | Entity faction/archetype controls |
+| `ui/objectInspector/portraitSection.js` | Portrait picker + icon preview |
 | `ui/partInspector/index.js` | Barrel: selected-part inspector |
 | `ui/partInspector/render.js` | Inspector composition entry |
+| `ui/partInspector/actions/index.js` | Barrel: part header + id row + structural actions |
+| `ui/partInspector/actions/header.js` | Breadcrumb back to object-level controls |
+| `ui/partInspector/actions/idEdit.js` | Editable part-id row |
+| `ui/partInspector/actions/structureActions.js` | Nest/move/ungroup/copy-transform/convert-to-alternatives |
+| `ui/partInspector/transform/index.js` | Barrel: position/rotation/scale sections |
+| `ui/partInspector/transform/position.js` | Y/Lift/localPos rows (+ empty-state keyframe) |
+| `ui/partInspector/transform/rotation.js` | Axis/angle/rotY/tilt rows |
+| `ui/partInspector/transform/scale.js` | Per-axis scale rows |
+| `ui/partInspector/leafSections/index.js` | Barrel: leaf-only sections |
+| `ui/partInspector/leafSections/shape.js` | Shape-params rows |
+| `ui/partInspector/leafSections/color.js` | Color row (entity tokens vs literal) |
+| `ui/partInspector/leafSections/biome.js` | Biome-tint source/influence rows |
+| `ui/partInspector/leafSections/stretch.js` | Per-axis stretch variation rows |
+| `ui/partInspector/alternatives/index.js` | Choice-point fields (seed, default, options) |
+| `ui/partInspector/alternatives/optionRows.js` | Per-option rows (radio, id, weight, group, remove) |
+| `ui/partInspector/boundsSection.js` | World-AABB readout |
+| `ui/partInspector/stateKeyframes.js` | Growth-state `states.empty` keyframe access |
 | `ui/partInspector/sectionShell.js` | Collapsible section shell + open-state |
 | `ui/partInspector/axisPresets.js` | Axis/tilt presets + vector helpers |
-| `ui/partInspector/actions.js` | Part header + structural actions (nest/move/ungroup/copy-transform) |
-| `ui/partInspector/transformSections.js` | Position/rotation/scale fields |
-| `ui/partInspector/leafSections.js` | Shape/color/biome/stretch fields (leaves only) |
-| `ui/partInspector/boundsSection.js` | World-AABB readout |
 | `ui/partTree/index.js` | Barrel: parts-tree math (pure, Node-tested) |
 | `ui/partTree/walk.js` | Tree walking + predicates |
-| `ui/partTree/nodes.js` | Node construction + transform conversion |
-| `ui/partTree/restructure.js` | Nest/ungroup/move/extract structural edits |
-| `ui/projectControls.js` | Chrome-bar project actions: save/download/load/new |
-| `ui/formControls.js` | DOM form builders (`el`, `row`, inputs, steppers) |
+| `ui/partTree/nodes/index.js` | Barrel: node factories + transform conversion |
+| `ui/partTree/nodes/constructors.js` | Fresh-id/motif-scoping + group/leaf/alternatives factories |
+| `ui/partTree/nodes/transform.js` | Node rotation matrices + root→nested conversion |
+| `ui/partTree/restructure/index.js` | Barrel: structural edits |
+| `ui/partTree/restructure/nest.js` | Nest into fresh group / ungroup |
+| `ui/partTree/restructure/move.js` | Move into/out of an existing group |
+| `ui/partTree/restructure/frameMath.js` | Rigid-frame matrices for exact reparenting |
+| `ui/partTree/restructure/localDelta.js` | Gizmo localPos delta helper |
+| `ui/formControls/index.js` | Barrel: DOM form builders |
+| `ui/formControls/layout.js` | `el` / `row` / `subheading` primitives |
+| `ui/formControls/inputs.js` | Number/int/degree steppers, select, color, text inputs |
 | `ui/inspectorHead.js` | Inspector header chrome |
 | `ui/lineDiff.js` | LCS line diff for the save-review modal |
 | `ui/objectTemplates.js` | New-object template presets |
+| `ui/renameIds.js` | Part-id / motif-id rename rewrite helpers |
 | `ui/variantQuery.js` | Active variant/parts query from state |
 | `styles/index.css` | Barrel: imports all geometry-editor page stylesheets |
 | `styles/reset.css` | Global reset and base element styles |
 | `styles/layout.css` | Page grid, chrome shell, panel positioning |
+| `styles/floating.css` | Shared fixed-position overlay shell (browser + diff modal) |
 | `styles/chrome.css` | Header action bar, search, load-error |
 | `styles/diff.css` | Save-review diff modal styles |
 | `styles/browser.css` | Object browser panel |
@@ -672,6 +727,7 @@ The current report shows **0 known-debt imports**.
 | `styles/forms.css` | Form-control base, inspector field sizing, steppers |
 | `styles/text.css` | Info/hint/mono text |
 | `styles/inspector.css` | Inspector head, section titles, collapsible sections, part actions |
+| `styles/motifs.css` | v6 decor composition: motif rows, weight grid, alternatives, strip histogram |
 | `styles/overlay.css` | Viewport overlays: preview tools + HUD |
 
 ---

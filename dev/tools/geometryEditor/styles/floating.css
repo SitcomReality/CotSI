@@ -1,0 +1,41 @@
+/* floating.css — the shared floating overlay shell: fixed, under the header,
+   above the panes, hidden by default. Closed panels are invisible and
+   click-transparent but still out of flow, so the page grid keeps exactly two
+   columns. Used by the object browser and the save-review diff modal. Split
+   out of layout.css so the page grid stays small. */
+
+.floating {
+  position: fixed;
+  top: calc(var(--chrome-h) + var(--s1));
+  bottom: var(--s1);
+  z-index: var(--z-modal);
+  background: var(--shadow);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease),
+    visibility var(--dur-fast);
+}
+
+.floating.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* The object browser hugs the right edge, same width the old grid column had. */
+#browser {
+  right: 0;
+  width: 230px;
+  overflow-y: auto;
+  padding: var(--s3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
+}

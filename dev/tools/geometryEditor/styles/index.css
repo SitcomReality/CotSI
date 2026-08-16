@@ -3,6 +3,7 @@
 @import "../../../../styles/abstracts/variables.css";
 @import "./reset.css";
 @import "./layout.css";
+@import "./floating.css";
 @import "./browser.css";
 @import "./chrome.css";
 @import "./parts.css";
@@ -10,5 +11,6 @@
 @import "./forms.css";
 @import "./text.css";
 @import "./inspector.css";
+@import "./motifs.css";
 @import "./overlay.css";
 @import "./diff.css";
