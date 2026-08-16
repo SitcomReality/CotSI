@@ -1,50 +1,28 @@
 /**
- * alternativesSection.js — Inspector fields for an `alternatives` choice point.
- *
- * The choice point's own fields (decorComposition.md §2.2/§6.2): per-option
- * `weight` (number inputs), the `default` picker (which option Show-all and
- * the preview radio resolve to), a read-only `seed` display (assigned once at
- * node creation, never recomputed), per-option "preview" radios (force that
- * option in the preview — the node-scoped variant picker), add/remove option,
- * and "Add group inside option" (the hinged-elbow pattern: the choice point
- * cannot carry a transform, so hinged configs wrap in a group).
+ * optionRows.js — The per-option rows of an alternatives choice point:
+ * preview radio, editable option id, draw weight, "add group inside option"
+ * (the hinged-elbow pattern), and remove.
  */
-import { S } from '../../state.js';
-import { el, row, numberInput, selectInput } from '../formControls.js';
-import { activeParts, activeMotif } from '../variantQuery.js';
-import { freshId, motifScoped, listNodes, makeGroupNode, makeLeafNode } from '../partTree/index.js';
-import { renameNodeId } from '../renameIds.js';
-import { SHAPE_TYPES } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { S } from '../../../state.js';
+import { el, numberInput } from '../../formControls.js';
+import { activeParts } from '../../variantQuery.js';
+import { freshId, motifScoped, listNodes, makeGroupNode, makeLeafNode } from '../../partTree/index.js';
+import { renameNodeId } from '../../renameIds.js';
+import { SHAPE_TYPES } from '../../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 
 /** Select the first leaf shape from the registry for "add group inside option". */
 const firstShape = () => Object.keys(SHAPE_TYPES)[0];
 
 /**
- * Render the alternatives node's option table into `container`.
+ * One row per option: the preview radio (force this option in the preview),
+ * the editable option id, the draw weight, the add-group-inside-option
+ * button, and the remove button. Mutations go through ctx.mutate().
  * @param {object} node - the alternatives choice point
- * @param {object} entry - { node, parent, depth, index, option }
+ * @param {object[]} options - node.alternatives
+ * @param {string|null} motifId - the active motif's id (null outside motif decors)
  * @param {object} ctx - the panel mutation context
  */
-export function renderAlternativesSection(container, node, entry, ctx) {
-  // The active motif scopes new ids under this choice point (decorComposition.md
-  // §6.2 — `M/A/localId` for parts inside an option) — null outside motif decors.
-  const motifId = activeMotif()?.id;
-  container.append(el('div', 'hint', 'A choice point: every item rolls ONE option by weight (seeded per node). The node carries no position — wrap a hinged config in a group inside the option.'));
-
-  // Seed — read-only, from the reserved 100–199 lane.
-  container.append(row('Seed', el('span', 'readonly-value', String(node.seed ?? '—'))));
-  container.append(el('div', 'hint', 'Assigned once at creation — renaming or reordering never reshuffles in-world rolls.'));
-
-  // Default picker.
-  const options = node.alternatives ?? [];
-  container.append(row('Default', selectInput(
-    options.map((o) => ({ value: o.id, label: `${o.id}${o.weight === 0 ? ' (never)' : ''}` })),
-    node.default ?? '',
-    (v) => ctx.mutate(() => { node.default = v; }),
-  )));
-  container.append(el('div', 'hint', 'The option "Show all" and the preview radio resolve to — never a "none".'));
-
-  // Per-option rows: weight + preview radio + remove.
+export function renderOptionRows(container, node, options, motifId, ctx) {
   options.forEach((option, oi) => {
     const orow = el('div', 'alternative-row');
     const preview = el('input');
@@ -118,13 +96,4 @@ export function renderAlternativesSection(container, node, entry, ctx) {
     orow.append(removeOpt);
     container.append(orow);
   });
-
-  // Add option.
-  const addBtn = el('button', null, '＋ Add alternative');
-  addBtn.type = 'button';
-  addBtn.addEventListener('click', () => ctx.mutate(() => {
-    const optId = freshId(activeParts(), motifScoped(`${node.id}-option`, motifId));
-    options.push({ id: optId, weight: 1, parts: [] });
-  }));
-  container.append(addBtn);
 }

@@ -9,11 +9,11 @@
  * supplies the mutation flow.
  */
 import { isGroupNode, isAlternativesNode } from '../partTree/index.js';
-import { renderPartHeader, renderPartActions } from './actions.js';
-import { renderPositionSection, renderRotationSection, renderScaleSection } from './transformSections.js';
+import { renderPartHeader, renderPartActions } from './actions/index.js';
+import { renderPositionSection, renderRotationSection, renderScaleSection } from './transform/index.js';
 import { renderBoundsSection } from './boundsSection.js';
-import { renderShapeSection, renderColorSection, renderBiomeSection, renderStretchSection } from './leafSections.js';
-import { renderAlternativesSection } from './alternativesSection.js';
+import { renderShapeSection, renderColorSection, renderBiomeSection, renderStretchSection } from './leafSections/index.js';
+import { renderAlternativesSection } from './alternatives/index.js';
 
 /**
  * Render the selected part's fields into `container`. `entry` is the parts-tree

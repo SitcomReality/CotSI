@@ -1,16 +1,12 @@
 /**
- * actions.js — Part inspector header + structural tree actions.
- *
- * renderPartHeader renders the breadcrumb back to the object-level controls;
- * renderPartActions renders the structural actions every node gets: nest into
- * a new group, move into/out of an existing group, ungroup, and copy the
- * transform from a sibling. Both write `S.selectedPartId` through the ctx
- * mutation flow.
+ * structureActions.js — The structural tree actions every node gets: convert
+ * to alternatives, nest into a new group, move into/out of an existing group,
+ * ungroup, and copy the transform from a sibling. All write S.selectedPartId
+ * through the ctx mutation flow.
  */
-import { S } from '../../state.js';
-import { el, row, selectInput } from '../formControls.js';
-import { inspectorHead } from '../inspectorHead.js';
-import { activeParts, activeMotif } from '../variantQuery.js';
+import { S } from '../../../state.js';
+import { el, selectInput } from '../../formControls.js';
+import { activeParts, activeMotif } from '../../variantQuery.js';
 import {
   isGroupNode,
   isAlternativesNode,
@@ -28,23 +24,7 @@ import {
   freshId,
   motifScoped,
   makeAlternativesNode,
-} from '../partTree/index.js';
-import { renameNodeId } from '../renameIds.js';
-
-/** Inspector header for part editing: breadcrumb back to the object. */
-function renderPartHeader(container, node, ctx) {
-  const d = S.descriptor;
-  const back = el('button', 'breadcrumb', `← ${d.displayName}`);
-  back.type = 'button';
-  back.title = 'Back to object-level controls';
-  back.addEventListener('click', () => {
-    S.selectedPartId = null;
-    ctx.renderAll();
-  });
-  const kind = isAlternativesNode(node) ? 'alternatives' : isGroupNode(node) ? 'group' : node.shape;
-  const title = `${node.id} · ${kind}`;
-  container.append(inspectorHead(title, null, back));
-}
+} from '../../partTree/index.js';
 
 /** Seeds already used by alternatives nodes in the active tree. */
 function takenSeeds() {
@@ -73,43 +53,13 @@ function listNodesOf(parts) {
 }
 
 /**
- * Structural actions for any node: nest into a new group, move into an
- * existing group, move out of the current group (nested nodes), ungroup
- * (groups only, when the fold is exact), and copy the transform from a
- * sibling.
+ * The structural actions block: convert to alternatives, nest into a new
+ * group, move into an existing group, move out of the current group (nested
+ * nodes), ungroup (groups only, when the fold is exact), and copy the
+ * transform from a sibling.
  */
-function renderPartActions(container, entry, ctx) {
+export function renderStructureActions(container, entry, ctx) {
   const { node } = entry;
-
-  // The selected node's id is editable — renames stay unique within the tree
-  // being edited, rewrite the owning choice point's `default` when the node is
-  // an option (renameNodeId), and remap the session preview-option key when it
-  // is a choice point.
-  const idInput = el('input');
-  idInput.type = 'text';
-  idInput.value = node.id;
-  idInput.title = 'Part id — unique within this parts tree';
-  idInput.addEventListener('change', () => {
-    const clean = idInput.value.trim().replace(/[^A-Za-z0-9_-]/g, '_');
-    if (!clean || clean === node.id) { idInput.value = node.id; return; }
-    if (listNodes(activeParts()).some((e) => e.node.id === clean)) {
-      window.alert(`Part id "${clean}" already exists in this tree — pick a different name.`);
-      idInput.value = node.id;
-      return;
-    }
-    ctx.mutate(() => {
-      renameNodeId(activeParts(), node.id, clean);
-      S.selectedPartId = clean;
-      if (S.previewOptions.has(node.id)) {
-        const forced = S.previewOptions.get(node.id);
-        S.previewOptions = new Map(S.previewOptions);
-        S.previewOptions.delete(node.id);
-        S.previewOptions.set(clean, forced);
-      }
-    });
-  });
-  container.append(row('ID', idInput));
-
   const actions = el('div', 'part-actions');
 
   // Convert selection to alternatives: wrap the node in a choice point with
@@ -218,5 +168,3 @@ function renderPartActions(container, entry, ctx) {
 
   container.append(actions);
 }
-
-export { renderPartHeader, renderPartActions };
