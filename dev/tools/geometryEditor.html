@@ -26,6 +26,7 @@
         <button id="new-item-btn" class="create-btn" type="button">＋ Item</button>
       </div>
       <div class="chrome-search">
+        <button id="undo-btn" type="button" title="Undo the last edit (Ctrl/Cmd+Z)">↩ Undo</button>
         <input type="text" id="object-filter" placeholder="Filter objects…" spellcheck="false" autocomplete="off">
         <button id="browser-toggle" type="button" aria-expanded="false" aria-controls="browser" title="Show object browser">▸</button>
       </div>
@@ -44,41 +45,23 @@
       <nav id="object-list" aria-label="Object designs"></nav>
     </aside>
 
-    <!-- Left sidebar: two columns. The selection column holds the panels that
-         pick WHAT you're editing — Object identity, Parts list, Motif list
-         (v6 decors). The fields column holds #fields-panel, the dynamic list
-         of properties for the selected thing, so it can stay wider and scroll
-         independently of the selection panels. -->
+    <!-- Left sidebar: #fields-panel alone — the dynamic list of properties for
+         the selected thing. The selection panels (Object / Parts / Motifs) live
+         in the floating #select-panel over the viewport (see below), where the
+         motifs biome table gets real horizontal room. Folding the fields panel
+         collapses the whole sidebar to a slim rail; #sidebar-expand-btn brings
+         it back. -->
     <main id="inspector">
-      <div id="inspector-select">
-        <section class="inspector-panel" id="object-panel">
-          <div class="panel-head" data-panel="object" role="button" tabindex="0" aria-expanded="true"
-            title="Object identity — name, id, kind">
-            <span class="panel-title">Object</span>
-            <span class="panel-fold" aria-hidden="true">▾</span>
-          </div>
-          <div class="panel-body" id="object-body"></div>
-        </section>
-        <section class="inspector-panel" id="parts-panel">
-          <div class="panel-body" id="parts-edit" aria-label="Parts list"></div>
-        </section>
-        <section class="inspector-panel" id="motifs-panel" hidden>
-          <div class="panel-head" data-panel="motifs" role="button" tabindex="0" aria-expanded="true"
-            title="Motif weights, per-biome multipliers, and the realized-share grid">
-            <span class="panel-title">Motifs</span>
-            <span class="panel-fold" aria-hidden="true">▾</span>
-          </div>
-          <div class="panel-body" id="motifs-body"></div>
-        </section>
-      </div>
       <section class="inspector-panel" id="fields-panel">
         <div class="panel-head" data-panel="fields" role="button" tabindex="0" aria-expanded="true"
-          title="The remaining design fields — variant, cluster, size, placement, emphasis, portrait">
+          title="The design fields for the selected thing — folding this panel collapses the sidebar">
           <span class="panel-title">Fields</span>
           <span class="panel-fold" aria-hidden="true">▾</span>
         </div>
         <div class="panel-body" id="fields-body"></div>
       </section>
+      <button id="sidebar-expand-btn" class="sidebar-expand" type="button"
+        title="Expand the sidebar" aria-expanded="false">❯</button>
     </main>
 
     <!-- 3D preview area -->
@@ -138,7 +121,6 @@
             <div id="reroll-row">
               <button id="reroll-btn">↻ Re-roll</button>
             </div>
-            <button id="undo-btn" type="button" title="Undo the last edit (Ctrl/Cmd+Z)">↩ Undo</button>
             <button id="reset-camera-btn" type="button" title="Reset to the in-game camera angle (keeps zoom)">⤾ Reset camera</button>
           </div>
           <div class="preview-tools-row" id="strip-controls-row">
@@ -150,6 +132,39 @@
           </div>
         </div>
       </div>
+
+      <!-- Floating selection panel: Object identity, Parts list, Motif list —
+           pinned to the viewport's top-right like #preview-tools mirrors the
+           top-left. Floating it (instead of a sidebar column) gives the motifs
+           biome table real horizontal room; its bar collapses the whole panel. -->
+      <aside id="select-panel">
+        <div class="select-panel-bar">
+          <button id="select-panel-toggle" type="button" aria-expanded="true" aria-controls="select-panel-body"
+            title="Hide the object / parts / motifs panel">▾</button>
+          <span class="select-panel-title">Object · Parts · Motifs</span>
+        </div>
+        <div id="select-panel-body">
+          <section class="inspector-panel" id="object-panel">
+            <div class="panel-head" data-panel="object" role="button" tabindex="0" aria-expanded="true"
+              title="Object identity — name, id, kind">
+              <span class="panel-title">Object</span>
+              <span class="panel-fold" aria-hidden="true">▾</span>
+            </div>
+            <div class="panel-body" id="object-body"></div>
+          </section>
+          <section class="inspector-panel" id="parts-panel">
+            <div class="panel-body" id="parts-edit" aria-label="Parts list"></div>
+          </section>
+          <section class="inspector-panel" id="motifs-panel" hidden>
+            <div class="panel-head" data-panel="motifs" role="button" tabindex="0" aria-expanded="true"
+              title="Motif weights, per-biome multipliers, and the realized-share grid">
+              <span class="panel-title">Motifs</span>
+              <span class="panel-fold" aria-hidden="true">▾</span>
+            </div>
+            <div class="panel-body" id="motifs-body"></div>
+          </section>
+        </div>
+      </aside>
 
       <div id="preview-hud">
         <div class="hint">Click a part to select · drag its arrows to move · drag to orbit · scroll to zoom</div>

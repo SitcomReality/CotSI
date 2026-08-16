@@ -1,8 +1,10 @@
-/* overlay.css — viewport overlays: preview tools (top-left) + HUD (bottom-left).
-   Containers are click-through so orbit-drag works anywhere on the canvas;
-   interactive children re-enable pointer events. */
+/* overlay.css — viewport overlays: preview tools (top-left), the floating
+   selection panel (top-right), and the HUD (bottom-left). Containers are
+   click-through so orbit-drag works anywhere on the canvas; interactive
+   children re-enable pointer events. */
 
 #preview-tools,
+#select-panel,
 #preview-hud {
   position: absolute;
   pointer-events: none;
@@ -109,6 +111,72 @@
 #preview-tools select:focus-visible {
   outline: none;
   border-color: var(--ink-mid);
+}
+
+/* ── Floating selection panel (Object / Parts / Motifs) ──────────────────── */
+
+/* The selection panels float over the viewport's top-right, mirroring the
+   preview tools on the left — the sidebar stays fields-only, and the motifs
+   biome table gets a wide panel instead of a squeezed sidebar column. Same
+   collapse pattern as #preview-tools: the bar hides the whole body. */
+#select-panel {
+  top: var(--s3);
+  right: var(--s3);
+  width: 400px;
+  max-width: calc(100% - 2 * var(--s3));
+  max-height: calc(100% - 2 * var(--s3));
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  background: color-mix(in srgb, var(--shadow) 92%, transparent);
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  padding: var(--s1) var(--s2);
+}
+
+#select-panel .inspector-panel,
+#select-panel button,
+#select-panel input,
+#select-panel select {
+  pointer-events: auto;
+}
+
+.select-panel-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+#select-panel-toggle {
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+.select-panel-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink-faint);
+}
+
+#select-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
+}
+
+#select-panel.collapsed #select-panel-body {
+  display: none;
 }
 
 /* ── HUD (orbit hint + record readout) ───────────────────────────────────── */

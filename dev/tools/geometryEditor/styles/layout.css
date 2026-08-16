@@ -1,12 +1,11 @@
 /* layout.css — two-pane page grid: inspector | 3D viewport under a slim
    chrome header spanning both. The object browser is a fixed-position overlay
    anchored under the header (see floating.css), so the grid never reserves
-   space for it. The inspector is two columns: the selection column (Object /
-   Parts / Motifs — the panels that pick WHAT you're editing) and the fields
-   column (#fields-panel — the dynamic property list for the selected thing).
-   Each column scrolls independently so editing a part's fields never costs
-   the selection panels their place. The parts list keeps its own capped
-   internal scroll so a long tree never swallows the column. */
+   space for it. The inspector holds only #fields-panel (the dynamic property
+   list for the selected thing); the selection panels (Object / Parts / Motifs)
+   float over the viewport in #select-panel (see overlay.css) so the motifs
+   biome table gets real horizontal room. Folding the fields panel collapses
+   the whole sidebar to a slim rail. */
 
 /* The header's rendered height — main.js (syncChromeHeight) re-measures it so
    the floating panels anchor exactly under the bar; this is a fallback until
@@ -17,9 +16,9 @@
 
 #geometry-root {
   display: grid;
-  /* The sidebar is wide because it holds two content columns side by side —
-     the fields column needs horizontal room for the property rows. */
-  grid-template-columns: 560px 1fr;
+  /* `auto` lets the first track follow the sidebar's width — full 420px when
+     the fields panel is open, a slim rail when it is collapsed. */
+  grid-template-columns: auto 1fr;
   grid-template-rows: auto 1fr;
   height: 100vh;
 }
@@ -41,38 +40,45 @@
 #inspector {
   grid-column: 1;
   grid-row: 2;
-  display: grid;
-  grid-template-columns: minmax(190px, 0.8fr) minmax(0, 1.2fr);
-  gap: var(--s2);
+  display: flex;
+  flex-direction: column;
+  width: 420px;
   min-height: 0;
-  overflow: hidden; /* the columns scroll, not the frame */
   padding: var(--s2);
   background: var(--shadow);
   border-right: 1px solid var(--crease);
   min-width: 0;
 }
 
-/* The selection column: object identity, parts list, motifs. Scrolls on its
-   own so a long parts tree doesn't push the fields column around. */
-#inspector-select {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s3);
-  min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--crease-bold) transparent;
+/* Folding the fields panel collapses the whole sidebar to a slim rail with
+   just the expand button — the viewport takes the freed space. */
+#inspector.sidebar-collapsed {
+  width: 30px;
+  padding: 0;
 }
 
-/* The fields column: the dynamic property list. Scrolls independently of the
-   selection panels — the parts list stays put while you edit a part's fields. */
-#fields-panel {
-  min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--crease-bold) transparent;
+#inspector .sidebar-expand {
+  display: none;
+}
+
+#inspector.sidebar-collapsed #fields-panel {
+  display: none;
+}
+
+#inspector.sidebar-collapsed .sidebar-expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+}
+#inspector.sidebar-collapsed .sidebar-expand:hover {
+  color: var(--ink);
 }
 
 /* ── Collapsible inspector panels ─────────────────────────────────────────── */
@@ -93,6 +99,7 @@
   user-select: none;
   border-bottom: 1px solid var(--crease);
   border-left: 3px solid var(--crease-bold);
+  flex-shrink: 0; /* the fold bar must never be compressed by its panel's scroll */
 }
 
 /* Each panel's fold + accent read at a glance — identity, parts, composition. */
@@ -119,8 +126,20 @@
   padding: var(--s3);
 }
 
-/* The parts list caps its height and scrolls internally; the design fields
-   flow in their own column. */
+/* The fields panel is the only panel in the sidebar — it fills the column and
+   scrolls on its own. The parts list caps its height and scrolls internally
+   inside the floating select panel. */
+#fields-panel {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
+}
+
 #parts-edit {
   max-height: 40vh;
   overflow-y: auto;
@@ -133,9 +152,9 @@
   min-width: 0;
 }
 
-/* The motifs panel's biome grid is wider than the selection column — let the
-   table scroll horizontally INSIDE the panel instead of blowing out the
-   sidebar (the table itself is width:max-content, see motifs.css). */
+/* The motifs panel's biome grid is wider than the panel — let the table scroll
+   horizontally INSIDE the panel instead of blowing out the floating panel
+   (the table itself is width:max-content, see motifs.css). */
 #motifs-body {
   min-width: 0;
   overflow-x: auto;

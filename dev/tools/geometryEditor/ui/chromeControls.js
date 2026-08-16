@@ -150,13 +150,34 @@ export function bindChromeControls({ rebuild, refreshEditorPanel, renderObjectLi
     els.previewToolsToggle.setAttribute('aria-expanded', String(!collapsed));
   });
 
+  // The floating selection panel (Object / Parts / Motifs) collapses the same
+  // way — artists can clear the view while orbiting.
+  els.selectPanelToggle.addEventListener('click', () => {
+    const collapsed = els.selectPanel.classList.toggle('collapsed');
+    els.selectPanelToggle.textContent = collapsed ? '▸' : '▾';
+    els.selectPanelToggle.title = collapsed ? 'Show the object / parts / motifs panel' : 'Hide the object / parts / motifs panel';
+    els.selectPanelToggle.setAttribute('aria-expanded', String(!collapsed));
+  });
+
   els.undoBtn.addEventListener('click', () => {
     undoLastEdit();
   });
 
-  // Collapsible sidebar panels (Object / Motifs / Fields): the head folds the
+  // Collapsible panel heads (Object / Motifs / Fields): the head folds the
   // body — session state lives in the DOM (aria-expanded + the body's
-  // hidden), so re-renders of the body content never reset the fold.
+  // hidden), so re-renders of the body content never reset the fold. The
+  // fields panel is the whole sidebar, so folding it collapses the sidebar to
+  // a slim rail; #sidebar-expand-btn brings it back.
+  const fieldsHead = document.querySelector('.panel-head[data-panel="fields"]');
+  const expandSidebar = () => {
+    els.inspector.classList.remove('sidebar-collapsed');
+    fieldsHead.classList.remove('collapsed');
+    els.fieldsBody.hidden = false;
+    fieldsHead.querySelector('.panel-fold').textContent = '▾';
+    fieldsHead.setAttribute('aria-expanded', 'true');
+    els.sidebarExpandBtn.setAttribute('aria-expanded', 'false');
+  };
+  els.sidebarExpandBtn.addEventListener('click', expandSidebar);
   for (const head of document.querySelectorAll('.panel-head[data-panel]')) {
     const body = document.getElementById(`${head.dataset.panel}-body`);
     const fold = head.querySelector('.panel-fold');
@@ -165,6 +186,13 @@ export function bindChromeControls({ rebuild, refreshEditorPanel, renderObjectLi
       body.hidden = collapsed;
       fold.textContent = collapsed ? '▸' : '▾';
       head.setAttribute('aria-expanded', String(!collapsed));
+      if (head === fieldsHead) {
+        els.inspector.classList.toggle('sidebar-collapsed', collapsed);
+        els.sidebarExpandBtn.setAttribute('aria-expanded', String(!collapsed));
+        // The folded head (and its panel) is display:none now — hand focus to
+        // the rail button so keyboard users aren't dropped on the body.
+        if (collapsed) els.sidebarExpandBtn.focus();
+      }
     };
     head.addEventListener('click', apply);
     head.addEventListener('keydown', (e) => {
