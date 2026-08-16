@@ -21,7 +21,7 @@ export const TITANFLESH_DESCRIPTOR = {
       transform: { localPos: { x: -0.12, y: 0, z: -0.03 } },
       stretch: { y: { min: 0.85, max: 1.35, seed: 6 }, x: false, z: false },
       color: 0x7c3b48,
-      biomeColor: { source: 'primary', influence: 0.55 },
+      biomeColor: { source: 'foliage', influence: 0.55 },
     },
     {
       id: 'titan-tooth',
@@ -47,7 +47,7 @@ export const TITANFLESH_DESCRIPTOR = {
         scaleZ: 1.4,
       },
       color: 0x9c4a5a,
-      biomeColor: { source: 'primary', influence: 0.6 },
+      biomeColor: { source: 'foliage', influence: 0.6 },
     },
     {
       id: 'titan-nodule',
@@ -60,7 +60,7 @@ export const TITANFLESH_DESCRIPTOR = {
         localAngle: 0.4,
       },
       color: 0x6e2f3d,
-      biomeColor: { source: 'accent', influence: 0.45 },
+      biomeColor: { source: 'exotic', influence: 0.45 },
     },
     {
       id: 'titan-tendril',
@@ -73,7 +73,7 @@ export const TITANFLESH_DESCRIPTOR = {
       },
       stretch: { y: { min: 0.7, max: 1.3, seed: 10 }, x: false, z: false },
       color: 0x582535,
-      biomeColor: { source: 'primary', influence: 0.55 },
+      biomeColor: { source: 'foliage', influence: 0.55 },
     },
   ],
 };

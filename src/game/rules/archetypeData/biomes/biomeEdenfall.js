@@ -59,12 +59,17 @@ defineArchetype('biome_edenfall', {
     water:         [0.300, 0.380, 0.600],  // deep blue-purple
     beach:         [0.700, 0.550, 0.600],  // purple-tinted sand
   },
-  // Biome signature colors for terrain-decor tinting (decor-consolidation):
-  // primary is the biome's hue, accent its secondary highlight; decor parts
-  // sample these via a per-part influence parameter, blended across hexes.
+  // Biome color swatches for terrain-decor tinting (decor-consolidation):
+  // material-class colors — foliage/bloom/exotic are this biome's identity
+  // colors; wood/soil/stone fall back to BIOME_COLOR_DEFAULTS unless
+  // overridden here. Decor parts sample a swatch via a per-part influence
+  // parameter, blended across hexes.
   colors: {
-    primary: [0.550, 0.300, 0.550], // #8c4d8c — the distinctive purple
-    accent: [0.910, 0.760, 0.290],  // #e8c24a — gold
+    foliage: [0.550, 0.300, 0.550], // #8c4d8c — the distinctive purple
+    wood: [0.350, 0.150, 0.300],    // #59264d — dark purple-barked trunks
+    stone: [0.478, 0.380, 0.502],   // #7a6180 — purple-tinted rock
+    bloom: [0.910, 0.760, 0.290],   // #e8c24a — gold
+    exotic: [0.800, 0.650, 0.950],  // #cca7f2 — luminous orchid glow
   },
   terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['temperate', 'rainy'],

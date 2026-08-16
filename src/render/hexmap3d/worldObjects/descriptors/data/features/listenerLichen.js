@@ -50,7 +50,7 @@ export const LISTENER_LICHEN_DESCRIPTOR = {
             localPos: { x: 0, y: 0.06, z: 0 },
           },
           color: 0xd39ecb,
-          biomeColor: { source: 'accent', influence: 0.5 },
+          biomeColor: { source: 'exotic', influence: 0.5 },
         },
       ],
     },

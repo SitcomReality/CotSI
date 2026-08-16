@@ -53,12 +53,15 @@ defineArchetype('biome_mourning_marsh', {
     ice:           [0.550, 0.650, 0.750],  // pale ice
     beach:         [0.500, 0.480, 0.420],  // dark wet sand
   },
-  // Biome signature colors for terrain-decor tinting (decor-consolidation):
-  // primary is the biome's hue, accent its secondary highlight; decor parts
-  // sample these via a per-part influence parameter, blended across hexes.
+  // Biome color swatches for terrain-decor tinting (decor-consolidation):
+  // material-class colors — foliage/bloom/exotic are this biome's identity
+  // colors; wood/soil/stone fall back to BIOME_COLOR_DEFAULTS unless
+  // overridden here. Decor parts sample a swatch via a per-part influence
+  // parameter, blended across hexes.
   colors: {
-    primary: [0.300, 0.420, 0.280], // #4d6b47 — deep marsh green
-    accent: [0.250, 0.420, 0.550],  // #406b8c — mournful blue
+    foliage: [0.300, 0.420, 0.280], // #4d6b47 — deep marsh green
+    bloom: [0.250, 0.420, 0.550],   // #406b8c — mournful blue (marsh flowers)
+    exotic: [0.850, 0.850, 0.450],  // #d9d973 — will-o'-wisp fen glow
   },
   terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['rainy', 'snowy'],

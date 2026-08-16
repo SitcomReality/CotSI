@@ -1,6 +1,7 @@
 /**
  * biome.js — Biome-tint section (leaves only): the source selector
- * (primary / accent / terrain) and the influence slider.
+ * (foliage / wood / soil / stone / bloom / exotic / terrain) and the
+ * influence slider.
  */
 import { el, row, numberInput, selectInput } from '../../formControls/index.js';
 import { section } from '../sectionShell.js';
@@ -8,11 +9,20 @@ import { section } from '../sectionShell.js';
 /** Biome tint — leaves only. */
 export function renderBiomeSection(container, part, ctx) {
   const sec = section('biome', container);
-  sec.append(el('div', 'hint', 'Tints this part toward the tile\'s blended biome color. Applies only to parts with a literal color; Untouched and Painforest tiles skip signature (primary/accent) tints — terrain still matches the ground.'));
+  sec.append(el('div', 'hint', 'Tints this part toward the tile\'s blended biome color. Pick the swatch matching the material the part depicts: foliage for leaves/grass, wood for trunks/logs, soil for dirt/sand, stone for rocks, bloom for flowers/fruits, exotic for crystals/glows. Applies only to parts with a literal color; Untouched and Painforest tiles skip swatch tints — terrain still matches the ground.'));
   const biome = part.biomeColor;
   const source = biome?.source ?? '';
   sec.append(row('Source', selectInput(
-    [{ value: '', label: '— none' }, { value: 'primary', label: 'primary' }, { value: 'accent', label: 'accent' }, { value: 'terrain', label: 'terrain' }],
+    [
+      { value: '', label: '— none' },
+      { value: 'foliage', label: 'foliage' },
+      { value: 'wood', label: 'wood' },
+      { value: 'soil', label: 'soil' },
+      { value: 'stone', label: 'stone' },
+      { value: 'bloom', label: 'bloom' },
+      { value: 'exotic', label: 'exotic' },
+      { value: 'terrain', label: 'terrain' },
+    ],
     source,
     (v) => ctx.mutate(() => {
       if (!v) {

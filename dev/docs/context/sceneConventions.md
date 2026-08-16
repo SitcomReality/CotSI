@@ -41,9 +41,11 @@ objects to *fit*: right size, right color source, right density. Complements
    jitter (`variation.colorJitter`, ±~5–8%) → **biome tint**.
 2. The biome tint mixes the part toward the tile's neighbor-blended biome
    color via `biomeColor: { source, influence }`:
-   - `source: 'primary' | 'accent'` — the biome's signature colors (see
-     biomesAndTerrain §7.2); skipped entirely on **Untouched** and
-     **Painforest** tiles (design rule — their decor keeps default colors).
+   - `source: 'foliage' | 'wood' | 'soil' | 'stone' | 'bloom' | 'exotic'` —
+     the biome's material-class color swatches (see biomesAndTerrain §7.2);
+     pick the swatch matching the material the part depicts. Swatch tints are
+     skipped entirely on **Untouched** and **Painforest** tiles (design rule —
+     their decor keeps default colors).
    - `source: 'terrain'` — the tile's own ground color (biome palette entry
      for its terrain, neighbor-blended) — ground matching, applies everywhere.
    - `influence` 0…1, and the tint requires a **numeric literal** part color.

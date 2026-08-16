@@ -230,48 +230,81 @@ color** — there is no other per-tile ground coloring.
 Lands also carry `river` palette entries (`#660f24`, `#2e85ad`) that are
 cosmetic — rivers always render `RIVER_COLOR`.
 
-### 7.2 Biome signature colors (geometry tint)
+### 7.2 Biome color swatches (geometry tint)
 
-Each biome also defines **`colors: { primary, accent }`** — its signature hue
-and a secondary highlight, as 0–1 tuples. These are used to **tint individual
-decor parts** per-hex (see below) and are the answer to "what are the accent
-colors?"
+Each biome defines **`colors`** — six *material-class* swatches, 0–1 tuples,
+that tint individual decor parts per-hex. A decor part tints from the swatch
+matching the material it depicts:
 
-| Biome | `primary` | hex | `accent` | hex |
-|-------|-----------|-----|----------|-----|
-| Untouched | vibrant meadow green `(0.455, 0.678, 0.365)` | `#74ad5d` | warm golden sand `(0.839, 0.694, 0.357)` | `#d6b15b` |
-| Edenfall | purple grass `(0.550, 0.300, 0.550)` | `#8c4d8c` | gold `(0.910, 0.760, 0.290)` | `#e8c24a` |
-| Painforest | deep rich green `(0.380, 0.620, 0.280)` | `#619e47` | dark teal `(0.160, 0.420, 0.380)` | `#296b61` |
-| Frigid Silence | frost-bleached grey-green `(0.580, 0.620, 0.550)` | `#949e8c` | pale frost `(0.680, 0.780, 0.850)` | `#adc7d9` |
-| Mourning Marsh | deep marsh green `(0.300, 0.420, 0.280)` | `#4d6b47` | mournful blue `(0.250, 0.420, 0.550)` | `#406b8c` |
-| Tundra | deep blue `(0.160, 0.300, 0.550)` | `#294d8c` | near-white snow `(0.940, 0.960, 1.000)` | `#f0f5ff` |
-| Sere Wastes | sun-bleached tan `(0.620, 0.520, 0.280)` | `#9e8547` | bone white `(0.920, 0.900, 0.840)` | `#ebe6d6` |
-| Scorch | hot orange `(0.910, 0.440, 0.100)` | `#e8701a` | ash grey `(0.550, 0.550, 0.550)` | `#8c8c8c` |
-| Dustbleed | deep rusty red `(0.550, 0.200, 0.150)` | `#8c3326` | turquoise (crystals) `(0.250, 0.500, 0.450)` | `#408073` |
-| Titanstain | titanflesh pink `(0.720, 0.360, 0.500)` | `#b85c80` | titanblood crimson `(0.400, 0.060, 0.140)` | `#660f24` |
-| Unfinished Lands | light pink `(0.940, 0.740, 0.800)` | `#f0bdcc` | electric blue `(0.300, 0.850, 1.000)` | `#4dd9ff` |
+| swatch | tints | covers |
+|--------|-------|--------|
+| `foliage` | plant life | leaves, needles, grass, reeds, scrub, moss |
+| `wood` | trunks, branches, logs, driftwood |
+| `soil` | dirt, sand, clay, clods, mud |
+| `stone` | rocks, boulders, rubble, scree |
+| `bloom` | the natural-life accent | flowers, fruits, berries |
+| `exotic` | the rare-material accent | crystals, ores, glows, supernatural bits |
 
-Note: `primary`/`accent` are often (but not always) one of the palette colors —
-Scorch's primary `#e8701a` and Tundra's primary `#294d8c` do **not** match any
-palette entry; they are the biome's *identity* colors for decor, not its ground
-colors.
+`foliage`/`bloom`/`exotic` are **identity swatches** — every biome authors them
+(enforced by the archetype tests). `wood`/`soil`/`stone` are **material
+swatches** with global defaults (`BIOME_COLOR_DEFAULTS` in
+`src/game/rules/archetypeData/biomes/biomeColorDefaults.js`): wood `#8b5e3c`,
+soil `#8a6b4a`, stone `#8c8c8c`. A biome overrides a material swatch only when
+its version is distinctive (e.g. Edenfall's purple-tinted rock); otherwise it
+inherits the default.
+
+**Identity swatches:**
+
+| Biome | `foliage` | hex | `bloom` | hex | `exotic` | hex |
+|-------|-----------|-----|---------|-----|----------|-----|
+| Untouched | vibrant meadow green `(0.455, 0.678, 0.365)` | `#74ad5d` | warm golden blossom `(0.839, 0.694, 0.357)` | `#d6b15b` | rose-berry accent `(0.750, 0.280, 0.320)` | `#bf474f` |
+| Edenfall | the distinctive purple `(0.550, 0.300, 0.550)` | `#8c4d8c` | gold `(0.910, 0.760, 0.290)` | `#e8c24a` | luminous orchid glow `(0.800, 0.650, 0.950)` | `#cca7f2` |
+| Painforest | deep rich green `(0.380, 0.620, 0.280)` | `#619e47` | magenta jungle blossom `(0.820, 0.250, 0.400)` | `#d14066` | dark teal `(0.160, 0.420, 0.380)` | `#296b61` |
+| Frigid Silence | frost-bleached grey-green `(0.580, 0.620, 0.550)` | `#949e8c` | muted periwinkle blossom `(0.550, 0.620, 0.750)` | `#8c9ebf` | pale frost (ice crystals) `(0.680, 0.780, 0.850)` | `#adc7d9` |
+| Mourning Marsh | deep marsh green `(0.300, 0.420, 0.280)` | `#4d6b47` | mournful blue `(0.250, 0.420, 0.550)` | `#406b8c` | will-o'-wisp fen glow `(0.850, 0.850, 0.450)` | `#d9d973` |
+| Tundra | deep blue `(0.160, 0.300, 0.550)` | `#294d8c` | pale lilac blossom `(0.720, 0.700, 0.850)` | `#b8b3d9` | near-white snow `(0.940, 0.960, 1.000)` | `#f0f5ff` |
+| Sere Wastes | sun-bleached tan `(0.620, 0.520, 0.280)` | `#9e8547` | dusty desert rose `(0.780, 0.520, 0.380)` | `#c78561` | bone white `(0.920, 0.900, 0.840)` | `#ebe6d6` |
+| Scorch | hot orange `(0.910, 0.440, 0.100)` | `#e8701a` | dry yellow flower `(0.850, 0.780, 0.350)` | `#d9c759` | ash grey `(0.550, 0.550, 0.550)` | `#8c8c8c` |
+| Dustbleed | deep rusty red `(0.550, 0.200, 0.150)` | `#8c3326` | sickly pale blossom `(0.720, 0.700, 0.500)` | `#b8b380` | turquoise (the crystals) `(0.250, 0.500, 0.450)` | `#408073` |
+| Titanstain | titanflesh pink `(0.720, 0.360, 0.500)` | `#b85c80` | pale flesh highlight `(0.850, 0.550, 0.650)` | `#d98ca6` | titanblood crimson `(0.400, 0.060, 0.140)` | `#660f24` |
+| Unfinished Lands | light pink `(0.940, 0.740, 0.800)` | `#f0bdcc` | pale ghost-green blossom `(0.720, 0.880, 0.850)` | `#b8e0d9` | electric blue `(0.300, 0.850, 1.000)` | `#4dd9ff` |
+
+**Material-swatch overrides** (all other biomes inherit the defaults):
+
+| Biome | swatch | hex | for |
+|-------|--------|-----|-----|
+| Edenfall | `wood` `(0.350, 0.150, 0.300)` | `#59264d` | dark purple-barked trunks |
+| Edenfall | `stone` `(0.478, 0.380, 0.502)` | `#7a6180` | purple-tinted rock (its mountain palette color) |
+| Dustbleed | `soil` `(0.470, 0.270, 0.210)` | `#784536` | rusty tainted earth |
+| Titanstain | `soil` `(0.400, 0.250, 0.300)` | `#66404d` | bruised flesh-earth |
+| Titanstain | `stone` `(0.459, 0.239, 0.341)` | `#753d57` | titanflesh mountain rock (its mountain palette color) |
+| Unfinished Lands | `soil` `(0.600, 0.720, 0.700)` | `#99b8b3` | pale ghost earth |
+| Unfinished Lands | `stone` `(0.420, 0.580, 0.639)` | `#6b94a3` | half-formed rock (its mountain palette color) |
+
+Note: the swatches are often (but not always) one of the palette colors —
+Scorch's `foliage` `#e8701a` and Tundra's `foliage` `#294d8c` do **not** match
+any palette entry; they are the biome's *identity* colors for decor, not its
+ground colors.
 
 ### 7.3 How the tint reaches decor parts
 
 Terrain decor parts may declare `biomeColor: { source, influence }`:
 
-- `source` ∈ `'primary' | 'accent' | 'terrain'` — which color to mix toward.
-  `terrain` = the tile's own ground color (the §7.1 palette entry for its
-  terrain), neighbor-blended; this is *ground matching* — hill mounds and
-  plateau boulders use it so decor can never mismatch the surface it sits on
-  (scrub tufts instead tint toward `primary`).
+- `source` ∈ `'foliage' | 'wood' | 'soil' | 'stone' | 'bloom' | 'exotic' |
+  'terrain'` — which swatch to mix toward; pick the one matching the material
+  the part depicts (see the table in §7.2). `terrain` = the tile's own ground
+  color (the §7.1 palette entry for its terrain), neighbor-blended; this is
+  *ground matching* — hill mounds and plateau boulders use it so decor can
+  never mismatch the surface it sits on (scrub tufts instead tint toward
+  `foliage`).
 - `influence` ∈ [0, 1] — 0 keeps the part's authored color, 1 fully replaces it.
-- The tint is **neighbor-blended**: the tile's color is pulled toward the
-  average of its explored land neighbors (factor 0.8), so an Edenfall tree
-  beside Painforest tiles gets its purple diluted by green.
-- Tiles of **Untouched** and **Painforest** never *signature*-tint
-  (`primary`/`accent`) — a design rule (their decor keeps default colors); the
-  `terrain` tint still applies, and their colors still bleed into neighbors.
+- The tint is **neighbor-blended per swatch**: each of the tile's swatch colors
+  is pulled toward the average of its explored land neighbors (factor 0.8), so
+  an Edenfall tree beside Painforest tiles gets its purple foliage diluted by
+  green.
+- Tiles of **Untouched** and **Painforest** never *signature*-tint (any swatch
+  source) — a design rule (their decor keeps default colors); the `terrain`
+  tint still applies, and their colors still bleed into neighbors.
 - Requires a numeric literal part color (string tokens have no tint). Water and
   river neighbors never participate in the blend.
 
@@ -282,11 +315,11 @@ Terrain decor parts may declare `biomeColor: { source, influence }`:
 All ground colors live in exactly two places: the per-biome `palette` blocks in
 `src/game/rules/archetypeData/biomes/*.js` and the fallback
 `TERRAIN_COLOR` in `src/params/render/terrainParams.js`; the decor-tint colors
-are the per-biome `colors.primary`/`colors.accent`. Because every tile's color
+are the per-biome `colors` swatches (§7.2). Because every tile's color
 resolves through `palette[terrain]`, a palette edit restyles an entire biome at
 once — including, via the `terrain` tint source, the decor that ground-matches.
-Note also that `primary`/`accent` can be tuned independently of the ground
-palette (e.g. Scorch's orange identity vs. its sandy ground), which is a
+Note also that the swatches can be tuned independently of the ground
+palette (e.g. Scorch's orange `foliage` vs. its sandy ground), which is a
 deliberate knob for making decor stand out or blend in. Watch for the known
 friction points when tuning: biome blends at region borders (factor 0.8), the
 bright Untouched greens against the supernatural palettes, and the

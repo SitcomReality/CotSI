@@ -61,12 +61,17 @@ defineArchetype('biome_titanstain', {
     beach:       [0.820, 0.580, 0.620],  // pale flesh sand
     river:       [0.400, 0.060, 0.140],  // titanblood
   },
-  // Biome signature colors for terrain-decor tinting (decor-consolidation):
-  // primary is the biome's hue, accent its secondary highlight; decor parts
-  // sample these via a per-part influence parameter, blended across hexes.
+  // Biome color swatches for terrain-decor tinting (decor-consolidation):
+  // material-class colors — foliage/bloom/exotic are this biome's identity
+  // colors; wood/soil/stone fall back to BIOME_COLOR_DEFAULTS unless
+  // overridden here. Decor parts sample a swatch via a per-part influence
+  // parameter, blended across hexes.
   colors: {
-    primary: [0.720, 0.360, 0.500], // #b85c80 — titanflesh pink
-    accent: [0.400, 0.060, 0.140],  // #660f24 — titanblood crimson
+    foliage: [0.720, 0.360, 0.500], // #b85c80 — titanflesh pink
+    soil: [0.400, 0.250, 0.300],    // #66404d — bruised flesh-earth
+    stone: [0.459, 0.239, 0.341],   // #753d57 — titanflesh mountain rock
+    bloom: [0.850, 0.550, 0.650],   // #d98ca6 — pale flesh highlight
+    exotic: [0.400, 0.060, 0.140],  // #660f24 — titanblood crimson
   },
   // Supernatural terrain supersede: mountains stay Titanflesh Mountain, water
   // becomes titanblood, and every other hex is Titanflesh. movementCost is

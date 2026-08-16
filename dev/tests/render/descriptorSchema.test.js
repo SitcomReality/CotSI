@@ -696,16 +696,16 @@ test('part.biomeColor validates and passes through normalization', () => {
     id: 't',
     kind: 'decor',
     displayName: 'T',
-    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'primary', influence: 0.8 } }],
+    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'foliage', influence: 0.8 } }],
   };
   assert.deepEqual(validateDescriptor(ok), []);
   const normalized = normalizeDescriptor(ok);
-  assert.deepEqual(normalized.parts[0].biomeColor, { source: 'primary', influence: 0.8 });
+  assert.deepEqual(normalized.parts[0].biomeColor, { source: 'foliage', influence: 0.8 });
   assert.deepEqual(validateDescriptor(normalized), []);
   // Accent source and the influence edges (0 = default color, 1 = full tint)
   // are valid.
-  assert.deepEqual(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'accent', influence: 0 } }] }), []);
-  assert.deepEqual(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'accent', influence: 1 } }] }), []);
+  assert.deepEqual(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'bloom', influence: 0 } }] }), []);
+  assert.deepEqual(validateDescriptor({ ...ok, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'bloom', influence: 1 } }] }), []);
 });
 
 test('part.biomeColor rejects bad sources, out-of-range influence, and bad shapes', () => {
@@ -715,10 +715,10 @@ test('part.biomeColor rejects bad sources, out-of-range influence, and bad shape
     assert.ok(errors.some((e) => e.includes('source')), `source ${JSON.stringify(bad)}`);
   }
   for (const inf of [-0.1, 1.5, 'half']) {
-    const errors = validateDescriptor({ ...base, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'primary', influence: inf } }] });
+    const errors = validateDescriptor({ ...base, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'foliage', influence: inf } }] });
     assert.ok(errors.length > 0, `influence ${JSON.stringify(inf)}`);
   }
-  assert.ok(validateDescriptor({ ...base, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'primary', influence: 0.5, colour: 1 } }] })
+  assert.ok(validateDescriptor({ ...base, parts: [{ id: 'p', shape: 'sphere', biomeColor: { source: 'foliage', influence: 0.5, colour: 1 } }] })
     .some((e) => e.includes('unknown field "colour"')));
   assert.ok(validateDescriptor({ ...base, parts: [{ id: 'p', shape: 'sphere', biomeColor: 'purple' }] }).length > 0);
 });
@@ -799,7 +799,7 @@ test('groups reject color/stretch/biome fields (no geometry of their own)', () =
   for (const extra of [
     { color: 0xff0000 },
     { stretch: { y: { min: 1, max: 1 } } },
-    { biomeColor: { source: 'primary', influence: 0.5 } },
+    { biomeColor: { source: 'foliage', influence: 0.5 } },
     { biomeScale: { biome_tundra: 0.85 } },
   ]) {
     const bad = { ...GROUPED, parts: [{ id: 'g', ...extra, children: [{ id: 'c', shape: 'sphere' }] }] };

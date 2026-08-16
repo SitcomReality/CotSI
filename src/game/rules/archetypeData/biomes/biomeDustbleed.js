@@ -52,12 +52,16 @@ defineArchetype('biome_dustbleed', {
     water:         [0.200, 0.450, 0.500],  // murky teal (tainted water)
     beach:         [0.650, 0.350, 0.250],  // rusty tainted sand
   },
-  // Biome signature colors for terrain-decor tinting (decor-consolidation):
-  // primary is the biome's hue, accent its secondary highlight; decor parts
-  // sample these via a per-part influence parameter, blended across hexes.
+  // Biome color swatches for terrain-decor tinting (decor-consolidation):
+  // material-class colors — foliage/bloom/exotic are this biome's identity
+  // colors; wood/soil/stone fall back to BIOME_COLOR_DEFAULTS unless
+  // overridden here. Decor parts sample a swatch via a per-part influence
+  // parameter, blended across hexes.
   colors: {
-    primary: [0.550, 0.200, 0.150], // #8c3326 — deep rusty red
-    accent: [0.250, 0.500, 0.450],  // #408073 — turquoise (the crystals)
+    foliage: [0.550, 0.200, 0.150], // #8c3326 — deep rusty red
+    soil: [0.470, 0.270, 0.210],    // #784536 — rusty tainted earth
+    bloom: [0.720, 0.700, 0.500],   // #b8b380 — sickly pale blossom
+    exotic: [0.250, 0.500, 0.450],  // #408073 — turquoise (the crystals)
   },
   terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['arid', 'temperate'],

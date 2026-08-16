@@ -53,12 +53,15 @@ defineArchetype('biome_sere_wastes', {
     water:         [0.300, 0.520, 0.680],  // pale desert blue
     beach:         [0.880, 0.750, 0.520],  // bleached golden sand
   },
-  // Biome signature colors for terrain-decor tinting (decor-consolidation):
-  // primary is the biome's hue, accent its secondary highlight; decor parts
-  // sample these via a per-part influence parameter, blended across hexes.
+  // Biome color swatches for terrain-decor tinting (decor-consolidation):
+  // material-class colors — foliage/bloom/exotic are this biome's identity
+  // colors; wood/soil/stone fall back to BIOME_COLOR_DEFAULTS unless
+  // overridden here. Decor parts sample a swatch via a per-part influence
+  // parameter, blended across hexes.
   colors: {
-    primary: [0.620, 0.520, 0.280], // #9e8547 — sun-bleached tan
-    accent: [0.920, 0.900, 0.840],  // #ebe6d6 — bone white
+    foliage: [0.620, 0.520, 0.280], // #9e8547 — sun-bleached tan
+    bloom: [0.780, 0.520, 0.380],   // #c78561 — dusty desert rose
+    exotic: [0.920, 0.900, 0.840],  // #ebe6d6 — bone white
   },
   terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['arid', 'temperate'],

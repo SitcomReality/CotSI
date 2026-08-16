@@ -30,16 +30,19 @@ const STRETCH_AXES = ['x', 'y', 'z', 'xz']; // 'xz' is the legacy combined axis
 const EMPTY_STATE_KEYS = ['scaleX', 'scaleY', 'scaleZ', 'y', 'localPos', 'color'];
 
 /**
- * Biome tint sources a part may pull from. `primary` tints toward the biome's
- * primary color, `accent` toward its accent color (e.g. Tundra leaves use the
- * near-white accent to read as snow). `terrain` tints toward the tile's own
- * terrain surface color (its biome palette entry for the tile's terrain type,
+ * Biome tint sources a part may pull from — the biome's material-class color
+ * swatches (see biomeColorDefaults.js). A part tints from the swatch matching
+ * the material it depicts: `foliage` for leaves/grass/scrub, `wood` for
+ * trunks/logs/driftwood, `soil` for dirt/sand/clods, `stone` for rocks and
+ * rubble, `bloom` for flowers/fruits, `exotic` for crystals/ores/glows and
+ * supernatural bits. `terrain` tints toward the tile's own terrain surface
+ * color (its biome palette entry for the tile's terrain type,
  * neighbor-blended) — ground-matching decor such as hill and plateau mounds.
  * The influence strength is 0..1, where 0 keeps the part's default color (also
- * the behavior in Untouched and Painforest for primary/accent, whose tiles
- * never signature-tint; `terrain` still tints there).
+ * the behavior in Untouched and Painforest for the swatch sources, whose
+ * tiles never signature-tint; `terrain` still tints there).
  */
-const BIOME_COLOR_SOURCES = ['primary', 'accent', 'terrain'];
+const BIOME_COLOR_SOURCES = ['foliage', 'wood', 'soil', 'stone', 'bloom', 'exotic', 'terrain'];
 
 /**
  * Validate a part's `biomeColor` — the per-part biome tint: which biome color

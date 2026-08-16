@@ -15,17 +15,17 @@
  * skipped, standing in for the terrain blend's `explored` set.
  *
  * Untouched (biome_default) and Painforest (biome_painforest) never signature
- * tint: their decor keeps the default part colors per the design rule, so
- * `primary`/`accent` are not computed for tiles of those biomes. Their colors
- * still bleed into NEIGHBOR tiles' blends — the check applies to the tile's
- * own biome only. The `terrain` source is different: it matches decor to the
+ * tint: their decor keeps the default part colors per the design rule, so no
+ * swatch colors are computed for tiles of those biomes. Their colors still
+ * bleed into NEIGHBOR tiles' blends — the check applies to the tile's own
+ * biome only. The `terrain` source is different: it matches decor to the
  * ground it sits on, so it applies in every biome (including the default-tint
  * ones), whenever the biome palettes are known.
  *
  * Pure module: no THREE, no game state — it reads `biomeColors` (biome id →
- * { primary, accent }) and `biomePalettes` (biome id → per-terrain palette)
- * Maps passed in as args, so it is unit-testable in Node and shared by the
- * state and chunk paths.
+ * { foliage, wood, soil, stone, bloom, exotic }) and `biomePalettes` (biome
+ * id → per-terrain palette) Maps passed in as args, so it is unit-testable in
+ * Node and shared by the state and chunk paths.
  */
 import { neighbors, coordKey } from '../../../engine/rules/hexGrid.js';
 import { TERRAIN_BLEND_FACTOR, TERRAIN_COLOR } from '../../../params/render/terrainParams.js';
@@ -66,8 +66,11 @@ function terrainColorFor(tile, biomePalettes) {
 
 /**
  * Neighbor-blended biome colors for a tile's decor, or null when nothing can
- * be computed. The returned tint carries whichever sources apply to the tile:
- *   primary / accent — the biome's signature colors, neighbor-blended; skipped
+ * be computed. The returned tint carries one entry per color swatch the
+ * biome defines — foliage, wood, soil, stone, bloom, exotic (the
+ * gameFactory-merged biomeColors map has all six) — plus `terrain` when
+ * palettes are given:
+ *   swatches — the biome's material-class colors, neighbor-blended; skipped
  *       on Untouched and Painforest tiles (default-tint design rule).
  *   terrain — the tile's own terrain surface color, neighbor-blended the same
  *       way the surface itself is; applies in every biome (ground matching).
@@ -75,28 +78,36 @@ function terrainColorFor(tile, biomePalettes) {
  * @param {object} tile          - tile ({ q, r, biomeId, terrain })
  * @param {Map}    tilesByKey    - "q,r" → tile lookup for the tiles being built
  *                                 (state.tiles Map, or a Map built from a chunk)
- * @param {Map}    biomeColors   - biome id → { primary, accent } (0-1 tuples)
+ * @param {Map}    biomeColors   - biome id → color swatches (foliage, wood,
+ *                                 soil, stone, bloom, exotic; 0-1 tuples)
  * @param {Set<string>} [decorGate] - "q,r" keys of decor-visible tiles; when
  *                                 given, out-of-gate neighbors are skipped
  * @param {Map}    [biomePalettes] - biome id → palette (terrain type → 0-1
  *                                 color tuple); required for the terrain source
- * @returns {{ primary?: number[], accent?: number[], terrain?: number[] }|null}
+ * @returns {object|null} - blended swatch colors keyed by swatch name, plus
+ *                                 `terrain` when palettes are given; null
+ *                                 when nothing can be computed
  */
 export function biomeTintForTile(tile, tilesByKey, biomeColors, decorGate = null, biomePalettes = null) {
   const wantSignature = biomeColors && !DEFAULT_TINT_BIOMES.has(tile.biomeId);
   const ownSignature = wantSignature ? biomeColors.get(tile.biomeId) : null;
   const wantTerrain = !!biomePalettes;
 
-  const partsP = ownSignature ? [ownSignature.primary] : null;
-  const partsA = ownSignature ? [ownSignature.accent] : null;
+  // Per-swatch part lists: swatch → [own color, ...neighbor colors]. Every
+  // swatch the biome defines blends independently across the same neighbor
+  // set (the gameFactory-merged map carries all six: foliage, wood, soil,
+  // stone, bloom, exotic).
+  const partsBySwatch = new Map();
+  if (ownSignature) {
+    for (const [swatch, color] of Object.entries(ownSignature)) {
+      if (Array.isArray(color) && color.length === 3) partsBySwatch.set(swatch, [color]);
+    }
+  }
   const partsT = wantTerrain ? [terrainColorFor(tile, biomePalettes)] : null;
-  if (!partsP && !partsT) return null;
+  if (partsBySwatch.size === 0 && !partsT) return null;
 
   const tint = {};
-  if (partsP) {
-    tint.primary = partsP[0];
-    tint.accent = partsA[0];
-  }
+  for (const [swatch, parts] of partsBySwatch) tint[swatch] = parts[0];
   if (partsT) tint.terrain = partsT[0];
 
   for (const nb of neighbors({ q: tile.q, r: tile.r })) {
@@ -104,19 +115,20 @@ export function biomeTintForTile(tile, tilesByKey, biomeColors, decorGate = null
     const nbTile = tilesByKey?.get(key);
     if (!nbTile || nbTile.terrain === 'water' || nbTile.terrain === 'river') continue;
     if (decorGate && !decorGate.has(key)) continue;
-    if (partsP) {
+    if (partsBySwatch.size > 0) {
       const nbColors = biomeColors.get(nbTile.biomeId);
       if (nbColors) {
-        partsP.push(nbColors.primary);
-        partsA.push(nbColors.accent);
+        for (const [swatch, parts] of partsBySwatch) {
+          const nbColor = nbColors[swatch];
+          if (Array.isArray(nbColor) && nbColor.length === 3) parts.push(nbColor);
+        }
       }
     }
     if (partsT) partsT.push(terrainColorFor(nbTile, biomePalettes));
   }
 
-  if (partsP && partsP.length > 1) {
-    tint.primary = averageColor(partsP, ownSignature.primary, TERRAIN_BLEND_FACTOR);
-    tint.accent = averageColor(partsA, ownSignature.accent, TERRAIN_BLEND_FACTOR);
+  for (const [swatch, parts] of partsBySwatch) {
+    if (parts.length > 1) tint[swatch] = averageColor(parts, ownSignature[swatch], TERRAIN_BLEND_FACTOR);
   }
   if (partsT && partsT.length > 1) {
     tint.terrain = averageColor(partsT, partsT[0], TERRAIN_BLEND_FACTOR);

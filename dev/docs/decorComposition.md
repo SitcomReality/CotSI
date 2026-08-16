@@ -383,7 +383,7 @@ export const DESERT_DESCRIPTOR = {
         { id: 'cactus-trunk', shape: 'cylinder',
           params: { bottomR: 0.1, topR: 0.085, height: 0.55, segments: 6 },
           stretch: { y: { min: 0.9, max: 1.25, seed: 6 }, x: false, z: false },
-          color: 0x4c8a4a, biomeColor: { source: 'primary', influence: 0.45 },
+          color: 0x4c8a4a, biomeColor: { source: 'foliage', influence: 0.45 },
           biomeScale: { biome_edenfall: 1.1, biome_dustbleed: 1.05 } },
         { id: 'cactus-arms', seed: 101, default: 'two-straight',
           // seed: authored identity — reserved 100–199 lane, never path-derived (§2.2);

@@ -217,7 +217,7 @@ variation: {
 | `transform` | object | See §4.4. |
 | `stretch` | object | Per-part per-axis stretch override: `{ y: { min, max, seed } }`, or `false` to pin an axis at 1 (no stretch). Overrides the object-level `variation` ranges. |
 | `biomeScale` | object | Per-biome size factor: `{ biome_tundra: 0.85 }` multiplies the part's scale on tiles of that biome (stunted tundra trees). Scales lift/`localPos` rigidly too. |
-| `biomeColor` | object | Per-part biome tint: `{ source: 'primary' \| 'accent' \| 'terrain', influence: 0..1 }` — mixes the part's color toward the tile's blended biome color by `influence` (see §5.7). |
+| `biomeColor` | object | Per-part biome tint: `{ source: 'foliage' \| 'wood' \| 'soil' \| 'stone' \| 'bloom' \| 'exotic' \| 'terrain', influence: 0..1 }` — mixes the part's color toward the tile's blended biome color by `influence` (see §5.7). Pick the swatch matching the material the part depicts. |
 | `states` | object | Growth-state keyframes — the part's look at different regrowth stages (see §4.6). Shape leaves only; groups reject it. |
 | `alternatives` | array | **Choice point** (v6): not a shape and not a group — a weighted option table (see §5.4). The node carries `seed` (draw lane) and `default` (preview/catalog option) only; it has no transform, no color, no geometry. Options are `{ id, weight?, parts }` (parts may be empty — the `none` option). |
 
@@ -542,15 +542,20 @@ biome colors **pulled toward the average of its land neighbors** (the same
 neighbor blend the terrain surfaces use), so an Edenfall object beside
 Painforest tiles gets its purple diluted by green. Rules:
 
-- `source: 'primary'` or `'accent'` picks the biome's signature color channel
-  to tint toward.
+- `source` picks one of the biome's material-class color swatches to tint
+  toward — `foliage` for leaves/grass/scrub, `wood` for trunks/logs/
+  driftwood, `soil` for dirt/sand/clods, `stone` for rocks and rubble,
+  `bloom` for flowers/fruits/berries, `exotic` for crystals/ores/glows and
+  supernatural bits. (The biome's `colors` block defines the actual color
+  per swatch; `wood`/`soil`/`stone` inherit `BIOME_COLOR_DEFAULTS` unless a
+  biome overrides them.)
 - `source: 'terrain'` tints toward the tile's own **terrain surface color** —
   the biome palette entry for the tile's terrain type, neighbor-blended the
   same way. This is ground-matching: decor using it can never mismatch the
   surface it sits on (hill and plateau mounds use it).
 - `influence: 0` keeps the default color; `1` fully replaces it.
 - Tiles of `biome_default` (Untouched) and `biome_painforest` never
-  *signature*-tint (`primary`/`accent`); their `terrain` tint still applies,
+  *signature*-tint (any swatch source); their `terrain` tint still applies,
   and their colors still bleed into *neighbor* tiles' blends.
 - Tiles with no known biome colors never tint; tiles with no palette never
   terrain-tint.
@@ -657,7 +662,7 @@ export const FOREST_DESCRIPTOR = {
           transform: { liftRange: { min: 0.15, max: 0.3, seed: 6 } },
           stretch: { y: { min: 0.85, max: 1.3, seed: 4 }, x: { min: 0.9, max: 1.15, seed: 5 }, z: { min: 0.9, max: 1.15, seed: 5 } },
           color: 0x3cb371,
-          biomeColor: { source: 'primary', influence: 0.8 }, // greens blend toward the biome
+          biomeColor: { source: 'foliage', influence: 0.8 }, // greens blend toward the biome
           biomeScale: { biome_tundra: 0.85 },
         },
       ],
@@ -698,7 +703,7 @@ export const FOREST_DESCRIPTOR = {
         { id: 'snowcap',     shape: 'cone', params: { bottomR: 0.1, height: 0.16, radialSegs: 6, heightSegs: 1 },
           transform: { localPos: { x: 0, y: 0.64, z: 0 } },            // perched in the cone's upper taper
           stretch: { y: { min: 0.8, max: 1.1, seed: 4 }, x: false, z: false },
-          color: 0xdfe6ec, biomeColor: { source: 'accent', influence: 0.6 },  // pale frost accent
+          color: 0xdfe6ec, biomeColor: { source: 'exotic', influence: 0.6 },  // pale frost (exotic)
           biomeScale: { biome_frigid_silence: 0.85 } },
       ],
     },
@@ -722,7 +727,7 @@ variant for its biome):
 | `dead` | Sere Wastes | dead tree, broken branches | **no canopy** — 3 bare branch cylinders at staggered heights/angles |
 | `edenfall` | Edenfall | tall lush purple | two stacked spheres (two-lobe crown), `biomeScale: 1.1` |
 | `marshwood` | Mourning Marsh | squat murky tree | short trunk, wide squashed sphere (`stretchY` low / `stretchXZ` high) |
-| `dustbleed` | Dustbleed | quenched teal, crystal-studded | a `dodecahedron` crystal shard perched on the canopy, accent-tinted |
+| `dustbleed` | Dustbleed | quenched teal, crystal-studded | a `dodecahedron` crystal shard perched on the canopy, exotic-tinted |
 
 What each mechanism contributes, at a glance:
 
@@ -754,8 +759,8 @@ What each mechanism contributes, at a glance:
 - `biomeScale` — Tundra/Frigid/Sere/Scorch trees shrink to 80–85% of the
   default; Edenfall's grow to 110%; Painforest's gnarled groves to 55%.
 - `biomeColor` — canopy green leans into the tile's blended biome color
-  (`primary` for the round variant, the biome's `terrain` surface color for
-  the ground-matching conifers, `accent` for frost snow and Dustbleed's
+  (`foliage` for the round variant, the biome's `terrain` surface color for
+  the ground-matching conifers, `exotic` for frost snow and Dustbleed's
   crystals).
 - `color` per part — trunk brown vs canopy green, jittered ±0.05 brightness;
   a dead tree's branches are darker than its trunk, the frost snowcap is

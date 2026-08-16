@@ -14,6 +14,7 @@ import { generateTiles, ensureSpawnClearance } from '../rules/terrainGen/index.j
 import { startingRegionChunkKeys } from '../rules/terrainGen/startingRegion.js';
 import { getArchetype } from '../rules/archetypes.js';
 import '../rules/archetypeData/index.js'; // side-effect: populate archetype registry
+import { BIOME_COLOR_DEFAULTS, BIOME_IDENTITY_SWATCHES } from '../rules/archetypeData/biomes/biomeColorDefaults.js';
 import { shuffle } from '../../engine/rules/shuffle.js';
 import { createInitialState } from './initialGameState.js';
 import { createChampions } from './entities/championFactory.js';
@@ -93,21 +94,24 @@ export function createGame({
     biomePalettes.set(biome, singleBiomeDef.palette);
   }
 
-  // Build biomeColors: biomeId → { primary, accent } — the signature colors
-  // that tint terrain decor (per-part influence + neighbor blending, render
-  // layer). Mirrors the biomePalettes collection.
+  // Build biomeColors: biomeId → the biome's color swatches (foliage/wood/
+  // soil/stone/bloom/exotic) — the material-class colors that tint terrain
+  // decor (per-part influence + neighbor blending, render layer). Material
+  // swatches (wood/soil/stone) fall back to BIOME_COLOR_DEFAULTS; identity
+  // swatches (foliage/bloom/exotic) must be authored per biome. Mirrors the
+  // biomePalettes collection.
   const biomeColors = new Map();
   for (const [, tile] of Object.entries(flatTiles)) {
     if (tile.biomeId && !biomeColors.has(tile.biomeId)) {
       const def = getArchetype(tile.biomeId);
-      if (def?.colors?.primary && def.colors?.accent) {
-        biomeColors.set(tile.biomeId, def.colors);
+      if (def?.colors && BIOME_IDENTITY_SWATCHES.every((s) => def.colors[s])) {
+        biomeColors.set(tile.biomeId, { ...BIOME_COLOR_DEFAULTS, ...def.colors });
       }
     }
   }
   // Fallback: if no tile has a biomeId (single-biome mode), use the resolved biomeDef
   if (biomeColors.size === 0 && singleBiomeDef?.colors) {
-    biomeColors.set(biome, singleBiomeDef.colors);
+    biomeColors.set(biome, { ...BIOME_COLOR_DEFAULTS, ...singleBiomeDef.colors });
   }
 
   // Build biomeDecorOverrides: biomeId → { terrainKey → decor descriptor id }.

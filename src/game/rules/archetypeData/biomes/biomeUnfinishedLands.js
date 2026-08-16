@@ -60,12 +60,17 @@ defineArchetype('biome_unfinished_lands', {
     beach:       [0.760, 0.800, 0.760],  // pale ghost sand
     river:       [0.180, 0.520, 0.680],  // Forespring
   },
-  // Biome signature colors for terrain-decor tinting (decor-consolidation):
-  // primary is the biome's hue, accent its secondary highlight; decor parts
-  // sample these via a per-part influence parameter, blended across hexes.
+  // Biome color swatches for terrain-decor tinting (decor-consolidation):
+  // material-class colors — foliage/bloom/exotic are this biome's identity
+  // colors; wood/soil/stone fall back to BIOME_COLOR_DEFAULTS unless
+  // overridden here. Decor parts sample a swatch via a per-part influence
+  // parameter, blended across hexes.
   colors: {
-    primary: [0.940, 0.740, 0.800], // #f0bdcc — light pink
-    accent: [0.300, 0.850, 1.000],  // #4dd9ff — electric blue
+    foliage: [0.940, 0.740, 0.800], // #f0bdcc — light pink
+    soil: [0.600, 0.720, 0.700],    // #99b8b3 — pale ghost earth
+    stone: [0.420, 0.580, 0.639],   // #6b94a3 — half-formed rock
+    bloom: [0.720, 0.880, 0.850],   // #b8e0d9 — pale ghost-green blossom
+    exotic: [0.300, 0.850, 1.000],  // #4dd9ff — electric blue
   },
   // Supernatural terrain supersede: the regular terrain is re-presented as a
   // half-formed analogue. movementCost is uniform (no faction terrain bonuses

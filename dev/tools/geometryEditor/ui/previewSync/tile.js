@@ -7,6 +7,7 @@ import { S } from '../../state.js';
 import { listArchetypes, getArchetype } from '../../../../../src/game/rules/archetypes.js';
 import { biomeTintForTile } from '../../../../../src/render/hexmap3d/worldObjects/biomeTint.js';
 import { TERRAIN } from '../../../../../src/game/rules/terrainTypes.js';
+import { BIOME_COLOR_DEFAULTS, BIOME_IDENTITY_SWATCHES } from '../../../../../src/game/rules/archetypeData/biomes/biomeColorDefaults.js';
 
 /** The tile the preview renders on — a stable hex with a hash. */
 const PREVIEW_TILE = { q: 1, r: 0, terrain: 'forest' };
@@ -42,13 +43,16 @@ export function previewOrigin() {
   return ORIGIN;
 }
 
-/** Biome signature colors (biome id → { primary, accent }), for the preview
- *  tint. The single preview tile has no neighbors, so the tint is the biome's
- *  own colors — no blending to show here. */
+/** Biome color swatches (biome id → { foliage, wood, soil, stone, bloom,
+ *  exotic }), for the preview tint. Material swatches inherit the global
+ *  defaults, exactly as gameFactory merges them for the game state. The
+ *  single preview tile has no neighbors, so the tint is the biome's own
+ *  colors — no blending to show here. */
 const biomeColors = new Map(
   listArchetypes('biome')
     .map((id) => [id, getArchetype(id)?.colors])
-    .filter(([, colors]) => colors?.primary && colors?.accent),
+    .filter(([, colors]) => colors && BIOME_IDENTITY_SWATCHES.every((s) => colors[s]))
+    .map(([id, colors]) => [id, { ...BIOME_COLOR_DEFAULTS, ...colors }]),
 );
 
 /** Biome terrain palettes (biome id → per-terrain color), for the `terrain`

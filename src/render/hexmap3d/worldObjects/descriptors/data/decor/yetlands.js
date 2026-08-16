@@ -55,7 +55,7 @@ export const YETLANDS_DESCRIPTOR = {
         liftRange: { min: 0.1, max: 0.38, seed: 10 },
       },
       color: 0xb8c4cc,
-      biomeColor: { source: 'accent', influence: 0.3 },
+      biomeColor: { source: 'exotic', influence: 0.3 },
     },
     {
       id: 'yet-fragment-cone',
@@ -85,7 +85,7 @@ export const YETLANDS_DESCRIPTOR = {
         liftRange: { min: 0.16, max: 0.4, seed: 14 },
       },
       color: 0xd0d8de,
-      biomeColor: { source: 'accent', influence: 0.3 },
+      biomeColor: { source: 'exotic', influence: 0.3 },
     },
   ],
 };

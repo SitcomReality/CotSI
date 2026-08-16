@@ -382,19 +382,19 @@ test('color jitter produces per-instance colors; zero jitter keeps the base', ()
 
 // ── Biome tint (M5: per-part biome color influence) ─────────────────────────
 
-/** Center-placed part with a half-strength primary tint (no color jitter). */
+/** Center-placed part with a half-strength foliage tint (no color jitter). */
 const TINTED = normalizeDescriptor({
   id: 'tinted',
   kind: 'decor',
   displayName: 'Tinted',
   placement: { mode: 'center' },
   parts: [
-    { id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'primary', influence: 0.5 } },
+    { id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'foliage', influence: 0.5 } },
   ],
 });
 
 const EDEN_TILE = { q: 3, r: -2, terrain: 'forest', biomeId: 'biome_edenfall' };
-const RED_TINT = { primary: [1, 0, 0], accent: [0, 1, 0] };
+const RED_TINT = { foliage: [1, 0, 0], bloom: [0, 1, 0] };
 
 test('biome tint mixes the default color toward the tint by influence', () => {
   // 0xffffff pulled halfway to pure red: r stays 255, g and b halve → 0xff8080.
@@ -406,7 +406,7 @@ test('biome tint mixes the default color toward the tint by influence', () => {
     kind: 'decor',
     displayName: 'Tinted Full',
     placement: { mode: 'center' },
-    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'primary', influence: 1 } }],
+    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'foliage', influence: 1 } }],
   });
   assert.equal(recordsForDescriptor(full, EDEN_TILE, POS, undefined, {}, RED_TINT)[0].color, 0xff0000);
 
@@ -416,18 +416,18 @@ test('biome tint mixes the default color toward the tint by influence', () => {
     kind: 'decor',
     displayName: 'Tinted None',
     placement: { mode: 'center' },
-    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'primary', influence: 0 } }],
+    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'foliage', influence: 0 } }],
   });
   assert.equal(recordsForDescriptor(none, EDEN_TILE, POS, undefined, {}, RED_TINT)[0].color, 0xffffff);
 });
 
-test('biome tint uses the accent source when named', () => {
+test('biome tint uses the bloom source when named', () => {
   const accent = normalizeDescriptor({
     id: 'tinted-accent',
     kind: 'decor',
     displayName: 'Tinted Accent',
     placement: { mode: 'center' },
-    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'accent', influence: 1 } }],
+    parts: [{ id: 'p', shape: 'sphere', color: 0xffffff, biomeColor: { source: 'bloom', influence: 1 } }],
   });
   const [record] = recordsForDescriptor(accent, EDEN_TILE, POS, undefined, {}, RED_TINT);
   assert.equal(record.color, 0x00ff00);
@@ -443,7 +443,7 @@ test('Untouched/Painforest tiles keep default colors end to end', () => {
   // the default part color even with biome colors present.
   const pain = { q: 3, r: -2, terrain: 'forest', biomeId: 'biome_painforest' };
   const tiles = new Map([['3,-2', pain]]);
-  const colors = new Map([['biome_painforest', { primary: [0.38, 0.62, 0.28], accent: [0.16, 0.42, 0.38] }]]);
+  const colors = new Map([['biome_painforest', { foliage: [0.38, 0.62, 0.28], exotic: [0.16, 0.42, 0.38] }]]);
   assert.equal(biomeTintForTile(pain, tiles, colors), null);
   const [record] = recordsForDescriptor(TINTED, pain, POS, undefined, {}, biomeTintForTile(pain, tiles, colors));
   assert.equal(record.color, 0xffffff);

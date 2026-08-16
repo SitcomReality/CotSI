@@ -51,12 +51,15 @@ defineArchetype('biome_tundra', {
     ice:           [0.720, 0.820, 0.880],  // pale ice
     beach:         [0.750, 0.720, 0.650],  // frost-bleached pale sand
   },
-  // Biome signature colors for terrain-decor tinting (decor-consolidation):
-  // primary is the biome's hue, accent its secondary highlight; decor parts
-  // sample these via a per-part influence parameter, blended across hexes.
+  // Biome color swatches for terrain-decor tinting (decor-consolidation):
+  // material-class colors — foliage/bloom/exotic are this biome's identity
+  // colors; wood/soil/stone fall back to BIOME_COLOR_DEFAULTS unless
+  // overridden here. Decor parts sample a swatch via a per-part influence
+  // parameter, blended across hexes.
   colors: {
-    primary: [0.160, 0.300, 0.550], // #294d8c — deep blue
-    accent: [0.940, 0.960, 1.000],  // #f0f5ff — near-white (snow)
+    foliage: [0.160, 0.300, 0.550], // #294d8c — deep blue
+    bloom: [0.720, 0.700, 0.850],   // #b8b3d9 — pale lilac blossom
+    exotic: [0.940, 0.960, 1.000],  // #f0f5ff — near-white (snow)
   },
   terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['snowy', 'temperate'],

@@ -15,7 +15,7 @@ const isPrimitive = (v) => v === null || typeof v !== 'object';
 const isPrimitiveArray = (v) => Array.isArray(v) && v.every(isPrimitive);
 
 /** Whether a nested value reads fine inline (primitives, number arrays, small
- *  flat objects like { x: 1, y: 0, z: 0 } or { source: 'primary', influence: 0.8 }). */
+ *  flat objects like { x: 1, y: 0, z: 0 } or { source: 'foliage', influence: 0.8 }). */
 function isInlineValue(v) {
   if (isPrimitive(v) || isPrimitiveArray(v)) return true;
   if (Array.isArray(v) || typeof v !== 'object') return false;

@@ -50,12 +50,15 @@ defineArchetype('biome_scorch', {
     water:       [0.340, 0.560, 0.700],  // warm blue
     beach:       [0.900, 0.750, 0.500],  // hot bright sand
   },
-  // Biome signature colors for terrain-decor tinting (decor-consolidation):
-  // primary is the biome's hue, accent its secondary highlight; decor parts
-  // sample these via a per-part influence parameter, blended across hexes.
+  // Biome color swatches for terrain-decor tinting (decor-consolidation):
+  // material-class colors — foliage/bloom/exotic are this biome's identity
+  // colors; wood/soil/stone fall back to BIOME_COLOR_DEFAULTS unless
+  // overridden here. Decor parts sample a swatch via a per-part influence
+  // parameter, blended across hexes.
   colors: {
-    primary: [0.910, 0.440, 0.100], // #e8701a — hot orange
-    accent: [0.550, 0.550, 0.550],  // #8c8c8c — ash grey
+    foliage: [0.910, 0.440, 0.100], // #e8701a — hot orange
+    bloom: [0.850, 0.780, 0.350],   // #d9c759 — dry yellow flower
+    exotic: [0.550, 0.550, 0.550],  // #8c8c8c — ash grey
   },
   terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['arid', 'temperate'],

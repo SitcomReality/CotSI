@@ -22,7 +22,7 @@ export const TITANBLOOD_DESCRIPTOR = {
       params: { radius: 0.1 },
       transform: { scaleY: 0.3 },
       color: 0x8a0f24,
-      biomeColor: { source: 'accent', influence: 0.8 },
+      biomeColor: { source: 'exotic', influence: 0.8 },
     },
   ],
 };

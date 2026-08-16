@@ -13,6 +13,7 @@ import {
 } from '../../../src/game/rules/archetypes.js';
 import '../../../src/game/rules/archetypeData/index.js';
 import { BIOME_PRIORITY_ORDER, SUPERNATURAL_BIOMES } from '../../../src/game/rules/terrainGen/classification/biomeSelection.js';
+import { BIOME_COLOR_DEFAULTS, BIOME_IDENTITY_SWATCHES } from '../../../src/game/rules/archetypeData/biomes/biomeColorDefaults.js';
 
 test('real registry: every biome in the priority order is registered', () => {
   for (const biomeId of [...BIOME_PRIORITY_ORDER, ...SUPERNATURAL_BIOMES]) {
@@ -29,14 +30,25 @@ test('real registry: biome_default is the catch-all (no climateRange)', () => {
   assert.equal(def.climateRange, undefined, 'biome_default should have no climateRange');
 });
 
-test('real registry: every biome defines primary + accent colors', () => {
+test('real registry: every biome defines the identity color swatches', () => {
   for (const biomeId of [...BIOME_PRIORITY_ORDER, ...SUPERNATURAL_BIOMES]) {
     const def = getArchetype(biomeId);
-    const { primary, accent } = def.colors ?? {};
-    assert.ok(Array.isArray(primary) && primary.length === 3, `${biomeId} primary must be an [r,g,b] tuple`);
-    assert.ok(Array.isArray(accent) && accent.length === 3, `${biomeId} accent must be an [r,g,b] tuple`);
-    for (const c of [...primary, ...accent]) {
-      assert.ok(Number.isFinite(c) && c >= 0 && c <= 1, `${biomeId} color component ${c} out of [0,1]`);
+    for (const swatch of BIOME_IDENTITY_SWATCHES) {
+      const c = def.colors?.[swatch];
+      assert.ok(Array.isArray(c) && c.length === 3, `${biomeId} ${swatch} must be an [r,g,b] tuple`);
+      for (const v of c) {
+        assert.ok(Number.isFinite(v) && v >= 0 && v <= 1, `${biomeId} ${swatch} component ${v} out of [0,1]`);
+      }
+    }
+  }
+});
+
+test('real registry: material swatch defaults are valid [0,1] tuples', () => {
+  for (const swatch of ['wood', 'soil', 'stone']) {
+    const c = BIOME_COLOR_DEFAULTS[swatch];
+    assert.ok(Array.isArray(c) && c.length === 3, `default ${swatch} must be an [r,g,b] tuple`);
+    for (const v of c) {
+      assert.ok(Number.isFinite(v) && v >= 0 && v <= 1, `default ${swatch} component ${v} out of [0,1]`);
     }
   }
 });

@@ -37,7 +37,7 @@ export const SCORIA_ROSE_DESCRIPTOR = {
       params: { radius: 0.14 },
       transform: { y: 0, lift: 0.12 },
       color: 0x8b0000,
-      biomeColor: { source: 'primary', influence: 0.3 },
+      biomeColor: { source: 'bloom', influence: 0.3 },
     },
     {
       id: 'inner-bloom',

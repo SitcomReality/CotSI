@@ -29,7 +29,7 @@ export const PERIDEXION_TREE_DESCRIPTOR = {
           params: { radius: 0.38, hSegs: 5 },
           transform: { scaleY: 0.7, localPos: { x: 0, y: 0.05, z: 0 } },
           color: 0x2d6a4f,
-          biomeColor: { source: 'primary', influence: 0.5 },
+          biomeColor: { source: 'foliage', influence: 0.5 },
         },
         {
           id: 'canopy-mid',
@@ -37,7 +37,7 @@ export const PERIDEXION_TREE_DESCRIPTOR = {
           params: { radius: 0.32, hSegs: 5 },
           transform: { scaleY: 0.75, localPos: { x: 0, y: 0.22, z: 0 } },
           color: 0x52b788,
-          biomeColor: { source: 'primary', influence: 0.5 },
+          biomeColor: { source: 'foliage', influence: 0.5 },
         },
         {
           id: 'canopy-top',
@@ -45,7 +45,7 @@ export const PERIDEXION_TREE_DESCRIPTOR = {
           params: { radius: 0.22 },
           transform: { scaleY: 0.8, localPos: { x: 0, y: 0.38, z: 0 } },
           color: 0x74c69d,
-          biomeColor: { source: 'primary', influence: 0.5 },
+          biomeColor: { source: 'foliage', influence: 0.5 },
         },
         {
           id: 'sweet-fruit-1',

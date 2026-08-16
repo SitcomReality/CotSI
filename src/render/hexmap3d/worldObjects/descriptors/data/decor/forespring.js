@@ -22,7 +22,7 @@ export const FORESPRING_DESCRIPTOR = {
       params: { radius: 0.09 },
       transform: { scaleY: 0.3 },
       color: 0x5ad0f0,
-      biomeColor: { source: 'accent', influence: 0.8 },
+      biomeColor: { source: 'exotic', influence: 0.8 },
     },
     {
       id: 'ghost-spark',
@@ -30,7 +30,7 @@ export const FORESPRING_DESCRIPTOR = {
       params: { radius: 0.02 },
       transform: { localPos: { x: 0.05, y: 0.02, z: 0.03 } },
       color: 0xffffff,
-      biomeColor: { source: 'primary', influence: 0.4 },
+      biomeColor: { source: 'foliage', influence: 0.4 },
     },
   ],
 };

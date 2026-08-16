@@ -54,7 +54,7 @@ Biomes are data-driven archetypes defined in `src/game/rules/archetypeData/biome
 - **`terrainRules`** — per-biome overrides merged over `DEFAULT_TERRAIN_RULES` (defined in `params/game/terrainGenParams.js`) and consumed by `classifyTerrain()` in `terrainClassification.js`; e.g. `mountainThreshold`, `waterMaxElevation`, `treeLineMax`, plus per-biome gates like `forestMinMoisture` / `desertMaxMoisture` / `marshMinMoisture`
 - **`features`** — ordered list of feature spawn rules (`{kind, threshold, compare, terrainOnly?, terrainExclude?, tier?}`; first match wins)
 - **`palette`** — per-terrain colour overrides as normalized 0–1 float tuples `[r,g,b]` for vertex colors
-- **`colors`** — biome signature colours (`primary`/`accent`) used for terrain-decor tinting
+- **`colors`** — biome color swatches for terrain-decor tinting: identity swatches `foliage`/`bloom`/`exotic` (required per biome) plus material swatches `wood`/`soil`/`stone` (fall back to `BIOME_COLOR_DEFAULTS`)
 - **`terrainTags`** — which terrain types appear
 - **`weatherAffinity`** — hint for weather system (future)
 - **`terrainElevation`** — (optional) per-terrain Y-offset overrides
@@ -82,7 +82,7 @@ See `src/game/rules/archetypeData/biomes/` for exact definitions.
 | `terrainRules` | object | Per-biome overrides merged over `DEFAULT_TERRAIN_RULES` (`params/game/terrainGenParams.js`); consumed by `classifyTerrain()`. |
 | `features` | `[{kind, threshold, compare, terrainOnly?, terrainExclude?, tier?}]` | Ordered list of feature spawn rules. `compare: 'gt'` = roll > threshold, `'lt'` = roll < threshold. First match wins. Replaces old `featureFrequencies`. |
 | `palette` | `{terrain: [r,g,b]}` | Normalized 0–1 colour overrides for 3D mesh and minimap. |
-| `colors` | `{primary, accent}` | Biome signature colours for terrain-decor tinting. |
+| `colors` | `{foliage, bloom, exotic, wood?, soil?, stone?}` | Biome color swatches for terrain-decor tinting. `foliage`/`bloom`/`exotic` are the biome's identity colors (required); `wood`/`soil`/`stone` inherit `BIOME_COLOR_DEFAULTS` unless overridden. |
 | `terrainTags` | `string[]` | Terrain types this biome supports. |
 | `weatherAffinity` | `string[]` | Placeholder for future weather system. |
 | `terrainElevation` | `{terrain: number}` | (optional) Per-terrain Y-offset overrides. |
@@ -115,7 +115,12 @@ defineArchetype('biome_my_new_biome', {
     { kind: 'knot',        threshold: 0.038, compare: 'lt' },
   ],
   palette: { /* per-terrain [r,g,b] tuples, normalized 0–1 */ },
-  colors: { primary: [0.45, 0.67, 0.36], accent: [0.83, 0.69, 0.35] },
+  colors: {
+    foliage: [0.45, 0.67, 0.36],   // identity: plant life (leaves, grass, scrub)
+    bloom: [0.83, 0.69, 0.35],     // identity: flowers, fruits, berries
+    exotic: [0.75, 0.28, 0.32],    // identity: crystals, glows, supernatural bits
+    // wood/soil/stone omitted → BIOME_COLOR_DEFAULTS
+  },
   terrainTags: ['plains', 'forest', 'desert', 'marsh', 'mountain', 'water'],
   weatherAffinity: ['temperate'],
   terrainElevation: null,

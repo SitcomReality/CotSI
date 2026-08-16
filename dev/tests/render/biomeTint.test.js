@@ -1,25 +1,38 @@
 /**
  * biomeTint.test.js — Neighbor-blended biome colors
- * (src/render/hexmap3d/worldObjects/biomeTint.js): the blend formula, water/river
- * exclusion, gate filtering, the Untouched/Painforest no-signature-tint rule,
- * and the `terrain` source (ground-matching tint from the biome palettes).
- * Pure module — no THREE, no game state.
+ * (src/render/hexmap3d/worldObjects/biomeTint.js): the per-swatch blend
+ * formula, water/river exclusion, gate filtering, the Untouched/Painforest
+ * no-signature-tint rule, and the `terrain` source (ground-matching tint from
+ * the biome palettes). Pure module — no THREE, no game state.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { biomeTintForTile, isDefaultTintBiome } from '../../../src/render/hexmap3d/worldObjects/biomeTint.js';
 import { TERRAIN_BLEND_FACTOR, TERRAIN_COLOR } from '../../../src/params/render/terrainParams.js';
 
-// Arbitrary-but-real biome colors (0-1 tuples): Edenfall purple/gold and
-// Painforest green/teal.
-const EDEN_PRIMARY = [0.55, 0.30, 0.55];
-const EDEN_ACCENT = [0.91, 0.76, 0.29];
-const PAIN_PRIMARY = [0.38, 0.62, 0.28];
-const PAIN_ACCENT = [0.16, 0.42, 0.38];
+// Arbitrary-but-real biome color swatches (0-1 tuples): Edenfall purple/gold
+// and Painforest green/teal, plus the shared material defaults (wood/soil/
+// stone) exactly as gameFactory merges them for the game state.
+const EDEN = {
+  foliage: [0.55, 0.30, 0.55],
+  wood: [0.545, 0.369, 0.235],
+  soil: [0.541, 0.420, 0.290],
+  stone: [0.55, 0.55, 0.55],
+  bloom: [0.91, 0.76, 0.29],
+  exotic: [0.80, 0.65, 0.95],
+};
+const PAIN = {
+  foliage: [0.38, 0.62, 0.28],
+  wood: [0.545, 0.369, 0.235],
+  soil: [0.541, 0.420, 0.290],
+  stone: [0.55, 0.55, 0.55],
+  bloom: [0.82, 0.25, 0.40],
+  exotic: [0.16, 0.42, 0.38],
+};
 
 const COLORS = new Map([
-  ['biome_edenfall', { primary: EDEN_PRIMARY, accent: EDEN_ACCENT }],
-  ['biome_painforest', { primary: PAIN_PRIMARY, accent: PAIN_ACCENT }],
+  ['biome_edenfall', EDEN],
+  ['biome_painforest', PAIN],
 ]);
 
 // Per-terrain palettes, like state.biomePalettes (terrain type → 0-1 tuple).
@@ -32,6 +45,7 @@ const PALETTES = new Map([
 
 const closeTo = (a, b, eps = 1e-9) => Math.abs(a - b) < eps;
 const allClose = (a, b) => a.length === b.length && a.every((v, i) => closeTo(v, b[i]));
+const swatchKeys = (obj) => Object.keys(obj).filter((k) => k !== 'terrain').sort();
 
 test('isDefaultTintBiome marks Untouched and Painforest, not others', () => {
   assert.equal(isDefaultTintBiome('biome_default'), true);
@@ -40,14 +54,15 @@ test('isDefaultTintBiome marks Untouched and Painforest, not others', () => {
   assert.equal(isDefaultTintBiome(undefined), false);
 });
 
-test('isolated tile blends with nothing: tint is its own colors', () => {
+test('isolated tile blends with nothing: tint is its own swatches', () => {
   const tile = { q: 0, r: 0, biomeId: 'biome_edenfall' };
   const tint = biomeTintForTile(tile, new Map(), COLORS);
-  assert.deepEqual(tint, { primary: EDEN_PRIMARY, accent: EDEN_ACCENT });
+  assert.deepEqual(tint, EDEN);
 });
 
-test('Edenfall beside Painforest dilutes the purple toward green', () => {
-  // Painforest sits at (1,0) — one of (0,0)'s six neighbors.
+test('Edenfall beside Painforest dilutes each differing swatch toward its neighbor', () => {
+  // Painforest sits at (1,0) — one of (0,0)'s six neighbors. Swatches the
+  // biomes share (the wood/soil/stone defaults) blend to the same color.
   const tiles = new Map([
     ['0,0', { q: 0, r: 0, biomeId: 'biome_edenfall' }],
     ['1,0', { q: 1, r: 0, biomeId: 'biome_painforest' }],
@@ -56,20 +71,24 @@ test('Edenfall beside Painforest dilutes the purple toward green', () => {
   // Formula mirrors cornerBlendColor: own·(1-f) + mean(all parts)·f.
   const f = TERRAIN_BLEND_FACTOR;
   const mean = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
-  const mP = mean(EDEN_PRIMARY, PAIN_PRIMARY);
-  const mA = mean(EDEN_ACCENT, PAIN_ACCENT);
-  const expectP = [EDEN_PRIMARY[0] * (1 - f) + mP[0] * f, EDEN_PRIMARY[1] * (1 - f) + mP[1] * f, EDEN_PRIMARY[2] * (1 - f) + mP[2] * f];
-  const expectA = [EDEN_ACCENT[0] * (1 - f) + mA[0] * f, EDEN_ACCENT[1] * (1 - f) + mA[1] * f, EDEN_ACCENT[2] * (1 - f) + mA[2] * f];
-  assert.ok(allClose(tint.primary, expectP), `primary ${tint.primary} vs ${expectP}`);
-  assert.ok(allClose(tint.accent, expectA), `accent ${tint.accent} vs ${expectA}`);
-  // The purple red channel dropped and the green rose — the visible dilution.
-  assert.ok(tint.primary[0] < EDEN_PRIMARY[0], 'red pulled down by Painforest');
-  assert.ok(tint.primary[1] > EDEN_PRIMARY[1], 'green pulled up by Painforest');
+  assert.deepEqual(swatchKeys(tint), ['bloom', 'exotic', 'foliage', 'soil', 'stone', 'wood']);
+  for (const swatch of Object.keys(EDEN)) {
+    const m = mean(EDEN[swatch], PAIN[swatch]);
+    const expect = [
+      EDEN[swatch][0] * (1 - f) + m[0] * f,
+      EDEN[swatch][1] * (1 - f) + m[1] * f,
+      EDEN[swatch][2] * (1 - f) + m[2] * f,
+    ];
+    assert.ok(allClose(tint[swatch], expect), `${swatch} ${tint[swatch]} vs ${expect}`);
+  }
+  // The visible dilution: purple red channel dropped, green rose.
+  assert.ok(tint.foliage[0] < EDEN.foliage[0], 'red pulled down by Painforest');
+  assert.ok(tint.foliage[1] > EDEN.foliage[1], 'green pulled up by Painforest');
 });
 
 test('water and river neighbors never participate in the blend', () => {
   // All six neighbors of (0,0) are water (with Painforest colors — they must
-  // still be skipped): the tint is the tile's own colors.
+  // still be skipped): the tint is the tile's own swatches.
   const tiles = new Map([
     ['0,0', { q: 0, r: 0, biomeId: 'biome_edenfall' }],
     ['1,0', { q: 1, r: 0, terrain: 'water', biomeId: 'biome_painforest' }],
@@ -80,7 +99,7 @@ test('water and river neighbors never participate in the blend', () => {
     ['0,1', { q: 0, r: 1, terrain: 'water', biomeId: 'biome_painforest' }],
   ]);
   const tint = biomeTintForTile(tiles.get('0,0'), tiles, COLORS);
-  assert.deepEqual(tint, { primary: EDEN_PRIMARY, accent: EDEN_ACCENT });
+  assert.deepEqual(tint, EDEN);
 });
 
 test('neighbors outside the decor gate are skipped', () => {
@@ -90,7 +109,7 @@ test('neighbors outside the decor gate are skipped', () => {
   ]);
   // Painforest neighbor out of the gate → no dilution.
   const gated = biomeTintForTile(tiles.get('0,0'), tiles, COLORS, new Set(['0,0']));
-  assert.deepEqual(gated, { primary: EDEN_PRIMARY, accent: EDEN_ACCENT });
+  assert.deepEqual(gated, EDEN);
 });
 
 test('Untouched and Painforest tiles never tint, whatever their neighbors', () => {
@@ -119,10 +138,10 @@ test('missing colors or biome id yield no tint', () => {
 test('terrain source is the tile\'s own palette color (no neighbors)', () => {
   const tile = { q: 0, r: 0, biomeId: 'biome_edenfall', terrain: 'hill' };
   const tint = biomeTintForTile(tile, new Map(), COLORS, null, PALETTES);
-  assert.deepEqual(tint, { primary: EDEN_PRIMARY, accent: EDEN_ACCENT, terrain: EDEN_PALETTE.hill });
+  assert.deepEqual(tint, { ...EDEN, terrain: EDEN_PALETTE.hill });
 });
 
-test('terrain tint applies in default-tint biomes (primary/accent do not)', () => {
+test('terrain tint applies in default-tint biomes (swatch tints do not)', () => {
   // Painforest never signature-tints, but its decor should still match the
   // ground it sits on.
   const tile = { q: 0, r: 0, biomeId: 'biome_painforest', terrain: 'hill' };
@@ -141,9 +160,9 @@ test('terrain source blends toward neighbors\' terrain colors', () => {
   const mT = [(EDEN_PALETTE.hill[0] + PAIN_PALETTE.forest[0]) / 2, (EDEN_PALETTE.hill[1] + PAIN_PALETTE.forest[1]) / 2, (EDEN_PALETTE.hill[2] + PAIN_PALETTE.forest[2]) / 2];
   const expectT = [EDEN_PALETTE.hill[0] * (1 - f) + mT[0] * f, EDEN_PALETTE.hill[1] * (1 - f) + mT[1] * f, EDEN_PALETTE.hill[2] * (1 - f) + mT[2] * f];
   assert.ok(allClose(tint.terrain, expectT), `terrain ${tint.terrain} vs ${expectT}`);
-  // Signature and terrain blends are independent (neighbor is Painforest: it
-  // dilutes primary/accent but its terrain color comes from its own palette).
-  assert.ok(tint.primary[0] < EDEN_PRIMARY[0], 'signature blend unaffected by terrain source');
+  // Swatch and terrain blends are independent (neighbor is Painforest: it
+  // dilutes foliage but its terrain color comes from its own palette).
+  assert.ok(tint.foliage[0] < EDEN.foliage[0], 'swatch blend unaffected by terrain source');
 });
 
 test('water and river neighbors are excluded from the terrain blend', () => {
@@ -168,7 +187,8 @@ test('out-of-gate neighbors are excluded from the terrain blend', () => {
 test('missing palette falls back to the base terrain color', () => {
   // TERRAIN_COLOR has no hill entry (biomes always define palette.hill), so
   // the fallback chain lands on plains — the same resolution the terrain
-  // mesh uses (tileColor.js).
+  // mesh uses (tileColor.js). The biome has no colors entry either, so no
+  // swatches are computed.
   const tile = { q: 0, r: 0, biomeId: 'biome_unfinished_lands', terrain: 'hill' };
   const tint = biomeTintForTile(tile, new Map(), COLORS, null, PALETTES);
   assert.deepEqual(tint, { terrain: TERRAIN_COLOR.plains });
@@ -178,4 +198,5 @@ test('without palettes the tint has no terrain entry', () => {
   const tile = { q: 0, r: 0, biomeId: 'biome_edenfall', terrain: 'hill' };
   const tint = biomeTintForTile(tile, new Map(), COLORS);
   assert.equal(tint.terrain, undefined);
+  assert.deepEqual(swatchKeys(tint), ['bloom', 'exotic', 'foliage', 'soil', 'stone', 'wood']);
 });
