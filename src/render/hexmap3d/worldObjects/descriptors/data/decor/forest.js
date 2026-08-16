@@ -8,7 +8,7 @@ export const FOREST_DESCRIPTOR = {
   schemaVersion: 6,
   id: 'forest',
   kind: 'decor',
-  displayName: 'Forest',
+  displayName: 'Forest decor',
   cluster: { rule: 'moisture', countsByTerrain: { forest: [3, 5] } },
   size: { min: 1.3, max: 1.5 },
   variation: { colorJitter: 0.05 },

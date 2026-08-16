@@ -8,7 +8,7 @@ export const DESERT_DESCRIPTOR = {
   schemaVersion: 6,
   id: 'desert',
   kind: 'decor',
-  displayName: 'Desert Growth',
+  displayName: 'Desert decor',
   cluster: { min: 6, max: 8, rule: 'uniform' },
   size: { min: 0.9, max: 1.2 },
   variation: { colorJitter: 0.06 },

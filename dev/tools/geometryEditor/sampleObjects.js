@@ -24,6 +24,18 @@ import '../../../src/game/rules/archetypeData/biomes/index.js';
 export const SAMPLE_OBJECTS = ALL_DESCRIPTORS.map(normalizeDescriptor);
 
 /**
+ * Replace the in-session sample for `d.id` with the saved descriptor, so the
+ * object browser shows the saved name/id immediately. Needed because the save
+ * path re-normalizes (a deep copy), which detaches S.descriptor from the
+ * SAMPLE_OBJECTS entry the browser renders — without this, a renamed object
+ * keeps showing its old name in the list until a reload.
+ */
+export function syncSampleObject(d) {
+  const i = SAMPLE_OBJECTS.findIndex((o) => o.id === d.id);
+  if (i >= 0) SAMPLE_OBJECTS[i] = d;
+}
+
+/**
  * One browser row per mob type — all 7 archetypes — labeled with the
  * game-side friendly name. `variantId` is the descriptor-side archetype
  * variant id ('infernalpaca', 'scorpelican', ...).

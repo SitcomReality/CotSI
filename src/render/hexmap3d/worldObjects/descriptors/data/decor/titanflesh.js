@@ -2,7 +2,7 @@ export const TITANFLESH_DESCRIPTOR = {
   schemaVersion: 5,
   id: 'titanflesh',
   kind: 'decor',
-  displayName: 'Titanflesh Growths',
+  displayName: 'Titanflesh decor',
   cluster: { min: 2, max: 4, rule: 'uniform' },
   size: { min: 0.9, max: 1.3 },
   variation: {

@@ -4,7 +4,7 @@
  * Splits the editing UI across focused modules and stitches them together:
  * the parts list (partList.js) renders into `#parts-edit`, and the contextual
  * inspector — objectInspector/ when no part is selected, partInspector/
- * when one is — into `#inspector-body`. Owns the panel session (DOM refs, the
+ * when one is — into `#fields-body`. Owns the panel session (DOM refs, the
  * preview rebuild hook) and the `ctx` object passed to every renderer, which
  * keeps the dependency graph acyclic.
  */
@@ -13,7 +13,7 @@ import { activeParts } from './variantQuery.js';
 import { pushUndo, popUndo, restoreUndo } from '../history.js';
 import { findNodeById } from './partTree/index.js';
 import { renderPartsList } from './partList.js';
-import { renderObjectHeader, renderObjectControls } from './objectInspector/index.js';
+import { renderObjectIdentity, renderMotifPanel, renderFieldSections } from './objectInspector/index.js';
 import { renderPartInspector } from './partInspector/index.js';
 import { bindProjectControls } from './projectControls.js';
 
@@ -55,35 +55,42 @@ const ctx = {
 // ── Rendering ───────────────────────────────────────────────────────────────
 
 /**
- * Render the contextual inspector: the selected part's fields when one is
- * selected, otherwise the object-level design controls. The parts list above
- * (#parts-edit) renders separately.
+ * Render the contextual inspector into the sidebar panels: the Object
+ * identity + Motifs panels stay (object-level context), the Fields panel
+ * shows the selected part's fields when one is selected, otherwise the
+ * object-level design fields. The Motifs panel exists only for motif decors.
+ * The parts list (#parts-edit) renders separately.
  */
-function renderInspector(container) {
-  container.textContent = '';
+function renderInspector() {
   const d = S.descriptor;
+  for (const body of [els.objectBody, els.motifsBody, els.fieldsBody]) body.textContent = '';
   if (!d) return;
+  els.motifsPanel.hidden = !((d.motifs ?? []).length > 0);
+
+  // Object identity + the Motifs panel are object-level context — they stay
+  // rendered while a part is selected; the Fields panel swaps between the
+  // part inspector and the object-level design fields.
+  renderObjectIdentity(els.objectBody, ctx);
+  if ((d.motifs ?? []).length > 0) renderMotifPanel(els.motifsBody, ctx);
 
   const entry = findNodeById(activeParts(), S.selectedPartId);
   if (entry) {
-    renderPartInspector(container, entry, ctx);
+    renderPartInspector(els.fieldsBody, entry, ctx);
     return;
   }
-
-  renderObjectHeader(container);
-  renderObjectControls(container, ctx);
+  renderFieldSections(els.fieldsBody, ctx);
 }
 
 function renderAll() {
   renderPartsList(els.partsEdit, ctx);
-  renderInspector(els.inspectorBody);
+  renderInspector();
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
  * Bind the editing panel to its DOM containers and the preview rebuild hook.
- * @param {object} elsRef - the editor's DOM refs (partsEdit, inspectorBody, downloadBtn, loadFile, loadError)
+ * @param {object} elsRef - the editor's DOM refs (partsEdit, objectBody, motifsBody, fieldsBody, downloadBtn, loadFile, loadError)
  * @param {Function} onEditFn - () => void; rebuilds the preview from S.descriptor
  * @param {Function} onLoadedFn - () => void; called after a JSON load succeeds (re-renders the object browser)
  * @returns {object} the panel ctx ({ mutate, renderAll, onEdit, onLoaded }) — the single mutation path

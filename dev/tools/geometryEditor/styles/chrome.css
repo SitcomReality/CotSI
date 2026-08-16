@@ -12,6 +12,28 @@
   min-width: 0;
 }
 
+/* Save-server reachability — a persistent offline warning so edits never
+   accumulate against a dead server. Online hides the badge (the enabled Save
+   button is the positive signal). */
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--crimson);
+  background: color-mix(in srgb, var(--crimson) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--crimson) 45%, transparent);
+  border-radius: var(--r-sm);
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+.save-status::before {
+  content: '●';
+  color: var(--crimson);
+}
+
 /* Load JSON is a styled label wrapping a hidden file input. */
 .load-btn {
   display: inline-flex;

@@ -8,7 +8,7 @@ export const PLATEAU_DESCRIPTOR = {
   schemaVersion: 6,
   id: 'plateau',
   kind: 'decor',
-  displayName: 'Plateau Scrub',
+  displayName: 'Plateau decor',
   cluster: { min: 5, max: 8, rule: 'uniform' },
   size: { min: 0.85, max: 1.15 },
   variation: { colorJitter: 0.06 },

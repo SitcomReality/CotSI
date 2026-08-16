@@ -94,6 +94,12 @@ function bindControls() {
     rebuild();
   });
 
+  els.motifSelect.addEventListener('change', () => {
+    S.variantId = els.motifSelect.value || null;
+    rebuild();
+    refreshEditorPanel(); // the parts list + inspector edit the newly selected motif
+  });
+
   els.rerollBtn.addEventListener('click', () => {
     S.tileH = (S.tileH * 17 + 5) % 89;
     rebuild();
@@ -124,6 +130,24 @@ function bindControls() {
   els.undoBtn.addEventListener('click', () => {
     undoLastEdit();
   });
+
+  // Collapsible sidebar panels (Object / Motifs / Fields): the head folds the
+  // body — session state lives in the DOM (aria-expanded + the body's
+  // hidden), so re-renders of the body content never reset the fold.
+  for (const head of document.querySelectorAll('.panel-head[data-panel]')) {
+    const body = document.getElementById(`${head.dataset.panel}-body`);
+    const fold = head.querySelector('.panel-fold');
+    const apply = () => {
+      const collapsed = head.classList.toggle('collapsed');
+      body.hidden = collapsed;
+      fold.textContent = collapsed ? '▸' : '▾';
+      head.setAttribute('aria-expanded', String(!collapsed));
+    };
+    head.addEventListener('click', apply);
+    head.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); apply(); }
+    });
+  }
 
   // Ctrl/Cmd+Z undoes the last edit (unless the focus is in a text field).
   document.addEventListener('keydown', (e) => {

@@ -1,10 +1,9 @@
 /* layout.css — two-pane page grid: inspector | 3D viewport under a slim
    chrome header spanning both. The object browser is a fixed-position overlay
    anchored under the header (see .floating), so the grid never reserves space
-   for it. Each pane scrolls on its own, so a tall editing section can't push
-   the rest off-screen. The parts list lives inside the inspector column
-   (#parts-edit at the top), where its expanded rows push the design fields
-   down in normal flow. */
+   for it. The inspector is a column of collapsible panels (Object / Parts /
+   Motifs / Fields) that scrolls as one; the parts list keeps its own capped
+   internal scroll so a long tree never swallows the column. */
 
 /* The header's rendered height — main.js (syncChromeHeight) re-measures it so
    the floating panels anchor exactly under the bar; this is a fallback until
@@ -39,32 +38,73 @@
   grid-row: 2;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* the column is a flex container — children scroll on their own */
-  overflow: hidden;
+  gap: var(--s3);
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--crease-bold) transparent;
   padding: var(--s3) var(--s4) var(--s6);
   background: var(--shadow);
   border-right: 1px solid var(--crease);
   min-width: 0;
 }
 
-/* The parts list and the design fields are two independent panes: the list
-   caps its height and scrolls internally, the fields take the remaining
-   column and scroll beneath it. A selected part's fields never push the list
-   off-screen, and a long biome-pin list never hides the parts. */
+/* ── Collapsible inspector panels ─────────────────────────────────────────── */
+
+.inspector-panel {
+  border: 1px solid var(--crease);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--board) 55%, transparent);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: var(--s1) var(--s2);
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--crease);
+  border-left: 3px solid var(--crease-bold);
+}
+
+/* Each panel's fold + accent read at a glance — identity, parts, composition. */
+.panel-head[data-panel="object"] { border-left-color: var(--cerulean); }
+.panel-head[data-panel="motifs"] { border-left-color: var(--verdigris); }
+.panel-head[data-panel="fields"] { border-left-color: var(--gold); }
+
+.panel-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: var(--ink);
+}
+
+.panel-fold {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+.panel-body {
+  padding: var(--s3);
+}
+
+/* The parts list and the design fields are panels of the same column now:
+   the list caps its height and scrolls internally, the others flow. */
 #parts-edit {
-  flex: 0 0 auto;
   max-height: 40vh;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--crease-bold) transparent;
+  padding: var(--s3);
 }
 
-#inspector-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--crease-bold) transparent;
+#fields-body {
+  min-width: 0;
 }
 
 #viewport {

@@ -36,8 +36,14 @@ export function cacheDom() {
   els.stripHistogram = document.getElementById('strip-histogram');
 
   els.inspector = document.getElementById('inspector');
-  els.inspectorBody = document.getElementById('inspector-body');
+  els.objectBody = document.getElementById('object-body');
+  els.motifsPanel = document.getElementById('motifs-panel');
+  els.motifsBody = document.getElementById('motifs-body');
+  els.fieldsBody = document.getElementById('fields-body');
   els.partsEdit = document.getElementById('parts-edit');
+  els.saveStatus = document.getElementById('save-status');
+  els.motifRow = document.getElementById('motif-row');
+  els.motifSelect = document.getElementById('motif-select');
   els.downloadBtn = document.getElementById('download-btn');
   els.saveBtn = document.getElementById('save-btn');
   els.loadFile = document.getElementById('load-file');

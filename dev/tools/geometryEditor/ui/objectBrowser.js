@@ -13,8 +13,10 @@ import { els } from '../domRefs.js';
 import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf, MOB_ROWS, BROWSABLE_TOTAL } from '../sampleObjects.js';
 import { isCustomDescriptor } from './previewSync.js';
 
-/** Categories the user collapsed; browser re-renders preserve the choice. */
-const collapsedCategories = new Set();
+/** Categories the user collapsed; browser re-renders preserve the choice. All
+ *  start collapsed so the first open is scannable — searching forces every
+ *  group open (see collapsibleShell). */
+const collapsedCategories = new Set(OBJECT_CATEGORIES.map((c) => c.id));
 
 /** Keep --chrome-h in sync so the floating panels anchor exactly under the bar. */
 export function syncChromeHeight() {

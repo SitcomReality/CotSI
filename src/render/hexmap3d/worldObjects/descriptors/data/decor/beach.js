@@ -1,5 +1,5 @@
 /**
- * decor/beach.js — Descriptor data for "Beach Wrack".
+ * decor/beach.js — Descriptor data for "Beach decor".
  *
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
@@ -8,7 +8,7 @@ export const BEACH_DESCRIPTOR = {
   schemaVersion: 6,
   id: 'beach',
   kind: 'decor',
-  displayName: 'Beach Wrack',
+  displayName: 'Beach decor',
   cluster: { min: 5, max: 8, rule: 'uniform' },
   size: { min: 0.85, max: 1.2 },
   variation: { colorJitter: 0.06 },

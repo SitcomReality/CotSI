@@ -9,7 +9,7 @@
  * so the rows render recursively with depth indentation. Each row: label
  * (click to select), ↑/↓ to reorder within its siblings, ✕ to remove the
  * whole subtree. Expanded rows sit in normal flow, pushing the design fields
- * (#inspector-body) down the sidebar.
+ * (#fields-body) down the column.
  */
 import { S } from '../state.js';
 import { el, selectInput } from './formControls.js';
@@ -227,7 +227,7 @@ export function renderPartsList(container, ctx) {
   container.append(addRow);
 
   // Rows only when expanded — they sit in normal flow, pushing the design
-  // fields (#inspector-body) down the sidebar.
+  // fields (#fields-body) down the column.
   const list = el('div', 'parts-list');
   list.id = 'parts-list';
   if (partsListExpanded) appendRows(list, parts, 0, ctx);

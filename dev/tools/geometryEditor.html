@@ -13,6 +13,7 @@
          drops below the bar so messages never change the header height. -->
     <header id="chrome">
       <div class="chrome-actions">
+        <span id="save-status" class="save-status" role="status" hidden></span>
         <button id="save-btn" class="create-btn" type="button" title="Saving needs the dev server — run dev/tools/geometryEditor/saveServer.sh" disabled>Save</button>
         <button id="download-btn" type="button">⬇ Download</button>
         <label class="load-btn">
@@ -43,12 +44,38 @@
       <nav id="object-list" aria-label="Object designs"></nav>
     </aside>
 
-    <!-- Left sidebar: two independently scrolling panes — the parts list
-         (#parts-edit) caps its height and scrolls internally, the design
-         fields (#inspector-body) scroll in the space below it. -->
+    <!-- Left sidebar: collapsible panels — Object identity, Parts list,
+         Motif list (v6 decors), and the remaining design Fields. Each panel
+         folds so the column stays scannable; the parts list keeps its own
+         capped internal scroll. -->
     <main id="inspector">
-      <section id="parts-edit" aria-label="Parts list"></section>
-      <section id="inspector-body" aria-label="Design fields"></section>
+      <section class="inspector-panel" id="object-panel">
+        <div class="panel-head" data-panel="object" role="button" tabindex="0" aria-expanded="true"
+          title="Object identity — name, id, kind">
+          <span class="panel-title">Object</span>
+          <span class="panel-fold" aria-hidden="true">▾</span>
+        </div>
+        <div class="panel-body" id="object-body"></div>
+      </section>
+      <section class="inspector-panel" id="parts-panel">
+        <div class="panel-body" id="parts-edit" aria-label="Parts list"></div>
+      </section>
+      <section class="inspector-panel" id="motifs-panel" hidden>
+        <div class="panel-head" data-panel="motifs" role="button" tabindex="0" aria-expanded="true"
+          title="Motif weights, per-biome multipliers, and the realized-share grid">
+          <span class="panel-title">Motifs</span>
+          <span class="panel-fold" aria-hidden="true">▾</span>
+        </div>
+        <div class="panel-body" id="motifs-body"></div>
+      </section>
+      <section class="inspector-panel" id="fields-panel">
+        <div class="panel-head" data-panel="fields" role="button" tabindex="0" aria-expanded="true"
+          title="The remaining design fields — variant, cluster, size, placement, emphasis, portrait">
+          <span class="panel-title">Fields</span>
+          <span class="panel-fold" aria-hidden="true">▾</span>
+        </div>
+        <div class="panel-body" id="fields-body"></div>
+      </section>
     </main>
 
     <!-- 3D preview area -->
@@ -69,6 +96,11 @@
             <label id="biome-row">
               Biome
               <select id="biome-select" aria-label="Preview-tile biome"></select>
+            </label>
+            <label id="motif-row" hidden>
+              Motif
+              <select id="motif-select" aria-label="Editing motif"
+                title="Which motif the parts list edits; forced, every slot draws it (catalog mode) — the strip switches to it"></select>
             </label>
             <label id="state-row">
               State

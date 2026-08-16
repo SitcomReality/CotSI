@@ -1,16 +1,16 @@
 /**
- * render.js — Object inspector composition: identity fields and the
- * kind-dispatched field sets.
+ * render.js — Object inspector composition, split across the sidebar panels.
  *
- * Renders into `#inspector-body` when no part is selected. Name and ID are
- * editable for every object; the field sets below depend on the descriptor
- * kind — item icons, entity-driven (faction/archetype), and tile-driven
- * objects (motif or variant panel, then cluster/size/placement/emphasis).
- * `ctx` supplies `mutate()` (and `onLoaded()` for renames, which also
- * refresh the object browser).
+ * Renders into the sidebar's Object / Motifs / Fields panels when no part is
+ * selected. `renderObjectIdentity` owns the header + Name/ID rows;
+ * `renderMotifPanel` the v6 motif composition panel (motif decors only);
+ * `renderFieldSections` the kind-dispatched field sets — item icons,
+ * entity-driven (faction/archetype), and tile-driven objects (variant panel,
+ * then cluster/size/placement/emphasis/portrait). `ctx` supplies `mutate()`
+ * (and `onLoaded()` for renames, which also refresh the object browser).
  */
 import { S } from '../../state.js';
-import { el, row, subheading, textInput, selectInput } from '../formControls.js';
+import { el, row, textInput, selectInput } from '../formControls.js';
 import { inspectorHead } from '../inspectorHead.js';
 import { ENTITY_KINDS } from '../../entityView.js';
 import { SAMPLE_OBJECTS } from '../../sampleObjects.js';
@@ -22,22 +22,15 @@ import { renderEntityControls } from './entitySection.js';
 import { renderPortraitControls } from './portraitSection.js';
 import { renderClusterSection, renderSizeSection, renderPlacementSection, renderEmphasisSection } from './tileSections.js';
 
-/** Inspector header for object-level editing: name + id/kind meta. */
-export function renderObjectHeader(container) {
+/** The Object panel: inspector header (name + id/kind meta) and the editable
+ *  Name / ID rows every object gets. */
+export function renderObjectIdentity(container, ctx) {
   const d = S.descriptor;
-  container.append(inspectorHead(d.displayName, `${d.id} · ${d.kind}`));
-}
 
-/**
- * Render the object-level field sets into `container`. `ctx` supplies
- * `mutate(fn)` for every field change and `onLoaded()` for renames.
- */
-export function renderObjectControls(container, ctx) {
-  const d = S.descriptor;
+  container.append(inspectorHead(d.displayName, `${d.id} · ${d.kind}`));
 
   // Name is editable for every object (samples included) — renames take effect
   // in the inspector header, the preview info, and the browser list right away.
-  container.append(subheading('Object'));
   container.append(row('Name', textInput(d.displayName, (v) => ctx.mutate(() => {
     d.displayName = v;
     ctx.onLoaded(); // browser labels + custom pin re-render with the new name
@@ -64,6 +57,17 @@ export function renderObjectControls(container, ctx) {
   if (!isRegistered) {
     container.append(el('div', 'hint', 'New objects need a real id before saving to the game — letters, numbers, _ and -.'));
   }
+}
+
+/** The Motifs panel — the v6 composition panel for motif decors. */
+export function renderMotifPanel(container, ctx) {
+  renderMotifControls(container, ctx);
+}
+
+/** The Fields panel — the kind-dispatched design sections (everything except
+ *  the Object identity and the Motifs panel). */
+export function renderFieldSections(container, ctx) {
+  const d = S.descriptor;
 
   if (d.kind === 'item') {
     container.append(el('div', 'mode-banner', 'item — UI icon'));
@@ -86,12 +90,10 @@ export function renderObjectControls(container, ctx) {
   }
 
   // Tile-driven kinds only (entity/item returned above). Motif decors get the
-  // v6 motif panel (weights + realized shares + force); everything else keeps
-  // the Variant section (the duplicate path still starts a per-biome variant).
+  // motif panel in its own sidebar panel; everything else keeps the Variant
+  // section here (the duplicate path still starts a per-biome variant).
   const hasMotifs = (d.motifs ?? []).length > 0;
-  if (hasMotifs) {
-    renderMotifControls(container, ctx);
-  } else {
+  if (!hasMotifs) {
     renderVariantSection(container, d, ctx);
   }
 

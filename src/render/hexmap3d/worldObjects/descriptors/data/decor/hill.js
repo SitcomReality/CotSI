@@ -8,7 +8,7 @@ export const HILL_DESCRIPTOR = {
   schemaVersion: 5,
   id: 'hill',
   kind: 'decor',
-  displayName: 'Hill Mound',
+  displayName: 'Hill decor',
   emphasis: { behavior: 'sunk' },
   parts: [
     {

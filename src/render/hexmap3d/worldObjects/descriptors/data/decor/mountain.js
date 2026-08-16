@@ -27,7 +27,7 @@ export const MOUNTAIN_DESCRIPTOR = {
   id: 'mountain',
   kind: 'mountain',
   variantRule: 'mountain',
-  displayName: 'Mountain',
+  displayName: 'Mountain decor',
   scale: 1,
   size: {
     // mountainScale() per terrain-generation tag; XZ stays 1 (hex-tiling base).

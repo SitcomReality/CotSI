@@ -18,7 +18,8 @@ import {
   normalizeDescriptor,
   validateDescriptor,
 } from '../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
-import { SAMPLE_OBJECTS } from '../sampleObjects.js';
+import { SAMPLE_OBJECTS, syncSampleObject } from '../sampleObjects.js';
+import { renderObjectList } from './objectBrowser.js';
 import { newObjectTemplate } from './objectTemplates.js';
 import { buildIconAtlas } from '../atlasBuild.js';
 
@@ -68,6 +69,10 @@ function bindSaveToGame(els) {
     els.saveBtn.title = on
       ? 'Save this object into the game\'s data files'
       : 'Saving needs the dev server — run dev/tools/geometryEditor/saveServer.sh';
+    // Offline is a persistent, colored warning in the header (the enabled Save
+    // button is the positive signal when online); re-probing flips it live.
+    els.saveStatus.hidden = on;
+    els.saveStatus.textContent = 'Save server offline — run dev/tools/geometryEditor/saveServer.sh';
   };
 
   /** Probe one candidate base ('' = the page's own origin) for /save/status. */
@@ -87,9 +92,15 @@ function bindSaveToGame(els) {
   }
 
   (async () => {
-    const base =
-      (await probeSaveBase('')) ?? (await probeSaveBase(SAVE_FALLBACK_ORIGIN));
-    enable(base !== null, base ?? '');
+    const probe = async () => {
+      const base =
+        (await probeSaveBase('')) ?? (await probeSaveBase(SAVE_FALLBACK_ORIGIN));
+      enable(base !== null, base ?? '');
+    };
+    await probe();
+    // Keep watching — starting saveServer.sh after the page load should enable
+    // Save without a reload, and a dying server should warn immediately.
+    setInterval(probe, 10000);
   })();
 
   // ── Save-review modal ────────────────────────────────────────────────────
@@ -271,6 +282,8 @@ function bindSaveToGame(els) {
       const json = await res.json().catch(() => null);
       if (res.ok && json?.ok) {
         S.descriptor = d; // session now matches the saved (normalized) file
+        syncSampleObject(d); // the browser list shows the saved name/id, not a stale sample
+        renderObjectList(els.objectFilter.value);
         els.loadError.textContent =
           `Saved data/${json.file} — refresh the game to see it.` +
           (json.wasNew ? ' (Reload this page to browse the new object.)' : '') +

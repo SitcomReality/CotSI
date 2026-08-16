@@ -8,7 +8,7 @@ export const MARSH_DESCRIPTOR = {
   schemaVersion: 6,
   id: 'marsh',
   kind: 'decor',
-  displayName: 'Marsh Reeds',
+  displayName: 'Marsh decor',
   cluster: { rule: 'moisture', countsByTerrain: { marsh: [5, 8] }, densityRange: [0.45, 0.85], jitter: 1 },
   size: { min: 0.9, max: 1.25 },
   variation: { colorJitter: 0.06 },

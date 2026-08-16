@@ -12,7 +12,8 @@
 import { S } from '../../state.js';
 import { el, row, numberInput, selectInput } from '../formControls.js';
 import { activeParts, activeMotif } from '../variantQuery.js';
-import { freshId, motifScoped, makeGroupNode, makeLeafNode } from '../partTree/index.js';
+import { freshId, motifScoped, listNodes, makeGroupNode, makeLeafNode } from '../partTree/index.js';
+import { renameNodeId } from '../renameIds.js';
 import { SHAPE_TYPES } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 
 /** Select the first leaf shape from the registry for "add group inside option". */
@@ -58,8 +59,30 @@ export function renderAlternativesSection(container, node, entry, ctx) {
     });
     orow.append(preview);
 
-    const label = el('span', 'part-label', option.id);
-    orow.append(label);
+    // The option id is editable — option ids live in the GLOBAL part-id
+    // namespace, so renames check the whole tree and rewrite the choice
+    // point's `default` (renameNodeId) plus the session preview force.
+    const optIdInput = el('input');
+    optIdInput.type = 'text';
+    optIdInput.className = 'part-label option-id-input';
+    optIdInput.value = option.id;
+    optIdInput.title = "Option id — global namespace; renames rewrite the choice point's default";
+    optIdInput.addEventListener('change', () => {
+      const clean = optIdInput.value.trim().replace(/[^A-Za-z0-9_-]/g, '_');
+      if (!clean || clean === option.id) { optIdInput.value = option.id; return; }
+      if (listNodes(activeParts()).some((e) => e.node.id === clean)) {
+        window.alert(`Option id "${clean}" already exists — pick a different name.`);
+        optIdInput.value = option.id;
+        return;
+      }
+      ctx.mutate(() => {
+        renameNodeId(activeParts(), option.id, clean);
+        if (S.previewOptions.get(node.id) === option.id) {
+          S.previewOptions = new Map(S.previewOptions).set(node.id, clean);
+        }
+      });
+    });
+    orow.append(optIdInput);
 
     const weight = numberInput(option.weight ?? 1, {
       min: 0, step: 0.05,

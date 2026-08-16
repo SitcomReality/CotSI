@@ -1,12 +1,7 @@
-/* ── Parts list (sidebar section above the design fields) ─────────────────── */
+/* ── Parts list (a collapsible sidebar panel) ─────────────────────────────── */
 
-/* The section is its own scrolling pane: rows expand/collapse inside the cap,
-   and the design fields below scroll independently. */
-#parts-edit {
-  padding-bottom: var(--s3);
-  margin-bottom: var(--s3);
-  border-bottom: 1px solid var(--crease);
-}
+/* The list is its own capped scrolling pane inside the Parts panel; the panel
+   shell (border, radius) comes from .inspector-panel. */
 
 .parts-head {
   display: flex;

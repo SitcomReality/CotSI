@@ -3,17 +3,18 @@
  * for `kind: 'decor'` descriptors with `motifs` — the replacement for the
  * Variant section.
  *
- * A motif list with weight inputs (＋ Add / duplicate / delete), a per-biome
- * grid showing each motif's REALIZED share w_i/Σw (with a bar; excluded cells
- * struck through), and a "Force motif" picker that drives S.variantId (motif
- * ids only — the record path treats the explicit id as a forced motif,
- * pin > force > weights).
+ * An editable motif list (id, base weight, ＋ Add / duplicate / delete), and a
+ * per-biome grid whose cells EDIT the raw `biomeWeight` multiplier (absent ≡
+ * 1, 0 ≡ excluded — struck through) while showing each motif's REALIZED share
+ * w_i/Σw as a bar. Which motif the parts list edits is the preview-tools
+ * Motif select (S.variantId — motif ids only; pin > force > weights).
  */
 import { S } from '../../state.js';
-import { el, row, selectInput, numberInput } from '../formControls.js';
+import { el, numberInput } from '../formControls.js';
 import { listArchetypes, getArchetype } from '../../../../../src/game/rules/archetypes.js';
 import { effectiveMotifTable } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/motifDraw.js';
 import { section } from './sectionShell.js';
+import { renameMotifId } from '../renameIds.js';
 
 /** The realized share of each motif in a biome: w_i / Σw over the effective
  *  (biomeWeight-filtered) table — the readable probability, not the raw
@@ -35,35 +36,39 @@ function freshMotifId(used, base = 'motif') {
 }
 
 /**
- * The motif panel: weight inputs + duplicate / delete per motif, the Force
- * motif picker, and the per-biome realized-share grid — biome rows × motif
- * columns.
+ * The motif panel: an editable id + base-weight row per motif (duplicate /
+ * delete), the ＋ Add button, and the per-biome grid — biome rows × motif
+ * columns, each cell editing the raw biomeWeight multiplier with the realized
+ * share drawn as a bar behind it.
  */
 export function renderMotifControls(container, ctx) {
   const d = S.descriptor;
   const motifs = d.motifs;
 
   const motifSection = section('motifs', container);
-  const ids = motifs.map((m) => m.id);
 
-  // Editing-motif picker (the variant picker's role, motif ids only): selects
-  // which motif the parts list and preview edit, and forces that motif on the
-  // strip (catalog mode) so it can be authored in isolation.
-  const force = el('div', 'variant-picker');
-  const picker = selectInput(
-    [{ value: '', label: '— real rolls (weights)' }, ...ids.map((id) => ({ value: id, label: id }))],
-    S.variantId ?? '',
-    (v) => ctx.mutate(() => { S.variantId = v || null; }),
-  );
-  force.append(picker);
-  motifSection.append(row('Force motif', force));
-  motifSection.append(el('div', 'hint', 'Which motif the parts list edits. Forced, every slot draws it (catalog mode) — the strip switches to it. In-game: pins > force > weights.'));
-
-  // Weight inputs + duplicate / delete per motif.
+  // Id + weight inputs with duplicate / delete per motif.
   motifs.forEach((motif, mi) => {
-    const mrow = el('div', 'motif-row');
-    const label = el('span', 'part-label', motif.id);
-    mrow.append(label);
+    const mrow = el('div', 'motif-row' + (motif.weight === 0 ? ' weight-zero' : ''));
+    const idInput = el('input');
+    idInput.type = 'text';
+    idInput.className = 'motif-id-input';
+    idInput.value = motif.id;
+    idInput.title = "Motif id — renames rewrite biomeVariants pins and this motif's part-id prefixes";
+    idInput.addEventListener('change', () => {
+      const clean = idInput.value.trim().replace(/[^A-Za-z0-9_-]/g, '_');
+      if (!clean || clean === motif.id) { idInput.value = motif.id; return; }
+      if (motifs.some((m) => m.id === clean)) {
+        window.alert(`Motif id "${clean}" already exists — pick a different name.`);
+        idInput.value = motif.id;
+        return;
+      }
+      ctx.mutate(() => {
+        renameMotifId(d, motif.id, clean);
+        if (S.variantId === motif.id) S.variantId = clean;
+      });
+    });
+    mrow.append(idInput);
     const weight = numberInput(motif.weight, {
       min: 0, step: 0.05,
       onChange: (v) => ctx.mutate(() => { motif.weight = v; }),
@@ -99,7 +104,9 @@ export function renderMotifControls(container, ctx) {
   }));
   motifSection.append(addBtn);
 
-  // Per-biome realized-share grid — biome rows × motif columns.
+  // Per-biome weight grid — biome rows × motif columns. Each cell edits the
+  // raw `biomeWeight` multiplier (0 = excluded, struck through; 1 = default,
+  // clears the key) with the realized share w_i/Σw as a bar behind it.
   const biomes = listArchetypes('biome');
   const shareFor = new Map(biomes.map((b) => [b, motifShares(d, b)]));
   const grid = el('table', 'motif-grid');
@@ -115,6 +122,19 @@ export function renderMotifControls(container, ctx) {
       const share = shares?.get(m.id) ?? 0;
       const raw = m.biomeWeight?.[biomeId] ?? 1;
       const td = el('td', 'share-cell' + (raw === 0 ? ' excluded' : ''));
+      const input = numberInput(raw, { min: 0, step: 0.05, onChange: (v) => ctx.mutate(() => {
+        if (v === 1) {
+          if (m.biomeWeight) {
+            delete m.biomeWeight[biomeId];
+            if (Object.keys(m.biomeWeight).length === 0) delete m.biomeWeight;
+          }
+        } else {
+          m.biomeWeight ??= {};
+          m.biomeWeight[biomeId] = v;
+        }
+      }) });
+      input.title = 'biomeWeight multiplier — 0 excludes in this biome, 1 = default (clears)';
+      td.append(input);
       if (share > 0) {
         const bar = el('div', 'share-bar');
         bar.style.width = `${Math.round(share * 100)}%`;

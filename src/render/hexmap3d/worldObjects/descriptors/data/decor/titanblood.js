@@ -11,7 +11,7 @@ export const TITANBLOOD_DESCRIPTOR = {
   schemaVersion: 5,
   id: 'titanblood',
   kind: 'decor',
-  displayName: 'Titanblood',
+  displayName: 'Titanblood decor',
   cluster: { min: 1, max: 2 },
   placement: { mode: 'scatter', offsetMin: 0.1, offsetMax: 0.3 },
   emphasis: { behavior: 'dispersed' },

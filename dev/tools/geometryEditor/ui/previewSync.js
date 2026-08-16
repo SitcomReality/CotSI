@@ -105,9 +105,38 @@ export function isCustomDescriptor() {
   return !!S.descriptor && !SAMPLE_OBJECTS.some((d) => d.id === S.descriptor.id);
 }
 
+/** Fill the preview-tools Motif select (the Force-motif / editing selector —
+ *  S.variantId, motif ids only) and show it only for motif decors. Rebuilt on
+ *  every rebuild() so add/duplicate/delete/rename stay in sync; the option
+ *  list only re-renders when the ids change, so an open dropdown keeps focus. */
+function refreshMotifSelect() {
+  const d = S.descriptor;
+  const row = els.motifRow;
+  const sel = els.motifSelect;
+  const show = !!d && !ENTITY_KINDS.has(d.kind) && (d.motifs ?? []).length > 0;
+  row.hidden = !show;
+  if (!show) { sel.replaceChildren(); sel.dataset.ids = ''; return; }
+  const ids = d.motifs.map((m) => m.id);
+  if (sel.dataset.ids !== ids.join(',')) {
+    const options = [
+      { value: '', label: '— real rolls (weights)' },
+      ...ids.map((id) => ({ value: id, label: id })),
+    ];
+    sel.replaceChildren(...options.map((o) => {
+      const opt = document.createElement('option');
+      opt.value = o.value;
+      opt.textContent = o.label;
+      return opt;
+    }));
+    sel.dataset.ids = ids.join(',');
+  }
+  sel.value = S.variantId && ids.includes(S.variantId) ? S.variantId : '';
+}
+
 /** Rebuild the preview from the current state (descriptor, entity/hash, displacement). */
 export function rebuild() {
   if (!S.descriptor) return;
+  refreshMotifSelect();
   if (S.strip && !ENTITY_KINDS.has(S.descriptor.kind)) {
     renderStrip();
     return;
