@@ -16,6 +16,7 @@ const SECTIONS = {
   bounds: { title: 'Bounds', open: true },
   color: { title: 'Color', open: false },
   biome: { title: 'Biome tint', open: false },
+  biomeScale: { title: 'Biome scale', open: false },
   stretch: { title: 'Stretch variation', open: false },
 };
 /** Which sections the user has open (session state, persisted across renders). */

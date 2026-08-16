@@ -31,6 +31,49 @@
   justify-content: flex-end;
 }
 
+/* Biome-scale grid: biome name + size factor per row with bare inputs
+   (stepper:false) for density — the 310px fields column can't fit the motif
+   grid's matrix. Rows with a non-default factor are highlighted so the biome
+   stunts/growths read at a glance. */
+.biome-scale-grid {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--s2);
+  font-size: var(--fs-sm);
+}
+.biome-scale-grid th, .biome-scale-grid td {
+  padding: 2px 4px;
+  text-align: left;
+}
+.biome-scale-grid th {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-faint);
+}
+.biome-scale-grid td.biome-scale-name {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-mid);
+}
+.biome-scale-grid td.biome-scale-factor {
+  text-align: right;
+  width: 76px;
+}
+.biome-scale-grid .biome-scale-factor input[type="number"] {
+  width: 64px;
+  padding: 2px 4px;
+  text-align: center;
+}
+.biome-scale-grid tr.overridden .biome-scale-name {
+  color: var(--gold);
+  font-weight: 600;
+}
+.biome-scale-grid tr.overridden .biome-scale-factor input[type="number"] {
+  border-color: var(--gold);
+}
+
 /* Rotation quick-rotate buttons: a compact row of small preset buttons
    (fits the 310px inspector column like the stretch rows above). */
 .preset-row {

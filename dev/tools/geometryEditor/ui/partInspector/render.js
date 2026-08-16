@@ -4,22 +4,22 @@
  * renderPartInspector renders the selected part's fields into `container`.
  * `entry` is the parts-tree lookup ({ node, parent, depth, index, option }) —
  * groups get structural actions and transform editing; leaves additionally get
- * shape params, color, biome tint and stretch variation; `alternatives` choice
- * points get the option table (weights, default, seed, preview radios). `ctx`
- * supplies the mutation flow.
+ * shape params, color, biome tint, biome scale and stretch variation;
+ * `alternatives` choice points get the option table (weights, default, seed,
+ * preview radios). `ctx` supplies the mutation flow.
  */
 import { isGroupNode, isAlternativesNode } from '../partTree/index.js';
 import { renderPartHeader, renderPartActions } from './actions/index.js';
 import { renderPositionSection, renderRotationSection, renderScaleSection } from './transform/index.js';
 import { renderBoundsSection } from './boundsSection.js';
-import { renderShapeSection, renderColorSection, renderBiomeSection, renderStretchSection } from './leafSections/index.js';
+import { renderShapeSection, renderColorSection, renderBiomeSection, renderBiomeScaleSection, renderStretchSection } from './leafSections/index.js';
 import { renderAlternativesSection } from './alternatives/index.js';
 
 /**
  * Render the selected part's fields into `container`. `entry` is the parts-tree
  * lookup ({ node, parent, depth, index }) — groups get structural actions and
- * transform editing; leaves additionally get shape params, color, biome tint
- * and stretch variation. `ctx` supplies the mutation flow.
+ * transform editing; leaves additionally get shape params, color, biome tint,
+ * biome scale and stretch variation. `ctx` supplies the mutation flow.
  */
 export function renderPartInspector(container, entry, ctx) {
   const { node } = entry;
@@ -39,6 +39,7 @@ export function renderPartInspector(container, entry, ctx) {
   if (!isGroupNode(node)) {
     renderColorSection(container, node, ctx);
     renderBiomeSection(container, node, ctx);
+    renderBiomeScaleSection(container, node, ctx);
     renderStretchSection(container, node, ctx);
   }
 }

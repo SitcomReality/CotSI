@@ -1,5 +1,5 @@
 /**
- * decor/denseForest.js — Descriptor data for "Dense Forest".
+ * decor/denseForest.js — Descriptor data for "Dense Forest decor".
  *
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
@@ -106,7 +106,7 @@ export const DENSE_FOREST_DESCRIPTOR = {
             lift: 0,
             localPos: { x: 0.02, y: 0.52, z: 0.03 },
             localAxis: { x: 1, y: 0, z: 0 },
-            localAngle: 0.7,
+            localAngle: 0.3490658503988659,
           },
           stretch: {
             y: { min: 0.9, max: 1.2, seed: 6 },
@@ -118,17 +118,22 @@ export const DENSE_FOREST_DESCRIPTOR = {
           biomeColor: { source: 'primary', influence: 0.5 },
         },
         {
-          id: 'painforest-canopy',
-          shape: 'sphere',
-          params: { radius: 0.26 },
+          id: 'painforest-part-1',
+          shape: 'cone',
+          params: { bottomR: 0.2, height: 0.5 },
           transform: {
             y: 0,
             lift: 0,
-            localPos: { x: 0.02, y: 0.78, z: 0.21 },
+            localPos: { x: 0, y: 0.7123075206439029, z: 0 },
           },
-          color: 0x2e5d2e,
+          stretch: {
+            y: { min: 0.9, max: 1.15, seed: 6 },
+            x: false,
+            z: false,
+          },
           biomeScale: { biome_painforest: 0.55 },
-          biomeColor: { source: 'primary', influence: 0.95 },
+          color: 0x10761e,
+          biomeColor: { source: 'primary', influence: 0.97 },
         },
       ],
     },
