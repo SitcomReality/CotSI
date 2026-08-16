@@ -2,7 +2,7 @@
  * editorPanel.js — Orchestrator for the geometry editor's left sidebar.
  *
  * Splits the editing UI across focused modules and stitches them together:
- * the parts list (partList.js) renders into `#parts-edit`, and the contextual
+ * the parts list (partList/) renders into `#parts-edit`, and the contextual
  * inspector — objectInspector/ when no part is selected, partInspector/
  * when one is — into `#fields-body`. Owns the panel session (DOM refs, the
  * preview rebuild hook) and the `ctx` object passed to every renderer, which

@@ -29,7 +29,7 @@ export function freshId(parts, prefix) {
  * `M/localId`, under an option `M/A/localId`), so editor-created ids carry
  * the motif context, stay unique across motifs without the author
  * hand-maintaining the global namespace, and the strip histogram's motif
- * attribution (`partId.startsWith(motifId + '-')`, previewSync.js) sees them.
+ * attribution (`partId.startsWith(motifId + '-')`, previewSync/) sees them.
  * Stems that already carry the motif prefix pass through unchanged
  * (hand-authored `cactus-trunk` stays `cactus-trunk` when wrapped into a
  * choice point). Outside motif decors (`motifId` null) the stem is used

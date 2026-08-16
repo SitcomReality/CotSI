@@ -2,7 +2,7 @@
  * objectTemplates.js — Fresh descriptor templates for new objects.
  *
  * Pure template builders for the "＋ Feature / Decor / Mob" buttons; the
- * session swap lives in projectControls.js. `normalizeDescriptor` fills any
+ * session swap lives in projectControls/. `normalizeDescriptor` fills any
  * remaining optional fields at creation time.
  */
 import {

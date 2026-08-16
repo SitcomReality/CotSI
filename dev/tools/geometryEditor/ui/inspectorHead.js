@@ -3,7 +3,7 @@
  *
  * Shared by the object-level header (objectInspector/) and the selected-part
  * header (partInspector/); the parts list above has its own slim header
- * (see partList.js).
+ * (see partList/).
  */
 import { el } from './formControls/index.js';
 
