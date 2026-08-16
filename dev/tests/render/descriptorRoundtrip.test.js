@@ -24,7 +24,7 @@ import {
   emitVariantModule,
   descriptorExportName,
   variantExportName,
-} from '../../../dev/tools/geometryEditor/emitDescriptor.js';
+} from '../../../dev/tools/geometryEditor/emitDescriptor/index.js';
 
 const all = ALL_DESCRIPTORS;
 

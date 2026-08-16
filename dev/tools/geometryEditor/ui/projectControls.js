@@ -13,7 +13,7 @@ import { el } from './formControls.js';
 import { activeVariant } from './variantQuery.js';
 import { ENTITY_KINDS } from '../entityView.js';
 import { diffLines } from './lineDiff.js';
-import { emitDescriptorModule, emitVariantModule } from '../emitDescriptor.js';
+import { emitDescriptorModule, emitVariantModule } from '../emitDescriptor/index.js';
 import {
   normalizeDescriptor,
   validateDescriptor,

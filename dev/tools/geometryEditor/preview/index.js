@@ -17,11 +17,11 @@
  * Orbit: drag rotates, scroll zooms. Dragging a gizmo arrow suppresses orbit.
  *
  * Split across single-purpose modules in preview/: viewportState.js (shared
- * runtime state), scene.js (construction + render loop), floor.js, aabb.js,
- * overlay.js (selection overlay + gizmo), pointer.js (orbit / select / drag).
+ * runtime state), scene/ (construction + render loop), floor.js, aabb.js,
+ * overlay/ (selection overlay + gizmo), pointer/ (orbit / select / drag).
  * This barrel re-exports the original public API unchanged.
  */
-export { createPreview, requestRender, setFloorVisible, showRecords, showRecordsMulti, resetCamera } from './scene.js';
+export { createPreview, requestRender, setFloorVisible, showRecords, showRecordsMulti, resetCamera } from './scene/index.js';
 export { worldAABBForPartIds } from './aabb.js';
-export { updateSelectionOverlay } from './overlay.js';
+export { updateSelectionOverlay } from './overlay/index.js';
 export { bindViewportCallbacks } from './viewportState.js';
