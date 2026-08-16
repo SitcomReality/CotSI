@@ -31,7 +31,7 @@ export {
   makeLeafNode,
   makeAlternativesNode,
   rootToNestedTransform,
-} from './nodes.js';
+} from './nodes/index.js';
 export {
   addLocalDelta,
   nestNode,
@@ -42,4 +42,4 @@ export {
   moveIntoGroup,
   canExtract,
   extractNode,
-} from './restructure.js';
+} from './restructure/index.js';
