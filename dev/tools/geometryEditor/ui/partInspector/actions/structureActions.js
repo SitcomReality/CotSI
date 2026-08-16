@@ -1,8 +1,11 @@
 /**
  * structureActions.js — The structural tree actions every node gets: convert
- * to alternatives, nest into a new group, move into/out of an existing group,
- * ungroup, and copy the transform from a sibling. All write S.selectedPartId
- * through the ctx mutation flow.
+ * to alternatives, nest into a new group, move into/out of an existing group
+ * or alternatives option, ungroup, and copy the transform from a sibling. All
+ * write S.selectedPartId through the ctx mutation flow.
+ *
+ * Rendered by the parts-list actions bar (ui/partList/actionsBar.js) — the
+ * buttons live with the tree they edit, not in the Fields sidebar.
  */
 import { S } from '../../../state.js';
 import { el, selectInput } from '../../formControls/index.js';
@@ -13,12 +16,12 @@ import {
   findNodeById,
   siblingIds,
   siblingList,
-  listNodes,
   nestNode,
   ungroupNode,
   canUngroup,
-  groupTargets,
+  moveTargets,
   moveIntoGroup,
+  moveIntoOption,
   canExtract,
   extractNode,
   freshId,
@@ -52,20 +55,26 @@ function listNodesOf(parts) {
   return out;
 }
 
+/** A labelled group inside the actions block, so the buttons read as a toolbar. */
+function actionGroup(title) {
+  const g = el('div', 'part-actions-group');
+  g.append(el('span', 'part-actions-group-title', title));
+  return g;
+}
+
 /**
  * The structural actions block: convert to alternatives, nest into a new
- * group, move into an existing group, move out of the current group (nested
- * nodes), ungroup (groups only, when the fold is exact), and copy the
- * transform from a sibling.
+ * group, move into/out of an existing group or alternative, ungroup (groups
+ * only, when the fold is exact), and copy the transform from a sibling.
  */
 export function renderStructureActions(container, entry, ctx) {
   const { node } = entry;
-  const actions = el('div', 'part-actions');
 
   // Convert selection to alternatives: wrap the node in a choice point with
   // one option holding a copy of it (decorComposition.md §6.2). The node's id
   // becomes the choice point's id (fresh), and the option keeps a renamed copy
   // of the wrapped node so its parts are editable per-config.
+  const structure = actionGroup('Restructure');
   if (!isAlternativesNode(node)) {
     const toAltBtn = el('button', null, 'Convert to alternatives');
     toAltBtn.type = 'button';
@@ -80,7 +89,7 @@ export function renderStructureActions(container, entry, ctx) {
       siblings.splice(entry.index, 1, choice);
       S.selectedPartId = choice.id;
     }));
-    actions.append(toAltBtn);
+    structure.append(toAltBtn);
   }
 
   const nestBtn = el('button', null, 'Nest into group');
@@ -90,24 +99,7 @@ export function renderStructureActions(container, entry, ctx) {
     const group = nestNode(activeParts(), entry, activeMotif()?.id);
     S.selectedPartId = group.id;
   }));
-  actions.append(nestBtn);
-
-  // Move into an existing group — position is preserved (frame conversion).
-  const targets = groupTargets(activeParts(), entry);
-  const moveSelect = selectInput(
-    [{ value: '', label: '— move into group…' }, ...targets.map((g) => ({ value: g.id, label: `${g.id} · group` }))],
-    '',
-    (v) => {
-      if (!v) return;
-      ctx.mutate(() => {
-        const target = findNodeById(activeParts(), v).node;
-        moveIntoGroup(activeParts(), entry, target);
-        S.selectedPartId = node.id; // the node keeps its id — stay on it
-      });
-    },
-  );
-  moveSelect.disabled = targets.length === 0;
-  actions.append(moveSelect);
+  structure.append(nestBtn);
 
   // Move out of the current group — nested nodes only, exact when the group
   // is unscaled. The node lands beside its group in the group's parent list.
@@ -120,7 +112,7 @@ export function renderStructureActions(container, entry, ctx) {
       extractNode(activeParts(), entry);
       S.selectedPartId = node.id;
     }));
-    actions.append(outBtn);
+    structure.append(outBtn);
   }
 
   if (isGroupNode(node)) {
@@ -132,13 +124,55 @@ export function renderStructureActions(container, entry, ctx) {
       const promoted = ungroupNode(activeParts(), entry);
       S.selectedPartId = promoted[0].id;
     }));
-    actions.append(ungroupBtn);
+    structure.append(ungroupBtn);
+  }
+
+  // Move into an existing group, an alternatives choice point (as a NEW
+  // option), or one of its options — position is preserved (frame conversion).
+  const targets = moveTargets(activeParts(), entry);
+  const moveGroup = actionGroup('Move into…');
+  const moveSelect = selectInput(
+    [
+      { value: '', label: '— choose target…' },
+      ...targets.map((t, i) => ({
+        value: String(i),
+        label: t.kind === 'group'
+          ? `${t.id} · group`
+          : t.kind === 'choice'
+            ? `${t.id} · alternatives (as new option)`
+            : `${t.node.id} / ${t.option.id} · option`,
+      })),
+    ],
+    '',
+    (v) => {
+      if (!v) return;
+      const t = targets[Number(v)];
+      ctx.mutate(() => {
+        if (t.kind === 'group') {
+          moveIntoGroup(activeParts(), entry, t.node);
+        } else {
+          moveIntoOption(activeParts(), entry, t.node, t.kind === 'option' ? t.option : null, activeMotif()?.id);
+          // The part now lives only inside one option — force the preview to
+          // it so it doesn't vanish from the tile (same rule as rows.js).
+          const forced = t.kind === 'option' ? t.option.id : t.node.alternatives[t.node.alternatives.length - 1].id;
+          S.previewOptions = new Map(S.previewOptions).set(t.node.id, forced);
+        }
+        S.selectedPartId = node.id; // the node keeps its id — stay on it
+      });
+    },
+  );
+  moveSelect.disabled = targets.length === 0;
+  moveSelect.title = 'Move this part into a group, an alternatives choice point (becomes a new option), or one of its options — position is preserved';
+  moveGroup.append(moveSelect);
+  if (targets.length === 0) {
+    moveGroup.append(el('span', 'part-actions-none', 'no eligible targets'));
   }
 
   // Copy transform: adopt a sibling's transform wholesale. Root-only fields
   // (y / lift / tiltAxis / tilt) don't exist on nested nodes, so a nested
   // source simply lacks them — the copy leaves whatever the target had.
   const ids = siblingIds(activeParts(), entry);
+  const copyGroup = actionGroup('Transform');
   const copySelect = selectInput(
     [{ value: '', label: '— copy transform from…' }, ...ids],
     '',
@@ -164,7 +198,9 @@ export function renderStructureActions(container, entry, ctx) {
     },
   );
   copySelect.disabled = ids.length === 0;
-  actions.append(copySelect);
+  copyGroup.append(copySelect);
 
+  const actions = el('div', 'part-actions');
+  actions.append(structure, moveGroup, copyGroup);
   container.append(actions);
 }

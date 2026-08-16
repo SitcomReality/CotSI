@@ -22,6 +22,11 @@ import {
   canMoveInto,
   groupTargets,
   moveIntoGroup,
+  canMoveIntoFrame,
+  moveTargets,
+  moveIntoOption,
+  duplicateNode,
+  duplicateInList,
   canExtract,
   extractNode,
 } from '../../../dev/tools/geometryEditor/ui/partTree/index.js';
@@ -517,4 +522,318 @@ test('motifScoped scopes fresh-id stems under the active motif (storage ids, §6
   // Outside motif decors the stem is verbatim.
   assert.equal(motifScoped('part', null), 'part');
   assert.equal(motifScoped('group', undefined), 'group');
+});
+
+// ── Move into alternatives (choice points / options) ───────────────────────
+
+test('moveTargets lists choice points (as new option) and their options, in tree order', () => {
+  const parts = [
+    { id: 'trunk', shape: 'cylinder', transform: {} },
+    {
+      id: 'arms', seed: 101, default: 'two',
+      alternatives: [
+        { id: 'none', weight: 0.25, parts: [] },
+        { id: 'two', weight: 0.3, parts: [{ id: 'arm-b', shape: 'cylinder', transform: {} }] },
+      ],
+    },
+  ];
+  const targets = moveTargets(parts, findNodeById(parts, 'trunk'));
+  assert.deepEqual(targets.map((t) => t.kind), ['choice', 'option', 'option']);
+  assert.equal(targets[0].node.id, 'arms');
+  assert.equal(targets[1].option.id, 'none');
+  assert.equal(targets[2].option.id, 'two');
+  // A group target joins the list when one exists.
+  const withGroup = [
+    { id: 'trunk', shape: 'cylinder', transform: {} },
+    { id: 'g', transform: {}, children: [] },
+    { id: 'arms', seed: 101, default: 'two', alternatives: [{ id: 'two', weight: 1, parts: [] }] },
+  ];
+  const gTargets = moveTargets(withGroup, findNodeById(withGroup, 'trunk'));
+  assert.deepEqual(gTargets.map((t) => t.kind), ['group', 'choice', 'option']);
+});
+
+test('canMoveIntoFrame rejects moving a group into an option of its own subtree (cycle)', () => {
+  const parts = [
+    { id: 'g', transform: {}, children: [
+      { id: 'c', seed: 100, default: 'o1', alternatives: [{ id: 'o1', weight: 1, parts: [] }] },
+    ] },
+  ];
+  const g = findNodeById(parts, 'g');
+  const c = findNodeById(parts, 'c');
+  assert.equal(canMoveIntoFrame(parts, g, c.node), false, 'choice point is inside the node');
+  assert.equal(moveIntoOption(parts, g, c.node, c.node.alternatives[0]), null);
+  assert.equal(canMoveIntoFrame(parts, c, c.node), false, 'target is the node itself');
+});
+
+test('moveIntoOption moves a root leaf into an existing option (identity frame)', () => {
+  const parts = [
+    { id: 'trunk', shape: 'cylinder', transform: { y: 0.2, localPos: { x: 0.1, z: 0 }, rotY: 0.3 } },
+    { id: 'arms', seed: 101, default: 'two', alternatives: [{ id: 'two', weight: 1, parts: [] }] },
+  ];
+  const trunk = findNodeById(parts, 'trunk');
+  const arms = findNodeById(parts, 'arms');
+  const optTwo = arms.node.alternatives[0];
+  const moved = moveIntoOption(parts, trunk, arms.node, optTwo);
+  assert.equal(moved, trunk.node);
+  assert.deepEqual(parts.map((p) => p.id), ['arms'], 'the leaf leaves the root list');
+  assert.deepEqual(optTwo.parts.map((p) => p.id), ['trunk']);
+  // Identity delta → the transform is exactly the root→nested fold.
+  assert.deepEqual(trunk.node.transform, rootToNestedTransform({ y: 0.2, localPos: { x: 0.1, z: 0 }, rotY: 0.3 }));
+});
+
+test('moveIntoOption with no option creates a fresh weighted option holding the node', () => {
+  const parts = [
+    { id: 'trunk', shape: 'cylinder', transform: { y: 0.2 } },
+    { id: 'arms', seed: 101, default: 'two', alternatives: [{ id: 'two', weight: 1, parts: [] }] },
+  ];
+  const trunk = findNodeById(parts, 'trunk');
+  const arms = findNodeById(parts, 'arms');
+  const moved = moveIntoOption(parts, trunk, arms.node, null);
+  assert.equal(moved, trunk.node);
+  assert.equal(arms.node.alternatives.length, 2);
+  const fresh = arms.node.alternatives[1];
+  assert.equal(fresh.weight, 1);
+  assert.ok(fresh.id.startsWith('arms-option-'), 'fresh option id ' + fresh.id);
+  assert.deepEqual(fresh.parts.map((p) => p.id), ['trunk']);
+  assert.deepEqual(parts.map((p) => p.id), ['arms']);
+});
+
+test('moveIntoOption between rotated frames preserves the world placement', () => {
+  const parts = [
+    {
+      id: 'g1', transform: { rotY: Math.PI / 2 }, children: [
+        { id: 'c', shape: 'box', transform: { localPos: { x: 1, y: 0, z: 0 }, rotY: 0.5 } },
+      ],
+    },
+    {
+      id: 'arms', seed: 101, default: 'two',
+      alternatives: [{ id: 'two', weight: 1, parts: [] }],
+    },
+  ];
+  const c = findNodeById(parts, 'c');
+  const arms = findNodeById(parts, 'arms');
+  const before = worldFrame(parts, c.node);
+  moveIntoOption(parts, c, arms.node, arms.node.alternatives[0]);
+  expectMat4(worldFrame(parts, c.node), before, 1e-6);
+  assert.deepEqual(findNodeById(parts, 'g1').node.children, [], 'source group emptied');
+  assert.deepEqual(arms.node.alternatives[0].parts.map((p) => p.id), ['c']);
+});
+
+test('a choice point moves only between identical frames — never gains a transform', () => {
+  // Identical frames (both at root): the move succeeds and writes no transform.
+  const same = [
+    { id: 'inner', seed: 100, default: 'o', alternatives: [{ id: 'o', weight: 1, parts: [] }] },
+    { id: 'outer', seed: 101, default: 'o2', alternatives: [{ id: 'o2', weight: 1, parts: [] }] },
+  ];
+  const inner = findNodeById(same, 'inner');
+  const outer = findNodeById(same, 'outer');
+  assert.equal(canMoveIntoFrame(same, inner, outer.node), true);
+  const moved = moveIntoOption(same, inner, outer.node, outer.node.alternatives[0]);
+  assert.equal(moved, inner.node);
+  assert.equal(inner.node.transform, undefined, 'a choice point never gains a transform');
+  assert.deepEqual(outer.node.alternatives[0].parts.map((p) => p.id), ['inner']);
+
+  // Rotated source frame → the delta is non-identity → refused.
+  const rotated = [
+    { id: 'g', transform: { rotY: Math.PI / 2 }, children: [
+      { id: 'inner2', seed: 100, default: 'o', alternatives: [{ id: 'o', weight: 1, parts: [] }] },
+    ] },
+    { id: 'outer2', seed: 101, default: 'o2', alternatives: [{ id: 'o2', weight: 1, parts: [] }] },
+  ];
+  const inner2 = findNodeById(rotated, 'inner2');
+  const outer2 = findNodeById(rotated, 'outer2');
+  assert.equal(canMoveIntoFrame(rotated, inner2, outer2.node), false);
+  assert.equal(moveIntoOption(rotated, inner2, outer2.node, outer2.node.alternatives[0]), null);
+});
+
+test('moveIntoGroup of a root choice point into an identity group writes no transform', () => {
+  // Regression: this used to crash (rootToNestedTransform(undefined)) — a
+  // choice point carries no transform, so an identity frame delta is a no-op.
+  const parts = [
+    { id: 'arms', seed: 100, default: 'o', alternatives: [{ id: 'o', weight: 1, parts: [{ id: 'leaf', shape: 'box', transform: {} }] }] },
+    { id: 'g', transform: {}, children: [] },
+  ];
+  const arms = findNodeById(parts, 'arms');
+  const moved = moveIntoGroup(parts, arms, findNodeById(parts, 'g').node);
+  assert.equal(moved, arms.node);
+  assert.equal(arms.node.transform, undefined, 'no transform lands on the choice point');
+  assert.deepEqual(findNodeById(parts, 'g').node.children.map((x) => x.id), ['arms']);
+});
+
+// ── Duplicate (part / group / alternatives) ────────────────────────────────
+
+test('duplicateInList copies a leaf with a fresh id, inserted right after it', () => {
+  const parts = [
+    { id: 'a', shape: 'sphere', transform: { y: 0.3, localPos: { x: 0.1, z: 0.2 } }, color: 0x112233 },
+    { id: 'b', shape: 'box', transform: {} },
+  ];
+  const copy = duplicateInList(parts, parts, 0);
+  assert.equal(parts.length, 3);
+  assert.deepEqual(parts.map((p) => p.id), ['a', 'a-copy-1', 'b']);
+  assert.notEqual(copy, parts[0]);
+  assert.deepEqual(copy.transform, { y: 0.3, localPos: { x: 0.1, z: 0.2 } }, 'properties copied verbatim');
+  assert.equal(copy.color, 0x112233);
+  assert.deepEqual(parts[0].transform, { y: 0.3, localPos: { x: 0.1, z: 0.2 } }, 'original untouched');
+});
+
+test('duplicateNode re-ids the whole subtree; the copy is independent', () => {
+  const parts = [{
+    id: 'g',
+    transform: { localPos: { x: 0, y: 0.5, z: 0 } },
+    children: [
+      { id: 'a', shape: 'box', transform: { localPos: { x: 0.1, z: 0 } } },
+      { id: 'b', shape: 'box', transform: { localPos: { x: 0.2, z: 0 } } },
+    ],
+  }];
+  const copy = duplicateNode(parts, parts[0]);
+  assert.equal(copy.id, 'g-copy-1');
+  assert.deepEqual(copy.children.map((c) => c.id), ['a-copy-1', 'b-copy-1']);
+  assert.notEqual(copy.children[0], parts[0].children[0], 'deep copy, not a shared reference');
+  assert.equal(copy.transform.localPos.y, 0.5);
+  assert.deepEqual(parts[0].children.map((c) => c.id), ['a', 'b'], 'original ids untouched');
+});
+
+test('duplicateNode on a choice point re-ids options, fixes default, bumps the seed', () => {
+  const parts = [
+    { id: 'arms', seed: 100, default: 'two', alternatives: [
+      { id: 'none', weight: 0.25, parts: [] },
+      { id: 'two', weight: 0.3, parts: [{ id: 'arm-b', shape: 'cylinder', transform: {} }] },
+    ] },
+    { id: 'other', shape: 'sphere', transform: {} },
+  ];
+  const copy = duplicateNode(parts, parts[0]);
+  assert.equal(copy.id, 'arms-copy-1');
+  assert.equal(copy.seed, 101, 'fresh seed — the duplicate rolls independently');
+  assert.deepEqual(copy.alternatives.map((o) => o.id), ['none-copy-1', 'two-copy-1']);
+  assert.equal(copy.default, 'two-copy-1', 'default follows the renamed option');
+  assert.deepEqual(copy.alternatives[1].parts.map((p) => p.id), ['arm-b-copy-1']);
+  assert.equal(copy.alternatives[0].weight, 0.25, 'weights copied verbatim');
+  assert.equal(parts[0].seed, 100, 'original seed untouched');
+  assert.equal(parts[0].default, 'two', 'original default untouched');
+});
+
+test('duplicateNode skips ids already taken in the tree', () => {
+  const parts = [
+    { id: 'a', shape: 'box', transform: {} },
+    { id: 'a-copy-1', shape: 'box', transform: {} },
+  ];
+  assert.equal(duplicateNode(parts, parts[0]).id, 'a-copy-2');
+});
+
+test('duplicateInList inside an option keeps the copy in the same option', () => {
+  const parts = [
+    { id: 'arms', seed: 100, default: 'two', alternatives: [
+      { id: 'two', weight: 1, parts: [{ id: 'arm-b', shape: 'cylinder', transform: {} }] },
+    ] },
+  ];
+  const opt = parts[0].alternatives[0];
+  const copy = duplicateInList(parts, opt.parts, 0);
+  assert.deepEqual(opt.parts.map((p) => p.id), ['arm-b', 'arm-b-copy-1']);
+  assert.equal(copy.id, 'arm-b-copy-1');
+});
+
+test('a part inside an option can move into a group (choice-point frames are rigid)', () => {
+  const parts = [
+    {
+      id: 'arms', seed: 100, default: 'two',
+      alternatives: [
+        { id: 'two', weight: 1, parts: [{ id: 'arm', shape: 'cylinder', transform: { localPos: { x: 0.1, z: 0 } } }] },
+      ],
+    },
+    { id: 'g', transform: {}, children: [] },
+  ];
+  const arm = findNodeById(parts, 'arm');
+  const before = worldFrame(parts, arm.node);
+  const moved = moveIntoGroup(parts, arm, findNodeById(parts, 'g').node);
+  assert.equal(moved, arm.node);
+  assert.deepEqual(parts[0].alternatives[0].parts, [], 'option emptied');
+  assert.deepEqual(findNodeById(parts, 'g').node.children.map((x) => x.id), ['arm']);
+  expectMat4(worldFrame(parts, arm.node), before, 1e-6);
+});
+
+test('moveIntoOption composes rootToNestedTransform with a rotated target frame', () => {
+  // Root leaf with y/lift/tilt, moved into an option of a choice point that
+  // sits inside a rotated group: the fold happens first, then the re-expression.
+  const parts = [
+    { id: 'trunk', shape: 'cylinder', transform: { y: 0.4, lift: 0.1, localPos: { x: 0.2, z: 0 }, rotY: 0.3 } },
+    {
+      id: 'g', transform: { localPos: { x: 1, y: 0, z: 0 }, rotY: Math.PI / 2 }, children: [
+        { id: 'arms', seed: 100, default: 'two', alternatives: [{ id: 'two', weight: 1, parts: [] }] },
+      ],
+    },
+  ];
+  const trunk = findNodeById(parts, 'trunk');
+  const arms = findNodeById(parts, 'arms');
+  // The invariant the move preserves: the world placement stays equal to the
+  // leaf's folded root placement (the fold itself is the nestNode contract;
+  // the re-expression then absorbs the rotated target frame).
+  const folded = rootToNestedTransform({ y: 0.4, lift: 0.1, localPos: { x: 0.2, z: 0 }, rotY: 0.3 });
+  const expected = nodeFrame(folded);
+  moveIntoOption(parts, trunk, arms.node, arms.node.alternatives[0]);
+  expectMat4(worldFrame(parts, trunk.node), expected, 1e-6);
+  assert.equal(trunk.node.transform.y, undefined, 'root-only fields folded away');
+});
+
+test('duplicateNode keeps stems unique when ids share the -copy pattern', () => {
+  const parts = [
+    { id: 'a', shape: 'box', transform: {} },
+    { id: 'a-copy-1', shape: 'box', transform: {} },
+  ];
+  // Copying 'a-copy-1' — its stem 'a-copy-1-copy' cannot collide with 'a-copy-1'.
+  assert.equal(duplicateNode(parts, parts[1]).id, 'a-copy-1-copy-1');
+  // And copying 'a' still skips the existing 'a-copy-1'.
+  assert.equal(duplicateNode(parts, parts[0]).id, 'a-copy-2');
+});
+
+test('canMoveInto refuses a rotated group target for a root choice point', () => {
+  const parts = [
+    { id: 'inner', seed: 100, default: 'o', alternatives: [{ id: 'o', weight: 1, parts: [] }] },
+    { id: 'g', transform: {}, children: [] },
+  ];
+  // Identity frame → allowed (the move writes no transform).
+  assert.equal(canMoveInto(parts, findNodeById(parts, 'inner'), findNodeById(parts, 'g').node), true);
+  // Rotated group frame → the choice point would need a transform it cannot
+  // carry, so the target is not offered (and the move refuses).
+  const rotated = [
+    { id: 'inner2', seed: 100, default: 'o', alternatives: [{ id: 'o', weight: 1, parts: [] }] },
+    { id: 'g2', transform: { rotY: Math.PI / 2 }, children: [] },
+  ];
+  const inner2 = findNodeById(rotated, 'inner2');
+  const g2 = findNodeById(rotated, 'g2');
+  assert.equal(canMoveInto(rotated, inner2, g2.node), false);
+  assert.deepEqual(groupTargets(rotated, inner2), [], 'not offered in the dropdown');
+  assert.equal(moveIntoGroup(rotated, inner2, g2.node), null);
+});
+
+test('duplicateNode re-seeds a choice point nested inside a copied group', () => {
+  const parts = [{
+    id: 'tree',
+    children: [
+      { id: 'arms', seed: 100, default: 'two', alternatives: [
+        { id: 'two', weight: 1, parts: [{ id: 'arm', shape: 'cylinder', transform: {} }] },
+      ] },
+      { id: 'trunk', shape: 'cylinder', transform: {} },
+    ],
+  }];
+  const copy = duplicateNode(parts, parts[0]);
+  assert.equal(copy.id, 'tree-copy-1');
+  assert.equal(copy.children[0].id, 'arms-copy-1');
+  assert.equal(copy.children[0].seed, 101, 'nested choice point rolls independently');
+  assert.equal(copy.children[0].default, 'two-copy-1');
+  assert.deepEqual(copy.children[0].alternatives[0].parts.map((p) => p.id), ['arm-copy-1']);
+  assert.equal(parts[0].children[0].seed, 100, 'original seed untouched');
+});
+
+test('duplicateNode gives two copied choice points distinct seeds', () => {
+  const parts = [{
+    id: 'g',
+    children: [
+      { id: 'a', seed: 100, default: 'o1', alternatives: [{ id: 'o1', weight: 1, parts: [] }] },
+      { id: 'b', seed: 101, default: 'o2', alternatives: [{ id: 'o2', weight: 1, parts: [] }] },
+    ],
+  }];
+  const copy = duplicateNode(parts, parts[0]);
+  const seeds = copy.children.map((c) => c.seed);
+  assert.notEqual(seeds[0], seeds[1], 'distinct seeds within the copy');
+  assert.ok(seeds.every((s) => s >= 100 && s < 200), 'stays in the reserved lane');
 });

@@ -2,7 +2,7 @@
  * nest.js — Nest/ungroup restructure: wrapping a node in a fresh group
  * (position-preserving) and the exact-inverse ungroup fold.
  */
-import { isGroupNode, siblingList } from '../walk.js';
+import { isGroupNode, isAlternativesNode, siblingList } from '../walk.js';
 import { freshId, motifScoped, makeGroupNode, rootToNestedTransform } from '../nodes/index.js';
 import { foldChildTransform } from './frameMath.js';
 
@@ -18,8 +18,8 @@ import { foldChildTransform } from './frameMath.js';
 export function nestNode(parts, entry, motifId = null) {
   const list = siblingList(parts, entry);
   const group = makeGroupNode(freshId(parts, motifScoped('group', motifId)));
-  if (entry.parent === null && !isGroupNode(entry.node)) {
-    entry.node.transform = rootToNestedTransform(entry.node.transform);
+  if (entry.parent === null && !isGroupNode(entry.node) && !isAlternativesNode(entry.node)) {
+    entry.node.transform = rootToNestedTransform(entry.node.transform ?? {});
   }
   list[entry.index] = group;
   group.children.push(entry.node);

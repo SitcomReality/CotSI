@@ -82,7 +82,7 @@
             <label id="biome-row">
               Biome
               <select id="biome-select" aria-label="Preview-tile biome"></select>
-              <span id="biome-tint-hint" class="biome-tint-hint"></span>
+              <span id="biome-tint-hint" class="biome-tint-hint" style="display:none;"><!-- This inline 'display:none' was just my hacky lazy way of hiding the currently redundant hint... this should be fixed properly at some point --></span>
             </label>
             <label id="motif-row" hidden>
               Motif
@@ -155,6 +155,8 @@
           </section>
           <section class="inspector-panel" id="parts-panel">
             <div class="panel-body" id="parts-edit" aria-label="Parts list"></div>
+            <div class="panel-body part-actions-panel" id="part-actions-bar"
+              aria-label="Selected-part structure actions" hidden></div>
           </section>
           <section class="inspector-panel" id="motifs-panel" hidden>
             <div class="panel-head" data-panel="motifs" role="button" tabindex="0" aria-expanded="true"

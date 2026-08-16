@@ -13,6 +13,7 @@ import { activeParts } from './variantQuery.js';
 import { pushUndo, popUndo, restoreUndo } from '../history.js';
 import { findNodeById } from './partTree/index.js';
 import { renderPartsList } from './partList/index.js';
+import { renderPartActionsBar } from './partList/actionsBar.js';
 import { renderObjectIdentity, renderMotifPanel, renderFieldSections } from './objectInspector/index.js';
 import { renderPartInspector } from './partInspector/index.js';
 import { bindProjectControls } from './projectControls/index.js';
@@ -83,6 +84,7 @@ function renderInspector() {
 
 function renderAll() {
   renderPartsList(els.partsEdit, ctx);
+  renderPartActionsBar(els.partActionsBar, ctx);
   renderInspector();
 }
 

@@ -43,6 +43,7 @@ export function cacheDom() {
   els.motifsBody = document.getElementById('motifs-body');
   els.fieldsBody = document.getElementById('fields-body');
   els.partsEdit = document.getElementById('parts-edit');
+  els.partActionsBar = document.getElementById('part-actions-bar');
   els.selectPanel = document.getElementById('select-panel');
   els.selectPanelToggle = document.getElementById('select-panel-toggle');
   els.saveStatus = document.getElementById('save-status');

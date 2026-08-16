@@ -17,6 +17,7 @@ const SECTIONS = {
   size: { title: 'Size', open: true },
   placement: { title: 'Placement', open: true },
   emphasis: { title: 'Emphasis', open: true },
+  variation: { title: 'Variation', open: true },
   portrait: { title: 'Portrait', open: false },
   item: { title: 'Item', open: true },
   entity: { title: 'Entity', open: true },
@@ -31,13 +32,17 @@ const openSections = new Set(
  * tracked in `openSections` so re-renders keep the user's layout.
  */
 export function section(key, container) {
+  const spec = SECTIONS[key];
+  if (!spec) {
+    throw new Error(`section(): no registry entry for "${key}" — add it to SECTIONS in sectionShell.js`);
+  }
   const det = el('details', 'inspector-section');
   det.open = openSections.has(key);
   det.addEventListener('toggle', () => {
     if (det.open) openSections.add(key);
     else openSections.delete(key);
   });
-  det.append(el('summary', 'section-title', SECTIONS[key].title));
+  det.append(el('summary', 'section-title', spec.title));
   container.append(det);
   return det;
 }

@@ -6,6 +6,40 @@
  */
 import { el, row, selectInput, numberInput, intInput } from '../formControls/index.js';
 import { EMPHASIS_BEHAVIORS, PLACEMENT_MODES } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { TERRAIN } from '../../../../../src/game/rules/terrainTypes.js';
+
+const TERRAIN_OPTIONS = Object.keys(TERRAIN).map((t) => ({ value: t, label: t }));
+
+/** One editable row of the moisture count table: terrain → [min, max]. */
+function countsRow(d, terrain, pair, ctx) {
+  const r = el('div', 'cluster-terrain-row');
+  const sel = selectInput(TERRAIN_OPTIONS, terrain, (v) => ctx.mutate(() => {
+    d.cluster.countsByTerrain ??= {};
+    if (v === terrain || v in d.cluster.countsByTerrain) {
+      sel.value = terrain; // a terrain already listed — keep this row where it is
+      return;
+    }
+    delete d.cluster.countsByTerrain[terrain];
+    d.cluster.countsByTerrain[v] = pair; // the pair array moves — edits keep working
+  }));
+  const min = numberInput(pair[0], { min: 1, step: 1, stepper: false, onChange: (v) => ctx.mutate(() => {
+    pair[0] = v;
+    if (pair[1] < v) pair[1] = v;
+  }) });
+  const max = numberInput(pair[1], { min: 1, step: 1, stepper: false, onChange: (v) => ctx.mutate(() => {
+    pair[1] = v;
+    if (pair[0] > v) pair[0] = v;
+  }) });
+  const remove = el('button', null, '✕');
+  remove.type = 'button';
+  remove.title = 'Remove this terrain row';
+  remove.disabled = Object.keys(d.cluster.countsByTerrain ?? {}).length === 1;
+  remove.addEventListener('click', () => ctx.mutate(() => {
+    delete (d.cluster.countsByTerrain ?? {})[terrain];
+  }));
+  r.append(sel, min, max, remove);
+  return r;
+}
 
 /** Cluster: uniform min/max counts, or moisture-driven counts by terrain. */
 export function renderClusterSection(container, d, ctx) {
@@ -18,10 +52,21 @@ export function renderClusterSection(container, d, ctx) {
     }
   }))));
   if (d.cluster.rule === 'moisture') {
-    const counts = Object.entries(d.cluster.countsByTerrain)
-      .map(([t, pair]) => `${t} ${pair[0]}–${pair[1]}`)
-      .join(', ');
-    container.append(el('div', 'hint', `Moisture-driven count (tiles without moisture default to mid-density). ${counts}.`));
+    container.append(el('div', 'hint', 'Count scales with the tile\'s moisture between the terrain\'s min–max; tiles without moisture default to mid-density. Terrains not listed fall back to forest, then the first row, then 3–5.'));
+    const list = el('div', 'cluster-terrains');
+    for (const [terrain, pair] of Object.entries(d.cluster.countsByTerrain ?? {})) {
+      list.append(countsRow(d, terrain, pair, ctx));
+    }
+    container.append(list);
+    const addBtn = el('button', null, '+ Add terrain');
+    addBtn.type = 'button';
+    addBtn.disabled = Object.keys(d.cluster.countsByTerrain ?? {}).length >= Object.keys(TERRAIN).length;
+    addBtn.addEventListener('click', () => ctx.mutate(() => {
+      d.cluster.countsByTerrain ??= {};
+      const free = Object.keys(TERRAIN).find((t) => !(t in d.cluster.countsByTerrain));
+      if (free) d.cluster.countsByTerrain[free] = [3, 5];
+    }));
+    container.append(addBtn);
   } else {
     container.append(row('Min', intInput(d.cluster.min, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.min = v; }) })));
     container.append(row('Max', intInput(d.cluster.max, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.max = Math.max(v, d.cluster.min); }) })));
@@ -32,6 +77,16 @@ export function renderClusterSection(container, d, ctx) {
 export function renderSizeSection(container, d, ctx) {
   container.append(row('Min', numberInput(d.size.min, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.min = v; }) })));
   container.append(row('Max', numberInput(d.size.max, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.max = Math.max(v, d.size.min); }) })));
+}
+
+/**
+ * Variation: the object-level per-instance color jitter (partColor.js — every
+ * tile instance scales its parts' brightness by a hash-derived ±colorJitter).
+ * 0 disables; the forest/desert decors use 0.05–0.08.
+ */
+export function renderVariationSection(container, d, ctx) {
+  container.append(row('Color jitter', numberInput(d.variation.colorJitter ?? 0, { min: 0, step: 0.01, onChange: (v) => ctx.mutate(() => { d.variation.colorJitter = v; }) })));
+  container.append(el('div', 'hint', 'Per-tile brightness spread on every part — 0 = every instance identical (default), 0.05–0.08 typical.'));
 }
 
 /** Placement: mode picker plus the per-mode offset/separation/tilt fields. */

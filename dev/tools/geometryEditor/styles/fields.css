@@ -110,3 +110,39 @@
   font-size: var(--fs-xs);
   white-space: nowrap;
 }
+
+/* Moisture cluster count table — one row per terrain (select + min + max +
+   remove), rendered when the cluster rule is 'moisture'. */
+.cluster-terrains {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin-bottom: var(--s2);
+}
+
+.cluster-terrain-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.cluster-terrain-row select {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  padding: 2px 4px;
+  font-size: var(--fs-xs);
+}
+
+.cluster-terrain-row input[type="number"] {
+  width: 3.5em;
+  min-width: 3.5em;
+  padding: 2px 4px;
+  font-size: var(--fs-xs);
+}
+
+.cluster-terrain-row button {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  font-size: var(--fs-xs);
+}

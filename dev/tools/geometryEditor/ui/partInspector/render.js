@@ -1,15 +1,18 @@
 /**
- * render.js — Part inspector composition: header, actions, and sections.
+ * render.js — Part inspector composition: header, id row, and sections.
  *
  * renderPartInspector renders the selected part's fields into `container`.
  * `entry` is the parts-tree lookup ({ node, parent, depth, index, option }) —
- * groups get structural actions and transform editing; leaves additionally get
- * shape params, color, biome tint, biome scale and stretch variation;
- * `alternatives` choice points get the option table (weights, default, seed,
- * preview radios). `ctx` supplies the mutation flow.
+ * groups get transform editing; leaves additionally get shape params, color,
+ * biome tint, biome scale and stretch variation; `alternatives` choice points
+ * get the option table (weights, default, seed, preview radios). The
+ * structural tree actions (nest/move/ungroup/convert-to-alternatives) live in
+ * the parts-list actions bar (ui/partList/actionsBar.js). `ctx` supplies the
+ * mutation flow.
  */
 import { isGroupNode, isAlternativesNode } from '../partTree/index.js';
-import { renderPartHeader, renderPartActions } from './actions/index.js';
+import { renderPartHeader } from './actions/index.js';
+import { renderIdEdit } from './actions/idEdit.js';
 import { renderPositionSection, renderRotationSection, renderScaleSection } from './transform/index.js';
 import { renderBoundsSection } from './boundsSection.js';
 import { renderShapeSection, renderColorSection, renderBiomeSection, renderBiomeScaleSection, renderStretchSection } from './leafSections/index.js';
@@ -24,7 +27,7 @@ import { renderAlternativesSection } from './alternatives/index.js';
 export function renderPartInspector(container, entry, ctx) {
   const { node } = entry;
   renderPartHeader(container, node, ctx);
-  renderPartActions(container, entry, ctx);
+  renderIdEdit(container, entry, ctx);
   if (isAlternativesNode(node)) {
     renderAlternativesSection(container, node, entry, ctx);
     return; // choice points have no transform/color/geometry of their own

@@ -13,6 +13,7 @@ import {
   findNodeById,
   freshId,
   motifScoped,
+  duplicateInList,
 } from '../partTree/index.js';
 
 /** Group ids whose children are hidden in the list (session state). */
@@ -105,13 +106,26 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       r.append(badge);
     }
 
-    // Reorder / remove act on the sibling array (the passed `nodes`).
+    // Reorder / remove act on the sibling array (the passed `nodes`);
+    // duplicate copies the node (subtree + fresh ids) right after it, in the
+    // same list slot, so the copy keeps the original's place in the hierarchy.
+    const dup = el('button', null, '⧉');
     const up = el('button', null, '↑');
     const down = el('button', null, '↓');
     const remove = el('button', null, '✕');
     up.disabled = index === 0;
     down.disabled = index === nodes.length - 1;
     remove.disabled = nodes.length === 1;
+    dup.title = 'Duplicate — copies this part (and its subtree) with fresh ids, inserted right after';
+    dup.addEventListener('click', () => ctx.mutate(() => {
+      const copy = duplicateInList(activeParts(), nodes, index, motifId);
+      S.selectedPartId = copy.id;
+      // Inside an option, keep the preview pinned to the option the copy lives
+      // in (same auto-switch rule as the label click).
+      if (choiceId && option) {
+        S.previewOptions = new Map(S.previewOptions).set(choiceId, option.id);
+      }
+    }));
     up.addEventListener('click', () => ctx.mutate(() => {
       [nodes[index - 1], nodes[index]] = [nodes[index], nodes[index - 1]];
     }));
@@ -126,7 +140,7 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       }
     }));
 
-    r.append(label, up, down, remove);
+    r.append(label, dup, up, down, remove);
     listEl.append(r);
 
     if (alt && !collapsedGroups.has(node.id)) {
