@@ -15,7 +15,6 @@ import { section } from './sectionShell.js';
 import { renderMotifControls } from './motifSection/index.js';
 import { renderVariantSection } from './variantSection.js';
 import { renderEntityControls } from './entitySection.js';
-import { renderPortraitControls } from './portraitSection.js';
 import { renderClusterSection, renderSizeSection, renderPlacementSection, renderEmphasisSection } from './tileSections.js';
 
 /** The Motifs panel — the v6 composition panel for motif decors. */
@@ -24,7 +23,7 @@ export function renderMotifPanel(container, ctx) {
 }
 
 /** The Fields panel — the kind-dispatched design sections (everything except
- *  the Object identity and the Motifs panel). */
+ *  the Object identity + portrait, which live in the Object panel). */
 export function renderFieldSections(container, ctx) {
   const d = S.descriptor;
 
@@ -35,7 +34,6 @@ export function renderFieldSections(container, ctx) {
       d.slot = v;
       ctx.onLoaded(); // the slot moves the item between the weapon/armor browser categories
     }))));
-    renderPortraitControls(section('portrait', container), ctx);
     container.append(el('div', 'hint', 'Items render as a single centered icon — cluster/size/placement do not apply.'));
     return;
   }
@@ -43,7 +41,6 @@ export function renderFieldSections(container, ctx) {
   if (ENTITY_KINDS.has(d.kind)) {
     container.append(el('div', 'mode-banner', `${d.kind} — entity-driven`));
     renderEntityControls(section('entity', container), ctx);
-    renderPortraitControls(section('portrait', container), ctx);
     container.append(el('div', 'hint', 'Entities are singletons at the hex center — cluster/size/placement do not apply.'));
     return;
   }
@@ -60,5 +57,4 @@ export function renderFieldSections(container, ctx) {
   renderSizeSection(section('size', container), d, ctx);
   renderPlacementSection(section('placement', container), d, ctx);
   renderEmphasisSection(section('emphasis', container), d, ctx);
-  renderPortraitControls(section('portrait', container), ctx);
 }

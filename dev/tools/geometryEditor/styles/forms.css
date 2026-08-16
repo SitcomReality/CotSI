@@ -38,7 +38,11 @@ button:disabled {
 
 /* ── Inspector field sizing ───────────────────────────────────────────────── */
 
-#inspector input[type="number"] {
+/* The floating select-panel panels (#object-body) are outside #inspector but
+   use the same compact field language — extend the selectors so the profile
+   card's portrait controls render identically to the sidebar's. */
+#inspector input[type="number"],
+#object-body input[type="number"] {
   width: 84px;
   padding: 4px 6px;
   border-radius: var(--r-sm);
@@ -55,7 +59,9 @@ button:disabled {
 }
 
 #inspector input[type="number"]::-webkit-outer-spin-button,
-#inspector input[type="number"]::-webkit-inner-spin-button {
+#inspector input[type="number"]::-webkit-inner-spin-button,
+#object-body input[type="number"]::-webkit-outer-spin-button,
+#object-body input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -97,7 +103,8 @@ button:disabled {
   overflow: hidden;
 }
 
-#inspector .num-step input[type="number"] {
+#inspector .num-step input[type="number"],
+#object-body .num-step input[type="number"] {
   flex: 1;
   width: 84px;
   border: none;

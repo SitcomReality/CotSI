@@ -1,24 +1,28 @@
 /**
- * identity.js — The Object panel of the object inspector: the inspector
- * header (name + id/kind meta) and the editable Name / ID rows every object
- * gets. `ctx` supplies `mutate()` (and `onLoaded()` for renames, which also
- * refresh the object browser).
+ * identity.js — The Object panel of the object inspector: a social-media
+ * style profile card — the live portrait avatar + kind caption on the left,
+ * the editable Name / ID rows on the right — and below it the portrait
+ * camera block (pitch/yaw/pad/raise + "Use current camera view", see
+ * portraitSection.js). `ctx` supplies `mutate()` (and `onLoaded()` for
+ * renames, which also refresh the object browser).
  */
 import { S } from '../../state.js';
 import { el, row, textInput } from '../formControls/index.js';
-import { inspectorHead } from '../inspectorHead.js';
 import { SAMPLE_OBJECTS } from '../../sampleObjects.js';
+import { renderPortraitAvatar, renderPortraitControls } from './portraitSection.js';
 
-/** The Object panel: inspector header (name + id/kind meta) and the editable
- *  Name / ID rows every object gets. */
+/** The Object panel: profile card (avatar + editable Name/ID) and the
+ *  portrait camera controls that customize the picture. */
 export function renderObjectIdentity(container, ctx) {
   const d = S.descriptor;
 
-  container.append(inspectorHead(d.displayName, `${d.id} · ${d.kind}`));
+  const card = el('div', 'profile-card');
+  card.append(renderPortraitAvatar());
 
+  const fields = el('div', 'profile-fields');
   // Name is editable for every object (samples included) — renames take effect
-  // in the inspector header, the preview info, and the browser list right away.
-  container.append(row('Name', textInput(d.displayName, (v) => ctx.mutate(() => {
+  // in the preview info, the inspector and the browser list right away.
+  fields.append(row('Name', textInput(d.displayName, (v) => ctx.mutate(() => {
     d.displayName = v;
     ctx.onLoaded(); // browser labels + custom pin re-render with the new name
   }))));
@@ -40,8 +44,13 @@ export function renderObjectIdentity(container, ctx) {
       idInput.value = d.id;
     }
   });
-  container.append(row('ID', idInput));
+  fields.append(row('ID', idInput));
+  card.append(fields);
+  container.append(card);
+
   if (!isRegistered) {
     container.append(el('div', 'hint', 'New objects need a real id before saving to the game — letters, numbers, _ and -.'));
   }
+
+  renderPortraitControls(container, ctx);
 }
