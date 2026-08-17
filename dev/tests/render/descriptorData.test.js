@@ -135,7 +135,11 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
   const displaced = recordsForDescriptor(forest, tile, POS, undefined, { displaced: true });
   const dCount = itemCount(displaced);
   assert.equal(dCount, count, 'dispersal keeps the same member count');
-  for (const record of displaced) {
+  // Grouped decor parts (branch/arm leaves) emit baked-matrix records with no
+  // x/z — their world position is the leaf's offset, not the item's placement.
+  // Check the dispersed distribution on the item-origin (root) records only,
+  // matching the `rootRecords` selection used for the ring comparison below.
+  for (const record of displaced.filter((r) => r.x !== undefined)) {
     const dist = Math.hypot(record.x - POS.x, record.z - POS.z);
     assert.ok(dist >= 0.68 - 1e-9 && dist <= 0.88 + 1e-9, `dispersed dist ${dist}`);
     assert.ok(record.scale <= 1.5 * DISPERSED_SCALE + 1e-9);
