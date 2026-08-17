@@ -100,6 +100,23 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       r.append(badge);
     }
 
+    // Option rows carry the preview radio — switch which config the preview
+    // shows right where you can see it. It shares a name with the inspector's
+    // Natural (random) radio, so the whole group is a single choice.
+    if (option && node === option) {
+      const pradio = el('input');
+      pradio.type = 'radio';
+      pradio.name = `preview-${choiceId}`;
+      const pst = previewStateFor(S.previewOptions, choiceId);
+      pradio.checked = pst.mode === 'pinned' && pst.optionId === node.id;
+      pradio.title = 'Preview this config';
+      pradio.addEventListener('change', () => {
+        S.previewOptions = setPinnedOption(S.previewOptions, choiceId, node.id);
+        ctx.renderAll();
+      });
+      r.prepend(pradio);
+    }
+
     // The kind tag tells leaves/groups/options/choice points apart. Only an
     // option ROW carries a weight — a leaf or group nested inside an option is
     // not an option and must not inherit a bogus `w1`.

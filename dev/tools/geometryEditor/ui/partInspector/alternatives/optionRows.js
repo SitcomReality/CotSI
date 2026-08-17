@@ -1,7 +1,9 @@
 /**
- * optionRows.js — The per-option rows of an alternatives choice point:
- * preview radio, editable option id, draw weight, "add group inside option"
- * (the hinged-elbow pattern), and remove.
+ * optionRows.js — The per-option editing rows of an alternatives choice point:
+ * editable option id, draw weight, "add group inside option" (the hinged-elbow
+ * pattern), and remove. The per-option preview radios live on the option rows
+ * in the parts tree (rows.js) — here the rows are pure editing, so an option's
+ * weight/id live in one place and its preview control sits next to the geometry.
  */
 import { S } from '../../../state.js';
 import { el, numberInput } from '../../formControls/index.js';
@@ -15,14 +17,9 @@ import { SHAPE_TYPES } from '../../../../../../src/render/hexmap3d/worldObjects/
 const firstShape = () => Object.keys(SHAPE_TYPES)[0];
 
 /**
- * One row per option: the preview radio (force this option in the preview),
- * the editable option id, the draw weight, the add-group-inside-option
- * button, and the remove button. Mutations go through ctx.mutate().
- *
- * The preview radios share a `name` with the "Natural (random)" radio in the
- * alternatives section head (alternatives/index.js) — together they are one
- * radio group, so choosing an option here un-checks Natural and vice-versa.
- * All writes route through setPinnedOption (previewState.js).
+ * One row per option: the editable option id, the draw weight, the
+ * add-group-inside-option button, and the remove button. Mutations go through
+ * ctx.mutate().
  * @param {object} node - the alternatives choice point
  * @param {object[]} options - node.alternatives
  * @param {string|null} motifId - the active motif's id (null outside motif decors)
@@ -30,19 +27,9 @@ const firstShape = () => Object.keys(SHAPE_TYPES)[0];
  */
 export function renderOptionRows(container, node, options, motifId, ctx) {
   options.forEach((option, oi) => {
+    // The preview radio for each option lives on the option's row in the parts
+    // tree (rows.js); here the row is pure editing: id, weight, +group, remove.
     const orow = el('div', 'alternative-row');
-    const preview = el('input');
-    preview.type = 'radio';
-    preview.name = `preview-${node.id}`;
-    const st = previewStateFor(S.previewOptions, node.id);
-    preview.checked = st.mode === 'pinned' && st.optionId === option.id;
-    preview.title = 'Force this option in the preview (node-scoped)';
-    preview.addEventListener('change', () => {
-      S.previewOptions = setPinnedOption(S.previewOptions, node.id, option.id);
-      ctx.onEdit();
-      ctx.renderAll();
-    });
-    orow.append(preview);
 
     // The option id is editable — option ids live in the GLOBAL part-id
     // namespace, so renames check the whole tree and rewrite the choice

@@ -522,6 +522,16 @@ of the Variant section; alternatives get a per-node option table (weights,
 and a 3×3 tile-strip of real neighbor hashes with a 64-tile histogram is the
 diversity acceptance view.
 
+Two editor ergonomics notes (the alternatives authoring additions): the editor
+displays a **derived local name** in the parts tree (the storage id's
+motif/choice/option prefixes peeled — `cactus-two-straight-arm-2` shows as
+`arm-2`), while the full id stays the source of truth and is shown in the row
+tooltip and the inspector's id row. And every choice point's preview is either
+**natural** (a real seeded roll) or **pinned** to one option: the tree's choice
+row shows a live `↻ natural` / `→ <option>` badge, selecting the choice point or
+the inspector's "Natural (random)" radio returns to the random roll, and the
+row's `⟳` cycles through each config.
+
 ### 5.6 Entity-driven path (bases, champions, mobs, traders)
 
 An entity is a single item at the hex center: count is 1, placement is center,
