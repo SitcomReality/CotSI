@@ -161,6 +161,13 @@
 .alternatives.part-row, .option-row.part-row {
   font-style: italic;
 }
+/* Option rows read as configuration sub-headers — an accent left rule and a
+   subtle tint group the parts nested beneath them under one config, so an
+   option's arms are visibly "one config" vs a sibling option's arms. */
+.option-row.part-row {
+  border-left: 3px solid color-mix(in srgb, var(--cerulean) 50%, transparent);
+  background: color-mix(in srgb, var(--board-hi) 75%, transparent);
+}
 
 .strip-histogram {
   font-family: var(--token-font-mono, monospace);

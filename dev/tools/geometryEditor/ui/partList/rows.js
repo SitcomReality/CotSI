@@ -17,6 +17,7 @@ import {
   duplicateInList,
 } from '../partTree/index.js';
 import { previewStateFor, setPinnedOption } from '../previewState.js';
+import { displayLabel } from '../partTree/labels.js';
 
 /** Group ids whose children are hidden in the list (session state). */
 const collapsedGroups = new Set();
@@ -99,8 +100,15 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       r.append(badge);
     }
 
-    const kind = alt ? 'alternatives' : option ? `option · w${node.weight ?? 1}` : group ? 'group' : node.shape;
-    const label = el('span', 'part-label', `${node.id} · ${kind}`);
+    // The kind tag tells leaves/groups/options/choice points apart. Only an
+    // option ROW carries a weight — a leaf or group nested inside an option is
+    // not an option and must not inherit a bogus `w1`.
+    let kind;
+    if (alt) kind = 'alternatives';
+    else if (option && node === option) kind = `option · w${node.weight ?? 1}`;
+    else kind = group ? 'group' : node.shape;
+    const label = el('span', 'part-label', `${displayLabel(node, { option, choiceId }, motifId)} · ${kind}`);
+    label.title = node.id; // full storage id — the display label is just the local name
     label.addEventListener('click', () => {
       S.selectedPartId = node.id;
       if (alt) {
