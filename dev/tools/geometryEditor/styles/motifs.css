@@ -178,3 +178,47 @@
   flex-wrap: wrap;
   align-items: flex-start;
 }
+
+/* ── Alternatives preview state (Pillar A) ────────────────────────────────── */
+
+/* Choice-point preview badge in the parts tree: `↻ natural` (muted) or a
+   pinned `→ <option>` (accent) — so a forced option is never silent. */
+.preview-badge {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border: 1px solid var(--crease);
+  border-radius: 999px;
+  font-family: var(--token-font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  color: var(--ink-mid);
+  background: color-mix(in srgb, var(--board-hi) 60%, transparent);
+  cursor: help;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-badge.pinned {
+  color: var(--cerulean);
+  border-color: color-mix(in srgb, var(--cerulean) 45%, transparent);
+}
+
+/* The inspector's "Natural (random)" radio row + the preview-state readout. */
+.preview-natural-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.preview-natural-row input[type="radio"] {
+  margin: 0;
+}
+.preview-natural-label {
+  font-size: var(--fs-xs);
+}
+.preview-state-readout {
+  font-size: var(--fs-xs);
+  font-style: italic;
+  color: var(--ink-mid);
+  margin-bottom: var(--s2);
+}

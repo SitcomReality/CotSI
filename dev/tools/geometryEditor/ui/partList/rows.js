@@ -2,7 +2,8 @@
  * rows.js — Recursive part-row rendering for the parts list: one row per node
  * in the active parts tree — fold buttons for groups/alternatives, the label
  * (click to select), growth-state keyframe badges, and the ↑/↓/✕ sibling
- * actions. Alternatives nodes render their option rows beneath them.
+ * actions. Alternatives nodes render their option rows beneath them, plus a
+ * preview-state badge and a cycle-configs button.
  */
 import { S } from '../../state.js';
 import { el } from '../formControls/index.js';
@@ -15,6 +16,7 @@ import {
   motifScoped,
   duplicateInList,
 } from '../partTree/index.js';
+import { previewStateFor, setPinnedOption } from '../previewState.js';
 
 /** Group ids whose children are hidden in the list (session state). */
 const collapsedGroups = new Set();
@@ -84,15 +86,33 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       r.append(fold);
     }
 
+    // A live preview-state badge on choice points: natural (random) by default,
+    // or which config is currently pinned — so a forced option is never silent.
+    if (alt) {
+      const state = previewStateFor(S.previewOptions, node.id);
+      const pinned = state.mode === 'pinned';
+      const badge = el('span', 'preview-badge' + (pinned ? ' pinned' : ''),
+        pinned ? `→ ${state.optionId}` : '↻ natural');
+      badge.title = pinned
+        ? `Previewing: pinned to “${state.optionId}” — select this choice point (or choose Natural) to return to random`
+        : 'Previewing a random config — press re-roll to shuffle';
+      r.append(badge);
+    }
+
     const kind = alt ? 'alternatives' : option ? `option · w${node.weight ?? 1}` : group ? 'group' : node.shape;
     const label = el('span', 'part-label', `${node.id} · ${kind}`);
     label.addEventListener('click', () => {
       S.selectedPartId = node.id;
-      // Selecting a part that lives only inside one option auto-switches the
-      // preview to that option (a part in a non-previewed option has no gizmo
-      // frame — decorComposition.md §6.2).
-      if (choiceId && option) {
-        S.previewOptions = new Map(S.previewOptions).set(choiceId, option.id);
+      if (alt) {
+        // Selecting the choice point itself returns the preview to its natural
+        // (random) state — the "show me this object without a config forced"
+        // gesture. A pin is now visible (badge) and reversible.
+        S.previewOptions = setPinnedOption(S.previewOptions, node.id, null);
+      } else if (choiceId && option) {
+        // Selecting a part that lives only inside one option auto-switches the
+        // preview to that option (a part in a non-previewed option has no gizmo
+        // frame — decorComposition.md §6.2).
+        S.previewOptions = setPinnedOption(S.previewOptions, choiceId, option.id);
       }
       ctx.renderAll();
       ctx.onEdit();
@@ -123,7 +143,7 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       // Inside an option, keep the preview pinned to the option the copy lives
       // in (same auto-switch rule as the label click).
       if (choiceId && option) {
-        S.previewOptions = new Map(S.previewOptions).set(choiceId, option.id);
+        S.previewOptions = setPinnedOption(S.previewOptions, choiceId, option.id);
       }
     }));
     up.addEventListener('click', () => ctx.mutate(() => {
@@ -140,7 +160,25 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       }
     }));
 
-    r.append(label, dup, up, down, remove);
+    // Cycle-configs button on choice points: step the pinned option through
+    // Natural → each config → back to Natural, so every config can be eyed up
+    // without hunting the radio group (previewState.js).
+    const actions = [dup, up, down, remove];
+    if (alt) {
+      const cycle = el('button', null, '⟳');
+      cycle.title = 'Cycle the preview through each config (Natural → each option → back)';
+      cycle.addEventListener('click', () => {
+        const seq = [null, ...(node.alternatives ?? []).map((o) => o.id)];
+        const state = previewStateFor(S.previewOptions, node.id);
+        let i = seq.indexOf(state.mode === 'pinned' ? state.optionId : null);
+        if (i === -1) i = 0;
+        S.previewOptions = setPinnedOption(S.previewOptions, node.id, seq[(i + 1) % seq.length]);
+        ctx.renderAll();
+      });
+      actions.unshift(cycle);
+    }
+
+    r.append(label, ...actions);
     listEl.append(r);
 
     if (alt && !collapsedGroups.has(node.id)) {
