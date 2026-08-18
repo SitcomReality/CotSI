@@ -38,7 +38,7 @@ const TOLERANCE = {
   mountain:       { min: 0.005, max: 0.06, label: 'mountain' },
   plateau:        { min: 0.03, max: 0.16, label: 'plateau' },
   forest:         { min: 0.10, max: 0.22, label: 'forest' },
-  denseForest:    { min: 0.08, max: 0.19, label: 'denseForest' },
+  deepWood:    { min: 0.08, max: 0.19, label: 'deepWood' },
   desert:         { min: 0.02, max: 0.13, label: 'desert' },
   plains:         { min: 0.08, max: 0.21, label: 'plains' },
   hill:           { min: 0.08, max: 0.20, label: 'hill' },

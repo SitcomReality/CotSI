@@ -22,7 +22,7 @@ defineArchetype('biome_frigid_silence', {
   // Cold steppe/tundra: cold suppresses forest, more ice, sparse growth
   terrainRules: {
     forestMinMoisture:      0.65,
-    denseForestMinMoisture: 0.75,
+    deepWoodMinMoisture: 0.75,
     freezeTempMax:          0.60,
     desertMaxMoisture:      0.30,
     marshMinMoisture:       0.55,
@@ -39,7 +39,7 @@ defineArchetype('biome_frigid_silence', {
   palette: {
     plains:        [0.580, 0.620, 0.550],  // frost-bleached grass
     forest:        [0.340, 0.480, 0.350],  // sparse taiga green
-    denseForest:   [0.220, 0.350, 0.250],  // deep cold green
+    deepWood:   [0.220, 0.350, 0.250],  // deep cold green
     desert:        [0.720, 0.680, 0.550],  // pale cold sand
     marsh:         [0.480, 0.540, 0.480],  // frosty marsh
     hill:          [0.520, 0.580, 0.480],  // cold olive
@@ -59,7 +59,7 @@ defineArchetype('biome_frigid_silence', {
     bloom: [0.550, 0.620, 0.750],   // #8c9ebf — muted periwinkle blossom
     exotic: [0.680, 0.780, 0.850],  // #adc7d9 — pale frost (ice crystals)
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'forest', 'deepWood', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['temperate', 'snowy'],
 
   terrainElevation: null,

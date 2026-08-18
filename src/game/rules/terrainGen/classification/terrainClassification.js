@@ -68,7 +68,7 @@ export function classifyTerrain(elevation, moisture, temperature, slope, biomeDe
 
   const belowTreeLine = elevation < R.treeLineMax;
 
-  if (belowTreeLine && moisture > R.denseForestMinMoisture) return 'denseForest';
+  if (belowTreeLine && moisture > R.deepWoodMinMoisture) return 'deepWood';
   if (belowTreeLine && moisture > R.forestMinMoisture)      return 'forest';
   if (moisture < R.desertMaxMoisture)                       return 'desert';
   if (moisture > R.marshMinMoisture && elevation < R.marshMaxElevation) return 'marsh';

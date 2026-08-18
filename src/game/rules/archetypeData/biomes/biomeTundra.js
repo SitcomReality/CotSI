@@ -22,7 +22,7 @@ defineArchetype('biome_tundra', {
   // Tundra: cold suppresses forests, abundant ice, sparse growth
   terrainRules: {
     forestMinMoisture:      0.80,
-    denseForestMinMoisture: 0.90,
+    deepWoodMinMoisture: 0.90,
     desertMaxMoisture:      0.05,
     marshMinMoisture:       0.30,
     marshMaxElevation:      0.50,
@@ -41,7 +41,7 @@ defineArchetype('biome_tundra', {
   palette: {
     plains:        [0.780, 0.800, 0.820],  // snow-covered white
     forest:        [0.480, 0.620, 0.550],  // sparse taiga
-    denseForest:   [0.320, 0.480, 0.400],  // dark taiga
+    deepWood:   [0.320, 0.480, 0.400],  // dark taiga
     desert:        [0.650, 0.620, 0.550],  // rare frozen sand
     marsh:         [0.520, 0.580, 0.520],  // frosty marsh
     hill:          [0.620, 0.680, 0.620],  // snow-dusted hill
@@ -61,7 +61,7 @@ defineArchetype('biome_tundra', {
     bloom: [0.720, 0.700, 0.850],   // #b8b3d9 — pale lilac blossom
     exotic: [0.940, 0.960, 1.000],  // #f0f5ff — near-white (snow)
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'forest', 'deepWood', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['snowy', 'temperate'],
 
   terrainElevation: null,

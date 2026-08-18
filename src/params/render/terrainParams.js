@@ -67,7 +67,7 @@ export const SPARKLE_Y_OFFSET = 0.06;
 export const TERRAIN_COLOR = {
   plains:        [0.455, 0.678, 0.365],  // #74ad5d — vibrant meadow green
   forest:        [0.294, 0.557, 0.255],  // #4b8e41 — deep vivid forest
-  denseForest:   [0.176, 0.420, 0.137],  // #2d6b23 — dark rich green
+  deepWood:   [0.176, 0.420, 0.137],  // #2d6b23 — dark rich green
   desert:        [0.839, 0.694, 0.357],  // #d6b15b — warm golden sand
   marsh:         [0.506, 0.600, 0.404],  // #819967 — murky vibrant marsh
   mountain:      [0.529, 0.486, 0.416],  // #877c6a — rocky warm gray
@@ -84,7 +84,7 @@ export const TERRAIN_COLOR = {
 export const TERRAIN_ELEVATION = {
   plains: 0,
   forest: 0.15,
-  denseForest: 0.20,
+  deepWood: 0.20,
   desert: 0,
   marsh: -0.05,
   beach: -0.05,

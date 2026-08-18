@@ -26,7 +26,7 @@ defineArchetype('biome_mourning_marsh', {
     waterMinMoisture:        0.15,
     waterMaxElevation:       0.08,
     forestMinMoisture:       0.30,
-    denseForestMinMoisture:  0.50,
+    deepWoodMinMoisture:  0.50,
     desertMaxMoisture:       0.05,
     freezeTempMax:           0.60,
   },
@@ -43,7 +43,7 @@ defineArchetype('biome_mourning_marsh', {
   palette: {
     plains:        [0.350, 0.480, 0.350],  // dark wet grass
     forest:        [0.220, 0.380, 0.220],  // murky woodland
-    denseForest:   [0.120, 0.280, 0.150],  // deep dark mire
+    deepWood:   [0.120, 0.280, 0.150],  // deep dark mire
     desert:        [0.550, 0.480, 0.350],  // rare dry patch
     marsh:         [0.300, 0.420, 0.280],  // deep marsh green
     hill:          [0.380, 0.440, 0.320],  // wet hill
@@ -63,7 +63,7 @@ defineArchetype('biome_mourning_marsh', {
     bloom: [0.250, 0.420, 0.550],   // #406b8c — mournful blue (marsh flowers)
     exotic: [0.850, 0.850, 0.450],  // #d9d973 — will-o'-wisp fen glow
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
+  terrainTags: ['plains', 'beach', 'forest', 'deepWood', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['rainy', 'snowy'],
 
   terrainElevation: {

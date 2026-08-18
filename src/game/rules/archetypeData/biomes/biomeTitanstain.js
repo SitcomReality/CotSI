@@ -50,7 +50,7 @@ defineArchetype('biome_titanstain', {
   palette: {
     plains:      [0.720, 0.360, 0.500],  // titanflesh pink
     forest:      [0.500, 0.220, 0.380],  // dark flesh
-    denseForest: [0.360, 0.150, 0.280],  // deep bruise
+    deepWood: [0.360, 0.150, 0.280],  // deep bruise
     desert:      [0.820, 0.560, 0.620],  // sickly pale flesh
     marsh:       [0.540, 0.300, 0.440],  // murky flesh
     hill:        [0.640, 0.320, 0.460],  // flesh-grey
@@ -88,7 +88,7 @@ defineArchetype('biome_titanstain', {
     hill:        { name: 'Titanflesh', movementCost: 12, decor: 'titanflesh' },
     plateau:     { name: 'Titanflesh', movementCost: 15, decor: 'titanflesh' },
     forest:      { name: 'Titanflesh', movementCost: 12, decor: 'titanflesh' },
-    denseForest: { name: 'Titanflesh', movementCost: 20, decor: 'titanflesh' },
+    deepWood: { name: 'Titanflesh', movementCost: 20, decor: 'titanflesh' },
   },
   terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid'],

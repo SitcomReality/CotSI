@@ -8,7 +8,7 @@ import { MOUNTAIN_HASH_SEEDS } from '../../../../params/render/geometryParams.js
  * Which variant's parts compose the items.
  *
  * A decor is the look of ONE terrain (each terrain has its own descriptor —
- * `forest` and `denseForest` are separate objects, never variants of one
+ * `forest` and `deepWood` are separate objects, never variants of one
  * another), so the only variant dimension on the tile path is the biome:
  *
  *   variants[0]     — the DEFAULT look: every tile renders it unless a pin
@@ -33,7 +33,7 @@ import { MOUNTAIN_HASH_SEEDS } from '../../../../params/render/geometryParams.js
  *
  * A rule that names an id the descriptor does not define falls back so a
  * partially-migrated descriptor still renders. The legacy 'cluster' rule
- * (denseForest→tall, else→round) is retired — different terrains are now
+ * (deepWood→tall, else→round) is retired — different terrains are now
  * separate descriptors (normalizeDescriptor migrates old files).
  */
 

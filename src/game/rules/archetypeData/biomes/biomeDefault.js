@@ -20,7 +20,7 @@ defineArchetype('biome_default', {
   // Features ordered by priority — first match wins.
   // blessedFont at high threshold (rare), then knot at the low end.
   features: [
-    { kind: 'blessedFont',        threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont',        threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'deepWood'] },
     { kind: 'vegetableLamb',      threshold: 0.925, compare: 'gt', terrainExclude: ['desert'], tier: 'T2' },
     { kind: 'witnessStone',       threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'], tier: 'T3' },
     { kind: 'treasureChest',              threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
@@ -33,7 +33,7 @@ defineArchetype('biome_default', {
   palette: {
     plains:        [0.455, 0.678, 0.365],  // vibrant meadow green
     forest:        [0.294, 0.557, 0.255],  // deep vivid forest
-    denseForest:   [0.176, 0.420, 0.137],  // dark rich green
+    deepWood:   [0.176, 0.420, 0.137],  // dark rich green
     desert:        [0.839, 0.694, 0.357],  // warm golden sand
     marsh:         [0.506, 0.600, 0.404],  // murky vibrant marsh
     hill:          [0.545, 0.659, 0.388],  // olive-green

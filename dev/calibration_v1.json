@@ -38,11 +38,11 @@
       "field": "moisture",
       "description": "72nd percentile — forest minimum moisture"
     },
-    "denseForestMinMoisture": {
+    "deepWoodMinMoisture": {
       "value": 0.64,
       "targetPercentile": 85,
       "field": "moisture",
-      "description": "85th percentile — dense forest minimum moisture"
+      "description": "85th percentile — deep wood minimum moisture"
     },
     "desertMaxMoisture": {
       "value": 0.36,
@@ -91,7 +91,7 @@
       "hillElevationMin",
       "marshMaxElevation",
       "forestMinMoisture",
-      "denseForestMinMoisture",
+      "deepWoodMinMoisture",
       "desertMaxMoisture",
       "marshMinMoisture",
       "freezeTempMax"

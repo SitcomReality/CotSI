@@ -34,7 +34,7 @@ test('data covers every FEATURE_VISUALS kind plus decor/mountain/knot content', 
     'snowperson',
   ];
   for (const id of expectedSimple) assert.ok(ids.has(id), `missing simple feature "${id}"`);
-  for (const id of ['forest', 'denseForest', 'hill', 'mountain', 'knot', 'marsh', 'plateau', 'plains', 'desert', 'beach']) {
+  for (const id of ['forest', 'deepWood', 'hill', 'mountain', 'knot', 'marsh', 'plateau', 'plains', 'desert', 'beach']) {
     assert.ok(ids.has(id), `missing migrated object "${id}"`);
   }
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));
@@ -139,10 +139,17 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
   // x/z — their world position is the leaf's offset, not the item's placement.
   // Check the dispersed distribution on the item-origin (root) records only,
   // matching the `rootRecords` selection used for the ring comparison below.
+  // Bound scale by the LARGEST motif size (per-motif `size` overrides like
+  // forest's `dead` at 1.35–1.6 can exceed the decor-level size.max) times the
+  // canopy X-stretch headroom (≤1.15) — dispersal must still shrink below that.
+  const maxMotifSize = Math.max(
+    forest.size?.max ?? 1.5,
+    ...forest.motifs.map((m) => m.size?.max ?? forest.size?.max ?? 1.5),
+  );
   for (const record of displaced.filter((r) => r.x !== undefined)) {
     const dist = Math.hypot(record.x - POS.x, record.z - POS.z);
     assert.ok(dist >= 0.68 - 1e-9 && dist <= 0.88 + 1e-9, `dispersed dist ${dist}`);
-    assert.ok(record.scale <= 1.5 * DISPERSED_SCALE + 1e-9);
+    assert.ok(record.scale <= maxMotifSize * 1.15 * DISPERSED_SCALE + 1e-9);
   }
   // Sanity: dispersed ring offsets match decorEmphasis' own function (within
   // float tolerance — `record.x = POS.x + dx` loses one ulp on round-trip).
@@ -158,11 +165,11 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
     assert.ok(Math.abs(record.z - POS.z - expected[i].dz) < 1e-9, `item ${i} dz`);
   });
 
-  // The denseForest decor is a separate object with its own (denser) moisture
+  // The deepWood decor is a separate object with its own (denser) moisture
   // count range — 4..7 trees per tile.
-  const deep = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'denseForest'));
-  const deepCount = itemCount(recordsForDescriptor(deep, { q: 3, r: -2, terrain: 'denseForest', moisture: 0.8 }, POS));
-  assert.ok(deepCount >= 4 && deepCount <= 7, `denseForest count ${deepCount} outside [4,7]`);
+  const deep = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'deepWood'));
+  const deepCount = itemCount(recordsForDescriptor(deep, { q: 3, r: -2, terrain: 'deepWood', moisture: 0.8 }, POS));
+  assert.ok(deepCount >= 4 && deepCount <= 7, `deepWood count ${deepCount} outside [4,7]`);
 });
 
 test('mountain: per-variant part ids and mountainType-driven scaleY', () => {

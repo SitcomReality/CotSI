@@ -1,15 +1,15 @@
 /**
- * decor/denseForest.js — Descriptor data for "Dense Forest decor".
+ * decor/deepWood.js — Descriptor data for "Deep Wood decor".
  *
  * Generated file: edit this object in the geometry editor
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
-export const DENSE_FOREST_DESCRIPTOR = {
+export const DEEP_WOOD_DESCRIPTOR = {
   schemaVersion: 6,
-  id: 'denseForest',
+  id: 'deepWood',
   kind: 'decor',
-  displayName: 'Dense Forest decor',
-  cluster: { rule: 'moisture', countsByTerrain: { denseForest: [4, 7] } },
+  displayName: 'Deep Wood decor',
+  cluster: { rule: 'moisture', countsByTerrain: { deepWood: [4, 7] } },
   size: { min: 1.3, max: 1.5 },
   variation: { colorJitter: 0.05 },
   placement: { mode: 'ring', leanMin: 0.2, leanMax: 0.3 },

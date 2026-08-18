@@ -8,7 +8,7 @@
  * Usage:  node dev/scripts/decorPartHistogram.mjs <id> [biomeId] [N] [terrain]
  *
  *   <id>      descriptor id (desert, beach, plains, marsh, plateau, forest,
- *             denseForest)
+ *             deepWood)
  *   [biomeId] pin/table biome for the tiles (default: none — the unpinned
  *             table). A real game tile always has a biome; pass the biome you
  *             want to measure (e.g. biome_edenfall).

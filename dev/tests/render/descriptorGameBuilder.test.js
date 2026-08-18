@@ -49,7 +49,7 @@ const TILES = [
   // Blessed Font on plains — descriptor data.
   { q: -7, r: 2, terrain: 'plains', feature: { kind: 'blessedFont' } },
   // Dense wood grove — conical (tall) canopy variant.
-  { q: 16, r: -5, terrain: 'denseForest', moisture: 0.7 },
+  { q: 16, r: -5, terrain: 'deepWood', moisture: 0.7 },
   // Ground decor: marsh reeds, plateau mound, desert scrub, beach driftwood.
   { q: 18, r: -7, terrain: 'marsh' },
   { q: 20, r: -9, terrain: 'plateau' },
@@ -152,7 +152,7 @@ test('one named decor per decor-producing terrain', () => {
   const EXPECTED = {
     plains: 'plains',
     forest: 'forest',
-    denseForest: 'denseForest',
+    deepWood: 'deepWood',
     desert: 'desert',
     marsh: 'marsh',
     hill: 'hill',
@@ -211,19 +211,19 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   const cPos = instInfo(chest, 0);
   assert.ok(closeTo(cPos.x, cCenter.x + anchor.dx) && closeTo(cPos.z, cCenter.z + anchor.dz), 'chest displaced');
 
-  // Woods: separate forest + denseForest decor descriptors. Under the v6
+  // Woods: separate forest + deepWood decor descriptors. Under the v6
   // migration the unpinned test tiles draw from the motif table, so part ids
   // carry the motif prefix — match by substring ('-trunk' / '-canopy-') and
   // assert coverage, not the per-variant 1:1 pairing (the gnarled variant has
   // two trunk parts and the unpinned table mixes motifs).
   const trunkOf = (prefix) => meshes.filter((m) => m.name.startsWith(prefix) && m.name.includes('-trunk'));
   const forestTrunks = trunkOf('forest-');
-  const deepTrunks = trunkOf('denseForest-');
-  assert.ok(forestTrunks.length > 0 && deepTrunks.length > 0, 'forest + denseForest trunk meshes');
+  const deepTrunks = trunkOf('deepWood-');
+  assert.ok(forestTrunks.length > 0 && deepTrunks.length > 0, 'forest + deepWood trunk meshes');
   const forestTrunkCount = meshSum(forestTrunks);
   const deepTrunkCount = meshSum(deepTrunks);
   assert.ok(meshes.some((m) => m.name.startsWith('forest-') && (m.name.includes('-canopy') || m.name.includes('-crown'))), 'forest canopy meshes');
-  assert.ok(meshes.some((m) => m.name.startsWith('denseForest-') && (m.name.includes('-canopy') || m.name.includes('-crown'))), 'denseForest canopy meshes');
+  assert.ok(meshes.some((m) => m.name.startsWith('deepWood-') && (m.name.includes('-canopy') || m.name.includes('-crown'))), 'deepWood canopy meshes');
   assert.ok(forestTrunkCount + deepTrunkCount >= 5, `woods cover 4 tiles (got ${forestTrunkCount + deepTrunkCount} trunks)`);
 
   // Knot: one instance per authored part (the mined knot is skipped); the
@@ -271,11 +271,11 @@ test('buildDescriptorFeatureMeshes: one mesh group per descriptor, correct conte
   }
 
   // Woods meshes: forest's round canopy (2 tiles) + gnarled painforest variant
-  // (1 tile), and denseForest's tall canopy (1 tile) — one trunk + canopy pair
+  // (1 tile), and deepWood's tall canopy (1 tile) — one trunk + canopy pair
   // per drawn motif; the unpinned tiles mix the table, so only the pinned
   // painforest look is guaranteed.
   assert.ok(meshesStarting(meshes, 'forest-').length > 0, 'forest renders');
-  assert.ok(meshesStarting(meshes, 'denseForest-').length > 0, 'denseForest renders');
+  assert.ok(meshesStarting(meshes, 'deepWood-').length > 0, 'deepWood renders');
   assert.ok(meshesStarting(meshes, 'blessedFont-').length === 4, 'Blessed Font renders its four parts');
 });
 
@@ -376,10 +376,10 @@ test('descriptor decor renders on explored-but-out-of-sight tiles, unoccupied', 
   // carry the motif prefix under the migration).
   const trunkCount = (prefix) => meshSum(meshes.filter((m) => m.name.startsWith(prefix) && m.name.includes('-trunk')));
   const forestTrunkCount = trunkCount('forest-');
-  const deepTrunkCount = trunkCount('denseForest-');
-  assert.ok(forestTrunkCount > 0 && deepTrunkCount > 0, 'forest + denseForest meshes present');
+  const deepTrunkCount = trunkCount('deepWood-');
+  assert.ok(forestTrunkCount > 0 && deepTrunkCount > 0, 'forest + deepWood meshes present');
   assert.ok(forestTrunkCount >= 4, `forest covers the explored woods tiles (got ${forestTrunkCount})`);
-  assert.ok(deepTrunkCount >= 4, `denseForest covers its explored tile (got ${deepTrunkCount})`);
+  assert.ok(deepTrunkCount >= 4, `deepWood covers its explored tile (got ${deepTrunkCount})`);
 });
 
 test('painforest grove (descriptor decor) renders out of sight; Blessed Fonts stay hidden', () => {

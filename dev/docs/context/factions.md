@@ -50,14 +50,14 @@ accumulate into the round score.
 |---|-------|------|-------|-----------------|---------------|
 | 0 | CRU | **Crucible** | Scarshield | –week enemy final score | hill 6, plateau 6 |
 | 1 | REV | **Reverie** | Another's Dream | Dawn random boon | marsh 6 |
-| 2 | VER | **Verdant** | Gaia's Wail | Cheap forest moves, mobs pacified, Blessed Font heal++ | forest 4, denseForest 6 |
+| 2 | VER | **Verdant** | Gaia's Wail | Cheap forest moves, mobs pacified, Blessed Font heal++ | forest 4, deepWood 6 |
 | 3 | ARC | **Archive** | Everknown | Relic → +random potency | river 15 |
 | 4 | HRT | **Hearth** | Compersion | Trade −20% | plains 6, desert 6 |
 | 5 | MSK | **Masque** | Silent Ovation | Combat turn +week random | desert 6 |
-| 6 | HOL | **Hollow** | Vaunted Nothing | +⌈week/3⌉ per missing HP | denseForest 10 |
+| 6 | HOL | **Hollow** | Vaunted Nothing | +⌈week/3⌉ per missing HP | deepWood 10 |
 
 (Terrain costs are per-hex action-point costs; default costs are plains 10,
-forest 12, denseForest 20, desert 10, marsh 15, hill 12, plateau 15, river 30.)
+forest 12, deepWood 20, desert 10, marsh 15, hill 12, plateau 15, river 30.)
 
 One-sentence themes (the flavor nouns are light summaries of name + trait;
 mechanics are from the data above):

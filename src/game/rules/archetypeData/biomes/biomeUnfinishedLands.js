@@ -28,7 +28,7 @@ defineArchetype('biome_unfinished_lands', {
     mountainThreshold:      0.44,
     hillElevationMin:       0.08,
     forestMinMoisture:      0.80,
-    denseForestMinMoisture: 0.90,
+    deepWoodMinMoisture: 0.90,
     desertMaxMoisture:      0.35,
     waterMaxElevation:      0.04,
   },
@@ -49,7 +49,7 @@ defineArchetype('biome_unfinished_lands', {
   palette: {
     plains:      [0.520, 0.740, 0.740],  // ghost cyan-green
     forest:      [0.300, 0.600, 0.640],  // electric teal
-    denseForest: [0.200, 0.460, 0.520],  // deep electric
+    deepWood: [0.200, 0.460, 0.520],  // deep electric
     desert:      [0.760, 0.780, 0.720],  // bleached ghost
     marsh:       [0.420, 0.660, 0.600],  // sickly teal
     hill:        [0.500, 0.680, 0.680],  // ghost hill
@@ -85,7 +85,7 @@ defineArchetype('biome_unfinished_lands', {
     plateau:     { name: 'Yetlands', movementCost: 15, decor: 'yetlands' },
     mountain:    { name: 'Sky Stalagmite' },
     forest:      { name: 'Protogrowth', movementCost: 12, decor: 'yetlands' },
-    denseForest: { name: 'Protogrowth', movementCost: 20, decor: 'yetlands' },
+    deepWood: { name: 'Protogrowth', movementCost: 20, decor: 'yetlands' },
     marsh:       { name: 'Protogrowth', movementCost: 15, decor: 'yetlands' },
     hill:        { name: 'Half-Hewn Rise', movementCost: 12, decor: 'yetlands' },
   },

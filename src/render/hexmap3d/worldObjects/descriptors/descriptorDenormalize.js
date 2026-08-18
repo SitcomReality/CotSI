@@ -26,7 +26,7 @@ function sameValue(a, b) {
 }
 
 /** Strip the fields normalizeDescriptor fills for moisture-rule clusters. */
-const MOISTURE_COUNTS_DEFAULT = Object.freeze({ forest: [3, 5], denseForest: [4, 7] });
+const MOISTURE_COUNTS_DEFAULT = Object.freeze({ forest: [3, 5], deepWood: [4, 7] });
 
 /**
  * Strip every optional field equal to its default — the inverse of

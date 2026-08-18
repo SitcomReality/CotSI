@@ -174,7 +174,7 @@ export function normalizeDescriptor(def) {
   out.scale = out.scale ?? OBJECT_DEFAULTS.scale;
   out.variantRule = out.variantRule ?? 'hash';
 
-  // Legacy v5 'cluster' rule — it conflated terrain (denseForest→'tall',
+  // Legacy v5 'cluster' rule — it conflated terrain (deepWood→'tall',
   // else→'round') with biome (via biomeVariants). Different terrains are now
   // separate descriptors, so the rule simply retires to the 'hash' default.
   // Idempotent: a migrated file carries variantRule 'hash', so a second pass
@@ -189,7 +189,7 @@ export function normalizeDescriptor(def) {
   if (out.cluster.rule === 'moisture') {
     out.cluster.countsByTerrain = isPlainObject(out.cluster.countsByTerrain)
       ? out.cluster.countsByTerrain
-      : { forest: [3, 5], denseForest: [4, 7] };
+      : { forest: [3, 5], deepWood: [4, 7] };
     out.cluster.densityRange = out.cluster.densityRange ?? [0.55, 0.85];
     out.cluster.jitter = out.cluster.jitter ?? 1;
   }

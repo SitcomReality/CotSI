@@ -43,7 +43,7 @@ defineArchetype('biome_dustbleed', {
   palette: {
     plains:        [0.550, 0.200, 0.150],  // deep rusty red-brown (dead cursed grass)
     forest:        [0.250, 0.500, 0.450],  // dark teal (grass quenched by god blood)
-    denseForest:   [0.150, 0.400, 0.350],  // deeper teal thicket
+    deepWood:   [0.150, 0.400, 0.350],  // deeper teal thicket
     desert:        [0.700, 0.350, 0.200],  // reddish sandy
     marsh:         [0.350, 0.250, 0.200],  // murky blood-mud
     hill:          [0.500, 0.250, 0.200],  // rusty hill
@@ -63,7 +63,7 @@ defineArchetype('biome_dustbleed', {
     bloom: [0.720, 0.700, 0.500],   // #b8b380 — sickly pale blossom
     exotic: [0.250, 0.500, 0.450],  // #408073 — turquoise (the crystals)
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'deepWood', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['arid', 'temperate'],
 
   terrainElevation: null,

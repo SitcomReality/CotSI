@@ -42,7 +42,7 @@ matches except ice `#b8d8f0` and river `#5f9ac1`).
 |-----|--------------|-------|----------|-----------|-------------|
 | `plains` | Plains | `#74ad5d` | yes | 10 | grass blades (decor: "Plains Meadow") |
 | `forest` | Forest | `#4b8e41` | yes | 12 | round trees, 3–5 per hex (decor: "Forest") |
-| `denseForest` | Deep wood | `#2d6b23` | yes | 20 | conical pines, 4–7 per hex (decor: "Dense Forest") |
+| `deepWood` | Deep wood | `#2d6b23` | yes | 20 | conical pines, 4–7 per hex (decor: "Deep Wood") |
 | `desert` | Desert | `#d6b15b` | yes | 10 | scrub clusters, 6–8 per hex (decor: "Desert Growth") |
 | `marsh` | Marsh | `#819967` | yes | 15 | reed clusters, 5–8 per hex (decor: "Marsh Reeds") |
 | `hill` | Hill | `#8ba863` | yes | 12 | raised mound, one per hex (decor: "Hill Mound") |
@@ -64,7 +64,7 @@ Notes:
 - Land side-faces adjacent to water/river are damp-tinted toward
   `#1a476b` (weight 0.55).
 - Terrain **elevation offsets** (Y above the hex base): plains 0, desert 0,
-  forest +0.15, denseForest +0.20, hill +0.25, marsh −0.05, beach −0.05,
+  forest +0.15, deepWood +0.20, hill +0.25, marsh −0.05, beach −0.05,
   plateau +0.70, mountain +0.85, water −0.15, ice −0.12.
 
 ---
@@ -83,7 +83,7 @@ Notes:
    if slope > `plateauSlopeMin` (0.50), else `plateau`. Additionally elevation >
    `plateauThreshold` (0.48) with slope ≤ `plateauSlopeMax` (0.95) → `plateau`.
 4. **Forests** (below tree line, elevation < `treeLineMax` 0.85): moisture >
-   `denseForestMinMoisture` (0.64) → `denseForest`; moisture > `forestMinMoisture`
+   `deepWoodMinMoisture` (0.64) → `deepWood`; moisture > `forestMinMoisture`
    (0.58) → `forest`.
 5. **Desert**: moisture < `desertMaxMoisture` (0.30).
 6. **Marsh**: moisture > `marshMinMoisture` (0.52) **and** elevation <
@@ -155,8 +155,8 @@ defaults in §3):
 
 | Biome | Terrain character |
 |-------|-------------------|
-| **Sere Wastes** | Desert-dominated. NO forest / denseForest / marsh (moisture ≤ 0.30 is below every minimum: forest 0.85, dense 0.64, marsh 0.75). Water rare (elev < 0.04). Mountains possible (threshold 0.60). |
-| **Scorch** | Savanna. NO forest / denseForest / marsh (forest min 0.76 and marsh min 0.62 both above the climate max moist 0.60). Desert *surprisingly rare* (`desertMaxMoisture` 0.12). Water rare (elev < 0.08). Mountains at 0.60. |
+| **Sere Wastes** | Desert-dominated. NO forest / deepWood / marsh (moisture ≤ 0.30 is below every minimum: forest 0.85, dense 0.64, marsh 0.75). Water rare (elev < 0.04). Mountains possible (threshold 0.60). |
+| **Scorch** | Savanna. NO forest / deepWood / marsh (forest min 0.76 and marsh min 0.62 both above the climate max moist 0.60). Desert *surprisingly rare* (`desertMaxMoisture` 0.12). Water rare (elev < 0.08). Mountains at 0.60. |
 | **The Frigid Silence** | Cold steppe. Forests sparse (0.65 / 0.75). Ice common (`freezeTempMax` 0.60 vs default 0.50). Desert possible (≤ 0.30). Marsh only at the moist ceiling (0.55). |
 | **Mourning Marsh** | Marsh *dominates* (`marshMinMoisture` 0.20, `marshMaxElevation` 0.50). Desert essentially never (`desertMaxMoisture` 0.05). Ice common. Forests 0.30 / 0.50. |
 | **The Tundra** | Cold wet. Forests very rare (0.80 / 0.90). Desert essentially never (0.05). Marsh 0.30 / elev 0.50. Ice common. |
@@ -182,7 +182,7 @@ uniform (no faction terrain bonuses apply inside these biomes).
 
 | Terrain key | Renders as | Decor |
 |-------------|-----------|-------|
-| `plains`, `beach`, `desert`, `marsh`, `hill`, `plateau`, `forest`, `denseForest` | **Titanflesh** | `titanflesh` (fleshy growths) |
+| `plains`, `beach`, `desert`, `marsh`, `hill`, `plateau`, `forest`, `deepWood` | **Titanflesh** | `titanflesh` (fleshy growths) |
 | `mountain` | Titanflesh Mountain | (standard mountain) |
 | `water` | Titanblood | `titanblood` |
 | `ice` | Frozen Titanblood | `titanblood` |
@@ -193,7 +193,7 @@ uniform (no faction terrain bonuses apply inside these biomes).
 | Terrain key | Renders as | Decor |
 |-------------|-----------|-------|
 | `plains`, `beach`, `desert`, `plateau` | **Yetlands** | `yetlands` (half-formed remnants) |
-| `forest`, `denseForest`, `marsh` | **Protogrowth** | `yetlands` |
+| `forest`, `deepWood`, `marsh` | **Protogrowth** | `yetlands` |
 | `hill` | Half-Hewn Rise | `yetlands` |
 | `mountain` | Sky Stalagmite | (standard mountain) |
 | `water` | Forespring | `forespring` |
@@ -212,7 +212,7 @@ back to the global `TERRAIN_COLOR` table (§2) when a biome has no entry (e.g.
 `ice` in the warm biomes). Palettes are the **single source of the world's
 color** — there is no other per-tile ground coloring.
 
-| Biome | plains | forest | denseForest | desert | marsh | hill | plateau | mountain | water | ice | beach |
+| Biome | plains | forest | deepWood | desert | marsh | hill | plateau | mountain | water | ice | beach |
 |-------|--------|--------|-------------|--------|-------|------|---------|----------|-------|-----|-------|
 | Untouched | `#74ad5d` | `#4b8e41` | `#2d6b23` | `#d6b15b` | `#819967` | `#8ba863` | `#9a9078` | `#877c6a` | `#5f9ac1` | — | `#e0d2a0` |
 | Edenfall | `#8c4d8c` | `#6b337a` | `#4d2661` | `#ad8ca6` | `#73597a` | `#805285` | `#8c6b8f` | `#7a6180` | `#4d6199` | — | `#b38c99` |

@@ -671,7 +671,7 @@ const GROVE_MOIST = normalizeDescriptor({
   id: 'grove-moist',
   kind: 'decor',
   displayName: 'Moist Grove',
-  cluster: { rule: 'moisture', countsByTerrain: { forest: [3, 5], denseForest: [4, 7] }, densityRange: [0.55, 0.85] },
+  cluster: { rule: 'moisture', countsByTerrain: { forest: [3, 5], deepWood: [4, 7] }, densityRange: [0.55, 0.85] },
   size: { min: 1.3, max: 1.5 },
   variation: { stretchY: [0.85, 1.3], stretchXZ: [0.9, 1.15], colorJitter: 0.05 },
   placement: { mode: 'ring', ringMin: 0.18, ringMax: 0.55, leanMin: 0.045, leanMax: 0.12 },
@@ -687,7 +687,7 @@ test('moisture cluster count matches clusterCount() and stays in [min, max]', ()
   // 0.3 in floats) — that only flips Math.round at exact .5 densities, so the
   // grove size never visibly changes.
   const expected = (terrain, moisture, q, r) => {
-    const [min, max] = terrain === 'denseForest' ? [4, 7] : [3, 5];
+    const [min, max] = terrain === 'deepWood' ? [4, 7] : [3, 5];
     const [a, b] = GROVE_MOIST.cluster.densityRange;
     const m = Number.isFinite(moisture) ? Math.min(1, Math.max(0, (moisture - a) / (b - a))) : 0.5;
     const count = Math.round(min + (max - min) * m);
@@ -698,8 +698,8 @@ test('moisture cluster count matches clusterCount() and stays in [min, max]', ()
     { terrain: 'forest', moisture: 0.5, q: 2, r: 3 },
     { terrain: 'forest', moisture: 0.8, q: 7, r: -1 },
     { terrain: 'forest', moisture: 1.0, q: -4, r: 9 },
-    { terrain: 'denseForest', moisture: 0.7, q: 11, r: 5 },
-    { terrain: 'denseForest', moisture: 0.55, q: 0, r: 0 },
+    { terrain: 'deepWood', moisture: 0.7, q: 11, r: 5 },
+    { terrain: 'deepWood', moisture: 0.55, q: 0, r: 0 },
     { terrain: 'forest', moisture: NaN, q: 3, r: 3 },
   ];
   for (const c of cases) {
@@ -711,8 +711,8 @@ test('moisture cluster count matches clusterCount() and stays in [min, max]', ()
     assert.ok(c >= 3 && c <= 5, `forest count ${c}`);
   }
   for (let q = 0; q < 60; q++) {
-    const c = countFor({ q, r: 5, terrain: 'denseForest', moisture: 0.8 });
-    assert.ok(c >= 4 && c <= 7, `denseForest count ${c}`);
+    const c = countFor({ q, r: 5, terrain: 'deepWood', moisture: 0.8 });
+    assert.ok(c >= 4 && c <= 7, `deepWood count ${c}`);
   }
 });
 
@@ -738,7 +738,7 @@ test('a feature renders its first (default) variant; biome pins swap alternates'
   });
   const idsFor = (tile, explicitId) => new Set(recordsForDescriptor(woods, tile, POS, undefined, {}, null, explicitId).map((r) => r.partId));
   // Any non-pinned tile renders the default (first) variant — never a hash roll.
-  for (const terrain of ['forest', 'denseForest', 'hill']) {
+  for (const terrain of ['forest', 'deepWood', 'hill']) {
     assert.ok(idsFor({ q: 4, r: 4, terrain }).has('canopy-round'), `${terrain} renders the default variant`);
     assert.ok(!idsFor({ q: 4, r: 4, terrain }).has('canopy-gnarled'));
   }

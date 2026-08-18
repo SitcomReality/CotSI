@@ -22,7 +22,7 @@ test('base ladder: open ground cheap, wood/marsh dear, rivers very dear, blocked
   assert.equal(terrainCost(null, 'hill'), 12);
   assert.equal(terrainCost(null, 'plateau'), 15);
   assert.equal(terrainCost(null, 'marsh'), 15);
-  assert.equal(terrainCost(null, 'denseForest'), 20);
+  assert.equal(terrainCost(null, 'deepWood'), 20);
   assert.equal(terrainCost(null, 'river'), 30);
   assert.equal(terrainCost(null, 'mountain'), Infinity);
   assert.equal(terrainCost(null, 'water'), Infinity);
@@ -40,7 +40,7 @@ test('every finite base cost divides the 60 AP pool', () => {
 test('champion: faction terrainCosts override the base ladder', () => {
   const verdant = { controller: 'human', faction: 2 };
   assert.equal(terrainCost(verdant, 'forest'), 4, 'Verdant forest ⅓ cost');
-  assert.equal(terrainCost(verdant, 'denseForest'), 6);
+  assert.equal(terrainCost(verdant, 'deepWood'), 6);
   assert.equal(terrainCost(verdant, 'plains'), 10, 'unaffected terrain stays base');
 
   const archive = { controller: 'human', faction: 3 };
@@ -58,7 +58,7 @@ test('champion: faction terrainCosts override the base ladder', () => {
   assert.equal(terrainCost(masque, 'desert'), 6);
 
   const hollow = { controller: 'human', faction: 6 };
-  assert.equal(terrainCost(hollow, 'denseForest'), 10);
+  assert.equal(terrainCost(hollow, 'deepWood'), 10);
 
   const reverie = { controller: 'human', faction: 1 };
   assert.equal(terrainCost(reverie, 'marsh'), 6);
@@ -101,7 +101,7 @@ test('isTerrainBlocked: passability is unified into cost', () => {
 });
 
 test('supernatural biome terrain override: uniform cost + display name', () => {
-  const verdant = { controller: 'human', faction: 2 }; // Verdant: forest 4 / denseForest 6
+  const verdant = { controller: 'human', faction: 2 }; // Verdant: forest 4 / deepWood 6
   // Protogrowth (forest) — uniform 12, ignoring Verdant's forest discount.
   assert.equal(terrainCost(verdant, 'forest', 'biome_unfinished_lands'), 12);
   // Without the biome, the faction discount still applies.

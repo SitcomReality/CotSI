@@ -3062,11 +3062,11 @@
       }
     ]
   },
-  "denseForest": {
+  "deepWood": {
     "tile": {
       "q": 3,
       "r": -2,
-      "terrain": "denseForest",
+      "terrain": "deepWood",
       "moisture": 0.8
     },
     "records": [

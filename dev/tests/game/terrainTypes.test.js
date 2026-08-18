@@ -38,7 +38,7 @@ test('TERRAIN: every entry has required fields', () => {
 
 test('TERRAIN: known terrain set is present', () => {
   const expected = [
-    'plains', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau',
+    'plains', 'forest', 'deepWood', 'desert', 'marsh', 'hill', 'plateau',
     'mountain', 'water', 'ice', 'beach', 'river',
   ];
   for (const name of expected) {
@@ -69,7 +69,7 @@ test('DEFAULT_FEATURES: documented priority order and shape', () => {
 
 test('DEFAULT_FEATURES: blessedFont is woods-only, knot is a low-threshold lt rule', () => {
   const [blessedFont, knot] = DEFAULT_FEATURES;
-  assert.deepEqual(blessedFont.terrainOnly, ['forest', 'denseForest']);
+  assert.deepEqual(blessedFont.terrainOnly, ['forest', 'deepWood']);
   assert.equal(knot.compare, 'lt');
   assert.ok(knot.threshold < 0.1, 'knot should be rare (low threshold)');
 });

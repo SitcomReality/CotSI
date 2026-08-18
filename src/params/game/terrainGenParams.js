@@ -166,7 +166,7 @@ export const DEFAULT_TERRAIN_RULES = {
   // desertMaxMoisture lowered from 0.36→0.30 to rein in desert at large radii
   // where land-moisture distribution shifts drier.
   forestMinMoisture:        0.5800, // p72
-  denseForestMinMoisture:   0.6400, // p85
+  deepWoodMinMoisture:   0.6400, // p85
   desertMaxMoisture:        0.3000, // p15 land-only moisture
   marshMinMoisture:         0.5200, // p58
 

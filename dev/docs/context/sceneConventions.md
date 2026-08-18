@@ -27,7 +27,7 @@ objects to *fit*: right size, right color source, right density. Complements
   (base radius 1.0, tiling), height driven by the tile's mountain type
   (peak/slope/normal).
 - Terrain **elevation offsets** (Y of the tile surface): plains/desert 0,
-  forest +0.15, denseForest +0.20, hill +0.25, marsh/beach −0.05, plateau
+  forest +0.15, deepWood +0.20, hill +0.25, marsh/beach −0.05, plateau
   +0.70, mountain +0.85, water −0.15, ice −0.12. Decor sits on the surface
   (hill mounds use `terrain` tint + `sunk` behavior; see §3).
 
@@ -67,7 +67,7 @@ the objects an LLM is most likely to be asked to restyle or extend:
 |---------|----------|--------------|------|---------|
 | `plains` | `plains` | Plains Meadow | grass blades | 5–8 |
 | `forest` | `forest` | Forest | round trees | 3–5 |
-| `denseForest` | `denseForest` | Dense Forest | conical pines | 4–7 |
+| `deepWood` | `deepWood` | Deep Wood | conical pines | 4–7 |
 | `desert` | `desert` | Desert Growth | scrub clusters | 6–8 |
 | `marsh` | `marsh` | Marsh Reeds | reed clusters | 5–8 |
 | `hill` | `hill` | Hill Mound | single raised mound (sinks when displaced) | 1 |

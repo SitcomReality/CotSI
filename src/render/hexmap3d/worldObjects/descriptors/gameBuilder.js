@@ -14,7 +14,7 @@
  *   terrain decoration (composes with the feature above; also rendered on
  *   explored-but-out-of-sight tiles, where it shows its unoccupied state):
  *     mountain terrain            → mountain descriptor (emphasis 'none')
- *     forest/denseForest          → forest / denseForest decor descriptors;
+ *     forest/deepWood          → forest / deepWood decor descriptors;
  *       a biome pin (biomeVariants) picks the look — Painforest woods grow the
  *       gnarled variant. Dispersed to a ring near the hex edge when a
  *       non-tree feature claims the center, hidden when an occupant and
@@ -36,7 +36,7 @@ import { recordsForDescriptor } from './recordBuilder.js';
 import { normalizeDescriptor } from './schema.js';
 import { descriptorById } from './data/index.js';
 import { FOREST_DESCRIPTOR } from './data/decor/forest.js';
-import { DENSE_FOREST_DESCRIPTOR } from './data/decor/denseForest.js';
+import { DEEP_WOOD_DESCRIPTOR } from './data/decor/deepWood.js';
 import { HILL_DESCRIPTOR } from './data/decor/hill.js';
 import { KNOT_DESCRIPTOR } from './data/features/knot.js';
 import { MOUNTAIN_DESCRIPTOR } from './data/decor/mountain.js';
@@ -62,7 +62,7 @@ import {
  */
 const SIMPLE_DECOR_BY_TERRAIN = new Map([
   ['forest', { descriptor: FOREST_DESCRIPTOR, decoration: DECORATION.FOREST }],
-  ['denseForest', { descriptor: DENSE_FOREST_DESCRIPTOR, decoration: DECORATION.DEEP_WOOD }],
+  ['deepWood', { descriptor: DEEP_WOOD_DESCRIPTOR, decoration: DECORATION.DEEP_WOOD }],
   ['marsh', { descriptor: MARSH_DESCRIPTOR, decoration: DECORATION.MARSH }],
   ['plateau', { descriptor: PLATEAU_DESCRIPTOR, decoration: DECORATION.PLATEAU }],
   ['plains', { descriptor: PLAINS_DESCRIPTOR, decoration: DECORATION.PLAINS }],

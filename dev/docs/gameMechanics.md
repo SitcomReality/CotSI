@@ -111,7 +111,7 @@ defineArchetype('biome_my_new_biome', {
   climateRange: { minElevation: 0, maxElevation: 1, minMoisture: 0, maxMoisture: 1, minTemperature: 0, maxTemperature: 1 },
   terrainRules: { /* overrides merged over DEFAULT_TERRAIN_RULES */ },
   features: [
-    { kind: 'blessedFont', threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont', threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'deepWood'] },
     { kind: 'knot',        threshold: 0.038, compare: 'lt' },
   ],
   palette: { /* per-terrain [r,g,b] tuples, normalized 0–1 */ },

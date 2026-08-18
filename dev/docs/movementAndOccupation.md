@@ -56,7 +56,7 @@ Base costs live in the `movementCost` field of the `TERRAIN` table in
 | plains, beach, desert | 10 | 6 | open ground |
 | forest, hill | 12 | 5 | medium |
 | plateau, marsh | 15 | 4 | slow |
-| denseForest | 20 | 3 | very slow |
+| deepWood | 20 | 3 | very slow |
 | river | 30 | 2 | crossing |
 | mountain, water, ice | ∞ | 0 | blocked |
 
@@ -169,13 +169,13 @@ Each faction gets exactly one signature affinity (tunable; all values divide
 
 | Faction | Affinity | Override | Flavor |
 |---------|----------|----------|--------|
-| Verdant | Forest | `forest: 4, denseForest: 6` | ⅓ cost in woodland |
+| Verdant | Forest | `forest: 4, deepWood: 6` | ⅓ cost in woodland |
 | Crucible | Highlands | `hill: 6, plateau: 6` | ½–⅖ cost in hills |
 | Reverie | Marsh | `marsh: 6` | ⅖ cost in marsh |
 | Archive | Rivers | `river: 15` | ½ cost crossing rivers |
 | Hearth | Open ground | `plains: 6, desert: 6` | ⅗ cost on well-trodden paths |
 | Masque | Desert | `desert: 6` | ⅗ cost in dunes |
-| Hollow | Deep wood | `denseForest: 10` | ½ cost in the close wood |
+| Hollow | Deep wood | `deepWood: 10` | ½ cost in the close wood |
 
 ### Mobs
 

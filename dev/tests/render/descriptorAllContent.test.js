@@ -43,7 +43,7 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
     if (NON_TILE_KINDS.has(d.kind)) continue; // covered by the entity test below
     if (d.id === 'mountain') push({ terrain: 'mountain', mountainType: 'normal' });
     else if (d.id === 'forest') push({ terrain: 'forest', moisture: 0.6 });
-    else if (d.id === 'denseForest') push({ terrain: 'denseForest', moisture: 0.6 });
+    else if (d.id === 'deepWood') push({ terrain: 'deepWood', moisture: 0.6 });
     else if (d.id === 'hill') push({ terrain: 'hill' });
     else if (d.id === 'knot') push({ terrain: 'forest', feature: { kind: 'knot' } });
     else if (d.id === 'marsh') push({ terrain: 'marsh' });
@@ -84,7 +84,7 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
   const TRUNK = ['-trunk'];
   const CANOPY = ['-canopy', '-crown'];
   assert.ok(hasPart('forest-', TRUNK) && hasPart('forest-', CANOPY), 'forest trunk/canopy parts');
-  assert.ok(hasPart('denseForest-', TRUNK) && hasPart('denseForest-', CANOPY), 'denseForest trunk/canopy parts');
+  assert.ok(hasPart('deepWood-', TRUNK) && hasPart('deepWood-', CANOPY), 'deepWood trunk/canopy parts');
   // The knot renders one mesh per authored part (parts are edited in the
   // geometry editor) — derive the expectation from the descriptor so adding
   // or removing a part never leaves this test stale.

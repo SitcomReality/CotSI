@@ -26,7 +26,7 @@ defineArchetype('biome_edenfall', {
   // Fertile temperate: abundant forests, sparse desert, moderate marsh
   terrainRules: {
     forestMinMoisture:      0.40,
-    denseForestMinMoisture: 0.55,
+    deepWoodMinMoisture: 0.55,
     desertMaxMoisture:      0.15,
     marshMinMoisture:       0.60,
     marshMaxElevation:      0.35,
@@ -41,7 +41,7 @@ defineArchetype('biome_edenfall', {
     // Treasure chest — any-biome collectible
     { kind: 'treasureChest',                 threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     // Standard features
-    { kind: 'blessedFont',           threshold: 0.890, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont',           threshold: 0.890, compare: 'gt', terrainOnly: ['forest', 'deepWood'] },
     // Resources
     { kind: 'knot',                  threshold: 0.038, compare: 'lt' },
   ],
@@ -50,7 +50,7 @@ defineArchetype('biome_edenfall', {
   palette: {
     plains:        [0.550, 0.300, 0.550],  // purple grass
     forest:        [0.420, 0.200, 0.480],  // deep purple woodland
-    denseForest:   [0.300, 0.150, 0.380],  // dark purple thicket
+    deepWood:   [0.300, 0.150, 0.380],  // dark purple thicket
     desert:        [0.680, 0.550, 0.650],  // pale purple sand (rare)
     marsh:         [0.450, 0.350, 0.480],  // purple marsh
     hill:          [0.500, 0.320, 0.520],  // purple-tinted hill
@@ -71,11 +71,11 @@ defineArchetype('biome_edenfall', {
     bloom: [0.910, 0.760, 0.290],   // #e8c24a — gold
     exotic: [0.800, 0.650, 0.950],  // #cca7f2 — luminous orchid glow
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'deepWood', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['temperate', 'rainy'],
 
   terrainElevation: {
     forest: 0.20,
-    denseForest: 0.30,
+    deepWood: 0.30,
   },
 });

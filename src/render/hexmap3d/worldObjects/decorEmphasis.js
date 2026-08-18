@@ -40,7 +40,7 @@ export const DECOR_STATE = Object.freeze({
  *  ground decor — spreads out like any ground decor). */
 export const DECORATION = Object.freeze({
   FOREST: 'forest',     // forest terrain decor — round trees (spreads out)
-  DEEP_WOOD: 'deepWood', // denseForest terrain decor — conical pines (spreads out)
+  DEEP_WOOD: 'deepWood', // deepWood terrain decor — conical pines (spreads out)
   HILL: 'hill',         // raised mound on hill terrain (sinks)
   PLATEAU: 'plateau',   // flat-top mound on plateau terrain (sinks)
   MARSH: 'marsh',       // reed cluster on marsh (spreads out)

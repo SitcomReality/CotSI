@@ -25,7 +25,7 @@ import { CENSER_SAINT_DESCRIPTOR } from './features/censerSaint.js';
 import { CHAMPION_DESCRIPTOR } from './champion.js';
 import { TREASURE_CHEST_DESCRIPTOR } from './features/treasureChest.js';
 import { CINDERBLOOM_DESCRIPTOR } from './features/cinderbloom.js';
-import { DENSE_FOREST_DESCRIPTOR } from './decor/denseForest.js';
+import { DEEP_WOOD_DESCRIPTOR } from './decor/deepWood.js';
 import { DESERT_DESCRIPTOR } from './decor/desert.js';
 import { DROWNED_COPYIST_DESCRIPTOR } from './features/drownedCopyist.js';
 import { FORESPRING_DESCRIPTOR } from './decor/forespring.js';
@@ -98,7 +98,7 @@ export const ALL_DESCRIPTORS = [
   HALF_DRAWN_OBELISK_DESCRIPTOR,
   SNOWPERSON_DESCRIPTOR,
   FOREST_DESCRIPTOR,
-  DENSE_FOREST_DESCRIPTOR,
+  DEEP_WOOD_DESCRIPTOR,
   HILL_DESCRIPTOR,
   MOUNTAIN_DESCRIPTOR,
   PLAINS_DESCRIPTOR,

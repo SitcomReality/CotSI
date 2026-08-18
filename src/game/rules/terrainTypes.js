@@ -17,7 +17,7 @@
 export const TERRAIN = {
   plains:        { fill:'#74ad5d', ink:'#c8e0b8', label:'Plains',          passable:true,  movementCost:10, mark:'' },
   forest:        { fill:'#4b8e41', ink:'#a0d090', label:'Forest',          passable:true,  movementCost:12, mark:'∷' },
-  denseForest:   { fill:'#2d6b23', ink:'#70b060', label:'Deep wood',       passable:true,  movementCost:20, mark:'♣' },
+  deepWood:   { fill:'#2d6b23', ink:'#70b060', label:'Deep Wood',       passable:true,  movementCost:20, mark:'♣' },
   desert:        { fill:'#d6b15b', ink:'#f0d890', label:'Desert',          passable:true,  movementCost:10, mark:'·' },
   marsh:         { fill:'#819967', ink:'#b8cfa0', label:'Marsh',           passable:true,  movementCost:15, mark:'≈' },
   hill:          { fill:'#8ba863', ink:'#c8d8b0', label:'Hill',            passable:true,  movementCost:12, mark:'∧' },
@@ -30,6 +30,6 @@ export const TERRAIN = {
 };
 
 export const DEFAULT_FEATURES = [
-  { kind: 'blessedFont', threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+  { kind: 'blessedFont', threshold: 0.970, compare: 'gt', terrainOnly: ['forest', 'deepWood'] },
   { kind: 'knot',      threshold: 0.038, compare: 'lt' },
 ];

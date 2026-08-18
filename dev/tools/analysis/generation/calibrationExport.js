@@ -70,7 +70,7 @@ export function formatCalibrationReport(result) {
     { label: 'hillElevationMin',        key: 'hillElevationMin',        color: '#aaa' },
     { label: 'marshMaxElevation',       key: 'marshMaxElevation',       color: '#819967' },
     { label: 'forestMinMoisture',       key: 'forestMinMoisture',       color: '#4b8e41' },
-    { label: 'denseForestMinMoisture',  key: 'denseForestMinMoisture',  color: '#2d6b23' },
+    { label: 'deepWoodMinMoisture',  key: 'deepWoodMinMoisture',  color: '#2d6b23' },
     { label: 'desertMaxMoisture',       key: 'desertMaxMoisture',       color: '#d6b15b' },
     { label: 'marshMinMoisture',        key: 'marshMinMoisture',        color: '#819967' },
     { label: 'freezeTempMax',           key: 'freezeTempMax',           color: '#7ec8e3' },

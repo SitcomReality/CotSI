@@ -32,7 +32,7 @@ defineArchetype('biome_sere_wastes', {
   // Sere Wastes: sparse everything — rare Blessed Fonts
   features: [
     // High-roll features — rarest first
-    { kind: 'blessedFont',       threshold: 0.985, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont',       threshold: 0.985, compare: 'gt', terrainOnly: ['forest', 'deepWood'] },
     { kind: 'ouroborosLoop',     threshold: 0.970, compare: 'gt', terrainExclude: [], tier: 'T4' },
     // Treasure chest — any-biome collectible
     { kind: 'treasureChest',             threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
@@ -44,7 +44,7 @@ defineArchetype('biome_sere_wastes', {
   palette: {
     plains:        [0.620, 0.520, 0.280],  // sun-bleached tan
     forest:        [0.400, 0.450, 0.200],  // sparse olive
-    denseForest:   [0.350, 0.380, 0.180],  // withered olive
+    deepWood:   [0.350, 0.380, 0.180],  // withered olive
     desert:        [0.880, 0.720, 0.380],  // bright golden sand
     marsh:         [0.580, 0.520, 0.350],  // dry reed-brown
     hill:          [0.580, 0.480, 0.300],  // reddish tan
@@ -63,7 +63,7 @@ defineArchetype('biome_sere_wastes', {
     bloom: [0.780, 0.520, 0.380],   // #c78561 — dusty desert rose
     exotic: [0.920, 0.900, 0.840],  // #ebe6d6 — bone white
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'deepWood', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['arid', 'temperate'],
 
   terrainElevation: {

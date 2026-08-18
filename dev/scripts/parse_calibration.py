@@ -84,7 +84,7 @@ def print_rules_override(calib):
     # Moisture-derived
     moist_order = [
         ("forestMinMoisture",         "p72 target"),
-        ("denseForestMinMoisture",    "p85 target"),
+        ("deepWoodMinMoisture",    "p85 target"),
         ("desertMaxMoisture",         "p20 target"),
         ("marshMinMoisture",          "p58 target"),
     ]

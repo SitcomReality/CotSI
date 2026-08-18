@@ -285,7 +285,7 @@ test('moisture cluster validates and normalizes its defaults', () => {
   });
   assert.deepEqual(validateDescriptor(grove), []);
   assert.equal(grove.cluster.rule, 'moisture');
-  assert.deepEqual(grove.cluster.countsByTerrain, { forest: [3, 5], denseForest: [4, 7] });
+  assert.deepEqual(grove.cluster.countsByTerrain, { forest: [3, 5], deepWood: [4, 7] });
   assert.deepEqual(grove.cluster.densityRange, [0.55, 0.85]);
   assert.equal(grove.cluster.jitter, 1);
 });

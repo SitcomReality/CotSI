@@ -20,7 +20,7 @@ export const SNAPSHOT_POS = { x: 1.732, y: 1.25, z: -3.0 };
 /** Per-id test tiles — descriptors that need a special terrain/moisture/type. */
 export const SNAPSHOT_TILES = {
   forest: { q: 3, r: -2, terrain: 'forest', moisture: 0.8 },
-  denseForest: { q: 3, r: -2, terrain: 'denseForest', moisture: 0.8 },
+  deepWood: { q: 3, r: -2, terrain: 'deepWood', moisture: 0.8 },
   hill: { q: 3, r: -2, terrain: 'hill' },
   mountain: { q: 3, r: -2, terrain: 'mountain', mountainType: 'peak' },
 };

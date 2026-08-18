@@ -19,7 +19,7 @@ export function featureDensity(terrain, elevation, moisture, slope, treeLineMax)
   let density = FD.baseline;
 
   // Tree-bearing terrain gets density from climate
-  if (terrain === 'forest' || terrain === 'denseForest') {
+  if (terrain === 'forest' || terrain === 'deepWood') {
     // Moisture-driven: scales from the dense-forest ramp to 1.0
     const moistFactor = clamp01((moisture - FD.moistRamp) / FD.moistSpan);
     // Elevation penalty: above half tree line, density falls off

@@ -20,7 +20,7 @@ defineArchetype('biome_scorch', {
   terrainRules: {
     mountainThreshold: 0.60,
     forestMinMoisture: 0.76,
-    denseForestMinMoisture: 0.88,
+    deepWoodMinMoisture: 0.88,
     desertMaxMoisture: 0.12,
     marshMinMoisture: 0.62,
     marshMaxElevation: 0.30,
@@ -30,7 +30,7 @@ defineArchetype('biome_scorch', {
   // Scorch: rare Blessed Fonts, scattered knots
   features: [
     // High-roll features — rarest first
-    { kind: 'blessedFont', threshold: 0.980, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont', threshold: 0.980, compare: 'gt', terrainOnly: ['forest', 'deepWood'] },
     { kind: 'saintsRib', threshold: 0.965, compare: 'gt', terrainExclude: [], tier: 'T3' },
     // Treasure chest — any-biome collectible
     { kind: 'treasureChest',     threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
@@ -41,7 +41,7 @@ defineArchetype('biome_scorch', {
   palette: {
     plains:      [0.620, 0.580, 0.310],  // sun-bleached grass
     forest:      [0.420, 0.480, 0.220],  // dry woodland
-    denseForest: [0.320, 0.380, 0.160],  // dark thicket
+    deepWood: [0.320, 0.380, 0.160],  // dark thicket
     desert:      [0.840, 0.700, 0.400],  // warm sand
     marsh:       [0.560, 0.540, 0.360],  // dry reed
     hill:        [0.560, 0.540, 0.340],  // dry grass hill
@@ -60,7 +60,7 @@ defineArchetype('biome_scorch', {
     bloom: [0.850, 0.780, 0.350],   // #d9c759 — dry yellow flower
     exotic: [0.550, 0.550, 0.550],  // #8c8c8c — ash grey
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'deepWood', 'desert', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['arid', 'temperate'],
   terrainElevation: { mountain: 0.70, plains: 0.05 },
 });

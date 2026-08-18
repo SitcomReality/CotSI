@@ -25,7 +25,7 @@ export function itemCount(descriptor, tile, tileH) {
     const density = Number.isFinite(m) ? clamp01((m - a) / (b - a)) : 0.5;
     // The terrain's own count range, else the descriptor's first range (the
     // legacy 'forest' fallback key). A descriptor may legitimately define only
-    // its own terrain (e.g. denseForest.js has just denseForest) — never crash
+    // its own terrain (e.g. deepWood.js has just deepWood) — never crash
     // when the tile's terrain isn't the one the descriptor decorates.
     const counts = cluster.countsByTerrain ?? {};
     const [min, max] = counts[tile.terrain] ?? counts.forest ?? counts[Object.keys(counts)[0]] ?? [3, 5];

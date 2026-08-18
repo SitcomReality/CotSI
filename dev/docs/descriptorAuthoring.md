@@ -135,7 +135,7 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
 **cluster:**
 - `rule: 'uniform'` — count drawn from `[min, max]` by the tile hash.
 - `rule: 'moisture'` — count scales with the tile's `moisture`:
-  `countsByTerrain` (`{ forest: [3, 5], denseForest: [4, 7] }`, keyed by
+  `countsByTerrain` (`{ forest: [3, 5], deepWood: [4, 7] }`, keyed by
   terrain id, `forest` as fallback), `densityRange: [0.55, 0.85]` (moisture
   below the low end → `min`, above → `max`), plus `jitter: 1` hash jitter.
 
@@ -387,7 +387,7 @@ anywhere. The pipeline (recordBuilder.js):
 
 **A decor is the look of ONE terrain.** Each decor-producing terrain has its
 own descriptor, and the decor's `id` IS the terrain's id: `forest` tiles render
-the `forest` decor, `denseForest` tiles the `denseForest` decor (deep wood),
+the `forest` decor, `deepWood` tiles the `deepWood` decor (deep wood),
 `desert` tiles the `desert` decor, and so on. The game's dispatch table
 (`gameBuilder.js` `SIMPLE_DECOR_BY_TERRAIN`) maps terrain → decor by that id;
 different terrains are **never** variants of one another.
@@ -397,7 +397,7 @@ So on the tile path the only variant dimension is the **biome**:
 - **`variants[0]` is the DEFAULT look** — every tile renders it unless a biome
   pins an alternate. Put the canonical look first, alternates after.
 - **`biomeVariants`** — `{ biomeId: variantId }` pins an alternate to a biome:
-  every tile of that biome renders it (e.g. the `forest` and `denseForest`
+  every tile of that biome renders it (e.g. the `forest` and `deepWood`
   decors both pin the gnarled `painforest` variant for Painforest woods).
 - **Explicit picker** — the editor's Variant picker (a record-path
   `variantId` override) forces one variant while authoring; a stale id falls
@@ -603,7 +603,7 @@ descriptor (+ tile / entity)
 
 In-game dispatch (gameBuilder.js): each tile resolves to its feature (by
 `tile.feature.kind` → descriptor id) plus its terrain decoration (mountains,
-forest/denseForest woods, hill mounds, and one ground decor per
+forest/deepWood woods, hill mounds, and one ground decor per
 marsh/plateau/plains/desert/beach — the decor's id IS the terrain's id).
 Decorations resolve in their unoccupied
 state while the tile is out of sight; occupants/features gate displacement.
@@ -614,7 +614,7 @@ A terrain `decor` is scattered and varies per tile, and the forest decor is the
 flagship example of the variable-properties vocabulary: count, size, part set,
 stretch, and color all come from ranges and per-tile draws rather than fixed
 values. One decor per terrain — `src/render/hexmap3d/worldObjects/descriptors/data/decor/forest.js`
-is the `forest` terrain's decor, and `decor/denseForest.js` is a **separate**
+is the `forest` terrain's decor, and `decor/deepWood.js` is a **separate**
 descriptor (the deep-wood's conical pines) — never a variant of this one.
 
 > **v6:** the shipped forest is now a `motifs` table (schemaVersion 6) — the
@@ -745,7 +745,7 @@ What each mechanism contributes, at a glance:
 
 - **One decor per terrain** — the decor's `id` is the terrain's id, and
   `gameBuilder` maps terrain → decor by it. The deep-wood look is a separate
-  descriptor (`denseForest.js`), not a variant.
+  descriptor (`deepWood.js`), not a variant.
 - **`variants[0]` is the default look** — every forest tile renders `round`
   unless a biome pins an alternate; `biomeVariants` swaps in one dedicated
   look per biome. A biome with no pin (e.g. `biome_default`) keeps the
@@ -756,7 +756,7 @@ What each mechanism contributes, at a glance:
   pin), per-tree stretch, biome size/color, brightness jitter. The chest (§8)
   is the opposite: one fixed, centralized object.
 - `cluster.rule: 'moisture'` — wetter forest tiles get more trees
-  (`countsByTerrain.forest` → 3–5; the denseForest decor carries its own
+  (`countsByTerrain.forest` → 3–5; the deepWood decor carries its own
   4–7 range). Sere Wastes and Scorch tiles are dry, so their forests are
   automatically sparse without any per-variant count.
 - `placement.ring` — members circle the hex center; `emphasis.dispersed`
@@ -888,7 +888,7 @@ What each piece demonstrates:
    const POS = { x: 1.732, y: 1.25, z: -3.0 };
    const TILES = {
      forest: { q: 3, r: -2, terrain: 'forest', moisture: 0.8 },
-     denseForest: { q: 3, r: -2, terrain: 'denseForest', moisture: 0.8 },
+     deepWood: { q: 3, r: -2, terrain: 'deepWood', moisture: 0.8 },
      hill: { q: 3, r: -2, terrain: 'hill' },
      mountain: { q: 3, r: -2, terrain: 'mountain', mountainType: 'peak' },
    };

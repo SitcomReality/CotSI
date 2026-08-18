@@ -28,7 +28,7 @@ import { NOISE_CONFIG } from './noiseConfig.js';
  *   Elevation   | hillElevationMin        | p55
  *   Elevation   | marshMaxElevation       | p35
  *   Moisture    | forestMinMoisture       | p72
- *   Moisture    | denseForestMinMoisture  | p85
+ *   Moisture    | deepWoodMinMoisture  | p85
  *   Moisture    | desertMaxMoisture       | p20
  *   Moisture    | marshMinMoisture        | p58
  *   Temperature | freezeTempMax           | p15 (placeholder for ice)
@@ -79,11 +79,11 @@ function buildThresholds(pooledElev, pooledMoist, pooledTemp) {
       field: 'moisture',
       description: '72nd percentile — forest minimum moisture',
     },
-    denseForestMinMoisture: {
+    deepWoodMinMoisture: {
       value: percentileFromHistogram(pooledMoist, 0.85),
       targetPercentile: 85,
       field: 'moisture',
-      description: '85th percentile — dense forest minimum moisture',
+      description: '85th percentile — deep wood minimum moisture',
     },
     desertMaxMoisture: {
       value: percentileFromHistogram(pooledMoist, 0.20),

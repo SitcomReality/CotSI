@@ -18,7 +18,7 @@ defineArchetype('biome_painforest', {
 
   terrainRules: {
     forestMinMoisture: 0.55,
-    denseForestMinMoisture: 0.80,
+    deepWoodMinMoisture: 0.80,
     desertMaxMoisture: 0.08,
     marshMinMoisture: 0.50,
     marshMaxElevation: 0.40,
@@ -27,7 +27,7 @@ defineArchetype('biome_painforest', {
 
   // Painforest: abundant Blessed Fonts + bushes on low-moisture tiles
   features: [
-    { kind: 'blessedFont',     threshold: 0.930, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont',     threshold: 0.930, compare: 'gt', terrainOnly: ['forest', 'deepWood'] },
     { kind: 'peridexionTree',  threshold: 0.910, compare: 'gt', terrainExclude: ['desert', 'marsh'], tier: 'T3' },
     { kind: 'treasureChest',           threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'screamroot',      threshold: 0.890, compare: 'gt', terrainExclude: ['desert'], tier: 'T3' },
@@ -38,7 +38,7 @@ defineArchetype('biome_painforest', {
   palette: {
     plains:        [0.380, 0.620, 0.280],  // deeper, richer green
     forest:        [0.220, 0.500, 0.180],  // darker, lusher forest
-    denseForest:   [0.120, 0.350, 0.100],  // very dark deep wood
+    deepWood:   [0.120, 0.350, 0.100],  // very dark deep wood
     desert:        [0.780, 0.650, 0.400],  // muted, sandy — rare here
     marsh:         [0.420, 0.550, 0.340],  // greener marsh
     hill:          [0.400, 0.580, 0.300],  // mossy green
@@ -57,12 +57,12 @@ defineArchetype('biome_painforest', {
     bloom: [0.820, 0.250, 0.400],   // #d14066 — magenta jungle blossom
     exotic: [0.160, 0.420, 0.380],  // #296b61 — dark teal
   },
-  terrainTags: ['plains', 'beach', 'forest', 'denseForest', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
+  terrainTags: ['plains', 'beach', 'forest', 'deepWood', 'marsh', 'hill', 'plateau', 'mountain', 'water'],
   weatherAffinity: ['rainy', 'temperate'],
 
   terrainElevation: {
     forest: 0.18,
-    denseForest: 0.25,
+    deepWood: 0.25,
     marsh: -0.08,
   },
 });

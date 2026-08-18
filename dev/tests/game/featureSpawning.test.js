@@ -33,7 +33,7 @@ test('spawnFeature: terrainExclude skips a rule', () => {
 
 test('spawnFeature: terrainOnly restricts a rule to listed terrains', () => {
   const features = [
-    { kind: 'blessedFont', threshold: 0.9, compare: 'gt', terrainOnly: ['forest', 'denseForest'] },
+    { kind: 'blessedFont', threshold: 0.9, compare: 'gt', terrainOnly: ['forest', 'deepWood'] },
     { kind: 'bush', threshold: 0.5, compare: 'gt' },
   ];
   const onForest = spawnFeature(0.95, 'forest', 0, features);
@@ -42,8 +42,8 @@ test('spawnFeature: terrainOnly restricts a rule to listed terrains', () => {
   assert.equal(onPlains.kind, 'bush', 'blessedFont skipped off-forest, tree wins');
   const onDesert = spawnFeature(0.95, 'desert', 0, features);
   assert.equal(onDesert.kind, 'bush', 'terrainOnly also excludes desert');
-  const onDenseForest = spawnFeature(0.95, 'denseForest', 0, features);
-  assert.equal(onDenseForest.kind, 'blessedFont', 'blessedFont allowed on denseForest');
+  const onDenseForest = spawnFeature(0.95, 'deepWood', 0, features);
+  assert.equal(onDenseForest.kind, 'blessedFont', 'blessedFont allowed on deepWood');
 });
 
 test('spawnFeature: density modulates threshold (higher density → easier match)', () => {
@@ -98,7 +98,7 @@ test('canSpawnBlessedFont: climate gate', () => {
 });
 
 test('featureDensity: returns values in [0, 1]', () => {
-  for (const terrain of ['plains', 'forest', 'desert', 'marsh', 'hill', 'denseForest']) {
+  for (const terrain of ['plains', 'forest', 'desert', 'marsh', 'hill', 'deepWood']) {
     for (const moisture of [0, 0.3, 0.6, 1]) {
       const d = featureDensity(terrain, 0.3, moisture, 0.1, 0.6);
       assert.ok(d >= 0 && d <= 1, `${terrain} @ moisture ${moisture}: ${d}`);

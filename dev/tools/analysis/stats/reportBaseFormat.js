@@ -94,7 +94,7 @@ export function formatConfigSection(seedCount, radii, baseSeed = 'glut-17', mult
     plateauSlopeMax:          'plateauSlopeMax',
     hillSlopeMin:             'hillSlopeMin',
     forestMinMoisture:        'forestMinMoisture',
-    denseForestMinMoisture:   'denseForestMinMoisture',
+    deepWoodMinMoisture:   'deepWoodMinMoisture',
     desertMaxMoisture:        'desertMaxMoisture',
     marshMinMoisture:         'marshMinMoisture',
     freezeTempMax:            'freezeTempMax',

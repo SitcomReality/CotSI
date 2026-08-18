@@ -46,7 +46,7 @@ export function renderClusterSection(container, d, ctx) {
   container.append(row('Rule', selectInput(['uniform', 'moisture'], d.cluster.rule, (v) => ctx.mutate(() => {
     d.cluster.rule = v;
     if (v === 'moisture') {
-      d.cluster.countsByTerrain ??= { forest: [3, 5], denseForest: [4, 7] };
+      d.cluster.countsByTerrain ??= { forest: [3, 5], deepWood: [4, 7] };
       d.cluster.densityRange ??= [0.55, 0.85];
       d.cluster.jitter ??= 1;
     }

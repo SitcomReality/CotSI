@@ -223,7 +223,7 @@ this visually.
 Every game object's appearance is **one plain-JS data file**:
 `data/<kind>/<id>.js` exporting `const <ID>_DESCRIPTOR = { ... }`
 (id `blessedFont` → `BLESSED_FONT_DESCRIPTOR`; camelCase splits:
-`denseForest` → `DENSE_FOREST_DESCRIPTOR`). Kinds: `decor`, `feature`,
+`deepWood` → `DENSE_FOREST_DESCRIPTOR`). Kinds: `decor`, `feature`,
 `mountain`, plus entity kinds (`base`, `champion`, `mob`, `trader`, `item`).
 A descriptor declares:
 
@@ -250,12 +250,12 @@ geometry. No randomness, ever.
 
 1. **One decor per terrain.** A terrain decor's `id` IS the terrain's id:
    `plains` tiles render the `plains` decor, `forest` → `forest`,
-   `denseForest` → `denseForest` (Deep wood), `desert` → `desert`, and so on.
+   `deepWood` → `deepWood` (Deep Wood), `desert` → `desert`, and so on.
    Different terrains are **separate descriptor files**, never variants of one
    another (`gameBuilder.js`'s `SIMPLE_DECOR_BY_TERRAIN` dispatches by id).
 2. **The first variant is the default look.** `variants[0]` renders on every
    tile unless a biome pins an alternate; `biomeVariants: { biomeId: variantId }`
-   swaps in a biome-specific look (the `forest` and `denseForest` decors both
+   swaps in a biome-specific look (the `forest` and `deepWood` decors both
    pin the gnarled `painforest` variant for Painforest woods).
 3. **Features and decor compose.** A tile resolves to its feature (knot,
    Blessed Font, chest, ...) at the hex center **and** its terrain decor around
@@ -306,8 +306,8 @@ optionalGroups: [
 
 - **A terrain decor with biome variation** — `data/decor/forest.js` (default
   round trees → gnarled Painforest pin; moisture count; ring placement;
-  per-tree stretch; biome size/color). `denseForest.js` is the same pattern
-  for deep wood.
+  per-tree stretch; biome size/color). `deepWood.js` is the same pattern
+  for Deep Wood.
 - **A simple ground decor** — `data/decor/plains.js`, `data/decor/marsh.js`
   (scatter cluster, dispersed emphasis).
 - **A centralized feature with a growth state** — `data/features/blessedFont.js`

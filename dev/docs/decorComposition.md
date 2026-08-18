@@ -35,7 +35,7 @@ have two kinds of bloat:
 The current "one composite object, repeated" model also breaks the authoring
 concept of a canonical look: `Canonical` in the editor renders
 `descriptor.parts` (the fallback list) with all randomness off — which for
-decor is a leftover stub (`forest`/`denseForest` keep a bare `trunk` in it;
+decor is a leftover stub (`forest`/`deepWood` keep a bare `trunk` in it;
 `beach`/`plains`/`marsh`/`plateau`/`desert` have **no fallback at all** —
 `desert.js`'s only "better cactus" trunk is a commented-out block — so
 Canonical shows nothing). With dynamic decor there is no single canonical
@@ -310,7 +310,7 @@ motifs: [
   - **Uniquify part ids** (`<variantId>:<partId>` or a short hash suffix)
     and rewrite internal references (states, FK chains, alternative paths).
     This is mandatory, not defensive: `forest.js` already repeats
-    `id: 'trunk'` across 9 parts trees and `denseForest.js` across 2 —
+    `id: 'trunk'` across 9 parts trees and `deepWood.js` across 2 —
     `meshAssembly`'s last-write-wins `partById` is a latent hazard today
     (benign only because reskin variants share shape/params and color rides
     in records). `desert`/`beach`/`plains`/`marsh`/`plateau` already use
@@ -420,7 +420,7 @@ rock", "2 rocks", "rock alone" all occur; each cactus then rolls its arm
 config → none / one straight / two straight / elbow. Biome identity comes
 from `biomeColor` tints, `biomeScale` sizes, and `biomeWeight` skews — no
 restated geometry. The same pattern applies to `beach`, `plains`, `marsh`,
-`plateau`; `forest`/`denseForest` fold their structural biome looks
+`plateau`; `forest`/`deepWood` fold their structural biome looks
 (`dead`, `painforest`, `frost`, …) into the table as weighted motifs the same
 way.
 
@@ -552,7 +552,7 @@ way.
 4. **In-memory v5 shim**: variant → motif, id uniquify, pins preserved
    (exclusive). Never written back; a decor stays v5 until hand-rewritten.
 5. Data: hand-rewrite decor-by-decor — desert first (§4), then
-   beach/plains/marsh/plateau, then forest/denseForest (the id-collision
+   beach/plains/marsh/plateau, then forest/deepWood (the id-collision
    files). Gate each with the part-count histogram (§5.5), then eyeball
    strip + histogram.
 6. Editor: motif panel with realized shares, alternatives editing
