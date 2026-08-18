@@ -5,7 +5,7 @@
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const FOREST_DESCRIPTOR = {
-  schemaVersion: 6,
+  schemaVersion: 7,
   id: 'forest',
   kind: 'decor',
   displayName: 'Forest decor',
@@ -281,8 +281,8 @@ export const FOREST_DESCRIPTOR = {
         },
       ],
     },
-    {
-      id: 'painforest',
+        {
+      motif: 'painforest',
       weight: 0.08,
       biomeWeight: {
         biome_painforest: 5,
@@ -294,182 +294,6 @@ export const FOREST_DESCRIPTOR = {
         biome_scorch: 0.1,
         biome_sere_wastes: 0.05,
       },
-      parts: [
-        {
-          id: 'painforest-trunk-base',
-          shape: 'cylinder',
-          params: { bottomR: 0.13, topR: 0.08, height: 0.3, segments: 5 },
-          transform: {
-            localAxis: { x: 1, y: 0, z: 0 },
-            localAngle: 0.12,
-            localPos: { x: 0, y: 0, z: 0 },
-          },
-          stretch: {
-            y: { min: 0.9, max: 1.15, seed: 6 },
-            x: false,
-            z: false,
-          },
-          color: 0x8b5e3c,
-          biomeColor: { source: 'wood', influence: 0.6 },
-        },
-        {
-          id: 'painforest-trunk-upper',
-          shape: 'cylinder',
-          params: { topR: 0.05, height: 0.24, segments: 5 },
-          transform: {
-            y: 0,
-            lift: 0,
-            localPos: { x: 0, y: 0.3, z: 0 },
-            localAxis: { x: 1, y: 0, z: 0 },
-            localAngle: -0.15,
-          },
-          stretch: {
-            y: { min: 0.9, max: 1.15, seed: 6 },
-            x: false,
-            z: false,
-          },
-          color: 0x8b5e3c,
-          biomeColor: { source: 'wood', influence: 0.6 },
-        },
-        {
-          id: 'painforest-branch-split',
-          seed: 102,
-          default: 'painforest-style-spread',
-          alternatives: [
-            {
-              id: 'painforest-style-spread',
-              weight: 0.45,
-              parts: [
-                {
-                  id: 'painforest-branch-spread',
-                  transform: {
-                    localPos: { x: 0.02, y: 0.52, z: 0.03 },
-                    localAxis: { x: 1, y: 0, z: 0 },
-                    localAngle: 0,
-                  },
-                  children: [
-                    {
-                      id: 'painforest-spread-branch',
-                      shape: 'cylinder',
-                      params: { bottomR: 0.045, topR: 0.025, height: 0.3, segments: 5 },
-                      transform: {
-                        localPos: { x: 0, y: 0, z: 0 },
-                        localAxis: { x: 1, y: 0, z: 0 },
-                        localAngle: 0.7,
-                      },
-                      stretch: {
-                        y: { min: 0.9, max: 1.2, seed: 6 },
-                        x: false,
-                        z: false,
-                      },
-                      color: 0x8b5e3c,
-                      biomeColor: { source: 'wood', influence: 0.6 },
-                    },
-                    {
-                      id: 'painforest-spread-canopy',
-                      shape: 'sphere',
-                      params: { radius: 0.26 },
-                      transform: { localPos: { x: -0.06, y: 0.13, z: 0.2 } },
-                      color: 0x2e5d2e,
-                      biomeColor: { source: 'foliage', influence: 0.8 },
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              id: 'painforest-style-swept',
-              weight: 0.35,
-              parts: [
-                {
-                  id: 'painforest-branch-swept',
-                  transform: {
-                    localPos: { x: 0.02, y: 0.45, z: 0 },
-                    localAxis: { x: 0, y: 0, z: 1 },
-                    localAngle: 0.2,
-                  },
-                  children: [
-                    {
-                      id: 'painforest-swept-branch',
-                      shape: 'cylinder',
-                      params: { bottomR: 0.03, topR: 0.02, height: 0.28, segments: 5 },
-                      transform: {
-                        localPos: { x: 0, y: 0, z: 0 },
-                        localAxis: { x: 0, y: 0, z: 1 },
-                        localAngle: 0.959,
-                      },
-                      stretch: {
-                        y: { min: 0.9, max: 1.2, seed: 6 },
-                        x: false,
-                        z: false,
-                      },
-                      color: 0x8b5e3c,
-                      biomeColor: { source: 'wood', influence: 0.6 },
-                    },
-                    {
-                      id: 'painforest-swept-canopy',
-                      shape: 'sphere',
-                      params: { radius: 0.24 },
-                      transform: { localPos: { x: -0.2, y: 0.1, z: 0.1 } },
-                      color: 0x336033,
-                      biomeColor: { source: 'foliage', influence: 0.8 },
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              id: 'painforest-style-twotier',
-              weight: 0.2,
-              parts: [
-                {
-                  id: 'painforest-branch-twotier',
-                  transform: {
-                    localPos: { x: 0.02, y: 0.5, z: 0 },
-                    localAxis: { x: 1, y: 0, z: 0 },
-                    localAngle: 0.1,
-                  },
-                  children: [
-                    {
-                      id: 'painforest-twotier-branch',
-                      shape: 'cylinder',
-                      params: { bottomR: 0.05, topR: 0.03, height: 0.3, segments: 5 },
-                      transform: {
-                        localPos: { x: 0, y: 0, z: 0 },
-                        localAxis: { x: 1, y: 0, z: 0 },
-                        localAngle: 0.6,
-                      },
-                      stretch: {
-                        y: { min: 0.9, max: 1.2, seed: 6 },
-                        x: false,
-                        z: false,
-                      },
-                      color: 0x8b5e3c,
-                      biomeColor: { source: 'wood', influence: 0.6 },
-                    },
-                    {
-                      id: 'painforest-twotier-canopy',
-                      shape: 'sphere',
-                      params: { radius: 0.26 },
-                      transform: { localPos: { x: 0, y: 0.2, z: 0.17 } },
-                      color: 0x2e5d2e,
-                      biomeColor: { source: 'foliage', influence: 0.8 },
-                    },
-                    {
-                      id: 'painforest-twotier-canopy-b',
-                      shape: 'sphere',
-                      params: { radius: 0.18 },
-                      transform: { localPos: { x: 0, y: -0.12, z: 0 } },
-                      color: 0x3a7030,
-                      biomeColor: { source: 'foliage', influence: 0.8 },
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
     },
     {
       id: 'dead',
@@ -886,11 +710,9 @@ export const FOREST_DESCRIPTOR = {
         },
       ],
     },
-    {
-      id: 'log',
+        {
+      motif: 'log',
       weight: 0.06,
-      size: { min: 0.95, max: 1.15 },
-      placement: { leanMin: 0.06, leanMax: 0.2 },
       biomeWeight: {
         biome_mourning_marsh: 1.5,
         biome_painforest: 1.2,
@@ -901,91 +723,6 @@ export const FOREST_DESCRIPTOR = {
         biome_tundra: 0.8,
         biome_edenfall: 0.6,
       },
-      parts: [
-        {
-          id: 'log-body',
-          shape: 'cylinder',
-          params: { bottomR: 0.11, topR: 0.085, height: 0.55, segments: 7 },
-          stretch: {
-            y: { min: 0.85, max: 1.25, seed: 33 },
-            x: false,
-            z: false,
-          },
-          color: 0x6a5746,
-          biomeColor: { source: 'wood', influence: 0.55 },
-          transform: {
-            y: 0.105,
-            localPos: { x: 0.26484129245482146, y: -0.2487839029699837, z: 0.04078174227210436 },
-            localAxis: { x: 0, y: 0, z: 1 },
-            localAngle: 1.62,
-          },
-        },
-        {
-          id: 'log-stub',
-          shape: 'cylinder',
-          params: { bottomR: 0.032, topR: 0.02, height: 0.14, segments: 5 },
-          stretch: {
-            y: { min: 0.8, max: 1.2, seed: 31 },
-            x: false,
-            z: false,
-          },
-          color: 0x6a5746,
-          biomeColor: { source: 'wood', influence: 0.55 },
-          transform: {
-            y: 0,
-            lift: 0,
-            localPos: { x: 0.08, y: 0.16, z: 0.03 },
-            localAxis: { x: 1, y: 0, z: 0 },
-            localAngle: 0.25,
-          },
-        },
-        {
-          id: 'log-moss',
-          shape: 'sphere',
-          params: { radius: 0.09 },
-          stretch: {
-            y: { min: 0.85, max: 1.15, seed: 32 },
-            x: false,
-            z: false,
-          },
-          color: 0x4f6b38,
-          biomeColor: { source: 'foliage', influence: 0.75 },
-          transform: {
-            y: 0,
-            lift: 0,
-            scaleX: 1.3,
-            scaleY: 0.45,
-            scaleZ: 1.1,
-            localPos: { x: -0.11638297282958757, y: -0.015871468208349997, z: 0.0704688616173255 },
-          },
-        },
-        {
-          id: 'log-fungus-a',
-          shape: 'sphere',
-          params: { radius: 0.045 },
-          color: 0xb98a5e,
-          biomeColor: { source: 'bloom', influence: 0.3 },
-          transform: {
-            y: 0,
-            lift: 0,
-            scaleY: 0.4,
-            localPos: { x: 0.022841750442331218, y: -0.01603161715746917, z: -0.0660618605006247 },
-          },
-        },
-        {
-          id: 'log-fungus-b',
-          shape: 'sphere',
-          params: { radius: 0.035 },
-          color: 0xb98a5e,
-          biomeColor: { source: 'bloom', influence: 0.3 },
-          transform: {
-            y: 0,
-            lift: 0,
-            scaleY: 0.4,
-            localPos: { x: -0.03795179263937237, y: 0.034746903636999914, z: 0.11725354654370354 },
-          },
-        },
-      ],
     },
   ],
 };

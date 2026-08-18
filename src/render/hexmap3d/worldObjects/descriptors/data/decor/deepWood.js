@@ -5,7 +5,7 @@
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const DEEP_WOOD_DESCRIPTOR = {
-  schemaVersion: 6,
+  schemaVersion: 7,
   id: 'deepWood',
   kind: 'decor',
   displayName: 'Deep Wood decor',
@@ -58,84 +58,10 @@ export const DEEP_WOOD_DESCRIPTOR = {
         },
       ],
     },
-    {
-      id: 'painforest',
+        {
+      motif: 'painforest',
       weight: 0.08,
       biomeWeight: { biome_painforest: 5, biome_tundra: 0.2, biome_frigid_silence: 0.2 },
-      parts: [
-        {
-          id: 'painforest-trunk-base',
-          shape: 'cylinder',
-          params: { bottomR: 0.13, topR: 0.08, height: 0.3, segments: 5 },
-          transform: { localAxis: { x: 1, y: 0, z: 0 }, localAngle: 0.12 },
-          stretch: {
-            y: { min: 0.9, max: 1.15, seed: 6 },
-            x: false,
-            z: false,
-          },
-          biomeScale: { biome_painforest: 0.55 },
-          color: 0x8b5e3c,
-          biomeColor: { source: 'wood', influence: 0.5 },
-        },
-        {
-          id: 'painforest-trunk-upper',
-          shape: 'cylinder',
-          params: { topR: 0.05, height: 0.24, segments: 5 },
-          transform: {
-            y: 0,
-            lift: 0,
-            localPos: { x: 0, y: 0.3, z: 0.02 },
-            localAxis: { x: 1, y: 0, z: 0 },
-            localAngle: -0.15,
-          },
-          stretch: {
-            y: { min: 0.9, max: 1.15, seed: 6 },
-            x: false,
-            z: false,
-          },
-          biomeScale: { biome_painforest: 0.55 },
-          color: 0x8b5e3c,
-          biomeColor: { source: 'wood', influence: 0.5 },
-        },
-        {
-          id: 'painforest-branch',
-          shape: 'cylinder',
-          params: { bottomR: 0.045, topR: 0.025, height: 0.3, segments: 5 },
-          transform: {
-            y: 0,
-            lift: 0,
-            localPos: { x: 0.02, y: 0.52, z: 0.03 },
-            localAxis: { x: 1, y: 0, z: 0 },
-            localAngle: 0.3490658503988659,
-          },
-          stretch: {
-            y: { min: 0.9, max: 1.2, seed: 6 },
-            x: false,
-            z: false,
-          },
-          biomeScale: { biome_painforest: 0.55 },
-          color: 0x8b5e3c,
-          biomeColor: { source: 'wood', influence: 0.5 },
-        },
-        {
-          id: 'painforest-part-1',
-          shape: 'cone',
-          params: { bottomR: 0.2, height: 0.5 },
-          transform: {
-            y: 0,
-            lift: 0,
-            localPos: { x: 0, y: 0.7123075206439029, z: 0 },
-          },
-          stretch: {
-            y: { min: 0.9, max: 1.15, seed: 6 },
-            x: false,
-            z: false,
-          },
-          biomeScale: { biome_painforest: 0.55 },
-          color: 0x10761e,
-          biomeColor: { source: 'foliage', influence: 0.97 },
-        },
-      ],
     },
     {
       id: 'taigawood',

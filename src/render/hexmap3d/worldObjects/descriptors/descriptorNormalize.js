@@ -17,6 +17,7 @@ import {
   SCHEMA_VERSION,
 } from './descriptorDefaults.js';
 import { isPlainObject, cloneJson } from './typeChecks.js';
+import { motifById } from './data/motifs/index.js';
 
 /**
  * Legacy shape names accepted from older descriptor JSON. `knot` always
@@ -142,6 +143,27 @@ function normalizePart(part, legacyGrounding = false, nested = false) {
     out.children = out.children.map((child) => normalizePart(child, legacyGrounding, true));
   }
   return out;
+}
+
+/**
+ * The resolved shared motif for a library id: the library's `size`/`placement`
+ * defaults plus its parts tree run through the SAME normalizePart as inline
+ * motif parts (no legacy grounding — library parts are authored current). This
+ * is the single source of truth for what a `motif: '<id>'` reference expands
+ * to: normalizeDescriptor materializes these parts into the decor, and
+ * descriptorDenormalize compares a ref's materialized parts against this same
+ * result to decide whether to collapse back to a reference. Fresh objects each
+ * call (never cached) so no decor shares a mutable parts tree with another or
+ * with the library. Returns null for an unknown id.
+ */
+export function sharedPartsFor(id) {
+  const lib = motifById(id);
+  if (!lib) return null;
+  return {
+    size: lib.size,
+    placement: lib.placement,
+    parts: (lib.parts ?? []).map((p) => normalizePart(p, false)),
+  };
 }
 
 /**
@@ -302,7 +324,23 @@ export function normalizeDescriptor(def) {
       const m = { ...motif };
       m.weight = motif.weight ?? 1;
       m.biomeWeight = isPlainObject(motif.biomeWeight) ? { ...motif.biomeWeight } : {};
-      m.parts = (Array.isArray(motif.parts) ? motif.parts : []).map((p) => normalizePart(p, legacyGrounding));
+      // Shared-motif reference (`motif: '<libraryId>'`): resolve the geometry
+      // and the size/placement defaults from the library. The `motif` marker is
+      // retained so denormalize collapses an untouched ref back to reference
+      // form; a ref that also carries its own `parts` is a LOCAL OVERRIDE and
+      // keeps them. An unknown id leaves the entry unresolved (validation flags
+      // it at authoring; runtime renders nothing rather than crashing).
+      if (typeof m.motif === 'string') {
+        const shared = sharedPartsFor(m.motif);
+        if (shared) {
+          m.id = m.id ?? m.motif;
+          m.size = m.size ?? shared.size;
+          m.placement = m.placement ?? shared.placement;
+        }
+      }
+      m.parts = Array.isArray(m.parts)
+        ? m.parts.map((p) => normalizePart(p, legacyGrounding))
+        : (typeof m.motif === 'string' ? (sharedPartsFor(m.motif)?.parts ?? []) : []);
       return m;
     });
   }

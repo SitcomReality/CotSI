@@ -61,8 +61,12 @@ export const PLACEMENT_MODES = Object.freeze(['center', 'scatter', 'ring', 'jitt
  * `biomeWeight`/`size`/`placement` overrides. v5 decor files migrate in
  * memory via normalizeDescriptor (variant → motif shim, §decorComposition.md
  * §3.3); the shim never writes back — a decor stays v5 until hand-rewritten.
+ * v7 adds the shared motif library: a decor motif-table entry may be a
+ * REFERENCE `{ motif: '<libraryId>', weight?, biomeWeight?, size?, placement? }`
+ * resolving geometry from data/motifs, instead of only an inline `{ id, parts }`
+ * block. v6 inline motifs still load unchanged (they are just inline entries).
  */
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 /**
  * Reserved tile-hash seed lanes (decorComposition.md §3.2). Every weighted

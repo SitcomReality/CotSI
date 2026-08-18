@@ -13,6 +13,7 @@ import {
 } from './typeChecks.js';
 import { validatePartsList, validatePart } from './validateParts.js';
 import { listArchetypes } from '../../../../game/rules/archetypes.js';
+import { motifById } from './data/motifs/index.js';
 
 const CLUSTER_KEYS = ['min', 'max', 'rule', 'countsByTerrain', 'densityRange', 'jitter'];
 const CLUSTER_RULES = ['uniform', 'moisture'];
@@ -241,7 +242,7 @@ const OBJECT_KEYS = [
   'slot', 'portrait', 'biomeVariants', 'optionalGroups', 'motifs', 'repeatPenalty',
 ];
 
-const MOTIF_KEYS = ['id', 'weight', 'biomeWeight', 'size', 'placement', 'parts'];
+const MOTIF_KEYS = ['id', 'motif', 'weight', 'biomeWeight', 'size', 'placement', 'parts'];
 
 /**
  * The registered biome id list, when the archetype registry is populated (the
@@ -255,17 +256,24 @@ function registeredBiomeIds() {
 
 /**
  * Validate a decor's `motifs` — the weighted per-slot table replacing
- * `variants` on the decor path (decorComposition.md §2.1). Each motif is
- * `{ id, weight?, biomeWeight?, size?, placement?, parts }`; motif ids are
- * unique; `weight` >= 0 (default 1); `biomeWeight` is a sparse per-biome
- * multiplier (absent key ≡ 1, present 0 ≡ excluded) whose keys must be
- * registered biome ids; `size`/`placement` are per-motif overrides (absent
- * fields inherit the decor-level values); `parts` is a regular parts list
- * (groups + alternatives allowed, non-empty).
+ * `variants` on the decor path (decorComposition.md §2.1). Each entry is one
+ * of two forms:
+ *   - reference  `{ motif: '<libraryId>', weight?, biomeWeight?, size?, placement? }`
+ *     — resolves shared geometry from the motif library; `size`/`placement`
+ *     override the library defaults. `parts` is optional: a normalize pass
+ *     materializes the shared parts onto the entry (they must equal the
+ *     library), while raw/denormalized refs carry none.
+ *   - inline     `{ id, weight?, biomeWeight?, size?, placement?, parts }`
+ *     — legacy/local geometry authored in place.
+ * Motif ids are unique; `weight` >= 0 (default 1); `biomeWeight` is a sparse
+ * per-biome multiplier (absent key ≡ 1, present 0 ≡ excluded) whose keys must
+ * be registered biome ids; `size`/`placement` are per-entry overrides (absent
+ * fields inherit the decor-level or library defaults); inline `parts` is a
+ * regular parts list (groups + alternatives allowed, non-empty).
  */
 function validateMotifs(motifs, path, errors, seen) {
   if (!Array.isArray(motifs) || motifs.length === 0) {
-    errors.push(`${path}: must be a non-empty array of { id, weight?, biomeWeight?, size?, placement?, parts }`);
+    errors.push(`${path}: must be a non-empty array of motif references or inline motifs (see decorComposition.md §2.1)`);
     return;
   }
   const biomeIds = registeredBiomeIds();
@@ -273,10 +281,19 @@ function validateMotifs(motifs, path, errors, seen) {
   motifs.forEach((motif, mi) => {
     const mpath = `${path}[${mi}]`;
     if (!isPlainObject(motif)) {
-      errors.push(`${mpath}: motif must be an object { id, weight?, biomeWeight?, size?, placement?, parts }`);
+      errors.push(`${mpath}: motif must be an object { motif?|id?, weight?, biomeWeight?, size?, placement?, parts? }`);
       return;
     }
-    if (typeof motif.id !== 'string' || !motif.id) {
+    const isRef = typeof motif.motif === 'string';
+    if (isRef) {
+      if (!ID_PATTERN.test(motif.motif)) {
+        errors.push(`${mpath}.motif: must match /^[A-Za-z0-9_-]+$/`);
+      } else if (!motifById(motif.motif)) {
+        errors.push(`${mpath}.motif: unknown shared motif "${motif.motif}" in the motif library`);
+      }
+      if (seenMotifIds.has(motif.motif)) errors.push(`${mpath}: duplicate motif id "${motif.motif}"`);
+      seenMotifIds.add(motif.motif);
+    } else if (typeof motif.id !== 'string' || !motif.id) {
       errors.push(`${mpath}: missing motif id`);
     } else {
       if (!ID_PATTERN.test(motif.id)) errors.push(`${mpath}.id: must match /^[A-Za-z0-9_-]+$/`);
@@ -305,7 +322,14 @@ function validateMotifs(motifs, path, errors, seen) {
     }
     validateSize(motif.size, `${mpath}.size`, errors);
     validatePlacement(motif.placement, `${mpath}.placement`, errors);
-    if (!Array.isArray(motif.parts) || motif.parts.length === 0) {
+    if (isRef) {
+      // A reference's parts are optional — a normalize pass materializes the
+      // shared parts (validated so a bad edit can't hide), a raw/denormalized
+      // ref carries none.
+      if (Array.isArray(motif.parts) && motif.parts.length > 0) {
+        motif.parts.forEach((part, pi) => validatePart(part, `${mpath}.parts[${pi}]`, errors, seen));
+      }
+    } else if (!Array.isArray(motif.parts) || motif.parts.length === 0) {
       errors.push(`${mpath}.parts: required non-empty array`);
     } else {
       motif.parts.forEach((part, pi) => validatePart(part, `${mpath}.parts[${pi}]`, errors, seen));
@@ -427,7 +451,7 @@ export function validateDescriptor(def) {
     } else {
       const pinIds = new Set([
         ...(def.variants ?? []).map((v) => v?.id),
-        ...(def.motifs ?? []).map((m) => m?.id),
+        ...(def.motifs ?? []).map((m) => m?.motif ?? m?.id),
       ]);
       for (const [biomeId, variantId] of Object.entries(def.biomeVariants)) {
         if (typeof variantId !== 'string' || !variantId) {

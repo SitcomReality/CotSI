@@ -10,6 +10,7 @@
 import { SHAPE_TYPES } from './shapeTypes.js';
 import { OBJECT_DEFAULTS, PORTRAIT_DEFAULTS, PART_TRANSFORM_DEFAULTS, NESTED_PART_TRANSFORM_DEFAULTS } from './descriptorDefaults.js';
 import { isPlainObject, cloneJson } from './typeChecks.js';
+import { sharedPartsFor } from './descriptorNormalize.js';
 
 /** Recursive deep-equality for JSON-safe values (objects, arrays, primitives). */
 function sameValue(a, b) {
@@ -199,7 +200,31 @@ export function denormalizeDescriptor(def) {
       // survive the round-trip (decorComposition.md §3.3).
       if (m.weight === 1) delete m.weight;
       if (isPlainObject(m.biomeWeight) && Object.keys(m.biomeWeight).length === 0) delete m.biomeWeight;
-      m.parts = (Array.isArray(motif.parts) ? motif.parts : []).map(denormPart);
+      // Shared-motif reference: a ref whose materialized parts still equal the
+      // library collapses back to `{ motif, weight?, biomeWeight?, size?,
+      // placement? }` (no id, no parts, library-inherited size/placement
+      // stripped) — the dedupe the reference model exists for. A ref whose
+      // geometry differs is a LOCAL OVERRIDE and keeps its denormed parts
+      // (still tagged `motif` so its origin is known). Inline motifs are
+      // unchanged.
+      if (typeof m.motif === 'string') {
+        const shared = sharedPartsFor(m.motif);
+        if (shared && sameValue(m.parts, shared.parts)) {
+          delete m.parts;
+          if (shared.size && sameValue(m.size, shared.size)) delete m.size;
+          if (shared.placement && sameValue(m.placement, shared.placement)) delete m.placement;
+        } else {
+          // Local override / unresolvable id — keep authored parts.
+          if (Array.isArray(m.parts)) m.parts = m.parts.map(denormPart);
+          if (shared) {
+            if (shared.size && sameValue(m.size, shared.size)) delete m.size;
+            if (shared.placement && sameValue(m.placement, shared.placement)) delete m.placement;
+          }
+        }
+        delete m.id;
+      } else {
+        m.parts = (Array.isArray(motif.parts) ? motif.parts : []).map(denormPart);
+      }
       return m;
     });
   }
