@@ -256,7 +256,7 @@ geometry. No randomness, ever.
 2. **The first variant is the default look.** `variants[0]` renders on every
    tile unless a biome pins an alternate; `biomeVariants: { biomeId: variantId }`
    swaps in a biome-specific look (the `forest` and `deepWood` decors both
-   pin the gnarled `painforest` variant for Painforest woods).
+   use the shared `painforest` motif).
 3. **Features and decor compose.** A tile resolves to its feature (knot,
    Blessed Font, chest, ...) at the hex center **and** its terrain decor around
    it; decor yields to the feature/occupant via `emphasis`. A feature's `id`

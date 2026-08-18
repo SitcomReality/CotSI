@@ -116,7 +116,7 @@ export const EDEN_MUSHROOM_DESCRIPTOR = {
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| `schemaVersion` | int | 5 | Schema version. Write `6` for v6 motif decors (`motifs` / `alternatives`, §5.4); `5` for everything else. Older files (v3/v4/v5) auto-migrate on load; the editor rewrites them to the current version on the next Save. |
+| `schemaVersion` | int | 7 | Schema version. Write `7` (the current version — decor `motifs` may reference shared library geometry or inline `parts`, §5.4). Older files (v3–v6) auto-migrate on load; the editor rewrites them to the current version on the next Save. |
 | `id` | string | — | Canonical id, `[A-Za-z0-9_-]`. For a feature this must equal the feature kind the game state uses (`openTreasureChest`). |
 | `kind` | string | — | One of `feature`, `decor`, `mountain`, `base`, `champion`, `mob`, `trader`. |
 | `displayName` | string | — | UI name (editor, tooltips). |
@@ -379,15 +379,14 @@ anywhere. The pipeline (recordBuilder.js):
 
 ### 5.3 Variant selection
 
-> **v6:** the DECOR path moved to the weighted `motifs` table — see §5.4.
-> Variants + `biomeVariants` pins remain for **features and entity kinds**
-> (and as a deprecated escape hatch for decor). A v5 decor file still loads:
-> `normalizeDescriptor` migrates it in memory (variant → motif, ids
-> uniquified, pins preserved) until it is hand-rewritten.
+> **v7:** the DECOR path moved to the weighted `motifs` table — see §5.4.
+> Variants + `biomeVariants` pins remain for **features and entity kinds**.
+> A legacy decor file still loads — `normalizeDescriptor` auto-migrates it in
+> memory on load.
 
 **A decor is the look of ONE terrain.** Each decor-producing terrain has its
 own descriptor, and the decor's `id` IS the terrain's id: `forest` tiles render
-the `forest` decor, `deepWood` tiles the `deepWood` decor (deep wood),
+the `forest` decor, `deepWood` tiles the `deepWood` decor (Deep Wood),
 `desert` tiles the `desert` decor, and so on. The game's dispatch table
 (`gameBuilder.js` `SIMPLE_DECOR_BY_TERRAIN`) maps terrain → decor by that id;
 different terrains are **never** variants of one another.
@@ -397,8 +396,10 @@ So on the tile path the only variant dimension is the **biome**:
 - **`variants[0]` is the DEFAULT look** — every tile renders it unless a biome
   pins an alternate. Put the canonical look first, alternates after.
 - **`biomeVariants`** — `{ biomeId: variantId }` pins an alternate to a biome:
-  every tile of that biome renders it (e.g. the `forest` and `deepWood`
-  decors both pin the gnarled `painforest` variant for Painforest woods).
+  every tile of that biome renders it. That stays for **features and entity
+  kinds**; decor biome looks live in the `motifs` table instead (e.g. the
+  shared `painforest` motif is folded into both the `forest` and `deepWood`
+  decors).
 - **Explicit picker** — the editor's Variant picker (a record-path
   `variantId` override) forces one variant while authoring; a stale id falls
   through.
@@ -409,24 +410,21 @@ variants are biome alternates, not per-tile lottery content.
 
 `variantRule` remains for the two non-biome cases:
 
-- `'mountain'` — legacy mountain roll over the `classic`/`offpeak` variants:
-  hash raw `(q, r)` with `MOUNTAIN_HASH_SEEDS` (`((q·13 + r·7)·19) % 100`) so
-  per-tile assignments match the pre-migration `mountainMeshes.js` builder.
+- `'mountain'` — mountain roll over the `classic`/`offpeak` variants: hash
+  raw `(q, r)` with `MOUNTAIN_HASH_SEEDS` (`((q·13 + r·7)·19) % 100`).
 - `'hash'` (default) — roll over the variant list by tile hash. Kept for
   content that genuinely wants hash-chosen variants; no current decor uses it.
 - `'faction'` / `'archetype'` — **entity-driven**: variant id must equal the
   entity's `faction` (e.g. `'CRU'`) or `archetype` (e.g. `'bear'`); unknown
   values fall back to the first variant.
 
-The legacy `'cluster'` and `'solitary'` rules were **retired** — the
-terrain/height distinctions they hardcoded are now separate descriptors or
-per-part authoring. `normalizeDescriptor` migrates old files (`'cluster'` →
-`'hash'`, dropping any interim `terrainVariants` field).
+Old files that used the retired `'cluster'`/`'solitary'` rules auto-migrate on
+load.
 
 **In the geometry editor:** the object controls list every registered biome
 with one variant select per row ("— default look" clears a pin), and the
 preview bar's Biome selector renders the pinned looks — switch the biome to
-Painforest for the gnarled woods. (The preview tile's terrain is derived from
+view its pinned variant. (The preview tile's terrain is derived from
 the descriptor — each decor is bound to the terrain its id names — so there
 is no terrain selector.)
 
@@ -439,7 +437,7 @@ per-biome forest), then pin it to a biome in the Per-biome variants section.
 The duplicate workflow is the whole point of the per-biome system: one
 terrain, many biomes, one default look plus a pinned alternate per biome.
 
-### 5.4 Decor composition: motifs, alternatives, and weights (v6)
+### 5.4 Decor composition: motifs, alternatives, and weights (v7)
 
 Every choice point in a decor is a weighted pick, and there are three levels
 (`dev/docs/decorComposition.md` is the full spec):
@@ -468,8 +466,8 @@ motifs: [
 - `biomeWeight` (default 1 per biome) — a per-biome weight *multiplier*:
   **absent key ≡ 1, present 0 ≡ excluded**. The realized share in a biome is
   `w_i / Σw` over the filtered table — a factor of 5 makes a motif DOMINANT,
-  not exclusive (use `biomeWeight: 0` to exclude, or a `biomeVariants` pin to
-  guarantee — pins are deprecated for new content).
+  not exclusive (use `biomeWeight: 0` to exclude). `biomeVariants` pins remain
+  but are deprecated for new content — prefer `biomeWeight` in the motif table.
 - **All-excluded fallback** — if a biome excludes every motif, the draw falls
   back to each motif's base `weight` (never empty, never all-ones), and
   validation warns.
@@ -483,6 +481,31 @@ motifs: [
 - Biome identity is expressed as **tints and weights, not restated geometry**:
   the same shapes carry `biomeColor` tints, `biomeScale` sizes, and
   `biomeWeight` skews per biome.
+
+**Shared-library motif references (v7).** A decor motif entry may reference
+shared geometry from `data/motifs/` (hand-authored blocks like `trees.js` /
+`debris.js`) instead of inlining its own `parts`:
+
+```js
+motifs: [
+  { motif: 'painforest', weight: 0.35, biomeWeight: { biome_painforest: 5 } },
+  { motif: 'log', weight: 0.06, size: { min: 0.8, max: 1.0 } }, // size overrides the library default
+],
+```
+
+- A reference is `{ motif: '<libraryId>', weight?, biomeWeight?, size?,
+  placement? }` — no `parts`. `normalizeDescriptor` materializes the library's
+  part tree and inherits its default `size`/`placement`; an explicit
+  `size`/`placement` on the entry overrides those defaults.
+  `denormalizeDescriptor` collapses an untouched reference back to reference
+  form.
+- Editing a referenced motif's geometry inside a decor produces a **local
+  override** — the entry keeps the `motif` origin tag but now carries its own
+  `parts`, diverged from the library (never a silent loss; it round-trips).
+- The library dedupes geometry shared across terrain decors — e.g. the
+  `painforest` motif is folded into both the `forest` and `deepWood` tables,
+  `log` lives in `debris.js`. See
+  `dev/tests/render/descriptorMotifShared.test.js`.
 
 **`alternatives`** — a parts-tree node at any depth (any kind: decor, feature,
 even nested inside another alternative):
@@ -603,7 +626,7 @@ descriptor (+ tile / entity)
 
 In-game dispatch (gameBuilder.js): each tile resolves to its feature (by
 `tile.feature.kind` → descriptor id) plus its terrain decoration (mountains,
-forest/deepWood woods, hill mounds, and one ground decor per
+forest/deepWood, hill mounds, and one ground decor per
 marsh/plateau/plains/desert/beach — the decor's id IS the terrain's id).
 Decorations resolve in their unoccupied
 state while the tile is out of sight; occupants/features gate displacement.
@@ -615,20 +638,21 @@ flagship example of the variable-properties vocabulary: count, size, part set,
 stretch, and color all come from ranges and per-tile draws rather than fixed
 values. One decor per terrain — `src/render/hexmap3d/worldObjects/descriptors/data/decor/forest.js`
 is the `forest` terrain's decor, and `decor/deepWood.js` is a **separate**
-descriptor (the deep-wood's conical pines) — never a variant of this one.
+descriptor (Deep Wood's conical pines) — never a variant of this one.
 
-> **v6:** the shipped forest is now a `motifs` table (schemaVersion 6) — the
-> default `round` tree plus each structural biome look (`painforest` gnarled,
-> `taiga`, `frost`, `dry`, `dead`, `edenfall`, `marshwood`, `dustbleed`) as a
-> low-weight motif with a home-biome `biomeWeight` lift and cross-biome
-> suppressions (§5.4). The worked example below shows the pre-v6 variant form;
-> the motif form is the same geometry folded into one table.
+> **v7:** the shipped forest is now a `motifs` table (schemaVersion 7) — the
+> default `round` tree plus each structural biome look (`taiga`, `frost`,
+> `dry`, `dead`, `edenfall`, `marshwood`, `dustbleed`) as a low-weight motif
+> with a home-biome `biomeWeight` lift and cross-biome suppressions (§5.4);
+> the gnarled `painforest` look is the shared painforest motif. The worked
+> example below shows the pre-v7 variant form; the motif form is the same
+> geometry folded into one table.
 
 The forest is also the showcase of the per-biome variant system: every biome
 that can grow forest terrain pins its own look. Titanstain and Unfinished
 Lands never render this decor at all (their `terrainOverrides` swap the forest
 terrain for Titanflesh / Protogrowth), so the pins cover exactly the biomes
-where a forest tile can actually exist (abridged — the PRE-v6 variant form; the
+where a forest tile can actually exist (abridged — the PRE-v7 variant form; the
 shipped file is the `motifs` table with home-biome `biomeWeight` lifts):
 
 ```js
@@ -744,7 +768,7 @@ variant for its biome):
 What each mechanism contributes, at a glance:
 
 - **One decor per terrain** — the decor's `id` is the terrain's id, and
-  `gameBuilder` maps terrain → decor by it. The deep-wood look is a separate
+  `gameBuilder` maps terrain → decor by it. Deep Wood's look is a separate
   descriptor (`deepWood.js`), not a variant.
 - **`variants[0]` is the default look** — every forest tile renders `round`
   unless a biome pins an alternate; `biomeVariants` swaps in one dedicated
@@ -769,7 +793,7 @@ What each mechanism contributes, at a glance:
   overlaps less than a sphere, so `taiga`'s range hugs the trunk top while
   `round`'s swallows it).
 - `biomeScale` — Tundra/Frigid/Sere/Scorch trees shrink to 80–85% of the
-  default; Edenfall's grow to 110%; Painforest's gnarled groves to 55%.
+  default; Edenfall's grow to 110%; the painforest motif's gnarled trees to 55%.
 - `biomeColor` — canopy green leans into the tile's blended biome color
   (`foliage` for the round variant, the biome's `terrain` surface color for
   the ground-matching conifers, `exotic` for frost snow and Dustbleed's

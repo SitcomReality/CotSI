@@ -317,7 +317,7 @@ AI), and `combat/`.
 | `motifDraw.js` | Motif composition drawing for records |
 | `shapeFactories.js` | Shape → THREE geometry + material factories |
 | `meshAssembly.js` | Descriptor + records → one InstancedMesh per part geometry |
-| `gameBuilder.js` | Game-side tile → descriptor resolution (features + per-terrain decor — one decor per terrain, incl. the Painforest woods' gnarled biome variant) + assembly |
+| `gameBuilder.js` | Game-side tile → descriptor resolution (features + per-terrain decor — one decor per terrain, incl. the shared painforest motif) + assembly |
 
 #### `src/render/hexmap3d/worldObjects/descriptors/data/` — generated descriptor data
 

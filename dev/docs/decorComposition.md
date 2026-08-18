@@ -84,8 +84,8 @@ motifs: [
   made dominant (weight × 5), rare (× 0.1), or **excluded** (× 0) in a
   biome. It is a *relative* multiplier — the realized share in a biome is
   `w_i / Σw` over the filtered table, not the raw factor. Weights are the
-  soft control; `biomeVariants` stays as a hard-pin override for looks that
-  must be guaranteed (§5.1).
+  soft control; a `biomeVariants` hard pin is deprecated for new content —
+  prefer `biomeWeight` in the motif table (§5.1).
 - **All-excluded fallback:** if a biome's filter leaves zero motifs, fall
   back to each motif's **base `weight`** (ignoring `biomeWeight`) — never a
   divide-by-zero, never an unexpectedly empty tile. The fallback must also
@@ -104,8 +104,16 @@ motifs: [
   `size: { min, max }` and/or `placement` fields; absent fields inherit the
   decor-level values. The scatter solver may additionally need a per-motif
   `footprint` (visual mass for separation) once cluster counts rise — §5.5.
-- `parts` — same part-tree vocabulary as today (leaves, groups,
-  `alternatives`), with `biomeColor`/`biomeScale` doing the per-biome work.
+- **Shared-library reference.** A motif entry may instead reference shared
+  geometry by id — `{ motif: '<libraryId>', weight?, biomeWeight?, size?,
+  placement? }` — resolving a hand-authored block from `data/motifs/`
+  (`trees.js`, `debris.js`) instead of carrying inline `parts`. The library's
+  default `size`/`placement` apply unless the entry overrides them; editing a
+  referenced motif's geometry in a decor yields a local inline override (still
+  tagged `motif`). See `dev/tests/render/descriptorMotifShared.test.js`.
+- `parts` — for an **inline** motif, the same part-tree vocabulary as today
+  (leaves, groups, `alternatives`), with `biomeColor`/`biomeScale` doing the
+  per-biome work. A shared reference (`motif: '<id>'`) omits `parts`.
 - `motifs` is a **tile-driven decor** concept (`kind: 'decor'`). Features stay
   single-center objects on `variants`; entity kinds keep their
   faction/archetype `variantRule`; `mountain` keeps `variantRule: 'mountain'`.
@@ -251,8 +259,9 @@ motifs: [
   and part ids are **separate namespaces** (the assembler keys by part id
   only); and the assembler builds one mesh per partId across *all*
   alternatives (the full vocabulary), which is a net win after the reskin
-  collapse but spikes unique meshes on the pre-collapse migration shim —
-  another reason the shim must not ship (§3.3).
+  collapse but would spike unique meshes without part-id uniquification —
+  which is exactly why the shipped in-memory migration uniquifies part ids
+  (§3.3).
 - **One resolver, two skins.** Motifs, `alternatives`, and (later)
   `optionalGroups` are the same weighted pick: one
   `resolveWeighted(table, draw, { biome })` implementation, three call
@@ -284,7 +293,9 @@ motifs: [
 - Validation: `motifs` is **required non-empty for `kind: 'decor'`** and is
   **mutually exclusive with `variants`** (reject a descriptor carrying both;
   never fall through to `parts`). Shape: `{ id, weight?, biomeWeight?,
-  size?, placement?, parts }`, motif ids unique. `alternatives` node rejects
+  size?, placement?, parts }` for an inline motif, or `{ motif: '<id>',
+  weight?, biomeWeight?, size?, placement? }` for a shared-library reference;
+  motif/ref ids unique. `alternatives` node rejects
   the full geometry field set (§2.2) but **allows `seed` and `default`**,
   and requires `alternatives: [{ id, weight?, parts }]` — with one
   exception: an option's `parts` **may be empty** (the `none` case), which
@@ -302,30 +313,11 @@ motifs: [
   list the editor's biome rows come from) — a typo'd biome id must not
   silently no-op, as `biomeScale`/`biomeVariants` keys do today. Sparse-map
   semantics: absent key ≡ 1, present 0 ≡ excluded (§2.1).
-- Migration v5 → v6 is a **compatibility shim, not shippable content** —
-  in-memory only, never written back, and a decor that hasn't been
-  hand-rewritten (§7.5) stays v5:
-  - For `kind: 'decor'` with `variants`: convert each variant → a motif
-    (`weight: 1`), drop the fallback `parts` stub.
-  - **Uniquify part ids** (`<variantId>:<partId>` or a short hash suffix)
-    and rewrite internal references (states, FK chains, alternative paths).
-    This is mandatory, not defensive: `forest.js` already repeats
-    `id: 'trunk'` across 9 parts trees and `deepWood.js` across 2 —
-    `meshAssembly`'s last-write-wins `partById` is a latent hazard today
-    (benign only because reskin variants share shape/params and color rides
-    in records). `desert`/`beach`/`plains`/`marsh`/`plateau` already use
-    unique prefixed ids.
-  - **Preserve exclusivity — do NOT convert pins to ×3–×5 lifts.** A lift
-    is not "dominant": ×5 against a 6-motif table is a ~50% share, and a
-    file that pins all 8 biomes would render dramatically more mixed than
-    v5. The shim must render the old look: keep `biomeVariants` pins (a
-    pinned biome forces that motif on **every** slot), which is exactly v5's
-    guarantee. Opening the exclusive mix is the *hand-rewrite's* job
-    (weights plus `biomeWeight: 0` exclusions), not the migrator's.
-  - Pins stay available as an opt-in escape hatch (precise meaning: every
-    slot forces that motif) but are **deprecated for new content** — new
-    content uses weights.
-  - Entity kinds and `mountain` are untouched.
+- Migration v5 → v6 is a **legacy compatibility shim, not the authoring
+  path**: a legacy `kind: 'decor'` with `variants` auto-migrates in memory on
+  load (variant → motif, part ids uniquified, `biomeVariants` pins preserved
+  as an exclusive per-slot override) and is never written back. Entity kinds
+  and `mountain` are untouched.
 - `emitDescriptor`/`descriptorDenormalize` strip defaults on save, round-trip
   as today — **but only `weight: 1` and `biomeWeight: {}` may be stripped**.
   `weight: 0` and `biomeWeight: { biome_x: 0 }` are meaningful (exclusion)
@@ -434,10 +426,9 @@ way.
    `biomeWeight: 0` for *exclusion* (the entry is filtered out of the table,
    §2.1), and a hard `biomeVariants` pin for *guaranteed* looks — a pinned
    biome forces that motif on every slot (exclusive). **Precedence, highest
-   first: pin > editor force > weights.** New content should use weights,
-   never pins; a migrated decor keeps its pins until the hand-rewrite opens
-   the mix (§3.3). Tune in the editor (§6) — weights are the first thing to
-   eyeball on a strip.
+   first: pin > editor force > weights.** Pins are deprecated for new content —
+   prefer `biomeWeight` in the motif table (§2.1). Tune in the editor (§6) —
+   weights are the first thing to eyeball on a strip.
 2. **Lone tiles** (cluster min = 1) draw their motif from the dedicated
    `itemHash(tileH, 0 + MOTIF_SEED)` lane — deterministic per tile, stable
    across rebuilds, and independent of the size/placement lanes.
