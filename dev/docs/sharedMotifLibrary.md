@@ -1,10 +1,12 @@
 # Shared Motif Library — Deferred Follow-ups
 
 Reminder tracker for the work owed toward the shared motif library (commit
-`b340dda` put the mechanism in). The mechanism shipped, but the *migration* is
-barely started — this is planning material for **2–3 future update plans**. The
-individual items are small but touch distinct systems (descriptor data, the
-editor, and terrain authoring), so they are grouped into phases at the bottom.
+`b340dda` put the mechanism in). The mechanism shipped, and items 1 and 3
+(editor authoring + folding the whole-decor swaps) are now done. The remaining
+*migration* (item 4) is the large data-mass pass — this is planning material
+for **future update plans**. The individual items are small but touch distinct
+systems (descriptor data, the editor, and terrain authoring), so they are
+grouped into phases at the bottom.
 
 ---
 
@@ -44,6 +46,11 @@ Shared, author-once motif geometry lives in:
   one-motif-per-file rule this belongs in its own species-named file, not a
   `trees.js` barrel — see item 4)
 - `debris.js` — `LOG_MOTIF`
+- `titanSpire.js`, `titanTooth.js`, `titanBoil.js`, `titanNodule.js`,
+  `titanTendril.js` — the Titanstain land structures (item 3)
+- `bloodPool.js` — Titanstain's water pool
+- `yetFragmentPillar.js` … `yetFragmentOrb.js` — the Unfinished Lands fragments
+- `springPool.js`, `ghostSpark.js` — the Forespring pools/sparks
 - `index.js` — `ALL_MOTIFS`, `motifById`
 
 A decor `motifs` entry can be:
@@ -60,10 +67,9 @@ untouched ref back to reference form (dedupes defaults, and the `weight`/
 `biomeWeight`/`size`/`placement` override keys are recomputed to reference form
 per key) while turning an edited ref into a local override (no data loss).
 
-Converted to schemaVersion 7: `decor/forest.js`, `decor/deepWood.js`. Weights
-and biomeWeights preserved exactly. Validation (`descriptorValidation.js`)
+All decor files are schemaVersion 7. Validation (`descriptorValidation.js`)
 accepts refs and rejects unknown library ids. Tests:
-`dev/tests/render/descriptorMotifShared.test.js` (8 tests). AGENTS.md notes
+`dev/tests/render/descriptorMotifShared.test.js`. AGENTS.md notes
 that shared motif geometry lives in `data/motifs/`, not editor objects.
 
 ## ⚠️ schemaVersion 7 ≠ migrated
@@ -72,19 +78,20 @@ Do not read "converted to schemaVersion 7" as "this decor now uses the shared
 library." schemaVersion 7 only *enables* motif refs; it is a format, not a
 migration. Today:
 
-- Only **two** decor files are at v7 (`forest.js`, `deepWood.js`), and both
-  retain the bulk of their geometry inline. `forest.js` shares its
-  `painforest` and `log` refs but still defines `round`, `conifer`, and `dead` — three
-  multi-part trees — as hundreds of local lines. `deepWood.js` shares
-  `painforest` but still defines `tall`, `taigawood`, `drywood`, `deadwood`,
-  and `violetwood` inline.
-- **Every other decor is untouched.** `decor/desert.js`, for example, is not
-  converted at all — still schemaVersion 6 and entirely inline (`cactus`,
-  `rock`, `shrub`, `cold-mound`, `salt-crust`, `dead-cactus`).
+- The supernatural biomes' decor is fully folded into the library (item 3):
+  every base decorator references the supernatural motifs (gated by
+  `biomeWeight`), and `water`/`ice`/`river` reference the pools/springs with a
+  bare motif on natural biomes. Those refs resolve — but the land decorators
+  still retain their native geometry inline.
+- Every decor file is now schemaVersion 7, but `forest.js`/`deepWood.js`
+  still define their multi-part trees inline (`round`, `conifer`, `dead`,
+  `tall`, `taigawood`, `drywood`, `deadwood`, `violetwood`), and
+  `desert.js`/`plains.js`/`beach.js`/`marsh.js`/`plateau.js` still inline
+  cactus/shrub/tuft/boulder/etc. That's the item-4 breadth sweep.
 
-So only *one terrain tree* (`painforest`) and *one debris piece* (`log`) live
-as shared motifs today, and are referenced from the two v7 decors. Everything
-else in every decor file is still object-local geometry to be migrated.
+So only *two* terrain trees (`painforest`, `log`) plus the supernatural
+library objects are shared motifs today; every other native decor object is
+still object-local geometry to be migrated (item 4).
 
 (Also note one present deviation from the Goal: `debris.js` currently holds
 `LOG_MOTIF`, which is multi-part. A log is a discrete 2+-part object, so per the
@@ -98,20 +105,27 @@ decor object that must become a shared motif (its own file when it has 2+
 parts, otherwise folded into `debris`). `refs` column = shared motifs already
 referenced by that decor.
 
-| Decor file | schema | refs today | inline objects still to convert |
+| Decor file | schema | motifs today | inline objects still to convert |
 | --- | --- | --- | --- |
-| `forest.js` | 7 | `painforest`, `log` | `round`, `conifer`, `dead` |
-| `deepWood.js` | 7 | `painforest` | `tall`, `taigawood`, `drywood`, `deadwood`, `violetwood` |
-| `desert.js` | 6 | — | `cactus`, `rock`, `shrub`, `cold-mound`, `salt-crust`, `dead-cactus` |
-| `plains.js` | 6 | — | `tuft`, `boulder`, `flower`, `stalk`, `mound`, `clod`, `shard` |
-| `beach.js` | 6 | — | `tuft`, `driftwood`, `stone`, `shell`, `glass`, `bone`, `wrack` |
-| `marsh.js` | 6 | — | `cattail`, `mud`, `tussock`, `pad`, `crust`, `bone`, `orb`, `shard` |
-| `hill.js` | 5 | — | `mound` |
-| `plateau.js` | 6 | — | `boulder`, `tuft`, `rock`, `rubble`, `crystal`, `spar`, `reed` |
-| `titanflesh.js` | 5 | — | `titan-spire`, `titan-tooth`, `titan-boil`, `titan-nodule`, `titan-tendril` |
-| `titanblood.js` | 5 | — | `blood-pool` |
-| `yetlands.js` | 6 | — | `yet-fragment-pillar`, `yet-fragment-cube`, `yet-fragment-shard`, `yet-fragment-cone`, `yet-fragment-orb` |
-| `forespring.js` | 5 | — | `spring-pool`, `ghost-spark` |
+| `forest.js` | 7 | native + `painforest`, `log` + titan/yet supernaturals | `round`, `conifer`, `dead` |
+| `deepWood.js` | 7 | native + `painforest` + titan/yet supernaturals | `tall`, `taigawood`, `drywood`, `deadwood`, `violetwood` |
+| `desert.js` | 7 | native + titan/yet supernaturals | — |
+| `plains.js` | 7 | native + titan/yet supernaturals | — |
+| `beach.js` | 7 | native + titan/yet supernaturals | — |
+| `marsh.js` | 7 | native + titan/yet supernaturals | — |
+| `hill.js` | 7 | `mound` + titan/yet supernaturals | — |
+| `plateau.js` | 7 | native + titan/yet supernaturals | — |
+| `water.js` | 7 | `bare` + `bloodPool`/`springPool`/`ghostSpark` | — |
+| `ice.js` | 7 | `bare` + `bloodPool`/`springPool`/`ghostSpark` | — |
+| `river.js` | 7 | `bare` + `bloodPool`/`springPool`/`ghostSpark` | — |
+
+The former `titanflesh.js`/`titanblood.js`/`yetlands.js`/`forespring.js` whole
+decor files are gone: the fold (item 3) moved their geometry into shared
+motifs (`titanSpire`, `titanTooth`, `titanBoil`, `titanNodule`, `titanTendril`,
+`bloodPool`, `yetFragmentPillar`…, `springPool`/`ghostSpark`) and their
+per-biome presentation onto each base decorator's motif table, gated to the
+biome via present-0 `biomeWeight`. The `+ titan/yet supernaturals` note marks
+those folded refs.
 
 (`mountain.js` is excluded: it is `kind: 'mountain'`, one hex-pyramid terrain
 form per tile, not a `kind: 'decor'` object with a motif table — out of scope
@@ -127,20 +141,13 @@ on the ref.
 
 ## Deferred follow-ups
 
-### 1. First-class editor motif authoring
+### 1. First-class editor motif authoring — DONE
 
-Today a shared library motif can only be opened/edited by editing a decor that
-inlines it. There is no "edit the library motif itself" workflow yet.
-
-- The geometry-editor Save flow (`dev/tools/geometryEditor/emitDescriptor.js`)
-  and `descriptorExportName` machinery are decor-scoped. A library motif needs
-  an equivalent authoring path that writes back to `data/motifs/<id>.js`
-  rather than a decor file.
-- Editor "Show all" / canonical view semantics need a library-aware definition
-  (cf. `dev/docs/decorComposition.md`).
-- Gate: the shared directory is entered by decor ref; standalone library
-  editing must not accidentally rewrite every terrain that references the
-  shared geometry.
+A library motif can now be opened/edited directly in the geometry editor (the
+`S.motifEditing` flag + `motifDescriptor` synthetic-decor wrapper) and saved
+back to `data/motifs/<id>.js` via its own `/save/motif` route (see
+`dev/tools/geometryEditor/README.md`). The editor never rewrites referencing
+decorators; only the active motif file is (re)authored.
 
 ### 2. Per-biome alternatives bias
 
@@ -151,13 +158,17 @@ not implemented. This is the `alternatives` machinery from
 swaps within a motif (e.g. a tree that favors its gnarled variant in one
 biome), separate from motif-slot-level weighting.
 
-### 3. Folding `terrainOverrides.decor` whole-decor swaps into the library
+### 3. Folding `terrainOverrides.decor` whole-decor swaps into the library — DONE
 
-Terrain-level biome decor overrides that currently swap the **entire decor**
-(whole-decor swaps) should be folded into the shared motif library so a decor
-substitution is expressed as refs/weights on the motif table instead of a
-parallel decor definition. This is a data-model consolidation, not new
-geometry.
+The whole-decor biome swaps are folded in. The supernatural land and water
+presentations now live as shared-library motif references on each base
+decorator's motif table, gated to their biome via present-0 `biomeWeight`
+entries (the only way a ref appears under exactly one biome). The four whole
+decor files were deleted and the `decor:` keys (plus the `biomeDecorOverrides`
+collection/thunk plumbing) removed end-to-end. Base `water`/`ice`/`river`
+decors render bare on natural biomes via a genuine bare motif — deliberately
+NOT an empty table, because `effectiveMotifTable`'s all-excluded fallback
+would otherwise surface the pools there.
 
 ### 4. Refactor remaining terrain decor to use motifs exclusively
 
@@ -187,13 +198,11 @@ the status table above, the broad sweep of the effort. It means:
 
 ## Suggested phase split (2–3 update plans)
 
-- **Plan A — authoring & consolidation**: items 1 and 3 (editor library
-  authoring + folding whole-decor swaps). These both "make the library the
-  source of truth" system changes and belong together.
-- **Plan B — bias**: item 2 (per-biome alternatives bias) on top of the
-  library refs from Plan A.
-- **Plan C — breadth**: item 4 (migrate remaining decor to motifs), the large
-  data-mass pass, safest to run last once the authoring and bias semantics are
+- **Plan A — authoring & consolidation**: items 1 and 3 — DONE (editor library
+  authoring + folding whole-decor swaps).
+- **Plan B — bias**: item 2 (per-biome alternatives bias) — NOT yet started.
+- **Plan C — breadth**: item 4 (migrate remaining decor to motifs) — NOT yet
+  started; the large data-mass pass, safest once authoring/bias semantics are
   stable. This is where the library actually approaches the Goal above.
 
 ## Cross-references
