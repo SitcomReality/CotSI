@@ -281,7 +281,7 @@ export const FOREST_DESCRIPTOR = {
         },
       ],
     },
-        {
+    {
       motif: 'painforest',
       weight: 0.08,
       biomeWeight: {
@@ -427,7 +427,7 @@ export const FOREST_DESCRIPTOR = {
               shape: 'cylinder',
               params: { bottomR: 0.016, topR: 0.008, height: 0.15, segments: 5 },
               transform: {
-                localPos: { x: 0.015, y: 0.2, z: 0 },
+                localPos: { x: -0.018479279645075345, y: 0.1781183973530193, z: 0.017039722267788826 },
                 localAxis: { x: 1, y: 0, z: 0.2 },
                 localAngle: -0.55,
               },
@@ -472,7 +472,7 @@ export const FOREST_DESCRIPTOR = {
                 localAngle: -0.5,
               },
               stretch: {
-                y: { min: 0.85, max: 1.2, seed: 10 },
+                y: { min: 1, max: 5, seed: 10 },
                 x: false,
                 z: false,
               },
@@ -495,9 +495,9 @@ export const FOREST_DESCRIPTOR = {
           transform: {
             y: 0,
             lift: 0,
-            localPos: { x: 0.02, y: 0.48, z: -0.06 },
+            localPos: { x: 0.045964071971472, y: 0.48014456850390735, z: -0.10210523042359432 },
             localAxis: { x: 0.8, y: 0, z: 0.5 },
-            localAngle: 0.45,
+            localAngle: 5.602506898901797,
           },
         },
         {
@@ -535,14 +535,14 @@ export const FOREST_DESCRIPTOR = {
                       shape: 'cylinder',
                       params: { bottomR: 0.013, topR: 0.005, height: 0.12, segments: 5 },
                       transform: {
-                        localPos: { x: -0.02, y: 0.09, z: 0.01 },
+                        localPos: { x: -0.008933440508663647, y: 0.12685773103817774, z: -0.012751763228681448 },
                         localAxis: { x: -0.5, y: 0, z: 1 },
                         localAngle: 0.95,
                       },
                       stretch: {
-                        y: { min: 0.9, max: 1.2, seed: 23 },
-                        x: false,
-                        z: false,
+                        y: { min: 1, max: 3, seed: 23 },
+                        x: { min: 1, max: 5, seed: 5 },
+                        z: { min: 1, max: 5, seed: 5 },
                       },
                       color: 0x6e5f4d,
                       biomeColor: { source: 'wood', influence: 0.5 },
@@ -710,7 +710,7 @@ export const FOREST_DESCRIPTOR = {
         },
       ],
     },
-        {
+    {
       motif: 'log',
       weight: 0.06,
       biomeWeight: {
