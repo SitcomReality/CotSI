@@ -18,9 +18,8 @@ const ORIGIN = { x: 0, y: 0, z: 0 };
  * mountains are bound to exactly one terrain — the decor's id IS the terrain's
  * id (gameBuilder's SIMPLE_DECOR_BY_TERRAIN dispatch) — so the terrain is
  * never a free choice; a feature has no terrain of its own and previews on
- * the plain default. Only descriptors whose id is a real TERRAIN key use it
- * as terrain (the biome-override decors — titanflesh, forespring, … — keep
- * the default tile).
+ * the plain default. Every decor's id is a real TERRAIN key (water/ice/river
+ * included), so the preview always uses it as terrain.
  */
 export function previewTerrain(d) {
   return TERRAIN[d.id] ? d.id : 'forest';

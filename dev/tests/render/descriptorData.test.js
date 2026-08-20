@@ -206,7 +206,8 @@ test('knot hovers at KNOT_Y_OFFSET and hill mound is a single pointy mound', () 
   // vertex sits above the origin, so the grounded y dips slightly below the
   // surface to compensate.
   const hill = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'hill'));
-  const mounds = recordsForDescriptor(hill, { q: 3, r: -2, terrain: 'hill' }, POS);
+  const hillTile = { q: 3, r: -2, terrain: 'hill', biomeId: 'biome_default' };
+  const mounds = recordsForDescriptor(hill, hillTile, POS);
   assert.equal(mounds.length, 1, 'hill is a single mound');
   const mound = mounds[0];
   assert.ok(mound.scale >= 0.9 - 1e-9 && mound.scale <= 1 + 1e-9, `mound size ${mound.scale}`);
@@ -214,7 +215,7 @@ test('knot hovers at KNOT_Y_OFFSET and hill mound is a single pointy mound', () 
   const dist = Math.hypot(mound.x - POS.x, mound.z - POS.z);
   assert.ok(dist <= 0.02 + 1e-9, `mound ${dist} outside jitter`);
   // Sunk: descends below the surface and shrinks (same record count).
-  const sunk = recordsForDescriptor(hill, { q: 3, r: -2, terrain: 'hill' }, POS, undefined, { displaced: true });
+  const sunk = recordsForDescriptor(hill, hillTile, POS, undefined, { displaced: true });
   assert.equal(sunk.length, 1);
   assert.ok(sunk[0].y < POS.y);
   assert.ok(sunk[0].scale < 1);

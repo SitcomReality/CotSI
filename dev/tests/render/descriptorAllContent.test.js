@@ -22,7 +22,7 @@ import { buildDescriptorMeshes } from '../../../src/render/hexmap3d/worldObjects
 const NON_TILE_KINDS = new Set(['base', 'champion', 'mob', 'trader', 'item']);
 
 test('ALL_DESCRIPTORS covers every migrated object (features + decor + mountain + knot + entity + item kinds)', () => {
-  assert.equal(ALL_DESCRIPTORS.length, 52);
+  assert.equal(ALL_DESCRIPTORS.length, 51);
   const kinds = new Set(ALL_DESCRIPTORS.map((d) => d.kind));
   assert.ok(kinds.has('feature') && kinds.has('decor') && kinds.has('mountain'), 'all tile-driven kinds present');
   assert.ok(kinds.has('base') && kinds.has('champion') && kinds.has('mob') && kinds.has('trader'), 'all entity kinds present');
@@ -39,33 +39,31 @@ test('every tile-driven descriptor renders an InstancedMesh through the game pip
     r += 3;
   };
 
+  // The supernatural refs are zeroed under the natural biomes (only the two
+  // supernatural biomes select them), so the land decorators render their native
+  // content on biome_default. water/ice/river are BARE on natural biomes — they
+  // need a supernatural biome to show the folded-in pools, otherwise they'd
+  // render nothing and fail the "at least one mesh" assertion below.
   for (const d of ALL_DESCRIPTORS) {
     if (NON_TILE_KINDS.has(d.kind)) continue; // covered by the entity test below
     if (d.id === 'mountain') push({ terrain: 'mountain', mountainType: 'normal' });
-    else if (d.id === 'forest') push({ terrain: 'forest', moisture: 0.6 });
-    else if (d.id === 'deepWood') push({ terrain: 'deepWood', moisture: 0.6 });
-    else if (d.id === 'hill') push({ terrain: 'hill' });
+    else if (d.id === 'forest') push({ terrain: 'forest', moisture: 0.6, biomeId: 'biome_default' });
+    else if (d.id === 'deepWood') push({ terrain: 'deepWood', moisture: 0.6, biomeId: 'biome_default' });
+    else if (d.id === 'hill') push({ terrain: 'hill', biomeId: 'biome_default' });
     else if (d.id === 'knot') push({ terrain: 'forest', feature: { kind: 'knot' } });
-    else if (d.id === 'marsh') push({ terrain: 'marsh' });
-    else if (d.id === 'plateau') push({ terrain: 'plateau' });
-    else if (d.id === 'plains') push({ terrain: 'plains' });
-    else if (d.id === 'desert') push({ terrain: 'desert' });
-    else if (d.id === 'beach') push({ terrain: 'beach' });
-    else if (d.id === 'titanflesh') push({ terrain: 'plains', biomeId: 'biome_titanstain' });
-    else if (d.id === 'titanblood') push({ terrain: 'water', biomeId: 'biome_titanstain' });
-    else if (d.id === 'yetlands') push({ terrain: 'plains', biomeId: 'biome_unfinished_lands' });
-    else if (d.id === 'forespring') push({ terrain: 'water', biomeId: 'biome_unfinished_lands' });
+    else if (d.id === 'marsh') push({ terrain: 'marsh', biomeId: 'biome_default' });
+    else if (d.id === 'plateau') push({ terrain: 'plateau', biomeId: 'biome_default' });
+    else if (d.id === 'plains') push({ terrain: 'plains', biomeId: 'biome_default' });
+    else if (d.id === 'desert') push({ terrain: 'desert', biomeId: 'biome_default' });
+    else if (d.id === 'beach') push({ terrain: 'beach', biomeId: 'biome_default' });
+    else if (d.id === 'water') push({ terrain: 'water', biomeId: 'biome_titanstain' });
+    else if (d.id === 'ice') push({ terrain: 'ice', biomeId: 'biome_titanstain' });
+    else if (d.id === 'river') push({ terrain: 'river', biomeId: 'biome_titanstain' });
     else push({ terrain: 'plains', feature: { kind: d.id } }); // tree/simple features
   }
 
   const visible = new Set(tiles.map((t) => `${t.q},${t.r}`));
-  // The supernatural biome decor overrides (the render layer receives these
-  // from state — gameFactory collects them from the biome archetypes).
-  const decorOverrides = new Map([
-    ['biome_titanstain', { plains: 'titanflesh', water: 'titanblood' }],
-    ['biome_unfinished_lands', { plains: 'yetlands', water: 'forespring' }],
-  ]);
-  const meshes = buildChunkDescriptorFeatureMeshes(tiles, visible, new Set(), undefined, null, null, decorOverrides);
+  const meshes = buildChunkDescriptorFeatureMeshes(tiles, visible, new Set());
   assert.ok(meshes.length >= ALL_DESCRIPTORS.length - NON_TILE_KINDS.size, 'at least one mesh per tile-driven descriptor');
 
   for (const d of ALL_DESCRIPTORS) {

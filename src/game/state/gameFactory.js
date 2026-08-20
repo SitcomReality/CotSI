@@ -28,16 +28,6 @@ import { tileToChunk, chunkKey, localCoord, localKey } from '../../engine/rules/
 import { startMeasure, endMeasure } from '../../shared/measurements.js';
 import { computeSpawnTargets } from './entities/spawnPosition.js';
 
-/** Extract { terrain → decor id } from a biome's terrainOverrides (or null). */
-function decorOverridesFrom(terrainOverrides) {
-  if (!terrainOverrides) return null;
-  const decor = {};
-  for (const [terrain, entry] of Object.entries(terrainOverrides)) {
-    if (entry?.decor) decor[terrain] = entry.decor;
-  }
-  return Object.keys(decor).length > 0 ? decor : null;
-}
-
 export function createGame({
   seed = 'glut-17',
   radius = 7,
@@ -114,28 +104,10 @@ export function createGame({
     biomeColors.set(biome, { ...BIOME_COLOR_DEFAULTS, ...singleBiomeDef.colors });
   }
 
-  // Build biomeDecorOverrides: biomeId → { terrainKey → decor descriptor id }.
-  // The render layer can't import game/rules, so the decor overrides the
-  // supernatural biomes declare are collected here and passed in like the
-  // palettes/colors (gameBuilder → terrain decor resolution).
-  const biomeDecorOverrides = new Map();
-  for (const [, tile] of Object.entries(flatTiles)) {
-    if (tile.biomeId && !biomeDecorOverrides.has(tile.biomeId)) {
-      const def = getArchetype(tile.biomeId);
-      const decor = decorOverridesFrom(def?.terrainOverrides);
-      if (decor) biomeDecorOverrides.set(tile.biomeId, decor);
-    }
-  }
-  // Fallback: if no tile has a biomeId (single-biome mode), use the resolved biomeDef
-  if (biomeDecorOverrides.size === 0) {
-    const decor = decorOverridesFrom(singleBiomeDef?.terrainOverrides);
-    if (decor) biomeDecorOverrides.set(biome, decor);
-  }
-
   // --- Build the bare state skeleton ---
   const state = createInitialState({
     seed, radius, biome,
-    biomePalettes, biomeColors, biomeDecorOverrides,
+    biomePalettes, biomeColors,
     tiles: flatTiles, objectives, rng,
   });
   startMeasure('createGame');

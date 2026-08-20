@@ -29,32 +29,32 @@ import { KNOT_DESCRIPTOR } from '../../../src/render/hexmap3d/worldObjects/descr
 
 const TILES = [
   // Simple feature (plains), normal.
-  { q: 0, r: 0, terrain: 'plains', feature: { kind: 'bush' } },
+  { q: 0, r: 0, terrain: 'plains', biomeId: 'biome_default', feature: { kind: 'bush' } },
   // Simple feature with an occupant — displaced to the shared corner anchor.
-  { q: 2, r: 1, terrain: 'plains', feature: { kind: 'bush' } },
+  { q: 2, r: 1, terrain: 'plains', biomeId: 'biome_default', feature: { kind: 'bush' } },
   // Plain grove (forest, moisture 0.8).
-  { q: 4, r: -3, terrain: 'forest', moisture: 0.8 },
+  { q: 4, r: -3, terrain: 'forest', biomeId: 'biome_default', moisture: 0.8 },
   // Knot claims a forest tile — knot + dispersed grove.
-  { q: -2, r: 5, terrain: 'forest', moisture: 0.3, feature: { kind: 'knot' } },
+  { q: -2, r: 5, terrain: 'forest', biomeId: 'biome_default', moisture: 0.3, feature: { kind: 'knot' } },
   // Mined knot — no knot mesh (grove still disperses, as before).
-  { q: 6, r: 2, terrain: 'forest', moisture: 0.5, feature: { kind: 'knot', mined: true } },
+  { q: 6, r: 2, terrain: 'forest', biomeId: 'biome_default', moisture: 0.5, feature: { kind: 'knot', mined: true } },
   // Mountain terrain with a peak tag.
   { q: -5, r: 3, terrain: 'mountain', mountainType: 'peak' },
   // Hill with an occupant — mound sinks below the surface.
-  { q: 8, r: -1, terrain: 'hill' },
+  { q: 8, r: -1, terrain: 'hill', biomeId: 'biome_default' },
   // Hill + feature + occupant — mound hidden, feature displaced.
-  { q: -3, r: -4, terrain: 'hill', feature: { kind: 'treasureChest' } },
+  { q: -3, r: -4, terrain: 'hill', biomeId: 'biome_default', feature: { kind: 'treasureChest' } },
   // Painforest grove — descriptor data (the gnarled `painforest` variant).
   { q: 10, r: 4, terrain: 'forest', biomeId: 'biome_painforest', moisture: 0.6 },
   // Blessed Font on plains — descriptor data.
-  { q: -7, r: 2, terrain: 'plains', feature: { kind: 'blessedFont' } },
+  { q: -7, r: 2, terrain: 'plains', biomeId: 'biome_default', feature: { kind: 'blessedFont' } },
   // Dense wood grove — conical (tall) canopy variant.
-  { q: 16, r: -5, terrain: 'deepWood', moisture: 0.7 },
+  { q: 16, r: -5, terrain: 'deepWood', biomeId: 'biome_default', moisture: 0.7 },
   // Ground decor: marsh reeds, plateau mound, desert scrub, beach driftwood.
-  { q: 18, r: -7, terrain: 'marsh' },
-  { q: 20, r: -9, terrain: 'plateau' },
-  { q: 22, r: -11, terrain: 'desert' },
-  { q: 24, r: -13, terrain: 'beach' },
+  { q: 18, r: -7, terrain: 'marsh', biomeId: 'biome_default' },
+  { q: 20, r: -9, terrain: 'plateau', biomeId: 'biome_default' },
+  { q: 22, r: -11, terrain: 'desert', biomeId: 'biome_default' },
+  { q: 24, r: -13, terrain: 'beach', biomeId: 'biome_default' },
 ];
 
 const OCCUPIED = new Set(['2,1', '8,-1', '-3,-4']);
@@ -83,10 +83,12 @@ const meshSum = (ms) => ms.reduce((s, m) => s + m.count, 0);
 const meshesEnding = (meshes, prefix, suffix) =>
   meshes.filter((m) => m.name.startsWith(prefix) && m.name.endsWith(suffix));
 
-// The hill mound's dome band (thetaLength 1.5) keeps its lowest vertex ABOVE
-// the geometry origin, so shapeBaseOffset is negative — the record y sits that
-// far below the surface and the mound's lowest vertex lands at y + base·sy.
-const HILL_BASE = shapeBaseOffset(HILL_DESCRIPTOR.parts[0].shape, HILL_DESCRIPTOR.parts[0].params);
+// The hill mound is the 'mound' motif's root part (hill.js is a motifs-table
+// decor). Its dome band (thetaLength 1.5) keeps its lowest vertex ABOVE the
+// geometry origin, so shapeBaseOffset is negative — the record y sits that far
+// below the surface and the mound's lowest vertex lands at y + base·sy.
+const HILL_MOUND = HILL_DESCRIPTOR.motifs.find((m) => m.id === 'mound').parts[0];
+const HILL_BASE = shapeBaseOffset(HILL_MOUND.shape, HILL_MOUND.params);
 const NORMALIZED_HILL = normalizeDescriptor(HILL_DESCRIPTOR);
 /** The mound's normal (un-sunk) XZ scale on a tile — read from a real record. */
 const hillItemScale = (tile) => recordsForDescriptor(NORMALIZED_HILL, tile, centerOf(tile))[0].scale;
@@ -135,16 +137,19 @@ test('resolveDescriptorForTile: feature vs decor dispatch', () => {
   assert.deepEqual(resolveDescriptorForTile(TILES[9], OCCUPIED).map((r) => r.descriptor.id), ['blessedFont', 'plains']);
 
   // Ground decor: one descriptor per terrain.
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'marsh' }, new Set()).map((r) => r.descriptor.id), ['marsh']);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plateau' }, new Set()).map((r) => r.descriptor.id), ['plateau']);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plains' }, new Set()).map((r) => r.descriptor.id), ['plains']);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'desert' }, new Set()).map((r) => r.descriptor.id), ['desert']);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'beach' }, new Set()).map((r) => r.descriptor.id), ['beach']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'marsh', biomeId: 'biome_default' }, new Set()).map((r) => r.descriptor.id), ['marsh']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plateau', biomeId: 'biome_default' }, new Set()).map((r) => r.descriptor.id), ['plateau']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'plains', biomeId: 'biome_default' }, new Set()).map((r) => r.descriptor.id), ['plains']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'desert', biomeId: 'biome_default' }, new Set()).map((r) => r.descriptor.id), ['desert']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'beach', biomeId: 'biome_default' }, new Set()).map((r) => r.descriptor.id), ['beach']);
 
-  // Water, river, and ice stay bare — no terrain decor.
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'water' }, new Set()), []);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'river' }, new Set()), []);
-  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'ice' }, new Set()), []);
+  // Water/ice/river resolve a (bare) decor containing the supernatural pool
+  // refs; under a NATURAL biome the table's bare motif wins and renders
+  // nothing. The `resolveDescriptorForTile` returns the decor whether or not
+  // its parts actually emit records, so every decorating terrain has one.
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'water', biomeId: 'biome_default' }, new Set()).map((r) => r.descriptor.id), ['water']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'river', biomeId: 'biome_default' }, new Set()).map((r) => r.descriptor.id), ['river']);
+  assert.deepEqual(resolveDescriptorForTile({ q: 0, r: 0, terrain: 'ice', biomeId: 'biome_default' }, new Set()).map((r) => r.descriptor.id), ['ice']);
 });
 
 test('one named decor per decor-producing terrain', () => {
@@ -162,13 +167,19 @@ test('one named decor per decor-producing terrain', () => {
   };
   const isDecor = (r) => r.descriptor.kind === 'decor' || r.descriptor.kind === 'mountain';
   for (const [terrain, decorId] of Object.entries(EXPECTED)) {
-    const decor = resolveDescriptorForTile({ q: 0, r: 0, terrain }, new Set()).filter(isDecor);
+    const tile = { q: 0, r: 0, terrain, biomeId: 'biome_default' };
+    const decor = resolveDescriptorForTile(tile, new Set()).filter(isDecor);
     assert.equal(decor.length, 1, `${terrain} resolves exactly one decor`);
     assert.equal(decor[0].descriptor.id, decorId, `${terrain} maps to ${decorId}`);
   }
+  // Water/ice/river each resolve a bare base decor — the supernatural pool refs
+  // are zeroed under biome_default (the bare motif wins and renders nothing),
+  // but the decor still resolves so the terrain is never decoration-less.
   for (const terrain of ['water', 'river', 'ice']) {
-    const decor = resolveDescriptorForTile({ q: 0, r: 0, terrain }, new Set()).filter(isDecor);
-    assert.equal(decor.length, 0, `${terrain} stays bare`);
+    const tile = { q: 0, r: 0, terrain, biomeId: 'biome_default' };
+    const decor = resolveDescriptorForTile(tile, new Set()).filter(isDecor);
+    assert.equal(decor.length, 1, `${terrain} resolves one decor`);
+    assert.equal(decor[0].descriptor.id, terrain, `${terrain} maps to ${terrain}`);
   }
 });
 

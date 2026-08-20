@@ -17,7 +17,9 @@ import { recordsForDescriptor } from './descriptors/recordBuilder.js';
 import { HILL_DESCRIPTOR } from './descriptors/data/decor/hill.js';
 
 const normalizedHill = normalizeDescriptor(HILL_DESCRIPTOR);
-const moundPart = HILL_DESCRIPTOR.parts[0];
+// Hill is now a motifs-table decor; the mound is the 'mound' motif's root part.
+const moundMotif = (HILL_DESCRIPTOR.motifs ?? []).find((m) => m.id === 'mound');
+const moundPart = moundMotif?.parts?.[0];
 // Peak height above the grounded rim, in radius units: the band spans
 // theta ∈ [0, thetaLength], so its top is radius above and its rim is
 // radius·cos(thetaLength) above the sphere center.

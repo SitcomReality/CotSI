@@ -74,20 +74,22 @@ defineArchetype('biome_unfinished_lands', {
   },
   // Supernatural terrain supersede: the regular terrain is re-presented as a
   // half-formed analogue. movementCost is uniform (no faction terrain bonuses
-  // apply) — see terrainOverrides.js.
+  // apply) — see terrainOverrides.js. The decor presentation is folded into
+  // each base decorator's motif table (base land decors gain the yet-fragments;
+  // water/ice/river carry the springs).
   terrainOverrides: {
-    water:       { name: 'Forespring', decor: 'forespring' },
-    ice:         { name: 'Forespring', decor: 'forespring' },
-    river:       { name: 'Forespring', movementCost: 30, decor: 'forespring' },
-    plains:      { name: 'Yetlands', movementCost: 10, decor: 'yetlands' },
-    beach:       { name: 'Yetlands', movementCost: 10, decor: 'yetlands' },
-    desert:      { name: 'Yetlands', movementCost: 10, decor: 'yetlands' },
-    plateau:     { name: 'Yetlands', movementCost: 15, decor: 'yetlands' },
+    water:       { name: 'Forespring' },
+    ice:         { name: 'Forespring' },
+    river:       { name: 'Forespring', movementCost: 30 },
+    plains:      { name: 'Yetlands', movementCost: 10 },
+    beach:       { name: 'Yetlands', movementCost: 10 },
+    desert:      { name: 'Yetlands', movementCost: 10 },
+    plateau:     { name: 'Yetlands', movementCost: 15 },
     mountain:    { name: 'Sky Stalagmite' },
-    forest:      { name: 'Protogrowth', movementCost: 12, decor: 'yetlands' },
-    deepWood: { name: 'Protogrowth', movementCost: 20, decor: 'yetlands' },
-    marsh:       { name: 'Protogrowth', movementCost: 15, decor: 'yetlands' },
-    hill:        { name: 'Half-Hewn Rise', movementCost: 12, decor: 'yetlands' },
+    forest:      { name: 'Protogrowth', movementCost: 12 },
+    deepWood: { name: 'Protogrowth', movementCost: 20 },
+    marsh:       { name: 'Protogrowth', movementCost: 15 },
+    hill:        { name: 'Half-Hewn Rise', movementCost: 12 },
   },
   terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid', 'temperate'],

@@ -25,6 +25,8 @@ export const DEEP_WOOD_DESCRIPTOR = {
         biome_scorch: 0.3,
         biome_sere_wastes: 0.2,
         biome_mourning_marsh: 0.3,
+        biome_titanstain: 0,
+        biome_unfinished_lands: 0,
       },
       parts: [
         {
@@ -66,7 +68,7 @@ export const DEEP_WOOD_DESCRIPTOR = {
     {
       id: 'taigawood',
       weight: 0.12,
-      biomeWeight: { biome_tundra: 5, biome_scorch: 0.2, biome_sere_wastes: 0.2 },
+      biomeWeight: { biome_tundra: 5, biome_scorch: 0.2, biome_sere_wastes: 0.2, biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'taigawood-trunk',
@@ -107,6 +109,8 @@ export const DEEP_WOOD_DESCRIPTOR = {
         biome_frigid_silence: 0.2,
         biome_mourning_marsh: 0.3,
         biome_sere_wastes: 0.3,
+        biome_titanstain: 0,
+        biome_unfinished_lands: 0,
       },
       parts: [
         {
@@ -134,7 +138,7 @@ export const DEEP_WOOD_DESCRIPTOR = {
     {
       id: 'deadwood',
       weight: 0.1,
-      biomeWeight: { biome_sere_wastes: 5, biome_tundra: 0.2, biome_frigid_silence: 0.2, biome_edenfall: 0.3 },
+      biomeWeight: { biome_sere_wastes: 5, biome_tundra: 0.2, biome_frigid_silence: 0.2, biome_edenfall: 0.3, biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'deadwood-trunk',
@@ -174,7 +178,7 @@ export const DEEP_WOOD_DESCRIPTOR = {
     {
       id: 'violetwood',
       weight: 0.12,
-      biomeWeight: { biome_edenfall: 3, biome_tundra: 0.2, biome_frigid_silence: 0.2 },
+      biomeWeight: { biome_edenfall: 3, biome_tundra: 0.2, biome_frigid_silence: 0.2, biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'violetwood-trunk',
@@ -196,5 +200,108 @@ export const DEEP_WOOD_DESCRIPTOR = {
         },
       ],
     },
+    // Titanstain land — corrupted titanflesh; only under biome_titanstain.
+    {
+      motif: 'titanSpire',
+      weight: 0.3,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    {
+      motif: 'titanTooth',
+      weight: 0.22,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    {
+      motif: 'titanBoil',
+      weight: 0.25,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    {
+      motif: 'titanNodule',
+      weight: 0.13,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    {
+      motif: 'titanTendril',
+      weight: 0.1,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    // Unfinished Lands' half-formed fragments; only under biome_unfinished_lands.
+    {
+      motif: 'yetFragmentPillar',
+      weight: 0.3,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+    {
+      motif: 'yetFragmentCube',
+      weight: 0.15,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+    {
+      motif: 'yetFragmentShard',
+      weight: 0.25,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+    {
+      motif: 'yetFragmentCone',
+      weight: 0.18,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+    {
+      motif: 'yetFragmentOrb',
+      weight: 0.12,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+
   ],
 };

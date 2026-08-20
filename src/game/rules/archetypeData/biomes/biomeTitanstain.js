@@ -76,19 +76,21 @@ defineArchetype('biome_titanstain', {
   // Supernatural terrain supersede: mountains stay Titanflesh Mountain, water
   // becomes titanblood, and every other hex is Titanflesh. movementCost is
   // uniform (no faction terrain bonuses apply) — see terrainOverrides.js.
+  // The decor presentation is folded into each base decorator's motif table
+  // (base land decors gain the titan motifs; water/ice/river carry the pools).
   terrainOverrides: {
     mountain:    { name: 'Titanflesh Mountain' },
-    water:       { name: 'Titanblood', decor: 'titanblood' },
-    ice:         { name: 'Frozen Titanblood', decor: 'titanblood' },
-    river:       { name: 'Titanblood River', movementCost: 30, decor: 'titanblood' },
-    plains:      { name: 'Titanflesh', movementCost: 10, decor: 'titanflesh' },
-    beach:       { name: 'Titanflesh', movementCost: 10, decor: 'titanflesh' },
-    desert:      { name: 'Titanflesh', movementCost: 10, decor: 'titanflesh' },
-    marsh:       { name: 'Titanflesh', movementCost: 15, decor: 'titanflesh' },
-    hill:        { name: 'Titanflesh', movementCost: 12, decor: 'titanflesh' },
-    plateau:     { name: 'Titanflesh', movementCost: 15, decor: 'titanflesh' },
-    forest:      { name: 'Titanflesh', movementCost: 12, decor: 'titanflesh' },
-    deepWood: { name: 'Titanflesh', movementCost: 20, decor: 'titanflesh' },
+    water:       { name: 'Titanblood' },
+    ice:         { name: 'Frozen Titanblood' },
+    river:       { name: 'Titanblood River', movementCost: 30 },
+    plains:      { name: 'Titanflesh', movementCost: 10 },
+    beach:       { name: 'Titanflesh', movementCost: 10 },
+    desert:      { name: 'Titanflesh', movementCost: 10 },
+    marsh:       { name: 'Titanflesh', movementCost: 15 },
+    hill:        { name: 'Titanflesh', movementCost: 12 },
+    plateau:     { name: 'Titanflesh', movementCost: 15 },
+    forest:      { name: 'Titanflesh', movementCost: 12 },
+    deepWood: { name: 'Titanflesh', movementCost: 20 },
   },
   terrainTags: ['plains', 'beach', 'desert', 'hill', 'plateau', 'mountain', 'water', 'ice'],
   weatherAffinity: ['arid'],

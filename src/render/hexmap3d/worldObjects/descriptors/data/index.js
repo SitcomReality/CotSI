@@ -19,6 +19,7 @@
 import { OPEN_TREASURE_CHEST_DESCRIPTOR } from './features/openTreasureChest.js';
 import { BASE_DESCRIPTOR } from './base.js';
 import { BEACH_DESCRIPTOR } from './decor/beach.js';
+import { ICE_DESCRIPTOR } from './decor/ice.js';
 import { BLESSED_FONT_DESCRIPTOR } from './features/blessedFont.js';
 import { BUSH_DESCRIPTOR } from './features/bush.js';
 import { CENSER_SAINT_DESCRIPTOR } from './features/censerSaint.js';
@@ -28,8 +29,8 @@ import { CINDERBLOOM_DESCRIPTOR } from './features/cinderbloom.js';
 import { DEEP_WOOD_DESCRIPTOR } from './decor/deepWood.js';
 import { DESERT_DESCRIPTOR } from './decor/desert.js';
 import { DROWNED_COPYIST_DESCRIPTOR } from './features/drownedCopyist.js';
-import { FORESPRING_DESCRIPTOR } from './decor/forespring.js';
 import { FOREST_DESCRIPTOR } from './decor/forest.js';
+import { RIVER_DESCRIPTOR } from './decor/river.js';
 import { DUNGEON_DESCRIPTOR } from './features/dungeon.js';
 import { EDEN_MUSHROOM_DESCRIPTOR } from './features/edenMushroom.js';
 import { EDEN_SHROOMLET_DESCRIPTOR } from './features/edenShroomlet.js';
@@ -64,10 +65,8 @@ import { HEARTH_ROBE_DESCRIPTOR } from './items/hearthRobe.js';
 import { MASQUE_KNIFE_DESCRIPTOR } from './items/masqueKnife.js';
 import { ORICHALCUM_BLADE_DESCRIPTOR } from './items/orichalcumBlade.js';
 import { THORN_BRAND_DESCRIPTOR } from './items/thornBrand.js';
-import { TITANBLOOD_DESCRIPTOR } from './decor/titanblood.js';
-import { TITANFLESH_DESCRIPTOR } from './decor/titanflesh.js';
-import { YETLANDS_DESCRIPTOR } from './decor/yetlands.js';
 import { VERDANT_CLOAK_DESCRIPTOR } from './items/verdantCloak.js';
+import { WATER_DESCRIPTOR } from './decor/water.js';
 
 /** Every descriptor, in editor-display order. */
 export const ALL_DESCRIPTORS = [
@@ -106,10 +105,9 @@ export const ALL_DESCRIPTORS = [
   PLATEAU_DESCRIPTOR,
   DESERT_DESCRIPTOR,
   BEACH_DESCRIPTOR,
-  TITANFLESH_DESCRIPTOR,
-  TITANBLOOD_DESCRIPTOR,
-  YETLANDS_DESCRIPTOR,
-  FORESPRING_DESCRIPTOR,
+  WATER_DESCRIPTOR,
+  ICE_DESCRIPTOR,
+  RIVER_DESCRIPTOR,
   KNOT_DESCRIPTOR,
   BASE_DESCRIPTOR,
   CHAMPION_DESCRIPTOR,

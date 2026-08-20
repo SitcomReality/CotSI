@@ -10,14 +10,14 @@ import { tileSurfaceY } from '../../../src/render/hexmap3d/terrain/index.js';
 
 test('hillPeakHeight: zero off-hill, positive and deterministic on hill', () => {
   assert.equal(hillPeakHeight({ terrain: 'plains', q: 3, r: -2 }), 0);
-  const hill = { terrain: 'hill', q: 3, r: -2 };
+  const hill = { terrain: 'hill', q: 3, r: -2, biomeId: 'biome_default' };
   const peak = hillPeakHeight(hill);
   assert.ok(peak > 0, `peak height ${peak}`);
   assert.equal(peak, hillPeakHeight({ ...hill }), 'deterministic per tile');
 });
 
 test('hillFloorY: peak above the surface on hills, surface elsewhere', () => {
-  const hill = { terrain: 'hill', q: 3, r: -2 };
+  const hill = { terrain: 'hill', q: 3, r: -2, biomeId: 'biome_default' };
   assert.ok(Math.abs(hillFloorY(hill) - (tileSurfaceY(hill) + hillPeakHeight(hill))) < 1e-9);
   const plains = { terrain: 'plains', q: 3, r: -2 };
   assert.equal(hillFloorY(plains), tileSurfaceY(plains));

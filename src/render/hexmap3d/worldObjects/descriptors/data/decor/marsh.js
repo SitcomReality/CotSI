@@ -19,6 +19,7 @@ export const MARSH_DESCRIPTOR = {
     {
       id: 'cattail',
       weight: 0.25,
+      biomeWeight: { biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'cattail-stalk',
@@ -43,6 +44,7 @@ export const MARSH_DESCRIPTOR = {
     {
       id: 'mud',
       weight: 0.25,
+      biomeWeight: { biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'mud-bank',
@@ -56,6 +58,7 @@ export const MARSH_DESCRIPTOR = {
     {
       id: 'tussock',
       weight: 0.2,
+      biomeWeight: { biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'tussock-a',
@@ -69,6 +72,7 @@ export const MARSH_DESCRIPTOR = {
     {
       id: 'pad',
       weight: 0.15,
+      biomeWeight: { biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'lily-pad',
@@ -82,7 +86,7 @@ export const MARSH_DESCRIPTOR = {
     {
       id: 'crust',
       weight: 0.05,
-      biomeWeight: { biome_scorch: 0.7 },
+      biomeWeight: { biome_scorch: 0.7, biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'silt-crust',
@@ -96,7 +100,7 @@ export const MARSH_DESCRIPTOR = {
     {
       id: 'bone',
       weight: 0.04,
-      biomeWeight: { biome_sere_wastes: 0.7 },
+      biomeWeight: { biome_sere_wastes: 0.7, biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'bone-stalk-a',
@@ -119,7 +123,7 @@ export const MARSH_DESCRIPTOR = {
     {
       id: 'orb',
       weight: 0.04,
-      biomeWeight: { biome_edenfall: 0.8 },
+      biomeWeight: { biome_edenfall: 0.8, biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'fen-orb',
@@ -133,7 +137,7 @@ export const MARSH_DESCRIPTOR = {
     {
       id: 'shard',
       weight: 0.03,
-      biomeWeight: { biome_dustbleed: 0.8 },
+      biomeWeight: { biome_dustbleed: 0.8, biome_titanstain: 0, biome_unfinished_lands: 0 },
       parts: [
         {
           id: 'mire-shard',
@@ -144,5 +148,108 @@ export const MARSH_DESCRIPTOR = {
         },
       ],
     },
+    // Titanstain land — corrupted titanflesh; only under biome_titanstain.
+    {
+      motif: 'titanSpire',
+      weight: 0.3,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    {
+      motif: 'titanTooth',
+      weight: 0.22,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    {
+      motif: 'titanBoil',
+      weight: 0.25,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    {
+      motif: 'titanNodule',
+      weight: 0.13,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    {
+      motif: 'titanTendril',
+      weight: 0.1,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+        biome_unfinished_lands: 0,
+      },
+    },
+    // Unfinished Lands' half-formed fragments; only under biome_unfinished_lands.
+    {
+      motif: 'yetFragmentPillar',
+      weight: 0.3,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+    {
+      motif: 'yetFragmentCube',
+      weight: 0.15,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+    {
+      motif: 'yetFragmentShard',
+      weight: 0.25,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+    {
+      motif: 'yetFragmentCone',
+      weight: 0.18,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+    {
+      motif: 'yetFragmentOrb',
+      weight: 0.12,
+      biomeWeight: {
+        biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+        biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+        biome_scorch: 0, biome_sere_wastes: 0, biome_titanstain: 0,
+        biome_tundra: 0,
+      },
+    },
+
   ],
 };
