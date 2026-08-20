@@ -997,6 +997,29 @@ test('alternatives: geometry fields rejected, seed range enforced, default must 
   assert.ok(validateDescriptor(optionShape).some((e) => e.includes('option has no "shape"')));
 });
 
+test('alternatives: per-option biomeWeight is validated (per-biome bias)', () => {
+  // A valid per-option biomeWeight passes — this field biases a biome toward a
+  // preferred shape variant.
+  const ok = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  ok.motifs[1].parts[1].alternatives[1].biomeWeight = { biome_tundra: 3, biome_mourning_marsh: 0 };
+  assert.deepEqual(validateDescriptor(ok), [], 'valid per-option biomeWeight passes');
+
+  // A negative factor is rejected.
+  const neg = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  neg.motifs[1].parts[1].alternatives[1].biomeWeight = { biome_tundra: -1 };
+  assert.ok(validateDescriptor(neg).some((e) => e.includes('biomeWeight') && e.includes('>= 0')));
+
+  // An unknown biome id is rejected when the registry is loaded.
+  const unknown = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  unknown.motifs[1].parts[1].alternatives[1].biomeWeight = { biome_not_a_biome: 2 };
+  assert.ok(validateDescriptor(unknown).some((e) => e.includes('unknown biome id "biome_not_a_biome"')));
+
+  // A non-object biomeWeight is rejected.
+  const notObj = JSON.parse(JSON.stringify(MOTIF_DECOR));
+  notObj.motifs[1].parts[1].alternatives[1].biomeWeight = 5;
+  assert.ok(validateDescriptor(notObj).some((e) => e.includes('biomeWeight') && e.includes('object')));
+});
+
 test('part ids are global across parts + motifs + alternatives + optionalGroups', () => {
   // A part id reused between a motif and an optional group collides (they
   // render together on one tile → one partById map in meshAssembly).

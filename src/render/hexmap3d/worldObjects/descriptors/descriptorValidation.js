@@ -327,12 +327,12 @@ function validateMotifs(motifs, path, errors, seen) {
       // shared parts (validated so a bad edit can't hide), a raw/denormalized
       // ref carries none.
       if (Array.isArray(motif.parts) && motif.parts.length > 0) {
-        motif.parts.forEach((part, pi) => validatePart(part, `${mpath}.parts[${pi}]`, errors, seen));
+        motif.parts.forEach((part, pi) => validatePart(part, `${mpath}.parts[${pi}]`, errors, seen, false, biomeIds));
       }
     } else if (!Array.isArray(motif.parts) || motif.parts.length === 0) {
       errors.push(`${mpath}.parts: required non-empty array`);
     } else {
-      motif.parts.forEach((part, pi) => validatePart(part, `${mpath}.parts[${pi}]`, errors, seen));
+      motif.parts.forEach((part, pi) => validatePart(part, `${mpath}.parts[${pi}]`, errors, seen, false, biomeIds));
     }
   });
 
@@ -381,7 +381,7 @@ export function validateMotifBlock(motif, opts = {}) {
   validateSize(motif.size, 'motif.size', errors);
   validatePlacement(motif.placement, 'motif.placement', errors);
   const seen = new Set();
-  validatePartsList(motif.parts, 'motif', errors, seen);
+  validatePartsList(motif.parts, 'motif', errors, seen, registeredBiomeIds());
   return errors;
 }
 
@@ -421,9 +421,9 @@ export function validateDescriptor(def) {
   // An empty array is treated as absent (normalizeDescriptor fills `parts: []`
   // for decor files that author none).
   if (def.kind === 'decor') {
-    if (Array.isArray(def.parts) && def.parts.length > 0) validatePartsList(def.parts, 'descriptor', errors, seen);
+    if (Array.isArray(def.parts) && def.parts.length > 0) validatePartsList(def.parts, 'descriptor', errors, seen, registeredBiomeIds());
   } else {
-    validatePartsList(def.parts, 'descriptor', errors, seen);
+    validatePartsList(def.parts, 'descriptor', errors, seen, registeredBiomeIds());
   }
 
   if (def.variants !== undefined) {
@@ -443,7 +443,7 @@ export function validateDescriptor(def) {
           errors.push(`${vpath}: duplicate variant id "${variant.id}"`);
         }
         seenVariants.add(variant.id);
-        validatePartsList(variant.parts, vpath, errors);
+        validatePartsList(variant.parts, vpath, errors, undefined, registeredBiomeIds());
         validateMaterial(variant.material, `${vpath}.material`, errors);
       });
     }
@@ -518,7 +518,7 @@ export function validateDescriptor(def) {
         if (group.chance !== undefined && (typeof group.chance !== 'number' || group.chance < 0 || group.chance > 1)) {
           errors.push(`${gpath}.chance: must be a number in [0, 1]`);
         }
-        validatePartsList(group.parts, gpath, errors, seen);
+        validatePartsList(group.parts, gpath, errors, seen, registeredBiomeIds());
       });
     }
   }

@@ -170,8 +170,11 @@ function validateStates(states, path, errors) {
  * @param {string[]} errors - accumulator
  * @param {Set<string>} seen - ids already claimed in this parts set
  * @param {boolean} [nested=false] - node is below the root of the parts tree
+ * @param {Set<string>} [biomeIds=null] - registered biome ids to check option
+ *        `biomeWeight` keys against (null = skip the unknown-id check; bare
+ *        Node runs may not have the archetype registry loaded)
  */
-export function validatePart(part, path, errors, seen = new Set(), nested = false) {
+export function validatePart(part, path, errors, seen = new Set(), nested = false, biomeIds = null) {
   if (!isPlainObject(part)) {
     errors.push(`${path}: part must be an object`);
     return;
@@ -202,7 +205,7 @@ export function validatePart(part, path, errors, seen = new Set(), nested = fals
     if (part.seed !== undefined && !(Number.isInteger(part.seed) && part.seed >= ALTERNATIVE_SEED_MIN && part.seed <= ALTERNATIVE_SEED_MAX)) {
       errors.push(`${path}${label}.seed: must be an integer in the reserved ${ALTERNATIVE_SEED_MIN}–${ALTERNATIVE_SEED_MAX} draw lane`);
     }
-    validateAlternativesNode(part, path, errors, seen, nested);
+    validateAlternativesNode(part, path, errors, seen, nested, biomeIds);
   } else if (isGroup) {
     if (part.children.length === 0) errors.push(`${path}${label}: group must have at least one child`);
     if (part.shape !== undefined) errors.push(`${path}${label}: groups have no shape — a part is either a shape leaf or a group (children)`);
@@ -213,7 +216,7 @@ export function validatePart(part, path, errors, seen = new Set(), nested = fals
     if (part.biomeColor !== undefined) errors.push(`${path}${label}: groups have no biomeColor`);
     if (part.biomeScale !== undefined) errors.push(`${path}${label}: groups have no biomeScale`);
     if (part.states !== undefined) errors.push(`${path}${label}: groups have no states`);
-    part.children.forEach((child, ci) => validatePart(child, `${path}.children[${ci}]`, errors, seen, true));
+    part.children.forEach((child, ci) => validatePart(child, `${path}.children[${ci}]`, errors, seen, true, biomeIds));
   } else {
     if (part.children !== undefined) errors.push(`${path}${label}: children must be an array`);
     if (typeof part.shape !== 'string' || !SHAPE_TYPES[part.shape]) {
@@ -245,29 +248,32 @@ export function validatePart(part, path, errors, seen = new Set(), nested = fals
   }
 }
 
-function validatePartsList(parts, path, errors, seen) {
+function validatePartsList(parts, path, errors, seen, biomeIds = null) {
   if (!Array.isArray(parts) || parts.length === 0) {
     errors.push(`${path}.parts: required non-empty array`);
     return;
   }
   const shared = seen ?? new Set();
   parts.forEach((part, i) => {
-    validatePart(part, `${path}.parts[${i}]`, errors, shared);
+    validatePart(part, `${path}.parts[${i}]`, errors, shared, false, biomeIds);
   });
 }
 
 /**
  * Validate an `alternatives` choice point's option table. Each option is
- * `{ id, weight?, parts }` — `parts` MAY be empty (the `none` option), the one
- * list in the schema that allows it. Option ids live in the GLOBAL part-id
- * namespace (two co-candidate arms must not share an id), so they claim the
- * shared `seen` set too. `weight` must be >= 0 (0 = never drawn). `default`
- * must name an option that exists. Options reject the explicit geometry field
- * set (they are parts lists, not shapes), but tolerate unknown NON-geometry
- * keys: the node may grow `biomeWeight` per option in a later schema rev, so
- * the validator must not reject keys it expects to gain meaning.
+ * `{ id, weight?, biomeWeight?, parts }` — `parts` MAY be empty (the `none`
+ * option), the one list in the schema that allows it. Option ids live in the
+ * GLOBAL part-id namespace (two co-candidate arms must not share an id), so
+ * they claim the shared `seen` set too. `weight` must be >= 0 (0 = never
+ * drawn); `biomeWeight` is a sparse per-biome multiplier (absent key ≡ 1,
+ * present 0 ≡ excluded — decorComposition.md §2.2) whose keys must be
+ * registered biome ids when the registry is available. `default` must name an
+ * option that exists. Options reject the explicit GEOMETRY field set (they are
+ * parts lists, not shapes) but tolerate unknown NON-geometry keys — the node
+ * may gain further per-option fields in a later schema rev, so the validator
+ * must not reject keys it expects to grow.
  */
-function validateAlternativesNode(part, path, errors, seen, nested) {
+function validateAlternativesNode(part, path, errors, seen, nested, biomeIds = null) {
   const list = part.alternatives;
   if (list.length === 0) {
     errors.push(`${path}${part.id ? ` "${part.id}"` : ''}: alternatives must be a non-empty array`);
@@ -297,11 +303,29 @@ function validateAlternativesNode(part, path, errors, seen, nested) {
     if (option.weight !== undefined && (typeof option.weight !== 'number' || !Number.isFinite(option.weight) || option.weight < 0)) {
       errors.push(`${opath}.weight: must be a number >= 0`);
     }
+    // Per-biome option bias (decorComposition.md §2.2): a sparse multiplier
+    // (absent key ≡ 1, present 0 ≡ excluded) mirroring the motif-slot
+    // `biomeWeight`. Biome-id keys are checked against the registry when it is
+    // available — a typo'd biome id must not silently no-op.
+    if (option.biomeWeight !== undefined) {
+      if (!isPlainObject(option.biomeWeight)) {
+        errors.push(`${opath}.biomeWeight: must be an object of biome id → multiplier (absent ≡ 1, 0 ≡ excluded)`);
+      } else {
+        for (const [biomeId, factor] of Object.entries(option.biomeWeight)) {
+          if (typeof factor !== 'number' || !Number.isFinite(factor) || factor < 0) {
+            errors.push(`${opath}.biomeWeight.${biomeId}: must be a number >= 0`);
+          }
+          if (biomeIds && biomeIds.size > 0 && !biomeIds.has(biomeId)) {
+            errors.push(`${opath}.biomeWeight: unknown biome id "${biomeId}" (registered: ${[...biomeIds].join(', ')})`);
+          }
+        }
+      }
+    }
     // The one schema list whose `parts` may be empty — the `none` option.
     if (!Array.isArray(option.parts)) {
       errors.push(`${opath}.parts: required array (may be empty for a "none" option)`);
     } else {
-      option.parts.forEach((child, ci) => validatePart(child, `${opath}.parts[${ci}]`, errors, seen, nested));
+      option.parts.forEach((child, ci) => validatePart(child, `${opath}.parts[${ci}]`, errors, seen, nested, biomeIds));
     }
   });
   if (part.default !== undefined) {
