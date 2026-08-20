@@ -75,4 +75,14 @@ export const S = {
    * from `entity` (faction/archetype).
    */
   variantId: null,
+
+  /**
+   * When editing a shared library motif, `{ id }` of the motif block currently
+   * open in the editor. The editor wraps the motif into a synthetic decor (see
+   * motifDescriptor in sampleObjects.js) so the standard part-tree/inspector/
+   * preview machinery edits it; this marker makes the save path emit a
+   * data/motifs/<id>.js module instead of a descriptor module. null = editing a
+   * normal descriptor (or none).
+   */
+  motifEditing: null,
 };

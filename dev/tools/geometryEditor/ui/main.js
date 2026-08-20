@@ -31,6 +31,7 @@ function init() {
   window.addEventListener('resize', syncChromeHeight);
   window.addEventListener('load', syncChromeHeight); // fonts can shift the bar
   S.descriptor = SAMPLE_OBJECTS[0];
+  S.motifEditing = null; // the default sample is a normal descriptor
   renderObjectList();
   updateEntityMode();
   createPreview(els.canvas);

@@ -14,6 +14,7 @@
  */
 import { normalizeDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { ALL_DESCRIPTORS } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/index.js';
+import { ALL_MOTIFS } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/motifs/index.js';
 import { listArchetypes, getArchetype } from '../../../src/game/rules/archetypes.js';
 // Side-effect imports: register the mob archetypes the rows below enumerate and
 // the biome archetypes the biome preview selector enumerates.
@@ -22,6 +23,39 @@ import '../../../src/game/rules/archetypeData/biomes/index.js';
 
 /** All migrated descriptors, normalized. */
 export const SAMPLE_OBJECTS = ALL_DESCRIPTORS.map(normalizeDescriptor);
+
+/**
+ * The shared library motifs, raw blocks (`{ id, size?, placement?, parts }`) —
+ * NOT descriptors. Editing one wraps it into a synthetic decor
+ * (`motifDescriptor`) so the standard part-tree/inspector/preview machinery can
+ * author it; saving it emits a `data/motifs/<id>.js` module (see `S.motifEditing`).
+ */
+export const MOTIF_SAMPLES = Object.freeze(ALL_MOTIFS);
+
+/**
+ * Wrap a library motif block into a synthetic decor the editor can edit and
+ * preview. The standard part-tree/inspector/gizmo machinery operates on a
+ * descriptor, so the editor reuses it unchanged: the wrapper copies the motif's
+ * parts verbatim and pulls `size`/`placement` from the block's defaults (per-use
+ * overrides live on referencing decors, never in the library block). `cluster`
+ * is a single slot so the preview renders exactly the motif's parts.
+ *
+ * The wrapper is normalized like every editor descriptor, so the preview and
+ * inspector see a fully-defaulted object. The `schemaVersion` is pinned to the
+ * current one (parts are authored current — no legacy migration).
+ */
+export function motifDescriptor(motif) {
+  return normalizeDescriptor({
+    schemaVersion: 7,
+    id: motif.id,
+    kind: 'decor',
+    displayName: motif.id, // library blocks carry no displayName — the id IS the label
+    cluster: { min: 1, max: 1, rule: 'uniform' },
+    ...(motif.size ? { size: motif.size } : {}),
+    ...(motif.placement ? { placement: motif.placement } : {}),
+    parts: JSON.parse(JSON.stringify(motif.parts)),
+  });
+}
 
 /**
  * Replace the in-session sample for `d.id` with the saved descriptor, so the
@@ -57,8 +91,9 @@ export const MOB_ROWS = Object.freeze(
 );
 
 /** Browser rows the picker can show: samples, minus the generic mob
- *  descriptor (MOB_ROWS replaces it with per-type rows). */
-export const BROWSABLE_TOTAL = SAMPLE_OBJECTS.length - 1 + MOB_ROWS.length;
+ *  descriptor (MOB_ROWS replaces it with per-type rows), plus the shared
+ *  library motifs. */
+export const BROWSABLE_TOTAL = SAMPLE_OBJECTS.length - 1 + MOB_ROWS.length + MOTIF_SAMPLES.length;
 
 /**
  * Presentation-level categories for the object picker. Reflects the mechanical
@@ -75,6 +110,7 @@ export const BROWSABLE_TOTAL = SAMPLE_OBJECTS.length - 1 + MOB_ROWS.length;
 export const OBJECT_CATEGORIES = [
   { id: 'feature', label: 'Features', kinds: ['feature'] },
   { id: 'decor', label: 'Terrain Decor', kinds: ['decor', 'mountain'] },
+  { id: 'motif', label: 'Motif Library', kinds: [] },
   { id: 'mob', label: 'Mobs', kinds: ['mob'] },
   { id: 'faction', label: 'Faction', kinds: ['base', 'champion'] },
   { id: 'creature', label: 'Creatures', kinds: ['trader'] },

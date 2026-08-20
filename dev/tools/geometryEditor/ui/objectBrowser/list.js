@@ -5,7 +5,7 @@
  */
 import { S } from '../../state.js';
 import { els } from '../../domRefs.js';
-import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf, MOB_ROWS, BROWSABLE_TOTAL } from '../../sampleObjects.js';
+import { SAMPLE_OBJECTS, OBJECT_CATEGORIES, categoryOf, MOB_ROWS, BROWSABLE_TOTAL, MOTIF_SAMPLES } from '../../sampleObjects.js';
 import { isCustomDescriptor } from '../previewSync/index.js';
 
 /** Categories the user collapsed; browser re-renders preserve the choice. All
@@ -29,6 +29,15 @@ function objectItem(descriptor, selected) {
 function mobObjectItem(row, selected) {
   const btn = objectItem({ id: 'mob', displayName: row.displayName }, selected);
   btn.dataset.mob = row.variantId;
+  return btn;
+}
+
+/** One shared-library motif row — carries the motif id so the click handler can
+ *  wrap it into an editable synthetic decor (S.motifEditing). The id doubles as
+ *  the label (library blocks have no displayName). */
+function motifObjectItem(motif, selected) {
+  const btn = objectItem({ id: motif.id, displayName: motif.id }, selected);
+  btn.dataset.motif = motif.id;
   return btn;
 }
 
@@ -88,6 +97,20 @@ export function renderObjectList(filterText = '') {
   // The pinned "Custom (loaded)" row counts toward the filtered total.
   let matched = isCustomDescriptor() ? 1 : 0;
   for (const category of OBJECT_CATEGORIES) {
+    if (category.id === 'motif') {
+      const rows = MOTIF_SAMPLES.filter(
+        (m) => !query || m.id.toLowerCase().includes(query),
+      );
+      if (rows.length === 0) continue;
+      matched += rows.length;
+      const group = collapsibleShell(category, rows.length, query);
+      const motifSelected = S.motifEditing && S.motifEditing.id === S.descriptor?.id;
+      for (const m of rows) {
+        group.append(motifObjectItem(m, motifSelected && S.motifEditing.id === m.id));
+      }
+      els.objectList.append(group);
+      continue;
+    }
     if (category.id === 'mob') {
       const rows = MOB_ROWS.filter(
         (r) => !query || r.displayName.toLowerCase().includes(query) || r.id.toLowerCase().includes(query),

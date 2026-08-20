@@ -9,7 +9,7 @@
  */
 import { S } from '../state.js';
 import { els } from '../domRefs.js';
-import { SAMPLE_OBJECTS, MOB_ROWS } from '../sampleObjects.js';
+import { SAMPLE_OBJECTS, MOB_ROWS, MOTIF_SAMPLES, motifDescriptor } from '../sampleObjects.js';
 import { ENTITY_KINDS } from '../entityView.js';
 import { undoLastEdit } from './editorPanel.js';
 import { setFloorVisible, resetCamera } from '../preview/index.js';
@@ -58,6 +58,26 @@ export function bindChromeControls({ rebuild, refreshEditorPanel, renderObjectLi
   els.objectList.addEventListener('click', (e) => {
     const item = e.target.closest('.dobj-item');
     if (!item) return;
+    if (item.dataset.motif) {
+      const motif = MOTIF_SAMPLES.find((m) => m.id === item.dataset.motif);
+      if (!motif) return;
+      // Editing a shared library motif: wrap it into a synthetic decor so the
+      // standard part-tree/inspector/preview machinery authors it. The save
+      // path detects S.motifEditing and emits data/motifs/<id>.js instead of a
+      // descriptor module.
+      S.descriptor = motifDescriptor(motif);
+      S.motifEditing = { id: motif.id };
+      S.selectedPartId = null;
+      S.variantId = null;      // a motif wrapper has no variants table
+      S.previewOptions = new Map();
+      S.growth = 1;
+      S.entity.archetype = null;
+      updateEntityMode();
+      refreshEditorPanel();
+      rebuild();
+      renderObjectList(els.objectFilter.value);
+      return;
+    }
     if (item.dataset.mob) {
       const row = MOB_ROWS.find((r) => r.variantId === item.dataset.mob);
       const mob = SAMPLE_OBJECTS.find((d) => d.id === 'mob');
@@ -65,6 +85,7 @@ export function bindChromeControls({ rebuild, refreshEditorPanel, renderObjectLi
       // Deep copy — the shared mob descriptor must not carry edits across rows.
       S.descriptor = JSON.parse(JSON.stringify(mob));
       S.descriptor.displayName = row.displayName;
+      S.motifEditing = null;
       S.selectedPartId = null;
       S.variantId = null;
       S.previewOptions = new Map();
@@ -80,6 +101,7 @@ export function bindChromeControls({ rebuild, refreshEditorPanel, renderObjectLi
     const next = SAMPLE_OBJECTS.find((d) => d.id === item.dataset.value);
     if (!next) return;
     S.descriptor = next;
+    S.motifEditing = null;   // a normal descriptor, not a library motif
     S.selectedPartId = null; // the new object's parts start unselected
     S.variantId = null;      // the new object's variant starts at the first
     S.previewOptions = new Map(); // ... and no alternatives preview overrides

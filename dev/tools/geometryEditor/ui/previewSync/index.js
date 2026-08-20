@@ -50,9 +50,14 @@ export function populateBiomeSelect() {
   els.biomeSelect.value = S.biomeId ?? '';
 }
 
-/** True while the loaded descriptor came from JSON, not a built-in sample. */
+/** True while the loaded descriptor came from JSON (or is a motif wrapper),
+ *  not a built-in sample. A library-motif wrapper is a synthetic decor, so it
+ *  is never a SAMPLE_OBJECTS entry — but it is still a first-class browser row
+ *  (under Motif Library), so it must not render the "Custom (loaded)" pin. */
 export function isCustomDescriptor() {
-  return !!S.descriptor && !SAMPLE_OBJECTS.some((d) => d.id === S.descriptor.id);
+  if (!S.descriptor) return false;
+  if (S.motifEditing) return false;
+  return !SAMPLE_OBJECTS.some((d) => d.id === S.descriptor.id);
 }
 
 /** Fill the preview-tools Motif select (the Force-motif / editing selector —
@@ -118,7 +123,7 @@ export function rebuild() {
       `${d.displayName}\n` +
       `${items} item(s) × ${parts} part(s) = ${records.length} instance record(s)\n` +
       `hash ${S.tileH} · ${S.displaced ? 'occupied (displaced)' : 'normal'}` +
-      (motif ? ` · editing motif ${motif.id}` : variant ? ` · variant ${variant.id}` : '') +
+      (S.motifEditing ? ` · library motif ${S.motifEditing.id}` : motif ? ` · editing motif ${motif.id}` : variant ? ` · variant ${variant.id}` : '') +
       (S.growth < 1 ? ' · state empty' : ' · state full') +
       ` · terrain ${tile.terrain}` +
       (biome ? ` · biome ${biome}` : '') +
