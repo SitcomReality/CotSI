@@ -39,7 +39,7 @@ const LOG_DECOR = {
 };
 
 test('library is registered and each motif has an id + parts', () => {
-  for (const id of ['log', 'painforest']) {
+  for (const id of ['log', 'gnarledTree']) {
     const m = motifById(id);
     assert.ok(m, `motif "${id}" missing from library`);
     assert.equal(m.id, id);
@@ -86,16 +86,16 @@ test('a ref whose geometry is edited in a decor denormalizes to a local override
   assert.deepEqual(normalizeDescriptor(minimal).motifs[0].parts[0].color, 0xff00ff);
 });
 
-test('forest & deepWood both render the SAME painforest part ids (dedupe)', () => {
+test('forest & deepWood both render the SAME gnarledTree part ids (dedupe)', () => {
   const forest = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'forest'));
   const deepWood = normalizeDescriptor(ALL_DESCRIPTORS.find((d) => d.id === 'deepWood'));
-  const forestP = forest.motifs.find((m) => m.motif === 'painforest');
-  const deepP = deepWood.motifs.find((m) => m.motif === 'painforest');
-  assert.ok(forestP && deepP, 'both decors reference the shared painforest motif');
+  const forestP = forest.motifs.find((m) => m.motif === 'gnarledTree');
+  const deepP = deepWood.motifs.find((m) => m.motif === 'gnarledTree');
+  assert.ok(forestP && deepP, 'both decors reference the shared gnarledTree motif');
   assert.deepEqual(
     forestP.parts.map((p) => p.id),
     deepP.parts.map((p) => p.id),
-    'both terrains resolve the same shared painforest geometry',
+    'both terrains resolve the same shared gnarledTree geometry',
   );
 });
 

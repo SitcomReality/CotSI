@@ -34,7 +34,7 @@ const SAMPLE_MOTIF = {
 
 test('motifExportName produces the <ID>_MOTIF export name', () => {
   assert.equal(motifExportName('log'), 'LOG_MOTIF');
-  assert.equal(motifExportName('painforest'), 'PAINFOREST_MOTIF');
+  assert.equal(motifExportName('gnarledTree'), 'GNARLED_TREE_MOTIF');
   assert.equal(motifExportName('titanSpire'), 'TITAN_SPIRE_MOTIF');
   assert.equal(motifExportName('new-feature'), 'NEW_FEATURE_MOTIF');
 });
@@ -70,7 +70,7 @@ test('emitMotifModule output re-evaluates to a block whose parts round-trip', ()
 });
 
 test('a shipped library motif passes validateMotifBlock', () => {
-  for (const id of ['log', 'painforest']) {
+  for (const id of ['log', 'gnarledTree']) {
     const block = motifById(id);
     assert.deepEqual(validateMotifBlock(block, { checkId: false }), [], `library motif "${id}" valid`);
     // With id checking, the block's own id also passes.

@@ -14,11 +14,12 @@
 import { tileSurfaceY } from '../terrain/index.js';
 import { normalizeDescriptor } from './descriptors/schema.js';
 import { recordsForDescriptor } from './descriptors/recordBuilder.js';
+import { motifById } from './descriptors/data/motifs/index.js';
 import { HILL_DESCRIPTOR } from './descriptors/data/decor/hill.js';
 
 const normalizedHill = normalizeDescriptor(HILL_DESCRIPTOR);
-// Hill is now a motifs-table decor; the mound is the 'mound' motif's root part.
-const moundMotif = (HILL_DESCRIPTOR.motifs ?? []).find((m) => m.id === 'mound');
+// Hill is now a motifs-table decor; the mound is the 'mound' motif from the shared library.
+const moundMotif = motifById('mound');
 const moundPart = moundMotif?.parts?.[0];
 // Peak height above the grounded rim, in radius units: the band spans
 // theta ∈ [0, thetaLength], so its top is radius above and its rim is

@@ -41,7 +41,7 @@ export function variantExportName(id) {
 /**
  * The canonical export name for a shared-library motif file
  * (data/motifs/<id>.js): the same id → SCREAMING_SNAKE transform, suffixed
- * `_MOTIF` (`log` → `LOG_MOTIF`, `painforest` → `PAINFOREST_MOTIF`, `titanSpire`
+ * `_MOTIF` (`log` → `LOG_MOTIF`, `gnarledTree` → `GNARLED_TREE_MOTIF`, `titanSpire`
  * → `TITAN_SPIRE_MOTIF`).
  * @param {string} id - motif id (matches /^[A-Za-z0-9_-]+$/)
  * @returns {string} export name

@@ -1,16 +1,16 @@
 /**
- * data/motifs/trees.js — Shared tree motifs.
+ * data/motifs/gnarledTree.js — Shared motif: "gnarledTree".
  *
- * Hand-authored geometry source of truth (see debris.js header for the
- * library/reference contract). `painforest` is the canonical gnarled tree the
- * Painforest biome leans on; decor motif tables reference it by id and keep
- * their own per-biome `weight`/`biomeWeight` (e.g. biome_painforest: 5).
+ * The gnarled tree (formerly painforest) — the canonical species
+ * the Painforest biome leans on. Hand-authored geometry source
+ * of truth — any decor's motif table can reference it by
+ * `{ motif: 'gnarledTree', weight, ... }`.
  */
-export const PAINFOREST_MOTIF = {
-  id: 'painforest',
+export const GNARLED_TREE_MOTIF = {
+  id: 'gnarledTree',
   parts: [
     {
-      id: 'painforest-trunk-base',
+      id: 'gnarledTree-trunk-base',
       shape: 'cylinder',
       params: { bottomR: 0.13, topR: 0.08, height: 0.3, segments: 5 },
       transform: {
@@ -27,7 +27,7 @@ export const PAINFOREST_MOTIF = {
       biomeColor: { source: 'wood', influence: 0.6 },
     },
     {
-      id: 'painforest-trunk-upper',
+      id: 'gnarledTree-trunk-upper',
       shape: 'cylinder',
       params: { topR: 0.05, height: 0.24, segments: 5 },
       transform: {
@@ -46,16 +46,16 @@ export const PAINFOREST_MOTIF = {
       biomeColor: { source: 'wood', influence: 0.6 },
     },
     {
-      id: 'painforest-branch-split',
+      id: 'gnarledTree-branch-split',
       seed: 102,
-      default: 'painforest-style-spread',
+      default: 'gnarledTree-style-spread',
       alternatives: [
         {
-          id: 'painforest-style-spread',
+          id: 'gnarledTree-style-spread',
           weight: 0.45,
           parts: [
             {
-              id: 'painforest-branch-spread',
+              id: 'gnarledTree-branch-spread',
               transform: {
                 localPos: { x: 0.02, y: 0.52, z: 0.03 },
                 localAxis: { x: 1, y: 0, z: 0 },
@@ -63,7 +63,7 @@ export const PAINFOREST_MOTIF = {
               },
               children: [
                 {
-                  id: 'painforest-spread-branch',
+                  id: 'gnarledTree-spread-branch',
                   shape: 'cylinder',
                   params: { bottomR: 0.045, topR: 0.025, height: 0.3, segments: 5 },
                   transform: {
@@ -80,7 +80,7 @@ export const PAINFOREST_MOTIF = {
                   biomeColor: { source: 'wood', influence: 0.6 },
                 },
                 {
-                  id: 'painforest-spread-canopy',
+                  id: 'gnarledTree-spread-canopy',
                   shape: 'sphere',
                   params: { radius: 0.26 },
                   transform: { localPos: { x: -0.06, y: 0.13, z: 0.2 } },
@@ -92,11 +92,11 @@ export const PAINFOREST_MOTIF = {
           ],
         },
         {
-          id: 'painforest-style-swept',
+          id: 'gnarledTree-style-swept',
           weight: 0.35,
           parts: [
             {
-              id: 'painforest-branch-swept',
+              id: 'gnarledTree-branch-swept',
               transform: {
                 localPos: { x: 0.02, y: 0.45, z: 0 },
                 localAxis: { x: 0, y: 0, z: 1 },
@@ -104,7 +104,7 @@ export const PAINFOREST_MOTIF = {
               },
               children: [
                 {
-                  id: 'painforest-swept-branch',
+                  id: 'gnarledTree-swept-branch',
                   shape: 'cylinder',
                   params: { bottomR: 0.03, topR: 0.02, height: 0.28, segments: 5 },
                   transform: {
@@ -121,7 +121,7 @@ export const PAINFOREST_MOTIF = {
                   biomeColor: { source: 'wood', influence: 0.6 },
                 },
                 {
-                  id: 'painforest-swept-canopy',
+                  id: 'gnarledTree-swept-canopy',
                   shape: 'sphere',
                   params: { radius: 0.24 },
                   transform: { localPos: { x: -0.2, y: 0.1, z: 0.1 } },
@@ -133,11 +133,11 @@ export const PAINFOREST_MOTIF = {
           ],
         },
         {
-          id: 'painforest-style-twotier',
+          id: 'gnarledTree-style-twotier',
           weight: 0.2,
           parts: [
             {
-              id: 'painforest-branch-twotier',
+              id: 'gnarledTree-branch-twotier',
               transform: {
                 localPos: { x: 0.02, y: 0.5, z: 0 },
                 localAxis: { x: 1, y: 0, z: 0 },
@@ -145,7 +145,7 @@ export const PAINFOREST_MOTIF = {
               },
               children: [
                 {
-                  id: 'painforest-twotier-branch',
+                  id: 'gnarledTree-twotier-branch',
                   shape: 'cylinder',
                   params: { bottomR: 0.05, topR: 0.03, height: 0.3, segments: 5 },
                   transform: {
@@ -162,7 +162,7 @@ export const PAINFOREST_MOTIF = {
                   biomeColor: { source: 'wood', influence: 0.6 },
                 },
                 {
-                  id: 'painforest-twotier-canopy',
+                  id: 'gnarledTree-twotier-canopy',
                   shape: 'sphere',
                   params: { radius: 0.26 },
                   transform: { localPos: { x: 0, y: 0.2, z: 0.17 } },
@@ -170,7 +170,7 @@ export const PAINFOREST_MOTIF = {
                   biomeColor: { source: 'foliage', influence: 0.8 },
                 },
                 {
-                  id: 'painforest-twotier-canopy-b',
+                  id: 'gnarledTree-twotier-canopy-b',
                   shape: 'sphere',
                   params: { radius: 0.18 },
                   transform: { localPos: { x: 0, y: -0.12, z: 0 } },

@@ -24,6 +24,7 @@ import { shapeBaseOffset, normalizeDescriptor } from '../../../src/render/hexmap
 import { recordsForDescriptor } from '../../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
 import { HILL_DESCRIPTOR } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/decor/hill.js';
 import { KNOT_DESCRIPTOR } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/features/knot.js';
+import { motifById } from '../../../src/render/hexmap3d/worldObjects/descriptors/data/motifs/index.js';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -87,7 +88,7 @@ const meshesEnding = (meshes, prefix, suffix) =>
 // decor). Its dome band (thetaLength 1.5) keeps its lowest vertex ABOVE the
 // geometry origin, so shapeBaseOffset is negative — the record y sits that far
 // below the surface and the mound's lowest vertex lands at y + base·sy.
-const HILL_MOUND = HILL_DESCRIPTOR.motifs.find((m) => m.id === 'mound').parts[0];
+const HILL_MOUND = motifById('mound').parts[0];
 const HILL_BASE = shapeBaseOffset(HILL_MOUND.shape, HILL_MOUND.params);
 const NORMALIZED_HILL = normalizeDescriptor(HILL_DESCRIPTOR);
 /** The mound's normal (un-sunk) XZ scale on a tile — read from a real record. */
