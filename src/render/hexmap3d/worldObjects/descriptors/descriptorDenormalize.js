@@ -70,6 +70,9 @@ export function denormalizePart(part, nested = false) {
       const o = cloneJson(option);
       // Only `weight: 1` may be stripped — a 0 is a meaningful exclusion.
       if (o.weight === 1) delete o.weight;
+      // Only an EMPTY `biomeWeight` may be stripped — a present-0 entry is a
+      // meaningful per-biome exclusion and must persist (mirror the motif rule).
+      if (isPlainObject(o.biomeWeight) && Object.keys(o.biomeWeight).length === 0) delete o.biomeWeight;
       o.parts = (Array.isArray(option.parts) ? option.parts : []).map((child) => denormalizePart(child, nested));
       return o;
     });

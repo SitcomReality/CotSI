@@ -1070,3 +1070,32 @@ test('denormalize strips only weight:1 and empty biomeWeight (exclusions survive
   assert.deepEqual(minimalExcluded.motifs[0].biomeWeight, { biome_scorch: 0 }, 'biomeWeight 0 entry is preserved');
   assert.equal(minimalExcluded.repeatPenalty, 0, 'repeatPenalty 0 is preserved');
 });
+
+test('denormalize strips option weight:1 and empty option biomeWeight; exclusions survive', () => {
+  // Both options: authored per-option biomeWeight — one real entries, one
+  // present-0 exclusion. Round-trips through normalize/denormalize.
+  const d = normalizeDescriptor({
+    ...MOTIF_DECOR,
+    motifs: [{
+      id: 'cactus', weight: 1,
+      parts: [
+        { id: 'trunk', shape: 'cylinder' },
+        { id: 'arms', seed: 115, alternatives: [
+          { id: 'none', weight: 1, parts: [] },
+          { id: 'one', weight: 1, biomeWeight: { biome_tundra: 3 }, parts: [{ id: 'arm-one', shape: 'cylinder' }] },
+          { id: 'two', weight: 0.3, biomeWeight: { biome_mourning_marsh: 0 }, parts: [{ id: 'arm-two', shape: 'cylinder' }] },
+        ] },
+      ],
+    }],
+  });
+  const minimal = denormalizeDescriptor(d);
+  // weight:1 options strip to no weight field.
+  assert.equal(minimal.motifs[0].parts[1].alternatives[0].weight, undefined, 'option weight 1 strips');
+  // Authored non-1 weights survive.
+  assert.equal(minimal.motifs[0].parts[1].alternatives[2].weight, 0.3, 'option weight 0.3 survives');
+  // Empty biomeWeight strips, authored entries survive, present-0 exclusion stays.
+  assert.equal(minimal.motifs[0].parts[1].alternatives[0].biomeWeight, undefined, 'empty option biomeWeight strips');
+  assert.deepEqual(minimal.motifs[0].parts[1].alternatives[1].biomeWeight, { biome_tundra: 3 }, 'authored option biomeWeight survives');
+  assert.deepEqual(minimal.motifs[0].parts[1].alternatives[2].biomeWeight, { biome_mourning_marsh: 0 }, 'option biomeWeight exclusion survives');
+  assert.deepEqual(normalizeDescriptor(minimal), d, 'round-trip restores the normalized form');
+});

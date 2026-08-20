@@ -54,13 +54,18 @@ function normalizePart(part, legacyGrounding = false, nested = false) {
 
   // Alternatives choice points carry no geometry and no transform — they only
   // need their option parts normalized (with the same root/nested context as
-  // the node's siblings, so option parts ground like any sibling).
+  // the node's siblings, so option parts ground like any sibling). Per-option
+  // `weight` / `biomeWeight` defaults are filled the same way motifs are: only
+  // default values are strip-able, `weight: 0` and a present-0 biomeWeight are
+  // meaningful exclusions and must persist.
   if (isAlternatives) {
     delete out.shape;
     delete out.params;
     delete out.transform;
     out.alternatives = out.alternatives.map((option) => {
       const o = { ...option };
+      if (o.weight === undefined) o.weight = 1;
+      o.biomeWeight = isPlainObject(o.biomeWeight) ? { ...o.biomeWeight } : {};
       o.parts = (Array.isArray(option.parts) ? option.parts : []).map((p) => normalizePart(p, legacyGrounding, nested));
       return o;
     });
