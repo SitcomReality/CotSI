@@ -37,3 +37,18 @@ export function variantExportName(id) {
     .toUpperCase()
     .replace(/[^A-Z0-9_]/g, '_') + '_VARIANT';
 }
+
+/**
+ * The canonical export name for a shared-library motif file
+ * (data/motifs/<id>.js): the same id → SCREAMING_SNAKE transform, suffixed
+ * `_MOTIF` (`log` → `LOG_MOTIF`, `painforest` → `PAINFOREST_MOTIF`, `titanSpire`
+ * → `TITAN_SPIRE_MOTIF`).
+ * @param {string} id - motif id (matches /^[A-Za-z0-9_-]+$/)
+ * @returns {string} export name
+ */
+export function motifExportName(id) {
+  return id
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .toUpperCase()
+    .replace(/[^A-Z0-9_]/g, '_') + '_MOTIF';
+}

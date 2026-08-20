@@ -61,6 +61,7 @@ export {
 
 export {
   validateDescriptor,
+  validateMotifBlock,
 } from './descriptorValidation.js';
 
 export {

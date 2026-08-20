@@ -47,6 +47,58 @@ const MOISTURE_COUNTS_DEFAULT = Object.freeze({ forest: [3, 5], deepWood: [4, 7]
  * @param {object} def - normalized descriptor
  * @returns {object} minimal descriptor
  */
+
+/**
+ * Strip every optional field equal to its default from a normalized part node —
+ * the inverse of normalizePart. Recurses into groups and alternatives. Used by
+ * denormalizeDescriptor (once per parts tree below) and by emitMotifModule (a
+ * shared library motif's parts are authored in this minimal form).
+ * @param {object} part - normalized part node
+ * @param {boolean} [nested=false] - node is below the root of the parts tree
+ * @returns {object} minimal part
+ */
+export function denormalizePart(part, nested = false) {
+  if (!isPlainObject(part)) return part;
+  const p = cloneJson(part);
+  const isAlternatives = Array.isArray(p.alternatives);
+  const isGroup = Array.isArray(p.children);
+  if (isAlternatives) {
+    delete p.shape;
+    delete p.params;
+    delete p.transform;
+    p.alternatives = p.alternatives.map((option) => {
+      const o = cloneJson(option);
+      // Only `weight: 1` may be stripped — a 0 is a meaningful exclusion.
+      if (o.weight === 1) delete o.weight;
+      o.parts = (Array.isArray(option.parts) ? option.parts : []).map((child) => denormalizePart(child, nested));
+      return o;
+    });
+    return p;
+  }
+  const shape = SHAPE_TYPES[p.shape];
+  if (!isGroup && shape && isPlainObject(p.params)) {
+    const params = {};
+    for (const [key, value] of Object.entries(p.params)) {
+      if (!(key in shape.defaults) || !Object.is(value, shape.defaults[key])) params[key] = value;
+    }
+    if (Object.keys(params).length === 0) delete p.params;
+    else p.params = params;
+  }
+  if (isPlainObject(p.transform)) {
+    const defaults = isGroup || nested ? NESTED_PART_TRANSFORM_DEFAULTS : PART_TRANSFORM_DEFAULTS;
+    const transform = {};
+    for (const [key, value] of Object.entries(p.transform)) {
+      if (!(key in defaults) || !Object.is(value, defaults[key])) transform[key] = value;
+    }
+    if (Object.keys(transform).length === 0) delete p.transform;
+    else p.transform = transform;
+  }
+  if (isGroup) {
+    p.children = p.children.map((child) => denormalizePart(child, true));
+  }
+  return p;
+}
+
 export function denormalizeDescriptor(def) {
   const out = cloneJson(isPlainObject(def) ? def : {});
 
@@ -138,56 +190,14 @@ export function denormalizeDescriptor(def) {
     if (Object.keys(portrait).length === 0) delete out.portrait;
   }
 
-  const denormPart = (part, nested = false) => {
-    if (!isPlainObject(part)) return part;
-    const p = cloneJson(part);
-    const isAlternatives = Array.isArray(p.alternatives);
-    const isGroup = Array.isArray(p.children);
-    if (isAlternatives) {
-      delete p.shape;
-      delete p.params;
-      delete p.transform;
-      p.alternatives = p.alternatives.map((option) => {
-        const o = cloneJson(option);
-        // Only `weight: 1` may be stripped — a 0 is a meaningful exclusion.
-        if (o.weight === 1) delete o.weight;
-        o.parts = (Array.isArray(option.parts) ? option.parts : []).map((child) => denormPart(child, nested));
-        return o;
-      });
-      return p;
-    }
-    const shape = SHAPE_TYPES[p.shape];
-    if (!isGroup && shape && isPlainObject(p.params)) {
-      const params = {};
-      for (const [key, value] of Object.entries(p.params)) {
-        if (!(key in shape.defaults) || !Object.is(value, shape.defaults[key])) params[key] = value;
-      }
-      if (Object.keys(params).length === 0) delete p.params;
-      else p.params = params;
-    }
-    if (isPlainObject(p.transform)) {
-      const defaults = isGroup || nested ? NESTED_PART_TRANSFORM_DEFAULTS : PART_TRANSFORM_DEFAULTS;
-      const transform = {};
-      for (const [key, value] of Object.entries(p.transform)) {
-        if (!(key in defaults) || !Object.is(value, defaults[key])) transform[key] = value;
-      }
-      if (Object.keys(transform).length === 0) delete p.transform;
-      else p.transform = transform;
-    }
-    if (isGroup) {
-      p.children = p.children.map((child) => denormPart(child, true));
-    }
-    return p;
-  };
-
-  out.parts = (Array.isArray(out.parts) ? out.parts : []).map(denormPart);
+  out.parts = (Array.isArray(out.parts) ? out.parts : []).map((p) => denormalizePart(p));
   // Empty `parts` is only meaningful as absent (a decor with motifs carries no
   // fallback) — never emit `parts: []`.
   if (Array.isArray(out.parts) && out.parts.length === 0) delete out.parts;
   if (Array.isArray(out.variants)) {
     out.variants = out.variants.map((variant) => {
       const v = { ...variant };
-      v.parts = (Array.isArray(variant.parts) ? variant.parts : []).map(denormPart);
+      v.parts = (Array.isArray(variant.parts) ? variant.parts : []).map((p) => denormalizePart(p));
       if (isPlainObject(v.material) && sameValue(v.material, OBJECT_DEFAULTS.material)) delete v.material;
       return v;
     });
@@ -215,7 +225,7 @@ export function denormalizeDescriptor(def) {
           if (shared.placement && sameValue(m.placement, shared.placement)) delete m.placement;
         } else {
           // Local override / unresolvable id — keep authored parts.
-          if (Array.isArray(m.parts)) m.parts = m.parts.map(denormPart);
+          if (Array.isArray(m.parts)) m.parts = m.parts.map((p) => denormalizePart(p));
           if (shared) {
             if (shared.size && sameValue(m.size, shared.size)) delete m.size;
             if (shared.placement && sameValue(m.placement, shared.placement)) delete m.placement;
@@ -223,7 +233,7 @@ export function denormalizeDescriptor(def) {
         }
         delete m.id;
       } else {
-        m.parts = (Array.isArray(motif.parts) ? motif.parts : []).map(denormPart);
+        m.parts = (Array.isArray(motif.parts) ? motif.parts : []).map((p) => denormalizePart(p));
       }
       return m;
     });
@@ -232,7 +242,7 @@ export function denormalizeDescriptor(def) {
   if (Array.isArray(out.optionalGroups)) {
     out.optionalGroups = out.optionalGroups.map((group) => {
       const g = { ...group };
-      g.parts = (Array.isArray(group.parts) ? group.parts : []).map(denormPart);
+      g.parts = (Array.isArray(group.parts) ? group.parts : []).map((p) => denormalizePart(p));
       if (g.chance === 0.5) delete g.chance;
       return g;
     });

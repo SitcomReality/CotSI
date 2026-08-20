@@ -350,6 +350,41 @@ function validateMotifs(motifs, path, errors, seen) {
   }
 }
 
+const MOTIF_BLOCK_KEYS = ['id', 'size', 'placement', 'parts'];
+
+/**
+ * Validate a standalone shared-library motif block — the hand-authored shape in
+ * `data/motifs/` (`{ id, size?, placement?, parts }`, sharedMotifLibrary.md).
+ * Distinct from `validateDescriptor`: a motif is a parts block, NOT a
+ * descriptor — it carries no `kind`/`displayName` and is never registered in the
+ * object browser. Part ids must be unique across the block (meshAssembly keys
+ * meshes by bare partId from the merged partById map), so a motif that mixes
+ * with other motifs in a decor can never collide.
+ * @param {object} motif - the motif block
+ * @param {object} [opts]
+ * @param {boolean} [opts.checkId=false] - also validate the block's `id` field
+ *        (the editor's save path checks it; in-memory library blocks already
+ *        have a known id)
+ * @returns {string[]} errors ([] = valid)
+ */
+export function validateMotifBlock(motif, opts = {}) {
+  const errors = [];
+  if (!isPlainObject(motif)) return ['motif must be an object'];
+  for (const key of Object.keys(motif)) {
+    if (!MOTIF_BLOCK_KEYS.includes(key)) errors.push(`motif: unknown field "${key}"`);
+  }
+  if (opts.checkId !== false) {
+    if (typeof motif.id !== 'string' || !ID_PATTERN.test(motif.id)) {
+      errors.push('motif.id: required, must match /^[A-Za-z0-9_-]+$/');
+    }
+  }
+  validateSize(motif.size, 'motif.size', errors);
+  validatePlacement(motif.placement, 'motif.placement', errors);
+  const seen = new Set();
+  validatePartsList(motif.parts, 'motif', errors, seen);
+  return errors;
+}
+
 /**
  * Validate a descriptor. Accepts raw (un-normalized) descriptors — optional
  * fields may be absent; `normalizeDescriptor` fills their defaults.
