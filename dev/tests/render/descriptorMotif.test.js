@@ -326,6 +326,44 @@ test('all-zero alternatives resolve to default, else first non-empty', () => {
   assert.ok(records.some((r) => r.partId === 'arm-one'), 'first non-empty option is the fallback');
 });
 
+test('per-biome alternatives bias: biomeWeight skews the option draw per biome', () => {
+  // Option A is excluded in tundra (weight 0) and option B is boosted in
+  // tundra (×3); elsewhere both are weight 1. So tundra tiles ALWAYS draw B,
+  // while null-biome tiles spread across A and B.
+  const biased = normalizeDescriptor({
+    ...DESERT,
+    cluster: { min: 1, max: 3 },
+    placement: { mode: 'center' },
+    motifs: [{
+      id: 'cactus', weight: 1,
+      parts: [
+        { id: 'cactus-trunk', shape: 'cylinder' },
+        { id: 'arms', seed: 130, alternatives: [
+          { id: 'a', weight: 1, biomeWeight: { biome_tundra: 0 }, parts: [{ id: 'arm-a', shape: 'cylinder' }] },
+          { id: 'b', weight: 1, biomeWeight: { biome_tundra: 3 }, parts: [{ id: 'arm-b', shape: 'cylinder' }] },
+        ] },
+      ],
+    }],
+  });
+  // In tundra, A is excluded and B dominates — every item must be a `b`.
+  for (let q = 0; q < 30; q++) {
+    const records = recordsForDescriptor(biased, TILE(q, 'biome_tundra'), POS);
+    assert.ok(records.length >= 1, `q=${q} empty tundra tile`);
+    assert.ok(!records.some((r) => r.partId === 'arm-a'), `q=${q} excluded option A drew in tundra`);
+  }
+  // In a neutral biome both A and B appear across tiles (B not forced).
+  const seen = new Set();
+  for (let q = 0; q < 120; q++) {
+    for (const r of recordsForDescriptor(biased, TILE(q), POS)) {
+      if (r.partId === 'arm-a' || r.partId === 'arm-b') seen.add(r.partId);
+    }
+  }
+  assert.ok(seen.has('arm-a') && seen.has('arm-b'), 'neutral biome should draw both options');
+  // Canonical (Show all) ignores biome bias and resolves to default/first.
+  const canon = recordsForDescriptor(biased, TILE(1, 'biome_tundra'), POS, undefined, {}, null, null, true);
+  assert.ok(canon.some((r) => r.partId === 'arm-a'), 'Show all ignores biomeWeight (A is the first non-empty)');
+});
+
 test('nested alternatives resolve independently (each node rolls its own lane)', () => {
   const nested = normalizeDescriptor({
     ...DESERT,

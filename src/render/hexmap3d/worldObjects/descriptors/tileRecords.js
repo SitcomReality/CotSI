@@ -151,7 +151,7 @@ function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
   // editor's per-node preview radios) forces an option for authoring.
   if (Array.isArray(part.alternatives)) {
     const previewOptionId = ctx.previewOptions?.get(part.id) ?? null;
-    const chosen = resolveAlternatives(part, ctx.tileH, ctx.i, ctx.canonical, previewOptionId);
+    const chosen = resolveAlternatives(part, ctx.tileH, ctx.i, ctx.canonical, previewOptionId, ctx.tile.biomeId ?? null);
     if (!chosen) return; // empty option table — validated against, never ships
     for (const child of chosen.parts ?? []) {
       collectPart(descriptor, child, ctx, frame, isRoot, out, nodeFrames);

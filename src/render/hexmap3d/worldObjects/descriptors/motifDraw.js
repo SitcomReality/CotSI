@@ -138,25 +138,31 @@ function fallbackSeed(id) {
  * Resolve one `alternatives` choice point for an item: pick by the node's
  * authored seed (`itemHash(tileH, i + seed)` — item-scoped, so two cacti on
  * one tile can show different arm configs), continuing with the chosen
- * option's parts. All-zero options (or a filtered-empty table) resolve to
- * `default`, else the first NON-EMPTY option (an authored `none` must never
- * be the catalog entry), else the first option — never skip the node, never a
+ * option's parts. Per-biome bias: each option's optional `biomeWeight` is a
+ * sparse multiplier (absent key ≡ 1, present 0 ≡ excluded) applied to the
+ * option's base `weight` — the mirror of the motif-slot `biomeWeight`
+ * (decorComposition.md §2.2), so a tree can favor one shape variant in a
+ * biome. All-zero options (or a filtered-empty table) resolve to `default`,
+ * else the first NON-EMPTY option (an authored `none` must never be the
+ * catalog entry), else the first option — never skip the node, never a
  * divide-by-zero. The canonical (Show all) preview ignores the hash entirely
- * and resolves to `default`/first non-empty, so the piece inventory is stable.
+ * and resolves to `default`/first non-empty, so the piece inventory is stable
+ * and biome bias does not enter it (biome tint/scale are likewise ignored).
  *
  * `previewOptionId` (the editor's per-node preview radio) forces one option —
  * the authoring equivalent of the variant picker, node-scoped. A stale id
  * falls back to the defaulted resolution rather than vanishing.
  *
  * @param {object} node - the alternatives choice point (id, seed?, default?,
- *        alternatives: [{ id, weight?, parts }])
+ *        alternatives: [{ id, weight?, biomeWeight?, parts }])
  * @param {number} tileH - tile hash
  * @param {number} i - item index
  * @param {boolean} [canonical=false] - Show-all mode: no hash draw
  * @param {string|null} [previewOptionId] - forced option id (editor preview)
+ * @param {string|null} [biomeId] - tile biome id (null = no per-biome bias)
  * @returns {object} the chosen option
  */
-export function resolveAlternatives(node, tileH, i, canonical = false, previewOptionId = null) {
+export function resolveAlternatives(node, tileH, i, canonical = false, previewOptionId = null, biomeId = null) {
   const opts = node.alternatives;
   if (opts.length === 0) return null;
   const defaulted = () => (
@@ -168,7 +174,10 @@ export function resolveAlternatives(node, tileH, i, canonical = false, previewOp
     return opts.find((o) => o.id === previewOptionId) ?? defaulted();
   }
   if (canonical) return defaulted();
-  const weighted = opts.map((o) => ({ entry: o, w: o.weight ?? 1 }));
+  const weighted = opts.map((o) => ({
+    entry: o,
+    w: (o.weight ?? 1) * (biomeId ? (o.biomeWeight?.[biomeId] ?? 1) : 1),
+  }));
   const chosen = resolveWeighted(weighted, itemHash(tileH, i + (node.seed ?? fallbackSeed(node.id))));
   return chosen ?? defaulted();
 }
