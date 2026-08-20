@@ -1,12 +1,12 @@
 # Shared Motif Library — Deferred Follow-ups
 
 Reminder tracker for the work owed toward the shared motif library (commit
-`b340dda` put the mechanism in). The mechanism shipped, and items 1 and 3
-(editor authoring + folding the whole-decor swaps) are now done. The remaining
-*migration* (item 4) is the large data-mass pass — this is planning material
-for **future update plans**. The individual items are small but touch distinct
-systems (descriptor data, the editor, and terrain authoring), so they are
-grouped into phases at the bottom.
+`b340dda` put the mechanism in). The mechanism shipped, and items 1, 2, and 3
+(editor authoring, per-biome alternatives bias, and folding the whole-decor
+swaps) are now done. The remaining *migration* (item 4) is the large data-mass
+pass — this is planning material for **future update plans**. The individual
+items are small but touch distinct systems (descriptor data, the editor, and
+terrain authoring), so they are grouped into phases at the bottom.
 
 ---
 
@@ -149,14 +149,21 @@ back to `data/motifs/<id>.js` via its own `/save/motif` route (see
 `dev/tools/geometryEditor/README.md`). The editor never rewrites referencing
 decorators; only the active motif file is (re)authored.
 
-### 2. Per-biome alternatives bias
+### 2. Per-biome alternatives bias — DONE
 
-The shared-ref work covers per-biome `weight` / `size` / `placement`, but the
-"this alternative preferred in that biome" bias for **alternatives** nodes is
-not implemented. This is the `alternatives` machinery from
-`dev/docs/decorComposition.md` §3.2 — applies to signature/body shape
-swaps within a motif (e.g. a tree that favors its gnarled variant in one
-biome), separate from motif-slot-level weighting.
+The "this alternative preferred in that biome" bias for **alternatives** nodes
+is implemented. Each option carries an optional `biomeWeight` sparse map
+(absent key ≡ 1, present 0 ≡ excluded) — the exact mirror of the motif-slot
+`biomeWeight` — applied at draw time in `resolveAlternatives`
+(`src/render/.../motifDraw.js`): each option's effective weight is
+`weight × biomeWeight[biomeId]` before the shared weighted draw. Populated by
+`normalizePart` / stripped by `denormalizePart` (only empty maps strip; a
+present-0 entry is a meaningful exclusion), validated against the registered
+biome list (`descriptorValidation.js`/`validateParts.js`), and authored in the
+editor via a per-option biome grid mirroring the motif grid
+(`partInspector/alternatives/optionBiomeGrid.js`). Canonical (Show-all) and
+per-node preview pins ignore the bias, same as motif `biomeWeight`. Mechanism
+only — no existing decor data was re-authored to add biases (that's Plan C).
 
 ### 3. Folding `terrainOverrides.decor` whole-decor swaps into the library — DONE
 
@@ -200,7 +207,8 @@ the status table above, the broad sweep of the effort. It means:
 
 - **Plan A — authoring & consolidation**: items 1 and 3 — DONE (editor library
   authoring + folding whole-decor swaps).
-- **Plan B — bias**: item 2 (per-biome alternatives bias) — NOT yet started.
+- **Plan B — bias**: item 2 (per-biome alternatives bias) — DONE (option
+  `biomeWeight` skews the choice point's draw per biome).
 - **Plan C — breadth**: item 4 (migrate remaining decor to motifs) — NOT yet
   started; the large data-mass pass, safest once authoring/bias semantics are
   stable. This is where the library actually approaches the Goal above.

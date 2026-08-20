@@ -219,7 +219,7 @@ variation: {
 | `biomeScale` | object | Per-biome size factor: `{ biome_tundra: 0.85 }` multiplies the part's scale on tiles of that biome (stunted tundra trees). Scales lift/`localPos` rigidly too. |
 | `biomeColor` | object | Per-part biome tint: `{ source: 'foliage' \| 'wood' \| 'soil' \| 'stone' \| 'bloom' \| 'exotic' \| 'terrain', influence: 0..1 }` — mixes the part's color toward the tile's blended biome color by `influence` (see §5.7). Pick the swatch matching the material the part depicts. |
 | `states` | object | Growth-state keyframes — the part's look at different regrowth stages (see §4.6). Shape leaves only; groups reject it. |
-| `alternatives` | array | **Choice point** (v6): not a shape and not a group — a weighted option table (see §5.4). The node carries `seed` (draw lane) and `default` (preview/catalog option) only; it has no transform, no color, no geometry. Options are `{ id, weight?, parts }` (parts may be empty — the `none` option). |
+| `alternatives` | array | **Choice point** (v6): not a shape and not a group — a weighted option table (see §5.4). The node carries `seed` (draw lane) and `default` (preview/catalog option) only; it has no transform, no color, no geometry. Options are `{ id, weight?, biomeWeight?, parts }` (parts may be empty — the `none` option). |
 
 ### 4.3 Shape registry
 
@@ -530,6 +530,13 @@ even nested inside another alternative):
 - `default` names the option "Show all" and the preview radios resolve to —
   never a `none`. All-zero weights also fall back to `default`, else the first
   non-empty option.
+- `biomeWeight` per option (optional) — a sparse per-biome multiplier biasing
+  which shape variant the choice point favors in a biome, the exact mirror of
+  the motif-table `biomeWeight` (§5.4): absent key ≡ 1, present 0 ≡ excluded.
+  The effective weight is `weight × biomeWeight[biomeId]`; an all-excluded
+  table falls back to `default`/first non-empty. Canonical (Show all) and the
+  per-node preview pin ignore it. Authored in the editor via a per-option
+  biome grid beside the weight rows.
 - Option ids live in the GLOBAL part-id namespace (two co-candidate arms must
   not share an id). The editor keeps that namespace for you: ids created under
   a motif are stored motif-scoped (`<motifId>-<localId>`; parts added inside an
@@ -540,10 +547,10 @@ even nested inside another alternative):
 **The editor** (§6 of the spec): motif decors get a Motif panel (weight
 inputs, a per-biome grid of realized shares, a "Force motif" picker) instead
 of the Variant section; alternatives get a per-node option table (weights,
-`default`, read-only seed, preview radios, add/remove, group-inside-option);
-"Show all" renders every motif once at authored scale (the piece inventory);
-and a 3×3 tile-strip of real neighbor hashes with a 64-tile histogram is the
-diversity acceptance view.
+`default`, read-only seed, preview radios, add/remove, group-inside-option)
+plus a per-option per-biome bias grid; "Show all" renders every motif once at
+authored scale (the piece inventory); and a 3×3 tile-strip of real neighbor
+hashes with a 64-tile histogram is the diversity acceptance view.
 
 Two editor ergonomics notes (the alternatives authoring additions): the editor
 displays a **derived local name** in the parts tree (the storage id's

@@ -141,12 +141,21 @@ motifs: [
   `states`/… but **do** carry `transform`; "mirroring the group rule" must
   not be read that loosely. The node **may** carry `seed` (its draw lane,
   below) and `default` (its preview option, below); option entries may
-  additionally gain `biomeWeight` in a later rev, so the validator must not
-  reject option keys it expects to grow.
+  additionally carry `biomeWeight` (per-biome bias, below) — the validator
+  must not reject option keys it expects to grow.
 - Each **item** rolls one alternative (seeded, item-scoped — so a tile with
   two cacti can show two different arm configurations). The chosen `parts`
   tree continues the walk; the node itself emits no record.
 - `weight` per alternative (default 1) — same weighted draw as motifs.
+- `biomeWeight` per alternative (optional) — a sparse per-biome multiplier,
+  the exact mirror of the motif-slot `biomeWeight` (§2.1): absent key ≡ 1,
+  present 0 ≡ excluded. It biases which shape variant this choice point favors
+  in a biome (a tree that favors its gnarled variant in one biome and its
+  straight variant in another) — separate from motif-slot-level weighting. The
+  effective weight fed to the shared resolver is `weight × biomeWeight[biomeId]`,
+  so an all-excluded table resolves to `default`/first non-empty (never a
+  divide-by-zero). Canonical (Show-all) and per-node preview pins ignore it,
+  same as motif `biomeWeight`.
 - Allowed at any depth (inside motifs, inside groups, even nested inside
   alternatives — each node rolls independently). Available to **all kinds**
   (a feature or mob can use it too); it is purely a parts-tree feature.
