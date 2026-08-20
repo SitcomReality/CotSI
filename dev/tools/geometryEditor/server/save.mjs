@@ -9,10 +9,10 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { SCHEMA_VERSION, validateDescriptor } from '../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
-import { emitDescriptorModule, emitVariantModule, descriptorExportName } from '../emitDescriptor/index.js';
-import { DATA_DIR, ID_PATTERN, TABLE_DRIVEN, subfolderFor } from './paths.mjs';
-import { atomicWrite, importBarrel, registerInBarrel } from './write.mjs';
+import { SCHEMA_VERSION, validateDescriptor, validateMotifBlock } from '../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { emitDescriptorModule, emitVariantModule, descriptorExportName, motifExportName, emitMotifModule } from '../emitDescriptor/index.js';
+import { DATA_DIR, ID_PATTERN, TABLE_DRIVEN, subfolderFor, MOTIF_DIR, subfolderForMotif } from './paths.mjs';
+import { atomicWrite, importBarrel, importMotifBarrel, registerInBarrel, registerMotifInBarrel } from './write.mjs';
 import { json } from './http.mjs';
 
 /**
@@ -153,4 +153,48 @@ export async function handleSave(res, body) {
     console.error('[save] golden snapshot refresh failed:', err);
   }
   return json(res, 200, { ok: true, file, wasNew: isNew });
+}
+
+/**
+ * Handle POST /save/motif: write a shared library motif into
+ * data/motifs/<id>.js and register it in the ALL_MOTIFS barrel. A motif is a
+ * parts BLOCK (`{ id, size?, placement?, parts }`), not a descriptor — it never
+ * touches the icon atlas or the golden descriptor snapshot.
+ */
+export async function handleMotifSave(res, body) {
+  let payload;
+  try {
+    payload = JSON.parse(body);
+  } catch {
+    return json(res, 400, { error: 'request body must be valid JSON' });
+  }
+  const motif = payload?.motif;
+  if (!motif || typeof motif !== 'object' || Array.isArray(motif)) {
+    return json(res, 400, { error: 'missing "motif" object' });
+  }
+  const id = motif.id;
+  if (typeof id !== 'string' || !ID_PATTERN.test(id)) {
+    return json(res, 400, { error: `motif.id must match /^[A-Za-z0-9_-]+$/ (got "${id}")` });
+  }
+  const errors = validateMotifBlock(motif, { checkId: false });
+  if (errors.length > 0) {
+    return json(res, 400, { error: 'invalid motif block', errors });
+  }
+
+  const subfolder = subfolderForMotif();
+  const file = `${subfolder}/${id}.js`;
+
+  const content = emitMotifModule(motif, file);
+  await atomicWrite(path.join(DATA_DIR, file), content);
+
+  const motifBarrel = await importMotifBarrel();
+  const knownIds = new Set(motifBarrel.ALL_MOTIFS.map((m) => m.id));
+  const wasNew = !knownIds.has(id);
+  if (wasNew) {
+    await registerMotifInBarrel(id, motifExportName(id));
+    console.log(`[save/motif] registered new motif ${id} → data/${file}`);
+  } else {
+    console.log(`[save/motif] updated motif ${id} → data/${file}`);
+  }
+  return json(res, 200, { ok: true, file, wasNew });
 }

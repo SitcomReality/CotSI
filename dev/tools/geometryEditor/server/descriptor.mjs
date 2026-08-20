@@ -4,9 +4,9 @@
  * → emit, so the editor's save-review diff shows exactly what a save would
  * change in the emitted form.
  */
-import { emitDescriptorModule, emitVariantModule } from '../emitDescriptor/index.js';
-import { ID_PATTERN, TABLE_DRIVEN } from './paths.mjs';
-import { importBarrel } from './write.mjs';
+import { emitDescriptorModule, emitVariantModule, emitMotifModule } from '../emitDescriptor/index.js';
+import { ID_PATTERN, TABLE_DRIVEN, subfolderForMotif } from './paths.mjs';
+import { importBarrel, importMotifBarrel } from './write.mjs';
 import { json } from './http.mjs';
 
 /**
@@ -41,6 +41,28 @@ export async function handleDescriptorGet(res, url) {
     return json(res, 200, { ok: true, id, file, source: emitDescriptorModule(def, file) });
   } catch (err) {
     console.error('[save/descriptor] failed:', err);
+    return json(res, 500, { error: `failed: ${err.message}` });
+  }
+}
+
+/**
+ * Handle GET /save/motif?id=<id>: emit the on-disk shared library motif as
+ * module source (for the editor's save-review diff). 404 when the id is not a
+ * registered motif.
+ */
+export async function handleMotifGet(res, url) {
+  const id = url.searchParams.get('id');
+  if (!id || !ID_PATTERN.test(id)) {
+    return json(res, 400, { error: 'missing or invalid "id" query param' });
+  }
+  try {
+    const barrel = await importMotifBarrel();
+    const motif = barrel.ALL_MOTIFS.find((m) => m.id === id);
+    if (!motif) return json(res, 404, { error: `no registered motif "${id}"` });
+    const file = `${subfolderForMotif()}/${id}.js`;
+    return json(res, 200, { ok: true, id, file, source: emitMotifModule(motif, file) });
+  } catch (err) {
+    console.error('[save/motif] failed:', err);
     return json(res, 500, { error: `failed: ${err.message}` });
   }
 }

@@ -10,6 +10,8 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 export const DATA_DIR = path.join(ROOT, 'src', 'render', 'hexmap3d', 'worldObjects', 'descriptors', 'data');
 export const INDEX_PATH = path.join(DATA_DIR, 'index.js');
+export const MOTIF_DIR = path.join(DATA_DIR, 'motifs');
+export const MOTIF_INDEX_PATH = path.join(MOTIF_DIR, 'index.js');
 export const DATA_DIR_REL = path.relative(ROOT, DATA_DIR).replaceAll('\\', '/');
 export const ATLAS_DIR = path.join(ROOT, 'assets', 'icons');
 export const ATLAS_PNG = path.join(ATLAS_DIR, 'portraitAtlas.png');
@@ -40,6 +42,11 @@ export function subfolderFor(kind) {
   if (kind === 'feature') return 'features';
   if (kind === 'item') return 'items';
   return '';
+}
+
+/** The data folder a shared library motif saves into (always `motifs`). */
+export function subfolderForMotif() {
+  return 'motifs';
 }
 
 export const MIME = {

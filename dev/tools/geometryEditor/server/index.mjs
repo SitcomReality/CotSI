@@ -38,9 +38,9 @@ import http from 'node:http';
 
 import { HOST, PORT, DATA_DIR_REL } from './paths.mjs';
 import { json, sendStatic, readBody, serveStatic } from './http.mjs';
-import { handleSave } from './save.mjs';
+import { handleSave, handleMotifSave } from './save.mjs';
 import { handleAtlasSave } from './atlas.mjs';
-import { handleDescriptorGet } from './descriptor.mjs';
+import { handleDescriptorGet, handleMotifGet } from './descriptor.mjs';
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
@@ -73,6 +73,24 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // Shared library motif save — a parts block written to data/motifs/, never a
+  // descriptor. Routed separately so the barrel/snapshot/atlas side-effects of
+  // a descriptor save never touch the motif library.
+  if (route === '/save/motif' && method === 'POST') {
+    let body;
+    try {
+      body = await readBody(req);
+    } catch {
+      return json(res, 413, { error: 'payload too large' });
+    }
+    try {
+      return await handleMotifSave(res, body);
+    } catch (err) {
+      console.error('[save/motif] failed:', err);
+      return json(res, 500, { error: `motif save failed: ${err.message}` });
+    }
+  }
+
   if (route === '/save/atlas' && method === 'POST') {
     let body;
     try {
@@ -97,6 +115,11 @@ const server = http.createServer(async (req, res) => {
   // the diff shows exactly what a save would change in the emitted form.
   if (route === '/save/descriptor' && method === 'GET') {
     return handleDescriptorGet(res, url);
+  }
+
+  // The editor's save-review modal for a shared library motif.
+  if (route === '/save/motif' && method === 'GET') {
+    return handleMotifGet(res, url);
   }
 
   if (method === 'GET') {

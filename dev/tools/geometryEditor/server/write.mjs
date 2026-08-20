@@ -5,7 +5,7 @@
  */
 import { readFile, writeFile, rename } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { INDEX_PATH } from './paths.mjs';
+import { INDEX_PATH, MOTIF_INDEX_PATH } from './paths.mjs';
 
 /** Atomically replace a file (write temp + rename, so a crash never leaves a
  *  half-written descriptor or barrel). */
@@ -18,6 +18,11 @@ export async function atomicWrite(target, content) {
 /** Import data/index.js fresh (it changes as new objects are registered). */
 export function importBarrel() {
   return import(pathToFileURL(INDEX_PATH).href + '?save=' + Date.now());
+}
+
+/** Import data/motifs/index.js fresh (the shared motif library barrel). */
+export function importMotifBarrel() {
+  return import(pathToFileURL(MOTIF_INDEX_PATH).href + '?save=' + Date.now());
 }
 
 /**
@@ -49,4 +54,36 @@ export async function registerInBarrel(id, exportName, subfolder = '') {
   lines.splice(closeIdx, 0, `  ${exportName},`);
 
   await atomicWrite(INDEX_PATH, lines.join('\n'));
+}
+
+/**
+ * Register a shared library motif in data/motifs/index.js: insert its import
+ * (in the alphabetical import block) and append its export to ALL_MOTIFS.
+ * Motifs are a SEPARATE barrel from descriptors on purpose — they are parts
+ * blocks, not descriptors (never in the object browser).
+ */
+export async function registerMotifInBarrel(id, exportName) {
+  const text = await readFile(MOTIF_INDEX_PATH, 'utf8');
+  const lines = text.split('\n');
+  const importLine = `import { ${exportName} } from './${id}.js';`;
+  const spec = `'./${id}.js';`;
+
+  // Insert the import before the first import whose specifier sorts after it
+  // (the motif barrel's imports are alphabetical by file name).
+  let insertAt = null;
+  for (let i = 0; i < lines.length; i += 1) {
+    const m = lines[i].match(/^import \{ .* \} from '(\.[^']+)';$/);
+    if (m) {
+      if (m[1] > spec) { insertAt = i; break; }
+      insertAt = i + 1; // last seen import; insert after it if nothing sorts later
+    }
+  }
+  lines.splice(insertAt ?? lines.length, 0, importLine);
+
+  // Append to ALL_MOTIFS (the line `];` right after the array header).
+  const headerIdx = lines.findIndex((l) => l.startsWith('export const ALL_MOTIFS'));
+  const closeIdx = lines.findIndex((l, i) => i > headerIdx && l.trim() === '];');
+  lines.splice(closeIdx, 0, `  ${exportName},`);
+
+  await atomicWrite(MOTIF_INDEX_PATH, lines.join('\n'));
 }

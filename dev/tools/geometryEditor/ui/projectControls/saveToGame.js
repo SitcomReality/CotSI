@@ -13,7 +13,7 @@
 import { S } from '../../state.js';
 import { activeVariant } from '../variantQuery.js';
 import { ENTITY_KINDS } from '../../entityView.js';
-import { emitDescriptorModule, emitVariantModule } from '../../emitDescriptor/index.js';
+import { emitDescriptorModule, emitVariantModule, emitMotifModule } from '../../emitDescriptor/index.js';
 import {
   normalizeDescriptor,
   validateDescriptor,
@@ -42,6 +42,11 @@ export function variantTargetFile(d, variantId) {
   if (d.kind === 'base') return `bases/${variantId.toLowerCase()}.js`;
   if (d.kind === 'champion') return `champions/${variantId.toLowerCase()}.js`;
   return null;
+}
+
+/** The data-file path a shared library motif saves to: data/motifs/<id>.js. */
+export function motifTargetFile(motif) {
+  return `motifs/${motif.id}.js`;
 }
 
 /** Default port the save server binds (saveServer) — the cross-origin
@@ -143,9 +148,75 @@ export function bindSaveToGame(els) {
     return openDiffModal({ file, before, after });
   }
 
+  /** The save-review gate for a shared library motif (POST /save/motif). The
+   *  "after" side is emitted locally; "before" comes from GET /save/motif so a
+   *  missing on-disk file diffs against empty. */
+  async function reviewMotifSave(motif, { file }) {
+    const after = emitMotifModule(motif, file);
+    let before = null;
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 2000);
+      const r = await fetch(`${saveBase}/save/motif?id=${encodeURIComponent(motif.id)}`, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (r.status === 404) before = '';
+      else if (r.ok) {
+        const j = await r.json();
+        before = j?.source ?? null;
+      }
+    } catch {
+      before = null;
+    }
+    if (before === null) {
+      return window.confirm(
+        `Save shared motif "${motif.id}"?\n\n` +
+        `This writes data/${file} and registers it in data/motifs/index.js. Referencing decors will pick up the new geometry on reload.`);
+    }
+    return openDiffModal({ file, before, after });
+  }
+
   els.saveBtn.addEventListener('click', async () => {
     if (!saveAvailable) return;
     if (!S.descriptor) return;
+
+    // Shared library motif save — triggered by a motif-editing session. The
+    // session's S.descriptor is a synthetic decor wrapper; the motif block is
+    // reconstructed from it (id + size/placement defaults + denormalized parts)
+    // so saving writes data/motifs/<id>.js and NEVER a referencing decor.
+    if (S.motifEditing) {
+      const wrapper = normalizeDescriptor(S.descriptor);
+      const motif = {
+        id: wrapper.id,
+        ...(wrapper.size ? { size: wrapper.size } : {}),
+        ...(wrapper.placement ? { placement: wrapper.placement } : {}),
+        parts: JSON.parse(JSON.stringify(wrapper.parts)),
+      };
+      const file = motifTargetFile(motif);
+      const confirmed = await reviewMotifSave(motif, { file });
+      if (!confirmed) return;
+      try {
+        const res = await fetch(saveBase + '/save/motif', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ motif }),
+        });
+        const json = await res.json().catch(() => null);
+        if (res.ok && json?.ok) {
+          els.loadError.textContent =
+            `Saved data/${json.file} — refresh the game to see it.` +
+            (json.wasNew ? ' (Reload this page to browse the new motif.)' : '');
+          els.loadError.classList.add('ok');
+        } else {
+          const detail = json?.errors?.length ? `\n${json.errors.join('\n')}` : '';
+          els.loadError.textContent = `Save failed: ${json?.error ?? `HTTP ${res.status}`}${detail}`;
+          els.loadError.classList.remove('ok');
+        }
+      } catch (err) {
+        els.loadError.textContent = `Save failed: ${err.message}`;
+        els.loadError.classList.remove('ok');
+      }
+      return; // a motif save never touches the object browser, variant, or atlas
+    }
 
     // Normalize first — the live session may carry fields the schema rejects
     // (e.g. root-only `y`/`lift` written onto a root group before the
