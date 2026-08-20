@@ -16,6 +16,7 @@ import { activeParts, activeMotif } from '../../variantQuery.js';
 import { freshId, motifScoped } from '../../partTree/index.js';
 import { previewStateFor, setPinnedOption } from '../../previewState.js';
 import { renderOptionRows } from './optionRows.js';
+import { renderOptionBiomeGrid } from './optionBiomeGrid.js';
 
 /**
  * Render the alternatives node's option table into `container`.
@@ -68,6 +69,11 @@ export function renderAlternativesSection(container, node, entry, ctx) {
 
   // Per-option rows: weight + preview radio + remove.
   renderOptionRows(container, node, options, motifId, ctx);
+
+  // Per-biome bias grid — which shape variant this choice point favors in
+  // each biome (mirror of the decor motif grid, item 2 of
+  // sharedMotifLibrary.md).
+  renderOptionBiomeGrid(container, node, ctx);
 
   // Add option.
   const addBtn = el('button', null, '＋ Add alternative');

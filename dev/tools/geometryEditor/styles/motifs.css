@@ -125,6 +125,82 @@
   pointer-events: none;
 }
 
+/* ── Options per-biome bias grid (alternatives panel) ────────────────────── */
+
+/* The motif grid is a <table>; the per-option bias grid lives inside the
+   alternatives inspector (which is already a form panel, so a nested table
+   would fight its layout). It uses the same cell/share vocabulary as the
+   motif grid but as horizontal flex rows, so the styles compose. */
+.option-biome-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 8px 0;
+  font-size: 0.8em;
+}
+.option-biome-row {
+  display: flex;
+  align-items: stretch;
+}
+.option-biome-head {
+  color: var(--ink-faint);
+  font-weight: 600;
+}
+.option-biome-row .biome-cell,
+.option-biome-row > span:first-child {
+  flex: 0 0 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--ink-mid);
+  padding: 2px 3px;
+}
+.option-biome-grid .option-biome-cell,
+.option-biome-head > span:not(.biome-cell) {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid var(--token-border-subtle, #333);
+  /* overflow-x:auto would push the share bar off the hit-area; a slim grid
+     with clipped columns reads better and the header tooltip carries the id */
+  overflow: hidden;
+}
+.option-biome-grid .option-biome-cell {
+  position: relative;
+}
+.option-biome-grid input[type="number"] {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 1px 2px;
+  font-size: 0.9em;
+  text-align: center;
+  background: transparent;
+  border: none;
+}
+.option-biome-grid input[type="number"]:hover {
+  background: color-mix(in srgb, var(--ink-faint) 18%, transparent);
+}
+.option-biome-grid .option-biome-cell.excluded {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+.option-biome-grid .option-biome-cell.excluded input[type="number"] {
+  color: var(--crimson);
+}
+/* In the alternatives panel the number spinners come from the inspector
+   rules — strip them from the grid cells (they are bare stepper-less inputs). */
+.option-biome-grid input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.option-biome-grid input[type="number"]::-webkit-outer-spin-button,
+.option-biome-grid input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* ── Number spinners off in the motifs panel ─────────────────────────────── */
 
 /* The #inspector rules in forms.css don't reach the floating select panel,
