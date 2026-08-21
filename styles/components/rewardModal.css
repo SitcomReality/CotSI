@@ -15,13 +15,13 @@
   border: var(--edge-bold) solid var(--crease-bold);
   border-radius: var(--r-panel);
   box-shadow: var(--shadow-stack);
-  padding: 24px;
+  padding: var(--s5);
   max-width: 420px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: var(--s3);
 
   /* ── Soft-lock prevention: cap + internal scroll so the accept bar
      (sticky .modal-footer) is ALWAYS on screen, even with 7 potency pips. ── */
@@ -34,7 +34,8 @@
    Small pill at the top of the card showing the reward category (Artifact,
    Spoils, Treasure) with a monoline icon. Gold border, compact.
    ────────────────────────────────────────────────────────────────────────── */
-#rewardTypeBadge {
+/* Slot layout for the badge pill (class-based; the id stays JS-only) */
+.reward-card > .reward-type-badge {
   display: flex;
   justify-content: center;
   min-height: 0;
@@ -44,9 +45,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 12px 3px 8px;
+  padding: 3px var(--s3) 3px var(--s2);
   border: var(--edge) solid var(--gold);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   font-family: var(--font-display);
   font-size: var(--fs-xs, 11px);
   letter-spacing: var(--ls-cap, 0.08em);
@@ -67,7 +68,7 @@
   margin: 0;
   color: var(--gold);
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: var(--fs-lg);
   text-align: center;
   line-height: 1.2;
 }
@@ -75,7 +76,7 @@
 /* ── Body Paragraphs ──────────────────────────────────────────────────────────
    Narrative fallback text when no structured effects are provided.
    ────────────────────────────────────────────────────────────────────────── */
-#rewardBody {
+.reward-body {
   text-align: center;
   width: 100%;
 }
@@ -83,7 +84,7 @@
 .reward-line {
   font-size: 14px;
   color: var(--ink-mid);
-  margin: 0 0 4px;
+  margin: 0 0 var(--s1);
   text-align: center;
 }
 
@@ -95,13 +96,13 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  margin: 4px 0;
+  margin: var(--s1) 0;
 }
 
 .reward-effect {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
   padding: 6px 8px;
   font-size: 14px;
   color: var(--ink);
@@ -137,7 +138,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 4px;
+  margin-top: var(--s1);
 }
 
 /* ── Choice Card ──────────────────────────────────────────────────────────────
@@ -152,7 +153,7 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--s2);
   transition: border-color var(--dur-fast) var(--ease-out),
               background var(--dur-fast) var(--ease-out),
               box-shadow var(--dur-fast) var(--ease-out);
@@ -185,7 +186,7 @@
   gap: 4px;
   padding: 2px 8px 2px 6px;
   border: var(--hair) solid var(--gold);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   font-family: var(--font-display);
   font-size: 10px;
   letter-spacing: var(--ls-cap, 0.08em);
@@ -205,7 +206,7 @@
 .reward-choice-name {
   font-weight: 800;
   color: var(--ink);
-  font-size: 15px;
+  font-size: var(--fs-md);
   text-align: left;
 }
 
@@ -220,8 +221,8 @@
 }
 
 .reward-choice-effects .reward-effect {
-  padding: 4px 4px;
-  font-size: 13px;
+  padding: var(--s1);
+  font-size: var(--fs-sm);
   border-bottom: var(--hair) solid var(--crease);
 }
 
@@ -238,6 +239,6 @@
    Existing btn-gold pattern. Margin tweak for spacing inside the card.
    ────────────────────────────────────────────────────────────────────────── */
 .reward-btn {
-  margin-top: 4px;
+  margin-top: var(--s1);
   width: 100%;
 }
