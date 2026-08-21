@@ -6,8 +6,8 @@
         <div class="herald-modal__day" id="heraldDay"></div>
       </div>
     </div>
-    <div data-ref="weatherDisplay" class="herald-modal__weather-display"></div>
-    <div data-ref="weatherCaption" class="herald-modal__weather-caption"></div>
+    <div data-ref="weatherDisplay" class="weather-display"></div>
+    <div data-ref="weatherCaption" class="weather-display__caption"></div>
     <div class="herald-modal-body" id="heraldBody"></div>
     <div class="modal-footer">
       <button class="btn-gold herald-modal-btn" id="heraldAck" data-action="acknowledgeHerald" disabled>Begin</button>

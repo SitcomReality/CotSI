@@ -15,20 +15,16 @@ import { WEATHER_FOG_VIEWBOX, WEATHER_FOG_PATTERN_SIZE, WEATHER_FOG_STROKE, WEAT
  * Create a weather display element.
  *
  * @param {Object} weather — { name, text, tint }
- * @param {Object} opts
- * @param {string} opts.classPrefix — BEM block prefix, e.g. 'herald-modal'
- * @param {string} [opts.patternId] — SVG pattern ID; derived from classPrefix
- *   if omitted (e.g. 'herald-modal' → 'fog-clouds-herald')
+ * @param {Object} [opts]
+ * @param {string} [opts.patternId] — SVG pattern ID (must be unique per
+ *   mounted instance); defaults to 'fog-clouds-weather'
  * @returns {HTMLElement}
  */
-export function weatherDisplayEl(weather, { classPrefix, patternId } = {}) {
-  if (!patternId) {
-    patternId = 'fog-clouds-' + classPrefix.replace('-modal', '');
-  }
+export function weatherDisplayEl(weather, { patternId = 'fog-clouds-weather' } = {}) {
 
   // Inline SVG fog pattern — can't reference <pattern> from an external sprite
   const fogSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  fogSvg.setAttribute('class', classPrefix + '__weather-fog');
+  fogSvg.setAttribute('class', 'weather-display__fog');
   fogSvg.setAttribute('viewBox', '0 0 ' + WEATHER_FOG_VIEWBOX + ' ' + WEATHER_FOG_VIEWBOX);
   fogSvg.setAttribute('preserveAspectRatio', 'none');
   const fogDefs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -47,15 +43,15 @@ export function weatherDisplayEl(weather, { classPrefix, patternId } = {}) {
   fogRect.setAttribute('fill', 'url(#' + patternId + ')');
   fogSvg.append(fogRect);
 
-  const name = h('div', { class: classPrefix + '__weather-name' }, weather.name);
+  const name = h('div', { class: 'weather-display__name' }, weather.name);
 
-  const cornerTL = svgIcon('d-corner', WEATHER_CORNER_ICON_SIZE, { class: classPrefix + '__wc ' + classPrefix + '__wc--tl' });
-  const cornerTR = svgIcon('d-corner', WEATHER_CORNER_ICON_SIZE, { class: classPrefix + '__wc ' + classPrefix + '__wc--tr' });
-  const cornerBL = svgIcon('d-corner', WEATHER_CORNER_ICON_SIZE, { class: classPrefix + '__wc ' + classPrefix + '__wc--bl' });
-  const cornerBR = svgIcon('d-corner', WEATHER_CORNER_ICON_SIZE, { class: classPrefix + '__wc ' + classPrefix + '__wc--br' });
+  const cornerTL = svgIcon('d-corner', WEATHER_CORNER_ICON_SIZE, { class: 'weather-display__wc weather-display__wc--tl' });
+  const cornerTR = svgIcon('d-corner', WEATHER_CORNER_ICON_SIZE, { class: 'weather-display__wc weather-display__wc--tr' });
+  const cornerBL = svgIcon('d-corner', WEATHER_CORNER_ICON_SIZE, { class: 'weather-display__wc weather-display__wc--bl' });
+  const cornerBR = svgIcon('d-corner', WEATHER_CORNER_ICON_SIZE, { class: 'weather-display__wc weather-display__wc--br' });
 
   return h('div', {
-    class: classPrefix + '__weather-display',
+    class: 'weather-display',
     style: { '--weather-tint': weather.tint },
   }, fogSvg, cornerTL, cornerTR, cornerBL, cornerBR, name);
 }

@@ -34,6 +34,7 @@
 @import "./components/tradeModal.css";
 @import "./components/dispatchModal.css";
 @import "./components/heraldModal.css";
+@import "./components/weatherDisplay.css";
 @import "./components/deathModal.css";
 @import "./components/rewardModal.css";
 @import "./components/championPanel.css";

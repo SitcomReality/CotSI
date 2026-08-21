@@ -1,0 +1,67 @@
+/* =========================================================================
+   WEATHER DISPLAY — Shared painted-weather panel used by ritual modals
+   (Herald's Prognosis; available for the Augur's Dispatch).
+   Background tint comes from the weather data (--weather-tint set by
+   weatherDisplay.js), overlaid with the fog-cloud pattern and decorative
+   corner knots. This is the chrome's one moment of deliberate vividness.
+   ========================================================================= */
+
+.weather-display {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  border-radius: var(--r-sm);
+  /* tint wash over vellum */
+  background:
+    color-mix(in srgb, var(--weather-tint, var(--ink-mid)) 22%, var(--abyss));
+  border: var(--hair) solid color-mix(in srgb, var(--weather-tint, var(--crease)) 40%, var(--crease));
+  margin-bottom: var(--s1);
+  overflow: hidden;
+}
+
+/* Fog-pattern overlay added via JS — covers the weather display area */
+.weather-display__fog {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--ink-faint);
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.weather-display__name {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  letter-spacing: var(--ls-display);
+  color: var(--ink);
+  text-shadow: 0 1px 2px color-mix(in srgb, var(--weather-tint, transparent) 30%, transparent);
+  text-align: center;
+  padding: var(--s5) var(--s4);
+  z-index: 1;
+}
+
+/* Decorative corners */
+.weather-display__wc {
+  position: absolute;
+  color: var(--ink-faint);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.weather-display__wc--tl { top: var(--s1); left: var(--s1); }
+.weather-display__wc--tr { top: var(--s1); right: var(--s1); transform: scaleX(-1); }
+.weather-display__wc--bl { bottom: var(--s1); left: var(--s1); transform: scaleY(-1); }
+.weather-display__wc--br { bottom: var(--s1); right: var(--s1); transform: scale(-1); }
+
+/* Caption — beneath the big display */
+.weather-display__caption {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--fs-sm);
+  color: var(--ink-mid);
+  padding: 0 var(--s1);
+  margin-bottom: var(--s1);
+}

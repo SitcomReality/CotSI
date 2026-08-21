@@ -88,7 +88,7 @@ export function openHeraldModal(report) {
   dayEl.textContent = `Day ${report.day}`;
 
   // ── Weather display ──
-  weatherEl.replaceChildren(weatherDisplayEl(report.weather, { classPrefix: 'herald-modal', patternId: 'fog-clouds-herald' }));
+  weatherEl.replaceChildren(weatherDisplayEl(report.weather, { patternId: 'fog-clouds-herald' }));
 
   // ── Weather caption ──
   captionEl.textContent = `${report.weather.name} — ${report.weather.text}`;
