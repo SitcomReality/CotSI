@@ -11,7 +11,7 @@ export const MARSH_DESCRIPTOR = {
   id: 'marsh',
   kind: 'decor',
   displayName: 'Marsh decor',
-  cluster: { rule: 'moisture', countsByTerrain: { marsh: [5, 8] }, densityRange: [0.45, 0.85], jitter: 1 },
+  cluster: { rule: 'moisture', countsByTerrain: { marsh: [4, 6] }, densityRange: [0.45, 0.85], jitter: 1 },
   size: { min: 0.9, max: 1.25 },
   variation: { colorJitter: 0.06 },
   placement: { mode: 'scatter', offsetMin: 0.1, offsetMax: 0.4, separation: 0.3 },

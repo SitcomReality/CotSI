@@ -11,7 +11,7 @@ export const PLATEAU_DESCRIPTOR = {
   id: 'plateau',
   kind: 'decor',
   displayName: 'Plateau decor',
-  cluster: { min: 5, max: 8, rule: 'uniform' },
+  cluster: { min: 3, max: 7, rule: 'uniform' },
   size: { min: 0.85, max: 1.15 },
   variation: { colorJitter: 0.06 },
   placement: { mode: 'scatter', offsetMin: 0.12, offsetMax: 0.42, separation: 0.38 },

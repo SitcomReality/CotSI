@@ -11,7 +11,7 @@ export const PLAINS_DESCRIPTOR = {
   id: 'plains',
   kind: 'decor',
   displayName: 'Plains decor',
-  cluster: { min: 5, max: 8, rule: 'uniform' },
+  cluster: { min: 3, max: 7, rule: 'uniform' },
   size: { min: 0.8, max: 1.2 },
   variation: { colorJitter: 0.06 },
   placement: { mode: 'scatter', offsetMin: 0.1, offsetMax: 0.38, separation: 0.32 },

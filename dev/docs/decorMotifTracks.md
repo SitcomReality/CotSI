@@ -180,23 +180,50 @@ Any new option id must not collide with an existing part/motif/optionalGroup id.
 
 ---
 
-## Track 3 (TODO) — Density / visual clutter
+## Track 3 (IN PROGRESS) — Density / visual clutter
 
 Too many decor objects on some terrains; beaches and deserts can look busy when
-they should read barer sometimes. Two levers, in order:
+they should read barer sometimes. The user's direction is to **reduce** density
+(make beaches/deserts barer), which settled the lens the two levers below were
+written through.
 
-1. **Per-motif `footprint` for the scatter solver** — the real fix for the
-   density gap, already tracked under "Decor composition follow-ups" in
-   `dev/docs/futureWork.md`. Single-part component decors (beach/plains/marsh/
-   plateau) currently land at ~32–44% of the v5 part-count mean because
-   matching it needs 15–20+ slots per tile and the separation solver can't pack
-   that. A per-motif visual-mass footprint would let cluster counts rise safely.
-2. **Cluster-count / repeatPenalty tuning per biome** — the `cluster.min/max`,
-   `repeatPenalty`, and `size` on each decor (`data/decor/*.js`). Beaches and
-   deserts specifically should allow the sparse end more often (barer reads).
+### Lever 2 — cluster-count tuning per decor (DONE, first pass)
 
-Final numbers need in-game eyeballing — the user tests visually and reports back
-(see "How to verify" below). Do not guess density numbers.
+Lowered the `cluster` range on the cluttered component decors so the sparse end
+is reachable and the average per-tile object count drops, while **forest /
+deepWood / hill / mountain stay untouched** (those should stay lush / are
+single-mound). `data/decor/*.js`:
+
+| decor | before | after | snapshot-tile itemCount |
+|-------|--------|-------|-------------------------|
+| beach | `{min:5, max:8}` | `{min:3, max:6}` | 7 → 5 |
+| desert | `{min:6, max:8}` | `{min:3, max:6}` | 6–8 → 5 |
+| plains | `{min:5, max:8}` | `{min:3, max:7}` | 6 → 6 (range widened so min 3 is reachable) |
+| marsh | `marsh:[5,8]` | `marsh:[4,6]` | 5 → 4 |
+| plateau | `{min:5, max:8}` | `{min:3, max:7}` | 7 → 6 |
+
+`size`, `repeatPenalty`, `separation`, and `offsetMax` were left alone — dropping
+the count already yields barer hexes (fewer members spread by the same
+separation → bigger visual gaps). Everything else (forest/deepWood/hill/mountain
++ the supernatural trim) is unchanged.
+
+### Lever 1 — per-motif `footprint` (DEFERRED — conflicts with the goal)
+
+The original Track 3 brief listed a **per-motif `footprint`** (the scatter
+solver packing more small items) as "the real fix" — but its stated purpose was
+to **raise** cluster counts back toward the v5 part-count mean, which is the
+opposite of what the user asked for (beaches/deserts should read **barer**).
+Because the count-reduction lever above already serves the request, footprint is
+deferred rather than built against it. It remains a live follow-up in
+`dev/docs/futureWork.md` ("Decor composition follow-ups") for when the scatter
+solver needs to be size-aware (e.g. if we later want dense small debris that
+doesn't overlap); it is not needed for the current "reduce clutter" pass.
+
+### First-pass numbers — need in-game eyeballing
+
+These are **starting** values, not final. The user loads the game and screenshots
+the affected terrains; the AI dev adjusts the ranges on request. Do not treat
+the table above as settled until the visual pass confirms it reads right.
 
 ---
 

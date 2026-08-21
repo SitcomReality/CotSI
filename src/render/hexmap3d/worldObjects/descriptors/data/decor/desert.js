@@ -11,7 +11,7 @@ export const DESERT_DESCRIPTOR = {
   id: 'desert',
   kind: 'decor',
   displayName: 'Desert decor',
-  cluster: { min: 6, max: 8 },
+  cluster: { min: 3, max: 6 },
   size: { min: 0.9, max: 1.2 },
   variation: { colorJitter: 0.06 },
   placement: { mode: 'scatter', offsetMax: 0.45, separation: 0.42 },
