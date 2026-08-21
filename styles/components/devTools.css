@@ -101,5 +101,3 @@
   display: block;
 }
 
-/* Content styles imported from separate file (split for modularity) */
-@import "./devToolsContent.css";

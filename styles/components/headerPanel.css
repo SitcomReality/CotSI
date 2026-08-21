@@ -115,36 +115,36 @@
 
 /* Champion pill inner elements */
 .header-panel__champion-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--faction-color);
-    flex-shrink: 0;
-    border: var(--hair) solid rgba(34, 28, 20, 0.15);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--faction-color);
+  flex-shrink: 0;
+  border: var(--hair) solid rgba(34, 28, 20, 0.15);
 }
 
 .header-panel__champion-hp,
 .header-panel__champion-pot {
-    font-variant-numeric: var(--tnum);
-    line-height: 1;
+  font-variant-numeric: var(--tnum);
+  line-height: 1;
 }
 
 .header-panel__champion-hp {
-    color: var(--ink);
-    font-weight: 600;
-    min-width: 1.5em;
-    text-align: right;
+  color: var(--ink);
+  font-weight: 600;
+  min-width: 1.5em;
+  text-align: right;
 }
 
 .header-panel__champion-pot {
-    color: var(--ink-mid);
-    font-size: 10px;
+  color: var(--ink-mid);
+  font-size: 10px;
 }
 
 .header-panel__champion-hp::after {
-    content: '♥';
-    font-size: 8px;
-    color: var(--crimson);
-    margin-left: 2px;
-    vertical-align: middle;
+  content: '♥';
+  font-size: 8px;
+  color: var(--crimson);
+  margin-left: 2px;
+  vertical-align: middle;
 }

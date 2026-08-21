@@ -7,9 +7,6 @@
 
 .herald-modal-card {
   width: min(560px, 94vw);
-  background-color: var(--board);
-  background-image: var(--nebula), linear-gradient(180deg, var(--board-hi), var(--board));
-  background-size: 340px 340px, auto;
   max-height: calc(100vh - 2 * var(--s4));
   max-height: calc(100dvh - 2 * var(--s4));
   overflow-y: auto;

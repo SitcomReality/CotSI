@@ -5,9 +5,6 @@
 
 .death-modal-card {
   width: min(480px, 90vw);
-  background-color: var(--board);
-  background-image: var(--nebula), linear-gradient(180deg, var(--board), #0a0a0f);
-  background-size: 340px 340px, auto;
   max-height: calc(100vh - 2 * var(--s4));
   max-height: calc(100dvh - 2 * var(--s4));
   overflow-y: auto;
