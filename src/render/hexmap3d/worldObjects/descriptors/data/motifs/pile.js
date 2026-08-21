@@ -3,8 +3,9 @@
  *
  * The consolidated flattened-pile motif. One low pile silhouette expressed as
  * material alternatives (mud / wrack / crust / shell / pad / moundPlains),
- * gated by `weight` and per-option `biomeWeight`. Hand-authored geometry
- * source of truth — any decor's motif table can reference it by
+ * gated by `weight` and per-option `biomeWeight` (the salt `crust` dominates
+ * arid flats; `moundPlains`-snowy mounds favor the cold biomes). Hand-authored
+ * geometry source of truth — any decor's motif table can reference it by
  * `{ motif: 'pile', weight, ... }`.
  */
 export const PILE_MOTIF = {
@@ -46,6 +47,8 @@ export const PILE_MOTIF = {
         {
           id: 'pile-crust',
           weight: 0.2,
+          // Salt/dry crust — forms across the arid flats.
+          biomeWeight: { biome_sere_wastes: 1.6, biome_dustbleed: 1.6, biome_scorch: 1.5 },
           parts: [
             {
               id: 'pile-crust-a',

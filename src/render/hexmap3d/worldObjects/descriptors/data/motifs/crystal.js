@@ -3,7 +3,9 @@
  *
  * A faceted crystal formation: one motif placement rolls a single shard, a
  * pair, or a small outcrop cluster, so crystalline patches read as outcrops
- * rather than identical single shards. Hand-authored geometry source of truth —
+ * rather than identical single shards. The formation weights are per-biome
+ * biased — Edenfall and Dustbleed (the crystal's signature biomes) favor
+ * outcrop clusters over lone shards. Hand-authored geometry source of truth —
  * any decor's motif table can reference it by `{ motif: 'crystal', weight, ... }`.
  */
 
@@ -38,6 +40,8 @@ export const CRYSTAL_MOTIF = {
         {
           id: 'crystal-single',
           weight: 0.4,
+          // Rarer lone shard in the crystal-signature biomes — there it clusters.
+          biomeWeight: { biome_edenfall: 0.7, biome_dustbleed: 0.7 },
           parts: [crystal('crystal-single-a', 0.11, 1.8, 0, 0, 0.3)],
         },
         {
@@ -51,6 +55,8 @@ export const CRYSTAL_MOTIF = {
         {
           id: 'crystal-outcrop',
           weight: 0.25,
+          // Edenfall and Dustbleed host the richest crystal — they cluster.
+          biomeWeight: { biome_edenfall: 1.4, biome_dustbleed: 1.4 },
           parts: [
             crystal('crystal-outcrop-a', 0.1, 1.7, -0.07, 0.05, 0.25),
             crystal('crystal-outcrop-b', 0.075, 1.55, 0.07, -0.03, -0.4),

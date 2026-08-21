@@ -4,6 +4,11 @@
  * The round tree from Forest terrain. Hand-authored geometry
  * source of truth — any decor's motif table can reference it by
  * `{ motif: 'roundTree', weight, ... }`.
+ *
+ * The fruit choice point is per-biome biased: trees in the fertile, wet biomes
+ * (edenfall, painforest) set berries or blossom readily, while cold and arid
+ * trees (tundra, frigid_silence, sere_wastes, scorch, dustbleed) mostly go
+ * bare — energy goes to surviving, not fruiting.
  */
 export const ROUND_TREE_MOTIF = {
   id: 'roundTree',
@@ -76,10 +81,22 @@ export const ROUND_TREE_MOTIF = {
       seed: 103,
       default: 'roundTree-berries',
       alternatives: [
-        { id: 'roundTree-fruit-none', weight: 0.45, parts: [] },
+        {
+          id: 'roundTree-fruit-none',
+          weight: 0.45,
+          // Cold and arid trees put energy into survival, not fruit; fertile
+          // biomes fruit readily.
+          biomeWeight: {
+            biome_tundra: 2.5, biome_frigid_silence: 2.5,
+            biome_sere_wastes: 2, biome_scorch: 2, biome_dustbleed: 2,
+            biome_edenfall: 0.35, biome_painforest: 0.4,
+          },
+          parts: [],
+        },
         {
           id: 'roundTree-berries',
           weight: 0.35,
+          biomeWeight: { biome_edenfall: 1.4, biome_painforest: 1.3 },
           parts: [
             {
               id: 'roundTree-berry-a',
@@ -128,6 +145,7 @@ export const ROUND_TREE_MOTIF = {
         {
           id: 'roundTree-blossom',
           weight: 0.2,
+          biomeWeight: { biome_edenfall: 1.2, biome_painforest: 1.2 },
           parts: [
             {
               id: 'roundTree-blossom-a',

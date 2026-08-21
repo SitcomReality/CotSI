@@ -5,6 +5,12 @@
  * the Painforest biome leans on. Hand-authored geometry source
  * of truth — any decor's motif table can reference it by
  * `{ motif: 'gnarledTree', weight, ... }`.
+ *
+ * The branch-split choice point is per-biome biased: the lush, full-crown
+ * styles (spread, twotier) dominate the sheltered wet biomes (painforest,
+ * edenfall), while the dry, open-country biomes (scorch, sere_wastes,
+ * dustbleed, tundra, frigid_silence) lean on the one-sided, wind-shaven swept
+ * silhouette.
  */
 export const GNARLED_TREE_MOTIF = {
   id: 'gnarledTree',
@@ -53,6 +59,11 @@ export const GNARLED_TREE_MOTIF = {
         {
           id: 'gnarledTree-style-spread',
           weight: 0.45,
+          // Lush, full canopy — favors the wet, sheltered biomes.
+          biomeWeight: {
+            biome_painforest: 1.4, biome_edenfall: 1.3,
+            biome_scorch: 0.5, biome_sere_wastes: 0.5, biome_dustbleed: 0.6,
+          },
           parts: [
             {
               id: 'gnarledTree-branch-spread',
@@ -94,6 +105,12 @@ export const GNARLED_TREE_MOTIF = {
         {
           id: 'gnarledTree-style-swept',
           weight: 0.35,
+          // One-sided, wind-shaven crown — dry / open-country biomes.
+          biomeWeight: {
+            biome_scorch: 1.8, biome_sere_wastes: 1.8, biome_dustbleed: 1.6,
+            biome_tundra: 1.4, biome_frigid_silence: 1.4,
+            biome_painforest: 0.6,
+          },
           parts: [
             {
               id: 'gnarledTree-branch-swept',
@@ -135,6 +152,12 @@ export const GNARLED_TREE_MOTIF = {
         {
           id: 'gnarledTree-style-twotier',
           weight: 0.2,
+          // Double-canopy fullness — lush biomes; sparse in cold/arid.
+          biomeWeight: {
+            biome_painforest: 1.4, biome_edenfall: 1.3, biome_default: 1.2,
+            biome_tundra: 0.7, biome_frigid_silence: 0.7,
+            biome_sere_wastes: 0.7, biome_scorch: 0.7,
+          },
           parts: [
             {
               id: 'gnarledTree-branch-twotier',

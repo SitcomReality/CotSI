@@ -4,9 +4,8 @@ Active three-track plan born from a terrain-decor review: the decor system's
 variation features (alternatives, per-option `biomeWeight`, per-motif weight
 skews, motif library) are richer than the catalog actually uses. The plan is to
 consolidate the motif catalog, then actually *use* those features, then tune
-density. **Track 1 is committed; Track 2's named authoring asks are done and
-committed here (a broad per-biome-weight polish is optional, see below); Track 3
-is the density brief below.**
+density. **Track 1 is committed; Track 2 (authoring + a broad per-biome-weight
+pass) is committed here; Track 3 is the density brief below.**
 
 Scope note: tracks are deliberately separate. Do not fold Track 2 (authoring)
 or Track 3 (density) changes into Track 1 work or vice-versa — each lands and
@@ -105,13 +104,13 @@ that still pointed at the deleted `data/motifs/debris.js`, and
 
 ---
 
-## Track 2 (WIP) — Authoring & actual feature use
+## Track 2 (DONE) — Authoring & actual feature use
 
 Catalog is right; the geometry and the use of the variation features is not.
 The point of Track 2 is to make motifs read correctly and to *exercise*
 alternatives / per-option `biomeWeight` / grouping per motif.
 
-### Progress so far — all named authoring asks DONE
+### Progress — named authoring asks + a broad per-biome-weight pass DONE
 
 Each remaining motif now uses the alternatives / per-biome-weight feature set
 rather than a single static shape:
@@ -142,12 +141,37 @@ to the motif (`<motif>-<option>-<local>`) so part ids stay globally unique —
 reusing the same builder across two options REQUIRES a distinct prefix, or
 `validateParts` rejects the duplicate ids (the cactus authoring caught this).
 
-### Remaining Track 2 polish (optional / broad)
+#### Broad per-biome-weight pass (DONE)
 
-- **Apply per-biome alternative/part weighting more broadly** — the
-  Sere-Wastes/Painforest tuft and shrub examples are the template; extend to
-  other motifs where a part should read differently per biome. Low priority
-  once the named asks are done; do it per biome as the need shows.
+The Sere-Wastes/Painforest tuft + shrub template was extended across the other
+motifs that already had an `alternatives` choice point whose options should read
+differently per biome, plus one new choice point. **Snapshot-neutral for the
+per-biome bias** (the golden-snapshot tiles carry no `biomeId`, so option
+`biomeWeight` is ×1 there), except the `log` restructure which legitimately
+rewrote the snapshot. All authored to run through `biomeColor`/`biomeScale`
+for tint/size; the splits are regional *shape/part* choices:
+
+- **`roundTree` fruit (seed 103)** — cold & arid trees go bare; fertile biomes
+  fruit readily. Bare 45% (default) → 67% tundra/frigid_silence, 62% sere/
+  scorch/dustbleed; berries+blossom 55% (default) → 82% edenfall, 79% painforest.
+- **`gnarledTree` branch-split (seed 102)** — the wind-shaven `swept` crown
+  dominates dry/open country (63% scorch/sere_wastes, 54% dustbleed); the lush
+  `spread`/`twotier` crowns dominate painforest/edenfall.
+- **`tuft` (seed 113)** — lush `grass` in the wet, mild biomes (71% edenfall/
+  painforest); dry `tussock` scrub in arid (75% sere_wastes).
+- **`crystal` formation (seed 115)** — outcrop clusters favor edenfall/dustbleed
+  (36% vs 25% elsewhere).
+- **`pile` (seed 111)** — the salt `crust` material dominates arid flats
+  (29% sere_wastes/dustbleed vs 20% default); `moundPlains` already favors the
+  cold biomes.
+- **`log` (new `log-overgrowth`, seed 117)** — the moss + two shelf fungi are
+  now a per-biome choice: bare logs in the dry, open biomes (bare 68%
+  sere_wastes, 63% scorch/dustbleed) vs mossy, fungus-capped logs in the wet,
+  mild biomes (present 74% edenfall/painforest/mourning_marsh).
+
+Applied the same discipline as the named asks: option/leaf ids stay prefix-scoped
+and globally unique; only registered biome ids are used; part transforms stay
+within the allowed root/nested field sets.
 
 ### Reminder for exactly-once part ids
 
@@ -184,10 +208,15 @@ Final numbers need in-game eyeballing — the user tests visually and reports ba
   → the three import checkers (`check_imports.py`,
   `check_analysis_imports.py`, `check_geometry_editor_imports.py`).
 - **Visual** (the user, all tracks): load the game and screenshot the affected
-  biomes — desert, marsh, beach, plains, deepWood, titanstain, unfinished lands
-  (the supernatural trim plus the re-authored cactus/deadTree/flower/crystal/
-  shrub) — confirming no broken/empty hexes and each biome still reads as
-  itself. The AI dev can't run the game; rely on the user for the visual pass.
+  biomes — desert, marsh, beach, plains, forest, deepWood, plateau, titanstain,
+  unfinished lands (the supernatural trim plus the re-authored
+  cactus/deadTree/flower/crystal/shrub) — confirming no broken/empty hexes and
+  each biome still reads as itself. For the broad per-biome-weight pass, put two
+  **contrasting** biomes side by side to confirm the split reads: e.g. an
+  edenfall/painforest forest (fruitful, mossy logs, lush tufts) against a
+  sere_wastes/scorch or tundra one (bare trees — no fruit, bare logs, dry
+  tussock, wind-swept gnarled crowns). The AI dev can't run the game; rely on
+  the user for the visual pass.
 
 ## Open questions for the user
 
