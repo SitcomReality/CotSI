@@ -71,9 +71,8 @@ export function renderBiomeScaleSection(container, part, ctx) {
         ctx.mutate(() => { part.biomeScale ??= {}; part.biomeScale[v] = 0.5; });
       },
     );
+    select.title = 'Multiplies this part\'s size on tiles of the picked biome — a fresh override starts at 0.5';
     addRow.append(select);
     sec.append(addRow);
   }
-  if (overrides.length === 0 && remaining.length === 0) return;
-  sec.append(el('div', 'hint', 'Multiplies this part\'s size on tiles of each biome — absent = scale 1. Type 1 or press × to clear an override.'));
 }

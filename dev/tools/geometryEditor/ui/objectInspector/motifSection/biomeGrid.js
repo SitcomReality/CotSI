@@ -147,7 +147,7 @@ export function renderBiomeGrid(motifSection, d, ctx) {
     }));
     motifSection.append(addRow);
   }
-  motifSection.append(el('div', 'hint', 'Realized share = w_i / Σw over the filtered table — the actual probability, not the raw multiplier (bar width). Struck-through = excluded.'));
+  motifSection.append(el('div', 'hint', 'bar = realized share · struck-through = excluded'));
 }
 
 /** A bare `<select>` whose first option is a disabled placeholder. */

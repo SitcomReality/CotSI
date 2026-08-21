@@ -22,16 +22,13 @@ export function renderEntityControls(container, ctx) {
   const factionOptions = FACTIONS.map((f) => f.short);
   container.append(row('Faction', selectInput(factionOptions, S.entity.faction, (v) => ctx.mutate(() => {
     S.entity.faction = v;
-  }))));
+  })), rule === 'archetype' ? 'Picks the palette colors' : 'Picks the variant and the palette colors'));
 
   if (rule === 'archetype' && variants.length > 0) {
     const ids = variants.map((v) => v.id);
     const current = ids.includes(S.entity.archetype) ? S.entity.archetype : ids[0];
     container.append(row('Archetype', selectInput(ids, current, (v) => ctx.mutate(() => {
       S.entity.archetype = v;
-    }))));
-    container.append(el('div', 'hint', 'Archetype picks the shape variant; faction picks the palette colors.'));
-  } else {
-    container.append(el('div', 'hint', 'Faction picks the variant and the palette colors.'));
+    })), 'Picks the shape variant'));
   }
 }

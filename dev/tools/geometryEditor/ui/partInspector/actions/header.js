@@ -19,5 +19,9 @@ export function renderPartHeader(container, node, ctx) {
   });
   const kind = isAlternativesNode(node) ? 'alternatives' : isGroupNode(node) ? 'group' : node.shape;
   const title = `${node.id} · ${kind}`;
-  container.append(inspectorHead(title, null, back));
+  const head = inspectorHead(title, null, back);
+  if (isAlternativesNode(node)) {
+    head.title = 'Choice point: every item rolls ONE option by weight (seeded per node). It carries no position — wrap a hinged config in a group inside the option.';
+  }
+  container.append(head);
 }

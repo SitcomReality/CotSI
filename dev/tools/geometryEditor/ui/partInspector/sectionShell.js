@@ -23,8 +23,7 @@ const SECTIONS = {
   rotation:      { title: 'Rotation',      open: false },
   scale:         { title: 'Scale',         open: false },
   bounds:        { title: 'Bounds',        open: false },
-  color:         { title: 'Color',         open: false },
-  biome:         { title: 'Biome tint',    open: false },
+  color:         { title: 'Color & tint',  open: false },
   biomeScale:    { title: 'Biome scale',   open: false },
   stretch:       { title: 'Stretch variation', open: false },
 };

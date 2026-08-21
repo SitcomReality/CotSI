@@ -59,9 +59,8 @@ export function renderClusterSection(container, d, ctx) {
       d.cluster.densityRange ??= [0.55, 0.85];
       d.cluster.jitter ??= 1;
     }
-  }))));
+  })), 'Moisture: count scales with the tile\'s moisture between the terrain\'s min–max; unlisted terrains fall back to forest, then the first row, then 3–5'));
   if (d.cluster.rule === 'moisture') {
-    sec.append(el('div', 'hint', 'Count scales with the tile\'s moisture between the terrain\'s min–max; tiles without moisture default to mid-density. Terrains not listed fall back to forest, then the first row, then 3–5.'));
     const list = el('div', 'cluster-terrains');
     for (const [terrain, pair] of Object.entries(d.cluster.countsByTerrain ?? {})) {
       list.append(countsRow(d, terrain, pair, ctx));
@@ -102,8 +101,7 @@ export function renderVariationSection(container, d, ctx) {
     const j = d.variation.colorJitter ?? 0;
     return j === 0 ? 'default' : `jitter ${j}`;
   });
-  sec.append(row('Color jitter', numberInput(d.variation.colorJitter ?? 0, { min: 0, step: 0.01, onChange: (v) => ctx.mutate(() => { d.variation.colorJitter = v; }) })));
-  sec.append(el('div', 'hint', 'Per-tile brightness spread on every part — 0 = every instance identical (default), 0.05–0.08 typical.'));
+  sec.append(row('Color jitter', numberInput(d.variation.colorJitter ?? 0, { min: 0, step: 0.01, onChange: (v) => ctx.mutate(() => { d.variation.colorJitter = v; }) }), 'Per-tile brightness spread on every part — 0 = identical instances, 0.05–0.08 typical'));
 }
 
 /** Placement: mode picker plus the per-mode offset/separation/tilt fields. */
@@ -135,8 +133,7 @@ export function renderPlacementSection(container, d, ctx) {
     sec.append(row('Separation', numberInput(d.placement.separation ?? 0, { min: 0, step: 0.05, onChange: (v) => ctx.mutate(() => {
       if (v > 0) d.placement.separation = v;
       else delete d.placement.separation;
-    }) })));
-    sec.append(el('div', 'hint', 'Min world-unit distance between cluster members; 0 = off.'));
+    }) }), 'Min world-unit distance between cluster members; 0 = off'));
   }
   if (d.placement.mode === 'ring') {
     sec.append(row('Ring min', numberInput(d.placement.ringMin, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.placement.ringMin = v; }) })));
@@ -149,8 +146,7 @@ export function renderPlacementSection(container, d, ctx) {
     sec.append(row('Separation', numberInput(d.placement.separation ?? 0, { min: 0, step: 0.05, onChange: (v) => ctx.mutate(() => {
       if (v > 0) d.placement.separation = v;
       else delete d.placement.separation;
-    }) })));
-    sec.append(el('div', 'hint', 'Min world-unit distance between cluster members; 0 = off.'));
+    }) }), 'Min world-unit distance between cluster members; 0 = off'));
     sec.append(row('Tilt min', numberInput(d.placement.tiltMin, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltMin = v; }) })));
     sec.append(row('Tilt max', numberInput(d.placement.tiltMax, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltMax = v; }) })));
     sec.append(row('Tilt seed', intInput(d.placement.tiltSeed, { min: 0, onChange: (v) => ctx.mutate(() => { d.placement.tiltSeed = v; }) })));

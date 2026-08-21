@@ -28,7 +28,6 @@ export function renderAlternativesSection(container, node, entry, ctx) {
   // The active motif scopes new ids under this choice point (decorComposition.md
   // §6.2 — `M/A/localId` for parts inside an option) — null outside motif decors.
   const motifId = activeMotif()?.id;
-  container.append(el('div', 'hint', 'A choice point: every item rolls ONE option by weight (seeded per node). The node carries no position — wrap a hinged config in a group inside the option.'));
 
   // Preview state — every choice point is either natural (a real random roll) or
   // pinned to one option. The Natural radio returns to the random roll; the
@@ -55,8 +54,9 @@ export function renderAlternativesSection(container, node, entry, ctx) {
   container.append(readout);
 
   // Seed — read-only, from the reserved 100–199 lane.
-  container.append(row('Seed', el('span', 'readonly-value', String(node.seed ?? '—'))));
-  container.append(el('div', 'hint', 'Assigned once at creation — renaming or reordering never reshuffles in-world rolls.'));
+  const seedReadout = el('span', 'readonly-value', String(node.seed ?? '—'));
+  seedReadout.title = 'Assigned once at creation — renaming or reordering never reshuffles in-world rolls';
+  container.append(row('Seed', seedReadout));
 
   // Default picker.
   const options = node.alternatives ?? [];
@@ -64,8 +64,7 @@ export function renderAlternativesSection(container, node, entry, ctx) {
     options.map((o) => ({ value: o.id, label: `${o.id}${o.weight === 0 ? ' (never)' : ''}` })),
     node.default ?? '',
     (v) => ctx.mutate(() => { node.default = v; }),
-  )));
-  container.append(el('div', 'hint', 'The option "Show all" and the preview radio resolve to — never a "none".'));
+  ), 'The option "Show all" and the preview radio resolve to — never a "none"'));
 
   // Per-option rows: weight + preview radio + remove.
   renderOptionRows(container, node, options, motifId, ctx);

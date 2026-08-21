@@ -32,7 +32,6 @@ export function renderRotationSection(container, entry, ctx) {
     if (tiltDeg !== 0) parts.push(`lean ${fmt(tiltDeg)}°`);
     return parts.join(' · ');
   });
-  sec.append(el('div', 'hint', 'localAxis + localAngle rotate the part around any axis in its own frame; angles are degrees. The axis is a direction (magnitude is ignored).'));
   // Work on the NORMALIZED direction — the render rotates about the unit axis
   // (meshBuilder), so a stored vector like {x:-3, y:4, z:4} reads and edits as
   // its true direction {-0.47, 0.62, 0.62}. Edits write the full normalized
@@ -46,7 +45,7 @@ export function renderRotationSection(container, entry, ctx) {
       t.localAngle ??= 0;
     }
     // 'custom' keeps the current direction and reveals the axis fields below.
-  }))));
+  })), 'Rotates the part around this axis in its own frame — a direction; magnitude is ignored'));
   if (axisValue === 'custom') {
     sec.append(row('Axis X', numberInput(localAxis.x, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), x: v }); }) })));
     sec.append(row('Axis Y', numberInput(localAxis.y, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.localAxis = unitVec3({ ...unitVec3(t.localAxis), y: v }); }) })));
@@ -69,7 +68,6 @@ export function renderRotationSection(container, entry, ctx) {
 
   // Tilt is a world-space lean with no nested expression — root leaves only.
   if (parent === null && !isGroupNode(node)) {
-    sec.append(el('div', 'hint', 'tilt leans the part in world space (horizontal axis, degrees) — root leaves only.'));
     const tiltAxis = unitVec2(t.tiltAxis);
     const tiltValue = cardinalAxis2(t.tiltAxis);
     sec.append(row('Lean axis', selectInput(TILT_AXIS_OPTIONS, tiltValue, (v) => ctx.mutate(() => {
@@ -78,7 +76,7 @@ export function renderRotationSection(container, entry, ctx) {
         t.tiltAxis = { ...preset };
         t.tilt ??= 0;
       }
-    }))));
+    })), 'Tilt leans the part in world space about this horizontal axis (degrees)'));
     if (tiltValue === 'custom') {
       sec.append(row('Lean X', numberInput(tiltAxis.x, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.tiltAxis = unitVec2({ ...unitVec2(t.tiltAxis), x: v }); }) })));
       sec.append(row('Lean Z', numberInput(tiltAxis.z, { step: 0.1, onChange: (v) => ctx.mutate(() => { t.tiltAxis = unitVec2({ ...unitVec2(t.tiltAxis), z: v }); }) })));

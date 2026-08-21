@@ -182,5 +182,5 @@ export function renderOptionBiomeGrid(container, node, ctx) {
     }));
     container.append(addRow);
   }
-  container.append(el('div', 'hint', 'Per-option biomeWeight biases which shape variant this choice point favors in each biome (absent ≡ 1, struck-through ≡ excluded). Realized share = w·bw / Σw over the surviving options.'));
+  container.append(el('div', 'hint', 'bar = realized share · struck-through = excluded'));
 }

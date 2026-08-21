@@ -6,7 +6,7 @@
  * default look; a pin swaps in an alternate. Different terrains are separate
  * decor objects, so there is no per-terrain picker.
  */
-import { el, row, selectInput } from '../formControls/index.js';
+import { row, selectInput } from '../formControls/index.js';
 import { S } from '../../state.js';
 import { listArchetypes, getArchetype } from '../../../../../src/game/rules/archetypes.js';
 import { section } from './sectionShell.js';
@@ -34,12 +34,12 @@ export function renderBiomeVariantPins(container, ctx) {
     return pins.map(([id, vid]) => `${getArchetype(id)?.name ?? id}: ${vid}`).join(' · ');
   });
 
-  sec.append(el('div', 'hint', `Pin an alternate variant to a biome — the first variant (${ids[0]}) is the default look everywhere else. Variants: ${ids.join(', ')}.`));
+  const pinTitle = `Pin an alternate variant to a biome — ${ids[0]} (the first) is the default look everywhere else`;
   for (const biomeId of listArchetypes('biome')) {
     const options = [{ value: '', label: '— default look' }, ...ids.map((id) => ({ value: id, label: id }))];
     const current = d.biomeVariants?.[biomeId] ?? '';
     sec.append(row(getArchetype(biomeId)?.name ?? biomeId, selectInput(options, current, (v) => ctx.mutate(() => {
       setBiomePin(d, biomeId, v);
-    }))));
+    })), pinTitle));
   }
 }

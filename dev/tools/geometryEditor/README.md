@@ -148,9 +148,8 @@ outline), `src/render/hexmap3d/hexWorldSpace`, `src/engine/rules/mat4`,
 | `transform/scale.js` | Per-axis scale rows |
 | `leafSections/index.js` | Barrel: leaf-only sections |
 | `leafSections/shape.js` | Shape-params rows |
-| `leafSections/color.js` | Color row (entity tokens vs literal) |
-| `leafSections/biome.js` | Biome-tint source/influence rows |
-| `leafSections/biomeScale.js` | Per-part biome-tint scale rows |
+| `leafSections/color.js` | Merged Color & tint section (entity tokens vs literal + biome-tint source/influence) |
+| `leafSections/biomeScale.js` | Sparse per-part biome-scale override rows |
 | `leafSections/stretch.js` | Per-axis stretch variation rows |
 | `alternatives/index.js` | Choice-point fields (seed, default, options) |
 | `alternatives/optionRows.js` | Per-option rows (radio, id, weight, group, remove) |

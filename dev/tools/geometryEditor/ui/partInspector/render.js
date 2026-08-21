@@ -3,8 +3,8 @@
  *
  * renderPartInspector renders the selected part's fields into `container`.
  * `entry` is the parts-tree lookup ({ node, parent, depth, index, option }) —
- * groups get transform editing; leaves additionally get shape params, color,
- * biome tint, biome scale and stretch variation; `alternatives` choice points
+ * groups get transform editing; leaves additionally get shape params, the
+ * merged Color & tint, biome scale and stretch variation; `alternatives` choice points
  * get the option table (weights, default, seed, preview radios). The
  * structural tree actions (nest/move/ungroup/convert-to-alternatives) live in
  * the parts-list actions bar (ui/partList/actionsBar.js). `ctx` supplies the
@@ -15,14 +15,14 @@ import { renderPartHeader } from './actions/index.js';
 import { renderIdEdit } from './actions/idEdit.js';
 import { renderPositionSection, renderRotationSection, renderScaleSection } from './transform/index.js';
 import { renderBoundsSection } from './boundsSection.js';
-import { renderShapeSection, renderColorSection, renderBiomeSection, renderBiomeScaleSection, renderStretchSection } from './leafSections/index.js';
+import { renderShapeSection, renderColorSection, renderBiomeScaleSection, renderStretchSection } from './leafSections/index.js';
 import { renderAlternativesSection } from './alternatives/index.js';
 
 /**
  * Render the selected part's fields into `container`. `entry` is the parts-tree
  * lookup ({ node, parent, depth, index }) — groups get structural actions and
- * transform editing; leaves additionally get shape params, color, biome tint,
- * biome scale and stretch variation. `ctx` supplies the mutation flow.
+ * transform editing; leaves additionally get shape params, the merged
+ * Color & tint, biome scale and stretch variation. `ctx` supplies the mutation flow.
  */
 export function renderPartInspector(container, entry, ctx) {
   const { node } = entry;
@@ -41,7 +41,6 @@ export function renderPartInspector(container, entry, ctx) {
   renderBoundsSection(container, entry, ctx);
   if (!isGroupNode(node)) {
     renderColorSection(container, node, ctx);
-    renderBiomeSection(container, node, ctx);
     renderBiomeScaleSection(container, node, ctx);
     renderStretchSection(container, node, ctx);
   }

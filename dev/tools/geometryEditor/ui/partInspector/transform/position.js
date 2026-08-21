@@ -47,18 +47,18 @@ export function renderPositionSection(container, entry, ctx) {
     sec.append(el('div', 'hint', 'Editing the EMPTY keyframe (growth 0) — these values lerp to the full-state values as the feature regrows.'));
   }
   if (parent === null && !isGroupNode(node)) {
-    sec.append(el('div', 'hint', 'Y / Lift / localPos are world offsets (item-scaled). The part\'s lowest vertex lands at Y + Lift (+ localPos.y).'));
     const yValue = empty ? (node.states?.empty?.y ?? t.y ?? 0) : (t.y ?? 0);
     sec.append(row('Y (bottom height)', numberInput(yValue, { onChange: (v) => ctx.mutate(() => {
       if (empty) emptyKeyframe(node).y = v;
       else t.y = v;
-    }) })));
-    sec.append(row('Lift (bottom height)', numberInput(t.lift ?? 0, { onChange: (v) => ctx.mutate(() => { t.lift = v; }) })));
-  } else if (parent === null) {
-    sec.append(el('div', 'hint', 'Groups are never grounded — localPos offsets in the item frame (pre-scale units).'));
-  } else {
-    sec.append(el('div', 'hint', 'localPos offsets in the parent frame (pre-scale units); a leaf\'s bottom sits at its localPos point.'));
+    }) }), 'World offset, item-scaled — the part\'s lowest vertex lands at Y + Lift (+ localPos.y)'));
+    sec.append(row('Lift (bottom height)', numberInput(t.lift ?? 0, { onChange: (v) => ctx.mutate(() => { t.lift = v; }) }), 'World offset, item-scaled; base transform only (not keyframed)'));
   }
+  const lpTitle = parent === null
+    ? (isGroupNode(node)
+      ? 'Item-frame offset (pre-scale units) — groups are never grounded'
+      : 'Item-frame offset (pre-scale units)')
+    : 'Parent-frame offset (pre-scale units); a leaf\'s bottom sits at its localPos point';
   const lpValue = (axis) => empty ? (node.states?.empty?.localPos?.[axis] ?? t.localPos?.[axis] ?? 0) : (t.localPos?.[axis] ?? 0);
   const writeLp = (axis, v) => ctx.mutate(() => {
     if (empty) {
@@ -69,7 +69,7 @@ export function renderPositionSection(container, entry, ctx) {
       setLocalPos(t, axis, v);
     }
   });
-  sec.append(row('localPos X', numberInput(lpValue('x'), { onChange: (v) => writeLp('x', v) })));
-  sec.append(row('localPos Y', numberInput(lpValue('y'), { onChange: (v) => writeLp('y', v) })));
-  sec.append(row('localPos Z', numberInput(lpValue('z'), { onChange: (v) => writeLp('z', v) })));
+  sec.append(row('localPos X', numberInput(lpValue('x'), { onChange: (v) => writeLp('x', v) }), lpTitle));
+  sec.append(row('localPos Y', numberInput(lpValue('y'), { onChange: (v) => writeLp('y', v) }), lpTitle));
+  sec.append(row('localPos Z', numberInput(lpValue('z'), { onChange: (v) => writeLp('z', v) }), lpTitle));
 }

@@ -24,7 +24,7 @@ export function renderStretchSection(container, part, ctx) {
     }
     return parts.length === 0 ? 'default' : parts.join(' · ');
   });
-  sec.append(el('div', 'hint', 'Per-axis variation ranges for this part; "follow object" uses the object-level ranges, "fixed" pins the axis at 1.'));
+  const MODE_TITLE = '"follow" uses the object-level ranges, "fixed" pins the axis at 1';
   if (ENTITY_KINDS.has(d.kind)) {
     sec.append(el('div', 'hint', 'Entity parts ignore stretch variation — entities have no per-tile hash draws.'));
   }
@@ -45,7 +45,9 @@ export function renderStretchSection(container, part, ctx) {
     // the row no longer overflows the 310px inspector column.
     const stretchRow = el('div', 'stretch-row');
     const modeLine = el('div', 'control-row');
-    modeLine.append(el('label', null, `stretch ${axis}`), modeSelect);
+    const modeLabel = el('label', null, `stretch ${axis}`);
+    modeLabel.title = MODE_TITLE;
+    modeLine.append(modeLabel, modeSelect);
     stretchRow.append(modeLine);
     if (current && current !== false) {
       const inputsLine = el('div', 'stretch-inputs');

@@ -44,7 +44,6 @@ export function renderVariantSection(container, d, ctx) {
     const idInput = el('input');
     idInput.type = 'text';
     idInput.value = active.id;
-    idInput.title = 'Variant id — renames rewrite biomeVariants pins and the picker';
     idInput.addEventListener('change', () => {
       const clean = idInput.value.trim().replace(/[^A-Za-z0-9_-]/g, '_');
       if (!clean || clean === active.id) { idInput.value = active.id; return; }
@@ -58,8 +57,8 @@ export function renderVariantSection(container, d, ctx) {
         if (S.variantId === active.id) S.variantId = clean;
       });
     });
+    idInput.title = 'Variant id — renames rewrite biomeVariants pins and the picker. The parts list and preview edit this variant; in-game the first variant is the default look and per-biome pins swap in alternates';
     variantSection.append(row('Variant id', idInput));
-    variantSection.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game the first variant is the default look; per-biome pins swap in alternates.'));
     renderBiomeVariantPins(container, ctx);
   } else {
     const dupBtn = el('button', 'create-btn', '＋ Duplicate variant');
@@ -67,6 +66,6 @@ export function renderVariantSection(container, d, ctx) {
     dupBtn.title = 'Create a new variant from a copy of the current look — then pin it to biomes below';
     dupBtn.addEventListener('click', () => duplicateVariant(d, ctx));
     variantSection.append(row('Variants', dupBtn));
-    variantSection.append(el('div', 'hint', 'This object has one look. Duplicate it to give different biomes different geometry (e.g. a dead-tree forest for Sere Wastes) — the copy becomes a variant you can pin to biomes.'));
+    variantSection.append(el('div', 'hint', 'One look — duplicate it to pin different geometry to biomes (e.g. a dead-tree forest for Sere Wastes).'));
   }
 }

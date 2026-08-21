@@ -120,9 +120,8 @@ export function renderPortraitControls(container, ctx) {
   });
   sec.append(fromCamera);
 
-  sec.append(row('Pitch', degreeInput(portraitField(d, 'pitch'), { step: 2, onChange: set('pitch') })));
-  sec.append(row('Yaw', degreeInput(portraitField(d, 'yaw'), { step: 2, onChange: set('yaw') })));
-  sec.append(row('Pad', numberInput(portraitField(d, 'pad'), { min: 0.5, step: 0.05, onChange: set('pad') })));
-  sec.append(row('Raise', numberInput(portraitField(d, 'raise'), { step: 0.02, onChange: set('raise') })));
-  sec.append(el('div', 'hint', 'How this object frames its icon — pitch/yaw are the viewing angle, pad the frame margin, raise the vertical shift. Leave at defaults for the auto-frame isometric view.'));
+  sec.append(row('Pitch', degreeInput(portraitField(d, 'pitch'), { step: 2, onChange: set('pitch') }), 'Portrait viewing angle — leave at defaults for the auto-frame isometric view'));
+  sec.append(row('Yaw', degreeInput(portraitField(d, 'yaw'), { step: 2, onChange: set('yaw') }), 'Portrait viewing angle'));
+  sec.append(row('Pad', numberInput(portraitField(d, 'pad'), { min: 0.5, step: 0.05, onChange: set('pad') }), 'Icon frame margin'));
+  sec.append(row('Raise', numberInput(portraitField(d, 'raise'), { step: 0.02, onChange: set('raise') }), 'Vertical shift of the framed object'));
 }

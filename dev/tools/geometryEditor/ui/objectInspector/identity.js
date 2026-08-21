@@ -35,6 +35,10 @@ export function renderObjectIdentity(container, ctx) {
   idInput.type = 'text';
   idInput.value = d.id;
   idInput.disabled = isRegistered;
+  if (!isRegistered) {
+    idInput.placeholder = 'letters-numbers-_-';
+    idInput.title = 'New objects need a real id before saving to the game — letters, numbers, _ and -';
+  }
   idInput.addEventListener('change', () => {
     const clean = idInput.value.trim().replace(/[^A-Za-z0-9_-]/g, '_');
     if (clean && clean !== d.id) {
@@ -47,10 +51,6 @@ export function renderObjectIdentity(container, ctx) {
   fields.append(row('ID', idInput));
   card.append(fields);
   container.append(card);
-
-  if (!isRegistered) {
-    container.append(el('div', 'hint', 'New objects need a real id before saving to the game — letters, numbers, _ and -.'));
-  }
 
   renderPortraitControls(container, ctx);
 }

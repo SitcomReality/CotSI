@@ -11,10 +11,14 @@ export function el(tag, className, text) {
   return node;
 }
 
-/** A labelled control row: label on the left, the control on the right. */
-export function row(labelText, control) {
+/** A labelled control row: label on the left, the control on the right.
+ *  `labelTitle` puts a hover tooltip on the label — the Phase 2 home for
+ *  non-obvious units/gotchas that used to be inline hint paragraphs. */
+export function row(labelText, control, labelTitle) {
   const r = el('div', 'control-row');
-  r.append(el('label', null, labelText), control);
+  const label = el('label', null, labelText);
+  if (labelTitle) label.title = labelTitle;
+  r.append(label, control);
   return r;
 }
 
