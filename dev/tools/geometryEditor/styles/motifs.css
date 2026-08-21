@@ -230,6 +230,22 @@
 .motif-row.weight-zero .motif-id-input {
   color: var(--crimson);
 }
+
+/* Per-motif size-override chip (Phase 4g): muted until authored, gold when
+   the motif carries a `size` key — the exception signal on the row. */
+.size-chip {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  border: 1px dashed var(--crease);
+  border-radius: 999px;
+  background: none;
+}
+.size-chip.authored {
+  color: var(--gold);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+}
 .readonly-value {
   font-family: var(--token-font-mono, monospace);
   opacity: 0.8;

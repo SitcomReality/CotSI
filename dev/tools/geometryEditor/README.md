@@ -120,7 +120,8 @@ outline), `src/render/hexmap3d/hexWorldSpace`, `src/engine/rules/mat4`,
 | `sectionShell.js` | Collapsible section shell + open-state (object-inspector instance) |
 | `entitySection.js` | Entity faction/archetype controls |
 | `portraitSection.js` | Portrait picker + icon preview |
-| `tileSections.js` | Cluster/size/placement/emphasis sections |
+| `tileSections.js` | Cluster (density/jitter) / size (instance scale, by-mountain buckets) / placement / variation (jitter + stretch ranges) / emphasis |
+| `materialSection.js` | Object-level emissive glow + intensity |
 | `variantSection.js` | Variant picker + duplicate |
 | `variantDuplicate.js` | Duplicate-variant action |
 | `biomePins.js` | Pinned biome weight rows (motif grid) |

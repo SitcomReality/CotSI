@@ -96,6 +96,27 @@
   min-width: 0;
   text-align: center;
 }
+
+/* By-mountain bucket rows (Phase 4d): tuple row + clear × on one line. */
+.bucket-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+.bucket-row .tuple-row {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: var(--s1);
+}
+.bucket-row > button {
+  flex-shrink: 0;
+  padding: 0 4px;
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+}
+.bucket-row > button:hover {
+  color: var(--crimson);
+}
 /* The `+ override` picker row under a sparse biome-scale list. */
 #fields-panel .override-add-row select {
   font-size: var(--fs-xs);

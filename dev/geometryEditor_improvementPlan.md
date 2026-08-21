@@ -243,6 +243,6 @@ Separate from the fields-panel work; keep optional until the above lands.
 - [x] Phase 1 — Sparse override grids
 - [x] Phase 2 — Hints + Color & tint merge
 - [x] Phase 3 — Grouping + patterns + naming
-- [ ] Phase 4 — Object-level missing controls
+- [x] Phase 4 — Object-level missing controls
 - [ ] Phase 5 — liftRange + optionalGroups
 - [ ] Phase 6 — optional right-panel chrome

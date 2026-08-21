@@ -20,6 +20,7 @@ export function fmt(n) {
 /** Section registry: `key` → title + default open state. */
 const SECTIONS = {
   motifs:      { title: 'Motifs',        open: false },
+  material:    { title: 'Material',      open: false },
   variant:     { title: 'Variant',       open: false },
   biomePins:   { title: 'Per-biome variants', open: false },
   cluster:     { title: 'Cluster',       open: false },

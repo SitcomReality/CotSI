@@ -16,13 +16,24 @@ export function freshMotifId(used, base = 'motif') {
   return `${base}-${n}`;
 }
 
+/** Per-motif size-override chips the user expanded (session state; reset when
+ *  another descriptor loads — same pattern as biomeGrid's picker state). */
+const expandedSizes = new Set();
+let lastListDescriptor = null;
+
 /**
  * The motif rows + add button into `motifSection` (a .inspector-section):
  * per motif an editable id (renames rewrite biomeVariants pins and the
- * motif's part-id prefixes), a base draw weight, duplicate and delete.
+ * motif's part-id prefixes), a base draw weight, an optional per-motif
+ * `size` override behind a chip (pattern D — clear deletes the key),
+ * duplicate and delete.
  */
 export function renderMotifList(motifSection, d, ctx) {
   const motifs = d.motifs;
+  if (d !== lastListDescriptor) {
+    expandedSizes.clear();
+    lastListDescriptor = d;
+  }
 
   // Id + weight inputs with duplicate / delete per motif.
   motifs.forEach((motif, mi) => {
@@ -52,6 +63,34 @@ export function renderMotifList(motifSection, d, ctx) {
     });
     weight.title = 'Base draw weight — 0 excludes the motif everywhere';
     mrow.append(weight);
+    // Per-motif size override behind a chip: absent = muted `size +`; present
+    // = gold `size n–n` toggling the min/max line; × deletes the key.
+    const hasSize = motif.size !== undefined;
+    const sizeChip = el('button', 'size-chip' + (hasSize ? ' authored' : ''), hasSize ? `size ${motif.size.min}–${motif.size.max}` : 'size +');
+    sizeChip.type = 'button';
+    sizeChip.title = hasSize ? 'Per-motif size override — click to collapse, × to clear' : 'Add a per-motif size override (min–max scale multiplier)';
+    sizeChip.addEventListener('click', () => {
+      if (!hasSize) {
+        ctx.mutate(() => { motif.size = { min: 0.9, max: 1.1 }; });
+        expandedSizes.add(motif.id);
+      } else if (expandedSizes.has(motif.id)) expandedSizes.delete(motif.id);
+      else expandedSizes.add(motif.id);
+      ctx.renderAll();
+    });
+    mrow.append(sizeChip);
+    if (hasSize && expandedSizes.has(motif.id)) {
+      const sizeLine = el('div', 'stretch-inputs');
+      sizeLine.append(
+        numberInput(motif.size.min, { min: 0.01, step: 0.05, onChange: (v) => ctx.mutate(() => { motif.size.min = v; }) }),
+        numberInput(motif.size.max, { min: 0.01, step: 0.05, onChange: (v) => ctx.mutate(() => { motif.size.max = Math.max(v, motif.size.min); }) }),
+      );
+      const clearSize = el('button', null, '×');
+      clearSize.type = 'button';
+      clearSize.title = 'Clear the size override';
+      clearSize.addEventListener('click', () => ctx.mutate(() => { delete motif.size; }));
+      sizeLine.append(clearSize);
+      mrow.append(sizeLine);
+    }
     const dup = el('button', null, '⧉');
     dup.type = 'button';
     dup.title = 'Duplicate this motif';

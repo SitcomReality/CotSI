@@ -16,6 +16,7 @@ import { renderMotifControls } from './motifSection/index.js';
 import { renderVariantSection } from './variantSection.js';
 import { renderEntityControls } from './entitySection.js';
 import { renderClusterSection, renderSizeSection, renderVariationSection, renderPlacementSection, renderEmphasisSection } from './tileSections.js';
+import { renderMaterialSection } from './materialSection.js';
 
 /** The Motifs panel — the v6 composition panel for motif decors. */
 export function renderMotifPanel(container, ctx) {
@@ -59,10 +60,13 @@ export function renderFieldSections(container, ctx) {
   renderSizeSection(spawn, d, ctx);
   renderPlacementSection(spawn, d, ctx);
 
+  const look = sectionGroup(container, 'look', 'Look');
+  renderMaterialSection(look, d, ctx);
+  renderVariationSection(look, d, ctx);
+
   const variation = sectionGroup(container, 'variation', 'Variation');
   if (!hasMotifs) {
     renderVariantSection(variation, d, ctx);
   }
   renderEmphasisSection(variation, d, ctx);
-  renderVariationSection(variation, d, ctx);
 }
