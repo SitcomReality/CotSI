@@ -29,7 +29,7 @@ export function renderFieldSections(container, ctx) {
 
   if (d.kind === 'item') {
     container.append(el('div', 'mode-banner', 'item — UI icon'));
-    const itemSection = section('item', container);
+    const itemSection = section('item', container, () => `slot ${d.slot}`);
     itemSection.append(row('Slot', selectInput(ITEM_SLOTS, d.slot, (v) => ctx.mutate(() => {
       d.slot = v;
       ctx.onLoaded(); // the slot moves the item between the weapon/armor browser categories
@@ -40,7 +40,12 @@ export function renderFieldSections(container, ctx) {
 
   if (ENTITY_KINDS.has(d.kind)) {
     container.append(el('div', 'mode-banner', `${d.kind} — entity-driven`));
-    renderEntityControls(section('entity', container), ctx);
+    const entitySection = section('entity', container, () => {
+      const parts = [S.entity.faction];
+      if (S.entity.archetype) parts.push(S.entity.archetype);
+      return parts.join(' · ');
+    });
+    renderEntityControls(entitySection, ctx);
     container.append(el('div', 'hint', 'Entities are singletons at the hex center — cluster/size/placement do not apply.'));
     return;
   }
@@ -53,9 +58,9 @@ export function renderFieldSections(container, ctx) {
     renderVariantSection(container, d, ctx);
   }
 
-  renderClusterSection(section('cluster', container), d, ctx);
-  renderSizeSection(section('size', container), d, ctx);
-  renderPlacementSection(section('placement', container), d, ctx);
-  renderEmphasisSection(section('emphasis', container), d, ctx);
-  renderVariationSection(section('variation', container), d, ctx);
+  renderClusterSection(container, d, ctx);
+  renderSizeSection(container, d, ctx);
+  renderPlacementSection(container, d, ctx);
+  renderEmphasisSection(container, d, ctx);
+  renderVariationSection(container, d, ctx);
 }

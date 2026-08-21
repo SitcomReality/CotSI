@@ -22,7 +22,11 @@ import { renderBiomeGrid } from './biomeGrid.js';
  */
 export function renderMotifControls(container, ctx) {
   const d = S.descriptor;
-  const motifSection = section('motifs', container);
+  const motifSection = section('motifs', container, () => {
+    const ms = d.motifs ?? [];
+    if (ms.length === 0) return 'default';
+    return `${ms.length} motif${ms.length === 1 ? '' : 's'}`;
+  });
   renderMotifList(motifSection, d, ctx);
   renderBiomeGrid(motifSection, d, ctx);
 }

@@ -5,11 +5,21 @@
  */
 import { row, selectInput, intInput, numberInput } from '../../formControls/index.js';
 import { SHAPE_TYPES } from '../../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
-import { section } from '../sectionShell.js';
+import { section, fmt } from '../sectionShell.js';
 
 /** Shape params (leaves only): enum/int/number rows from the SHAPE_TYPES registry. */
 export function renderShapeSection(container, part, ctx) {
-  const sec = section('shape', container);
+  const sec = section('shape', container, () => {
+    const shape = SHAPE_TYPES[part.shape];
+    const parts = [];
+    for (const [key, rule] of Object.entries(shape.params)) {
+      const current = part.params[key] ?? shape.defaults[key];
+      if (current !== shape.defaults[key]) {
+        parts.push(`${key} ${fmt(current)}`);
+      }
+    }
+    return parts.length === 0 ? 'default' : parts.join(' · ');
+  });
   const shape = SHAPE_TYPES[part.shape];
   for (const [key, rule] of Object.entries(shape.params)) {
     const current = part.params[key] ?? shape.defaults[key];

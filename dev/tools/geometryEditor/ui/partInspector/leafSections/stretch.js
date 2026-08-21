@@ -5,12 +5,25 @@
 import { S } from '../../../state.js';
 import { el, numberInput, intInput, selectInput } from '../../formControls/index.js';
 import { ENTITY_KINDS } from '../../../entityView.js';
-import { section } from '../sectionShell.js';
+import { section, fmt } from '../sectionShell.js';
 
 /** Stretch variation — leaves only. */
 export function renderStretchSection(container, part, ctx) {
   const d = S.descriptor;
-  const sec = section('stretch', container);
+  const sec = section('stretch', container, () => {
+    const stretch = part.stretch;
+    if (!stretch) return 'default';
+    const parts = [];
+    for (const axis of ['x', 'y', 'z']) {
+      const current = stretch[axis];
+      const mode = current === false ? 'fixed' : current ? 'custom' : 'follow';
+      if (mode !== 'follow') {
+        if (mode === 'fixed') parts.push(`${axis} fixed`);
+        else parts.push(`${axis} ${fmt(current.min)}–${fmt(current.max)}`);
+      }
+    }
+    return parts.length === 0 ? 'default' : parts.join(' · ');
+  });
   sec.append(el('div', 'hint', 'Per-axis variation ranges for this part; "follow object" uses the object-level ranges, "fixed" pins the axis at 1.'));
   if (ENTITY_KINDS.has(d.kind)) {
     sec.append(el('div', 'hint', 'Entity parts ignore stretch variation — entities have no per-tile hash draws.'));

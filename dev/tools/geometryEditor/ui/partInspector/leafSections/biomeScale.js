@@ -8,11 +8,18 @@
  */
 import { el, numberInput } from '../../formControls/index.js';
 import { listArchetypes, getArchetype } from '../../../../../../src/game/rules/archetypes.js';
-import { section } from '../sectionShell.js';
+import { section, fmt } from '../sectionShell.js';
 
 /** Per-biome size factors — leaves only. */
 export function renderBiomeScaleSection(container, part, ctx) {
-  const sec = section('biomeScale', container);
+  const sec = section('biomeScale', container, () => {
+    const overrides = Object.entries(part.biomeScale ?? {}).filter(([, v]) => v !== 1);
+    if (overrides.length === 0) return 'default';
+    return overrides.map(([id, v]) => {
+      const name = getArchetype(id)?.name ?? id;
+      return `${name} ${fmt(v)}`;
+    }).join(' · ');
+  });
   sec.append(el('div', 'hint', 'Multiplies this part\'s size on tiles of each biome (stunted Tundra trees, small Painforest groves). Absent = scale 1 everywhere; type 1 to clear a biome\'s override.'));
   const grid = el('table', 'biome-scale-grid');
   const head = el('tr');

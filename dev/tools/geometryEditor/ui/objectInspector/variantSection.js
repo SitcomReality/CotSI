@@ -19,7 +19,12 @@ import { renameVariantId } from '../renameIds.js';
  * the "one look" duplicate button when not. `d` is the descriptor.
  */
 export function renderVariantSection(container, d, ctx) {
-  const variantSection = section('variant', container);
+  const variantSection = section('variant', container, () => {
+    const hasVariants = (d.variants ?? []).length > 0;
+    if (!hasVariants) return 'default';
+    const n = d.variants.length;
+    return `${n} variant${n === 1 ? '' : 's'}`;
+  });
   const hasVariants = (d.variants ?? []).length > 0;
   if (hasVariants) {
     const ids = d.variants.map((v) => v.id);
@@ -55,7 +60,7 @@ export function renderVariantSection(container, d, ctx) {
     });
     variantSection.append(row('Variant id', idInput));
     variantSection.append(el('div', 'hint', 'The parts list and preview edit this variant. In-game the first variant is the default look; per-biome pins swap in alternates.'));
-    renderBiomeVariantPins(section('biomePins', container), ctx);
+    renderBiomeVariantPins(container, ctx);
   } else {
     const dupBtn = el('button', 'create-btn', '＋ Duplicate variant');
     dupBtn.type = 'button';

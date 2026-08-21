@@ -6,7 +6,7 @@
  */
 import { el, row, numberInput } from '../../formControls/index.js';
 import { isGroupNode } from '../../partTree/index.js';
-import { section } from '../sectionShell.js';
+import { section, fmt } from '../sectionShell.js';
 import { editingEmptyState, emptyKeyframe, emptyLocalPos, pruneZeroLocalPos } from '../stateKeyframes.js';
 
 /**
@@ -32,7 +32,17 @@ export function renderPositionSection(container, entry, ctx) {
   const { node, parent } = entry;
   const t = node.transform ?? (node.transform = {});
   const empty = editingEmptyState();
-  const sec = section('position', container);
+  const sec = section('position', container, () => {
+    const ty = t.y ?? 0;
+    const tlift = t.lift ?? 0;
+    const lp = t.localPos;
+    if (ty === 0 && tlift === 0 && (!lp || (lp.x === 0 && lp.y === 0 && lp.z === 0))) return 'default';
+    const parts = [];
+    if (ty !== 0) parts.push(`Y ${fmt(ty)}`);
+    if (tlift !== 0) parts.push(`lift ${fmt(tlift)}`);
+    if (lp) parts.push(`local (${fmt(lp.x)}, ${fmt(lp.y)}, ${fmt(lp.z)})`);
+    return parts.join(' · ');
+  });
   if (empty) {
     sec.append(el('div', 'hint', 'Editing the EMPTY keyframe (growth 0) — these values lerp to the full-state values as the feature regrows.'));
   }

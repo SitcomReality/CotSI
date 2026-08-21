@@ -164,6 +164,39 @@
   content: '▸';
 }
 
+/* ── Collapsed section summaries (Phase A) ────────────────────── */
+
+.section-summary {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  font-weight: 400;
+  margin-left: var(--s1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.inspector-section[data-default] > summary.section-title {
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+
+.inspector-section[data-default] .section-summary {
+  color: var(--ink-faint);
+  opacity: 0.7;
+}
+
+.section-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cerulean);
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
 /* ── Part actions (nest / ungroup / copy-transform) ───────────────────────── */
 
 .part-actions {

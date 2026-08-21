@@ -16,6 +16,7 @@ import { viewport } from '../../preview/viewportState.js';
 import { ENTITY_KINDS } from '../../entityView.js';
 import { previewTerrain } from '../previewSync/tile.js';
 import { PORTRAIT_DEFAULTS } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
+import { section, fmt } from './sectionShell.js';
 import { recordsForPortrait, renderPortraitSnapshot } from '../../../../../src/render/hexmap3d/portrait/portraitThumbnail.js';
 import { recordsForDescriptor } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/recordBuilder.js';
 
@@ -97,8 +98,14 @@ export function renderPortraitControls(container, ctx) {
     d.portrait[key] = v;
   });
 
-  const block = el('div', 'portrait-camera');
-  block.append(el('div', 'section-title', 'Portrait camera'));
+  const sec = section('portrait', container, () => {
+    const isDefault = (k) => (d.portrait?.[k] ?? PORTRAIT_DEFAULTS[k]) === PORTRAIT_DEFAULTS[k];
+    if (['pitch', 'yaw', 'pad', 'raise'].every(isDefault)) return 'default';
+    const p = portraitField(d, 'pitch') * 180 / Math.PI;
+    const y = portraitField(d, 'yaw') * 180 / Math.PI;
+    return `pitch ${fmt(p)}° yaw ${fmt(y)}°`;
+  });
+  sec.classList.add('portrait-camera');
 
   const fromCamera = el('button', 'create-btn', '\u21A4 Use current camera view');
   fromCamera.type = 'button';
@@ -111,12 +118,11 @@ export function renderPortraitControls(container, ctx) {
       d.portrait.yaw = yaw;
     });
   });
-  block.append(fromCamera);
+  sec.append(fromCamera);
 
-  block.append(row('Pitch', degreeInput(portraitField(d, 'pitch'), { step: 2, onChange: set('pitch') })));
-  block.append(row('Yaw', degreeInput(portraitField(d, 'yaw'), { step: 2, onChange: set('yaw') })));
-  block.append(row('Pad', numberInput(portraitField(d, 'pad'), { min: 0.5, step: 0.05, onChange: set('pad') })));
-  block.append(row('Raise', numberInput(portraitField(d, 'raise'), { step: 0.02, onChange: set('raise') })));
-  block.append(el('div', 'hint', 'How this object frames its icon — pitch/yaw are the viewing angle, pad the frame margin, raise the vertical shift. Leave at defaults for the auto-frame isometric view.'));
-  container.append(block);
+  sec.append(row('Pitch', degreeInput(portraitField(d, 'pitch'), { step: 2, onChange: set('pitch') })));
+  sec.append(row('Yaw', degreeInput(portraitField(d, 'yaw'), { step: 2, onChange: set('yaw') })));
+  sec.append(row('Pad', numberInput(portraitField(d, 'pad'), { min: 0.5, step: 0.05, onChange: set('pad') })));
+  sec.append(row('Raise', numberInput(portraitField(d, 'raise'), { step: 0.02, onChange: set('raise') })));
+  sec.append(el('div', 'hint', 'How this object frames its icon — pitch/yaw are the viewing angle, pad the frame margin, raise the vertical shift. Leave at defaults for the auto-frame isometric view.'));
 }

@@ -17,8 +17,14 @@ import { editingEmptyState, emptyKeyframe } from '../stateKeyframes.js';
  */
 export function renderColorSection(container, part, ctx) {
   const d = S.descriptor;
-  const sec = section('color', container);
   const empty = editingEmptyState();
+  const sec = section('color', container, () => {
+    const isToken = typeof part.color === 'string' && ['factionBase', 'factionAccent', 'factionBody'].includes(part.color);
+    const value = empty ? (part.states?.empty?.color ?? part.color ?? 0xffffff) : (part.color ?? 0xffffff);
+    if (isToken) return part.color;
+    if (value === 0xffffff) return 'default';
+    return `■ #${value.toString(16).padStart(6, '0')}`;
+  });
   if (empty) {
     sec.append(el('div', 'hint', 'Editing the EMPTY keyframe (growth 0) — this color lerps to the full-state color as the feature regrows.'));
   } else {

@@ -36,6 +36,9 @@ So the phases are ordered to build the foundation before adding anything.
 
 Ship FIRST. Without this, collapse is a UX regression.
 
+> UX rationale: design reviews §4 (scan layer), §3 (visual language for
+> summaries and dirty-state marks), §10 (what not to do — search box).
+
 **In scope**
 - All `.inspector-sections` start collapsed (both `sectionShell.js` files:
   `ui/partInspector/sectionShell.js`, `ui/objectInspector/sectionShell.js`).
@@ -67,6 +70,9 @@ it without opening any section; a fully-default part shows mostly
 Stop rendering the fixed 11-row tables of `1`s / 11×N matrices. The data model
 already supports it ("absent ≡ 1").
 
+> UX rationale: design reviews §6 (control pattern C — sparse override maps),
+> §9 (alternatives biome matrix noise), §3 (visual language for quiet defaults).
+
 **In scope**
 - **Biome scale** (`partInspector/leafSections/biomeScale.js`): only non-default
   entries + a `+ override` picker (choose a biome not yet listed). Summary when
@@ -85,6 +91,10 @@ already supports it ("absent ≡ 1").
 ---
 
 ## Phase 2 — Hint treatment + Color & tint merge
+
+> UX rationale: design reviews §5 (hints — delete list, tooltip migration,
+> copy rule), §3 (Color & tint merge layout), §2 (design rule 3 — hints are
+> not body copy).
 
 **2a · Hints**
 - Delete the truly superfluous ones exactly as the design reviews list.
@@ -107,7 +117,11 @@ paragraphs in the merged view except the one short lerp note on the empty branch
 
 ---
 
-## Phase 3 — Grouping + control patterns + naming (from review §1, §6, §7)
+## Phase 3 — Grouping + control patterns + naming
+
+> UX rationale: design reviews §1 (grouping + color-coding), §6 (control
+> patterns A–D), §2 (design rules 4–5 — one row one tuple, name by job not
+> schema key), §7 (information architecture).
 
 Before Phase 4 adds fields, build the **pattern library** and the section
 grouping so new fields slot into a calm surface.
@@ -140,6 +154,10 @@ library is wired so Phases 4–5 fields don't each become a new section.
 
 ## Phase 4 — Object-level missing controls
 
+> UX rationale: design reviews §8 (phase-by-phase UX notes for Phase 4),
+> §6 (control patterns A–D for new fields), §2 (design rule 6 — advanced
+> stays at bottom).
+
 Add the fields the audit found, **into** the Phase 3 groups & patterns:
 
 | Field | Where it lives | How |
@@ -159,7 +177,11 @@ in <5 s without reading every header.
 
 ---
 
-## Phase 5 — Part-level missing controls
+## Phase 5 — liftRange + optionalGroups
+
+> UX rationale: design reviews §8 (phase-by-phase UX notes for Phase 5),
+> §6 (control pattern B — mode-then-details for liftRange), §7
+> (optionalGroups as scaffolding).
 
 - **liftRange** (`partInspector/transform/position.js`): pattern B — reuse the
   existing Lift row with a `Fixed | Range` mode. Fixed keeps `lift`; Range writes
@@ -176,6 +198,10 @@ in <5 s without reading every header.
 ---
 
 ## Phase 6 (optional) — Right-panel tree & chrome
+
+> UX rationale: design reviews §7 (information architecture),
+> §9 (specific pain in screenshots — tree row actions, type icons,
+> portrait camera, z-index), §1 (grouping).
 
 Separate from the fields-panel work; keep optional until the above lands.
 - Hover-reveal tree row actions (dup/down/del) + context menu for restructure/
@@ -213,7 +239,7 @@ Separate from the fields-panel work; keep optional until the above lands.
 
 - [x] Explore + audit (missing-controls findings in Phase 4 list incl.
       `renderFieldSections` gaps).
-- [ ] Phase A — Scan layer
+- [x] Phase A — Scan layer
 - [ ] Phase 1 — Sparse override grids
 - [ ] Phase 2 — Hints + Color & tint merge
 - [ ] Phase 3 — Grouping + patterns + naming

@@ -5,7 +5,7 @@
  */
 import { el, row, numberInput, selectInput, degreeInput, DEG_TO_RAD } from '../../formControls/index.js';
 import { isGroupNode } from '../../partTree/index.js';
-import { section } from '../sectionShell.js';
+import { section, fmt } from '../sectionShell.js';
 import {
   AXIS3_PRESETS,
   AXIS3_OPTIONS,
@@ -21,7 +21,17 @@ import {
 export function renderRotationSection(container, entry, ctx) {
   const { node, parent } = entry;
   const t = node.transform ?? (node.transform = {});
-  const sec = section('rotation', container);
+  const sec = section('rotation', container, () => {
+    const axis = cardinalAxis3(t.localAxis);
+    const angleDeg = (t.localAngle ?? 0) * 180 / Math.PI;
+    const tiltDeg = (t.tilt ?? 0) * 180 / Math.PI;
+    if (!axis && angleDeg === 0 && tiltDeg === 0) return 'default';
+    const parts = [];
+    if (axis) parts.push(`${axis} ${fmt(angleDeg)}°`);
+    else parts.push(`custom ${fmt(angleDeg)}°`);
+    if (tiltDeg !== 0) parts.push(`lean ${fmt(tiltDeg)}°`);
+    return parts.join(' · ');
+  });
   sec.append(el('div', 'hint', 'localAxis + localAngle rotate the part around any axis in its own frame; angles are degrees. The axis is a direction (magnitude is ignored).'));
   // Work on the NORMALIZED direction — the render rotates about the unit axis
   // (meshBuilder), so a stored vector like {x:-3, y:4, z:4} reads and edits as

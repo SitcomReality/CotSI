@@ -9,6 +9,7 @@
 import { el, row, selectInput } from '../formControls/index.js';
 import { S } from '../../state.js';
 import { listArchetypes, getArchetype } from '../../../../../src/game/rules/archetypes.js';
+import { section } from './sectionShell.js';
 
 /** Set or clear one biome pin in `biomeVariants`. Empty value clears the pin;
  *  an empty map is dropped so denormalize emits no `{}` noise. */
@@ -27,11 +28,17 @@ export function renderBiomeVariantPins(container, ctx) {
   const d = S.descriptor;
   const ids = d.variants.map((v) => v.id);
 
-  container.append(el('div', 'hint', `Pin an alternate variant to a biome — the first variant (${ids[0]}) is the default look everywhere else. Variants: ${ids.join(', ')}.`));
+  const sec = section('biomePins', container, () => {
+    const pins = Object.entries(d.biomeVariants ?? {}).filter(([, v]) => v);
+    if (pins.length === 0) return 'default';
+    return pins.map(([id, vid]) => `${getArchetype(id)?.name ?? id}: ${vid}`).join(' · ');
+  });
+
+  sec.append(el('div', 'hint', `Pin an alternate variant to a biome — the first variant (${ids[0]}) is the default look everywhere else. Variants: ${ids.join(', ')}.`));
   for (const biomeId of listArchetypes('biome')) {
     const options = [{ value: '', label: '— default look' }, ...ids.map((id) => ({ value: id, label: id }))];
     const current = d.biomeVariants?.[biomeId] ?? '';
-    container.append(row(getArchetype(biomeId)?.name ?? biomeId, selectInput(options, current, (v) => ctx.mutate(() => {
+    sec.append(row(getArchetype(biomeId)?.name ?? biomeId, selectInput(options, current, (v) => ctx.mutate(() => {
       setBiomePin(d, biomeId, v);
     }))));
   }
