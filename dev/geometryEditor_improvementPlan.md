@@ -240,7 +240,7 @@ Separate from the fields-panel work; keep optional until the above lands.
 - [x] Explore + audit (missing-controls findings in Phase 4 list incl.
       `renderFieldSections` gaps).
 - [x] Phase A — Scan layer
-- [ ] Phase 1 — Sparse override grids
+- [x] Phase 1 — Sparse override grids
 - [ ] Phase 2 — Hints + Color & tint merge
 - [ ] Phase 3 — Grouping + patterns + naming
 - [ ] Phase 4 — Object-level missing controls

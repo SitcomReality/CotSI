@@ -59,7 +59,21 @@
 }
 .biome-scale-grid td.biome-scale-factor {
   text-align: right;
-  width: 76px;
+  white-space: nowrap;
+}
+/* Sparse override list: input + clear × on one line. */
+.biome-scale-factor button {
+  margin-left: 4px;
+  padding: 0 4px;
+  font-size: var(--fs-xs);
+  color: var(--ink-mid);
+}
+.biome-scale-factor button:hover {
+  color: var(--crimson);
+}
+/* The `+ override` picker row under a sparse biome-scale list. */
+#fields-panel .override-add-row select {
+  font-size: var(--fs-xs);
 }
 .biome-scale-grid .biome-scale-factor input[type="number"] {
   width: 64px;

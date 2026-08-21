@@ -305,3 +305,60 @@
   color: var(--ink-mid);
   margin-bottom: var(--s2);
 }
+
+/* ── Sparse override grids (Phase 1) ─────────────────────────────────────── */
+
+/* The quiet default state: one line + a Customize button instead of the full
+   biome × option matrix. Muted text, the button carries the affordance. */
+.grid-quiet-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-mid);
+  font-size: var(--fs-xs);
+  margin-bottom: var(--s2);
+}
+.grid-quiet-line button {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+/* The `+ biome` picker row under a sparse grid. */
+.override-add-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-mid);
+  font-size: var(--fs-xs);
+  margin-top: var(--s1);
+  margin-bottom: var(--s2);
+}
+.override-add-row select {
+  font-size: var(--fs-xs);
+}
+
+/* The per-row clear-all column on both sparse grids. */
+.motif-grid .row-clear-cell {
+  width: 24px;
+  text-align: center;
+  border: none;
+  background: none;
+}
+.option-biome-row .row-clear-cell {
+  flex: 0 0 24px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.row-clear-cell button {
+  padding: 0 4px;
+  font-size: var(--fs-xs);
+  line-height: 1.2;
+  color: var(--ink-mid);
+}
+.row-clear-cell button:hover {
+  color: var(--crimson);
+}
