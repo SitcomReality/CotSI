@@ -47,7 +47,7 @@ defineArchetype('biome_scorch', {
     hill:        [0.560, 0.540, 0.340],  // dry grass hill
     plateau:     [0.600, 0.540, 0.440],  // warm dusty plateau
     mountain:    [0.580, 0.500, 0.400],  // warm rock
-    water:       [0.340, 0.560, 0.700],  // warm blue
+    water:       [0.210, 0.400, 0.560],  // deep ocean blue, faintly warm
     beach:       [0.900, 0.750, 0.500],  // hot bright sand
   },
   // Biome color swatches for terrain-decor tinting (decor-consolidation):

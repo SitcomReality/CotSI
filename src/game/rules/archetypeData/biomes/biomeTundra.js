@@ -47,7 +47,7 @@ defineArchetype('biome_tundra', {
     hill:          [0.620, 0.680, 0.620],  // snow-dusted hill
     plateau:       [0.680, 0.700, 0.680],  // snowy plateau
     mountain:      [0.580, 0.600, 0.620],  // cold grey rock
-    water:         [0.350, 0.520, 0.580],  // cold blue
+    water:         [0.200, 0.400, 0.560],  // deep ocean blue, cold cast
     ice:           [0.720, 0.820, 0.880],  // pale ice
     beach:         [0.750, 0.720, 0.650],  // frost-bleached pale sand
   },

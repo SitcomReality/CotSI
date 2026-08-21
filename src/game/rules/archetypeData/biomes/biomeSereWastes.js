@@ -50,7 +50,7 @@ defineArchetype('biome_sere_wastes', {
     hill:          [0.580, 0.480, 0.300],  // reddish tan
     plateau:       [0.620, 0.540, 0.420],  // warm pale grey
     mountain:      [0.580, 0.440, 0.350],  // warm reddish rock
-    water:         [0.300, 0.520, 0.680],  // pale desert blue
+    water:         [0.190, 0.400, 0.570],  // deep ocean blue, faintly warm
     beach:         [0.880, 0.750, 0.520],  // bleached golden sand
   },
   // Biome color swatches for terrain-decor tinting (decor-consolidation):

@@ -56,7 +56,7 @@ defineArchetype('biome_edenfall', {
     hill:          [0.500, 0.320, 0.520],  // purple-tinted hill
     plateau:       [0.550, 0.420, 0.560],  // pale purple plateau
     mountain:      [0.480, 0.380, 0.500],  // purplish rock
-    water:         [0.300, 0.380, 0.600],  // deep blue-purple
+    water:         [0.200, 0.330, 0.560],  // deep ocean blue + red/purple
     beach:         [0.700, 0.550, 0.600],  // purple-tinted sand
   },
   // Biome color swatches for terrain-decor tinting (decor-consolidation):

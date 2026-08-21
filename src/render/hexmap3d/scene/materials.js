@@ -3,6 +3,14 @@ import {
   WATER_RIPPLE_SPEED,
   WATER_FLOW_SPEED,
   WATER_FLOW_WAVE_LENGTH,
+  WATER_CHOP_FREQ_1,
+  WATER_CHOP_DIR_1,
+  WATER_CHOP_FREQ_2,
+  WATER_CHOP_DIR_2,
+  WATER_CHOP_FREQ_3,
+  WATER_CHOP_DIR_3,
+  WATER_CHOP_SPEED,
+  WATER_CHOP_STRENGTH,
   SPARKLE_TWINKLE_SPEED,
   SPARKLE_TWINKLE_AMP,
 } from '../../../params/render/terrainParams.js';
@@ -71,6 +79,7 @@ waterMaterial.onBeforeCompile = (shader) => {
   shader.uniforms.uTime = waterTimeUniform;
   shader.vertexShader =
     'uniform float uTime;\n' +
+    'varying vec3 vWaterWorld;\n' +
     'attribute float aWaterPhase;\n' +
     'attribute float aWaterAmp;\n' +
     'attribute vec2 aWaterFlow;\n' +
@@ -84,7 +93,30 @@ waterMaterial.onBeforeCompile = (shader) => {
       `float flowWave = sin( uTime * ${WATER_FLOW_SPEED.toFixed(2)} - flowAlong * ${(Math.PI * 2 / WATER_FLOW_WAVE_LENGTH).toFixed(3)} + aWaterPhase );\n` +
       `transformed.xz += aWaterFlow * ( flowWave * aWaterFlowAmp );\n` +
       `transformed.y += flowWave * aWaterFlowAmp * 0.5;\n` +
-      `transformed.y += sin( uTime * ${WATER_RIPPLE_SPEED.toFixed(2)} + aWaterPhase ) * aWaterAmp;`
+      `transformed.y += sin( uTime * ${WATER_RIPPLE_SPEED.toFixed(2)} + aWaterPhase ) * aWaterAmp;\n` +
+      // Post-displacement world position drives the fragment chop (below).
+      `vWaterWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;`
+    );
+  // Chop: three crossed animated sine trains perturb the fragment normal, so
+  // the toon ramp renders them as drifting light/dark patches — gentle
+  // non-directional ripples on large water bodies (params: terrainParams.js).
+  shader.fragmentShader =
+    'uniform float uTime;\n' +
+    'varying vec3 vWaterWorld;\n' +
+    shader.fragmentShader.replace(
+      '#include <normal_fragment_begin>',
+      `#include <normal_fragment_begin>\n` +
+      `float chopC1 = dot( vWaterWorld.xz, vec2( ${WATER_CHOP_DIR_1[0].toFixed(2)}, ${WATER_CHOP_DIR_1[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_1.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.00;\n` +
+      `float chopC2 = dot( vWaterWorld.xz, vec2( ${WATER_CHOP_DIR_2[0].toFixed(2)}, ${WATER_CHOP_DIR_2[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_2.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.35;\n` +
+      `float chopC3 = dot( vWaterWorld.xz, vec2( ${WATER_CHOP_DIR_3[0].toFixed(2)}, ${WATER_CHOP_DIR_3[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_3.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 0.80;\n` +
+      `vec3 chopSlope = vec3(\n` +
+      `  cos( chopC1 ) * ${(WATER_CHOP_DIR_1[0] * WATER_CHOP_FREQ_1).toFixed(3)} + cos( chopC2 ) * ${(WATER_CHOP_DIR_2[0] * WATER_CHOP_FREQ_2).toFixed(3)} + cos( chopC3 ) * ${(WATER_CHOP_DIR_3[0] * WATER_CHOP_FREQ_3).toFixed(3)},\n` +
+      `  0.0,\n` +
+      `  cos( chopC1 ) * ${(WATER_CHOP_DIR_1[1] * WATER_CHOP_FREQ_1).toFixed(3)} + cos( chopC2 ) * ${(WATER_CHOP_DIR_2[1] * WATER_CHOP_FREQ_2).toFixed(3)} + cos( chopC3 ) * ${(WATER_CHOP_DIR_3[1] * WATER_CHOP_FREQ_3).toFixed(3)} );\n` +
+      // View-space approximation: water is near-horizontal and toon banding
+      // only depends on dot(n, l), so offsetting the normal directly reads
+      // correctly without exact frame math.
+      `normal = normalize( normal + chopSlope * ${(WATER_CHOP_STRENGTH * 0.05).toFixed(4)} );`
     );
 };
 

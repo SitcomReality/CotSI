@@ -45,7 +45,7 @@ defineArchetype('biome_frigid_silence', {
     hill:          [0.520, 0.580, 0.480],  // cold olive
     plateau:       [0.550, 0.560, 0.520],  // pale grey-green
     mountain:      [0.500, 0.520, 0.500],  // cold grey
-    water:         [0.350, 0.500, 0.620],  // cold blue
+    water:         [0.200, 0.420, 0.580],  // deep ocean blue, cold cast
     ice:           [0.680, 0.780, 0.850],  // pale frost
     beach:         [0.680, 0.650, 0.580],  // cold pale grey sand
   },

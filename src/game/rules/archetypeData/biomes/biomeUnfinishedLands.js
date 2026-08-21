@@ -55,7 +55,7 @@ defineArchetype('biome_unfinished_lands', {
     hill:        [0.500, 0.680, 0.680],  // ghost hill
     plateau:     [0.580, 0.740, 0.720],  // pale ghost plateau
     mountain:    [0.420, 0.580, 0.640],  // ghost rock
-    water:       [0.180, 0.520, 0.680],  // Forespring
+    water:       [0.150, 0.430, 0.600],  // deep ocean blue + Forespring glow
     ice:         [0.620, 0.840, 0.880],  // pale cyan
     beach:       [0.760, 0.800, 0.760],  // pale ghost sand
     river:       [0.180, 0.520, 0.680],  // Forespring

@@ -39,7 +39,7 @@ defineArchetype('biome_default', {
     hill:          [0.545, 0.659, 0.388],  // olive-green
     plateau:       [0.604, 0.565, 0.471],  // warm grey
     mountain:      [0.529, 0.486, 0.416],  // rocky warm gray
-    water:         [0.373, 0.604, 0.757],  // bright cyan-blue
+    water:         [0.157, 0.376, 0.545],  // #285f8b — deep ocean blue
     beach:         [0.878, 0.824, 0.627],  // warm golden sand
   },
   // Biome color swatches for terrain-decor tinting (decor-consolidation):

@@ -48,7 +48,7 @@ matches except ice `#b8d8f0` and river `#5f9ac1`).
 | `hill` | Hill | `#8ba863` | yes | 12 | raised mound, one per hex (decor: "Hill Mound") |
 | `plateau` | Plateau | `#9a9078` | yes | 15 | scatter of boulders + scrub tufts, 5–8 per hex (decor: "Plateau Scrub") |
 | `mountain` | Mountains | `#877c6a` | no | ∞ | hex-pyramid peaks, edge-to-edge per tile |
-| `water` | Broken water | `#5f9ac1` | no | ∞ | none — own rippling water mesh (lakes darker) |
+| `water` | Broken water | `#285f8b` | no | ∞ | none — own rippling water mesh (lakes darker) |
 | `ice` | Frozen surface | `≈#a5d1f4` | no | ∞ | none — water mesh, pale frost |
 | `beach` | Beach | `#e8d8a0` | yes | 10 | log/tuft/stone/pile wrack, 5–8 per hex (decor: "Beach Wrack") |
 | `river` | River | `#2d87e6` | yes | 30 | carved channel on the water mesh; `avoidSpawn` |
@@ -229,17 +229,17 @@ color** — there is no other per-tile ground coloring.
 
 | Biome | plains | forest | deepWood | desert | marsh | hill | plateau | mountain | water | ice | beach |
 |-------|--------|--------|-------------|--------|-------|------|---------|----------|-------|-----|-------|
-| Untouched | `#74ad5d` | `#4b8e41` | `#2d6b23` | `#d6b15b` | `#819967` | `#8ba863` | `#9a9078` | `#877c6a` | `#5f9ac1` | — | `#e0d2a0` |
-| Edenfall | `#8c4d8c` | `#6b337a` | `#4d2661` | `#ad8ca6` | `#73597a` | `#805285` | `#8c6b8f` | `#7a6180` | `#4d6199` | — | `#b38c99` |
-| Painforest | `#619e47` | `#38802e` | `#1f591a` | `#c7a666` | `#6b8c57` | `#66944d` | `#80856e` | `#7a8573` | `#4d8cb3` | — | `#a68c61` |
-| Frigid Silence | `#949e8c` | `#577a59` | `#385940` | `#b8ad8c` | `#7a8a7a` | `#85947a` | `#8c8f85` | `#808580` | `#59809e` | `#adc7d9` | `#ada694` |
-| Mourning Marsh | `#597a59` | `#386138` | `#1f4726` | `#8c7a59` | `#4d6b47` | `#617052` | `#6b7566` | `#66706b` | `#406b8c` | `#8ca6bf` | `#807a6b` |
-| Tundra | `#c7ccd1` | `#7a9e8c` | `#527a66` | `#a69e8c` | `#859485` | `#9ead9e` | `#adb3ad` | `#94999e` | `#598594` | `#b8d1e0` | `#bfb8a6` |
-| Sere Wastes | `#9e8547` | `#667333` | `#59612e` | `#e0b861` | `#948559` | `#947a4d` | `#9e8a6b` | `#947059` | `#4d85ad` | — | `#e0bf85` |
-| Scorch | `#9e944f` | `#6b7a38` | `#526129` | `#d6b366` | `#8f8a5c` | `#8f8a57` | `#998a70` | `#948066` | `#578fb3` | — | `#e6bf80` |
-| Dustbleed | `#8c3326` | `#408073` | `#266659` | `#b35933` | `#594033` | `#804033` | `#8c4d40` | `#734038` | `#337380` | — | `#a65940` |
+| Untouched | `#74ad5d` | `#4b8e41` | `#2d6b23` | `#d6b15b` | `#819967` | `#8ba863` | `#9a9078` | `#877c6a` | `#285f8b` | — | `#e0d2a0` |
+| Edenfall | `#8c4d8c` | `#6b337a` | `#4d2661` | `#ad8ca6` | `#73597a` | `#805285` | `#8c6b8f` | `#7a6180` | `#33548f` | — | `#b38c99` |
+| Painforest | `#619e47` | `#38802e` | `#1f591a` | `#c7a666` | `#6b8c57` | `#66944d` | `#80856e` | `#7a8573` | `#21698a` | — | `#a68c61` |
+| Frigid Silence | `#949e8c` | `#577a59` | `#385940` | `#b8ad8c` | `#7a8a7a` | `#85947a` | `#8c8f85` | `#808580` | `#336b94` | `#adc7d9` | `#ada694` |
+| Mourning Marsh | `#597a59` | `#386138` | `#1f4726` | `#8c7a59` | `#4d6b47` | `#617052` | `#6b7566` | `#66706b` | `#296985` | `#8ca6bf` | `#807a6b` |
+| Tundra | `#c7ccd1` | `#7a9e8c` | `#527a66` | `#a69e8c` | `#859485` | `#9ead9e` | `#adb3ad` | `#94999e` | `#336b8f` | `#b8d1e0` | `#bfb8a6` |
+| Sere Wastes | `#9e8547` | `#667333` | `#59612e` | `#e0b861` | `#948559` | `#947a4d` | `#9e8a6b` | `#947059` | `#306691` | — | `#e0bf85` |
+| Scorch | `#9e944f` | `#6b7a38` | `#526129` | `#d6b366` | `#8f8a5c` | `#8f8a57` | `#998a70` | `#948066` | `#36668f` | — | `#e6bf80` |
+| Dustbleed | `#8c3326` | `#408073` | `#266659` | `#b35933` | `#594033` | `#804033` | `#8c4d40` | `#734038` | `#296385` | — | `#a65940` |
 | Titanstain | `#b85c80` | `#803861` | `#5c2647` | `#d18f9e` | `#8a4d70` | `#a35275` | `#b8708a` | `#753d57` | `#660f24` | `#a35266` | `#d1949e` |
-| Unfinished Lands | `#85bdbd` | `#4d99a3` | `#337585` | `#c2c7b8` | `#6ba899` | `#80adad` | `#94bdb8` | `#6b94a3` | `#2e85ad` | `#9ed6e0` | `#c2ccc2` |
+| Unfinished Lands | `#85bdbd` | `#4d99a3` | `#337585` | `#c2c7b8` | `#6ba899` | `#80adad` | `#94bdb8` | `#6b94a3` | `#266e99` | `#9ed6e0` | `#c2ccc2` |
 
 "—" = no palette entry → global terrain color (§2). Titanstain and Unfinished
 Lands also carry `river` palette entries (`#660f24`, `#2e85ad`) that are

@@ -49,7 +49,7 @@ defineArchetype('biome_mourning_marsh', {
     hill:          [0.380, 0.440, 0.320],  // wet hill
     plateau:       [0.420, 0.460, 0.400],  // wet grey
     mountain:      [0.400, 0.440, 0.420],  // wet rock
-    water:         [0.250, 0.420, 0.550],  // deep mournful blue
+    water:         [0.160, 0.410, 0.520],  // deep ocean blue + green tint
     ice:           [0.550, 0.650, 0.750],  // pale ice
     beach:         [0.500, 0.480, 0.420],  // dark wet sand
   },

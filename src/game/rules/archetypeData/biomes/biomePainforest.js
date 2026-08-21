@@ -44,7 +44,7 @@ defineArchetype('biome_painforest', {
     hill:          [0.400, 0.580, 0.300],  // mossy green
     plateau:       [0.500, 0.520, 0.430],  // mossy grey
     mountain:      [0.480, 0.520, 0.450],  // mossy gray
-    water:         [0.300, 0.550, 0.700],  // deeper blue
+    water:         [0.130, 0.410, 0.540],  // deep ocean blue + saturation (teal)
     beach:         [0.650, 0.550, 0.380],  // mossy green-tinged sand
   },
   // Biome color swatches for terrain-decor tinting (decor-consolidation):

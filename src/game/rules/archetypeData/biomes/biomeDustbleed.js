@@ -49,7 +49,7 @@ defineArchetype('biome_dustbleed', {
     hill:          [0.500, 0.250, 0.200],  // rusty hill
     plateau:       [0.550, 0.300, 0.250],  // dusty red plateau
     mountain:      [0.450, 0.250, 0.220],  // dark red rock
-    water:         [0.200, 0.450, 0.500],  // murky teal (tainted water)
+    water:         [0.160, 0.390, 0.520],  // deep ocean blue, murky teal cast
     beach:         [0.650, 0.350, 0.250],  // rusty tainted sand
   },
   // Biome color swatches for terrain-decor tinting (decor-consolidation):

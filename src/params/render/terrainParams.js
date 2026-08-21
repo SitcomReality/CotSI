@@ -33,6 +33,22 @@ export const WATER_RIPPLE_SPEED = 2.0;
 export const WATER_RIPPLE_AMP = 0.03;
 export const WATER_RIPPLE_COVERAGE = 0.3;
 
+/**
+ * Water surface chop (fragment-shader shading animation, see materials.js).
+ * Three crossed animated sine trains perturb the water fragment normals, so
+ * the toon ramp renders them as drifting light/dark patches — a field of
+ * gentle non-directional ripples on large water bodies. Pure per-pixel math;
+ * no geometry, draw-call, or attribute changes.
+ */
+export const WATER_CHOP_FREQ_1 = 1.9;    // rad per world unit, train 1
+export const WATER_CHOP_DIR_1 = [0.90, 0.35];
+export const WATER_CHOP_FREQ_2 = 2.7;
+export const WATER_CHOP_DIR_2 = [-0.40, 0.85];
+export const WATER_CHOP_FREQ_3 = 3.7;
+export const WATER_CHOP_DIR_3 = [0.50, -0.80];
+export const WATER_CHOP_SPEED = 1.1;     // phase speed multiplier (uTime)
+export const WATER_CHOP_STRENGTH = 0.35; // normal-perturb strength (view-space)
+
 /** Full river blue for carved channel floors (rendered on the water mesh). */
 export const RIVER_COLOR = [0.176, 0.529, 0.902];
 
@@ -71,7 +87,7 @@ export const TERRAIN_COLOR = {
   desert:        [0.839, 0.694, 0.357],  // #d6b15b — warm golden sand
   marsh:         [0.506, 0.600, 0.404],  // #819967 — murky vibrant marsh
   mountain:      [0.529, 0.486, 0.416],  // #877c6a — rocky warm gray
-  water:         [0.373, 0.604, 0.757],  // #5f9ac1 — bright cyan-blue
+  water:         [0.157, 0.376, 0.545],  // #285f8b — deep ocean blue
   ice:           [0.649, 0.820, 0.957],  // #a6d1f4 — pale ice blue
   beach:         [0.910, 0.847, 0.627],  // #e8d8a0 — warm sand
   river:         [0.176, 0.529, 0.902],  // RIVER_COLOR — flowing channel blue
