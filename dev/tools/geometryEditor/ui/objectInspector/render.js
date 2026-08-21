@@ -17,6 +17,7 @@ import { renderVariantSection } from './variantSection.js';
 import { renderEntityControls } from './entitySection.js';
 import { renderClusterSection, renderSizeSection, renderVariationSection, renderPlacementSection, renderEmphasisSection } from './tileSections.js';
 import { renderMaterialSection } from './materialSection.js';
+import { renderOptionalGroupsSection } from './optionalGroupsSection.js';
 
 /** The Motifs panel — the v6 composition panel for motif decors. */
 export function renderMotifPanel(container, ctx) {
@@ -69,4 +70,7 @@ export function renderFieldSections(container, ctx) {
     renderVariantSection(variation, d, ctx);
   }
   renderEmphasisSection(variation, d, ctx);
+
+  // Scaffolding — last in the panel, collapsed, never auto-opened.
+  renderOptionalGroupsSection(container, ctx);
 }

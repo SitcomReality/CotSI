@@ -29,6 +29,7 @@ const SECTIONS = {
   emphasis:    { title: 'Emphasis',      open: false },
   variation:   { title: 'Variation',     open: false },
   portrait:    { title: 'Portrait',      open: false },
+  optionalGroups: { title: 'Optional groups', open: false },
   item:        { title: 'Item',          open: false },
   entity:      { title: 'Entity',        open: false },
 };

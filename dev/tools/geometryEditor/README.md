@@ -122,6 +122,7 @@ outline), `src/render/hexmap3d/hexWorldSpace`, `src/engine/rules/mat4`,
 | `portraitSection.js` | Portrait picker + icon preview |
 | `tileSections.js` | Cluster (density/jitter) / size (instance scale, by-mountain buckets) / placement / variation (jitter + stretch ranges) / emphasis |
 | `materialSection.js` | Object-level emissive glow + intensity |
+| `optionalGroupsSection.js` | Random-omission groups (id/chance scaffolding) |
 | `variantSection.js` | Variant picker + duplicate |
 | `variantDuplicate.js` | Duplicate-variant action |
 | `biomePins.js` | Pinned biome weight rows (motif grid) |

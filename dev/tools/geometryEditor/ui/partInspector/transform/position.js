@@ -4,10 +4,11 @@
  * "empty", the Y and localPos rows edit the `states.empty` keyframe instead of
  * the base transform — the values lerp to the base as the feature regrows.
  */
-import { el, row, numberInput, tupleRow } from '../../formControls/index.js';
+import { el, row, numberInput, intInput, selectInput, tupleRow } from '../../formControls/index.js';
 import { isGroupNode } from '../../partTree/index.js';
 import { section, fmt } from '../sectionShell.js';
 import { editingEmptyState, emptyKeyframe, emptyLocalPos, pruneZeroLocalPos } from '../stateKeyframes.js';
+import { LIFT_RANGE_SEED } from '../../../../../../src/render/hexmap3d/worldObjects/descriptors/partScale.js';
 
 /**
  * Write one localPos component of `t`, deleting the field when every component
@@ -35,11 +36,13 @@ export function renderPositionSection(container, entry, ctx) {
   const sec = section('position', container, () => {
     const ty = t.y ?? 0;
     const tlift = t.lift ?? 0;
+    const lr = t.liftRange;
     const lp = t.localPos;
-    if (ty === 0 && tlift === 0 && (!lp || (lp.x === 0 && lp.y === 0 && lp.z === 0))) return 'default';
+    if (ty === 0 && tlift === 0 && !lr && (!lp || (lp.x === 0 && lp.y === 0 && lp.z === 0))) return 'default';
     const parts = [];
     if (ty !== 0) parts.push(`Y ${fmt(ty)}`);
-    if (tlift !== 0) parts.push(`lift ${fmt(tlift)}`);
+    if (lr) parts.push(`lift ${fmt(lr.min)}–${fmt(lr.max)}`);
+    else if (tlift !== 0) parts.push(`lift ${fmt(tlift)}`);
     if (lp) parts.push(`local (${fmt(lp.x)}, ${fmt(lp.y)}, ${fmt(lp.z)})`);
     return parts.join(' · ');
   });
@@ -52,7 +55,41 @@ export function renderPositionSection(container, entry, ctx) {
       if (empty) emptyKeyframe(node).y = v;
       else t.y = v;
     }) }), 'World offset, item-scaled — the part\'s lowest vertex lands at Y + Lift (+ localPos.y)'));
-    sec.append(row('Lift (bottom height)', numberInput(t.lift ?? 0, { onChange: (v) => ctx.mutate(() => { t.lift = v; }) }), 'World offset, item-scaled; base transform only (not keyframed)'));
+
+    // Lift — pattern B, one source of truth: Fixed writes `lift`, Range
+    // writes `liftRange` (a per-item draw between min and max). Switching
+    // modes converts the value and deletes the other key, so the two can
+    // never fight. Base pose only (not keyframed).
+    if (!empty) {
+      const inRange = t.liftRange !== undefined;
+      const modeRow = el('div', 'control-row');
+      const modeLabel = el('label', null, 'Lift');
+      modeLabel.title = 'Fixed: one height for every instance. Range: each instance draws its lift from min–max (seeded)';
+      modeRow.append(modeLabel);
+      const modeSel = selectInput(['fixed', 'range'], inRange ? 'range' : 'fixed', (m) => ctx.mutate(() => {
+        if (m === 'range') {
+          const base = t.lift ?? (t.liftRange ? t.liftRange.min : 0);
+          t.liftRange = { min: base, max: base + 0.2, seed: t.liftRange?.seed ?? 6 };
+          delete t.lift;
+        } else {
+          const mid = t.liftRange ? (t.liftRange.min + t.liftRange.max) / 2 : 0;
+          t.lift = Math.round(mid * 1000) / 1000;
+          delete t.liftRange;
+        }
+      }));
+      modeRow.append(modeSel);
+      sec.append(modeRow);
+    }
+    if (empty || !t.liftRange) {
+      sec.append(row('Lift (bottom height)', numberInput(t.lift ?? 0, { onChange: (v) => ctx.mutate(() => { t.lift = v; }) }), 'World offset, item-scaled; base transform only (not keyframed)'));
+    } else {
+      const lr = t.liftRange;
+      sec.append(tupleRow('Lift range', [
+        { input: numberInput(lr.min, { onChange: (v) => ctx.mutate(() => { lr.min = Math.min(v, lr.max); }) }), micro: 'min' },
+        { input: numberInput(lr.max, { onChange: (v) => ctx.mutate(() => { lr.max = Math.max(v, lr.min); }) }), micro: 'max' },
+      ], 'Each instance draws its lift from this range (item-scaled world units)'));
+      sec.append(row('Range seed', intInput(lr.seed ?? LIFT_RANGE_SEED, { min: 0, onChange: (v) => ctx.mutate(() => { lr.seed = v; }) }), 'Per-instance draw seed — most authors leave it'));
+    }
   }
   const lpTitle = parent === null
     ? (isGroupNode(node)

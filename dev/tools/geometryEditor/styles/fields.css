@@ -117,6 +117,28 @@
 .bucket-row > button:hover {
   color: var(--crimson);
 }
+
+/* Optional-groups rows (Phase 5b): id + chance + reorder/remove on one line. */
+.optional-group-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+.optional-group-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+.optional-group-row input[type="number"] {
+  width: 56px;
+  flex-shrink: 0;
+}
+.optional-group-row > button {
+  flex-shrink: 0;
+  padding: 2px 5px;
+  font-size: var(--fs-xs);
+}
 /* The `+ override` picker row under a sparse biome-scale list. */
 #fields-panel .override-add-row select {
   font-size: var(--fs-xs);
