@@ -575,9 +575,23 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `gameContext.js` | Game context snapshot for performance reports |
 | `index.js` | Barrel for performance exports |
 | `overlay.js` | Performance overlay display on the game canvas |
-| `reportBuilder.js` | Performance report text builder |
+| `reportBuilder.js` | Report orchestration: assembles CaptureReport from frame entries |
+| `report/` | Report analysis modules (see sub-table below) |
 | `snapshot.js` | Performance snapshot (point-in-time metrics) |
 | `stats.js` | Performance statistics (min, max, avg, percentiles) |
+
+#### `src/devtools/performance/report/` — Report analysis modules
+
+| File | Purpose |
+|------|---------|
+| `frameSummary.js` | Overall summary stats: fps/frame-time/memory/heap-delta, per-context breakdown |
+| `frameThresholds.js` | Frame-time thresholds, bucket categorization, rounding/context-label helpers |
+| `reportFormatter.js` | Formatted string rendering of a CaptureReport |
+| `slowClusters.js` | Adjacent slow-frame clustering |
+| `spanAnalysis.js` | Span aggregation, exclusive (self) time, JS invisible-overhead |
+| `timeBudget.js` | Per-frame and per-phase time-budget computation |
+| `warnings.js` | Condensed warning generation from report sections |
+| `worstFrames.js` | Worst-frame drill-down with span breakdowns |
 
 ### `src/devtools/` — Top-level dev files
 

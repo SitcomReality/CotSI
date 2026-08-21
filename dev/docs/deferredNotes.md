@@ -19,7 +19,6 @@ items below remain.
 - Root `styles/` (the game's CSS design system) — never audited at the same
   ~100-line level; a future pass could reuse the audit method.
 
-### Conditional extracts (techDebtAudit §2 — only if these files grow)
-
-- `src/devtools/performance/reportBuilder.js` (928) — extract `_formatReport`
-  (~148 lines) → `reportFormatter.js` if it grows past ~1,000 lines
+The conditional extracts section is empty: `reportBuilder.js` was fully split
+into `src/devtools/performance/report/` modules ahead of its growth trigger
+(2026-08-21).
