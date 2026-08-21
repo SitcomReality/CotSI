@@ -197,7 +197,7 @@ inside these two regions.
 
 | Terrain key | Renders as | Decor pattern |
 |-------------|-----------|---------------|
-| `plains`, `beach`, `desert`, `marsh`, `hill`, `plateau`, `forest`, `deepWood` | **Titanflesh** | titan motifs: `titanSpire`, `titanBoil`, `titanNodule` |
+| `plains`, `beach`, `desert`, `marsh`, `hill`, `plateau`, `forest`, `deepWood` | **Titanflesh** | titan motifs: `titanSpire`, `titanBoil` |
 | `mountain` | Titanflesh Mountain | standard mountain |
 | `water` | Titanblood | `pool` |
 | `ice` | Frozen Titanblood | `pool` |
@@ -207,9 +207,9 @@ inside these two regions.
 
 | Terrain key | Renders as | Decor pattern |
 |-------------|-----------|---------------|
-| `plains`, `beach`, `desert`, `plateau` | **Yetlands** | yet-fragment motifs: `yetFragmentCube`, `yetFragmentShard`, `yetFragmentOrb` |
-| `forest`, `deepWood`, `marsh` | **Protogrowth** | yet-fragment motifs: `yetFragmentCube`, `yetFragmentShard`, `yetFragmentOrb` |
-| `hill` | Half-Hewn Rise | yet-fragment motifs: `yetFragmentCube`, `yetFragmentShard`, `yetFragmentOrb` |
+| `plains`, `beach`, `desert`, `plateau` | **Yetlands** | yet-fragment motifs: `yetFragmentCube`, `yetFragmentShard` |
+| `forest`, `deepWood`, `marsh` | **Protogrowth** | yet-fragment motifs: `yetFragmentCube`, `yetFragmentShard` |
+| `hill` | Half-Hewn Rise | yet-fragment motifs: `yetFragmentCube`, `yetFragmentShard` |
 | `mountain` | Sky Stalagmite | standard mountain |
 | `water` | Forespring | `pool` |
 | `ice` | Forespring | `pool` |

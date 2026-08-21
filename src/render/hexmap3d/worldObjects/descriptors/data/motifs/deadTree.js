@@ -248,23 +248,6 @@ export const DEAD_TREE_MOTIF = {
                 },
               ],
             },
-            {
-              id: 'deadTree-tuft',
-              shape: 'sphere',
-              params: { radius: 0.1 },
-              stretch: {
-                y: { min: 0.8, max: 1.2, seed: 24 },
-                x: { min: 0.9, max: 1.15, seed: 24 },
-                z: { min: 0.9, max: 1.15, seed: 24 },
-              },
-              color: 0x77764e,
-              biomeColor: { source: 'foliage', influence: 0.3 },
-              transform: {
-                y: 0.54,
-                lift: 0,
-                localPos: { x: 0.03, y: 0.04, z: 0.01 },
-              },
-            },
           ],
         },
         {
@@ -402,6 +385,38 @@ export const DEAD_TREE_MOTIF = {
                   ],
                 },
               ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'deadTree-tuft',
+      seed: 109,
+      default: 'deadTree-tuft-present',
+      alternatives: [
+        { id: 'deadTree-tuft-none', weight: 0.45, biomeWeight: { biome_painforest: 0 }, parts: [] },
+        {
+          id: 'deadTree-tuft-present',
+          weight: 0.55,
+          biomeWeight: { biome_sere_wastes: 0 },
+          parts: [
+            {
+              id: 'deadTree-tuft-sphere',
+              shape: 'sphere',
+              params: { radius: 0.1 },
+              stretch: {
+                y: { min: 0.8, max: 1.2, seed: 24 },
+                x: { min: 0.9, max: 1.15, seed: 24 },
+                z: { min: 0.9, max: 1.15, seed: 24 },
+              },
+              color: 0x77764e,
+              biomeColor: { source: 'foliage', influence: 0.3 },
+              transform: {
+                y: 0.54,
+                lift: 0,
+                localPos: { x: 0.03, y: 0.04, z: 0.01 },
+              },
             },
           ],
         },

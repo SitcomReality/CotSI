@@ -33,8 +33,6 @@ import { BONE_MOTIF } from './bone.js';
 import { POOL_MOTIF } from './pool.js';
 import { TITAN_BOIL_MOTIF } from './titanBoil.js';
 import { TITAN_SPIRE_MOTIF } from './titanSpire.js';
-import { TITAN_NODULE_MOTIF } from './titanNodule.js';
-import { YET_FRAGMENT_ORB_MOTIF } from './yetFragmentOrb.js';
 import { YET_FRAGMENT_CUBE_MOTIF } from './yetFragmentCube.js';
 import { YET_FRAGMENT_SHARD_MOTIF } from './yetFragmentShard.js';
 
@@ -60,8 +58,6 @@ export const ALL_MOTIFS = Object.freeze([
   POOL_MOTIF,
   TITAN_BOIL_MOTIF,
   TITAN_SPIRE_MOTIF,
-  TITAN_NODULE_MOTIF,
-  YET_FRAGMENT_ORB_MOTIF,
   YET_FRAGMENT_CUBE_MOTIF,
   YET_FRAGMENT_SHARD_MOTIF,
 ]);

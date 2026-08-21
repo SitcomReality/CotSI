@@ -715,8 +715,8 @@ export const FOREST_DESCRIPTOR = {
                      biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
                      biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
                      biome_unfinished_lands: 0 } },
-    // … titanBoil, titanNodule (Titanstain)
-    //   and yetFragmentCube/Shard/Orb (Unfinished Lands) — same pattern, and
+    // … titanBoil (Titanstain)
+    //   and yetFragmentCube/Shard (Unfinished Lands) — same pattern, and
     //   together they live once in decor/supernatural.js as SUPERNATURAL_MOTIFS …
   ],
 };

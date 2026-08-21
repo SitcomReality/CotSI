@@ -4,8 +4,9 @@ Active three-track plan born from a terrain-decor review: the decor system's
 variation features (alternatives, per-option `biomeWeight`, per-motif weight
 skews, motif library) are richer than the catalog actually uses. The plan is to
 consolidate the motif catalog, then actually *use* those features, then tune
-density. **Track 1 is done and committed; this doc is the running state and the
-Track 2 / 3 brief.**
+density. **Track 1 is committed; Track 2's named authoring asks are done and
+committed here (a broad per-biome-weight polish is optional, see below); Track 3
+is the density brief below.**
 
 Scope note: tracks are deliberately separate. Do not fold Track 2 (authoring)
 or Track 3 (density) changes into Track 1 work or vice-versa — each lands and
@@ -19,12 +20,11 @@ Reduced the shared motif library from **54 → 24 motifs** and rewired every dec
 table (`data/decor/*.js`) to the consolidated set. Files touched live under
 `src/render/hexmap3d/worldObjects/descriptors/`.
 
-### Resulting catalog (24)
+### Resulting catalog (24 → 22 after Track 2's supernatural trim)
 
 `roundTree` `conifer` `deadTree` `tallTree` `gnarledTree` `log` — `stone` `pile`
 `shard` `tuft` — `flower` `crystal` `shrub` — `cactus` `cattail` `mound` `bone`
-— `pool` — `titanBoil` `titanSpire` `titanNodule` — `yetFragmentOrb`
-`yetFragmentCube` `yetFragmentShard`.
+— `pool` — `titanBoil` `titanSpire` — `yetFragmentCube` `yetFragmentShard`.
 
 Barrel: `data/motifs/index.js` (`ALL_MOTIFS` / `motifById`).
 
@@ -43,19 +43,19 @@ Barrel: `data/motifs/index.js` (`ALL_MOTIFS` / `motifById`).
   - `shard` (112): shard-facet .7 / shard-glass .3.
   - `tuft` (113): tuft-grass .55 / tuft-tussock .45.
 - **Distinct motifs extracted** — `flower`, `crystal`, `shrub` now each have
-  their own file (previously debris parts). These are currently single-part
-  placeholders — extending them is Track 2.
+  their own file (previously debris parts), still single-part placeholders.
 - **`pool` unifies the pools** (seed 114) — replaces `bloodPool` / `springPool`
   / `ghostSpark` with one motif whose options carry the old identities:
   `pool-blood` (unfinished_lands:0 → shows on Titanblood), `pool-spring` and
   `pool-spark` (titanstain:0 → show on Forespring).
-- **Supernatural deduped** — the 3 titan motifs (`titanSpire`/`titanBoil`/
-  `titanNodule`) and 3 yet motifs (`yetFragmentCube`/`yetFragmentShard`/
-  `yetFragmentOrb`) now live **once** in `data/decor/supernatural.js`
-  (`SUPERNATURAL_MOTIFS`), spread into each land decor instead of pasted
-  per-file. Each entry gates itself to one supernatural biome via present-0
-  `biomeWeight`. Removed `titanTendril`, `titanTooth`, `yetFragmentCone`,
-  `yetFragmentPillar`.
+- **Supernatural deduped + trimmed to 2 per biome.** The titan and yet motifs
+  live **once** in `data/decor/supernatural.js` (`SUPERNATURAL_MOTIFS`), spread
+  into each land decor instead of pasted per-file; each entry gates itself to one
+  supernatural biome via present-0 `biomeWeight`. Track 1 removed `titanTendril`,
+  `titanTooth`, `yetFragmentCone`, `yetFragmentPillar`; **Track 2** trimmed the
+  set to 2 per biome (user decision): Titanstain keeps `titanSpire` +
+  `titanBoil`, Unfinished Lands keeps `yetFragmentCube` + `yetFragmentShard`
+  (dropped `titanNodule`, `yetFragmentOrb`).
 - **Junk removed** — `deadCactus`, `boneStalk`, `spar`, `reed` deleted.
 - **`driftwood` → `log`** everywhere.
 - **`coldMound` / `saltCrust` → `pile`** (merged into existing pile entries).
@@ -72,82 +72,82 @@ is a smaller, safer change than authoring per-wood color alternatives. If
 distinct silhouettes per wood are wanted, that is Track 2 (authoring) work, not
 a correction to Track 1.
 
-### Verification (all green at commit)
+### Verification (green at Track 1 commit, and re-run green after Track 2's trim)
 
 - Regenerated golden snapshot: `dev/scripts/regenerate_descriptor_snapshot.sh`
-  → `40 descriptor(s) — unchanged` (idempotent; matches committed snap).
+  → `40 descriptor(s)` (regenerated after Track 2's supernatural trim; the
+  motif shape changes are inside `data/motifs/`, the 40 count is stable).
 - `node --test` → **772 pass / 0 fail** (includes the render descriptor
-  round-trip and motif/alternatives validation).
+  round-trip, motif/alternatives validation, and "every library motif wraps into
+  a synthetic, valid decor").
 - `check_imports.py`, `check_analysis_imports.py`,
   `check_geometry_editor_imports.py` all pass (one pre-existing informational
   boundary note: `ui/mapTooltip.js → game/rules/terrainOverrides.js`).
 
-One test was edited to stay correct:
+One test was edited in Track 1 to stay correct:
 `dev/tests/render/descriptorData.test.js` — the "woods decor … dispersed ring +
 shrink" bound used a hardcoded `1.15` canopy-headroom factor that the new
 large-scale motifs (titanBoil scaleX 1.4, log 1.3) exceed at the biome-less
 snapshot tile. Added a `maxLeafScaleX(parts)` helper (walks groups +
 alternatives for max `transform.scaleX`) and changed the bound to
-`maxMotifSize * maxScaleX * 1.15 * DISPERSED_SCALE + 1e-9`.
+`maxMotifSize * maxScaleX * 1.15 * DISPERSED_SCALE + 1e-9`. This covers the
+alternatives-based supernatural motifs too, since they carry large `scaleX`
+leaves.
 
 ### Also updated (docs/comments swept for removed ids)
 
 `AGENTS.md`, `dev/docs/sourceTree.md`, `dev/docs/descriptorAuthoring.md`,
 `dev/docs/context/biomesAndTerrain.md`, `dev/docs/context/sceneConventions.md`,
-plus the six supernatural motif file headers
-(`data/motifs/{titanBoil,titanSpire,titanNodule,yetFragmentOrb,yetFragmentCube,yetFragmentShard}.js`)
+plus the supernatural motif file headers
+(`data/motifs/{titanBoil,titanSpire,yetFragmentCube,yetFragmentShard}.js`)
 that still pointed at the deleted `data/motifs/debris.js`, and
 `data/motifs/log.js` (dropped the now-false "sole multi-part exception" claim).
 
 ---
 
-## Track 2 (TODO) — Authoring & actual feature use
+## Track 2 (WIP) — Authoring & actual feature use
 
 Catalog is right; the geometry and the use of the variation features is not.
-The motifs are mostly single static shapes; the point of Track 2 is to make
-them read correctly and to *exercise* alternatives / per-option `biomeWeight` /
-grouping per motif.
+The point of Track 2 is to make motifs read correctly and to *exercise*
+alternatives / per-option `biomeWeight` / grouping per motif.
 
-All motif geometry is authored in the **geometry editor**, not by hand:
+### Progress so far — all named authoring asks DONE
 
-- Edit the object in `dev/tools/geometryEditor.html`, press **Save** (needs
-  `dev/tools/geometryEditor/saveServer.sh`, which also serves the game).
-- Tree motifs save to `data/motifs/<id>.js` via the `/save/motif` route;
-  referenced by a decor's `{ motif, weight, biomeWeight, … }` entry.
-- Authoring rules & worked examples: `dev/docs/descriptorAuthoring.md`
-  (shared-library references, `alternatives`, groups, tint `source`).
+Each remaining motif now uses the alternatives / per-biome-weight feature set
+rather than a single static shape:
 
-### Concrete asks (in priority order)
+- **Supernatural (2 per biome, seeds 105–108)** — `titanSpire` (single/pair/
+  thicket), `titanBoil` (single/pair/pustules), `yetFragmentCube`
+  (single/pair/column), `yetFragmentShard` (single/pair/burst).
+- **`cactus`** — tapered ribbed trunk + domed cap + `bloom` accent, and an
+  out-then-up elbow arm choice (none / one / two; ids `-one-`/`-two-` scoped so
+  the same arm shape can appear in both configs without id collision).
+- **`deadTree`** — the moss `tuft` clump was pulled out of the crown and made a
+  per-biome choice point (`deadTree-tuft`, seed 109): excluded in `sere_wastes`
+  (present option carries `biome_sere_wastes: 0`) and always present in
+  `painforest` (none option carries `biome_painforest: 0`).
+- **`flower`** — a green stalk topped by a wide, flat head tinting strongly via
+  `bloom` (`flower-bloom`, bloom influence 0.75).
+- **`crystal`** — a formation choice point (`crystal-formation`, seed 115):
+  single shard / pair / outcrop cluster.
+- **`shrub`** — short stems plus a per-biome foliage style (`shrub-foliage`,
+  seed 116): lush green cluster (never `sere_wastes`) or sparse dry scrub
+  (never `painforest`).
 
-1. **Make `cactus` convincing** — `data/motifs/cactus.js`. Currently reads as
-   "an arm + cylinder", not a cactus. The editor screenshot shows the arm
-   tree (`cactus-arm-left/right`) as the only variable bit. Give it a proper
-   tapered trunk, ribs, consistent arm placement, top cap, and a flower/pad
-   accent; vary arms via alternatives.
-2. **`deadTree` variability** — `data/motifs/deadTree.js`. Too detailed and too
-   consistent. Now that per-biome **part weighting** is possible, e.g. disable
-   the `tuft` clump in **Sere Wastes** and always show it in **Painforest**
-   (via per-option `biomeWeight` on the tuft alternative/group). Split the
-   custom parts into groups so the whole tree is more random per instance.
-3. **Supernatural motif variety** — `titanBoil`/`titanSpire`/`titanNodule` and
-   `yetFragmentCube`/`yetFragmentShard`/`yetFragmentOrb`. These are single
-   shapes now and "not much of anything" — one motif per biome silhouette was
-   enough **because** each can now carry alternatives / part-level variation.
-   Give each 2–3 variants or part-level `biomeWeight` so a titan hex isn't 10
-   identical spires. Keep it to the 3 titan + 3 yet set (no new motifs).
-4. **`flower` as a proper stalk** — `data/motifs/flower.js`. The ask: a stalk
-   (like `cattail`) topped with a wider/flatter bloom that uses a strong
-   `bloom` tint `source`. Currently a single elevated spheroid (`flower-a`).
-5. **`crystal` in clusters/formations** — `data/motifs/crystal.js`. Currently a
-   single shard (`crystal-a`); add a cluster root / formation alternatives so it
-   reads as a crystalline outcrop.
-6. **`shrub` as distinct medium plant** — `data/motifs/shrub.js`. Larger than a
-   flower, smaller than a tree, with alternatives/variation and biome-based
-   distinctions (a scrubby sere-wastes shrub vs a lush painforest one).
-7. **General per-biome alternative/part weighting** — apply the pattern above
-   across motifs; the Sere-Wastes/Painforest tuft example is the template. The
-   plumbing is already validated (`validateParts.js` accepts per-option
-   `biomeWeight` on an alternatives node).
+Authoring pattern to reuse: a local builder function per shape returns a root
+part with `shape`/`params`/`transform`/`stretch`/`color`/`biomeColor`, and the
+exported motif is a single `{ id, parts: [{ id, seed, default, alternatives:
+[{ id, weight, biomeWeight?, parts }] }] }`. Option/leaf ids are prefix-scoped
+to the motif (`<motif>-<option>-<local>`) so part ids stay globally unique —
+reusing the same builder across two options REQUIRES a distinct prefix, or
+`validateParts` rejects the duplicate ids (the cactus authoring caught this).
+
+### Remaining Track 2 polish (optional / broad)
+
+- **Apply per-biome alternative/part weighting more broadly** — the
+  Sere-Wastes/Painforest tuft and shrub examples are the template; extend to
+  other motifs where a part should read differently per biome. Low priority
+  once the named asks are done; do it per biome as the need shows.
 
 ### Reminder for exactly-once part ids
 
@@ -178,16 +178,16 @@ Final numbers need in-game eyeballing — the user tests visually and reports ba
 
 ## How to verify
 
-- **Authoring** (Track 2): edit in the geometry editor → Save via
-  `saveServer.sh` → regenerate the snapshot
-  (`dev/scripts/regenerate_descriptor_snapshot.sh`, expect `unchanged` iff no
-  descriptor data changed) → `node --test` → the three import checkers
-  (`check_imports.py`, `check_analysis_imports.py`,
-  `check_geometry_editor_imports.py`).
+- **Authoring** (Track 2): edit the motif in `data/motifs/<id>.js` (hand-authored
+  — or via the geometry editor's motif mode → Save → `/save/motif`) → regenerate
+  the snapshot (`dev/scripts/regenerate_descriptor_snapshot.sh`) → `node --test`
+  → the three import checkers (`check_imports.py`,
+  `check_analysis_imports.py`, `check_geometry_editor_imports.py`).
 - **Visual** (the user, all tracks): load the game and screenshot the affected
   biomes — desert, marsh, beach, plains, deepWood, titanstain, unfinished lands
-  — confirming no broken/empty hexes and each biome still reads as itself.
-  The AI dev can't run the game; rely on the user for the visual pass.
+  (the supernatural trim plus the re-authored cactus/deadTree/flower/crystal/
+  shrub) — confirming no broken/empty hexes and each biome still reads as
+  itself. The AI dev can't run the game; rely on the user for the visual pass.
 
 ## Open questions for the user
 
@@ -195,5 +195,3 @@ Final numbers need in-game eyeballing — the user tests visually and reports ba
   approach (above) rather than per-wood tint alternatives.
 - Whether Track 3 density targets are defined (e.g. a target per-hex count for
   beaches/deserts) or should be found by eye.
-- Whether the supernatural set should stay at 3 per biome (locked in Track 1)
-  or you'd later accept a leaner 2-per-biome once variety is in.

@@ -79,9 +79,9 @@ the objects an LLM is most likely to be asked to restyle or extend:
 **Supernatural looks** are not standalone override decors — they're shared
 motifs folded into each base decorator's `motifs` table and gated to one biome
 by a `biomeWeight` of 0 everywhere else (see biomesAndTerrain §6). Titanstain
-tiles pick the titan motifs (`titanSpire`, `titanBoil`, `titanNodule`);
+tiles pick the titan motifs (`titanSpire`, `titanBoil`);
 Unfinished Lands picks the yet-fragment motifs (`yetFragmentCube`,
-`yetFragmentShard`, `yetFragmentOrb`). Water/ice/river stay bare on natural
+`yetFragmentShard`). Water/ice/river stay bare on natural
 biomes (the water mesh handles their look) and gain only the `pool` motif under
 the supernatural biomes.
 
