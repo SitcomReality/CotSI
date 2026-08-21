@@ -16,6 +16,7 @@ import { renderIdEdit } from './actions/idEdit.js';
 import { renderPositionSection, renderRotationSection, renderScaleSection } from './transform/index.js';
 import { renderBoundsSection } from './boundsSection.js';
 import { renderShapeSection, renderColorSection, renderBiomeScaleSection, renderStretchSection } from './leafSections/index.js';
+import { sectionGroup } from './sectionShell.js';
 import { renderAlternativesSection } from './alternatives/index.js';
 
 /**
@@ -35,13 +36,16 @@ export function renderPartInspector(container, entry, ctx) {
   if (!isGroupNode(node)) {
     renderShapeSection(container, node, ctx);
   }
-  renderPositionSection(container, entry, ctx);
-  renderRotationSection(container, entry, ctx);
-  renderScaleSection(container, entry, ctx);
+  const transform = sectionGroup(container, 'transform', 'Transform');
+  renderPositionSection(transform, entry, ctx);
+  renderRotationSection(transform, entry, ctx);
+  renderScaleSection(transform, entry, ctx);
   renderBoundsSection(container, entry, ctx);
   if (!isGroupNode(node)) {
-    renderColorSection(container, node, ctx);
-    renderBiomeScaleSection(container, node, ctx);
-    renderStretchSection(container, node, ctx);
+    const look = sectionGroup(container, 'look', 'Look');
+    renderColorSection(look, node, ctx);
+    const variation = sectionGroup(container, 'variation', 'Variation');
+    renderBiomeScaleSection(variation, node, ctx);
+    renderStretchSection(variation, node, ctx);
   }
 }

@@ -197,6 +197,34 @@
   flex-shrink: 0;
 }
 
+/* ── Super-groups (Phase 3) ──────────────────────────────────────────────── */
+
+/* Related sections fold under a quiet uppercase label with a 2px family
+   accent bar. The family hue touches the label, the section triangles and
+   focus rings only — never field labels or values. */
+.section-group {
+  border-left: 2px solid var(--group-accent, var(--crease));
+  padding-left: var(--s2);
+  margin-bottom: var(--s3);
+}
+.section-group-label {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-cap);
+  color: color-mix(in srgb, var(--group-accent, var(--ink-faint)) 70%, var(--ink-faint));
+  margin-bottom: var(--s1);
+}
+.section-group > .inspector-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.section-group[data-group='transform'] { --group-accent: color-mix(in srgb, var(--cerulean) 40%, var(--ink-faint)); }
+.section-group[data-group='look']      { --group-accent: color-mix(in srgb, var(--gold) 40%, var(--ink-faint)); }
+.section-group[data-group='spawn']     { --group-accent: color-mix(in srgb, var(--verdant, #7da87d) 40%, var(--ink-faint)); }
+.section-group[data-group='variation'] { --group-accent: color-mix(in srgb, var(--crimson) 35%, var(--ink-faint)); }
+
 /* ── Part actions (nest / ungroup / copy-transform) ───────────────────────── */
 
 .part-actions {

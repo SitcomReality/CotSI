@@ -26,3 +26,22 @@ export function row(labelText, control, labelTitle) {
 export function subheading(labelText) {
   return el('div', 'section-title', labelText);
 }
+
+/** A tuple row (control pattern A): one label, several inputs on ONE line —
+ *  XYZ / min–max compounds stop exploding into stacked rows. Each cell is
+ *  `{ input, micro }`; the micro-label becomes the input's placeholder and
+ *  tooltip (no sub-label DOM — the inspector column is 310px). */
+export function tupleRow(labelText, cells, labelTitle) {
+  const r = el('div', 'tuple-row');
+  const label = el('label', null, labelText);
+  if (labelTitle) label.title = labelTitle;
+  r.append(label);
+  for (const { input, micro } of cells) {
+    if (micro) {
+      input.placeholder = micro;
+      input.title = micro;
+    }
+    r.append(input);
+  }
+  return r;
+}

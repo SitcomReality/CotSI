@@ -4,7 +4,7 @@
  * singletons). Each renderer builds its collapsible section (via `section`)
  * and appends its rows; `d` is the descriptor, `ctx` supplies `mutate()`.
  */
-import { el, row, selectInput, numberInput, intInput } from '../formControls/index.js';
+import { el, row, selectInput, numberInput, intInput, tupleRow } from '../formControls/index.js';
 import { EMPHASIS_BEHAVIORS, PLACEMENT_MODES } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { TERRAIN } from '../../../../../src/game/rules/terrainTypes.js';
 import { section } from './sectionShell.js';
@@ -76,8 +76,10 @@ export function renderClusterSection(container, d, ctx) {
     }));
     sec.append(addBtn);
   } else {
-    sec.append(row('Min', intInput(d.cluster.min, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.min = v; }) })));
-    sec.append(row('Max', intInput(d.cluster.max, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.max = Math.max(v, d.cluster.min); }) })));
+    sec.append(tupleRow('Count', [
+      { input: intInput(d.cluster.min, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.min = v; }) }), micro: 'min' },
+      { input: intInput(d.cluster.max, { min: 1, onChange: (v) => ctx.mutate(() => { d.cluster.max = Math.max(v, d.cluster.min); }) }), micro: 'max' },
+    ], 'Instances per tile (uniform)'));
   }
 }
 
@@ -87,8 +89,10 @@ export function renderSizeSection(container, d, ctx) {
     if (d.size.min === 1 && d.size.max === 1) return 'default';
     return `${d.size.min}–${d.size.max}`;
   });
-  sec.append(row('Min', numberInput(d.size.min, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.min = v; }) })));
-  sec.append(row('Max', numberInput(d.size.max, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.max = Math.max(v, d.size.min); }) })));
+  sec.append(tupleRow('Spawn size', [
+    { input: numberInput(d.size.min, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.min = v; }) }), micro: 'min' },
+    { input: numberInput(d.size.max, { min: 0.01, onChange: (v) => ctx.mutate(() => { d.size.max = Math.max(v, d.size.min); }) }), micro: 'max' },
+  ], 'Per-instance scale range (world units)'));
 }
 
 /**

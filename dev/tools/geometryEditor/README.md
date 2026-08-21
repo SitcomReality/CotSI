@@ -145,7 +145,7 @@ outline), `src/render/hexmap3d/hexWorldSpace`, `src/engine/rules/mat4`,
 | `transform/index.js` | Barrel: position/rotation/scale sections |
 | `transform/position.js` | Y/Lift/localPos rows (+ empty-state keyframe) |
 | `transform/rotation.js` | Axis/angle/rotY/tilt rows |
-| `transform/scale.js` | Per-axis scale rows |
+| `transform/scale.js` | Part-scale tuple row (X/Y/Z) |
 | `leafSections/index.js` | Barrel: leaf-only sections |
 | `leafSections/shape.js` | Shape-params rows |
 | `leafSections/color.js` | Merged Color & tint section (entity tokens vs literal + biome-tint source/influence) |

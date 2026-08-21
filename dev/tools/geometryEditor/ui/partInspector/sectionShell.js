@@ -21,10 +21,10 @@ const SECTIONS = {
   shape:         { title: 'Shape',         open: false },
   position:      { title: 'Position',      open: false },
   rotation:      { title: 'Rotation',      open: false },
-  scale:         { title: 'Scale',         open: false },
+  scale:         { title: 'Part scale',    open: false },
   bounds:        { title: 'Bounds',        open: false },
   color:         { title: 'Color & tint',  open: false },
-  biomeScale:    { title: 'Biome scale',   open: false },
+  biomeScale:    { title: 'Biome size',    open: false },
   stretch:       { title: 'Stretch variation', open: false },
 };
 /** Which sections the user has open (session state, persisted across renders). */
@@ -75,3 +75,21 @@ function section(key, container, getSummary) {
 }
 
 export { SECTIONS, openSections, section };
+
+/**
+ * A labeled super-group (Phase 3) wrapping related sections: a quiet
+ * uppercase label + a 2px family accent bar (`data-group` drives the hue in
+ * inspector.css — label, triangle and focus only, never field labels).
+ * Sections append into the returned div instead of the panel root.
+ *
+ * @param {HTMLElement} container - Panel root to append the group to.
+ * @param {string} key - Family key ('transform' | 'look' | 'spawn' | 'variation').
+ * @param {string} label - Group label (e.g. 'Transform').
+ */
+export function sectionGroup(container, key, label) {
+  const group = el('div', 'section-group');
+  group.dataset.group = key;
+  group.append(el('div', 'section-group-label', label));
+  container.append(group);
+  return group;
+}

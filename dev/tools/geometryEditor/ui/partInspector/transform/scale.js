@@ -3,7 +3,7 @@
  * every node. When the State toggle is "empty", the rows edit the
  * `states.empty` keyframe.
  */
-import { el, row, numberInput } from '../../formControls/index.js';
+import { el, numberInput, tupleRow } from '../../formControls/index.js';
 import { section, fmt } from '../sectionShell.js';
 import { editingEmptyState, emptyKeyframe } from '../stateKeyframes.js';
 
@@ -32,8 +32,10 @@ export function renderScaleSection(container, entry, ctx) {
       }),
     };
   };
-  for (const axis of ['X', 'Y', 'Z']) {
+  const cells = [];
+  for (const axis of ['x', 'y', 'z']) {
     const slot = axisSlot(axis);
-    sec.append(row(`scale${axis}`, numberInput(slot.read(), { min: 0.01, onChange: (v) => slot.write(v) })));
+    cells.push({ input: numberInput(slot.read(), { min: 0.01, onChange: (v) => slot.write(v) }), micro: axis });
   }
+  sec.append(tupleRow('Part scale', cells));
 }

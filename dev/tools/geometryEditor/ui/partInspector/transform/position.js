@@ -4,7 +4,7 @@
  * "empty", the Y and localPos rows edit the `states.empty` keyframe instead of
  * the base transform — the values lerp to the base as the feature regrows.
  */
-import { el, row, numberInput } from '../../formControls/index.js';
+import { el, row, numberInput, tupleRow } from '../../formControls/index.js';
 import { isGroupNode } from '../../partTree/index.js';
 import { section, fmt } from '../sectionShell.js';
 import { editingEmptyState, emptyKeyframe, emptyLocalPos, pruneZeroLocalPos } from '../stateKeyframes.js';
@@ -69,7 +69,9 @@ export function renderPositionSection(container, entry, ctx) {
       setLocalPos(t, axis, v);
     }
   });
-  sec.append(row('localPos X', numberInput(lpValue('x'), { onChange: (v) => writeLp('x', v) }), lpTitle));
-  sec.append(row('localPos Y', numberInput(lpValue('y'), { onChange: (v) => writeLp('y', v) }), lpTitle));
-  sec.append(row('localPos Z', numberInput(lpValue('z'), { onChange: (v) => writeLp('z', v) }), lpTitle));
+  sec.append(tupleRow('localPos', [
+    { input: numberInput(lpValue('x'), { onChange: (v) => writeLp('x', v) }), micro: 'x' },
+    { input: numberInput(lpValue('y'), { onChange: (v) => writeLp('y', v) }), micro: 'y' },
+    { input: numberInput(lpValue('z'), { onChange: (v) => writeLp('z', v) }), micro: 'z' },
+  ], lpTitle));
 }

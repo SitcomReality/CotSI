@@ -11,7 +11,7 @@ import { S } from '../../state.js';
 import { el, row, selectInput } from '../formControls/index.js';
 import { ENTITY_KINDS } from '../../entityView.js';
 import { ITEM_SLOTS } from '../../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
-import { section } from './sectionShell.js';
+import { section, sectionGroup } from './sectionShell.js';
 import { renderMotifControls } from './motifSection/index.js';
 import { renderVariantSection } from './variantSection.js';
 import { renderEntityControls } from './entitySection.js';
@@ -54,13 +54,15 @@ export function renderFieldSections(container, ctx) {
   // motif panel in its own sidebar panel; everything else keeps the Variant
   // section here (the duplicate path still starts a per-biome variant).
   const hasMotifs = (d.motifs ?? []).length > 0;
-  if (!hasMotifs) {
-    renderVariantSection(container, d, ctx);
-  }
+  const spawn = sectionGroup(container, 'spawn', 'Spawn');
+  renderClusterSection(spawn, d, ctx);
+  renderSizeSection(spawn, d, ctx);
+  renderPlacementSection(spawn, d, ctx);
 
-  renderClusterSection(container, d, ctx);
-  renderSizeSection(container, d, ctx);
-  renderPlacementSection(container, d, ctx);
-  renderEmphasisSection(container, d, ctx);
-  renderVariationSection(container, d, ctx);
+  const variation = sectionGroup(container, 'variation', 'Variation');
+  if (!hasMotifs) {
+    renderVariantSection(variation, d, ctx);
+  }
+  renderEmphasisSection(variation, d, ctx);
+  renderVariationSection(variation, d, ctx);
 }

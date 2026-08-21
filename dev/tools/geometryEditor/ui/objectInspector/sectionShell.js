@@ -23,7 +23,7 @@ const SECTIONS = {
   variant:     { title: 'Variant',       open: false },
   biomePins:   { title: 'Per-biome variants', open: false },
   cluster:     { title: 'Cluster',       open: false },
-  size:        { title: 'Size',          open: false },
+  size:        { title: 'Spawn size',    open: false },
   placement:   { title: 'Placement',     open: false },
   emphasis:    { title: 'Emphasis',      open: false },
   variation:   { title: 'Variation',     open: false },
@@ -79,4 +79,22 @@ export function section(key, container, getSummary) {
   container.append(det);
   updateSummary();
   return det;
+}
+
+/**
+ * A labeled super-group (Phase 3) wrapping related sections: a quiet
+ * uppercase label + a 2px family accent bar (`data-group` drives the hue in
+ * inspector.css — label, triangle and focus only, never field labels).
+ * Sections append into the returned div instead of the panel root.
+ *
+ * @param {HTMLElement} container - Panel root to append the group to.
+ * @param {string} key - Family key ('transform' | 'look' | 'spawn' | 'variation').
+ * @param {string} label - Group label (e.g. 'Spawn').
+ */
+export function sectionGroup(container, key, label) {
+  const group = el('div', 'section-group');
+  group.dataset.group = key;
+  group.append(el('div', 'section-group-label', label));
+  container.append(group);
+  return group;
 }

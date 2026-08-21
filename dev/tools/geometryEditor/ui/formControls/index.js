@@ -5,7 +5,7 @@
  * dropdowns built here are reused by the object controls, the part inspector
  * and the parts list.
  */
-export { el, row, subheading } from './layout.js';
+export { el, row, subheading, tupleRow } from './layout.js';
 export {
   numberInput,
   intInput,
