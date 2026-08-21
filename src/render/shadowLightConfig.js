@@ -12,9 +12,6 @@ export const shadowLightConfig = {
   mapSize: 2048,
   cameraNear: 0.5,
   cameraFar: 100,
-  /** Multiplier applied to the map extent when sizing the shadow frustum.
-   *  Must be >= 1.0 to cover the full map; 2.0 gives 1× margin on each side. */
-  frustumPadding: 2.0,
   /** Depth bias to reduce shadow acne. */
   bias: -0.00005,
   /** Normal bias for smoother self-shadow avoidance. */

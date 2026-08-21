@@ -42,7 +42,24 @@ occupancy, no harassment, invisible). Bots ignore dungeons entirely.
 
 Remaining:
 - Bot AI for dungeons (currently human-only).
-- Battle + reward balance — see `dev/docs/deferredNotes.md` §4.
+- Battle + reward balance — deliberately un-tuned: battles use existing mob
+  archetypes scaled by `DUNGEON_BATTLE_SCALE`
+  (`src/params/game/dungeonParams.js`) and the completion reward
+  (`DUNGEON_COMPLETION_*`) is a placeholder bundle. Mob power is still being
+  rebalanced, so dungeon fights and rewards get a design/balance pass at the
+  same time — not before.
+- The map visual is the editable `dungeon` descriptor
+  (`src/render/hexmap3d/worldObjects/descriptors/data/features/dungeon.js`) —
+  tune the entrance geometry in the geometry editor, not by hand.
+
+### Feature reward balance
+
+Rewards are functional but un-tuned — amounts, tier scaling, and the shared
+`FEATURE_REGROW_DAYS` cadence need a design/balance pass. Edenfall mushrooms
+heal on starting values (`FEATURE_EDEN_MUSHROOM_HEAL` /
+`FEATURE_EDEN_SHROOMLET_HEAL` in `src/params/game/economyParams.js`).
+Per-feature reward intent is tracked in `dev/docs/featureDesign.md` §5
+(amounts in §3a).
 
 ### Onboarding / tutorial
 
@@ -138,8 +155,8 @@ The baseline responsive pass is in; remaining verification work:
 ## Large-map persistence
 
 Save seed + list of dirty tiles with their deltas; everything else regenerates
-(only the diff from procedural generation). Scale constraints and
-"what-not-to-do" guidance: `dev/docs/deferredNotes.md` §1.
+(only the diff from procedural generation). Scale guardrails: "Scale /
+generation guardrails" above.
 
 ---
 
@@ -170,3 +187,18 @@ shared motif library (`data/motifs/`). Planned follow-ups:
   would need 15–20+ slots per tile, which the current separation solver
   can't pack. A per-motif visual-mass footprint would let cluster counts
   rise safely.
+
+---
+
+## Scale / generation guardrails
+
+Deferred-by-decision guidance moved here from `deferredNotes.md` §1:
+
+- **No worker threads for chunk generation** — single-threaded JS with
+  clock-scheduled chunk generation is sufficient up to R=200. Revisit only if
+  profiling shows otherwise.
+- **No LOD unless profiling shows it's needed** — InstancedMesh + frustum
+  culling handles R=100 comfortably.
+- **NO ACTUAL INFINITY** — build systems with the perspective of "how would
+  this need to work if the map were infinite?", not to actually have infinite
+  maps. Players eventually finding each other and fighting is core to design.

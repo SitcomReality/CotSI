@@ -3,6 +3,7 @@ import { toonMaterial } from './materials.js';
 import { createCameraState, applyCameraState } from './cameraState.js';
 import { createRenderer } from './rendererSetup.js';
 import { addLights } from './lightSetup.js';
+import { shadowLightConfig } from '../../shadowLightConfig.js';
 import { graphicsSettings } from '../../overlays/graphicsSettings.js';
 import { startMeasure, endMeasure } from '../../../shared/measurements.js';
 import { INITIAL_FRUSTUM, CAMERA_NEAR, CAMERA_FAR, GROUND_PLANE_SIZE, GROUND_PLANE_Y } from '../../../params/render/cameraParams.js';
@@ -106,7 +107,18 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
 
   // --- Animation loop (clock-owned) ---
   if (clock) {
+    const sunOffset = shadowLightConfig.sunPosition;
     clock.onTick(() => {
+      // Keep the sun (and its fixed-size shadow frustum) centered on the
+      // camera focus. The offset from focus is constant, so shadow
+      // direction/length never changes; the fixed frustum gives
+      // map-size-independent shadow texel density.
+      const sun = lights.directional;
+      if (sun.castShadow) {
+        sun.position.set(camState.targetX + sunOffset.x, sunOffset.y, camState.targetZ + sunOffset.z);
+        sun.target.position.set(camState.targetX, 0, camState.targetZ);
+        sun.target.updateMatrixWorld(); // target is not scene-added
+      }
       startMeasure('render3d');
       renderer.render(scene, camera);
       endMeasure('render3d');
