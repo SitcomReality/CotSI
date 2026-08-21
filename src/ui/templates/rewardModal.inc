@@ -1,5 +1,5 @@
 <div class="modal" id="rewardModal">
-  <div class="reward-card glint chamfer">
+  <div class="modal-card reward-card glint chamfer">
     <div class="reward-type-badge" id="rewardTypeBadge"></div>
     <h2 class="reward-title" id="rewardTitle">Victory</h2>
     <div class="reward-body" id="rewardBody"></div>

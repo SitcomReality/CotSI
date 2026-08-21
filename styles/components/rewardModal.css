@@ -13,21 +13,11 @@
   background-image: var(--nebula), linear-gradient(180deg, var(--board-hi), var(--board));
   background-size: 340px 340px, auto;
   border: var(--edge-bold) solid var(--crease-bold);
-  border-radius: var(--r-panel);
-  box-shadow: var(--shadow-stack);
   padding: var(--s5);
   max-width: 420px;
   width: 100%;
-  display: flex;
-  flex-direction: column;
   align-items: center;
   gap: var(--s3);
-
-  /* ── Soft-lock prevention: cap + internal scroll so the accept bar
-     (sticky .modal-footer) is ALWAYS on screen, even with 7 potency pips. ── */
-  max-height: calc(100vh - 2 * var(--s4));
-  max-height: calc(100dvh - 2 * var(--s4));
-  overflow-y: auto;
 }
 
 /* ── Type Badge ───────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 <div class="modal" id="dispatchModal">
-  <div class="dispatch-modal-card" id="dispatchCard">
+  <div class="modal-card dispatch-modal-card" id="dispatchCard">
     <div class="dispatch-modal-header" id="dispatchHeader"></div>
     <div class="dispatch-modal-body" id="dispatchBody"></div>
     <div class="modal-footer">

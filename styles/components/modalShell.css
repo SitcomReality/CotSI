@@ -57,6 +57,23 @@
   }
 }
 
+/* ── Modal Card base ───────────────────────────────────────────────────────
+   Shared chrome recipe for modal card roots (.modal > .modal-card):
+   viewport-capped height with internal scroll (soft-lock prevention),
+   panel radius, stacked shadow, and a centered flex column. Per-modal
+   classes layer on width, borders, faction edges, and padding.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.modal-card {
+  max-height: calc(100vh - 2 * var(--s4));
+  max-height: calc(100dvh - 2 * var(--s4));
+  overflow-y: auto;
+  border-radius: var(--r-panel);
+  box-shadow: var(--shadow-stack);
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Modal Header Row ──────────────────────────────────────────────────────
    Standard two-slot header: title on the left, metadata on the right.
    Used by the combat modal's "Supernal Duel — Paley Weave" header.
@@ -91,7 +108,7 @@
    Wrap a modal's action buttons in .modal-footer so the primary action
    (Inscribe / Acknowledge / Continue / Yes) stays on screen even when the
    card content overflows the viewport. Requires the card itself to have
-   max-height + overflow-y: auto (see the per-card styles).
+   max-height + overflow-y: auto (provided by the .modal-card base).
    ──────────────────────────────────────────────────────────────────────── */
 
 .modal-footer {

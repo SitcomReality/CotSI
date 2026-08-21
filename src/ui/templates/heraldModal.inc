@@ -1,5 +1,5 @@
 <div class="modal modal--neutral" id="heraldModal">
-  <div class="herald-modal-card" id="heraldCard">
+  <div class="modal-card herald-modal-card" id="heraldCard">
     <div class="herald-modal-header">
       <div class="herald-modal__titleblock">
         <div class="herald-modal__kicker">Herald's Prognosis</div>
