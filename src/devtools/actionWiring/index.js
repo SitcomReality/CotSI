@@ -8,6 +8,7 @@ import { registerAction } from '../../shared/actionBus.js';
 import { registerCheatActions } from './cheats.js';
 import { registerPerfActions } from './performance.js';
 import { registerBotActions } from './bot.js';
+import { registerCaptureActions } from './capture.js';
 
 /**
  * Register all devTools data-action handlers.
@@ -18,6 +19,7 @@ export function registerAllDevActions({ switchTab }) {
   registerCheatActions();
   registerPerfActions();
   registerBotActions();
+  registerCaptureActions();
 
   registerAction('dev:switchTab', (el) => {
     switchTab(el.dataset.tab);

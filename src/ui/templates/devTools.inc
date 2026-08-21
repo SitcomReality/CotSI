@@ -7,6 +7,7 @@
     <button class="devtools__tab is-active" data-action="dev:switchTab" data-tab="cheats">Cheats</button>
     <button class="devtools__tab" data-action="dev:switchTab" data-tab="perf">Performance</button>
     <button class="devtools__tab" data-action="dev:switchTab" data-tab="bot">Bot Control</button>
+    <button class="devtools__tab" data-action="dev:switchTab" data-tab="capture">Capture</button>
   </div>
   <div class="devtools__bodies" id="devToolsBodies">
     <!-- Cheats tab -->
@@ -125,6 +126,18 @@
           <button class="devtools__btn" data-action="dev:perf:copyReport" id="devPerfCopyReport">Copy Report</button>
         </div>
         <div id="devPerfCaptureStatus" style="font-size:11px;color:var(--text-dim,#888);margin-top:4px;">Idle</div>
+      </div>
+    </div>
+
+    <!-- Capture tab -->
+    <div class="devtools__body" id="devBodyCapture">
+      <div class="devtools__section">
+        <div class="devtools__section-title">Video (WebM)</div>
+        <div class="devtools__btn-row">
+          <button class="devtools__btn" data-action="dev:capture:start" id="devCaptureStart">Start Recording</button>
+          <button class="devtools__btn" data-action="dev:capture:stop" id="devCaptureStop" disabled>Stop</button>
+        </div>
+        <div id="devCaptureStatus" style="font-size:11px;color:var(--text-dim,#888);margin-top:4px;">Idle — records the map viewport (3D + highlights) to a downloaded .webm</div>
       </div>
     </div>
 
