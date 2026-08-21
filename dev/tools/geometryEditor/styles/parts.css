@@ -198,3 +198,65 @@
   font-style: italic;
   color: var(--ink-mid);
 }
+
+/* ── Phase 6: tree chrome ─────────────────────────────────────────────────── */
+
+/* Hover-reveal row verbs: quiet rows, verbs on demand. The selected row keeps
+   its actions visible (touch/keyboard friendly). No layout shift — the
+   buttons keep their box and only fade. */
+.row-actions {
+  display: inline-flex;
+  gap: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+.part-row:hover .row-actions,
+.part-row:focus-within .row-actions,
+.part-row.selected .row-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Kind icon before the label — fixed-width so labels align; muted so names
+   stay the brightest thing in the row. */
+.part-kind-icon {
+  display: inline-block;
+  width: 1.4em;
+  flex-shrink: 0;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+/* Verb dock accent rule: reads as "actions for the selection", not a card. */
+#part-actions-bar:not([hidden]) {
+  border-left: 2px solid color-mix(in srgb, var(--cerulean) 45%, transparent);
+  padding-left: var(--s2);
+}
+
+/* Right-click context menu on part rows. */
+.context-menu {
+  position: fixed;
+  z-index: var(--z-modal);
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  background: var(--board-hi);
+  border: 1px solid var(--crease-bold);
+  border-radius: var(--r-sm);
+  padding: 3px;
+}
+.context-menu button {
+  text-align: left;
+  padding: 4px 8px;
+  font-size: var(--fs-xs);
+  background: none;
+  border: none;
+  color: var(--ink);
+}
+.context-menu button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--cerulean) 18%, transparent);
+}
+.context-menu button:disabled {
+  color: var(--ink-faint);
+}

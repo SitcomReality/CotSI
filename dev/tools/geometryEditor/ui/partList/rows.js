@@ -18,6 +18,7 @@ import {
 } from '../partTree/index.js';
 import { previewStateFor, setPinnedOption } from '../previewState.js';
 import { displayLabel } from '../partTree/labels.js';
+import { openContextMenu } from './contextMenu.js';
 
 /** Group ids whose children are hidden in the list (session state). */
 const collapsedGroups = new Set();
@@ -117,15 +118,31 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       r.prepend(pradio);
     }
 
-    // The kind tag tells leaves/groups/options/choice points apart. Only an
-    // option ROW carries a weight — a leaf or group nested inside an option is
-    // not an option and must not inherit a bogus `w1`.
+    // The kind icon tells leaves/groups/options/choice points apart at a
+    // glance (Phase 6): shape glyphs for leaves, ▣+count for groups, ⑃ for
+    // choice points. Option rows keep their weight text.
+    let icon;
     let kind;
-    if (alt) kind = 'alternatives';
-    else if (option && node === option) kind = `option · w${node.weight ?? 1}`;
-    else kind = group ? 'group' : node.shape;
-    const label = el('span', 'part-label', `${displayLabel(node, { option, choiceId }, motifId)} · ${kind}`);
-    label.title = node.id; // full storage id — the display label is just the local name
+    if (alt) {
+      icon = '⑃';
+      kind = 'alternatives';
+    } else if (option && node === option) {
+      icon = '⑃';
+      kind = `option · w${node.weight ?? 1}`;
+    } else if (group) {
+      icon = '▣';
+      kind = `group · ${node.children.length}`;
+    } else {
+      icon = { cylinder: '▯', cone: '▲', sphere: '●', box: '■' }[node.shape] ?? '◆';
+      kind = node.shape;
+    }
+    const iconSpan = el('span', 'part-kind-icon', icon);
+    iconSpan.title = alt ? 'alternatives choice point' : group ? `group · ${node.children.length} children` : node.shape;
+    if (!(option && node === option)) iconSpan.title += ` — ${kind}`;
+    const label = el('span', 'part-label', displayLabel(node, { option, choiceId }, motifId));
+    label.prepend(iconSpan);
+    if (option && node === option) label.append(` · w${node.weight ?? 1}`);
+    label.title = `${node.id} · ${kind}`; // full storage id + kind — the display label is just the local name
     label.addEventListener('click', () => {
       S.selectedPartId = node.id;
       if (alt) {
@@ -185,6 +202,10 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       }
     }));
 
+    // Hover-reveal action cluster (Phase 6): verbs fade in on hover/focus/
+    // selection so 20 quiet rows don't read as a button wall.
+    const rowActions = el('span', 'row-actions');
+
     // Cycle-configs button on choice points: step the pinned option through
     // Natural → each config → back to Natural, so every config can be eyed up
     // without hunting the radio group (previewState.js).
@@ -202,8 +223,26 @@ export function appendRows(listEl, nodes, depth, ctx, option = null, choiceId = 
       });
       actions.unshift(cycle);
     }
+    for (const btn of actions) rowActions.append(btn);
 
-    r.append(label, ...actions);
+    // Right-click: select the part and open the context menu (same verbs as
+    // the hover cluster, plus a jump to the restructure dock).
+    r.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      S.selectedPartId = node.id;
+      ctx.renderAll();
+      openContextMenu(e.clientX, e.clientY, [
+        { label: `Duplicate ${displayLabel(node, { option, choiceId }, motifId)}`, act: () => dup.click() },
+        { label: 'Move up', act: () => up.click(), disabled: up.disabled },
+        { label: 'Move down', act: () => down.click(), disabled: down.disabled },
+        { label: 'Delete', act: () => remove.click(), disabled: remove.disabled },
+        { label: 'Restructure…', act: () => {
+          document.getElementById('part-actions-bar')?.scrollIntoView({ block: 'nearest' });
+        } },
+      ]);
+    });
+
+    r.append(label, rowActions);
     listEl.append(r);
 
     if (alt && !collapsedGroups.has(node.id)) {
