@@ -145,30 +145,23 @@ Save seed + list of dirty tiles with their deltas; everything else regenerates
 
 ## Geometry content
 
-- **Decor composition (motifs + weighted slots + alternatives)** — designed
-  in `dev/docs/decorComposition.md` (decisions made, no code yet): decor
-  variants collapse into a weighted `motifs` table per slot; within-object
-  configs (cactus arms) use an `alternatives` node; editor gets a redefined
-  "Show all" canonical view and a tile-strip diversity preview. Implement in
-  the order given there: schema v6 → recordBuilder → data migration (desert
-  first) → editor.
 - **Mob animation runtime** — deferred; the declarative clip spec and
   per-render-pass hook are worked out in `dev/docs/mobGeometryAndAnimation.md`
   §4–5.
 
-### Decor composition follow-ups (shipped v6 — see decorComposition.md)
+### Decor composition follow-ups
 
 The v6 decor composition system (motifs, alternatives, repeatPenalty,
-biomeWeight, editor motif panel + strip) is in. Planned follow-ups:
+biomeWeight, editor motif panel + strip) is in; decor geometry now lives in a
+shared motif library (`data/motifs/`). Planned follow-ups:
 
 - **optionalGroups → alternatives-with-`none` sunset** — one weighted
-  resolver now powers motifs, alternatives, and (later) optionalGroups
-  (decorComposition.md §3.2). A later schema rev should re-express
-  optionalGroups as an alternatives node whose first option is the `none`
-  and retire the field (it stays in the pipeline for feature-kind use; no
-  new work goes into it).
+  resolver now powers motifs, alternatives, and (later) optionalGroups. A later
+  schema rev should re-express optionalGroups as an alternatives node whose
+  first option is the `none` and retire the field (it stays in the pipeline
+  for feature-kind use; no new work goes into it).
 - **Per-motif `footprint`** for the scatter solver — the real fix for the
-  §5.5 density gap: single-part component decors (beach/plains/marsh/
+  density gap: single-part component decors (beach/plains/marsh/
   plateau) land at 32–44% of the v5 part-count mean because matching it
   would need 15–20+ slots per tile, which the current separation solver
   can't pack. A per-motif visual-mass footprint would let cluster counts

@@ -384,22 +384,20 @@ anywhere. The pipeline (recordBuilder.js):
 > A legacy decor file still loads — `normalizeDescriptor` auto-migrates it in
 > memory on load.
 
-**A decor is the look of ONE terrain.** Each decor-producing terrain has its
-own descriptor, and the decor's `id` IS the terrain's id: `forest` tiles render
-the `forest` decor, `deepWood` tiles the `deepWood` decor (Deep Wood),
-`desert` tiles the `desert` decor, and so on. The game's dispatch table
-(`gameBuilder.js` `SIMPLE_DECOR_BY_TERRAIN`) maps terrain → decor by that id;
-different terrains are **never** variants of one another.
+**What variants are and where they apply.** A `variants` array holds
+alternate part sets, and `variantRule` decides which one renders. This is the
+selection mechanism for **features and entity kinds** (a faction's champion
+model, a feature's per-biome look). Decor no longer uses it — a decor's
+variety comes from its weighted `motifs` table (§5.4) instead.
 
-So on the tile path the only variant dimension is the **biome**:
+So on the tile path the variant dimension is the **biome**, via pins:
 
 - **`variants[0]` is the DEFAULT look** — every tile renders it unless a biome
   pins an alternate. Put the canonical look first, alternates after.
 - **`biomeVariants`** — `{ biomeId: variantId }` pins an alternate to a biome:
-  every tile of that biome renders it. That stays for **features and entity
-  kinds**; decor biome looks live in the `motifs` table instead (e.g. the
-  shared `painforest` motif is folded into both the `forest` and `deepWood`
-  decors).
+  every tile of that biome renders it. This stays for **features and entity
+  kinds**; decor does not pin whole looks (its per-biome variety is the
+  `motifs` table's `biomeWeight` skews instead, §5.4).
 - **Explicit picker** — the editor's Variant picker (a record-path
   `variantId` override) forces one variant while authoring; a stale id falls
   through.
@@ -432,15 +430,15 @@ is no terrain selector.)
 copies the currently edited look (the active variant's parts, or the fallback
 `parts` list when the object has no variants yet — that list is converted into
 the default variant first, preserving the `variants[0]` convention) into a
-brand-new variant and selects it for editing. Reshape the copy (see §7 for the
-per-biome forest), then pin it to a biome in the Per-biome variants section.
-The duplicate workflow is the whole point of the per-biome system: one
-terrain, many biomes, one default look plus a pinned alternate per biome.
+brand-new variant and selects it for editing. Reshape the copy, then pin it to
+a biome in the Per-biome variants section. The duplicate workflow is the whole
+point of the per-biome variants system for features and entities: one default
+look plus a pinned alternate per biome. (Decor variety uses the `motifs`
+table instead — the editor's Motif panel, §5.4.)
 
 ### 5.4 Decor composition: motifs, alternatives, and weights (v7)
 
-Every choice point in a decor is a weighted pick, and there are three levels
-(`dev/docs/decorComposition.md` is the full spec):
+Every choice point in a decor is a weighted pick, and there are three levels:
 
 | Level | Question | Mechanism |
 |---|---|---|
@@ -483,12 +481,16 @@ motifs: [
   `biomeWeight` skews per biome.
 
 **Shared-library motif references (v7).** A decor motif entry may reference
-shared geometry from `data/motifs/` (hand-authored blocks like `trees.js` /
-`debris.js`) instead of inlining its own `parts`:
+shared geometry from `data/motifs/` instead of inlining its own `parts`. The
+library is hand-authored (not emitted by the editor's descriptor Save) and
+holds **one motif per file** — one discrete object per `.js`, named by its
+`id` (`roundTree.js`, `gnarledTree.js`, `log.js`, …) — plus one
+single-part catch-all, `debris.js`, for the many one-off objects that don't
+merit their own file:
 
 ```js
 motifs: [
-  { motif: 'painforest', weight: 0.35, biomeWeight: { biome_painforest: 5 } },
+  { motif: 'gnarledTree', weight: 0.35, biomeWeight: { biome_painforest: 5 } },
   { motif: 'log', weight: 0.06, size: { min: 0.8, max: 1.0 } }, // size overrides the library default
 ],
 ```
@@ -502,9 +504,14 @@ motifs: [
 - Editing a referenced motif's geometry inside a decor produces a **local
   override** — the entry keeps the `motif` origin tag but now carries its own
   `parts`, diverged from the library (never a silent loss; it round-trips).
-- The library dedupes geometry shared across terrain decors — e.g. the
-  `painforest` motif is folded into both the `forest` and `deepWood` tables,
-  `log` lives in `debris.js`. See
+- **`debris.js` is the single-part catch-all.** A motif that is just one shape
+  (a stone, a stalk) goes in `debris.js`; a motif with two or more parts (a
+  trunk + canopy tree, a log with moss) gets its own file. `biomeWeight` skews
+  and per-use presentation live **on the referencing decor's motif entry**, not
+  on the motif — the library owns shapes, the decor owns how they're used.
+- The library dedupes geometry shared across terrain decors: the same motif can
+  appear in several decor tables (e.g. `gnarledTree` is folded into both the
+  `forest` and `deepWood` tables; `log` in many). See
   `dev/tests/render/descriptorMotifShared.test.js`.
 
 **`alternatives`** — a parts-tree node at any depth (any kind: decor, feature,
@@ -647,167 +654,126 @@ values. One decor per terrain — `src/render/hexmap3d/worldObjects/descriptors/
 is the `forest` terrain's decor, and `decor/deepWood.js` is a **separate**
 descriptor (Deep Wood's conical pines) — never a variant of this one.
 
-> **v7:** the shipped forest is now a `motifs` table (schemaVersion 7) — the
-> default `round` tree plus each structural biome look (`taiga`, `frost`,
-> `dry`, `dead`, `edenfall`, `marshwood`, `dustbleed`) as a low-weight motif
-> with a home-biome `biomeWeight` lift and cross-biome suppressions (§5.4);
-> the gnarled `painforest` look is the shared painforest motif. The worked
-> example below shows the pre-v7 variant form; the motif form is the same
-> geometry folded into one table.
+> **v7 (current):** the shipped forest is a `motifs` table (schemaVersion 7).
+> Each tree species is a shared-library motif (its own file in `data/motifs/`),
+> and the decor's `motifs` table folds them together with per-biome
+> `biomeWeight` skews, `repeatPenalty` damping, and the two supernatural biomes'
+> look expressed as present-0 `biomeWeight` refs (§5.4). The worked example
+> below is the shipped `data/decor/forest.js` (supernatural refs abridged).
 
-The forest is also the showcase of the per-biome variant system: every biome
-that can grow forest terrain pins its own look. Titanstain and Unfinished
-Lands never render this decor at all (their `terrainOverrides` swap the forest
-terrain for Titanflesh / Protogrowth), so the pins cover exactly the biomes
-where a forest tile can actually exist (abridged — the PRE-v7 variant form; the
-shipped file is the `motifs` table with home-biome `biomeWeight` lifts):
+The forest is also the showcase of biome identity as weight rather than
+geometry: every biome that can grow forest terrain skews which tree species
+dominates, through each entry's `biomeWeight`. Titanstain and Unfinished Lands
+render their own corruption instead — those refs are present-0 `biomeWeight`
+motifs in the same table (Titanstain-only / Unfinished-Lands-only entries),
+not a decor swap:
 
 ```js
 export const FOREST_DESCRIPTOR = {
-  schemaVersion: 5,
-  id: 'forest',                       // the decor's id IS the terrain's id
-  kind: 'decor',                      // terrain decoration, not a feature
-  displayName: 'Forest',
+  schemaVersion: 7,
+  id: 'forest',                          // the decor's id IS the terrain's id
+  kind: 'decor',                         // terrain decoration, not a feature
+  displayName: 'Forest decor',
   cluster: { rule: 'moisture', countsByTerrain: { forest: [3, 5] } }, // count scales with tile moisture
-  size: { min: 1.3, max: 1.5 },       // trees vary 1.3–1.5× object scale
-  variation: { colorJitter: 0.05 },   // slight brightness jitter per tree
-  biomeVariants: {                    // one pinned look per biome that grows forest
-    biome_painforest: 'painforest',   //   gnarled Painforest woods
-    biome_tundra: 'taiga',            //   stunted conical pines
-    biome_frigid_silence: 'frost',    //   snow-capped pines
-    biome_scorch: 'dry',              //   sun-bleached dry woodland
-    biome_sere_wastes: 'dead',        //   bare dead trees, broken branches
-    biome_edenfall: 'edenfall',       //   tall two-lobe purple canopies
-    biome_mourning_marsh: 'marshwood',//   short squat murky woodland
-    biome_dustbleed: 'dustbleed',     //   quenched teal, crystal-studded
-  },
+  size: { min: 1.3, max: 1.5 },          // trees vary 1.3–1.5× object scale
+  variation: { colorJitter: 0.05 },      // slight brightness jitter per tree
   placement: { mode: 'ring', leanMin: 0.2, leanMax: 0.3 }, // ring around the hex center, slight per-tree lean
-  emphasis: { behavior: 'dispersed' },// shrink+step aside when the center is claimed
-  parts: [                           // fallback part set — only used if no variant matches
-    { id: 'trunk', shape: 'cylinder', stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false },
-      biomeScale: { biome_tundra: 0.85 }, color: 0x8b5e3c },
-  ],
-  variants: [
-    {
-      id: 'round',                    // DEFAULT look (variants[0]) — every non-pinned tile
-      parts: [
-        {
-          id: 'trunk', shape: 'cylinder',
-          stretch: { y: { min: 1, max: 1.2, seed: 6 }, x: false, z: false },
-          biomeScale: { biome_tundra: 0.85 },   // stunted on Tundra
-          color: 0x8b5e3c,
-        },
-        {
-          id: 'canopy-round', shape: 'sphere',
-          // Legacy anchor: canopy bottom = (canopyY·trunkStretch − halfHeight)
-          // = 0.5·s − 0.3, drawn on the trunk's stretch seed (6); the shipped
-          // file carries the authored liftRange [0.15, 0.30].
-          transform: { liftRange: { min: 0.15, max: 0.3, seed: 6 } },
-          stretch: { y: { min: 0.85, max: 1.3, seed: 4 }, x: { min: 0.9, max: 1.15, seed: 5 }, z: { min: 0.9, max: 1.15, seed: 5 } },
-          color: 0x3cb371,
-          biomeColor: { source: 'foliage', influence: 0.8 }, // greens blend toward the biome
-          biomeScale: { biome_tundra: 0.85 },
-        },
-      ],
-    },
-    // … painforest (the gnarled multi-part bent trunk, pinned above) …
-    {
-      id: 'dead',                     // Sere Wastes: a dead tree — no leaves at all
-      parts: [
-        { id: 'trunk',          shape: 'cylinder', params: { bottomR: 0.09, topR: 0.07, height: 0.5, segments: 6 },
-          stretch: { y: { min: 0.9, max: 1.2, seed: 6 }, x: false, z: false },
-          biomeScale: { biome_sere_wastes: 0.8 }, color: 0x7a6a55,   // bone-dry bark
-          biomeColor: { source: 'terrain', influence: 0.3 } },       // ground-matching bleached wood
-        { id: 'branch-dead-a',  shape: 'cylinder', params: { bottomR: 0.035, topR: 0.02, height: 0.3, segments: 5 },
-          transform: { localPos: { x: 0.02, y: 0.3, z: 0 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 0.9 },
-          stretch: { y: { min: 0.8, max: 1.2, seed: 6 }, x: false, z: false },
-          biomeScale: { biome_sere_wastes: 0.8 }, color: 0x6e5f4d },
-        { id: 'branch-dead-b',  shape: 'cylinder', params: { bottomR: 0.03, topR: 0.018, height: 0.24, segments: 5 },
-          transform: { localPos: { x: -0.03, y: 0.36, z: 0.02 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: -1.05 },
-          stretch: { y: { min: 0.8, max: 1.2, seed: 6 }, x: false, z: false },
-          biomeScale: { biome_sere_wastes: 0.8 }, color: 0x6e5f4d },
-        { id: 'branch-dead-c',  shape: 'cylinder', params: { bottomR: 0.025, topR: 0.015, height: 0.2, segments: 5 },
-          transform: { localPos: { x: 0.04, y: 0.44, z: -0.02 }, localAxis: { x: 1, y: 0, z: 0 }, localAngle: 1.25 },
-          stretch: { y: { min: 0.8, max: 1.2, seed: 6 }, x: false, z: false },
-          biomeScale: { biome_sere_wastes: 0.8 }, color: 0x6e5f4d },
-      ],
-    },
-    {
-      id: 'frost',                    // Frigid Silence: a snow-capped pine
-      parts: [
-        { id: 'trunk',       shape: 'cylinder', params: { bottomR: 0.07, topR: 0.05, height: 0.45, segments: 6 },
-          stretch: { y: { min: 0.9, max: 1.15, seed: 6 }, x: false, z: false },
-          biomeScale: { biome_frigid_silence: 0.85 }, color: 0x4a3f33 },
-        { id: 'canopy-frost', shape: 'cone', params: { bottomR: 0.22, height: 0.42, radialSegs: 6, heightSegs: 2 },
-          transform: { liftRange: { min: 0.3, max: 0.42, seed: 6 } },  // cone base tucks into the trunk top
-          stretch: { y: { min: 0.9, max: 1.2, seed: 4 }, x: { min: 0.85, max: 1.1, seed: 5 }, z: { min: 0.85, max: 1.1, seed: 5 } },
-          color: 0x3a5a4a, biomeColor: { source: 'terrain', influence: 0.5 },  // cold taiga green
-          biomeScale: { biome_frigid_silence: 0.85 } },
-        { id: 'snowcap',     shape: 'cone', params: { bottomR: 0.1, height: 0.16, radialSegs: 6, heightSegs: 1 },
-          transform: { localPos: { x: 0, y: 0.64, z: 0 } },            // perched in the cone's upper taper
-          stretch: { y: { min: 0.8, max: 1.1, seed: 4 }, x: false, z: false },
-          color: 0xdfe6ec, biomeColor: { source: 'exotic', influence: 0.6 },  // pale frost (exotic)
-          biomeScale: { biome_frigid_silence: 0.85 } },
-      ],
-    },
-    // … taiga, dry, edenfall, marshwood, dustbleed — see the table below …
+  emphasis: { behavior: 'dispersed' },   // shrink+step aside when the center is claimed
+  repeatPenalty: 0.35,                   // soft damping so a tile rarely repeats a species
+  motifs: [
+    // Shared-library refs — each entry pulls one species' geometry from data/motifs/.
+    { motif: 'roundTree', weight: 0.3,
+      biomeWeight: { biome_tundra: 0.15, biome_frigid_silence: 0.15,
+                     biome_scorch: 0.3, biome_sere_wastes: 0.1,
+                     biome_mourning_marsh: 0.4, biome_dustbleed: 0.5,
+                     biome_edenfall: 2, biome_titanstain: 0,
+                     biome_unfinished_lands: 0 } },
+    { motif: 'conifer', weight: 0.22,
+      biomeWeight: { biome_tundra: 3, biome_frigid_silence: 3.2,  // Dominant in the cold biomes
+                     biome_sere_wastes: 0.1, biome_scorch: 0.15,
+                     biome_mourning_marsh: 0.7, biome_edenfall: 0.7,
+                     biome_painforest: 0.05, biome_dustbleed: 0.4,
+                     biome_titanstain: 0, biome_unfinished_lands: 0 } },
+    { motif: 'gnarledTree', weight: 0.08,
+      biomeWeight: { biome_painforest: 5, biome_tundra: 0.1, biome_frigid_silence: 0.2,
+                     biome_dustbleed: 0, biome_edenfall: 0.2, biome_mourning_marsh: 0.2,
+                     biome_scorch: 0.1, biome_sere_wastes: 0.05 } },
+    { motif: 'deadTree', weight: 0.1, size: { min: 1.35, max: 1.6 }, // per-entry size override
+      biomeWeight: { biome_sere_wastes: 5, biome_tundra: 0.4, biome_frigid_silence: 0.2,
+                     biome_edenfall: 0.1, biome_dustbleed: 0.5, biome_mourning_marsh: 0.3,
+                     biome_painforest: 0.05, biome_scorch: 2,
+                     biome_titanstain: 0, biome_unfinished_lands: 0 } },
+    { motif: 'log', weight: 0.06,
+      biomeWeight: { biome_mourning_marsh: 1.5, biome_painforest: 1.2, biome_dustbleed: 1.2,
+                     biome_scorch: 1, biome_frigid_silence: 1, biome_sere_wastes: 0.8,
+                     biome_tundra: 0.8, biome_edenfall: 0.6 } },
+    // Supernatural corruption: only present where every natural biome is 0 — e.g.
+    // titanSpire renders ONLY under biome_titanstain (all other biomes 0):
+    { motif: 'titanSpire', weight: 0.3,
+      biomeWeight: { biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
+                     biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
+                     biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
+                     biome_unfinished_lands: 0 } },
+    // … titanTooth, titanBoil, titanNodule, titanTendril (Titanstain),
+    //   yetFragmentPillar/Cube/Shard/Cone/Orb (Unfinished Lands) — same pattern …
   ],
 };
 ```
 
-The rest of the forest's biome looks, each a small variation on the same
-vocabulary (all part ids unique within their variant; all canopies track the
-trunk's stretch seed 6 through `liftRange`; `biomeScale` sizes the whole
-variant for its biome):
+The rest of the forest's table, each species a shared-library motif with a
+home-biome `biomeWeight` lift (the same geometry concept as the old variant
+looks, expressed as weights rather than whole part-set pins):
 
-| Variant | Biome | Look | The trick |
+| Motif | Home look | Home biome | Why it dominates there |
 |---|---|---|---|
-| `round` | default (Untouched) | lush puffball | the canonical look — `variants[0]` |
-| `painforest` | Painforest | gnarled bent trunk | 3-part trunk, `localAxis`/`localAngle` per segment |
-| `taiga` | Tundra | stunted conical pine | cone canopy, `biomeScale: 0.8`, terrain-tinted |
-| `frost` | Frigid Silence | snow-capped pine | cone + a small pale `snowcap` cone at its apex |
-| `dry` | Scorch | sun-bleached dry woodland | short trunk, low flat sphere, `biomeScale: 0.8` |
-| `dead` | Sere Wastes | dead tree, broken branches | **no canopy** — 3 bare branch cylinders at staggered heights/angles |
-| `edenfall` | Edenfall | tall lush purple | two stacked spheres (two-lobe crown), `biomeScale: 1.1` |
-| `marshwood` | Mourning Marsh | squat murky tree | short trunk, wide squashed sphere (`stretchY` low / `stretchXZ` high) |
-| `dustbleed` | Dustbleed | quenched teal, crystal-studded | a `dodecahedron` crystal shard perched on the canopy, exotic-tinted |
+| `roundTree` | lush puffball | default, Edenfall | base species; `biome_edenfall: 2` lifts it |
+| `conifer` | conical pine | Tundra, Frigid Silence | `biome_tundra: 3`, `biome_frigid_silence: 3.2` |
+| `gnarledTree` | gnarled bent trunk | Painforest | `biome_painforest: 5` |
+| `deadTree` | dead tree, broken branches | Sere Wastes | `biome_sere_wastes: 5` |
+| `log` | fallen timber | (minor across biomes) | low base weight 0.06, small lifts |
+| `titanSpire` etc. | Titanstain corruption | computed Titanstain | present-0 for every other biome |
+| `yetFragment…` | Unfinished Lands halves | Unfinished Lands | present-0 for every other biome |
 
 What each mechanism contributes, at a glance:
 
 - **One decor per terrain** — the decor's `id` is the terrain's id, and
   `gameBuilder` maps terrain → decor by it. Deep Wood's look is a separate
   descriptor (`deepWood.js`), not a variant.
-- **`variants[0]` is the default look** — every forest tile renders `round`
-  unless a biome pins an alternate; `biomeVariants` swaps in one dedicated
-  look per biome. A biome with no pin (e.g. `biome_default`) keeps the
-  default — that is how a shared look survives while only the biomes that
-  need a different tree get one.
+- **`motifs` is the content** — each cluster slot draws one entry from the
+  weighted table. `variants[0]`/`biomeVariants` are not used; per-biome variety
+  is a `biomeWeight` skew, not a swap of whole part sets.
+- **`biomeWeight` = presentation, not geometry** — absent key ≡ 1, `0`
+  excludes, `>1` dominates. The supernatural look is folded in as present-0
+  refs so Titanstain/Unfinished Lands tiles get their corruption from the same
+  table, not a decor swap.
+- **`repeatPenalty: 0.35`** — after each slot pick the chosen motif's weight is
+  damped and the table renormalized, so a scattered cluster trends toward
+  diverse species instead of one tree repeating.
 - **Variable properties** — everything about a forest is a range, not a fixed
-  value: count (moisture rule), size (1.3–1.5×), part set (default vs biome
-  pin), per-tree stretch, biome size/color, brightness jitter. The chest (§8)
+  value: count (moisture rule), size (1.3–1.5×), species (weighted draw),
+  per-tree stretch, biome size/color, brightness jitter. The chest (§8)
   is the opposite: one fixed, centralized object.
 - `cluster.rule: 'moisture'` — wetter forest tiles get more trees
   (`countsByTerrain.forest` → 3–5; the deepWood decor carries its own
   4–7 range). Sere Wastes and Scorch tiles are dry, so their forests are
-  automatically sparse without any per-variant count.
+  automatically sparse without any per-species count.
 - `placement.ring` — members circle the hex center; `emphasis.dispersed`
   pushes them to the hex edge and shrinks them when the center is claimed.
 - `stretch` — per-tree random trunk height and canopy puffiness (deterministic
   per tile, seeded hash draws); `x: false` / `z: false` pin the trunk's width.
-- `liftRange` — the canopy base tracks the trunk's stretch draw (same seed 6)
-  so a tall tree's canopy rides high and a short tree's rides low; the
-  per-variant ranges tuck each canopy shape into its trunk (a cone base
-  overlaps less than a sphere, so `taiga`'s range hugs the trunk top while
-  `round`'s swallows it).
-- `biomeScale` — Tundra/Frigid/Sere/Scorch trees shrink to 80–85% of the
-  default; Edenfall's grow to 110%; the painforest motif's gnarled trees to 55%.
+- `liftRange` — the canopy base tracks the trunk's stretch draw (same seed) so
+  a tall tree's canopy rides high and a short tree's rides low; the per-species
+  ranges tuck each canopy shape into its trunk (a cone base overlaps less than
+  a sphere, so a conifer's range hugs the trunk top while a round tree's
+  swallows it).
+- `biomeScale` — stunted species shrink in the cold biomes, and the
+  `deadTree` entry's `size` override (1.35–1.6×) makes Sere Wastes trees
+  stand taller.
 - `biomeColor` — canopy green leans into the tile's blended biome color
-  (`foliage` for the round variant, the biome's `terrain` surface color for
-  the ground-matching conifers, `exotic` for frost snow and Dustbleed's
-  crystals).
+  (`foliage` for round canopies, the biome's `terrain` surface color for
+  ground-matching conifers, `exotic` for frost snow and crystal bits).
 - `color` per part — trunk brown vs canopy green, jittered ±0.05 brightness;
-  a dead tree's branches are darker than its trunk, the frost snowcap is
-  pale, the crystal is turquoise.
+  a dead tree's branches are darker than its trunk.
 
 ## 8. Worked example: a centralized feature — the Open Treasure Chest
 

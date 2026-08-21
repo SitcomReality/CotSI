@@ -76,13 +76,14 @@ the objects an LLM is most likely to be asked to restyle or extend:
 | `mountain` | `mountain` | (mountain) | hex-pyramid peak, edge-to-edge | per tile |
 | `water` / `ice` / `river` | — | — | no decor (own water mesh) | — |
 
-**Supernatural decor overrides** replace the ground decor inside the two
-supernatural biomes (see biomesAndTerrain §6 for the full mapping):
-`titanflesh` ("Titanflesh Growths", fleshy clusters), `titanblood` (dark blood
-pools on water), `yetlands` ("Yetlands Remnants", half-formed fragments),
-`forespring` (ghostly spring pools on water). The titanblood/forespring water
-decor is explicitly a **placeholder** pending a proper redesign — a good target
-for new geometry.
+**Supernatural looks** are not standalone override decors — they're shared
+motifs folded into each base decorator's `motifs` table and gated to one biome
+by a `biomeWeight` of 0 everywhere else (see biomesAndTerrain §6). Titanstain
+tiles pick the titan motifs (`titanSpire`, `titanTooth`, `titanBoil`,
+`titanNodule`, `titanTendril`, `bloodPool`); Unfinished Lands picks the
+yet-fragment motifs (`yetFragmentPillar/Cube/Shard/Cone/Orb`, `springPool`,
+`ghostSpark`). Water/ice/river stay bare on natural biomes (the water mesh
+handles their look) and gain only their pools under the supernatural biomes.
 
 **De-emphasis rules** (how decor coexists with occupants/features): a hex's
 center is claimed in priority order **occupant > feature > terrain decor**.
@@ -91,12 +92,14 @@ Everything below the top claim is pushed aside instead of removed:
 upper-left anchor), `sunk` (shrunk + dropped below the surface — hill mounds),
 or `hidden` (behind a feature + occupant both present).
 
-**Per-biome variation on the tile path**: a descriptor can pin a whole
-alternate variant to a biome (`biomeVariants: { biomeId: variantId }`, e.g.
-per-biome forest looks), scale parts per biome (`biomeScale`), and skew motif
-draws (`biomeWeight`, 0 = excluded). The design doctrine is "biome identity =
-tints and weights, not restated geometry" — prefer tinting/shaping the shared
-shapes over duplicating them per biome (see descriptorAuthoring §5.7).
+**Per-biome variation**: decor variety comes from `biomeWeight` skews on a
+decorator's `motifs` table — a 0 excludes a motif reference (that is how the
+supernatural looks above are gated), and relative weights retune the mix.
+Decor descriptors do not pin whole alternate variants per biome; `biomeVariants: { biomeId: variantId }`
+is a features/entities mechanism for selecting a whole alternate descriptor.
+The design doctrine is "biome identity = tints and weights, not restated
+geometry" — prefer tinting/shaping the shared shapes over duplicating them per
+biome (see descriptorAuthoring §5.7).
 
 ---
 

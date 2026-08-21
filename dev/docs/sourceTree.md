@@ -317,7 +317,7 @@ AI), and `combat/`.
 | `motifDraw.js` | Motif composition drawing for records |
 | `shapeFactories.js` | Shape → THREE geometry + material factories |
 | `meshAssembly.js` | Descriptor + records → one InstancedMesh per part geometry |
-| `gameBuilder.js` | Game-side tile → descriptor resolution (features + per-terrain decor — one decor per terrain, incl. the shared painforest motif) + assembly |
+| `gameBuilder.js` | Game-side tile → descriptor resolution (features + per-terrain decor — one decor per terrain; decor geometry references shared motifs (`data/motifs/`, e.g. `gnarledTree.js`)) + assembly |
 
 #### `src/render/hexmap3d/worldObjects/descriptors/data/` — generated descriptor data
 
@@ -329,7 +329,8 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `base.js` + `bases/` | Table-driven base descriptors: `arc` `cru` `hol` `hrt` `msk` `rev` `ver` |
 | `champion.js` + `champions/` | Table-driven champion descriptors: 7 factions + `shared` |
 | `mob.js` + `mobs/` | Table-driven mob descriptors: 7 mob archetypes |
-| `decor/` | Per-terrain decor descriptors (13) |
+| `decor/` | Per-terrain decorators (13) — each a `motifs` table (schemaVersion 7) with `biomeWeight` skews |
+| `motifs/` | Shared motif library: one motif per file (id-named, e.g. `gnarledTree.js`), plus single-part catch-all `debris.js`; barrel `index.js` exports `ALL_MOTIFS`/`motifById` |
 | `features/` | Feature descriptors (28) |
 | `items/` | Item descriptors (7) |
 | `trader.js` | Trader descriptor |

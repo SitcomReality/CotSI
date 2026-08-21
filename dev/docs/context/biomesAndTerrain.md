@@ -142,13 +142,17 @@ Two mechanisms create the "biome-exclusive terrain" feel:
    its `terrainRules` can make a terrain *impossible* (below, "NO x" means the
    biome's climate window can never reach that terrain's minimum; e.g. Sere
    Wastes caps moisture at 0.30, below every forest minimum).
-2. **Supernatural re-presentation** — the two supernatural biomes *rename and
-   recolor* the underlying terrain via `terrainOverrides` (§6). That is how
-   "normal terrain can't appear" there visually: a `plains` tile inside
-   Titanstain is still terrain key `plains`, but it renders as **Titanflesh**
-   with titanflesh decor. The inverse also holds: Titanflesh / Yetlands /
-   Forespring / Titanblood exist *only* as overrides inside these two biomes,
-   so they can never appear anywhere else.
+2. **Supernatural re-presentation** — the two supernatural biomes *rename* the
+   underlying terrain via `terrainOverrides` (display name + movement cost; it
+   does not touch decor) and recolor it with their biome palette. The
+   decoration is handled separately: each base decorator folds the
+   supernatural motifs into its `motifs` table and gates them by a
+   `biomeWeight` of 0 outside the owning biome (§6). A `plains` tile inside
+   Titanstain is still terrain key `plains`, but it renders as **Titanflesh** —
+   renamed, recolored, re-decorated. The inverse also holds: **Titanflesh**,
+   **Titanblood**, **Yetlands**, and **Forespring** are look names only (terrain
+   display names + shared motif ids), so they never appear outside these two
+   biomes.
 
 Per-biome terrain character (derived from `climateRange` + `terrainRules`;
 defaults in §3):
@@ -175,30 +179,41 @@ climate-typical cases, not hard guarantees.
 
 ## 6. Supernatural terrain re-presentation
 
-`terrainOverrides` rename the terrain and swap its decor. Movement cost is
-uniform (no faction terrain bonuses apply inside these biomes).
+`terrainOverrides` only **rename** the underlying terrain (display name +
+movement cost); they do **not** swap decor. The supernatural look instead comes
+from each base decorator's `motifs` table, which folds in the supernatural
+motif **references** and gates them to a single biome via a `biomeWeight` of 0
+everywhere else. Movement cost is uniform (no faction terrain bonuses apply
+inside these biomes).
 
-**Titanstain** — everything is corrupted titanflesh; water is titanblood:
+Water, ice, and river are the one structural exception: their base decorator
+carries a `bare` motif that renders nothing (the water mesh owns the surface),
+so on the natural biomes these tiles are plain ground. The pools drop into that
+same table — `bloodPool` under Titanstain, `springPool` and `ghostSpark` under
+Unfinished Lands — which is why water reads as empty in the mortal world and
+corrupted only inside these two regions.
 
-| Terrain key | Renders as | Decor |
-|-------------|-----------|-------|
-| `plains`, `beach`, `desert`, `marsh`, `hill`, `plateau`, `forest`, `deepWood` | **Titanflesh** | `titanflesh` (fleshy growths) |
-| `mountain` | Titanflesh Mountain | (standard mountain) |
-| `water` | Titanblood | `titanblood` |
-| `ice` | Frozen Titanblood | `titanblood` |
-| `river` | Titanblood River | `titanblood` |
+**Titanstain** — everything is corrupted titanflesh; water is titanblood.
 
-**Unfinished Lands** — half-formed analogues of everything:
+| Terrain key | Renders as | Decor pattern |
+|-------------|-----------|---------------|
+| `plains`, `beach`, `desert`, `marsh`, `hill`, `plateau`, `forest`, `deepWood` | **Titanflesh** | titan motifs: `titanSpire`, `titanTooth`, `titanBoil`, `titanNodule`, `titanTendril` |
+| `mountain` | Titanflesh Mountain | standard mountain |
+| `water` | Titanblood | `bloodPool` |
+| `ice` | Frozen Titanblood | `bloodPool` |
+| `river` | Titanblood River | `bloodPool` |
 
-| Terrain key | Renders as | Decor |
-|-------------|-----------|-------|
-| `plains`, `beach`, `desert`, `plateau` | **Yetlands** | `yetlands` (half-formed remnants) |
-| `forest`, `deepWood`, `marsh` | **Protogrowth** | `yetlands` |
-| `hill` | Half-Hewn Rise | `yetlands` |
-| `mountain` | Sky Stalagmite | (standard mountain) |
-| `water` | Forespring | `forespring` |
-| `ice` | Forespring | `forespring` |
-| `river` | Forespring | `forespring` |
+**Unfinished Lands** — half-formed analogues of everything.
+
+| Terrain key | Renders as | Decor pattern |
+|-------------|-----------|---------------|
+| `plains`, `beach`, `desert`, `plateau` | **Yetlands** | yet-fragment motifs: `yetFragmentPillar/Cube/Shard/Cone/Orb` |
+| `forest`, `deepWood`, `marsh` | **Protogrowth** | yet-fragment motifs: `yetFragmentPillar/Cube/Shard/Cone/Orb` |
+| `hill` | Half-Hewn Rise | yet-fragment motifs: `yetFragmentPillar/Cube/Shard/Cone/Orb` |
+| `mountain` | Sky Stalagmite | standard mountain |
+| `water` | Forespring | `springPool` + `ghostSpark` |
+| `ice` | Forespring | `springPool` + `ghostSpark` |
+| `river` | Forespring | `springPool` + `ghostSpark` |
 
 ---
 
