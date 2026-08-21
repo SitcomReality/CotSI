@@ -5,8 +5,8 @@
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  *
  * The base `ice` terrain decor, mirroring `water`: bare on the natural biomes
- * (the `bare` motif renders nothing) with the supernatural pools folded in as
- * shared-library motif references.
+ * (the `bare` motif renders nothing) with the supernatural pools folded in as a
+ * single shared-library `pool` reference.
  */
 export const ICE_DESCRIPTOR = {
   schemaVersion: 7,
@@ -30,7 +30,7 @@ export const ICE_DESCRIPTOR = {
       ],
     },
     {
-      motif: 'bloodPool',
+      motif: 'pool',
       weight: 1,
       biomeWeight: {
         biome_default: 0,
@@ -42,39 +42,6 @@ export const ICE_DESCRIPTOR = {
         biome_scorch: 0,
         biome_sere_wastes: 0,
         biome_tundra: 0,
-        biome_unfinished_lands: 0,
-      },
-    },
-    {
-      motif: 'springPool',
-      weight: 0.6,
-      biomeWeight: {
-        biome_default: 0,
-        biome_dustbleed: 0,
-        biome_edenfall: 0,
-        biome_frigid_silence: 0,
-        biome_mourning_marsh: 0,
-        biome_painforest: 0,
-        biome_scorch: 0,
-        biome_sere_wastes: 0,
-        biome_tundra: 0,
-        biome_titanstain: 0,
-      },
-    },
-    {
-      motif: 'ghostSpark',
-      weight: 0.4,
-      biomeWeight: {
-        biome_default: 0,
-        biome_dustbleed: 0,
-        biome_edenfall: 0,
-        biome_frigid_silence: 0,
-        biome_mourning_marsh: 0,
-        biome_painforest: 0,
-        biome_scorch: 0,
-        biome_sere_wastes: 0,
-        biome_tundra: 0,
-        biome_titanstain: 0,
       },
     },
   ],

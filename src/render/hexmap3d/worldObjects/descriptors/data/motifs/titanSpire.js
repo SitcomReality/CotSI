@@ -1,8 +1,8 @@
 /**
  * data/motifs/titanSpire.js — Shared motif: "titanSpire".
  *
- * Hand-authored geometry source of truth (see data/motifs/debris.js header for
- * the library/reference contract). The Titanstain biome's grow outfit works as
+ * Hand-authored geometry source of truth (see dev/docs/descriptorAuthoring.md
+ * for the shared-motif reference contract). The Titanstain biome's grow outfit works as
  * a discrete signature object. A decor's motif table references it by id
  * (`{ motif: 'titanSpire', weight, biomeWeight, ... }`); per-use presentation —
  * size/placement/weight — lives on the referencing decor.

@@ -484,9 +484,7 @@ motifs: [
 shared geometry from `data/motifs/` instead of inlining its own `parts`. The
 library is hand-authored (not emitted by the editor's descriptor Save) and
 holds **one motif per file** — one discrete object per `.js`, named by its
-`id` (`roundTree.js`, `gnarledTree.js`, `log.js`, …) — plus one
-single-part catch-all, `debris.js`, for the many one-off objects that don't
-merit their own file:
+`id` (`roundTree.js`, `gnarledTree.js`, `log.js`, `stone.js`, `tuft.js`, …):
 
 ```js
 motifs: [
@@ -504,11 +502,14 @@ motifs: [
 - Editing a referenced motif's geometry inside a decor produces a **local
   override** — the entry keeps the `motif` origin tag but now carries its own
   `parts`, diverged from the library (never a silent loss; it round-trips).
-- **`debris.js` is the single-part catch-all.** A motif that is just one shape
-  (a stone, a stalk) goes in `debris.js`; a motif with two or more parts (a
-  trunk + canopy tree, a log with moss) gets its own file. `biomeWeight` skews
-  and per-use presentation live **on the referencing decor's motif entry**, not
-  on the motif — the library owns shapes, the decor owns how they're used.
+- **The debris shapes use an `alternatives` root.** Each of the four debris
+  motifs (`stone`, `pile`, `shard`, `tuft`) and `pool` is one entry whose root
+  is an `alternatives` node: every option is a distinct material (e.g. `stone`
+  → stone-lump / rock-lump / boulder-lump / clod-block / rubble-block /
+  orb-pebble), so one motif carries the variety the old single-file catch-all
+  spread across many files. `biomeWeight` skews and per-use presentation live
+  **on the referencing decor's motif entry**, not on the motif — the library
+  owns shapes, the decor owns how they're used.
 - The library dedupes geometry shared across terrain decors: the same motif can
   appear in several decor tables (e.g. `gnarledTree` is folded into both the
   `forest` and `deepWood` tables; `log` in many). See
@@ -714,8 +715,9 @@ export const FOREST_DESCRIPTOR = {
                      biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
                      biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
                      biome_unfinished_lands: 0 } },
-    // … titanTooth, titanBoil, titanNodule, titanTendril (Titanstain),
-    //   yetFragmentPillar/Cube/Shard/Cone/Orb (Unfinished Lands) — same pattern …
+    // … titanBoil, titanNodule (Titanstain)
+    //   and yetFragmentCube/Shard/Orb (Unfinished Lands) — same pattern, and
+    //   together they live once in decor/supernatural.js as SUPERNATURAL_MOTIFS …
   ],
 };
 ```

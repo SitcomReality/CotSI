@@ -155,6 +155,9 @@ The v6 decor composition system (motifs, alternatives, repeatPenalty,
 biomeWeight, editor motif panel + strip) is in; decor geometry now lives in a
 shared motif library (`data/motifs/`). Planned follow-ups:
 
+- **Motif catalog plan** — the catalog was consolidated (54 → 24 motifs) and the
+  active three-track plan (consolidation / authoring / density) is tracked in
+  `dev/docs/decorMotifTracks.md`.
 - **optionalGroups → alternatives-with-`none` sunset** — one weighted
   resolver now powers motifs, alternatives, and (later) optionalGroups. A later
   schema rev should re-express optionalGroups as an alternatives node whose

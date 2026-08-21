@@ -1,8 +1,8 @@
 /**
  * data/motifs/yetFragmentOrb.js — Shared motif: "yetFragmentOrb".
  *
- * Hand-authored geometry source of truth (see data/motifs/debris.js header for
- * the library/reference contract). A discrete signature object of the Unfinished
+ * Hand-authored geometry source of truth (see dev/docs/descriptorAuthoring.md
+ * for the shared-motif reference contract). A discrete signature object of the Unfinished
  * Lands biome. References by `{ motif: 'yetFragmentOrb', ... }`.
  */
 export const YET_FRAGMENT_ORB_MOTIF = {

@@ -5,11 +5,11 @@
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  *
  * The base `water` terrain decor. Water is BARE on the natural biomes — the
- * `tail` motif renders nothing — and only the supernatural biomes' pools fill
+ * `bare` motif renders nothing — and only the supernatural biomes' pools fill
  * it (titanstain → blood pools, unfinished lands → spring pools + sparks).
- * Those pools are shared-library motif references folded into this table, so
- * the terrain reads empty in the mortal world and corrupted only under the
- * supernatural biomes.
+ * Those are now a single shared-library `pool` reference folded into this
+ * table, so the terrain reads empty in the mortal world and corrupted only
+ * under the supernatural biomes.
  */
 export const WATER_DESCRIPTOR = {
   schemaVersion: 7,
@@ -36,9 +36,11 @@ export const WATER_DESCRIPTOR = {
         },
       ],
     },
-    // Titanstain's bleeding water — titanblood pools, present only there.
+    // Titanstain's bleeding water + Unfinished Lands' ghost pools — present
+    // only under those biomes; the `pool` motif's alternatives pick the
+    // material (blood vs spring vs spark) per biome.
     {
-      motif: 'bloodPool',
+      motif: 'pool',
       weight: 1,
       biomeWeight: {
         biome_default: 0,
@@ -50,40 +52,6 @@ export const WATER_DESCRIPTOR = {
         biome_scorch: 0,
         biome_sere_wastes: 0,
         biome_tundra: 0,
-        biome_unfinished_lands: 0,
-      },
-    },
-    // Unfinished Lands' ghost pools + spark — excluded everywhere except there.
-    {
-      motif: 'springPool',
-      weight: 0.6,
-      biomeWeight: {
-        biome_default: 0,
-        biome_dustbleed: 0,
-        biome_edenfall: 0,
-        biome_frigid_silence: 0,
-        biome_mourning_marsh: 0,
-        biome_painforest: 0,
-        biome_scorch: 0,
-        biome_sere_wastes: 0,
-        biome_tundra: 0,
-        biome_titanstain: 0,
-      },
-    },
-    {
-      motif: 'ghostSpark',
-      weight: 0.4,
-      biomeWeight: {
-        biome_default: 0,
-        biome_dustbleed: 0,
-        biome_edenfall: 0,
-        biome_frigid_silence: 0,
-        biome_mourning_marsh: 0,
-        biome_painforest: 0,
-        biome_scorch: 0,
-        biome_sere_wastes: 0,
-        biome_tundra: 0,
-        biome_titanstain: 0,
       },
     },
   ],

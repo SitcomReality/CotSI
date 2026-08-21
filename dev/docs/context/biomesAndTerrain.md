@@ -50,7 +50,7 @@ matches except ice `#b8d8f0` and river `#5f9ac1`).
 | `mountain` | Mountains | `#877c6a` | no | ∞ | hex-pyramid peaks, edge-to-edge per tile |
 | `water` | Broken water | `#5f9ac1` | no | ∞ | none — own rippling water mesh (lakes darker) |
 | `ice` | Frozen surface | `≈#a5d1f4` | no | ∞ | none — water mesh, pale frost |
-| `beach` | Beach | `#e8d8a0` | yes | 10 | driftwood, 5–8 per hex (decor: "Beach Wrack") |
+| `beach` | Beach | `#e8d8a0` | yes | 10 | log/tuft/stone/pile wrack, 5–8 per hex (decor: "Beach Wrack") |
 | `river` | River | `#2d87e6` | yes | 30 | carved channel on the water mesh; `avoidSpawn` |
 
 Notes:
@@ -189,31 +189,31 @@ inside these biomes).
 Water, ice, and river are the one structural exception: their base decorator
 carries a `bare` motif that renders nothing (the water mesh owns the surface),
 so on the natural biomes these tiles are plain ground. The pools drop into that
-same table — `bloodPool` under Titanstain, `springPool` and `ghostSpark` under
-Unfinished Lands — which is why water reads as empty in the mortal world and
-corrupted only inside these two regions.
+same table — the single `pool` motif under both Titanstain and Unfinished Lands
+— which is why water reads as empty in the mortal world and corrupted only
+inside these two regions.
 
 **Titanstain** — everything is corrupted titanflesh; water is titanblood.
 
 | Terrain key | Renders as | Decor pattern |
 |-------------|-----------|---------------|
-| `plains`, `beach`, `desert`, `marsh`, `hill`, `plateau`, `forest`, `deepWood` | **Titanflesh** | titan motifs: `titanSpire`, `titanTooth`, `titanBoil`, `titanNodule`, `titanTendril` |
+| `plains`, `beach`, `desert`, `marsh`, `hill`, `plateau`, `forest`, `deepWood` | **Titanflesh** | titan motifs: `titanSpire`, `titanBoil`, `titanNodule` |
 | `mountain` | Titanflesh Mountain | standard mountain |
-| `water` | Titanblood | `bloodPool` |
-| `ice` | Frozen Titanblood | `bloodPool` |
-| `river` | Titanblood River | `bloodPool` |
+| `water` | Titanblood | `pool` |
+| `ice` | Frozen Titanblood | `pool` |
+| `river` | Titanblood River | `pool` |
 
 **Unfinished Lands** — half-formed analogues of everything.
 
 | Terrain key | Renders as | Decor pattern |
 |-------------|-----------|---------------|
-| `plains`, `beach`, `desert`, `plateau` | **Yetlands** | yet-fragment motifs: `yetFragmentPillar/Cube/Shard/Cone/Orb` |
-| `forest`, `deepWood`, `marsh` | **Protogrowth** | yet-fragment motifs: `yetFragmentPillar/Cube/Shard/Cone/Orb` |
-| `hill` | Half-Hewn Rise | yet-fragment motifs: `yetFragmentPillar/Cube/Shard/Cone/Orb` |
+| `plains`, `beach`, `desert`, `plateau` | **Yetlands** | yet-fragment motifs: `yetFragmentCube`, `yetFragmentShard`, `yetFragmentOrb` |
+| `forest`, `deepWood`, `marsh` | **Protogrowth** | yet-fragment motifs: `yetFragmentCube`, `yetFragmentShard`, `yetFragmentOrb` |
+| `hill` | Half-Hewn Rise | yet-fragment motifs: `yetFragmentCube`, `yetFragmentShard`, `yetFragmentOrb` |
 | `mountain` | Sky Stalagmite | standard mountain |
-| `water` | Forespring | `springPool` + `ghostSpark` |
-| `ice` | Forespring | `springPool` + `ghostSpark` |
-| `river` | Forespring | `springPool` + `ghostSpark` |
+| `water` | Forespring | `pool` |
+| `ice` | Forespring | `pool` |
+| `river` | Forespring | `pool` |
 
 ---
 

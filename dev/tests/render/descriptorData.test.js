@@ -57,6 +57,21 @@ test('every migrated descriptor validates and survives a JSON roundtrip', () => 
 
 const SNAPSHOT = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'));
 
+/** Max authored `transform.scaleX` across a parts tree (groups + alternatives). */
+const maxLeafScaleX = (parts) => {
+  let max = 1;
+  const walk = (nodes) => {
+    for (const node of nodes) {
+      const sx = node.transform?.scaleX ?? 1;
+      if (sx > max) max = sx;
+      if (node.children) walk(node.children);
+      if (node.alternatives) for (const opt of node.alternatives) walk(opt.parts ?? []);
+    }
+  };
+  walk(parts);
+  return max;
+};
+
 // Entity descriptors (kind base/champion/mob/trader) are entity-driven — they
 // record via recordsForEntity, not the tile path — and are snapshot-tested in
 // descriptorEntity.test.js / descriptorBase.test.js (SNAPSHOT_ENTITY_KINDS).
@@ -141,15 +156,19 @@ test('woods decor: moisture-driven count, ring placement, dispersed ring + shrin
   // matching the `rootRecords` selection used for the ring comparison below.
   // Bound scale by the LARGEST motif size (per-motif `size` overrides like
   // forest's `dead` at 1.35–1.6 can exceed the decor-level size.max) times the
-  // canopy X-stretch headroom (≤1.15) — dispersal must still shrink below that.
+  // largest authored part scaleX times the canopy X-stretch headroom (≤1.15) —
+  // dispersal must still shrink below that. Motifs with a wide authored
+  // scaleX (e.g. titanBoil at 1.4, log at 1.3) exceed the old fixed 1.15, so
+  // the part scaleX is measured from the materialized parts rather than assumed.
   const maxMotifSize = Math.max(
     forest.size?.max ?? 1.5,
     ...forest.motifs.map((m) => m.size?.max ?? forest.size?.max ?? 1.5),
   );
+  const maxScaleX = Math.max(1, ...forest.motifs.map((m) => maxLeafScaleX(m.parts ?? [])));
   for (const record of displaced.filter((r) => r.x !== undefined)) {
     const dist = Math.hypot(record.x - POS.x, record.z - POS.z);
     assert.ok(dist >= 0.68 - 1e-9 && dist <= 0.88 + 1e-9, `dispersed dist ${dist}`);
-    assert.ok(record.scale <= maxMotifSize * 1.15 * DISPERSED_SCALE + 1e-9);
+    assert.ok(record.scale <= maxMotifSize * maxScaleX * 1.15 * DISPERSED_SCALE + 1e-9);
   }
   // Sanity: dispersed ring offsets match decorEmphasis' own function (within
   // float tolerance — `record.x = POS.x + dx` loses one ulp on round-trip).

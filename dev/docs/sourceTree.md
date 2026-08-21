@@ -330,7 +330,7 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `champion.js` + `champions/` | Table-driven champion descriptors: 7 factions + `shared` |
 | `mob.js` + `mobs/` | Table-driven mob descriptors: 7 mob archetypes |
 | `decor/` | Per-terrain decorators (13) — each a `motifs` table (schemaVersion 7) with `biomeWeight` skews |
-| `motifs/` | Shared motif library: one motif per file (id-named, e.g. `gnarledTree.js`), plus single-part catch-all `debris.js`; barrel `index.js` exports `ALL_MOTIFS`/`motifById` |
+| `motifs/` | Shared motif library: one motif per file (id-named, e.g. `gnarledTree.js`); the debris shapes (`stone`/`pile`/`shard`/`tuft`) and `pool` each use an `alternatives` root for material variety, and the supernatural gating block lives once in `decor/supernatural.js`; barrel `index.js` exports `ALL_MOTIFS`/`motifById` |
 | `features/` | Feature descriptors (28) |
 | `items/` | Item descriptors (7) |
 | `trader.js` | Trader descriptor |

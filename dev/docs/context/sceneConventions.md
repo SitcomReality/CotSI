@@ -72,18 +72,18 @@ the objects an LLM is most likely to be asked to restyle or extend:
 | `marsh` | `marsh` | Marsh Reeds | reed clusters | 5–8 |
 | `hill` | `hill` | Hill Mound | single raised mound (sinks when displaced) | 1 |
 | `plateau` | `plateau` | Plateau Scrub | boulder + scrub-tuft scatter | 5–8 |
-| `beach` | `beach` | Beach Wrack | driftwood | 5–8 |
+| `beach` | `beach` | Beach Wrack | log + tuft/stone/pile wrack | 5–8 |
 | `mountain` | `mountain` | (mountain) | hex-pyramid peak, edge-to-edge | per tile |
 | `water` / `ice` / `river` | — | — | no decor (own water mesh) | — |
 
 **Supernatural looks** are not standalone override decors — they're shared
 motifs folded into each base decorator's `motifs` table and gated to one biome
 by a `biomeWeight` of 0 everywhere else (see biomesAndTerrain §6). Titanstain
-tiles pick the titan motifs (`titanSpire`, `titanTooth`, `titanBoil`,
-`titanNodule`, `titanTendril`, `bloodPool`); Unfinished Lands picks the
-yet-fragment motifs (`yetFragmentPillar/Cube/Shard/Cone/Orb`, `springPool`,
-`ghostSpark`). Water/ice/river stay bare on natural biomes (the water mesh
-handles their look) and gain only their pools under the supernatural biomes.
+tiles pick the titan motifs (`titanSpire`, `titanBoil`, `titanNodule`);
+Unfinished Lands picks the yet-fragment motifs (`yetFragmentCube`,
+`yetFragmentShard`, `yetFragmentOrb`). Water/ice/river stay bare on natural
+biomes (the water mesh handles their look) and gain only the `pool` motif under
+the supernatural biomes.
 
 **De-emphasis rules** (how decor coexists with occupants/features): a hex's
 center is claimed in priority order **occupant > feature > terrain decor**.

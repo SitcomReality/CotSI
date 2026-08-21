@@ -1,8 +1,8 @@
 /**
  * data/motifs/titanNodule.js — Shared motif: "titanNodule".
  *
- * Hand-authored geometry source of truth (see data/motifs/debris.js header for
- * the library/reference contract). A discrete signature object of the
+ * Hand-authored geometry source of truth (see dev/docs/descriptorAuthoring.md
+ * for the shared-motif reference contract). A discrete signature object of the
  * Titanstain biome. References by `{ motif: 'titanNodule', ... }`.
  */
 export const TITAN_NODULE_MOTIF = {

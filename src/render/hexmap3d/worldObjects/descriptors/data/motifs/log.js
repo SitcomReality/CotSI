@@ -1,9 +1,7 @@
 /**
  * data/motifs/log.js — Shared motif: "log".
  *
- * A multi-part log object — the sole multi-part exception that
- * lives in its own file rather than the debris catch-all (a log
- * is composed of 2+ parts: body, stub, moss, and two fungi).
+ * A multi-part log object — body, stub, moss, and two fungi.
  *
  * Hand-authored geometry source of truth — any decor's motif
  * table can reference it by `{ motif: 'log', weight, ... }`.
