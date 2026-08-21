@@ -2,8 +2,8 @@
  * dungeonParams.js — Dungeon parameters.
  *
  * Deliberately un-tuned placeholders: dungeon battles and the completion
- * reward get a balance pass once mob power is reworked (see
- * dev/docs/deferredNotes.md). The numbers here are functional, not final.
+ * reward get a balance pass once mob power is reworked (tracked in
+ * dev/docs/futureWork.md). The numbers here are functional, not final.
  */
 
 /** Map-radius → dungeon-count divisor: count = 1 + floor(radius / DIVISOR). */

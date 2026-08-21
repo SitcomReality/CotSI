@@ -157,7 +157,6 @@ The current report shows **1 known-debt import** — `src/ui/mapTooltip.js → s
 | `dev/docs/featureDesign.md` | Feature design: placement, rewards, tiering |
 | `dev/docs/commonTasks.md` | How-to recipes for common changes |
 | `dev/docs/futureWork.md` | Future-work tracker (features to be implemented only) |
-| `dev/docs/deferredNotes.md` | Deferred-by-decision content, scale guidance, maintenance follow-ups (non-features) |
 | `dev/docs/terrainGenNotes.md` | Terrain-gen design notes (noise, calibration, classification) |
 | `dev/tools/analysis/README.md` | Map-gen analysis tool reference (standalone page) |
 | `dev/tools/geometryEditor/README.md` | Object geometry editor reference (standalone tool) |

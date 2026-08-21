@@ -1,8 +1,8 @@
 # Future Work
 
 Forward-looking tracker for specific features still to be implemented.
-Completed work lives in git history; deferred-by-decision content, design
-guidance, and maintenance follow-ups live in `dev/docs/deferredNotes.md`.
+Completed work lives in git history; deferred-by-decision decisions are
+recorded in the "Scale / generation guardrails" section below.
 
 Some items may be based on out-of-date design ideas — confirm with the user
 before implementing specific features or making changes based on this document.
@@ -192,7 +192,7 @@ shared motif library (`data/motifs/`). Planned follow-ups:
 
 ## Scale / generation guardrails
 
-Deferred-by-decision guidance moved here from `deferredNotes.md` §1:
+Deferred-by-decision guidance (originally from the retired deferredNotes.md):
 
 - **No worker threads for chunk generation** — single-threaded JS with
   clock-scheduled chunk generation is sufficient up to R=200. Revisit only if

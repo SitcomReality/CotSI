@@ -2,8 +2,8 @@
 
 Reference for the procedural terrain generation pipeline (noise, calibration,
 classification). This is not a to-do list — unimplemented features are tracked
-in `dev/docs/futureWork.md`; deferred-by-decision content and scale guidance
-live in `dev/docs/deferredNotes.md`.
+in `dev/docs/futureWork.md`; deferred-by-decision scale guidance lives in
+the "Scale / generation guardrails" section of `dev/docs/futureWork.md`.
 
 - **Calibration is re-runnable** — the batch panel in `dev/tools/analysis.html` has a
   "Run Batch Analysis" button and a "Derive thresholds" checkbox (threshold derivation
