@@ -156,8 +156,9 @@ biomeWeight, editor motif panel + strip) is in; decor geometry now lives in a
 shared motif library (`data/motifs/`). Planned follow-ups:
 
 - **Motif catalog plan** — the catalog was consolidated (54 → 24 motifs) and the
-  active three-track plan (consolidation / authoring / density) is tracked in
-  `dev/docs/decorMotifTracks.md`.
+  completed three-track plan (consolidation / authoring / density) was tracked in
+  `dev/docs/decorMotifTracks.md` which was removed after commit hash
+  `738763f3869f004b94ef78c91104defbad9e1bac`.
 - **optionalGroups → alternatives-with-`none` sunset** — one weighted
   resolver now powers motifs, alternatives, and (later) optionalGroups. A later
   schema rev should re-express optionalGroups as an alternatives node whose
