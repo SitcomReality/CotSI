@@ -24,6 +24,7 @@ import { hideBotIndicator } from '../ui/panels/botIndicator.js';
 import { startMeasure, endMeasure, enableAllMeasurements, getSnapshot, getMeasurementStats, getFps, startCapture, stopCapture, getCaptureReport, isCaptureActive, setGameContext, getGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { getClock } from '../shared/clockScheduler.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
+import '../ui/modals/optionsModal.js'; // side-effect: registers options [data-action] handlers
 import '../devtools/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
 import { cancelPendingPreview } from './hexBridge.js';
 
@@ -48,6 +49,7 @@ const CRITICAL_TEMPLATES = [
   'victoryModal',
   'toast',
   'confirmModal',
+  'optionsModal',
   'loadingScreen',
 ];
 
@@ -74,6 +76,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadTemplate('deathModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('victoryModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('confirmModal').then(({ frag }) => root.appendChild(frag));
+    await loadTemplate('optionsModal').then(({ frag }) => root.appendChild(frag));
     await loadTemplate('loadingScreen').then(({ frag }) => root.appendChild(frag));
 
     initModalActions(() => G);

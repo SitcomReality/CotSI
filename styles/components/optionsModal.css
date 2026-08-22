@@ -1,0 +1,129 @@
+/* =========================================================================
+   OPTIONS MODAL — Settings dialog: graphics toggles + game speed.
+   Follows the modal chrome recipe (modalShell.css) with the standard
+   card gradient; toggle/speed styling stays in the existing token system.
+   ========================================================================= */
+
+.options-card {
+  background-color: var(--board);
+  background-image: var(--nebula), linear-gradient(180deg, var(--board-hi), var(--board));
+  background-size: 340px 340px, auto;
+  border: var(--edge-bold) solid var(--crease-bold);
+  padding: var(--s4);
+  width: 100%;
+  max-width: 380px;
+}
+
+.options-title {
+  margin: 0;
+  color: var(--gold);
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+
+.options-section {
+  margin-top: var(--s3);
+}
+
+.options-section-title {
+  margin: 0 0 var(--s2);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+}
+
+/* ── Graphics toggle rows ──────────────────────────────────────────────── */
+
+.options-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s2) 0;
+  cursor: pointer;
+}
+
+.options-toggle-label {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.options-checkbox {
+  appearance: none;
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  border: var(--edge) solid var(--crease-bold);
+  background: var(--shadow);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.options-checkbox::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink-mid);
+  transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+
+.options-checkbox:checked {
+  background: var(--gold);
+  border-color: #b88728;
+}
+
+.options-checkbox:checked::after {
+  transform: translateX(18px);
+  background: #2a1700;
+}
+
+/* ── Game speed row ────────────────────────────────────────────────────── */
+
+.options-hint {
+  margin: 0 0 var(--s2);
+  color: var(--ink-mid);
+}
+
+.options-speed-row {
+  display: flex;
+  gap: var(--s2);
+}
+
+.options-speed-btn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: var(--r-sm);
+  border: var(--edge) solid var(--crease-bold);
+  background: var(--shadow);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+
+.options-speed-btn:hover {
+  filter: brightness(1.1);
+}
+
+.options-speed-btn--active {
+  background: linear-gradient(180deg, var(--gold), #d4a138);
+  border-color: #b88728;
+  color: #2a1700;
+}
+
+/* ── Close button ──────────────────────────────────────────────────────── */
+
+.options-close-btn {
+  min-width: 100px;
+  padding: 10px 20px;
+  border-radius: var(--r-sm);
+}

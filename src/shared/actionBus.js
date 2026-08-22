@@ -21,10 +21,12 @@ export function registerAction(action, fn) {
  * @param {Event} [e]
  */
 export function dispatchAction(action, el, e) {
-  handlers[action]?.(el, e);
+  return handlers[action]?.(el, e);
 }
 
-document.addEventListener('click', (e) => {
+// Listener setup is guarded so pure-layer tests can import this module in
+// Node (no DOM). In the browser both guards are truthy.
+if (typeof document !== 'undefined') document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-action]');
   if (!el) return;
   const action = el.dataset.action;
@@ -36,7 +38,7 @@ document.addEventListener('click', (e) => {
 });
 
 // Keyboard shortcuts (optional, will be added later)
-window.addEventListener('keydown', (e) => {
+if (typeof window !== 'undefined') window.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return;
   const map = { ' ': 'endTurn', 'c': 'centerChampion',
                 '+': 'zoomIn', '=': 'zoomIn', '-': 'zoomOut', '_': 'zoomOut' };

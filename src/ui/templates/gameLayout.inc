@@ -10,6 +10,7 @@
     </div>
     <div class="header-panel__actions">
       <button class="btn-icon header-panel__inspect-btn" id="inspectBtn" data-action="inspect" title="Inspect champion">🔍</button>
+      <button class="btn-icon header-panel__options-btn" id="optionsBtn" data-action="openOptions" title="Options">⚙</button>
     </div>
     <div id="championDetail" class="champion-detail">
       <!-- expandable detail dropdown (repositioned by JS) -->

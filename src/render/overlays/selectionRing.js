@@ -3,6 +3,7 @@
 // Priority: 10 (above fog, below future particles)
 
 import { worldToScreen } from './screenProjection.js';
+import { graphicsSettings } from './graphicsSettings.js';
 import { hexCenter3D, hexCornersXZ, tileSurfaceY } from '../hexmap3d/hexMapRenderer.js';
 import { getDerivedHumanView } from './overlayStack.js';
 import {
@@ -19,6 +20,8 @@ const GOLD_COLOR = '#ffbf00';
 const BACK_COLOR = 'rgba(20, 20, 30, 0.5)';
 
 export function renderSelectionRing(ctx2d, state, camera, time) {
+  if (!graphicsSettings.effects.selectionRing) return;
+
   const champ = state.champions.find(c => c.id === state.activeChampionId && c.alive);
   if (!champ) return;
 

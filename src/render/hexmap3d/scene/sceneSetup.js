@@ -2,7 +2,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { toonMaterial } from './materials.js';
 import { createCameraState, applyCameraState } from './cameraState.js';
 import { createRenderer } from './rendererSetup.js';
-import { addLights } from './lightSetup.js';
+import { addLights, applyShadowConfig } from './lightSetup.js';
 import { shadowLightConfig } from '../../shadowLightConfig.js';
 import { graphicsSettings } from '../../overlays/graphicsSettings.js';
 import { startMeasure, endMeasure } from '../../../shared/measurements.js';
@@ -59,11 +59,11 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
   // Stage background (parchment vignette → abyss) + subtle distance fog so
   // far tiles recede toward the frame (aerial perspective). Fog near/far are
   // eye-tuned for the default camera distance (~50) and map extent — larger
-  // maps may need a longer `far`.
+  // maps may need a longer `far`. The fog object is kept so the options
+  // modal's fogMist toggle can swap it in and out live.
   scene.background = createStageBackground();
-  if (graphicsSettings.effects.fogMist) {
-    scene.fog = new THREE.Fog(new THREE.Color(BG_EDGE_COLOR), 60, 160);
-  }
+  const stageFog = new THREE.Fog(new THREE.Color(BG_EDGE_COLOR), 60, 160);
+  scene.fog = graphicsSettings.effects.fogMist ? stageFog : null;
 
   // --- Orthographic Camera (managed by camera3d) ---
   const rect = mountElement.getBoundingClientRect();
@@ -96,6 +96,38 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
   // --- Lights ---
   const lights = addLights(scene, { shadows });
 
+  // ── Live graphics-effect sync (options modal toggles) ──
+  // Checked each frame; the flags rarely change, so this is two compares in
+  // the steady state.
+  let shadowsActive = !!shadows;
+
+  function syncGraphicsEffects() {
+    const effects = graphicsSettings.effects;
+    // Shadows: flip renderer + light together. shadowMap.enabled is only
+    // picked up when materials recompile, so mark them dirty on change.
+    const wantShadows = effects.shadows && shadowLightConfig.enabled;
+    if (wantShadows !== shadowsActive) {
+      shadowsActive = wantShadows;
+      renderer.shadowMap.enabled = wantShadows;
+      renderer.shadowMap.needsUpdate = true;
+      if (wantShadows) {
+        applyShadowConfig(lights.directional);
+      } else {
+        lights.directional.castShadow = false;
+      }
+      scene.traverse((obj) => {
+        if (!obj.material) return;
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        for (const mat of mats) mat.needsUpdate = true;
+      });
+    }
+    // Fog/mist: swap the stage fog object in and out.
+    const wantFog = effects.fogMist;
+    if (!!scene.fog !== wantFog) {
+      scene.fog = wantFog ? stageFog : null;
+    }
+  }
+
   // --- Ground plane (temporary, removed in Phase 2) ---
   const groundGeo = new THREE.PlaneGeometry(GROUND_PLANE_SIZE, GROUND_PLANE_SIZE);
   const groundMat = toonMaterial({ color: 0xd4b87a });
@@ -114,6 +146,7 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
       // direction/length never changes; the fixed frustum gives
       // map-size-independent shadow texel density.
       const sun = lights.directional;
+      syncGraphicsEffects();
       if (sun.castShadow) {
         sun.position.set(camState.targetX + sunOffset.x, sunOffset.y, camState.targetZ + sunOffset.z);
         sun.target.position.set(camState.targetX, 0, camState.targetZ);
