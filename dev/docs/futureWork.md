@@ -74,12 +74,21 @@ Nothing built yet; the open question is scope, not whether. Candidate pieces
 
 ### Saving / game state serialization
 
-Nothing persists across sessions today. Needed:
+Exists now:
 
-- Settings/options persistence (localStorage).
-- Save an in-progress game — full state serialization + load. The large-map
-  save format (seed + dirty-tile deltas) is designed in Large-map persistence
-  below.
+- Settings/options persist to localStorage (`cotsi-settings-v1`) — graphics
+  toggles and gameplay speeds are saved on every change
+  (`runtime/settingsStore.js`) and restored at bootstrap.
+- Save/load of an in-progress game is implemented end-to-end at the function
+  level: seed + dirty-tile delta documents (`game/state/persistence/
+  saveDocument.js`) round-trip through the localStorage slot
+  (`runtime/gameSaveSlot.js`, key `cotsi-save-v1`; console-callable).
+
+Still needed:
+
+- UI entry points — save/load buttons or menu (functions exist, no UI yet).
+- Load-time integration: routing a restored state through beginGame's render
+  init so a loaded game actually appears on screen.
 
 ### Audio
 

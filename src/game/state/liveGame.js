@@ -13,7 +13,8 @@ export let G = null;
  */
 export function setGameInstance(g) {
   G = g;
-  window.__gameState = g;
+  // Guarded so pure-layer tests can call this headless.
+  if (typeof window !== 'undefined') window.__gameState = g;
 }
 
 /**

@@ -24,6 +24,7 @@ import { G } from '../game/state/liveGame.js';
 import { hideBotIndicator } from '../ui/panels/botIndicator.js';
 import { startMeasure, endMeasure, enableAllMeasurements, getSnapshot, getMeasurementStats, getFps, startCapture, stopCapture, getCaptureReport, isCaptureActive, setGameContext, getGameContext, clearGameContext } from '../devtools/performance/index.js';
 import { getClock } from '../shared/clockScheduler.js';
+import { restoreSavedSettings } from './settingsStore.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
 import '../ui/modals/optionsModal.js'; // side-effect: registers options [data-action] handlers
 import '../devtools/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
@@ -62,6 +63,10 @@ const CRITICAL_TEMPLATES = [
 
 window.addEventListener('DOMContentLoaded', async () => {
   try {
+    // Restore persisted options (graphics toggles + game speeds) before any
+    // UI reads them. Pure singleton state — no DOM dependency.
+    restoreSavedSettings();
+
     // Preload all critical templates in parallel (network fetch)
     await preloadTemplates(CRITICAL_TEMPLATES);
 

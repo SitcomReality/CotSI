@@ -187,11 +187,12 @@ AI), and `combat/`.
 | File | Purpose |
 |------|---------|
 | `beginGame.js` | Game-start orchestration: state init, render init, UI init |
-| `bootstrap.js` | App bootstrap: loads modules, starts the clock |
+| `bootstrap.js` | App bootstrap: loads modules, starts the clock, restores settings |
 | `botTurnRunner.js` | Runs bot turns: AI decision → state mutation → refresh |
 | `deathAnnouncement.js` | Death-event coordination: state, render, UI |
 | `dispatchPrompt.js` | Dispatch-event prompt orchestration (modal + reward) |
 | `endTurn.js` | End-turn orchestration: cleanup, next-champ, refresh |
+| `gameSaveSlot.js` | localStorage save slot: save/load/has via the persistence core |
 | `heraldPrompt.js` | Herald-prompt orchestration (narrative modal) |
 | `hexBridge.js` | Hex-click bridge: picking event -> game mutation -> refresh |
 | `initMap3d.js` | 3D-map initialisation orchestration |
@@ -201,6 +202,8 @@ AI), and `combat/`.
 | `portraitResolver.js` | Resolves entity/champion portrait assets |
 | `refreshAll.js` | Full refresh: renders, overlays, UI, minimap |
 | `rewardPrompt.js` | Reward-prompt orchestration (modal flow) |
+| `settingsStore.js` | Options persistence: capture/apply/save/restore settings doc |
+| `storageIo.js` | Node-safe, failure-safe localStorage JSON read/write adapters |
 | `turnPacing.js` | Turn pacing / speed orchestration |
 | `zoomDisplay.js` | Zoom-level display update bridging state and UI |
 | `combat/combatActions.js` | Combat init + actionBus handlers (pick, flee) |

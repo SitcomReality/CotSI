@@ -67,5 +67,6 @@ registerAction('setGameSpeed', (el) => {
   for (const group of GAMEPLAY_GROUPS) {
     clock.setSpeed(group, mult);
   }
+  dispatchAction('persistSettings');
   refreshSpeedButtons();
 });
