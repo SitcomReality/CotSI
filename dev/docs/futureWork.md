@@ -88,19 +88,6 @@ Nothing built (the game is silent today). Needed:
 - SFX system (UI, combat, feature interactions).
 - Music (ambient tracks).
 
-### Options / settings
-
-No settings UI exists. `src/render/overlays/graphicsSettings.js` already holds
-effect flags (shadows, fogMist, selectionRing wired to the renderer; glows,
-particles, damageNumbers marked "future"). Needed:
-
-- Graphics quality — expose the existing flags as user-facing toggles, and
-  add the "future" flags when the FX land (see Specialer FX).
-- Audio volume/mute — depends on the Audio item.
-- Game speed — a user-facing speed control over the clock speed groups
-  (`dev/docs/clockScheduler.md`).
-- Reset tutorial/tips — depends on the Onboarding item.
-
 ### Specialer FX (particles, glows, damage numbers)
 
 An ambient/impact FX pass on top of the static descriptors. The effect flags
