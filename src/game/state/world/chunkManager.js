@@ -166,6 +166,24 @@ function extractDeltas(state, ck, chunk) {
 }
 
 /**
+ * Merge the gameplay deltas of every RESIDENT chunk (diffed against the
+ * regenerated base, same semantics as extractDeltas) over the already-
+ * extracted eviction deltas in state.chunkDeltas. Read-only: neither the
+ * chunks nor state.chunkDeltas are touched.
+ * @returns {Map<string, Map<string, object>>} ck → localKey → tile
+ */
+export function collectChunkDeltas(state) {
+  const merged = new Map();
+  for (const [ck, deltas] of state.chunkDeltas) merged.set(ck, new Map(deltas));
+  for (const [ck, chunk] of state.chunks) {
+    const resident = extractDeltas(state, ck, chunk);
+    if (resident.size > 0) merged.set(ck, resident);
+    else merged.delete(ck);
+  }
+  return merged;
+}
+
+/**
  * Touch occupancy timestamps, then evict chunks that have had no entity for
  * CHUNK_EVICTION_GRACE_DAYS days and are outside every champion's render-cap
  * disc. Evicted chunks store their deltas in state.chunkDeltas and drop from

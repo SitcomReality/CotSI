@@ -107,6 +107,13 @@ AI), and `combat/`.
 | `liveGame.js` | The singleton `G` object — live mutable game state |
 | `turnActions.js` | Per-turn action processing (movement, interaction) |
 
+### `src/game/state/persistence/` — save/load serialization
+
+| File | Purpose |
+|------|---------|
+| `saveDocument.js` | Save-document serializer/loader (JSON-safe snapshot + world rebuild) |
+| `settingsDocument.js` | Pure settings-document serializer and validator |
+
 ### `src/game/state/world/` — map state & world-day bookkeeping
 
 | File | Purpose |
