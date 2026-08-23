@@ -12,9 +12,10 @@
  *   - #game is hidden (display: none) — shown on beginGame
  *   - .modal elements are hidden (display: none) — shown via showModal()
  */
-import { registerAction, initModalActions } from '../shared/actionBus.js';
+import { registerAction, dispatchAction, initModalActions } from '../shared/actionBus.js';
 import { preloadTemplates, loadTemplate } from '../ui/templates/templateLoader.js';
 import { onEndTurn } from './endTurn.js';
+import { refreshAll, anyModalOpen } from './refreshAll.js';
 import { initCombat } from './combat/index.js';
 import { initTrade } from './trade/trade.js';
 import { toast } from '../ui/hud.js';
@@ -35,6 +36,12 @@ registerAction('endTurn', () => onEndTurn());
 registerAction('inspect', () => toast(INSPECT_HINT));
 registerAction('restartToSetup', () => location.reload());
 registerAction('cancelMovePreview', () => cancelPendingPreview());
+// A modal hidden outside its own acknowledge flow (e.g. the options modal)
+// must re-enter the orchestrator once the last modal is gone — otherwise a
+// bot turn that finished while the modal was open never gets rescheduled.
+registerAction('modalClosed', () => {
+  if (!anyModalOpen()) refreshAll();
+});
 
 /** Names of templates to preload before any rendering. */
 const CRITICAL_TEMPLATES = [

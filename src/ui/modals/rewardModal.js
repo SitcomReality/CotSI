@@ -161,8 +161,9 @@ registerAction('confirmReward', () => {
     return;
   }
 
-  // Plain dismiss
+  // Plain dismiss — clear state BEFORE hiding so the modalClosed re-entry
+  // into refreshAll sees a clean board and resumes any pending bot turn.
   _pendingChoice = null;
-  hideModal('rewardModal');
   clearGameReward();
+  hideModal('rewardModal');
 });

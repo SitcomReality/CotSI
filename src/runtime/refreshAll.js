@@ -28,10 +28,17 @@ import { BOT_AUTO_DELAY_MS } from '../params/ui/uiParams.js';
  * Uses computed display so any show mechanism (inline style, class, stylesheet)
  * is caught, not just inline `style="display: flex"`.
  */
-function anyModalOpen() {
+export function anyModalOpen() {
   return Array.from(document.querySelectorAll('.modal'))
     .some(m => getComputedStyle(m).display !== 'none');
 }
+
+/**
+ * Handle of the currently scheduled bot auto-turn task. Kept so a repeat
+ * refreshAll (e.g. the modalClosed re-entry) replaces the pending task
+ * instead of stacking a second runBot behind it.
+ */
+let _pendingBotTaskId = null;
 
 // ---- Central render orchestrator ----
 
@@ -153,7 +160,10 @@ export function refreshAll() {
       endMeasure('refreshAll');
       return;
     }
+    // Replace any still-pending task rather than stacking runners
+    if (_pendingBotTaskId !== null) getClock().clearTimeout(_pendingBotTaskId);
     const taskId = getClock().setTimeout(runBot, BOT_AUTO_DELAY_MS, 'bot');
+    _pendingBotTaskId = taskId;
     // Expose task ID for dev tools Stop button (avoids circular import)
     if (window.__devTools) {
       window.__devTools._pendingBotTaskId = taskId;
