@@ -32,6 +32,8 @@ import { LOG_CATEGORY } from '../../rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers.js';
 import { recordLedgerEntry } from '../world/dispatchLedger.js';
 import { dungeonReentryDay } from '../../rules/dungeonRules.js';
+import { EQUIPMENT_CATALOG, pickEquipment } from '../../rules/equipment.js';
+import { choiceCard, equipmentCard } from './featureRewardTable.js';
 import { FACTION_COUNT, MOB_BASE_POTENCY, MOB_OWN_FACTION_POTENCY_BONUS } from '../../../params/game/factionParams.js';
 import { MOB_HP_VARIANCE_FRACTION } from '../../../params/game/spawnParams.js';
 import {
@@ -39,6 +41,7 @@ import {
   DUNGEON_COMPLETION_GOLD,
   DUNGEON_COMPLETION_RELIC,
   DUNGEON_COMPLETION_KNOTS,
+  DUNGEON_COMPLETION_BONUS_KNOTS,
 } from '../../../params/game/dungeonParams.js';
 
 /** The canonical display name for the dungeon feature (archetype registry). */
@@ -182,6 +185,33 @@ export function resolveDungeonBattleWin(state, champ) {
 
   // Unhide the champion on the dungeon hex.
   state.spatialIndex.set(key, { type: 'champion', entity: champ });
+
+  // Human champions also pick a completion bonus: a random weapon, a random
+  // armor, or extra God's Knots. (Bots never enter dungeons.)
+  if (champ.controller === 'human' && !state.reward) {
+    const weapons = EQUIPMENT_CATALOG.filter((i) => i.slot === 'weapon');
+    const armors = EQUIPMENT_CATALOG.filter((i) => i.slot === 'armor');
+    state.reward = {
+      championId: champ.id,
+      type: 'feature',
+      title: `${dungeonName()} hoard`,
+      body: 'The hoard yields one more prize — choose.',
+      tileKey: key,
+      guaranteed: [],
+      choices: [
+        equipmentCard(pickEquipment(state._rng, weapons), `${dungeonName()} hoard`),
+        equipmentCard(pickEquipment(state._rng, armors), `${dungeonName()} hoard`),
+        choiceCard({
+          id: 'knots',
+          label: `+${DUNGEON_COMPLETION_BONUS_KNOTS} God's Knots`,
+          type: 'knot',
+          effects: [{ icon: 'd-knot', label: `+${DUNGEON_COMPLETION_BONUS_KNOTS} God's Knots` }],
+          grant: { kind: 'knots', amount: DUNGEON_COMPLETION_BONUS_KNOTS },
+          claim: `${DUNGEON_COMPLETION_BONUS_KNOTS} God's Knots from the ${dungeonName()} hoard`,
+        }),
+      ],
+    };
+  }
 
   return {
     completed: true,

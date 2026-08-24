@@ -103,6 +103,24 @@ function potencyCard(source) {
   });
 }
 
+/** Card granting a specific catalog item (equips via trading.equipItem). */
+export function equipmentCard(item, source) {
+  const slotIcon = item.slot === 'weapon' ? 'i-weapon' : 'i-armor';
+  const effect = item.bonus?.attack
+    ? { icon: 'i-attack', label: `+${item.bonus.attack} attack` }
+    : item.bonus?.defense
+      ? { icon: 'i-armor', label: `+${item.bonus.defense} defense` }
+      : { icon: slotIcon, label: item.name };
+  return choiceCard({
+    id: `equipment-${item.id}`,
+    label: `${item.name} (${item.slot})`,
+    type: 'equipment',
+    effects: [{ icon: slotIcon, label: effect.label }],
+    grant: { kind: 'equipment', itemId: item.id },
+    claim: `${item.name} from the ${source}`,
+  });
+}
+
 // ── Feature reward table ──────────────────────────────────────────────────────
 // class: 'direct' (consume on arrival) | 'choice' (modal for humans) |
 //        'potency-pick' (choice of which faction) | 'regrow' (timer-based).

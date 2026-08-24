@@ -35,6 +35,8 @@ import { depleteFeature } from './featureRegrowth.js';
 import { FACTION_COUNT } from '../../../params/game/factionParams.js';
 import { BOT_FEATURE_SCORES, BOT_FEATURE_HEAL_BONUS, BOT_FONT_HP_THRESHOLD } from '../../../params/game/aiParams.js';
 import { FEATURES, featureName, choiceCard } from './featureRewardTable.js';
+import { EQUIPMENT_CATALOG, pickEquipment } from '../../rules/equipment.js';
+import { equipItem } from './trading.js';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
@@ -250,6 +252,22 @@ function _applyGrant(state, champ, grant, claimText) {
       text = `+${amount} AP this turn`;
       color = 'var(--ink-mid)';
       break;
+    case 'equipment': {
+      const item = grant.itemId
+        ? EQUIPMENT_CATALOG.find((i) => i.id === grant.itemId)
+        : pickEquipment(state._rng);
+      if (!item) break;
+      const refund = equipItem(champ, item);
+      recordLedgerEntry(
+        champ,
+        `${item.name} equipped — ${claimText}${refund ? ` (+${refund} gold refund)` : ''}`,
+        'gain',
+        'gold'
+      );
+      text = item.name;
+      color = 'var(--gold)';
+      break;
+    }
     default:
       break;
   }

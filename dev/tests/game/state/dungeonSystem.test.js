@@ -20,7 +20,8 @@ import { makeChampion, makeState, makeTile } from '../../helpers/stateFixture.js
 import { coordKey, distance, hexesWithinRadius } from '../../../../src/engine/rules/hexGrid.js';
 import { TERRAIN } from '../../../../src/game/rules/terrainTypes.js';
 import { FACTION_COUNT } from '../../../../src/params/game/factionParams.js';
-import { DUNGEON_BATTLE_SCALE, DUNGEON_COMPLETION_GOLD, DUNGEON_COMPLETION_RELIC, DUNGEON_COMPLETION_KNOTS } from '../../../../src/params/game/dungeonParams.js';
+import { DUNGEON_BATTLE_SCALE, DUNGEON_COMPLETION_GOLD, DUNGEON_COMPLETION_RELIC, DUNGEON_COMPLETION_KNOTS, DUNGEON_COMPLETION_BONUS_KNOTS } from '../../../../src/params/game/dungeonParams.js';
+import { applyFeatureChoice } from '../../../../src/game/state/features/featureRewards.js';
 
 const HERE = coordKey({ q: 0, r: 0 });
 
@@ -146,6 +147,29 @@ test('resolveDungeonBattleWin: day 3 win completes — rewards, unhide, full tur
   // (AP/lastActionCombat restore for the full turn is granted by the runtime —
   //  combatRoundEnd — not by the state layer.)
   assert.deepEqual(state.spatialIndex.get(HERE), { type: 'champion', entity: champ }, 'champion unhidden');
+});
+
+test('resolveDungeonBattleWin: human completion offers a bonus item/knot choice', () => {
+  const { champ, state } = dungeonState();
+  enterDungeon(state, champ);
+  champ.dungeon.day = 3;
+
+  resolveDungeonBattleWin(state, champ);
+
+  assert.equal(state.reward?.type, 'feature');
+  assert.equal(state.reward.tileKey, HERE);
+  assert.deepEqual(state.reward.guaranteed, []);
+  const kinds = state.reward.choices.map((c) => c.grant.kind);
+  assert.deepEqual(kinds.sort(), ['equipment', 'equipment', 'knots']);
+  // Applying the knots choice grants the bonus.
+  const beforeKnot = champ.knot;
+  applyFeatureChoice(
+    state,
+    champ,
+    state.reward.choices.find((c) => c.grant.kind === 'knots'),
+    HERE
+  );
+  assert.equal(champ.knot, beforeKnot + DUNGEON_COMPLETION_BONUS_KNOTS);
 });
 
 // ── Flee ──────────────────────────────────────────────────────────────────────

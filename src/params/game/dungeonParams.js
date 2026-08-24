@@ -30,6 +30,8 @@ export const DUNGEON_REENTRY_DELAY_DAYS = 2;
 export const DUNGEON_COMPLETION_GOLD = 60;
 export const DUNGEON_COMPLETION_RELIC = 2;
 export const DUNGEON_COMPLETION_KNOTS = 4;
+/** Knots granted when the completion bonus choice picks knots over an item. */
+export const DUNGEON_COMPLETION_BONUS_KNOTS = 2;
 
 // ── Placement tuning ──────────────────────────────────────────────────────────
 

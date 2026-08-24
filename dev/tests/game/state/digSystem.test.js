@@ -5,7 +5,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resolvePendingDig, isDigEligible } from '../../../../src/game/state/features/digSystem.js';
+import { applyFeatureChoice } from '../../../../src/game/state/features/featureRewards.js';
 import { makeChampion, makeMob, makeState, makeTile } from '../../helpers/stateFixture.js';
+import { coordKey } from '../../../../src/engine/rules/hexGrid.js';
 
 /** Sequence-driven RNG: returns queued values in order, then 0.5. */
 function seqRng(values) {
@@ -53,18 +55,34 @@ test('resolvePendingDig: relic branch bumps relics, clears pending, logs', () =>
   assert.equal(state.reward, null, 'bots get no reward modal');
 });
 
-test('resolvePendingDig: human relic dig sets the treasure reward + ledger', () => {
+test('resolvePendingDig: human dig offers a choice between the rolled loot and an item', () => {
   const champ = makeChampion({ id: 'cA', controller: 'human', pendingDig: true });
   const state = makeState({ champions: [champ], _rng: seqRng([0.01]) });
 
   resolvePendingDig(state, champ);
 
-  assert.equal(champ.relics, 1);
+  // Nothing is applied until the champion chooses.
+  assert.equal(champ.relics, 0);
+  assert.equal((champ.dispatchLedger || []).length, 0);
   assert.equal(state.reward.championId, 'cA');
-  assert.equal(state.reward.type, 'treasure');
-  assert.equal(champ.dispatchLedger.length, 1);
-  assert.equal(champ.dispatchLedger[0].sign, 'gain');
-  assert.equal(champ.dispatchLedger[0].type, 'relic');
+  assert.equal(state.reward.type, 'feature');
+  assert.equal(state.reward.tileKey, coordKey(champ.pos));
+  assert.deepEqual(state.reward.guaranteed, []);
+  assert.equal(state.reward.choices.length, 2);
+  assert.equal(state.reward.choices[0].grant.kind, 'relic');
+  assert.equal(state.reward.choices[1].grant.kind, 'equipment');
+});
+
+test('resolvePendingDig: applying the equipment choice equips the item', () => {
+  const champ = makeChampion({ id: 'cA', controller: 'human', pendingDig: true });
+  const state = makeState({ champions: [champ], _rng: seqRng([0.5, 0.99]) });
+
+  resolvePendingDig(state, champ);
+  const itemId = state.reward.choices[1].grant.itemId;
+  applyFeatureChoice(state, champ, state.reward.choices[1], state.reward.tileKey);
+
+  const equipped = champ.weapon?.id === itemId || champ.armor?.id === itemId;
+  assert.ok(equipped, 'the chosen catalog item is equipped');
 });
 
 test('resolvePendingDig: Everknown relic dig also wakes a random potency', () => {
