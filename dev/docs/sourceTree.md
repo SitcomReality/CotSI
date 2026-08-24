@@ -92,6 +92,15 @@ tools' inventories live in their own READMEs (`dev/tools/analysis/README.md`,
 
 ---
 
+## `src/game/music/` — Authored song data (Canopy score exports)
+
+| File | Purpose |
+|------|---------|
+| `scores/neonAsphalt.score.js` | Self-contained Canopy export: song data + synth graph + sequencer + reactive dynamics (Tone.js). Do not hand-edit below the `score` object |
+| `scores/maroonedSunset.score.js` | Same format, second placeholder track. See `dev/docs/musicSystem.md` for the public API and integration |
+
+---
+
 ## `src/game/state/` — Mutable state, queries, and mutations
 
 Organized into `world/` (map & world-day bookkeeping), `entities/` (entity
@@ -216,6 +225,7 @@ AI), and `combat/`.
 | `combat/combatState.js` | Active-combat holder + combat clock wait |
 | `combat/index.js` | Barrel: combat public API |
 | `trade/trade.js` | Trade-flow orchestration |
+| `audio/musicDirector.js` | Music orchestration: lazy score loading, start/stop/dispose, track switching, mute application, combat/victory steering (see `dev/docs/musicSystem.md`) |
 
 ---
 
@@ -473,6 +483,7 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `iconAtlas.js` | UI icon atlas |
 | `iconPaths.js` | SVG icon path definitions |
 | `mapTooltip.js` | Map hex tooltip popup |
+| `muteButton.js` | Header audio-mute toggle: registers `toggleMute` action, paints glyph from muteState |
 | `paleySVG.js` | Paley tournament SVG rendering |
 | `setupActions.js` | Setup-screen action registrations |
 | `setupConstants.js` | Setup-screen constants and defaults |
@@ -491,6 +502,7 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `actionBus.js` | `[data-action]` dispatcher with keyboard shortcuts and modal-action helpers |
 | `clockScheduler.js` | Centralized Clock with pause/resume, per-group speed control, master rAF loop |
 | `measurements.js` | Named timing measurements (start/end, lifetime avg, EMA); moved from `src/devtools/performance/` |
+| `muteState.js` | Global audio-mute singleton with change notifications (shared by music now, SFX later) |
 | `speedGroup.js` | Speed-group definitions and speed multipliers |
 | `timerQueue.js` | Priority-queue timer management for the clock scheduler |
 

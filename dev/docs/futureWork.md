@@ -51,12 +51,18 @@ today:
 - Game creation, lobbies, room codes etc.
 - Client connection and syncing game state with server.
 
-### Audio
+### Audio — SFX
 
-Nothing built (the game is silent today). Needed:
+Music is implemented (`dev/docs/musicSystem.md`: Canopy score exports in
+`src/game/music/scores/`, orchestrated by `src/runtime/audio/musicDirector.js`,
+global mute via `shared/muteState.js` + the header mute button, persisted as
+`audio.muted`). Still needed:
 
-- SFX system (UI, combat, feature interactions).
-- Music (ambient tracks).
+- SFX system (UI, combat, feature interactions) — should reuse
+  `muteState.js` and the Tone pipeline so one mute switch silences both.
+- Finer-grained music steering: threat-based `unease` band (currently only
+  hard combat enter/exit), and possibly a second track for supernatural biomes.
+- In-game track selection / options-modal music controls.
 
 ### Specialer FX
 
