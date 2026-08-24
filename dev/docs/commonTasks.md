@@ -40,6 +40,28 @@ Entities (faction bases, champions, mobs, traders) are entity-driven descriptors
 4. **Save** — writes only the **active variant** back to the variant-scoped file (`data/bases/<faction>.js`, `data/champions/<faction>.js`, `data/mobs/<archetype>.js`); the table-driven barrels (`base.js` / `champion.js` / `mob.js`) are never rewritten. A 400 is returned only when no `activeVariant` is known (e.g. the mob `'default'` fallback).
 5. Variant contract for entities: variant `id` === the selecting field (`variantRule 'faction'` → the faction short, `'archetype'` → the archetype shape key from `mob.archetypeName`). Unknown selections fall back to the first variant. Part ids must stay unique across variants — meshAssembly groups records by part id, so two variants sharing an id merge into one geometry.
 
+## Change the Save Slot Key
+
+1. `GAME_SAVE_KEY` in `src/runtime/gameSaveSlot.js` (currently `'cotsi-save-v1'`) is the single localStorage key
+2. Bump the key when the save format breaks compatibility (old saves become invisible rather than crashing); for format changes that stay backward-compatible, bump `SAVE_FORMAT_VERSION` in `src/game/state/persistence/saveDocument.js` instead
+3. The setup screen's Continue button (`initSaveEntryPoints` in `src/runtime/saveLoadActions.js`) re-checks the same key — no other wiring
+
+## Record Gameplay Video
+
+1. Open the dev tools panel (backtick key) → **Capture** tab
+2. **Start** / **Stop** dispatch the `dev:capture:start` / `dev:capture:stop` actions (`src/devtools/actionWiring/capture.js`) which drive `src/devtools/capture/screenRecorder.js`
+3. Output downloads automatically as `cotsi-capture-<timestamp>.webm`; convert to GIF with the ffmpeg recipe in `media/convert commands.txt`
+
+Recording composites the 3D canvas + effects overlay into an offscreen canvas per frame via MediaRecorder, so it needs a live map (no map yet → start fails). Starting a new game mid-recording stops it gracefully.
+
+## Tune Equipment Durability and Forge Costs
+
+All knobs are constants in `src/params/game/economyParams.js`:
+
+- `EQUIP_MAX_DURABILITY` / `EQUIP_DURABILITY_TICK` — max durability and per-turn wear (applied in `beginTurn`)
+- `EQUIP_REFUND_FRACTION` — replacement refund fraction of buy cost, scaled by remaining durability (see `sellValue` in `src/game/rules/equipment.js`)
+- `FORGE_KNOT_COST` / `FORGE_BONUS_STEP` — God's Knots per upgrade and bonus gained per step (upgrade/repair logic in `src/game/state/features/forgeSystem.js`; repair cost is the item's own buy cost, not tunable separately)
+
 ## Change Win Conditions
 
 Edit `src/game/state/world/victoryChecks.js` and the `objectives` object built in `src/ui/setupActions.js` and passed to `createGame()` in `src/game/state/gameFactory.js`.

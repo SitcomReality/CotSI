@@ -83,6 +83,12 @@ Every user-initiated action flows through this pipeline:
 
 No step is skippable in new code. The UI never calls `game/state/` directly; render never imports `game/state/`. All coordination goes through `runtime/`.
 
+Save/load follows this shape exactly: the pure serialization lives in
+`game/state/persistence/saveDocument.js` (`serializeGame`/`deserializeGame`),
+while `runtime/gameSaveSlot.js` owns the localStorage adapter and
+`runtime/saveLoadActions.js` registers the action-bus handlers the Options
+modal and setup screen dispatch.
+
 **Honest status:** the current codebase does not fully comply — see §6 Boundary Debt. New code must follow the pipeline; existing violations are paid down over time.
 
 ---

@@ -46,7 +46,25 @@ All four revealed colours are accumulated into the round score. Animations highl
 
 ---
 
-## Biome System
+## Equipment Durability & Forges
+
+Equipment uses a two-slot model (`weapon` / `armor`, `src/game/rules/equipment.js`):
+
+- **Wear**: items lose `EQUIP_DURABILITY_TICK` (1) durability per turn in `beginTurn`, down to a max of `EQUIP_MAX_DURABILITY` (10)
+- **Non-functional at 0**: an item at 0 durability stops contributing its combat bonus until repaired
+- **Replacement refund**: equipping over an item destroys it and refunds gold via `sellValue` — buy cost × `EQUIP_REFUND_FRACTION` (0.5), scaled by remaining durability, floored at 1 gold. Knot costs are never refunded
+
+### Forge Hexes
+
+A Forge is a permanent map feature present in every biome (`src/game/state/features/forgeSystem.js`). On arrival, human champions with eligible equipment get the reward-choice modal; bots ignore forges entirely.
+
+- **Upgrade**: raises the item's bonus stat by `FORGE_BONUS_STEP` (+1 attack or defense) for `FORGE_KNOT_COST` (2 God's Knots). Repeatable — each step bumps `upgradeLevel`
+- **Repair**: restores full durability for a flat cost equal to the item's buy cost (gold + knots), regardless of how worn it is
+- Upgrades require enough God's Knots; repairs require the full buy price. The Forge itself is never consumed
+
+All constants live in `src/params/game/economyParams.js`.
+
+---
 
 Biomes are data-driven archetypes defined in `src/game/rules/archetypeData/biomes/` (type: `'biome'`). Each defines:
 
