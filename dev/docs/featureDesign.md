@@ -82,7 +82,7 @@ All amounts live in `economyParams.js` as `FEATURE_*` constants (tune here).
 | witnessStone | choice | +1 relic **or** +12 gold |
 | screamroot | choice | +6 God's Knots & −8 HP (never fatal) **or** +2 God's Knots |
 | nullLily / volvelle | choice | +1 potency of any of the 7 factions (pick) |
-| foolsFire / halfDrawnObelisk | choice | +2 movement this turn **or** +8 gold |
+| foolsFire / halfDrawnObelisk | choice | +20 movement this turn **or** +8 gold |
 | ouroborosLoop | choice | +1 relic **or** +10 gold |
 | errataSlip | choice | +1 random potency **or** +10 gold |
 | listenerLichen | choice | +1 random potency **or** +8 gold |
@@ -92,7 +92,7 @@ All amounts live in `economyParams.js` as `FEATURE_*` constants (tune here).
 | cinderbloom | regrow | +6 HP |
 | scoriaRose | regrow | +2 God's Knots |
 | peridexionTree | regrow | +8 HP, +2 defense this turn |
-| snowperson | regrow | +2 movement this turn |
+| snowperson | regrow | +20 movement this turn |
 | saintsRib | regrow | +3 defense this turn |
 
 Bot policy (`botFeatureChoice` in featureRewards.js): choice features never open

@@ -115,8 +115,9 @@ documented (encoded in the checker):
   colors, terrain constants, archetypes). Passing them through `runtime/` would
   add ceremony without architectural benefit.
 - **`TOLERATED_STATE_READS`** — pure read-only state queries consumed by `ui/`
-  view-models/tooltips and `render/` overlays (`occupiedBy*`, `getHumanView`,
-  `movementRange`, `dailyMoves`, `currentChamp`, `sideOf`, `entityFor`).
+  view-models/tooltips and `render/` overlays (`occupiedByMob`/
+  `occupiedByChampion`/`occupiedByTrader`, `getHumanView`, `dailyActionPoints`,
+  `currentChamp`, `sideOf`, `entityFor`).
   Symbol-scoped: ui/render may
   import only those exact names; importing mutators from the same modules still
   fails the boundary check. Long-term direction remains view-model/snapshot

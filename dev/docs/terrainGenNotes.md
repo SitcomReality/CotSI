@@ -10,9 +10,12 @@ the "Scale / generation guardrails" section of `dev/docs/futureWork.md`.
   runs as part of the batch). Any change to noise output distributions (composite
   changes, new layers) requires regenerating calibration data. Thresholds remain stable
   percentiles if/when LUT normalization is added.
-- **Per-phase normalization** — the additive composite spans [0, 2] (two
-  fields summed), divided by 2 for [0, 1]. Any future noise layer follows
-  the same pattern; only LUTs need regeneration.
+- **Per-phase normalization** — the elevation composite weights two [0, 1]
+  fields (detail and ridged FBM) by `ELEVATION_DETAIL_MIX` = 0.50
+  (`terrainGenParams.js`), so the weighted composite is already [0, 1];
+  there is no sum-then-halve step. Any future noise layer should enter the
+  composite with a mix weight that keeps it in [0, 1]; only LUTs need
+  regeneration.
 - **Some frequencies scale with map radius** — RIDGE, MOISTURE, and REGION
   frequencies scale by 1/radius, so terrain at a coordinate differs across
   radii; ELEVATION_DETAIL and TEMP_VARIATION are absolute (unscaled).

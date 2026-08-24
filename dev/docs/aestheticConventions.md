@@ -103,7 +103,7 @@ surface has a violet breath so panels read as atmosphere, not app skin.
 | `--board-hi` | `#322a52` | Raised card / modal surface |
 | `--ink` | `#f2ead9` | Warm cream body text (never sterile white) |
 | `--ink-mid` | `#aea4c4` | Secondary text / captions (lavender-mauve) |
-| `--ink-faint` | `#7a6f8f` | Tertiary / placeholders |
+| `--ink-faint` | `#8d82a6` | Tertiary / placeholders |
 | `--ink-line` | `#12101e` | Ink outline color (Puppet layer) |
 | `--crease` | `#352c4e` | Hairline divider (violet charcoal) |
 | `--crease-bold` | `#463a66` | Stronger divider |
@@ -343,9 +343,8 @@ Unchanged from v4 (this layer was working): three-tone toon shader
 (`MeshToonMaterial` + shared gradient map), inverted-hull ink outline pass on
 units/features (`--ink-line`), terrain tiles deliberately not outlined,
 stylized piece scale, grove/cluster decoration rules, feature regrowth cycles
-(descriptor growth states). See the section in the v4 doc for full detail
-(kept verbatim in `dev/docs/aestheticConventions.v4.md` if needed — otherwise
-this bullet list is the summary).
+(descriptor growth states). The v4 doc's full detail is no longer retained;
+this bullet list is the summary.
 
 ---
 

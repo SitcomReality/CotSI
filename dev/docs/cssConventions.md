@@ -30,12 +30,14 @@ styles/
 │   ├── button.css             # Barrel → buttonCore + buttonLegacy
 │   ├── card.css               # Barrel → cardBase + cardVariants
 │   ├── championPanel.css      # Barrel → left-champion-card/*.css
+│   ├── loadingOverlay.css     # Full-screen loading veil
 │   ├── modalShell.css         # Shared modal chrome
 │   ├── setupScreen.css, setupControls.css, dispatchModal.css, rewardModal.css,
-│   │   confirmModal.css, deathModal.css, heraldModal.css
+│   │   confirmModal.css, deathModal.css, heraldModal.css, optionsModal.css,
+│   │   tradeModal.css
 │   ├── headerPanel.css, logPanel.css, mainLog.css, minimap.css
 │   ├── heptagramWidget.css, tooltip.css, mapControls.css, fog.css, tile.css,
-│   │   bot-indicator.css
+│   │   bot-indicator.css, weatherDisplay.css
 │   ├── turnChrome.css           # Turn-tint identity layer (consumes --turn-*)
 │   ├── facet.css                # .chamfer low-poly corner cuts
 │   ├── championDetail.css

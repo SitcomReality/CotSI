@@ -172,9 +172,11 @@ hook in the descriptor pipeline.
 
 The opening is the per-pass rebuild: **mob meshes are already rebuilt every
 render pass** (`hexMapRenderer` calls `buildUnitMeshes` per pass; the note in
-`shapeFactories.js` ~line 274 reads: "Unit meshes are rebuilt every render
-pass; these materials are built once and marked shared so the per-frame
-disposal skips them"). An animation hook slots between record derivation and
+`descriptors/shapeFactories.js` ~line 274 reads: "Materials are cached per
+option-set and marked shared: unit meshes rebuild every render pass, and
+disposeMesh (sceneContext) skips shared materials, so identical parts must
+reuse one material instead of recreating it per frame"). An animation hook
+slots between record derivation and
 mesh build:
 
 1. per frame, take the animated entity, `applyAnimation`-style clone with the

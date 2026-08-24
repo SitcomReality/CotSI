@@ -156,6 +156,7 @@ AI), and `combat/`.
 | `featureRegrowth.js` | Interactive-feature regrowth handling |
 | `featureRewards.js` | Reward grants for interactive features (direct grants, choice modals, regrowth) |
 | `featureRewardTable.js` | Feature reward lookup tables |
+| `forgeSystem.js` | Forge hexes — equipment upgrades (God's Knots) and durability repairs |
 | `trading.js` | Trader interactions and trades |
 
 ### `src/game/state/movement/` — movement & wandering
@@ -324,6 +325,7 @@ AI), and `combat/`.
 | `partFrames.js` | Part frame placement |
 | `partStates.js` | Part state keyframes (growth states) |
 | `tileRecords.js` | Per-tile record generation |
+| `transformVariation.js` | Per-node spawn chance gating and range-form transforms |
 | `entityRecords.js` | Per-entity record generation |
 | `motifDraw.js` | Motif composition drawing for records |
 | `shapeFactories.js` | Shape → THREE geometry + material factories |
@@ -342,7 +344,7 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `mob.js` + `mobs/` | Table-driven mob descriptors: 7 mob archetypes |
 | `decor/` | Per-terrain decorators (13) — each a `motifs` table (schemaVersion 7) with `biomeWeight` skews |
 | `motifs/` | Shared motif library: one motif per file (id-named, e.g. `gnarledTree.js`); the debris shapes (`stone`/`pile`/`shard`/`tuft`) and `pool` each use an `alternatives` root for material variety, and the supernatural gating block lives once in `decor/supernatural.js`; barrel `index.js` exports `ALL_MOTIFS`/`motifById` |
-| `features/` | Feature descriptors (28) |
+| `features/` | Feature descriptors (29) |
 | `items/` | Item descriptors (7) |
 | `trader.js` | Trader descriptor |
 | `index.js` | Barrel |
@@ -415,6 +417,7 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `dispatchModal.js` | Dispatch-event selection modal |
 | `heraldModal.js` | Herald narrative event modal |
 | `modalShell.js` | Modal base shell (open, close, animate) |
+| `optionsModal.js` | Options dialog — graphics effect toggles + game speed |
 | `rewardModal.js` | Generic reward display modal |
 
 ### `src/ui/combat/` — Combat view (render + FX; sequencer lives in `runtime/combat/`)
@@ -452,6 +455,7 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `gameLayout.inc` | Game page layout template |
 | `heraldModal.inc` | Herald narrative modal template |
 | `loadingScreen.inc` | Loading screen template |
+| `optionsModal.inc` | Options modal template |
 | `rewardModal.inc` | Reward modal template |
 | `setupScreen.inc` | New-game setup screen template |
 | `toast.inc` | Toast notification template |
@@ -572,9 +576,16 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | File | Purpose |
 |------|---------|
 | `bot.js` | Dev action wiring for bot-control actions |
+| `capture.js` | Dev action wiring for the Capture tab (start/stop recording) |
 | `cheats.js` | Dev action wiring for cheat actions |
 | `index.js` | Barrel for dev action wiring |
 | `performance.js` | Dev action wiring for performance-tab actions |
+
+### `src/devtools/capture/` — Screen recording
+
+| File | Purpose |
+|------|---------|
+| `screenRecorder.js` | WebM video recording of the map viewport (Three.js canvas + overlay composite via MediaRecorder) |
 
 ### `src/devtools/performance/` — Performance profiling
 

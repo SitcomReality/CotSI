@@ -21,8 +21,9 @@ objects to *fit*: right size, right color source, right density. Complements
   octahedra. Everything about a champion must read at a glance from above.
 - **Bases** (faction structures) and **mobs** follow the same language —
   entity scale is `entity.scale × descriptor.scale`.
-- **Terrain decor** per hex: tree clusters 3–7 items, scrub/reeds 5–8, sized
-  ~0.8–1.3 of the descriptor's authored size (`variation`/`size` handles jitter).
+- **Terrain decor** per hex: item counts come from each decor's `cluster`
+  block (roughly 3–7 per hex), and `size` blocks give an absolute
+  per-instance scale range, not a jitter factor of the authored size.
 - **Mountain** decor is special: one hex-pyramid per tile, sized edge-to-edge
   (base radius 1.0, tiling), height driven by the tile's mountain type
   (peak/slope/normal).
@@ -65,15 +66,15 @@ the objects an LLM is most likely to be asked to restyle or extend:
 
 | Terrain | Decor id | Display name | Look | Cluster |
 |---------|----------|--------------|------|---------|
-| `plains` | `plains` | Plains Meadow | grass blades | 5–8 |
-| `forest` | `forest` | Forest | round trees | 3–5 |
-| `deepWood` | `deepWood` | Deep Wood | conical pines | 4–7 |
-| `desert` | `desert` | Desert Growth | scrub clusters | 6–8 |
-| `marsh` | `marsh` | Marsh Reeds | reed clusters | 5–8 |
-| `hill` | `hill` | Hill Mound | single raised mound (sinks when displaced) | 1 |
-| `plateau` | `plateau` | Plateau Scrub | boulder + scrub-tuft scatter | 5–8 |
-| `beach` | `beach` | Beach Wrack | log + tuft/stone/pile wrack | 5–8 |
-| `mountain` | `mountain` | (mountain) | hex-pyramid peak, edge-to-edge | per tile |
+| `plains` | `plains` | Plains decor | grass blades | 3–7 |
+| `forest` | `forest` | Forest decor | round trees | 3–5 |
+| `deepWood` | `deepWood` | Deep Wood decor | conical pines | 4–7 |
+| `desert` | `desert` | Desert decor | scrub clusters | 3–6 |
+| `marsh` | `marsh` | Marsh decor | reed clusters | 4–6 |
+| `hill` | `hill` | Hill decor | single raised mound (sinks when displaced) | 1 |
+| `plateau` | `plateau` | Plateau decor | boulder + scrub-tuft scatter | 3–7 |
+| `beach` | `beach` | Beach decor | log + tuft/stone/pile wrack | 3–6 |
+| `mountain` | `mountain` | Mountain decor | hex-pyramid peak, edge-to-edge | per tile |
 | `water` / `ice` / `river` | — | — | no decor (own water mesh) | — |
 
 **Supernatural looks** are not standalone override decors — they're shared
@@ -108,8 +109,8 @@ biome (see descriptorAuthoring §5.7).
 Tile features are one descriptor per kind (`src/render/hexmap3d/worldObjects/descriptors/data/features/`),
 spawned by per-biome rules (first match wins; `threshold`/`compare` vs. a tile
 hash; `terrainOnly`/`terrainExclude` gate terrain). Kinds include: `blessedFont`
-(heals), `knot` ("God's Knot" — the resource currency), `treasureChest`,
-`bush`, `waxbloom`, `listenerLichen`, `screamroot`, `witnessStone`,
+(heals), `knot` ("God's Knot" — the resource currency), `forge`, `dungeon`,
+`treasureChest`, `bush`, `waxbloom`, `listenerLichen`, `screamroot`, `witnessStone`,
 `palimpsestSlab`, `gildedInitial`, `vegetableLamb`, `saintsRib`,
 `edenMushroom`/`edenShroomlet`, `snowperson`, `foolsFire`, `drownedCopyist`,
 `scoriaRose`, `cinderbloom`, `censerSaint`, `volvelle`, `errataSlip`,

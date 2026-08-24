@@ -35,22 +35,25 @@ spawned per biome rules.
 
 There are 12 terrain type keys. Colors below are the 3D render colors
 (`TERRAIN_COLOR` in `src/params/render/terrainParams.js`, RGB 0–1 tuples shown
-as hex `round(v·255)`; the legacy ASCII table in `src/game/rules/terrainTypes.js`
-matches except ice `#b8d8f0` and river `#5f9ac1`).
+as hex `round(v·255)`, except `hill` and `plateau` which have no
+`TERRAIN_COLOR` entry — their values come from the `biome_default` palette in
+`src/game/rules/archetypeData/biomes/biomeDefault.js`; the legacy ASCII table
+in `src/game/rules/terrainTypes.js` matches except water *and* river (both
+`#5f9ac1`) and ice `#b8d8f0`).
 
 | Key | Display name | Color | Passable | Move cost | Ground look |
 |-----|--------------|-------|----------|-----------|-------------|
-| `plains` | Plains | `#74ad5d` | yes | 10 | grass blades (decor: "Plains Meadow") |
-| `forest` | Forest | `#4b8e41` | yes | 12 | round trees, 3–5 per hex (decor: "Forest") |
-| `deepWood` | Deep wood | `#2d6b23` | yes | 20 | conical pines, 4–7 per hex (decor: "Deep Wood") |
-| `desert` | Desert | `#d6b15b` | yes | 10 | scrub clusters, 6–8 per hex (decor: "Desert Growth") |
-| `marsh` | Marsh | `#819967` | yes | 15 | reed clusters, 5–8 per hex (decor: "Marsh Reeds") |
-| `hill` | Hill | `#8ba863` | yes | 12 | raised mound, one per hex (decor: "Hill Mound") |
-| `plateau` | Plateau | `#9a9078` | yes | 15 | scatter of boulders + scrub tufts, 5–8 per hex (decor: "Plateau Scrub") |
+| `plains` | Plains | `#74ad5d` | yes | 10 | grass blades (decor: "Plains decor") |
+| `forest` | Forest | `#4b8e41` | yes | 12 | round trees, 3–5 per hex (decor: "Forest decor") |
+| `deepWood` | Deep wood | `#2d6b23` | yes | 20 | conical pines, 4–7 per hex (decor: "Deep Wood decor") |
+| `desert` | Desert | `#d6b15b` | yes | 10 | scrub clusters, 3–6 per hex (decor: "Desert decor") |
+| `marsh` | Marsh | `#819967` | yes | 15 | reed clusters, 4–6 per hex (decor: "Marsh decor") |
+| `hill` | Hill | `#8ba863` | yes | 12 | raised mound, one per hex (decor: "Hill decor") |
+| `plateau` | Plateau | `#9a9078` | yes | 15 | scatter of boulders + scrub tufts, 3–7 per hex (decor: "Plateau decor") |
 | `mountain` | Mountains | `#877c6a` | no | ∞ | hex-pyramid peaks, edge-to-edge per tile |
 | `water` | Broken water | `#285f8b` | no | ∞ | none — own rippling water mesh (lakes darker) |
-| `ice` | Frozen surface | `≈#a5d1f4` | no | ∞ | none — water mesh, pale frost |
-| `beach` | Beach | `#e8d8a0` | yes | 10 | log/tuft/stone/pile wrack, 5–8 per hex (decor: "Beach Wrack") |
+| `ice` | Frozen surface | `≈#a6d1f4` | no | ∞ | none — water mesh, pale frost |
+| `beach` | Beach | `#e8d8a0` | yes | 10 | log/tuft/stone/pile wrack, 3–6 per hex (decor: "Beach decor") |
 | `river` | River | `#2d87e6` | yes | 30 | carved channel on the water mesh; `avoidSpawn` |
 
 Notes:

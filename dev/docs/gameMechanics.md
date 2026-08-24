@@ -33,7 +33,7 @@ All four revealed colours are accumulated into the round score. Animations highl
 - The damaged champion acts first in the next combat round
 
 ### 6. Next Round
-New round begins using the same `combat.first`/`second` assignments (reflecting the updated `G.globalOrder`). Steps 2–5 repeat.
+`nextCombatRound` re-derives `combat.first`/`combat.second` from the current `G.globalOrder` via `deriveOrder()` (`src/game/state/combat/combatState.js`) — it does not reuse the previous round's assignments. After a round-end reorder (`moveDamagedBeforeDamager`, §5), the damaged champion's earlier position makes them `first`, so the first/second split can flip between rounds. Steps 2–5 repeat.
 
 ### 7. Fleeing
 

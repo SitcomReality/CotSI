@@ -92,7 +92,7 @@ optional for new files):
  * (dev/tools/geometryEditor.html) and press Save — hand edits are overwritten.
  */
 export const EDEN_MUSHROOM_DESCRIPTOR = {
-  schemaVersion: 5,
+  schemaVersion: 7,
   id: 'edenMushroom',
   kind: 'feature',
   displayName: 'Eden Mushroom',
@@ -737,14 +737,10 @@ export const FOREST_DESCRIPTOR = {
                      biome_tundra: 0.8, biome_edenfall: 0.6 } },
     // Supernatural corruption: only present where every natural biome is 0 — e.g.
     // titanSpire renders ONLY under biome_titanstain (all other biomes 0):
-    { motif: 'titanSpire', weight: 0.3,
-      biomeWeight: { biome_default: 0, biome_dustbleed: 0, biome_edenfall: 0,
-                     biome_frigid_silence: 0, biome_mourning_marsh: 0, biome_painforest: 0,
-                     biome_scorch: 0, biome_sere_wastes: 0, biome_tundra: 0,
-                     biome_unfinished_lands: 0 } },
-    // … titanBoil (Titanstain)
+    // … titanSpire (weight 0.4), titanBoil (Titanstain)
     //   and yetFragmentCube/Shard (Unfinished Lands) — same pattern, and
-    //   together they live once in decor/supernatural.js as SUPERNATURAL_MOTIFS …
+    //   together they live once in decor/supernatural.js as SUPERNATURAL_MOTIFS,
+    //   folded into this table via ...SUPERNATURAL_MOTIFS …
   ],
 };
 ```
@@ -930,6 +926,12 @@ What each piece demonstrates:
    console.log('wrote', Object.keys(out).length, 'snapshots');
    EOF
    ```
+
+   A ready-made script does this for you:
+   `dev/scripts/regenerate_descriptor_snapshot.sh` (wrapping
+   `regenerate_descriptor_snapshot.mjs`, with the same Node resolution as
+   `dev/tests/run.sh`). The geometry editor's save server also regenerates the
+   snapshot on every Save.
 
 5. **Run the checks**: `dev/tests/run.sh`, `python3 dev/scripts/check_imports.py`,
    `python3 dev/scripts/check_geometry_editor_imports.py`.

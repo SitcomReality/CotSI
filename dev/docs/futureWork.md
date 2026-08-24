@@ -56,7 +56,10 @@ heal on starting values (`FEATURE_EDEN_MUSHROOM_HEAL` /
 Per-feature reward intent is tracked in `dev/docs/featureDesign.md` §5
 (amounts in §3a).
 The abilities/stats and sources of equipment items need to be designed and
-balanced.
+balanced. An equipment-durability layer already exists
+(`src/game/rules/equipment.js`, with Forge repairs via
+`src/game/state/features/forgeSystem.js`); only the abilities/stats remain
+undesigned.
 
 ### Onboarding / tutorial
 
@@ -148,7 +151,8 @@ The v6 decor composition system (motifs, alternatives, repeatPenalty,
 biomeWeight, editor motif panel + strip) is in; decor geometry now lives in a
 shared motif library (`data/motifs/`). Planned follow-ups:
 
-- **Motif catalog plan** — the catalog was consolidated (54 → 24 motifs) and the
+- **Motif catalog plan** — the catalog was consolidated (54 → 24 at commit
+  `a7f0c1e`; 22 motifs today) and the
   completed three-track plan (consolidation / authoring / density) was tracked in
   `dev/docs/decorMotifTracks.md` which was removed after commit hash
   `738763f3869f004b94ef78c91104defbad9e1bac`.

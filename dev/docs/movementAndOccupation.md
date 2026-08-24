@@ -26,15 +26,18 @@ AP by terrain; the budget resets at the start of each champion's turn.
   12 = exactly 5 forest hexes). It is two digits ("48/60" reads instantly) and
   familiar (minutes in an hour).
 - **Daily composition** (champion): `baseActionPoints` (60) + `SPUR_AP_BONUS`
-  (+10 with the Pilgrim's Spur artifact) + `REVERIE_AP_BONUS` (+10 from a
-  Reverie dream boon), scaled by `weather.dayLength` (rounded), floored at
-  `MIN_DAILY_AP` = 10. Feature rewards can grant AP mid-turn (e.g. +20 from
-  the Snowperson or choice rewards).
+  (+10 with the Pilgrim's Spur artifact — applied inside `dailyActionPoints()`
+  in `championMovement.js`), scaled by `weather.dayLength` (floored, not
+  rounded), floored at `MIN_DAILY_AP` = 10. The Reverie bonus
+  (`REVERIE_AP_BONUS`, +10 from a dream boon) is **not** part of
+  `dailyActionPoints()` — it is granted mid-turn by `processReverie()` in
+  `factionAbilities.js` when the roll hits. Feature rewards can grant AP
+  mid-turn too (e.g. +20 from the Snowperson or choice rewards).
 - **Pools by entity class:**
 
   | Entity | Daily pool | Notes |
   |--------|-----------|-------|
-  | Champion | 60 | +10 Spur, +10 Reverie, × dayLength, floor 10 |
+  | Champion | 60 | +10 Spur (in `dailyActionPoints()`), +10 Reverie (mid-turn), × dayLength, floor 10 |
   | Trader | 30 | `TRADER_DAILY_AP` — ≈3 plains hexes/day |
   | Mob | 20 | `MOB_DAILY_AP` — 1–2 cheap-terrain steps, 1 river crossing |
 
@@ -69,24 +72,32 @@ mountains/water/ice impassable** — one sentence.
 cost is finite:
 
 ```
-effectiveCost(entity, tile) = terrainCostOverrides(entity)[tile.terrain]
-                              ?? TERRAIN[tile.terrain].movementCost
+effectiveCost(entity, tile) = terrainOverride(tile.biomeId, tile.terrain).movementCost   // biome override
+                              ?? terrainCostOverrides(entity)[tile.terrain]              // entity override
+                              ?? TERRAIN[tile.terrain].movementCost                      // base ladder
 ```
 
 - ∞ = blocked for that entity. There is no separate passability flag in the
   movement path; "can I enter" and "what does it cost" are one lookup.
-- **Overrides are sparse per-entity tables** — one mechanism for a faction's
-  forest discount, a mob's amphibiousness, or (if ever wanted) a penalty.
-  Override values must also be divisors of 60 (or ∞).
+- **Biome overrides come first** — a supernatural biome may declare
+  `terrainOverrides: { [terrainKey]: { name, movementCost? } }` on its
+  archetype (e.g. `archetypeData/biomes/biomeTitanstain.js`); the declared
+  `movementCost` is uniform for every entity, stripping faction terrain
+  bonuses inside that biome (`terrainOverride(biomeId, terrain)` in
+  `src/game/rules/terrainOverrides.js`).
+- **Entity overrides are sparse per-entity tables** — one mechanism for a
+  faction's forest discount, a mob's amphibiousness, or (if ever wanted) a
+  penalty. Override values must also be divisors of 60 (or ∞).
 - Override sources:
 
-  | Entity | Override source |
-  |--------|-----------------|
+  | Layer | Override source |
+  |-------|-----------------|
+  | Biome | Optional `terrainOverrides` on the biome archetype in `src/game/rules/archetypeData/biomes/` |
   | Champion | Optional `terrainCosts` on the faction entry in `src/game/rules/factionData.js` |
   | Mob | Optional `terrainCosts` on the mob archetype in `src/game/rules/archetypeData/mobs.js` |
   | Trader | None — base ladder only |
 
-- Single source of truth: `terrainCost(entity, terrain)` /
+- Single source of truth: `terrainCost(entity, terrain, biomeId)` /
   `isTerrainBlocked(entity, terrain)` in `src/game/rules/movementCosts.js`.
 
 ---
@@ -257,7 +268,8 @@ UX change — the system is designed so that swap is easy.
 - `movementRange` is a weighted shortest-path search (FIFO relaxation with
   re-push on improvement — provably optimal for the non-negative ladder, and
   cheaper than a heap at range sizes), capped by the champion's AP pool.
-- `pathToward(state, champ, targetKey)` is the single source for every human
+- `pathToward(state, champ, targetKey, range = movementRange(state, champ))` is
+  the single source for every human
   path (preview and commit): in-range targets get the cheapest full path,
   out-of-range targets get the affordable prefix of a weighted A* route.
 - **Feature hexes are destination-only in both searches** — never routed
@@ -297,10 +309,10 @@ UX change — the system is designed so that swap is easy.
 |------|---------|
 | AP / `actionPoints` | The daily movement budget on an entity (`champ.actionPoints`) |
 | `baseActionPoints` | A champion's pool before artifacts/weather (60) |
-| `dailyActionPoints()` | Computes the daily pool (base + Spur + Reverie, × dayLength, floor) |
+| `dailyActionPoints()` | Computes the daily pool ((base + Spur) × dayLength, floored); Reverie is granted mid-turn, outside this function |
 | `TERRAIN[].movementCost` | Base per-terrain AP cost (∞ = impassable) |
 | `terrainCosts` | Sparse per-faction / per-mob override table |
-| `terrainCost(entity, terrain)` / `isTerrainBlocked` | Effective cost / blocked check (movementCosts.js) |
+| `terrainCost(entity, terrain, biomeId)` / `isTerrainBlocked` | Effective cost (biome → entity → base ladder) / blocked check (movementCosts.js) |
 | `isBlockedForMovement(state, key, entity)` | Terrain + occupancy blocking for range computation |
 | `canChampionEnter(state, key, champ)` | Full enterability check for pathing |
 | `movementRange` / `pathToKey` / `pathToward` | Weighted reachability, cheapest-path reconstruction, click-path resolution |
