@@ -11,35 +11,6 @@ before implementing specific features or making changes based on this document.
 
 ## Features to be implemented
 
-### Dungeons
-
-Consecutive-turn dungeon: entering a dungeon hex hides the champion for 3
-turns; each turn inside, combat starts immediately at the beginning of the
-champion's turn instead of world-map movement. After the final battle, a large
-reward. Fleeing uses the normal rules but ejects the champion and loses all
-progress.
-
-Implemented (`src/game/state/features/dungeonSystem.js`,
-`src/game/state/features/dungeonPlacement.js`,
-`src/game/rules/dungeonRules.js`, `src/params/game/dungeonParams.js`):
-count-driven placement (always ≥1, +1 per 22 radii), human-only entry,
-per-champion runs (battle per day, escalating via `DUNGEON_BATTLE_SCALE`),
-flee → eject + reset + 2-day re-entry cooldown, day-3 completion reward
-(gold + relic + God's Knots) + full turn, hidden champion (no spatial
-occupancy, no harassment, invisible). Bots ignore dungeons entirely.
-
-Remaining:
-- Bot AI for dungeons (currently human-only).
-- Battle + reward balance — deliberately un-tuned: battles use existing mob
-  archetypes scaled by `DUNGEON_BATTLE_SCALE`
-  (`src/params/game/dungeonParams.js`) and the completion reward
-  (`DUNGEON_COMPLETION_*`) is a placeholder bundle. Mob power is still being
-  rebalanced, so dungeon fights and rewards get a design/balance pass at the
-  same time — not before.
-- The map visual is the editable `dungeon` descriptor
-  (`src/render/hexmap3d/worldObjects/descriptors/data/features/dungeon.js`) —
-  tune the entrance geometry in the geometry editor, not by hand.
-
 ### Balance: features, items, factions
 
 Rewards are functional but un-tuned — amounts, tier scaling, and the shared
@@ -53,6 +24,12 @@ balanced. An equipment-durability layer already exists
 (`src/game/rules/equipment.js`, with Forge repairs via
 `src/game/state/features/forgeSystem.js`); only the abilities/stats remain
 undesigned.
+Dungeon Battle + reward balance — deliberately un-tuned: battles use existing
+mob archetypes scaled by `DUNGEON_BATTLE_SCALE`
+(`src/params/game/dungeonParams.js`) and the completion reward
+(`DUNGEON_COMPLETION_*`) is a placeholder bundle. Mob power is still being
+rebalanced, so dungeon fights and rewards get a design/balance pass at the
+same time — not before.
 
 ### Onboarding / tutorial
 
@@ -88,8 +65,8 @@ already exist as "future" entries in `graphicsSettings.effects`; water
 sparkles (`src/render/hexmap3d/terrain/waterSparkles.js`) are the precedent
 to build on. Ideas from design:
 
-- Filled God's Knots / Blessed Font glow when charged (the knot currently has
-  a static emissive material; the ask is an animated/charged-up effect).
+- Filled Blessed Font glows when charged.
+- God's Knots emit rainbow sparkles and dissipate in a puff of sparkles when collected.
 - Ripe peridexion fruit sparkles; treasure-chest collect splashes a coin
   flourish; damage numbers float over hits.
 
@@ -99,6 +76,8 @@ A later review-and-refine pass over visuals across the board: feature and
 decor geometry (including the Forge's placeholder anvil descriptor), motifs,
 icons, creatures, and other object graphics. Most of it is tuned in the
 geometry editor; descriptor data files regenerate on Save.
+- The map visual for dungeon entrances is the editable `dungeon` descriptor
+  (`src/render/hexmap3d/worldObjects/descriptors/data/features/dungeon.js`).
 
 ### UI polish
 
@@ -108,7 +87,7 @@ geometry editor; descriptor data files regenerate on Save.
 - Reward/dispatch reveal animations beyond the current veiled pattern
   (dispatch cards already do a staggered veil; the reward modal has none).
 
-### Responsive / mobile audit
+#### Responsive / mobile audit
 
 The baseline responsive pass is in; remaining verification work:
 
@@ -127,6 +106,7 @@ The baseline responsive pass is in; remaining verification work:
 - **Large-map-appropriate exploration** — on the big maps, local exploration
   should bias toward resource gradients and away from recently visited areas;
   victory conditions may need rethinking.
+- Bot AI for dungeons (currently human-only).
 
 ---
 
