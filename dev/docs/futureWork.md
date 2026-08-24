@@ -69,24 +69,6 @@ Nothing built yet; the open question is scope, not whether. Candidate pieces
   key-terms glossary.
 - A "Reset tutorial/tips" toggle, tied into Options/settings below.
 
-### Saving / game state serialization
-
-Exists now:
-
-- Settings/options persist to localStorage (`cotsi-settings-v1`) — graphics
-  toggles and gameplay speeds are saved on every change
-  (`runtime/settingsStore.js`) and restored at bootstrap.
-- Save/load of an in-progress game is implemented end-to-end at the function
-  level: seed + dirty-tile delta documents (`game/state/persistence/
-  saveDocument.js`) round-trip through the localStorage slot
-  (`runtime/gameSaveSlot.js`, key `cotsi-save-v1`; console-callable).
-
-Still needed:
-
-- UI entry points — save/load buttons or menu (functions exist, no UI yet).
-- Load-time integration: routing a restored state through beginGame's render
-  init so a loaded game actually appears on screen.
-
 ### Audio
 
 Nothing built (the game is silent today). Needed:
@@ -147,9 +129,10 @@ The baseline responsive pass is in; remaining verification work:
 
 ## Large-map persistence
 
-Save seed + list of dirty tiles with their deltas; everything else regenerates
-(only the diff from procedural generation). Scale guardrails: "Scale /
-generation guardrails" above.
+Implemented: saves are seed + dirty-tile deltas (`game/state/persistence/saveDocument.js`,
+localStorage slot `cotsi-save-v1` via `runtime/gameSaveSlot.js`; UI in
+`runtime/saveLoadActions.js`) — everything else regenerates from the seed.
+Scale guardrails: "Scale / generation guardrails" above.
 
 ---
 

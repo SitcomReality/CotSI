@@ -26,6 +26,7 @@ import { startMeasure, endMeasure, enableAllMeasurements, getSnapshot, getMeasur
 import { getClock } from '../shared/clockScheduler.js';
 import { restoreSavedSettings } from './settingsStore.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
+import { initSaveEntryPoints } from './saveLoadActions.js'; // side-effect: registers save/load [data-action] handlers
 import '../ui/modals/optionsModal.js'; // side-effect: registers options [data-action] handlers
 import '../devtools/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
 import { cancelPendingPreview } from './hexBridge.js';
@@ -92,6 +93,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadTemplate('loadingScreen').then(({ frag }) => root.appendChild(frag));
 
     initModalActions(() => G);
+    initSaveEntryPoints();
     initCombat({
       finishAttackerTurn: () => {
         finishTurn(G);

@@ -32,6 +32,14 @@
       </div>
     </section>
 
+    <section class="options-section">
+      <h3 class="options-section-title">Save</h3>
+      <div class="options-speed-row">
+        <button class="btn options-speed-btn" data-action="saveGame">Save Game</button>
+        <button class="btn options-speed-btn" data-action="saveAndExitToSetup">Save &amp; Exit to Menu</button>
+      </div>
+    </section>
+
     <div class="modal-footer">
       <button class="btn-gold options-close-btn" data-action="optionsClose">Close</button>
     </div>

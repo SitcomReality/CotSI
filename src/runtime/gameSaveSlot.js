@@ -2,8 +2,8 @@
  * gameSaveSlot.js — Browser-storage save slot for an in-progress game.
  *
  * Wraps the pure persistence core (serializeGame/deserializeGame) with the
- * localStorage adapters. No UI here — entry points get wired later; for now
- * these are callable from the console (window.__gameState is the live G).
+ * localStorage adapters. UI entry points live in runtime/saveLoadActions.js
+ * (Options-modal save buttons + setup-screen Continue).
  */
 import { G, setGameInstance } from '../game/state/liveGame.js';
 import { serializeGame, deserializeGame } from '../game/state/persistence/saveDocument.js';

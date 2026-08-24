@@ -17,7 +17,50 @@ let resizeWired = false;
 /** Guard: ignore a second Start click while a game is still being created. */
 let gameStarting = false;
 
-export function __beginGame(config) {
+/**
+ * Present an already-built game state: make it live and run every render/DOM
+ * init step shared by "start a new game" and "load a saved game".
+ * @param {object} game - freshly created or deserialized game state
+ */
+export function presentGame(game) {
+  setGameInstance(game);      // sets live G + window.__gameState
+
+  if (!resizeWired) {
+    window.addEventListener('resize', syncSize);
+    resizeWired = true;
+  }
+
+  // Hide loading screen, show the game grid.
+  const loadingEl = document.getElementById('loading-screen');
+  if (loadingEl) loadingEl.style.display = 'none';
+  const gameEl = document.getElementById('game');
+  if (gameEl) {
+    gameEl.style.display = 'grid';
+    // Force synchronous layout reflow so children (especially #mapMount) have
+    // non-zero dimensions when initHexMap3D reads them in the same call stack.
+    gameEl.offsetHeight;
+  } else {
+    console.error('[beginGame] #game element NOT FOUND — game layout template may not be appended');
+  }
+
+  const ctx3d = getSceneContext();
+  if (ctx3d) {
+    // On game restart, re-fit the camera to the sight-disc view
+    fitCameraToMap(ctx3d.getCameraState());
+    ctx3d.applyCamera();
+  }
+  bindHeaderEvents(() => G);
+  initHeptagramWidget('paleyMount');
+  refreshAll();
+}
+
+/**
+ * Shared heavy-start flow: show the loading screen, then run the expensive
+ * state factory on a deferred clock task so the browser can paint first.
+ * Used by both "start a new game" and "continue a saved game".
+ * @param {() => object|null} buildState - returns the new game state, or null on failure
+ */
+export function deferredGameStart(buildState) {
   if (gameStarting) {
     console.warn('[beginGame] game already starting — ignoring duplicate Start');
     return;
@@ -35,43 +78,25 @@ export function __beginGame(config) {
   if (setupEl) setupEl.style.display = 'none';
   if (loadingEl) loadingEl.style.display = 'flex';
 
-  // Defer the heavy synchronous createGame so the browser can paint the loading screen.
   gameStarting = true;
   getClock().setTimeout(() => {
     try {
-      const game = createGame(config);
-      setGameInstance(game);      // sets live G + window.__gameState
-
-      if (!resizeWired) {
-        window.addEventListener('resize', syncSize);
-        resizeWired = true;
+      const game = buildState();
+      if (!game) {
+        // Factory reported failure — back out to the setup screen.
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (setupEl) setupEl.style.display = '';
+        return;
       }
-
-      // Hide loading screen, show the game grid.
-      if (loadingEl) loadingEl.style.display = 'none';
-      const gameEl = document.getElementById('game');
-      if (gameEl) {
-        gameEl.style.display = 'grid';
-        // Force synchronous layout reflow so children (especially #mapMount) have
-        // non-zero dimensions when initHexMap3D reads them in the same call stack.
-        gameEl.offsetHeight;
-      } else {
-        console.error('[beginGame] #game element NOT FOUND — game layout template may not be appended');
-      }
-
-      const ctx3d = getSceneContext();
-      if (ctx3d) {
-        // On game restart, re-fit the camera to the sight-disc view
-        fitCameraToMap(ctx3d.getCameraState());
-        ctx3d.applyCamera();
-      }
-      bindHeaderEvents(() => G);
-      initHeptagramWidget('paleyMount');
-      refreshAll();
+      presentGame(game);
     } finally {
       gameStarting = false;
     }
   }, SETUP_DEFER_MS, 'ui');
+}
+
+export function __beginGame(config) {
+  deferredGameStart(() => createGame(config));
 }
 
 window.__beginGame = __beginGame;

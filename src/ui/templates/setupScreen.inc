@@ -14,6 +14,7 @@
 
     <!-- ===== Right column: control panel ===== -->
     <div class="setup-panel">
+      <button id="continueBtn" class="btn-gold setup-begin-btn" data-action="continueSavedGame" hidden>Continue</button>
       <button class="btn-gold setup-begin-btn" data-action="beginGame">Exist</button>
 
       <div class="setup-panel-fields">

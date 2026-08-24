@@ -186,7 +186,7 @@ AI), and `combat/`.
 
 | File | Purpose |
 |------|---------|
-| `beginGame.js` | Game-start orchestration: state init, render init, UI init |
+| `beginGame.js` | Game-start orchestration: state init, render init, UI init; shared deferred-start + presentGame flow reused by save-load |
 | `bootstrap.js` | App bootstrap: loads modules, starts the clock, restores settings |
 | `botTurnRunner.js` | Runs bot turns: AI decision → state mutation → refresh |
 | `deathAnnouncement.js` | Death-event coordination: state, render, UI |
@@ -202,6 +202,7 @@ AI), and `combat/`.
 | `portraitResolver.js` | Resolves entity/champion portrait assets |
 | `refreshAll.js` | Full refresh: renders, overlays, UI, minimap |
 | `rewardPrompt.js` | Reward-prompt orchestration (modal flow) |
+| `saveLoadActions.js` | Save/load UI actions: Options-modal save buttons, setup-screen Continue, save-and-exit |
 | `settingsStore.js` | Options persistence: capture/apply/save/restore settings doc |
 | `storageIo.js` | Node-safe, failure-safe localStorage JSON read/write adapters |
 | `turnPacing.js` | Turn pacing / speed orchestration |
