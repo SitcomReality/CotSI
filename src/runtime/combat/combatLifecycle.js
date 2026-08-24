@@ -10,6 +10,7 @@ import {
 import { renderCombat } from './combatRender.js';
 import { showModal, hideModal } from '../../ui/modals/modalShell.js';
 import { runCombatFlow } from './combatFlow.js';
+import { musicCombat } from '../audio/musicDirector.js';
 
 /**
  * Start a new combat between two entities.
@@ -20,6 +21,7 @@ export function startCombat(attacker, defender) {
 
   const combat = createCombatState(G, attacker, defender);
   setCombatUI(combat);
+  musicCombat(true); // queue the combat context at the next bar boundary
   openCombatModal();
 }
 
@@ -49,6 +51,7 @@ export function closeCombat() {
   } finally {
     setCombatUI(null);
   }
+  musicCombat(false); // resolve back toward the exploration context
 
   // End the attacker's turn if they started combat and are still active
   if (attackerId && G && G.activeChampionId === attackerId && !combat?.suppressEndTurn) {

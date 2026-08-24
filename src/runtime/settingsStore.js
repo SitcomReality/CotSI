@@ -1,5 +1,5 @@
 /**
- * settingsStore.js — Persist and restore user options (graphics + speed).
+ * settingsStore.js — Persist and restore user options (graphics, speed, audio).
  *
  * Bridges the live singletons (graphicsSettings flags, clock speed groups)
  * to storage via the pure settingsDocument serializer. ui/ and render/ stay
@@ -9,6 +9,7 @@
 import { registerAction } from '../shared/actionBus.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { graphicsSettings } from '../render/overlays/graphicsSettings.js';
+import { isMuted, setMuted } from '../shared/muteState.js';
 import { serializeSettings, mergeSettings } from '../game/state/persistence/settingsDocument.js';
 import { readStoredJson, writeStoredJson } from './storageIo.js';
 
@@ -30,6 +31,9 @@ const DEFAULT_SETTINGS = {
     combat: 1,
     animation: 1,
   },
+  audio: {
+    muted: false,
+  },
 };
 
 /**
@@ -39,7 +43,11 @@ const DEFAULT_SETTINGS = {
 export function captureCurrentSettings() {
   const speeds = {};
   for (const group of GAMEPLAY_GROUPS) speeds[group] = getClock().getSpeed(group);
-  return serializeSettings({ effects: { ...graphicsSettings.effects }, speeds });
+  return serializeSettings({
+    effects: { ...graphicsSettings.effects },
+    speeds,
+    audio: { muted: isMuted() },
+  });
 }
 
 /**
@@ -55,6 +63,7 @@ export function applySettings(saved) {
   for (const [group, mult] of Object.entries(merged.speeds)) {
     if (GAMEPLAY_GROUPS.includes(group)) getClock().setSpeed(group, mult);
   }
+  if ('muted' in merged.audio) setMuted(merged.audio.muted);
 }
 
 /** Capture the current settings and write them to storage. */

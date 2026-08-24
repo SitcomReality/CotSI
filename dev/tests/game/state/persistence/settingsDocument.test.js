@@ -12,15 +12,17 @@ import {
 const DEFAULTS = {
   effects: { water: true, particles: true },
   speeds: { bot: 1 },
+  audio: { muted: false },
 };
 
 test('serializeSettings builds a versioned document', () => {
-  const doc = serializeSettings({ effects: { water: false }, speeds: { bot: 2 } });
+  const doc = serializeSettings({ effects: { water: false }, speeds: { bot: 2 }, audio: { muted: true } });
   assert.deepEqual(doc, {
     format: 'cotsi-settings',
     version: SETTINGS_FORMAT_VERSION,
     effects: { water: false },
     speeds: { bot: 2 },
+    audio: { muted: true },
   });
 });
 
@@ -30,10 +32,15 @@ test('mergeSettings keeps valid stored values and drops unknown keys', () => {
     version: 1,
     effects: { water: false, bogusToggle: true },
     speeds: { bot: 4 },
+    audio: { muted: true, bogusSwitch: 'no' },
     legacyField: 'gone',
   };
   const merged = mergeSettings(doc, DEFAULTS);
-  assert.deepEqual(merged, { effects: { water: false, particles: true }, speeds: { bot: 4 } });
+  assert.deepEqual(merged, {
+    effects: { water: false, particles: true },
+    speeds: { bot: 4 },
+    audio: { muted: true },
+  });
 });
 
 test('mergeSettings falls back to defaults on missing/garbage values', () => {
@@ -46,7 +53,7 @@ test('mergeSettings falls back to defaults on missing/garbage values', () => {
   );
   assert.deepEqual(
     mergeSettings({ speeds: { bot: 3 } }, DEFAULTS),
-    { effects: { water: true, particles: true }, speeds: { bot: 3 } },
+    { effects: { water: true, particles: true }, speeds: { bot: 3 }, audio: { muted: false } },
   );
 });
 

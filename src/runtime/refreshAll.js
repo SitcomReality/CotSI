@@ -17,6 +17,7 @@ import { noteTurnStart } from './turnPacing.js';
 import { G, currentChamp, isTurnLocked } from '../game/state/liveGame.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { getCombatUI } from './combat/combatState.js';
+import { musicVictory } from './audio/musicDirector.js';
 import { startCombat } from './combat/index.js';
 import { createDungeonBattle } from '../game/state/features/dungeonSystem.js';
 import { getAnimatingIds } from '../render/hexmap3d/units/index.js';
@@ -172,7 +173,10 @@ export function refreshAll() {
 
   // Victory check
   checkVictory(G);
-  if (G.winnerId) showVictory(G);
+  if (G.winnerId) {
+    musicVictory(G.winnerId);
+    showVictory(G);
+  }
 
   endMeasure('refreshAll');
 }

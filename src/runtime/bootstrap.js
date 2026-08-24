@@ -28,6 +28,9 @@ import { restoreSavedSettings } from './settingsStore.js';
 import './mapControlActions.js'; // side-effect: registers zoom/camera [data-action] handlers
 import { initSaveEntryPoints } from './saveLoadActions.js'; // side-effect: registers save/load [data-action] handlers
 import '../ui/modals/optionsModal.js'; // side-effect: registers options [data-action] handlers
+import '../ui/muteButton.js'; // side-effect: registers the global audio mute toggle
+import { initMuteButton } from '../ui/muteButton.js';
+import { startMusic } from './audio/musicDirector.js';
 import '../devtools/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
 import { cancelPendingPreview } from './hexBridge.js';
 
@@ -101,6 +104,9 @@ window.addEventListener('DOMContentLoaded', async () => {
       },
     });
     initTrade();
+
+    // Paint the audio mute glyph now that #muteBtn exists in the DOM.
+    initMuteButton();
 
     // Enable dev performance instrumentation
     enableAllMeasurements();

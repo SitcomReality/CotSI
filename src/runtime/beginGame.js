@@ -10,6 +10,7 @@ import { refreshAll } from './refreshAll.js';
 import { initHeptagramWidget } from '../ui/heptagramWidget.js';
 import { getClock } from '../shared/clockScheduler.js';
 import { SETUP_DEFER_MS } from '../params/ui/uiParams.js';
+import { startMusic } from './audio/musicDirector.js';
 
 /** Guard: prevent duplicate window resize listener registration. */
 let resizeWired = false;
@@ -51,6 +52,7 @@ export function presentGame(game) {
   }
   bindHeaderEvents(() => G);
   initHeptagramWidget('paleyMount');
+  startMusic(); // fire-and-forget; user gesture (Start click) unlocked audio
   refreshAll();
 }
 

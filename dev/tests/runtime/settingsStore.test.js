@@ -11,18 +11,20 @@ import {
   captureCurrentSettings,
   applySettings,
 } from '../../../src/runtime/settingsStore.js';
+import { isMuted, setMuted } from '../../../src/shared/muteState.js';
 
 /** Restore the singletons to their defaults after each test. */
 function resetDefaults() {
   Object.assign(graphicsSettings.effects, { shadows: true, fogMist: true, selectionRing: true });
   for (const group of ['bot', 'combat', 'animation']) getClock().setSpeed(group, 1);
+  setMuted(false);
 }
 
 test('captured document carries the settings storage key shape', () => {
   resetDefaults();
   const doc = captureCurrentSettings();
   assert.equal(doc.format, 'cotsi-settings');
-  assert.deepEqual(Object.keys(doc).sort(), ['effects', 'format', 'speeds', 'version']);
+  assert.deepEqual(Object.keys(doc).sort(), ['audio', 'effects', 'format', 'speeds', 'version']);
 });
 
 test('apply → capture round trips flags and speeds', () => {
@@ -60,5 +62,17 @@ test('partial and corrupt documents fall back to defaults', () => {
   applySettings(null);
   assert.equal(graphicsSettings.effects.shadows, true);
   assert.equal(getClock().getSpeed('bot'), 1);
+  resetDefaults();
+});
+
+test('audio mute round trips through apply → capture → apply', () => {
+  resetDefaults();
+  setMuted(true);
+  const captured = captureCurrentSettings();
+  assert.deepEqual(captured.audio, { muted: true });
+
+  setMuted(false);
+  applySettings(captured);
+  assert.equal(isMuted(), true);
   resetDefaults();
 });
