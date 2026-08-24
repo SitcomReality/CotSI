@@ -11,13 +11,6 @@ before implementing specific features or making changes based on this document.
 
 ## Features to be implemented
 
-### Graphics refinement pass
-
-A later review-and-refine pass over visuals across the board: feature and
-decor geometry (including the Forge's placeholder anvil descriptor), motifs,
-icons, creatures, and other object graphics. Most of it is tuned in the
-geometry editor; descriptor data files regenerate on Save.
-
 ### Dungeons
 
 Consecutive-turn dungeon: entering a dungeon hex hides the champion for 3
@@ -72,6 +65,15 @@ Nothing built yet; the open question is scope, not whether. Candidate pieces
   key-terms glossary.
 - A "Reset tutorial/tips" toggle, tied into Options/settings below.
 
+### Online Multiplayer
+
+Later-phase feature — nothing built, and the game has no client/server split
+today:
+
+- Database connection & game state preservation.
+- Game creation, lobbies, room codes etc.
+- Client connection and syncing game state with server.
+
 ### Audio
 
 Nothing built (the game is silent today). Needed:
@@ -91,14 +93,12 @@ to build on. Ideas from design:
 - Ripe peridexion fruit sparkles; treasure-chest collect splashes a coin
   flourish; damage numbers float over hits.
 
-### Online Multiplayer
+### Graphics refinement pass
 
-Later-phase feature — nothing built, and the game has no client/server split
-today:
-
-- Database connection & game state preservation.
-- Game creation, lobbies, room codes etc.
-- Client connection and syncing game state with server.
+A later review-and-refine pass over visuals across the board: feature and
+decor geometry (including the Forge's placeholder anvil descriptor), motifs,
+icons, creatures, and other object graphics. Most of it is tuned in the
+geometry editor; descriptor data files regenerate on Save.
 
 ### UI polish
 
