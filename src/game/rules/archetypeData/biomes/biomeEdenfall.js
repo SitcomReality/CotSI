@@ -43,6 +43,7 @@ defineArchetype('biome_edenfall', {
     // Standard features
     { kind: 'blessedFont',           threshold: 0.890, compare: 'gt', terrainOnly: ['forest', 'deepWood'] },
     // Resources
+    { kind: 'forge',                 threshold: 0.015, compare: 'lt' },
     { kind: 'knot',                  threshold: 0.038, compare: 'lt' },
   ],
 

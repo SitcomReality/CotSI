@@ -40,6 +40,7 @@ defineArchetype('biome_unfinished_lands', {
     { kind: 'halfDrawnObelisk', threshold: 0.95, compare: 'gt', terrainExclude: [], tier: 'T4' },
     { kind: 'nullLily',         threshold: 0.93, compare: 'gt', terrainExclude: [], tier: 'T3' },
     { kind: 'treasureChest',            threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
+    { kind: 'forge',            threshold: 0.015, compare: 'lt' },
     { kind: 'knot',             threshold: 0.03, compare: 'lt' },
   ],
 

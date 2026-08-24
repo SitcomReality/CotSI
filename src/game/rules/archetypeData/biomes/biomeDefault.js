@@ -27,6 +27,7 @@ defineArchetype('biome_default', {
     { kind: 'screamroot',         threshold: 0.890, compare: 'gt', terrainExclude: ['desert'], tier: 'T3' },
     { kind: 'palimpsestSlab',     threshold: 0.875, compare: 'gt', terrainExclude: ['desert', 'marsh'], tier: 'T3' },
     { kind: 'gildedInitial',      threshold: 0.865, compare: 'gt', terrainExclude: ['desert', 'marsh'], tier: 'T3' },
+    { kind: 'forge',              threshold: 0.015, compare: 'lt' },
     { kind: 'knot',               threshold: 0.038, compare: 'lt' },
   ],
 

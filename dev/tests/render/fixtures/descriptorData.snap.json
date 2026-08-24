@@ -2004,6 +2004,67 @@
       }
     ]
   },
+  "forge": {
+    "tile": {
+      "q": 3,
+      "r": -2,
+      "terrain": "plains"
+    },
+    "records": [
+      {
+        "partId": "forge-hearth",
+        "x": 1.732,
+        "y": 1.316,
+        "z": -3,
+        "scale": 1.1,
+        "scaleY": 1.1,
+        "color": 4804695
+      },
+      {
+        "partId": "anvil-body",
+        "x": 1.732,
+        "y": 1.469,
+        "z": -3,
+        "scale": 1.1,
+        "scaleY": 1.1,
+        "localPos": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "color": 2172201
+      },
+      {
+        "partId": "anvil-top",
+        "x": 1.732,
+        "y": 1.671,
+        "z": -3,
+        "scale": 1.1,
+        "scaleY": 1.1,
+        "localAxis": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "localAngle": 1.5707963267948966,
+        "color": 3422784
+      },
+      {
+        "partId": "coals",
+        "x": 1.732,
+        "y": 1.327,
+        "z": -3,
+        "scale": 1.1,
+        "scaleY": 1.1,
+        "localPos": {
+          "x": -0.198,
+          "y": 0.15400000000000003,
+          "z": 0.15400000000000003
+        },
+        "color": 16739125
+      }
+    ]
+  },
   "drownedCopyist": {
     "tile": {
       "q": 3,

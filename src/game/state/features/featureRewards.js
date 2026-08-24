@@ -35,6 +35,7 @@ import { depleteFeature } from './featureRegrowth.js';
 import { FACTION_COUNT } from '../../../params/game/factionParams.js';
 import { BOT_FEATURE_SCORES, BOT_FEATURE_HEAL_BONUS, BOT_FONT_HP_THRESHOLD } from '../../../params/game/aiParams.js';
 import { FEATURES, featureName, choiceCard } from './featureRewardTable.js';
+import { applyForgeUpgrade } from './forgeSystem.js';
 import { EQUIPMENT_CATALOG, pickEquipment } from '../../rules/equipment.js';
 import { equipItem } from './trading.js';
 
@@ -108,8 +109,11 @@ export function applyFeatureChoice(state, champ, choice, tileKey) {
     detail: result.text ? { text: result.text, color: result.color } : null,
   });
   if (tile?.feature) {
-    tile.feature = null;
-    markChunkDirty(state, tile.q, tile.r);
+    // Permanent infrastructure (the Forge) is never consumed by a choice.
+    if (tile.feature.kind !== 'forge') {
+      tile.feature = null;
+      markChunkDirty(state, tile.q, tile.r);
+    }
   }
 }
 
@@ -268,6 +272,12 @@ function _applyGrant(state, champ, grant, claimText) {
       color = 'var(--gold)';
       break;
     }
+    case 'upgrade-equipment':
+      // Forge upgrades (forgeSystem.js) — handled there; the Forge tile is
+      // never consumed.
+      text = applyForgeUpgrade(state, champ, grant);
+      color = 'var(--gold)';
+      break;
     default:
       break;
   }

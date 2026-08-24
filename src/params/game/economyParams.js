@@ -20,6 +20,12 @@ export const TRADER_RELIC_STACK_MAX = 2;
 /** Fraction of an item's gold cost refunded when it is replaced/destroyed. */
 export const EQUIP_REFUND_FRACTION = 0.5;
 
+// ---- Forge (equipment upgrade site) ----
+/** God's Knots cost to upgrade an equipped item by one step. */
+export const FORGE_KNOT_COST = 2;
+/** Bonus increase per upgrade step (placeholder — un-tuned). */
+export const FORGE_BONUS_STEP = 1;
+
 // ---- Base interaction ----
 /** Sanctuary heal fraction of max HP. */
 export const SANCTUARY_HEAL_FRACTION = 0.5;

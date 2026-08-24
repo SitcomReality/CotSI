@@ -32,6 +32,7 @@ defineArchetype('biome_painforest', {
     { kind: 'treasureChest',           threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'screamroot',      threshold: 0.890, compare: 'gt', terrainExclude: ['desert'], tier: 'T3' },
     { kind: 'bush',            threshold: 0.060, compare: 'lt', terrainExclude: ['desert', 'marsh'] },
+    { kind: 'forge',            threshold: 0.015, compare: 'lt' },
     { kind: 'knot',            threshold: 0.035, compare: 'lt' },
   ],
 

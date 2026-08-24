@@ -35,6 +35,7 @@ defineArchetype('biome_scorch', {
     // Treasure chest — any-biome collectible
     { kind: 'treasureChest',     threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     // Resources
+    { kind: 'forge',     threshold: 0.015, compare: 'lt' },
     { kind: 'knot',      threshold: 0.038, compare: 'lt' },
   ],
 

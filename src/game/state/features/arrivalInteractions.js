@@ -10,6 +10,7 @@ import { buildChampionFactionMap, championSegment } from '../../rules/logHelpers
 import { recordLedgerEntry } from '../world/dispatchLedger.js';
 import { interactWithFeature } from './featureRewards.js';
 import { enterDungeon } from './dungeonSystem.js';
+import { offerForgeUpgrade } from './forgeSystem.js';
 import { depleteFeature } from './featureRegrowth.js';
 import { BLESSED_FONT_HEAL_VERDANT, BLESSED_FONT_HEAL_STANDARD, KNOT_DEFAULT_AMOUNT, CHEST_GOLD_BASE } from '../../../params/game/economyParams.js';
 import { FACTION_VERDANT } from '../../../params/game/factionParams.js';
@@ -22,6 +23,12 @@ export function interactOnArrival(state, champ) {
   // checked inside). Ineligible champions simply stand on the hex.
   if (tile.feature?.kind === 'dungeon') {
     enterDungeon(state, champ);
+    return;
+  }
+  // Forges: permanent upgrade sites (human champions with something to
+  // upgrade get the choice modal; the feature is never consumed).
+  if (tile.feature?.kind === 'forge') {
+    offerForgeUpgrade(state, champ);
     return;
   }
   if (tile.feature?.kind === 'blessedFont' && tile.feature.ripe !== false) {

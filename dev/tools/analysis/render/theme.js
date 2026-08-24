@@ -76,6 +76,7 @@ export const DUNGEON_MARKER = {
 export const FEATURES = {
   blessedFont: { radius: 1.8, fill: '#3a8a2a', crossStroke: '#60c040', crossWidth: 0.8, crossLen: 1.2 },
   knot:      { radius: 1.8, fill: '#c8a832' },
+  forge:     { radius: 1.6, fill: '#8a5a2a' },
   treasureChest: { radius: 1.8, fill: '#c8a020' },
   bush:      { radius: 1.2, fill: '#5a8a3a' },
 

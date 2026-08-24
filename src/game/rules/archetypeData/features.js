@@ -38,6 +38,17 @@ defineArchetype('feature_knot', {
   visual: { scale: 1.0 },
 });
 
+// Forges are ubiquitous upgrade sites (spawned by a low `lt` band in every
+// biome, like knots). Interacting upgrades an equipped item for God's Knots
+// (forgeSystem.js); the map visual is the placeholder 'forge' descriptor.
+defineArchetype('feature_forge', {
+  type: 'feature',
+  name: 'Forge',
+  archetypeShape: 'anvil',
+  tags: ['any'],
+  visual: { scale: 1.0 },
+});
+
 defineArchetype('feature_treasureChest', {
   type: 'feature',
   name: 'Treasure Chest',

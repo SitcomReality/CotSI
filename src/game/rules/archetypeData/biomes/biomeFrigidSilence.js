@@ -33,6 +33,7 @@ defineArchetype('biome_frigid_silence', {
     { kind: 'waxbloom',       threshold: 0.97, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'listenerLichen', threshold: 0.94, compare: 'gt', terrainExclude: [], tier: 'T3' },
     { kind: 'treasureChest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
+    { kind: 'forge',          threshold: 0.02, compare: 'lt' },
     { kind: 'knot',           threshold: 0.05, compare: 'lt' },
   ],
 

@@ -59,6 +59,7 @@ import { VEGETABLE_LAMB_DESCRIPTOR } from './features/vegetableLamb.js';
 import { VOLVELLE_DESCRIPTOR } from './features/volvelle.js';
 import { WAXBLOOM_DESCRIPTOR } from './features/waxbloom.js';
 import { WITNESS_STONE_DESCRIPTOR } from './features/witnessStone.js';
+import { FORGE_DESCRIPTOR } from './features/forge.js';
 import { AUGUR_MANTLE_DESCRIPTOR } from './items/augurMantle.js';
 import { CHRONO_QUILL_DESCRIPTOR } from './items/chronoQuill.js';
 import { HEARTH_ROBE_DESCRIPTOR } from './items/hearthRobe.js';
@@ -91,6 +92,7 @@ export const ALL_DESCRIPTORS = [
   LISTENER_LICHEN_DESCRIPTOR,
   EDEN_SHROOMLET_DESCRIPTOR,
   WITNESS_STONE_DESCRIPTOR,
+  FORGE_DESCRIPTOR,
   DROWNED_COPYIST_DESCRIPTOR,
   CENSER_SAINT_DESCRIPTOR,
   DUNGEON_DESCRIPTOR,

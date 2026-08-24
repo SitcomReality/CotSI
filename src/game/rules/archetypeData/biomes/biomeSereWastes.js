@@ -38,6 +38,7 @@ defineArchetype('biome_sere_wastes', {
     { kind: 'treasureChest',             threshold: 0.900, compare: 'gt', terrainExclude: [], tier: 'T2' },
     { kind: 'listenerLichen',    threshold: 0.025, compare: 'lt', terrainExclude: ['desert'], tier: 'T3' },
     // Resources
+    { kind: 'forge',             threshold: 0.015, compare: 'lt' },
     { kind: 'knot',              threshold: 0.040, compare: 'lt' },
   ],
 

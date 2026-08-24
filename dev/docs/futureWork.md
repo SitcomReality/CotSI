@@ -15,13 +15,26 @@ before implementing specific features or making changes based on this document.
 
 The two-slot equip model (weapon / armor), trader + faction-base purchase
 flow, knot-cost "powerful" tier, and non-stacking replace-with-refund are in
-(`src/game/rules/equipment.js`, `src/game/state/features/trading.js`). Remaining:
+(`src/game/rules/equipment.js`, `src/game/state/features/trading.js`).
 
-- Wire an item's `bonus` into combat scoring (currently display-only).
-- Drop sources beyond the existing purchase flow: dungeon completion rewards
-  and dig sites.
+In (equipment integration goal):
+
+- Item `bonus.attack` / `bonus.defense` apply to final combat scores in
+  `applyFinalBonuses` (`src/game/state/combat/combatScoring.js`).
+- Dig outcomes and dungeon completion offer a choice between rewards,
+  including equipment (`digSystem.js`, `dungeonSystem.js`; new `equipment`
+  grant kind in `_applyGrant`).
+- Upgrading at Forges: a ubiquitous feature kind (low `lt` band in every
+  biome) upgrades an equipped item by one bonus step for God's Knots
+  (`src/game/state/features/forgeSystem.js`). God's Knots remain the tier-2
+  currency; upgrading never happens at knot hexes.
+
+Remaining:
+
 - Durability, and selling items back to traders.
-- Upgrading equipment at God's Knots (the purchase tier exists; upgrading doesn't).
+- Balance pass for upgrade costs and item reward frequency.
+- The Forge map visual is a hand-authored placeholder descriptor — tune it in
+  the geometry editor later.
 
 ### Dungeons
 

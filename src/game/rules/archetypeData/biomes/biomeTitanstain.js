@@ -40,6 +40,7 @@ defineArchetype('biome_titanstain', {
     // Treasure chest — any-biome collectible
     { kind: 'treasureChest',          threshold: 0.90, compare: 'gt', terrainExclude: [], tier: 'T2' },
     // Resources
+    { kind: 'forge',          threshold: 0.02, compare: 'lt' },
     { kind: 'knot',           threshold: 0.08, compare: 'lt' },
   ],
 
