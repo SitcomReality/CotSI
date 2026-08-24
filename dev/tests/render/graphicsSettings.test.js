@@ -33,6 +33,22 @@ test('toggleSelectionRing flips the selectionRing flag', () => {
   assert.equal(graphicsSettings.effects.selectionRing, before);
 });
 
+test('toggleParticles flips the particles flag', () => {
+  const before = graphicsSettings.effects.particles;
+  dispatchAction('toggleParticles');
+  assert.equal(graphicsSettings.effects.particles, !before);
+  dispatchAction('toggleParticles');
+  assert.equal(graphicsSettings.effects.particles, before);
+});
+
+test('toggleGlows flips the glows flag', () => {
+  const before = graphicsSettings.effects.glows;
+  dispatchAction('toggleGlows');
+  assert.equal(graphicsSettings.effects.glows, !before);
+  dispatchAction('toggleGlows');
+  assert.equal(graphicsSettings.effects.glows, before);
+});
+
 test('queryGraphicsFlags returns the live effects object', () => {
   const flags = dispatchAction('queryGraphicsFlags');
   assert.equal(flags, graphicsSettings.effects);

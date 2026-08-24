@@ -22,6 +22,8 @@ const DEFAULT_SETTINGS = {
     shadows: true,
     fogMist: true,
     selectionRing: true,
+    glows: true,
+    particles: true,
   },
   speeds: {
     bot: 1,

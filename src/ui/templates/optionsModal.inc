@@ -19,6 +19,14 @@
         <span class="options-toggle-label">Selection Ring</span>
         <input type="checkbox" class="options-checkbox" id="optionsSelectionRing" data-action="toggleSelectionRing">
       </label>
+      <label class="options-toggle-row">
+        <span class="options-toggle-label">Feature Sparkles</span>
+        <input type="checkbox" class="options-checkbox" id="optionsParticles" data-action="toggleParticles">
+      </label>
+      <label class="options-toggle-row">
+        <span class="options-toggle-label">Charged Font Glow</span>
+        <input type="checkbox" class="options-checkbox" id="optionsGlows" data-action="toggleGlows">
+      </label>
     </section>
 
     <section class="options-section">

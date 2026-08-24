@@ -148,3 +148,33 @@ waterSparkleMaterial.onBeforeCompile = (shader) => {
       `transformed.xz *= 1.0 + ${SPARKLE_TWINKLE_AMP.toFixed(2)} * sin( uTime * ${SPARKLE_TWINKLE_SPEED.toFixed(2)} + aSparklePhase * 1.7 );`
     );
 };
+
+/**
+ * Feature FX glow (featureFx.js) — soft additive ring hovering above a
+ * charged Blessed Font. Unlit additive so it reads as emitted light; the
+ * per-instance aSparklePhase drives a slow breathing pulse of the ring's
+ * radius. depthWrite stays off so units/features behind it render normally.
+ */
+export const fxGlowMaterial = new THREE.MeshBasicMaterial({
+  color: 0xbfe8ff,
+  transparent: true,
+  opacity: 0.5,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  side: THREE.DoubleSide,
+});
+// Module-level asset shared across chunks — disposal guards skip it (see sceneContext.js).
+fxGlowMaterial.userData.shared = true;
+
+fxGlowMaterial.onBeforeCompile = (shader) => {
+  shader.uniforms.uTime = waterTimeUniform;
+  shader.vertexShader =
+    'uniform float uTime;\n' +
+    'attribute float aSparklePhase;\n' +
+    shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>\n` +
+      // Breathing pulse: scale the flat ring around its own center.
+      `transformed.xz *= 1.0 + 0.12 * sin( uTime * 2.2 + aSparklePhase );`
+    );
+};

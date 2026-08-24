@@ -29,7 +29,7 @@ function tileHash01(q, r, salt) {
  * centered on the origin. Shared across chunks — marked shared so chunk
  * disposal skips it (see disposeMeshRecursive / chunkManager.js).
  */
-const starGeometry = (() => {
+export const starGeometry = (() => {
   const s = 0.5;   // half-length of each arm
   const t = 0.05;  // half-thickness of each arm
   const v = [

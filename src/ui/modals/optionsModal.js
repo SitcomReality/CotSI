@@ -2,7 +2,7 @@
  * optionsModal.js — Options dialog: graphics effect toggles + game speed.
  *
  * Graphics toggles carry data-action="toggleShadows"/"toggleFogMist"/
- * "toggleSelectionRing"; the handlers live in render/overlays/
+ * "toggleSelectionRing"/"toggleParticles"/"toggleGlows"; the handlers live in render/overlays/
  * graphicsSettings.js (ui/ may not import render/), and the current flag
  * state is read back on open via dispatchAction('queryGraphicsFlags').
  *
@@ -48,9 +48,13 @@ export function openOptionsModal() {
     const shadowsEl = document.getElementById('optionsShadows');
     const fogEl = document.getElementById('optionsFogMist');
     const ringEl = document.getElementById('optionsSelectionRing');
+    const particlesEl = document.getElementById('optionsParticles');
+    const glowsEl = document.getElementById('optionsGlows');
     if (shadowsEl) shadowsEl.checked = !!flags.shadows;
     if (fogEl) fogEl.checked = !!flags.fogMist;
     if (ringEl) ringEl.checked = !!flags.selectionRing;
+    if (particlesEl) particlesEl.checked = !!flags.particles;
+    if (glowsEl) glowsEl.checked = !!flags.glows;
   }
   refreshSpeedButtons();
   showModal('optionsModal');

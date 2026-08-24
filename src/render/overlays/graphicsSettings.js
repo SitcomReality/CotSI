@@ -15,10 +15,10 @@ export const graphicsSettings = {
     shadows: true,
     fogMist: true,
     selectionRing: true,
-    glows: false,        // future
-    particles: false,    // future
+    glows: true,       // charged Blessed Font glow (featureFx.js)
+    particles: true,   // feature sparkles + collect bursts (featureFx.js)
     damageNumbers: false, // future
-  }
+  },
 };
 
 registerAction('toggleShadows', () => {
@@ -33,6 +33,16 @@ registerAction('toggleFogMist', () => {
 
 registerAction('toggleSelectionRing', () => {
   graphicsSettings.effects.selectionRing = !graphicsSettings.effects.selectionRing;
+  dispatchAction('persistSettings');
+});
+
+registerAction('toggleParticles', () => {
+  graphicsSettings.effects.particles = !graphicsSettings.effects.particles;
+  dispatchAction('persistSettings');
+});
+
+registerAction('toggleGlows', () => {
+  graphicsSettings.effects.glows = !graphicsSettings.effects.glows;
   dispatchAction('persistSettings');
 });
 

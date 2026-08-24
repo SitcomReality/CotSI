@@ -7,6 +7,7 @@ import {
 import { buildChunkTerrainMesh, buildChunkWaterMesh, buildChunkWaterSparkles } from './terrain/index.js';
 import { buildChunkWorldMeshes } from './worldObjects/worldMeshes.js';
 import { buildUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted } from './units/index.js';
+import { buildChunkFeatureFx, detectCollectedFx, initFeatureFx, disposeFeatureFx } from './worldObjects/featureFx.js';
 import { waterTimeUniform } from './scene/materials.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/mapInteraction.js';
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/overlayStack.js';
@@ -67,6 +68,9 @@ export function initHexMap3D(mountElement) {
 
   // Init movement animation layer — needs scene reference to add/remove meshes
   initMovementAnimator(ctx.scene);
+
+  // Init feature FX layer (ambient accents + collect bursts)
+  initFeatureFx(ctx.scene);
 
   return ctx;
 }
@@ -144,7 +148,13 @@ export function renderHexMap3D(state, humanView) {
       // that are out of sight — features, bases, and units stay visible-gated.
       const features = buildChunkWorldMeshes(chunkTiles, state, visible, explored);
 
-      if (terrain || water || sparkles || features.length > 0) {
+      // Fire collect bursts for knots/chests that vanished since the last
+      // build (diffed against this module's per-chunk snapshot), then build
+      // the ambient feature-FX accents. Both are disposed with the chunk.
+      detectCollectedFx(ck, chunkTiles, visible);
+      const featureFx = buildChunkFeatureFx(chunkTiles, visible);
+
+      if (terrain || water || sparkles || features.length > 0 || featureFx.length > 0) {
         const group = new THREE.Group();
         group.name = `chunk-${ck}`;
         if (terrain) {
@@ -159,6 +169,7 @@ export function renderHexMap3D(state, humanView) {
           sparkles.name = `sparkles-${ck}`;
           features.push(sparkles);
         }
+        features.push(...featureFx);
         for (const fm of features) {
           group.add(fm);
         }
@@ -232,6 +243,7 @@ function disposeAll() {
   unitMeshes = [];
 
   disposeMovementAnimator();
+  disposeFeatureFx();
 
   sceneCtx.disposeSceneContext();
 }
