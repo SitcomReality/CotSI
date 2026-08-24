@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../../tslib/index.js";
 import { ToneAudioNode, } from "../../core/context/ToneAudioNode.js";
 import { Gain } from "../../core/context/Gain.js";
 import { assert } from "../../core/util/Debug.js";

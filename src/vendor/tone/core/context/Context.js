@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../../tslib/index.js";
 import { Ticker } from "../clock/Ticker.js";
 import { isAudioContext } from "../util/AdvancedTypeCheck.js";
 import { optionsFromArguments } from "../util/Defaults.js";

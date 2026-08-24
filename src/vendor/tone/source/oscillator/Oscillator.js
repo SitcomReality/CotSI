@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../../tslib/index.js";
 import { deepEquals, optionsFromArguments } from "../../core/util/Defaults.js";
 import { readOnly } from "../../core/util/Interface.js";
 import { isDefined } from "../../core/util/TypeCheck.js";

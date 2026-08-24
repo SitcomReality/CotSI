@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../../tslib/index.js";
 import { BaseContext } from "./BaseContext.js";
 export class DummyContext extends BaseContext {
     constructor() {

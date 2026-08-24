@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../../tslib/index.js";
 import { createOfflineAudioContext } from "../context/AudioContext.js";
 import { Context } from "../context/Context.js";
 import { isOfflineAudioContext } from "../util/AdvancedTypeCheck.js";

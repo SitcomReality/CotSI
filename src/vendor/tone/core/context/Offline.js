@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../../tslib/index.js";
 import { getContext, setContext } from "../Global.js";
 import { OfflineContext } from "./OfflineContext.js";
 import { ToneAudioBuffer } from "./ToneAudioBuffer.js";

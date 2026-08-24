@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../../tslib/index.js";
 import { OfflineContext } from "../../core/context/OfflineContext.js";
 /**
  * Render a segment of the oscillator to an offline context and return the results as an array

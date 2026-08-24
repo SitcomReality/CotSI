@@ -1,4 +1,4 @@
-import { AudioContext as stdAudioContext, AudioWorkletNode as stdAudioWorkletNode, OfflineAudioContext as stdOfflineAudioContext, } from "standardized-audio-context";
+import { AudioContext as stdAudioContext, AudioWorkletNode as stdAudioWorkletNode, OfflineAudioContext as stdOfflineAudioContext, } from "../../../standardized-audio-context/module.js";
 import { assert } from "../util/Debug.js";
 import { isDefined } from "../util/TypeCheck.js";
 /**
@@ -36,4 +36,4 @@ export function createAudioWorkletNode(context, name, options) {
  * functionality is supported within the currently used browse.
  * Taken from [standardized-audio-context](https://github.com/chrisguttandin/standardized-audio-context#issupported)
  */
-export { isSupported as supported } from "standardized-audio-context";
+export { isSupported as supported } from "../../../standardized-audio-context/module.js";

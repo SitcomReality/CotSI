@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate } from "../../tslib/index.js";
 import { FrequencyClass } from "../core/type/Frequency.js";
 import { deepMerge, optionsFromArguments } from "../core/util/Defaults.js";
 import { readOnly } from "../core/util/Interface.js";

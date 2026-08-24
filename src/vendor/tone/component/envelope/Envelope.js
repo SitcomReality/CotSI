@@ -1,4 +1,4 @@
-import { __awaiter, __decorate } from "tslib";
+import { __awaiter, __decorate } from "../../../tslib/index.js";
 import { ToneAudioNode, } from "../../core/context/ToneAudioNode.js";
 import { optionsFromArguments } from "../../core/util/Defaults.js";
 import { isArray, isObject, isString } from "../../core/util/TypeCheck.js";

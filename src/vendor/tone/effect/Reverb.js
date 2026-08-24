@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../tslib/index.js";
 import { Merge } from "../component/channel/Merge.js";
 import { Gain } from "../core/context/Gain.js";
 import { optionsFromArguments } from "../core/util/Defaults.js";

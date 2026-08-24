@@ -1,4 +1,4 @@
-import { __decorate } from "tslib";
+import { __decorate } from "../../tslib/index.js";
 import { ToneAudioBuffers } from "../core/context/ToneAudioBuffers.js";
 import { ftomf, intervalToFrequencyRatio } from "../core/type/Conversions.js";
 import { FrequencyClass } from "../core/type/Frequency.js";

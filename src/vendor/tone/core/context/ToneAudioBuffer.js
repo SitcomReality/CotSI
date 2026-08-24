@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../../tslib/index.js";
 import { getContext } from "../Global.js";
 import { Tone } from "../Tone.js";
 import { optionsFromArguments } from "../util/Defaults.js";

@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../tslib/index.js";
 import { connect, ToneAudioNode, } from "../core/context/ToneAudioNode.js";
 import { Volume } from "../component/channel/Volume.js";
 import { optionsFromArguments } from "../core/util/Defaults.js";

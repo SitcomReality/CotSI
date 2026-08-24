@@ -1,4 +1,4 @@
-import { __awaiter } from "tslib";
+import { __awaiter } from "../../../tslib/index.js";
 import { optionsFromArguments } from "../../core/util/Defaults.js";
 import { readOnly } from "../../core/util/Interface.js";
 import { isNumber, isString } from "../../core/util/TypeCheck.js";
