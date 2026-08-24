@@ -15,6 +15,9 @@ function finalScoreBonus(state, champ){
   return bonus;
 }
 
+function eqAttack(c){ return (c.weapon?.bonus?.attack || 0) + (c.armor?.bonus?.attack || 0); }
+function eqDefense(c){ return (c.weapon?.bonus?.defense || 0) + (c.armor?.bonus?.defense || 0); }
+
 /** Score a single pair of picks (one from each combatant) */
 export function scorePickPair(state, A, B, pickA, pickB){
   const potAraw = potencyWithPrimary(A);
@@ -38,6 +41,10 @@ export function applyFinalBonuses(state, A, B, scoreA, scoreB){
   // defense subtracts from the opponent's. Mobs have no buffs (guarded reads).
   scoreA += (A.buffs?.attack || 0) - (B.buffs?.defense || 0);
   scoreB += (B.buffs?.attack || 0) - (A.buffs?.defense || 0);
+  // Equipment bonuses follow the same pattern; mobs carry no equipment
+  // (guarded reads).
+  scoreA += eqAttack(A) - eqDefense(B);
+  scoreB += eqAttack(B) - eqDefense(A);
   // Crucible Scarshield
   const week = Math.floor((state.day - 1) / DAYS_PER_WEEK) + 1;
   if(A.faction===0){ scoreB = Math.max(0, scoreB - week); }

@@ -90,6 +90,35 @@ test('applyFinalBonuses: mobs get raw weather score, champions get finalScoreBon
   assert.deepEqual(result, { scoreA: 13, scoreB: 25 });
 });
 
+test('applyFinalBonuses: equipment attack/defense bonuses apply, mobs unaffected', () => {
+  const a = makeChampion({ id: 'a', faction: 1, hp: 10, maxHp: 10 });
+  const b = makeChampion({ id: 'b', faction: 3, hp: 10, maxHp: 10 });
+  a.weapon = { bonus: { attack: 2 } };
+  a.armor = { bonus: { defense: 1 } };
+  b.weapon = { bonus: { attack: 1 } };
+  b.armor = { bonus: { defense: 3 } };
+  const state = makeState({
+    weather: { potency: Array(7).fill(0), score: Array(7).fill(0) },
+  });
+
+  const result = applyFinalBonuses(state, a, b, 10, 20);
+
+  // A: +2 weapon attack − 3 B armor defense → 9
+  // B: +1 weapon attack − 1 A armor defense → 20
+  assert.deepEqual(result, { scoreA: 9, scoreB: 20 });
+});
+
+test('applyFinalBonuses: missing equipment slots are safe (mob vs champion)', () => {
+  const champ = makeChampion({ id: 'c', faction: 1, hp: 10, maxHp: 10 });
+  const mob = makeMob({ id: 'm', faction: 3 });
+  const state = makeState({
+    weather: { potency: Array(7).fill(0), score: [0, 2, 0, 4, 0, 0, 0] },
+  });
+
+  const result = applyFinalBonuses(state, champ, mob, 10, 20);
+  assert.deepEqual(result, { scoreA: 12, scoreB: 24 });
+});
+
 // ---- processReveal ----
 
 test('processReveal: scores an exchange, accumulates roundScores, builds lastReveal', () => {

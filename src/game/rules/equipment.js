@@ -14,8 +14,9 @@ export const EQUIPMENT_SLOTS = Object.freeze(['weapon', 'armor']);
 
 /**
  * Placeholder catalog. `cost.knot > 0` marks "powerful" equipment — the trader
- * inventory guarantees at least one of these per reset. `bonus` is a
- * display-only hint for now (not yet wired into combat scoring).
+ * inventory guarantees at least one of these per reset. `bonus.attack` /
+ * `bonus.defense` are added to the champion's final combat scores in
+ * applyFinalBonuses (combatScoring.js).
  */
 export const EQUIPMENT_CATALOG = Object.freeze([
   { id: 'eq-thorn-brand',   name: 'Thorn Brand',      slot: 'weapon', descriptor: 'thornBrand',      cost: { gold: 34, knot: 0 }, bonus: { attack: 1 } },
