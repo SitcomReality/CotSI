@@ -156,7 +156,10 @@ The current report shows **1 known-debt import** — `src/ui/mapTooltip.js → s
 | `dev/docs/namingConventions.md` | File naming, banned words, code identifier conventions |
 | `dev/docs/cssConventions.md` | CSS structure, naming, spacing scale, barrel pattern |
 | `dev/docs/aestheticConventions.md` | Visual design system (aspirational, evolving) |
-| `dev/docs/descriptorAuthoring.md` | Descriptor data authoring: schema, randomization, rendering, worked examples |
+| `dev/docs/descriptorAuthoring.md` | Descriptor data authoring entry point: mental model, units, deliverable conventions, section map |
+| `dev/docs/descriptorSchema.md` | Descriptor schema reference: fields, shape registry, transforms, groups, growth states, randomization |
+| `dev/docs/descriptorPipeline.md` | Descriptor rendering pipeline and module map |
+| `dev/docs/descriptorExamples.md` | Descriptor worked examples (forest decor, treasure chest) + new-object checklist |
 | `dev/docs/mobGeometryAndAnimation.md` | Mob geometry & animation design notes (joint groups, FK chains, runtime proposal) |
 | `dev/docs/clockScheduler.md` | Clock API reference — all timer/scheduling patterns |
 | `dev/docs/gameMechanics.md` | Combat round flow, turn order, biome system |

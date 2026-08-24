@@ -4,7 +4,7 @@
 colors reach geometry, and what every terrain's decor looks like. Written for
 contributors (human or LLM) who have not seen the game and want their authored
 objects to *fit*: right size, right color source, right density. Complements
-`dev/docs/descriptorAuthoring.md` (the descriptor schema itself) and
+`dev/docs/descriptorSchema.md` (the descriptor schema itself; entry point: `descriptorAuthoring.md`) and
 `dev/docs/context/biomesAndTerrain.md` (biome/terrain colors) and
 `dev/docs/context/factions.md` (faction colors).
 
@@ -100,7 +100,7 @@ Decor descriptors do not pin whole alternate variants per biome; `biomeVariants:
 is a features/entities mechanism for selecting a whole alternate descriptor.
 The design doctrine is "biome identity = tints and weights, not restated
 geometry" — prefer tinting/shaping the shared shapes over duplicating them per
-biome (see descriptorAuthoring §5.7).
+biome (see `descriptorSchema.md` §5.7).
 
 ---
 

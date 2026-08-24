@@ -1,15 +1,10 @@
 # Mob Geometry & Animation — design notes
 
-Mined from two hand-authored experiment descriptors (both deleted after this
-doc was written, so the ideas survive without the unregistered files):
-`data/infernalpaca.js` (429 lines, schema-clean, included an imperative
-animation runtime) and `data/scorpelican.js` (378 lines, ended in a bare JSON
-block = syntax error, carried a declarative animation-clip spec). A third
-deleted file, `data/waterDecor.js`, was a small unused water-decor experiment
-(see §6).
-
-This doc records what the experiments taught us so future mob work can build
-on established conventions instead of re-deriving them.
+Conventions for poseable mob geometry and a design proposal for the animation
+runtime, distilled from early hand-authored experiment descriptors (since
+deleted; the ideas survive here so future mob work builds on them instead of
+re-deriving them). One experiment (`waterDecor`) was an unused water-decor
+idea — see §6 for how to revive it.
 
 ---
 
@@ -31,10 +26,8 @@ Mobs are **entity descriptors, one file per archetype**:
   (`variantRule: 'archetype'`, `parts: MOB_VARIANTS.default.parts`, `variants`
   from the table).
 - The roster is exactly: mushroom, infernalpaca, leopard, goose, scorpelican,
-  snail, tapir (plus the `default` fallback). Tier-2 variants were removed in
-  the scorpelican/infernalpaca rework — `MOB_TIER2_VARIANTS` is gone and all
-  mobs render their baseline archetype variant (tier is still carried in game
-  stats).
+  snail, tapir (plus the `default` fallback). All mobs render their baseline
+  archetype variant (tier is carried in game stats, not geometry).
 
 Because the barrel is composed from tables imported by game code, the editor's
 save writes only the active variant — `data/mobs/<archetype>.js` for mobs,
@@ -197,8 +190,7 @@ matrices.
   `'factionAccent'` strings. The **mob palette supplies `factionBody` +
   `factionAccent`** (bodies darkened via `MOB_COLOR_DARKEN`) — `factionBase`
   is champion-only. Use the mob tokens in mob descriptors; `factionBase`
-  there resolves to `undefined` (the scorpelican experiment used it in 3
-  places and would have rendered those parts uncolored).
+  there resolves to `undefined`.
 - **Emissive glow.** Object-level `material: { emissive, emissiveIntensity }`
   in a descriptor is passed through by `shapeFactories.materialForPart` — any
   mob gets an all-parts glow for free (infernalpaca used `0xff3e00 @ 0.35`).
@@ -207,6 +199,6 @@ matrices.
   descriptor (the mob barrel) can glow a single variant
   (`data/mobs/infernalpaca.js`) without glowing the others. No per-part
   emissive (yet).
-- **waterDecor** was a discarded water-surface decor idea (torus ripple ring
-  + `lilyPad` / `seafoam` / `kelpFrond` variants, `kind: 'decor'`, never
-  registered). Revive from git history if water-surface decor is ever wanted.
+- **waterDecor** — if water-surface decor is ever wanted (torus ripple ring +
+  `lilyPad` / `seafoam` / `kelpFrond` variants, `kind: 'decor'`), revive the
+  old experiment from git history and register it properly.

@@ -28,7 +28,7 @@ a code change, or can't be verified from code alone.
    water effect; `context/biomesAndTerrain.md` §2 describes only the vertex
    ripple. Add or decide it's out of scope for that doc.
 
-4. **Descriptor snapshot script pointer** — `descriptorAuthoring.md` §9 now
+4. **Descriptor snapshot script pointer** — `descriptorExamples.md` (ex-`descriptorAuthoring.md` §9) now
    points at `dev/scripts/regenerate_descriptor_snapshot.mjs`; its inline
    hand-rolled recipe could be trimmed to just the script if you prefer less
    duplication.
