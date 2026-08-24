@@ -11,28 +11,6 @@ before implementing specific features or making changes based on this document.
 
 ## Features to be implemented
 
-### Equipment — combat integration & sources
-
-The two-slot equip model (weapon / armor), trader + faction-base purchase
-flow, knot-cost "powerful" tier, and non-stacking replace-with-refund are in
-(`src/game/rules/equipment.js`, `src/game/state/features/trading.js`).
-
-In (equipment integration goal):
-
-- Item `bonus.attack` / `bonus.defense` apply to final combat scores in
-  `applyFinalBonuses` (`src/game/state/combat/combatScoring.js`).
-- Dig outcomes and dungeon completion offer a choice between rewards,
-  including equipment (`digSystem.js`, `dungeonSystem.js`; new `equipment`
-  grant kind in `_applyGrant`).
-- Upgrading at Forges: a ubiquitous feature kind (low `lt` band in every
-  biome) upgrades an equipped item by one bonus step for God's Knots
-  (`src/game/state/features/forgeSystem.js`). God's Knots remain the tier-2
-  currency; upgrading never happens at knot hexes.
-
-Remaining:
-- Balance pass for items and 'equipment drops' — part of a larger holistic
-  balance update (see "Feature reward balance" below).
-
 ### Graphics refinement pass
 
 A later review-and-refine pass over visuals across the board: feature and
