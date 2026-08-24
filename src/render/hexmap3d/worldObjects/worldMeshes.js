@@ -4,6 +4,7 @@ import { buildChunkBaseMeshes } from './baseMeshes.js';
 import { buildChunkDescriptorFeatureMeshes } from './descriptors/gameBuilder.js';
 import { addOutlines } from '../scene/outline.js';
 import { occupiedKeys } from './decorEmphasis.js';
+import { stringSeed } from '../../../engine/rules/seededRng.js';
 
 export { buildChunkBaseMeshes, buildChunkDescriptorFeatureMeshes };
 
@@ -32,7 +33,7 @@ export function buildChunkWorldMeshes(chunkTiles, state, visible, explored = new
   const occupants = occupiedKeys(state);
   const decor = decorGate(visible, explored);
 
-  results.push(...buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decor, state.biomeColors ?? null, state.biomePalettes ?? null));
+  results.push(...buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decor, state.biomeColors ?? null, state.biomePalettes ?? null, state?.seed ? stringSeed(String(state.seed)) : 0));
   results.push(...buildChunkBaseMeshes(chunkTiles, visible));
 
   // Ink-outline twins for every feature mesh (units + features coverage —

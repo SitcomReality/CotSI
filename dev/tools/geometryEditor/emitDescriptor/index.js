@@ -19,10 +19,11 @@ import {
   denormalizeDescriptor,
 } from '../../../../src/render/hexmap3d/worldObjects/descriptors/schema.js';
 import { denormalizePart } from '../../../../src/render/hexmap3d/worldObjects/descriptors/descriptorDenormalize.js';
-import { formatObject, formatValue } from './format.js';
+import { formatObject, formatValue, quantizeForEmit } from './format.js';
 
 import { descriptorExportName, variantExportName, motifExportName } from './exportNames.js';
 export { descriptorExportName, variantExportName, motifExportName };
+export { quantizeForEmit } from './format.js';
 
 /**
  * Emit the full module source for one descriptor: a generated header comment
@@ -36,7 +37,7 @@ export { descriptorExportName, variantExportName, motifExportName };
  * @returns {string} file source text
  */
 export function emitDescriptorModule(def, file) {
-  const d = denormalizeDescriptor(normalizeDescriptor(def));
+  const d = quantizeForEmit(denormalizeDescriptor(normalizeDescriptor(def)));
   const exportName = descriptorExportName(d.id);
   const fileName = file ?? `${d.id}.js`;
   const body = formatObject(d, 0);
@@ -69,8 +70,8 @@ export function emitVariantModule(def, variantId, file) {
   const variant = (d.variants ?? []).find((v) => v.id === variantId);
   if (!variant) throw new Error(`variant "${variantId}" not found in descriptor "${d.id}"`);
   const exportName = variantExportName(variant.id);
-  const block = { id: variant.id, parts: variant.parts };
-  if (variant.material) block.material = variant.material;
+  const block = quantizeForEmit({ id: variant.id, parts: variant.parts });
+  if (variant.material) block.material = quantizeForEmit(variant.material);
   const fileName = file ?? `${variant.id}.js`;
   const body = formatObject(block, 0);
   const header =
@@ -99,12 +100,15 @@ export function emitVariantModule(def, variantId, file) {
 export function emitMotifModule(motif, file) {
   if (!motif || typeof motif.id !== 'string') throw new Error('emitMotifModule needs a motif block with an id');
   const exportName = motifExportName(motif.id);
-  const block = {
+  // A motif block deliberately OMITS default `size`/`placement` — decors
+  // inherit their own values for them, and materializing the defaults here
+  // would pin every referencing decor to scale 1 / center placement.
+  const block = quantizeForEmit({
     id: motif.id,
-    ...(motif.size ? { size: motif.size } : {}),
-    ...(motif.placement ? { placement: motif.placement } : {}),
+    ...(motif.size && !(motif.size.min === 1 && motif.size.max === 1) ? { size: motif.size } : {}),
+    ...(motif.placement && motif.placement.mode !== 'center' ? { placement: motif.placement } : {}),
     parts: (Array.isArray(motif.parts) ? motif.parts : []).map((p) => denormalizePart(p)),
-  };
+  });
   const fileName = file ?? `${motif.id}.js`;
   const body = formatObject(block, 0);
   const header =

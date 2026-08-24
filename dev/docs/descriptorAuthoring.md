@@ -220,6 +220,7 @@ variation: {
 | `biomeColor` | object | Per-part biome tint: `{ source: 'foliage' \| 'wood' \| 'soil' \| 'stone' \| 'bloom' \| 'exotic' \| 'terrain', influence: 0..1 }` — mixes the part's color toward the tile's blended biome color by `influence` (see §5.7). Pick the swatch matching the material the part depicts. |
 | `states` | object | Growth-state keyframes — the part's look at different regrowth stages (see §4.6). Shape leaves only; groups reject it. |
 | `alternatives` | array | **Choice point** (v6): not a shape and not a group — a weighted option table (see §5.4). The node carries `seed` (draw lane) and `default` (preview/catalog option) only; it has no transform, no color, no geometry. Options are `{ id, weight?, biomeWeight?, parts }` (parts may be empty — the `none` option). |
+| `chance` | number 0..1 | **Per-node spawn roll** (§5.2): an independent present/absent draw per placed item. Absent ≡ always present; 0 ≡ never. Works on any node kind — shape leaf, group, or alternatives choice point — so siblings roll independently (two arms at `chance: 0.45` yield none / left / right / both without combinatorial authoring). Children of a spawned group all appear together; the geometry editor's canonical preview skips the roll. |
 
 ### 4.3 Shape registry
 
@@ -251,8 +252,8 @@ scaleY: 1, scaleZ: 1 }`.
 | `lift` | Raises the part in its own frame, pre-scale (same bottom-height measure as `y` under stretch). |
 | `liftRange` | `{ min, max, seed? }` — draws the lift from `[min, max]` by `frac(treeHash(tileH, seed))` instead of a fixed value (default seed 6). Both are bottom-heights; the canopy anchor uses it with the trunk's stretch seed so the canopy bottom tracks the per-tree trunk stretch (§5.3). Root-only, like `y`/`lift`. |
 | `rotY` | Spin around the world Y axis (radians). |
-| `scaleX`, `scaleY`, `scaleZ` | Independent non-uniform scale (base 1). |
-| `localPos` | `{ x, y, z }` offset within the part's frame; pre-scaled with the item's rigid scale factor (item scale × dispersal × scatter jitter, plus `biomeScale`). `localPos.y` is the same vertical offset slot as `lift` — the two **stack** (both raise the part). |
+| `scaleX`, `scaleY`, `scaleZ` | Independent non-uniform scale (base 1). May also be a **range form** `{ min, max }` — one draw per node per item (§5.2), so a whole subtree scales rigidly per instance while children keep their relative layout. |
+| `localPos` | `{ x, y, z }` offset within the part's frame; pre-scaled with the item's rigid scale factor (item scale × dispersal × scatter jitter, plus `biomeScale`). `localPos.y` is the same vertical offset slot as `lift` — the two **stack** (both raise the part). Each axis may also be a **range form** `{ min, max }` (one draw per node per item, §5.2) — e.g. an arm anchored at a random height on a trunk: `{ x: -0.1, y: { min: 0.18, max: 0.3 }, z: 0 }`. |
 | `localAxis` + `localAngle` | Rotation about an arbitrary axis in the part's **local frame**. The axis is a **direction** — magnitude is ignored (normalized at render), so `{ x: -3, y: 4, z: 4 }` means the same as `{ x: -0.47, y: 0.62, z: 0.62 }`. Both fields are required together. |
 | `tiltAxis` + `tilt` | World-space lean about a horizontal axis: `tiltAxis` is `{ x, z }` (direction only, normalized at render), `tilt` the lean angle. Both required together. |
 
@@ -376,6 +377,32 @@ anywhere. The pipeline (recordBuilder.js):
    - **Placement** — mode-dependent offset/rotation/lean inside the hex (§4.1), overridden by dispersal when displaced.
    - **Per part** — the part's transform composes onto the item: non-uniform scale, per-axis stretch (`part.stretch` wins, else `variation.stretchX/Y/Z`), scatter size jitter, `biomeScale` factor; grounding bakes the shape's base offset into `y`; rotation (`rotY` + placement spin, `localAxis`/`localAngle`, `tiltAxis`/`tilt`) passes through to the record; `lift`/`localPos` are pre-scaled by item scale.
    - **Color** — `jitteredColor(part.color, variation.colorJitter, …)` gives each instance a small brightness jitter; then the per-part `biomeColor` tint mixes the result toward the tile's blended biome color (§5.7).
+
+### 5.2 Per-node variation: chance and ranged transforms
+
+Two mechanisms layer onto the per-part step above (transformVariation.js,
+resolved at the top of the parts-tree walk):
+
+- **`chance`** — each node with a `chance < 1` rolls an independent
+  present/absent draw per item. Because every node rolls for itself,
+  alternatives-style combinatorial option tables are usually unnecessary:
+  N optional limbs = N nodes, not 2^N options.
+- **Range-form transforms** — `{ min, max }` on `localPos.x/y/z` or
+  `scaleX/Y/Z` draws one value per node per item. Apply the range on a
+  GROUP to move/scale a whole sub-assembly rigidly: children inherit the
+  drawn transform, so e.g. an arm group with ranged `scaleX` lengthens its
+  stub AND carries its rise/tip children along with it.
+
+Both draws come from one lane keyed by (tile hash, item index, node id):
+renaming a node reshuffles only that node's draws. Prefer the range-on-group
+form over per-child ranges when the pieces must stay attached.
+
+Two decor-path notes: center-placed **decor** items draw a full-circle
+facing (`CENTER_ROTATION_SEED`, lane i+29) so authored left/right biases
+don't read in play — features keep their authored facing. And on the game
+path the tile hash is salted with the world seed (`saltedTileHash`), so
+decor layouts differ between worlds; the editor and tests use the unsalted
+pure-(q,r) hash.
 
 ### 5.3 Variant selection
 

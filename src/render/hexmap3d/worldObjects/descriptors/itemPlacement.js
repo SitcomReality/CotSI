@@ -22,6 +22,7 @@ import {
   SCATTER_SCALE_BASE,
   SCATTER_SCALE_RANGE,
 } from '../../../../params/render/geometryParams.js';
+import { CENTER_ROTATION_SEED } from './descriptorDefaults.js';
 
 // Ring-scatter constants: 0.15 × ring width jitter, ±0.7 rad angular scatter.
 const RING_JITTER = 0.15;
@@ -129,9 +130,13 @@ function placementTilt(placement, dx, dz, tileH, i) {
  * effective placement — the decor-level placement merged with a per-motif
  * override (absent fields inherit; tileRecords passes the merge).
  *
+ * @param {boolean} [randomCenterRot=false] - decor path only: center-placed
+ *        items draw a full-circle facing (decor motifs carry arbitrary
+ *        left/right biases a fixed rotation would expose). Features keep
+ *        their authored facing.
  * @returns {object} { dx, dz, rotY, scaleMul?, tiltAxis?, tilt? }
  */
-function itemPlacement(placement, i, count, tileH, disp, jitter) {
+function itemPlacement(placement, i, count, tileH, disp, jitter, randomCenterRot = false) {
   // Dispersed single item — the shared corner anchor overrides the position,
   // but displaced simple features kept BOTH their scatter rotation and their
   // per-tile size jitter (simpleFeatureMeshes.js multiplied DISPERSED_SCALE
@@ -140,7 +145,9 @@ function itemPlacement(placement, i, count, tileH, disp, jitter) {
   if (disp && disp.dx !== undefined) {
     const tilt = placementTilt(placement, disp.dx, disp.dz, tileH, i);
     const scatter = placement.mode === 'scatter';
-    const rotY = scatter ? jitter.rotY : 0;
+    // Dispersed decor keeps its random center facing; ring/jitter modes keep
+    // the legacy 0 here.
+    const rotY = scatter ? jitter.rotY : centerRotY(tileH, i, placement.mode, randomCenterRot);
     return {
       dx: disp.dx, dz: disp.dz, rotY,
       ...(scatter ? { scaleMul: jitter.scaleMul } : {}),
@@ -200,7 +207,17 @@ function itemPlacement(placement, i, count, tileH, disp, jitter) {
       ...placementTilt(placement, dx, dz, tileH, i),
     };
   }
-  return { dx: 0, dz: 0, rotY: 0 };
+  // Center mode — anchored at the hex center; on the decor path the item
+  // draws a random facing like every other mode: decor motifs are authored
+  // with arbitrary left/right biases, so a fixed rotation would make that
+  // bias visible in play. Features keep their authored facing.
+  return { dx: 0, dz: 0, rotY: centerRotY(tileH, i, 'center', randomCenterRot) };
+}
+
+/** Full-circle rotation draw for center-placed decor items (itemHash lane +29). */
+function centerRotY(tileH, i, mode, randomCenterRot) {
+  if (mode !== 'center' || !randomCenterRot) return 0;
+  return itemHash(tileH, i + CENTER_ROTATION_SEED) * Math.PI * 2;
 }
 
 /**
@@ -259,11 +276,12 @@ function spreadCluster(placements, separation, maxPasses = 6) {
  * is the decor-level placement merged over it, so absent fields inherit.
  */
 export function clusterPlacements(descriptor, tile, count, tileH, disp, placementFor = null) {
+  const randomCenterRot = descriptor.kind === 'decor';
   const placements = [];
   for (let i = 0; i < count; i++) {
     const merged = placementFor ? { ...descriptor.placement, ...(placementFor(i) ?? {}) } : descriptor.placement;
     const jitter = merged.mode === 'scatter' ? scatterJitter(tile, merged, tileH, i) : null;
-    placements.push(itemPlacement(merged, i, count, tileH, disp, jitter));
+    placements.push(itemPlacement(merged, i, count, tileH, disp, jitter, randomCenterRot));
   }
   const separation = descriptor.placement.separation ?? 0;
   if (separation > 0 && count > 1 && !disp) spreadCluster(placements, separation);

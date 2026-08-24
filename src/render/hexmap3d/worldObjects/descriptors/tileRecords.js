@@ -28,6 +28,7 @@ import {
 import { itemCount } from './clusterCount.js';
 import { variantFor } from './variantSelection.js';
 import { resolveDisplacement, clusterPlacements } from './itemPlacement.js';
+import { chanceSpawns, nodeDraw, transformHasRange, resolveTransformRanges } from './transformVariation.js';
 import {
   effectiveMotifTable,
   motifForSlot,
@@ -143,6 +144,20 @@ function recordForPart(descriptor, part, tile, worldPos, tileH, i, itemScale, pl
  *        every leaf and group (see nodeWorldFrames)
  */
 function collectPart(descriptor, part, ctx, frame, isRoot, out, nodeFrames) {
+  // Per-node spawn chance: an independent present/absent roll per item —
+  // sibling nodes roll independently (two arms at chance 0.45 give none /
+  // left / right / both). Canonical previews skip the roll so authored
+  // geometry always shows in the editor.
+  if (!chanceSpawns(part, ctx.tileH, ctx.i, ctx.canonical)) return;
+
+  // Range-form transform components (`{ min, max }` localPos axes / scales)
+  // collapse to one number per node per item before any frame math runs, so
+  // every downstream consumer sees plain numbers. The editor's frame sink
+  // shares this walk, so gizmo frames match the rendered draw.
+  if (transformHasRange(part)) {
+    part = resolveTransformRanges(part, nodeDraw(ctx.tileH, ctx.i, part.id));
+  }
+
   // Alternatives choice point: no geometry, no transform, no record of its
   // own — pick one option (seeded per node, item-scoped) and continue the
   // walk with its parts at the SAME depth. The chosen option's parts are

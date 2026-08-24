@@ -3,7 +3,7 @@
  *
  * Renders a normalized descriptor object as the single-quoted, trailing-comma
  * module literal style used across descriptors/data/: colors as 0xRRGGBB hex,
- * numbers as shortest round-trip, small flat objects inline, arrays of objects
+ * numbers rounded to 3 decimals, small flat objects inline, arrays of objects
  * expanded one element per line. Shared by emitDescriptorModule and
  * emitVariantModule. Browser-safe — no DOM.
  */
@@ -33,12 +33,15 @@ function canInline(entries) {
   return entries.length > 0 && entries.length <= maxKeys && entries.every(([, v]) => isInlineValue(v));
 }
 
-/** Render a primitive — numbers as shortest round-trip, colors as hex, strings
- *  in the project's single-quote style (escaped). */
+/** Render a primitive — numbers rounded to 3 decimals (positions/scales are
+ *  authored at sub-millimeter precision on a ~1-unit hex; more digits is
+ *  editor noise), colors as hex, strings in the project's single-quote style
+ *  (escaped). Seeds/weights are small values the rounding can't touch. */
 function renderPrimitive(v, key) {
   if (typeof v === 'number') {
     if (COLOR_KEYS.has(key) && Number.isInteger(v)) return '0x' + v.toString(16).padStart(6, '0');
-    return String(v);
+    const rounded = Math.round(v * 1000) / 1000;
+    return String(Object.is(rounded, -0) ? 0 : rounded);
   }
   if (typeof v === 'string') return "'" + v.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
   return String(v);
@@ -77,6 +80,27 @@ function formatValue(v, indent, key) {
   }
   if (isPrimitive(v)) return renderPrimitive(v, key);
   return formatObject(v, indent);
+}
+
+/**
+ * Deep-clone with every number rounded to 3 decimals — the emit precision.
+ * Positions/scales are authored at sub-millimeter precision on a ~1-unit hex;
+ * more digits is editor noise. Applied to the denormalized object BEFORE
+ * formatting so the emitted literal IS the quantized value: the Save
+ * round-trip invariant becomes normalize(emit(d)) === normalize(quantize(d)),
+ * which holds exactly even for legacy files authored at higher precision
+ * (their extra digits fall off on the next save).
+ */
+export function quantizeForEmit(v) {
+  if (typeof v === 'number') {
+    const r = Math.round(v * 1000) / 1000;
+    return Object.is(r, -0) ? 0 : r;
+  }
+  if (Array.isArray(v)) return v.map(quantizeForEmit);
+  if (v !== null && typeof v === 'object') {
+    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, quantizeForEmit(x)]));
+  }
+  return v;
 }
 
 export { formatObject, formatValue };

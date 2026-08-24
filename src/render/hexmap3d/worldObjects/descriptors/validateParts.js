@@ -14,7 +14,7 @@ import { isPlainObject, isPositiveNumber, isFiniteNumber, isColorInt, isColorTok
 import { validateShapeParams, validateTransform } from './validateShapes.js';
 import { ALTERNATIVE_SEED_MIN, ALTERNATIVE_SEED_MAX } from './descriptorDefaults.js';
 
-const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale', 'states', 'children', 'alternatives', 'seed', 'default'];
+const PART_KEYS = ['id', 'shape', 'params', 'transform', 'color', 'materialColor', 'stretch', 'biomeColor', 'biomeScale', 'states', 'children', 'alternatives', 'seed', 'default', 'chance'];
 
 const STRETCH_AXES = ['x', 'y', 'z', 'xz']; // 'xz' is the legacy combined axis
 
@@ -243,6 +243,11 @@ export function validatePart(part, path, errors, seen = new Set(), nested = fals
   // Groups use the nested field set at any depth (they are never grounded);
   // leaves use it only below the root.
   if (part.transform !== undefined) validateTransform(part.transform, `${path}${label}`, errors, isGroup || nested);
+  // Per-node spawn chance (transformVariation.js): independent present/absent
+  // roll per item on any node kind.
+  if (part.chance !== undefined && !(isFiniteNumber(part.chance) && part.chance >= 0 && part.chance <= 1)) {
+    errors.push(`${path}${label}.chance: must be a number in [0, 1]`);
+  }
   for (const key of Object.keys(part)) {
     if (!PART_KEYS.includes(key)) errors.push(`${path}${label}: unknown field "${key}"`);
   }

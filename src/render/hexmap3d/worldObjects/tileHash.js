@@ -11,6 +11,19 @@ export function tileHash(tile) {
   return ((tile.q * TREE_VARIANT_HASH_SEEDS[0] + tile.r * TREE_VARIANT_HASH_SEEDS[1]) * TREE_VARIANT_HASH_SEEDS[2]) % TREE_VARIANT_HASH_SEEDS[3];
 }
 
+/**
+ * Tile hash mixed with a world-seed salt (seededTileHash) — the same tile in
+ * two different worlds decorates differently. Without a salt (0/undefined)
+ * this is exactly tileHash, so the editor and any caller that wants the
+ * legacy per-coordinate layouts keep them. Same output domain as tileHash.
+ */
+export function saltedTileHash(tile, salt) {
+  if (!salt) return tileHash(tile);
+  let h = Math.imul(((tileHash(tile) + salt) | 0) + 1, 0x9e3779b1);
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca77);
+  return (h >>> 0) % TREE_VARIANT_HASH_SEEDS[3];
+}
+
 /** Per-tree sub-hash derived from the tile hash — stable across chunk rebuilds. */
 export function treeHash(tileH, i) {
   return (tileH * 17 + i * 29 + 5) % 89;

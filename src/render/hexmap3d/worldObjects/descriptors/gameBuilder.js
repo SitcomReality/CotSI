@@ -42,6 +42,8 @@ import { KNOT_DESCRIPTOR } from './data/features/knot.js';
 import { MOUNTAIN_DESCRIPTOR } from './data/decor/mountain.js';
 import { biomeTintForTile } from '../biomeTint.js';
 import { coordKey } from '../../../../engine/rules/hexGrid.js';
+import { stringSeed } from '../../../../engine/rules/seededRng.js';
+import { saltedTileHash } from '../tileHash.js';
 import { PLAINS_DESCRIPTOR } from './data/decor/plains.js';
 import { MARSH_DESCRIPTOR } from './data/decor/marsh.js';
 import { PLATEAU_DESCRIPTOR } from './data/decor/plateau.js';
@@ -54,6 +56,11 @@ import { hillFloorY } from '../hillFloor.js';
 import {
   DECOR_STATE, DECORATION, decorState, isTileOccupied,
 } from '../decorEmphasis.js';
+
+/** Numeric per-world hash-draw salt — decor layouts differ between seeds. */
+function worldSeedSalt(state) {
+  return state?.seed ? stringSeed(String(state.seed)) : 0;
+}
 
 /**
  * The ground-level terrain decorations — one named decor per terrain,
@@ -204,9 +211,12 @@ export function resolveDescriptorForTile(tile, occupants, visible = true) {
  *        its default color (no swatch tint)
  * @param {Map|null}     [biomePalettes] - biome id → palette (terrain type →
  *        color); enables the `terrain` tint source (ground-matching decor)
+ * @param {number|null}  [worldSeedSalt=null] - numeric salt from the game seed;
+ *        when set, per-tile draws differ between worlds (saltedTileHash).
+ *        Absent = legacy pure-(q,r) layouts (editor, tests).
  * @returns {Map<string, object[]>} descriptor id → instance records
  */
-function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible = visible, biomeColors = null, biomePalettes = null) {
+function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible = visible, biomeColors = null, biomePalettes = null, worldSeedSalt = null) {
   const groups = new Map();
   // Tile lookup for the tint's neighbor averaging — the Map is used as-is, an
   // array chunk becomes a Map (neighbors outside the chunk are simply skipped).
@@ -239,7 +249,8 @@ function collectDescriptorRecords(tilesOrArray, visible, occupants, decorVisible
         const { descriptor, displacement } = cachedResolve(tile);
         // Features stand on the hill peak; decor stays grounded on the surface.
         const pos = liftToFloor ? { ...worldPos, y: hillFloorY(tile) } : worldPos;
-        const records = recordsForDescriptor(descriptor, tile, pos, undefined, displacement, tintFor(tile), null, false, growthFor ? growthFor(tile) : 1);
+        const tileH = worldSeedSalt ? saltedTileHash(tile, worldSeedSalt) : undefined;
+        const records = recordsForDescriptor(descriptor, tile, pos, tileH, displacement, tintFor(tile), null, false, growthFor ? growthFor(tile) : 1);
         if (records.length === 0) return null;
         let list = groups.get(descriptor.id);
         if (!list) {
@@ -286,7 +297,7 @@ function buildGroups(groups) {
  * @returns {THREE.InstancedMesh[]}
  */
 export function buildDescriptorFeatureMeshes(state, visible, occupants, decorVisible = visible) {
-  return buildGroups(collectDescriptorRecords(state.tiles, visible, occupants, decorVisible, state.biomeColors ?? null, state.biomePalettes ?? null));
+  return buildGroups(collectDescriptorRecords(state.tiles, visible, occupants, decorVisible, state.biomeColors ?? null, state.biomePalettes ?? null, worldSeedSalt(state)));
 }
 
 /**
@@ -302,8 +313,10 @@ export function buildDescriptorFeatureMeshes(state, visible, occupants, decorVis
  *        Absent = default part colors, no swatch tint.
  * @param {Map|null} [biomePalettes] - biome id → palette (terrain type →
  *        color); enables the `terrain` tint source (ground-matching decor)
+ * @param {number|null} [worldSeedSalt=null] - numeric salt from the game seed
+ *        (see collectDescriptorRecords); absent = legacy per-coordinate layout.
  * @returns {THREE.InstancedMesh[]}
  */
-export function buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decorVisible = visible, biomeColors = null, biomePalettes = null) {
-  return buildGroups(collectDescriptorRecords(chunkTiles, visible, occupants, decorVisible, biomeColors, biomePalettes));
+export function buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decorVisible = visible, biomeColors = null, biomePalettes = null, worldSeedSalt = null) {
+  return buildGroups(collectDescriptorRecords(chunkTiles, visible, occupants, decorVisible, biomeColors, biomePalettes, worldSeedSalt));
 }

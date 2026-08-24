@@ -13,6 +13,7 @@
 import { isGroupNode, isAlternativesNode } from '../partTree/index.js';
 import { renderPartHeader } from './actions/index.js';
 import { renderIdEdit } from './actions/idEdit.js';
+import { renderChanceSection } from './chanceSection.js';
 import { renderPositionSection, renderRotationSection, renderScaleSection } from './transform/index.js';
 import { renderBoundsSection } from './boundsSection.js';
 import { renderShapeSection, renderColorSection, renderBiomeScaleSection, renderStretchSection } from './leafSections/index.js';
@@ -29,6 +30,7 @@ export function renderPartInspector(container, entry, ctx) {
   const { node } = entry;
   renderPartHeader(container, node, ctx);
   renderIdEdit(container, entry, ctx);
+  renderChanceSection(container, node, ctx); // any node kind — leaf, group, alternatives
   if (isAlternativesNode(node)) {
     renderAlternativesSection(container, node, entry, ctx);
     return; // choice points have no transform/color/geometry of their own

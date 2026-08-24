@@ -112,7 +112,11 @@ function normalizePart(part, legacyGrounding = false, nested = false) {
   // lean (no nested expression). Idempotent: canonical nodes carry none of
   // these fields.
   if (isGroup || nested) {
-    const yFold = (merged.y ?? 0) + (merged.lift ?? 0);
+    // Range-form components (`{ min, max }`, transformVariation.js) are only
+    // authored on current files, which never carry legacy `y`/`lift` — treat
+    // non-numbers as 0 so the fold can't produce garbage.
+    const num = (v) => (typeof v === 'number' ? v : 0);
+    const yFold = num(merged.y) + num(merged.lift);
     if (yFold !== 0) {
       merged.localPos = {
         x: merged.localPos?.x ?? 0,

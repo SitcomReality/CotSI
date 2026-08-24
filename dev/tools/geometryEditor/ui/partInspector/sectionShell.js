@@ -22,6 +22,7 @@ const SECTIONS = {
   position:      { title: 'Position',      open: false },
   rotation:      { title: 'Rotation',      open: false },
   scale:         { title: 'Part scale',    open: false },
+  chance:        { title: 'Spawn chance',  open: false },
   bounds:        { title: 'Bounds',        open: false },
   color:         { title: 'Color & tint',  open: false },
   biomeScale:    { title: 'Biome size',    open: false },

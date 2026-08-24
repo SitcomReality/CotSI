@@ -70,11 +70,42 @@ function validateVec(value, axes, path, errors) {
     return;
   }
   for (const axis of axes) {
-    if (!isFiniteNumber(value[axis])) errors.push(`${path}.${axis}: expected a finite number`);
+    const v = value[axis];
+    if (v === undefined) continue; // optional axis
+    if (isRangeValue(v)) {
+      if (!isFiniteNumber(v.min)) errors.push(`${path}.${axis}.min: expected a finite number`);
+      if (!isFiniteNumber(v.max)) errors.push(`${path}.${axis}.max: expected a finite number`);
+      if (isFiniteNumber(v.min) && isFiniteNumber(v.max) && v.min > v.max) errors.push(`${path}.${axis}: min must be <= max`);
+      continue;
+    }
+    if (!isFiniteNumber(v)) errors.push(`${path}.${axis}: expected a finite number or a { min, max } range`);
   }
   for (const key of Object.keys(value)) {
     if (!axes.includes(key)) errors.push(`${path}: unknown field "${key}"`);
   }
+}
+
+/**
+ * A range-form component — `{ min, max }` in place of a fixed number, drawn
+ * once per node per item (transformVariation.js). Accepted for localPos axes
+ * and the scale fields only.
+ */
+function isRangeValue(v) {
+  return typeof v === 'object' && v !== null && !Array.isArray(v)
+    && (v.min !== undefined || v.max !== undefined);
+}
+
+/** A positive number or a positive { min, max } range. */
+function validateScaleValue(value, path, errors) {
+  if (isRangeValue(value)) {
+    if (!isPositiveNumber(value.min)) errors.push(`${path}.min: must be a positive number`);
+    if (!isPositiveNumber(value.max)) errors.push(`${path}.max: must be a positive number`);
+    if (isPositiveNumber(value.min) && isPositiveNumber(value.max) && value.min > value.max) {
+      errors.push(`${path}: min must be <= max`);
+    }
+    return;
+  }
+  if (!isPositiveNumber(value)) errors.push(`${path}: must be a positive number or a { min, max } range`);
 }
 
 /**
@@ -100,7 +131,7 @@ export function validateTransform(transform, path, errors, nested = false) {
     } else if (key === 'liftRange') {
       validateLiftRange(value, `${path}.transform.liftRange`, errors);
     } else if (TRANSFORM_SCALE_KEYS.includes(key)) {
-      if (!isPositiveNumber(value)) errors.push(`${path}.transform.${key}: must be a positive number`);
+      validateScaleValue(value, `${path}.${key}`, errors);
     } else if (TRANSFORM_VEC3_KEYS.includes(key)) {
       validateVec(value, ['x', 'y', 'z'], `${path}.transform.${key}`, errors);
     } else if (TRANSFORM_VEC2_KEYS.includes(key)) {

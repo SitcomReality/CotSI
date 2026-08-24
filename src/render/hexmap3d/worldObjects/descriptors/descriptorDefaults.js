@@ -71,12 +71,14 @@ export const SCHEMA_VERSION = 7;
 /**
  * Reserved tile-hash seed lanes (decorComposition.md §3.2). Every weighted
  * draw on the tile path uses its own offset so choices never correlate:
- * size (i+3), placement (i+13/17/19/23), tilt (tiltSeed+i),
+ * size (i+3), placement (i+13/17/19/23/29), tilt (tiltSeed+i),
  * optionalGroups (53), motif draw (61), alternatives (authored 100–199).
  * Do not reuse these offsets for new draws.
  */
 export const MOTIF_SEED = 61;
 export const OPTIONAL_GROUP_SEED = 53;
+/** Center-placement whole-item rotation draw lane (itemHash offset). */
+export const CENTER_ROTATION_SEED = 29;
 export const ALTERNATIVE_SEED_MIN = 100;
 export const ALTERNATIVE_SEED_MAX = 199;
 

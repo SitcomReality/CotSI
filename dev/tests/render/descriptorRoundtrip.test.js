@@ -24,6 +24,7 @@ import {
   emitVariantModule,
   descriptorExportName,
   variantExportName,
+  quantizeForEmit,
 } from '../../../dev/tools/geometryEditor/emitDescriptor/index.js';
 
 const all = ALL_DESCRIPTORS;
@@ -51,7 +52,14 @@ test('emitted modules re-import and normalize back to the same descriptor', asyn
     const exportName = descriptorExportName(d.id);
     const mod = await import('data:text/javascript;base64,' + Buffer.from(text).toString('base64'));
     assert.ok(exportName in mod, `${d.id}: export "${exportName}" missing from emitted module`);
-    assert.deepEqual(normalizeDescriptor(mod[exportName]), d, `${d.id}: emitted module drifted`);
+    // Emission quantizes numbers to 3 decimals AFTER denormalizing (format.js
+    // quantizeForEmit) — mirror that exact pipeline for the expected value, so
+    // refilled defaults compare at their full-precision canonical values.
+    assert.deepEqual(
+      normalizeDescriptor(mod[exportName]),
+      normalizeDescriptor(quantizeForEmit(denormalizeDescriptor(d))),
+      `${d.id}: emitted module drifted`,
+    );
   }
 });
 
@@ -86,7 +94,15 @@ test('emitted variant modules re-import and normalize back to the same variant',
       assert.ok(exportName in mod, `${d.id}: variant "${v.id}" export "${exportName}" missing`);
       const probe = normalizeDescriptor({ ...d, variants: [mod[exportName]] });
       assert.equal(probe.variants.length, 1);
-      assert.deepEqual(probe.variants[0], v, `${d.id}: variant "${v.id}" emitted module drifted`);
+      // Variant emission quantizes numbers to 3 decimals AFTER denormalizing
+      // (see format.js) — mirror that pipeline for the expected value.
+      const denormed = denormalizeDescriptor(d);
+      const denormedVariant = denormed.variants.find((x) => x.id === v.id);
+      const expected = normalizeDescriptor({
+        ...denormed,
+        variants: [quantizeForEmit(denormedVariant)],
+      });
+      assert.deepEqual(probe.variants[0], expected.variants[0], `${d.id}: variant "${v.id}" emitted module drifted`);
     }
   }
 });
@@ -139,4 +155,52 @@ test('synthetic group descriptor round-trips through denormalize and emit', asyn
   const mod = await import('data:text/javascript;base64,' + Buffer.from(text).toString('base64'));
   assert.ok('GROUPED_DEMO_DESCRIPTOR' in mod, 'emitted module exports the group descriptor');
   assert.deepEqual(normalizeDescriptor(mod.GROUPED_DEMO_DESCRIPTOR), d, 'emitted module keeps the group tree');
+});
+
+// ── Per-node variation: `chance` + range-form transforms ───────────────────
+
+test('synthetic variation descriptor (chance + ranged transforms) round-trips', async () => {
+  const variated = {
+    id: 'variatedDemo',
+    kind: 'feature',
+    displayName: 'Variated Demo',
+    schemaVersion: 7,
+    parts: [
+      {
+        // Group with its own spawn chance and a ranged scale — children ride along.
+        id: 'arm',
+        chance: 0.45,
+        transform: {
+          localPos: { x: -0.1, y: { min: -0.3, max: 0.3 }, z: 0 },
+          scaleX: { min: 0.85, max: 1.25 },
+        },
+        children: [
+          { id: 'arm-stub', shape: 'box', transform: { scaleY: { min: 0.5, max: 1.5 } } },
+          {
+            id: 'arm-rise',
+            chance: 1, // explicit default — strips cleanly on denormalize
+            children: [{ id: 'arm-tip', shape: 'spheroid' }],
+          },
+        ],
+      },
+      {
+        // Alternatives choice points may carry a chance of their own.
+        id: 'crown',
+        seed: 101,
+        default: 'full',
+        chance: 0.9,
+        alternatives: [
+          { id: 'full', weight: 0.5, parts: [{ id: 'crown-leaf', shape: 'box' }] },
+          { id: 'bare', weight: 0.5, parts: [] },
+        ],
+      },
+    ],
+  };
+  const d = normalizeDescriptor(variated);
+  assert.deepEqual(validateDescriptor(d), []);
+  assert.deepEqual(normalizeDescriptor(denormalizeDescriptor(d)), d, 'denormalize keeps chance/range fields');
+  const text = emitDescriptorModule(d);
+  const mod = await import('data:text/javascript;base64,' + Buffer.from(text).toString('base64'));
+  assert.ok('VARIATED_DEMO_DESCRIPTOR' in mod, 'emitted module exports the variation descriptor');
+  assert.deepEqual(normalizeDescriptor(mod.VARIATED_DEMO_DESCRIPTOR), d, 'emitted module keeps chance/range fields');
 });

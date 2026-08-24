@@ -9,6 +9,15 @@ import { isGroupNode } from '../../partTree/index.js';
 import { section, fmt } from '../sectionShell.js';
 import { editingEmptyState, emptyKeyframe, emptyLocalPos, pruneZeroLocalPos } from '../stateKeyframes.js';
 import { LIFT_RANGE_SEED } from '../../../../../../src/render/hexmap3d/worldObjects/descriptors/partScale.js';
+import { isRange } from '../../../../../../src/render/hexmap3d/worldObjects/descriptors/transformVariation.js';
+
+/** Round to 3 decimals — matches the emitter's precision. */
+const round3 = (v) => Math.round(v * 1000) / 1000;
+
+/** A localPos component's display text: a number or a min–max span. */
+function fmtComponent(v) {
+  return isRange(v) ? `${fmt(v.min)}–${fmt(v.max)}` : fmt(v ?? 0);
+}
 
 /**
  * Write one localPos component of `t`, deleting the field when every component
@@ -43,7 +52,7 @@ export function renderPositionSection(container, entry, ctx) {
     if (ty !== 0) parts.push(`Y ${fmt(ty)}`);
     if (lr) parts.push(`lift ${fmt(lr.min)}–${fmt(lr.max)}`);
     else if (tlift !== 0) parts.push(`lift ${fmt(tlift)}`);
-    if (lp) parts.push(`local (${fmt(lp.x)}, ${fmt(lp.y)}, ${fmt(lp.z)})`);
+    if (lp) parts.push(`local (${fmtComponent(lp.x)}, ${fmtComponent(lp.y)}, ${fmtComponent(lp.z)})`);
     return parts.join(' · ');
   });
   if (empty) {
@@ -106,9 +115,47 @@ export function renderPositionSection(container, entry, ctx) {
       setLocalPos(t, axis, v);
     }
   });
-  sec.append(tupleRow('localPos', [
-    { input: numberInput(lpValue('x'), { onChange: (v) => writeLp('x', v) }), micro: 'x' },
-    { input: numberInput(lpValue('y'), { onChange: (v) => writeLp('y', v) }), micro: 'y' },
-    { input: numberInput(lpValue('z'), { onChange: (v) => writeLp('z', v) }), micro: 'z' },
-  ], lpTitle));
+  if (empty) {
+    // Keyframes stay fixed-number — range form is a base-pose mechanism.
+    sec.append(tupleRow('localPos', [
+      { input: numberInput(lpValue('x'), { onChange: (v) => writeLp('x', v) }), micro: 'x' },
+      { input: numberInput(lpValue('y'), { onChange: (v) => writeLp('y', v) }), micro: 'y' },
+      { input: numberInput(lpValue('z'), { onChange: (v) => writeLp('z', v) }), micro: 'z' },
+    ], lpTitle));
+  } else {
+    // Per-axis rows (pattern B, like Lift / stretch): a Fixed/Range select per
+    // axis, values on the line below. Fixed writes a number, Range writes
+    // `{ min, max }` (one draw per item); switching modes converts the value
+    // and deletes the other form, so the two can never fight.
+    const lpTitleRange = `${lpTitle}; Range draws once per item at render time`;
+    for (const axis of ['x', 'y', 'z']) {
+      const cur = t.localPos?.[axis];
+      const inRange = isRange(cur);
+      const stretchRow = el('div', 'stretch-row');
+      const modeLine = el('div', 'control-row');
+      const modeLabel = el('label', null, `localPos ${axis}`);
+      modeLabel.title = lpTitleRange;
+      modeLine.append(modeLabel);
+      modeLine.append(selectInput(['fixed', 'range'], inRange ? 'range' : 'fixed', (m) => ctx.mutate(() => {
+        if (m === 'range' && !isRange(t.localPos?.[axis])) {
+          const base = typeof cur === 'number' ? cur : 0;
+          setLocalPos(t, axis, { min: round3(base - 0.05), max: round3(base + 0.05) });
+        } else if (m === 'fixed' && isRange(t.localPos?.[axis])) {
+          setLocalPos(t, axis, round3((t.localPos[axis].min + t.localPos[axis].max) / 2));
+        }
+      })));
+      stretchRow.append(modeLine);
+      const inputsLine = el('div', 'stretch-inputs');
+      if (inRange) {
+        inputsLine.append(
+          numberInput(cur.min, { onChange: (v) => ctx.mutate(() => { cur.min = Math.min(v, cur.max); }) }),
+          numberInput(cur.max, { onChange: (v) => ctx.mutate(() => { cur.max = Math.max(v, cur.min); }) }),
+        );
+      } else {
+        inputsLine.append(numberInput(cur ?? 0, { onChange: (v) => writeLp(axis, v) }));
+      }
+      stretchRow.append(inputsLine);
+      sec.append(stretchRow);
+    }
+  }
 }
