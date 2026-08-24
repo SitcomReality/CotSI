@@ -77,21 +77,24 @@ test('equipment catalog: powerful items require knots, normal items do not', () 
   }
 });
 
-test('equipItem: fills an empty slot with no refund', () => {
+test('equipItem: fills an empty slot with no refund, as a fresh full-durability instance', () => {
   const champ = champion();
   const item = EQUIPMENT_CATALOG[0];
   const refund = equipItem(champ, item);
   assert.equal(refund, 0);
-  assert.equal(champ.weapon, item);
+  assert.notEqual(champ.weapon, item, 'equipped item is an instance clone');
+  assert.equal(champ.weapon.id, item.id);
+  assert.equal(champ.weapon.durability, champ.weapon.maxDurability);
 });
 
-test('equipItem: replacing destroys the old item and refunds a fraction of its gold', () => {
-  const champ = champion({ weapon: { id: 'x', name: 'Old', slot: 'weapon', cost: { gold: 40, knot: 0 } } });
+test('equipItem: replacement destroys the old item and refunds its durability-scaled sell value', () => {
+  const old = { id: 'x', name: 'Old', slot: 'weapon', cost: { gold: 40, knot: 0 }, durability: 5, maxDurability: 10 };
+  const champ = champion({ weapon: old });
   const item = EQUIPMENT_CATALOG.find(i => i.slot === 'weapon');
   const refund = equipItem(champ, item);
-  assert.equal(refund, Math.floor(40 * EQUIP_REFUND_FRACTION));
+  assert.equal(refund, Math.floor(40 * EQUIP_REFUND_FRACTION * 0.5), 'half-worn item sells for half of half');
   assert.equal(champ.gold, 100 + refund);
-  assert.equal(champ.weapon, item);
+  assert.equal(champ.weapon.id, item.id);
 });
 
 test('buyFromStock: potency purchase spends gold, adds a pip, decrements the stack', () => {
@@ -122,7 +125,8 @@ test('buyFromStock: equipment purchase deducts gold + knots and equips the item'
   assert.equal(res.ok, true);
   assert.equal(champ.gold, 100 - item.cost.gold);
   assert.equal(champ.knot, 10 - item.cost.knot);
-  assert.equal(champ[item.slot], item);
+  assert.equal(champ[item.slot].id, item.id);
+  assert.equal(champ[item.slot].durability, champ[item.slot].maxDurability, 'fresh instance at full durability');
 });
 
 test('buyFromStock: rejects when gold or knots are insufficient', () => {

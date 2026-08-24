@@ -30,11 +30,15 @@ In (equipment integration goal):
   currency; upgrading never happens at knot hexes.
 
 Remaining:
+- Balance pass for items and 'equipment drops' — part of a larger holistic
+  balance update (see "Feature reward balance" below).
 
-- Durability, and selling items back to traders.
-- Balance pass for upgrade costs and item reward frequency.
-- The Forge map visual is a hand-authored placeholder descriptor — tune it in
-  the geometry editor later.
+### Graphics refinement pass
+
+A later review-and-refine pass over visuals across the board: feature and
+decor geometry (including the Forge's placeholder anvil descriptor), motifs,
+icons, creatures, and other object graphics. Most of it is tuned in the
+geometry editor; descriptor data files regenerate on Save.
 
 ### Dungeons
 
@@ -65,7 +69,7 @@ Remaining:
   (`src/render/hexmap3d/worldObjects/descriptors/data/features/dungeon.js`) —
   tune the entrance geometry in the geometry editor, not by hand.
 
-### Feature reward balance
+### Balance: features, items, factions
 
 Rewards are functional but un-tuned — amounts, tier scaling, and the shared
 `FEATURE_REGROW_DAYS` cadence need a design/balance pass. Edenfall mushrooms
@@ -73,6 +77,8 @@ heal on starting values (`FEATURE_EDEN_MUSHROOM_HEAL` /
 `FEATURE_EDEN_SHROOMLET_HEAL` in `src/params/game/economyParams.js`).
 Per-feature reward intent is tracked in `dev/docs/featureDesign.md` §5
 (amounts in §3a).
+The abilities/stats and sources of equipment items need to be designed and
+balanced.
 
 ### Onboarding / tutorial
 

@@ -26,6 +26,12 @@ export const FORGE_KNOT_COST = 2;
 /** Bonus increase per upgrade step (placeholder — un-tuned). */
 export const FORGE_BONUS_STEP = 1;
 
+// ---- Equipment durability ----
+/** Max durability of a freshly equipped item (placeholder — un-tuned). */
+export const EQUIP_MAX_DURABILITY = 10;
+/** Durability lost at the start of each of the owner's turns. */
+export const EQUIP_DURABILITY_TICK = 1;
+
 // ---- Base interaction ----
 /** Sanctuary heal fraction of max HP. */
 export const SANCTUARY_HEAL_FRACTION = 0.5;

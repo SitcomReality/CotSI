@@ -8,10 +8,11 @@
  * Model: a champion has exactly two slots — `weapon` (weapon/tool/held) and
  * `armor` (armor/clothes) — each holding either an item object or null.
  * Equipment is non-stacking: replacing an item destroys the old one and
- * refunds a fraction of its gold cost (see trading.equipItem).
+ * refunds its durability-scaled sell value in gold (see trading.equipItem /
+ * sellValue). Items wear down EQUIP_DURABILITY_TICK per turn (beginTurn) and
+ * stop functioning at 0 durability until repaired at a Forge.
  */
 export const EQUIPMENT_SLOTS = Object.freeze(['weapon', 'armor']);
-
 /**
  * Placeholder catalog. `cost.knot > 0` marks "powerful" equipment — the trader
  * inventory guarantees at least one of these per reset. `bonus.attack` /
@@ -32,6 +33,30 @@ export const EQUIPMENT_CATALOG = Object.freeze([
 export const POWERFUL_EQUIPMENT = Object.freeze(EQUIPMENT_CATALOG.filter(i => i.cost.knot > 0));
 /** Gold-only equipment. */
 export const NORMAL_EQUIPMENT = Object.freeze(EQUIPMENT_CATALOG.filter(i => i.cost.knot === 0));
+
+import { EQUIP_REFUND_FRACTION, EQUIP_MAX_DURABILITY } from '../../params/game/economyParams.js';
+
+/** The item's max durability (instances carry `maxDurability`; defaults apply to bare catalog refs). */
+export function maxDurabilityOf(item) {
+  return item?.maxDurability ?? EQUIP_MAX_DURABILITY;
+}
+
+/** Whether an item still functions: present, and not worn down to 0 durability. */
+export function isFunctional(item) {
+  return !!item && (item.durability == null || item.durability > 0);
+}
+
+/**
+ * What an item 'sells' for when replaced (the refund): its gold cost scaled by
+ * remaining durability, rounded down, never below 1 gold. Full durability →
+ * half the buy cost; 0 durability → 1 gold. Knot costs are not refunded.
+ */
+export function sellValue(item) {
+  const gold = item?.cost?.gold || 0;
+  if (!gold) return 1;
+  const ratio = item.durability == null ? 1 : Math.max(0, item.durability) / maxDurabilityOf(item);
+  return Math.max(1, Math.floor(gold * EQUIP_REFUND_FRACTION * ratio));
+}
 
 /** Pick a random item from a catalog list (defaults to the full catalog). */
 export function pickEquipment(rand, list = EQUIPMENT_CATALOG) {

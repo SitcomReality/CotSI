@@ -5,21 +5,23 @@
  * potency slot), mutating champion resources and the stock array. Pure state
  * mutations — no DOM, no UI. All currency is per-champion (gold + God's Knots).
  */
-import { EQUIP_REFUND_FRACTION } from '../../../params/game/economyParams.js';
+import { sellValue, maxDurabilityOf } from '../../rules/equipment.js';
 
 /**
- * Equip `item` into its slot, destroying whatever was there and refunding a
- * fraction of the old item's gold cost. Returns the refunded gold.
+ * Equip `item` into its slot. The item is cloned as a fresh instance with
+ * full durability; whatever was there is 'sold' automatically — destroyed,
+ * with its durability-scaled sell value (sellValue) refunded in gold.
+ * Returns the refunded gold.
  */
 export function equipItem(champ, item) {
   const slot = item.slot;
   const old = champ[slot];
   let refund = 0;
-  if (old && old.cost && old.cost.gold) {
-    refund = Math.floor(old.cost.gold * EQUIP_REFUND_FRACTION);
+  if (old) {
+    refund = sellValue(old);
     champ.gold += refund;
   }
-  champ[slot] = item;
+  champ[slot] = { ...item, durability: maxDurabilityOf(item), maxDurability: maxDurabilityOf(item) };
   return refund;
 }
 

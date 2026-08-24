@@ -1,5 +1,6 @@
 import { FACTIONS, potencyWithPrimary, beats } from '../../rules/factionData.js';
 import { scorePower } from '../../rules/paleyScoring.js';
+import { isFunctional } from '../../rules/equipment.js';
 import { sideOf } from './combatState.js';
 import { ARTIFACT_MARGIN_BONUS, HOLLOW_HP_GROUP_SIZE, HOLLOW_WEEK_BLOCK } from '../../../params/game/combatParams.js';
 import { DAYS_PER_WEEK } from '../../../params/game/worldParams.js';
@@ -15,8 +16,8 @@ function finalScoreBonus(state, champ){
   return bonus;
 }
 
-function eqAttack(c){ return (c.weapon?.bonus?.attack || 0) + (c.armor?.bonus?.attack || 0); }
-function eqDefense(c){ return (c.weapon?.bonus?.defense || 0) + (c.armor?.bonus?.defense || 0); }
+function eqAttack(c){ return (isFunctional(c.weapon) ? c.weapon?.bonus?.attack || 0 : 0) + (isFunctional(c.armor) ? c.armor?.bonus?.attack || 0 : 0); }
+function eqDefense(c){ return (isFunctional(c.weapon) ? c.weapon?.bonus?.defense || 0 : 0) + (isFunctional(c.armor) ? c.armor?.bonus?.defense || 0 : 0); }
 
 /** Score a single pair of picks (one from each combatant) */
 export function scorePickPair(state, A, B, pickA, pickB){

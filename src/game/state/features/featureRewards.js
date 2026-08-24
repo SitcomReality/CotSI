@@ -35,7 +35,7 @@ import { depleteFeature } from './featureRegrowth.js';
 import { FACTION_COUNT } from '../../../params/game/factionParams.js';
 import { BOT_FEATURE_SCORES, BOT_FEATURE_HEAL_BONUS, BOT_FONT_HP_THRESHOLD } from '../../../params/game/aiParams.js';
 import { FEATURES, featureName, choiceCard } from './featureRewardTable.js';
-import { applyForgeUpgrade } from './forgeSystem.js';
+import { applyForgeUpgrade, applyForgeRepair } from './forgeSystem.js';
 import { EQUIPMENT_CATALOG, pickEquipment } from '../../rules/equipment.js';
 import { equipItem } from './trading.js';
 
@@ -276,6 +276,12 @@ function _applyGrant(state, champ, grant, claimText) {
       // Forge upgrades (forgeSystem.js) — handled there; the Forge tile is
       // never consumed.
       text = applyForgeUpgrade(state, champ, grant);
+      color = 'var(--gold)';
+      break;
+    case 'repair-equipment':
+      // Forge repairs (forgeSystem.js) — flat cost equal to the item's buy
+      // cost; the Forge tile is never consumed.
+      text = applyForgeRepair(state, champ, grant);
       color = 'var(--gold)';
       break;
     default:

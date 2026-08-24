@@ -18,6 +18,8 @@ import { recordLedgerEntry, drainLedger } from './world/dispatchLedger.js';
 import { processReverie } from './features/factionAbilities.js';
 import { resolvePendingDig } from './features/digSystem.js';
 import { processFirstTurnDraft } from './features/artifactDraft.js';
+import { EQUIPMENT_SLOTS, isFunctional } from '../rules/equipment.js';
+import { EQUIP_DURABILITY_TICK } from '../../params/game/economyParams.js';
 import { ARTIFACT_LEDGER_GOLD, ARTIFACT_BANDAGE_HEAL } from '../../params/game/economyParams.js';
 import { evictChunks } from './world/chunkManager.js';
 
@@ -34,6 +36,13 @@ export function beginTurn(state, champId) {
   // begins ("until the end of the current turn").
   ch.buffs = { attack: 0, defense: 0 };
   ch.lastActionCombat = false;
+  // Equipment wears down each turn; an item at 0 durability stops functioning.
+  for (const slot of EQUIPMENT_SLOTS) {
+    const item = ch[slot];
+    if (item && item.durability != null && item.durability > 0) {
+      item.durability = Math.max(0, item.durability - EQUIP_DURABILITY_TICK);
+    }
+  }
   // Artifact passives
   if (ch.artifact === 'ledger') {
     ch.gold += ARTIFACT_LEDGER_GOLD;
