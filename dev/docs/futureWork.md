@@ -58,17 +58,15 @@ Nothing built (the game is silent today). Needed:
 - SFX system (UI, combat, feature interactions).
 - Music (ambient tracks).
 
-### Specialer FX (particles, glows, damage numbers)
+### Specialer FX
 
-An ambient/impact FX pass on top of the static descriptors. The effect flags
-already exist as "future" entries in `graphicsSettings.effects`; water
-sparkles (`src/render/hexmap3d/terrain/waterSparkles.js`) are the precedent
-to build on. Ideas from design:
-
-- Filled Blessed Font glows when charged.
-- God's Knots emit rainbow sparkles and dissipate in a puff of sparkles when collected.
-- Ripe peridexion fruit sparkles; treasure-chest collect splashes a coin
-  flourish; damage numbers float over hits.
+Implemented (`src/render/hexmap3d/worldObjects/featureFx.js`): God's Knots
+emit rainbow sparkles and puff apart when collected; charged Blessed Fonts
+glow; ripe peridexion fruit sparkles; treasure-chest collects splash a coin
+flourish. Gated by the `particles` / `glows` flags in
+`graphicsSettings.effects` (options modal toggles). Damage numbers remain a
+future item under the `damageNumbers` flag; the effect flags live in
+`graphicsSettings.js`, tunables in `src/params/render/featureFxParams.js`.
 
 ### Graphics refinement pass
 
