@@ -618,7 +618,9 @@ function computeStepFrame(project, live, state, step, rng) {
       // short rising roll so transitions into the next half feel played, not
       // switched. Offsets are fixed (not rng) to keep seeded determinism, and
       // start slightly off the grid so a kit without a dedicated snare (the
-      // accent falls back to the hat synth) never collides with the hat hit.
+      // accent falls back to the hat synth) never collides with the hat hit,
+      // and stay clear of the accent (0.02) and the odd-step double (0.065 /
+      // 0.11) so two snare accents never land on one voice at the same time.
       const snareVel = av("snare.velocity", null);
       if (fillPush) {
         events.push({ layerId: layer.id, kind: "snare", duration: "16n", velocity: snareVel ?? Math.min(1, av("hat.velocity", 0.2) + 0.12), offset: 0.02 });
@@ -627,7 +629,7 @@ function computeStepFrame(project, live, state, step, rng) {
           events.push({ layerId: layer.id, kind: "snare", duration: "32n", velocity: snareVel ?? 0.3, offset: 0.11 });
         }
         if (step >= 13) {
-          [0.02, 0.06, 0.1, 0.14].forEach((offset, index) => {
+          [0.045, 0.085, 0.125, 0.165].forEach((offset, index) => {
             events.push({ layerId: layer.id, kind: "snare", duration: "32n", velocity: Math.min(1, (snareVel ?? 0.26) + index * 0.09), offset });
           });
         }
