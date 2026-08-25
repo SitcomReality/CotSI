@@ -48,4 +48,12 @@ for (const rel of SCORES) {
   test(`${name}: fill kick skips when the straight downbeat kick fired`, () => {
     assert.match(source, /fillPush && step % 2 === 0 && !\(hit && isDownbeat\)/);
   });
+
+  test(`${name}: playback orders events per voice by time before triggering`, () => {
+    // Authoring order is not time order (variation hat after straight hat
+    // with a smaller offset; snare accents fall back to the hat voice), and
+    // Tone requires strictly increasing start times per voice in call order.
+    assert.match(source, /timed\.sort\(\(a, b\) => a\.ord - b\.ord \|\| \(a\.ev\.offset \|\| 0\) - \(b\.ev\.offset \|\| 0\)\)/);
+    assert.match(source, /voiceOrder\.set\(target, voiceOrder\.size\)/);
+  });
 }

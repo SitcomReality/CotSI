@@ -819,20 +819,35 @@ function setup() {
     for (const layer of score.layers) features[layer.id] = { steps: perfSteps[layer.id] || layer.steps };
     const restingIds = Object.keys(resting).filter((id) => resting[id]);
     const events = computeStepFrame(score, liveAxes, { features, resting: restingIds }, step, driftRng);
+    // Tone requires each voice's start times to be strictly increasing in call
+    // order, but authoring order is not time order (e.g. the variation hat is
+    // emitted after the straight hat with a smaller humanize offset, and
+    // snare accents fall back to the hat synth). Group by resolved target
+    // voice, then stable-sort each group by time before triggering.
+    const voiceOrder = new Map();
+    const timed = [];
     for (const ev of events) {
       const voice = voices[ev.layerId];
       if (!voice) continue;
+      let target;
+      if (ev.kind === "chord" || ev.kind === "scale") target = voice.synth;
+      else if (ev.kind === "kick") target = voice.kick;
+      else if (ev.kind === "snare") target = voice.snare || voice.hat;
+      else target = voice.hat;
+      if (!target) continue;
+      if (!voiceOrder.has(target)) voiceOrder.set(target, voiceOrder.size);
+      timed.push({ ev, target, ord: voiceOrder.get(target) });
+    }
+    timed.sort((a, b) => a.ord - b.ord || (a.ev.offset || 0) - (b.ev.offset || 0));
+    for (const { ev, target } of timed) {
       if (ev.kind === "chord") {
-        voice.synth.triggerAttackRelease(chord(ev.degree), ev.duration, time + (ev.offset || 0), ev.velocity);
+        target.triggerAttackRelease(chord(ev.degree), ev.duration, time + (ev.offset || 0), ev.velocity);
       } else if (ev.kind === "scale") {
-        voice.synth.triggerAttackRelease(note(ev.degree, ev.octave), ev.duration, time + (ev.offset || 0), ev.velocity);
+        target.triggerAttackRelease(note(ev.degree, ev.octave), ev.duration, time + (ev.offset || 0), ev.velocity);
       } else if (ev.kind === "kick") {
-        voice.kick.triggerAttackRelease(ev.pitch || "D1", ev.duration, time + (ev.offset || 0), ev.velocity);
-      } else if (ev.kind === "hat") {
-        voice.hat.triggerAttackRelease(ev.duration || "32n", time + (ev.offset || 0), ev.velocity);
-      } else if (ev.kind === "snare") {
-        const target = voice.snare || voice.hat;
-        target.triggerAttackRelease(ev.duration || "16n", time + (ev.offset || 0), ev.velocity);
+        target.triggerAttackRelease(ev.pitch || "D1", ev.duration, time + (ev.offset || 0), ev.velocity);
+      } else {
+        target.triggerAttackRelease(ev.duration || "32n", time + (ev.offset || 0), ev.velocity);
       }
     }
     if (boundary && victoryQueued) {
