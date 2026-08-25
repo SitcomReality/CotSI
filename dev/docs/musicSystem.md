@@ -74,3 +74,14 @@ Wired triggers (all in `src/runtime/`):
 - One score instance per page (module-level state in each score).
 - No pause/resume API; use `stopMusic()`/`startMusic()`, or `Tone.getTransport().pause()/start()` for mid-loop suspension.
 - All sounds are synthesized; first `startScore()` pays ~100 ms reverb impulse generation. Pre-warm during loading if needed.
+
+## Same-time collision guard
+
+Tone rejects two attacks on one voice at the exact same audio time ("The time
+must be greater than or equal to the last scheduled time"). The generated
+scores carry fixes for the known collisions (fill kick vs straight downbeat
+kick, melody fill at base+40 ms, snare accents off-grid, and the late-phrase
+snare roll clear of the 0.02 accent). `dev/tests/game/music/scoreTiming.test.js`
+pins these against future re-exports — if a fresh studio export fails that
+test, port the fix into the studio's `dynamics.js` and re-export rather than
+hand-patching here long-term.
