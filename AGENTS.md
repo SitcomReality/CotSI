@@ -88,7 +88,7 @@ window.__gameState; // same object as G
 | `dev/docs/context/biomesAndTerrain.md` | World context for external contributors: every biome & terrain, their colors, classification rules, geometry tint colors |
 | `dev/docs/context/factions.md` | World context: the 7 factions, their colors/themes, the Paley tournament |
 | `dev/docs/context/sceneConventions.md` | World context: scale units, color pipelines, terrain decor registry, feature registry |
-| `dev/docs/musicSystem.md` | Music system: Canopy score exports, Tone.js vendoring, runtime wiring, adding tracks |
+| `dev/docs/musicSystem.md` | Audio system: Canopy score exports, Tone.js vendoring, music runtime wiring, SFX presets & triggers, adding tracks/sounds |
 | `dev/docs/mobGeometryAndAnimation.md` | Mob geometry & animation design notes (joint groups, FK chains, animation runtime proposal) |
 | `dev/docs/gameMechanics.md` | Combat round flow, turn order, biome system |
 | `dev/docs/terrainGenNotes.md` | Terrain-gen design notes: noise, calibration, classification, supernatural biomes |

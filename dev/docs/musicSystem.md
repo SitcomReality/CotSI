@@ -1,7 +1,8 @@
 # Music System
 
-How the procedural music works in CotSI, and how to integrate a new song.
-Replaces the deleted `gameIntegrationGuide.md` (Canopy studio export format).
+How the procedural music and one-shot SFX work in CotSI, and how to extend
+them. Replaces the deleted `gameIntegrationGuide.md` (Canopy studio export
+format).
 
 ---
 
@@ -44,6 +45,27 @@ import { startScore, stopScore, setGameMusicState, musicEvent, disposeScore }
 4. Extend the API-contract test in `dev/tests/game/music/scores.test.js` if adding fields.
 
 Switch at runtime with `setMusicTrack(trackId)` — disposes the old score first and restarts if music was playing.
+
+## SFX
+
+| Piece | Location | Role |
+|---|---|---|
+| Presets | `src/params/audio/sfxParams.js` | Pure data: each named preset is a list of voices (`synth` / `noise` / `membrane`) with Tone constructor options, dB volume, and `notes` of `[note, offsetSeconds, duration]` (noise voices use `null` in the note slot) |
+| Director | `src/runtime/audio/sfxDirector.js` | `playSfx(name)` fires a preset; voices are built lazily per name+index and reused. Shares the vendored Tone module and `Tone.Destination` with music — the global mute silences both |
+| Unlock | `runtime/bootstrap.js` | First `pointerdown` calls `unlockSfx()`; music start also unlocks the shared context |
+
+Wired triggers (all in `src/runtime/`):
+
+- UI press on any `[data-action]` element → `uiClick`, via `initClickFeedback()` injection into `shared/actionBus.js` (its own `_getGameState` injection pattern).
+- Turn committed (`endTurn.js`, both confirm and immediate paths) → `turnWhoosh`.
+- Combat round damage (`combat/combatRoundEnd.js`) → `combatHit`; victory → `spoils`; dungeon completed → `dungeonConquered`; champion death → `championDown`.
+- Generic reward modal (`rewardPrompt.js`: dig loot etc.) → `reward`.
+
+### Adding an SFX
+
+1. Add a preset to `SFX_PRESETS` in `sfxParams.js` (camelCase name).
+2. Call `playSfx(name)` from the runtime code that owns the event.
+3. Extend the contract test in `dev/tests/params/audio/sfxParams.test.js`.
 
 ## Known limits
 

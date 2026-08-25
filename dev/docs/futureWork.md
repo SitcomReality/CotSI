@@ -51,18 +51,22 @@ today:
 - Game creation, lobbies, room codes etc.
 - Client connection and syncing game state with server.
 
-### Audio — SFX
+### Audio — remaining polish
 
-Music is implemented (`dev/docs/musicSystem.md`: Canopy score exports in
-`src/game/music/scores/`, orchestrated by `src/runtime/audio/musicDirector.js`,
-global mute via `shared/muteState.js` + the header mute button, persisted as
-`audio.muted`). Still needed:
+Music (see `dev/docs/musicSystem.md`) and the SFX foundation are implemented:
+`playSfx(name)` one-shots (`src/runtime/audio/sfxDirector.js` + presets in
+`src/params/audio/sfxParams.js`) share the Tone pipeline and global mute with
+music. Still needed:
 
-- SFX system (UI, combat, feature interactions) — should reuse
-  `muteState.js` and the Tone pipeline so one mute switch silences both.
+- **SFX sound design pass** — all seven presets are synthesized placeholders
+  (UI click, turn whoosh, combat hit, spoils, dungeon conquered,
+  champion down, reward). Tune envelopes/notes in-game or move to authored
+  samples later.
+- **More SFX coverage** — movement arrival, trade buy/sell, forge repair,
+  dispatch acknowledge, victory/game-over stinger beyond the music event.
 - Finer-grained music steering: threat-based `unease` band (currently only
   hard combat enter/exit), and possibly a second track for supernatural biomes.
-- In-game track selection / options-modal music controls.
+- In-game track selection / options-modal music & SFX volume controls.
 
 ### Specialer FX
 

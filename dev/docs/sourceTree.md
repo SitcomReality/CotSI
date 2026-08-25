@@ -226,6 +226,7 @@ AI), and `combat/`.
 | `combat/index.js` | Barrel: combat public API |
 | `trade/trade.js` | Trade-flow orchestration |
 | `audio/musicDirector.js` | Music orchestration: lazy score loading, start/stop/dispose, track switching, mute application, combat/victory steering (see `dev/docs/musicSystem.md`) |
+| `audio/sfxDirector.js` | One-shot SFX playback: lazily built Tone voices from sfxParams presets; shares Tone.Destination with music so the global mute covers both |
 
 ---
 
@@ -499,7 +500,7 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 
 | File | Purpose |
 |------|---------|
-| `actionBus.js` | `[data-action]` dispatcher with keyboard shortcuts and modal-action helpers |
+| `actionBus.js` | `[data-action]` dispatcher with keyboard shortcuts, modal-action helpers, and injectable click feedback (UI-click SFX) |
 | `clockScheduler.js` | Centralized Clock with pause/resume, per-group speed control, master rAF loop |
 | `measurements.js` | Named timing measurements (start/end, lifetime avg, EMA); moved from `src/devtools/performance/` |
 | `muteState.js` | Global audio-mute singleton with change notifications (shared by music now, SFX later) |
@@ -526,6 +527,7 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `game/spawnParams.js` | Spawn position and entity-count parameters |
 | `game/terrainGenParams.js` | Terrain-gen noise, seeds, shaping, rivers, and terrain rules |
 | `game/worldParams.js` | World simulation days, mob harassment, and log retention |
+| `audio/sfxParams.js` | One-shot SFX preset definitions (voice engines, envelopes, note triggers) |
 | `render/animationParams.js` | Movement animation durations, curve parameters, champion Y offsets |
 | `render/cameraParams.js` | Camera frustum, zoom, pan, and centering parameters |
 | `render/geometryParams.js` | 3D geometry dimensions for features and units |
