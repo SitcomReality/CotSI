@@ -9,6 +9,7 @@ import { isDigEligible } from '../game/state/turnActions.js';
 import { openConfirmModal } from '../ui/modals/confirmModal.js';
 import { getCombatUI } from './combat/combatState.js';
 import { cancelPendingPreview } from './hexBridge.js';
+import { playSfx } from './audio/sfxDirector.js';
 
 /**
  * Disable or re-enable the End Turn button with visual feedback.
@@ -53,6 +54,7 @@ export function onEndTurn() {
           cancelPendingPreview();
           setTurnLock(true);
           disableEndTurnBtn(true);
+          playSfx('turnWhoosh');
           finishTurn(G);
           refreshAll();
         }
@@ -63,6 +65,7 @@ export function onEndTurn() {
   cancelPendingPreview();
   setTurnLock(true);
   disableEndTurnBtn(true);
+  playSfx('turnWhoosh');
   finishTurn(G);
   refreshAll();
 }

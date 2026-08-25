@@ -15,6 +15,7 @@ import { openRewardModal } from '../../ui/combat/combatRewardUI.js';
 import { closeCombat } from './combatLifecycle.js';
 import { resolveDungeonBattleWin } from '../../game/state/features/dungeonSystem.js';
 import { dailyActionPoints } from '../../game/state/movement/championMovement.js';
+import { playSfx } from '../audio/sfxDirector.js';
 import {
   shakeCard,
   flashCard,
@@ -56,6 +57,7 @@ export async function handleRoundEnd() {
       }
     }
     closeCombat();
+    playSfx(completion?.completed ? 'dungeonConquered' : 'spoils');
     openRewardModal(attacker, {
       title: completion?.completed ? 'Dungeon Conquered!' : 'Victory!',
       type: 'spoils',
@@ -79,6 +81,7 @@ export async function handleRoundEnd() {
 
   if (result.attackerDead) {
     closeCombat();
+    playSfx('championDown');
     toast('You were defeated.', true);
     refreshAll();
     return;
@@ -86,6 +89,7 @@ export async function handleRoundEnd() {
 
   // Trigger damage visual effects
   if (result.damage > 0) {
+    playSfx('combatHit');
     const attSide = sideOf(combat, combat.attacker);
     const actualDamagedSide = result.to === 'attacker' ? attSide : (attSide === 'first' ? 'second' : 'first');
 

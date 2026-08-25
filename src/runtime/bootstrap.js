@@ -12,7 +12,7 @@
  *   - #game is hidden (display: none) — shown on beginGame
  *   - .modal elements are hidden (display: none) — shown via showModal()
  */
-import { registerAction, dispatchAction, initModalActions } from '../shared/actionBus.js';
+import { registerAction, dispatchAction, initModalActions, initClickFeedback } from '../shared/actionBus.js';
 import { preloadTemplates, loadTemplate } from '../ui/templates/templateLoader.js';
 import { onEndTurn } from './endTurn.js';
 import { refreshAll, anyModalOpen } from './refreshAll.js';
@@ -31,6 +31,7 @@ import '../ui/modals/optionsModal.js'; // side-effect: registers options [data-a
 import '../ui/muteButton.js'; // side-effect: registers the global audio mute toggle
 import { initMuteButton } from '../ui/muteButton.js';
 import { startMusic } from './audio/musicDirector.js';
+import { playSfx, unlockSfx } from './audio/sfxDirector.js';
 import '../devtools/devTools.js'; // side-effect: registers dev tools keyboard shortcut + panel
 import { cancelPendingPreview } from './hexBridge.js';
 
@@ -107,6 +108,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Paint the audio mute glyph now that #muteBtn exists in the DOM.
     initMuteButton();
+
+    // Audio: unlock the shared context on first gesture and tick on UI presses.
+    document.addEventListener('pointerdown', unlockSfx, { once: true });
+    initClickFeedback(() => playSfx('uiClick'));
 
     // Enable dev performance instrumentation
     enableAllMeasurements();

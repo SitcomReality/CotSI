@@ -21,7 +21,9 @@ export function registerAction(action, fn) {
  * @param {Event} [e]
  */
 export function dispatchAction(action, el, e) {
-  return handlers[action]?.(el, e);
+  const result = handlers[action]?.(el, e);
+  if (handlers[action] && _clickFeedback) _clickFeedback(el, e);
+  return result;
 }
 
 // Listener setup is guarded so pure-layer tests can import this module in
@@ -32,6 +34,7 @@ if (typeof document !== 'undefined') document.addEventListener('click', (e) => {
   const action = el.dataset.action;
   if (handlers[action]) {
     handlers[action](el, e);
+    if (_clickFeedback) _clickFeedback(el, e);
   } else {
     console.warn(`[actionBus] No handler registered for action '${action}'.`);
   }
@@ -54,6 +57,16 @@ if (typeof window !== 'undefined') window.addEventListener('keydown', (e) => {
  * in rewardModal.js) can clear G.reward on close.
  */
 let _getGameState = null;
+
+/**
+ * Optional per-click feedback callback (e.g. the UI-click SFX), injected
+ * from runtime/ at bootstrap so this leaf module stays project-local-free.
+ */
+let _clickFeedback = null;
+
+export function initClickFeedback(fn) {
+  _clickFeedback = fn;
+}
 
 export function initModalActions(getGameState) {
   _getGameState = getGameState;

@@ -6,6 +6,7 @@ import { refreshAll } from './refreshAll.js';
 import { addLogEntry } from '../game/state/world/gameLog.js';
 import { LOG_CATEGORY } from '../game/rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../game/rules/logHelpers.js';
+import { playSfx } from './audio/sfxDirector.js';
 
 /**
  * Show whichever reward modal is pending on `G.reward`, if any.
@@ -51,6 +52,7 @@ export function showPendingReward(G) {
 
   // Generic reward (dig loot, combat spoils, etc.)
   if (G.reward && !G.reward.choices) {
+    playSfx('reward');
     fillRewardModal({
       title: G.reward.title || 'Reward',
       type: G.reward.type,
