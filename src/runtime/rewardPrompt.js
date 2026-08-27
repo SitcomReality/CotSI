@@ -2,7 +2,6 @@ import { openArtifactChoiceModal } from '../ui/modals/artifactChoiceModal.js';
 import { fillRewardModal } from '../ui/modals/rewardModal.js';
 import { currentChamp } from '../game/state/liveGame.js';
 import { applyFeatureChoice } from '../game/state/features/featureRewards.js';
-import { refreshAll } from './refreshAll.js';
 import { addLogEntry } from '../game/state/world/gameLog.js';
 import { LOG_CATEGORY } from '../game/rules/logGrammar.js';
 import { buildChampionFactionMap, championSegment } from '../game/rules/logHelpers.js';
@@ -24,7 +23,6 @@ export function showPendingReward(G) {
       if (!ch) return;
       applyFeatureChoice(G, ch, choice, G.reward.tileKey);
       G.reward = null;
-      refreshAll();
     });
     return;
   }
@@ -45,7 +43,6 @@ export function showPendingReward(G) {
         object: { text: choice.label },
         detail: null,
       });
-      refreshAll();
     });
     return;
   }

@@ -156,13 +156,17 @@ registerAction('confirmReward', () => {
     const choice = _pendingChoice.choices[_pendingChoice.selectedIdx];
     const cb = _pendingChoice.onChoice;
     _pendingChoice = null;
+    // Hide first, then run the callback — it consumes the reward and clears
+    // G.reward; the deferred modalClosed re-entry (refreshAll.requestRefresh)
+    // re-renders once, so the reward is never re-shown against a stale/null
+    // G.reward.
     hideModal('rewardModal');
     if (cb && choice) cb(choice);
     return;
   }
 
-  // Plain dismiss — clear state BEFORE hiding so the modalClosed re-entry
-  // into refreshAll sees a clean board and resumes any pending bot turn.
+  // Plain dismiss — clear state BEFORE hiding so the deferred modalClosed
+  // re-entry into refreshAll sees a clean board and resumes any pending bot.
   _pendingChoice = null;
   clearGameReward();
   hideModal('rewardModal');

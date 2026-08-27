@@ -9,7 +9,6 @@ import { G } from '../game/state/liveGame.js';
 import { registerAction } from '../shared/actionBus.js';
 import { openDeathModal } from '../ui/modals/deathModal.js';
 import { hideModal } from '../ui/modals/modalShell.js';
-import { refreshAll } from './refreshAll.js';
 
 /**
  * Show the pending death announcement, if any.
@@ -35,11 +34,11 @@ export function showDeathAnnouncement(state) {
 
 /**
  * Action-bus handler for [data-action="acknowledgeDeath"].
- * Clears the pending death announcement and re-enters refreshAll.
+ * Clears the pending death announcement; the deferred modalClosed re-entry
+ * (refreshAll.requestRefresh) surfaces the next pending state.
  */
 registerAction('acknowledgeDeath', (el) => {
   if (el?.disabled) return;
-  hideModal('deathModal');
   if (G) G.deathEvent = null;
-  refreshAll();
+  hideModal('deathModal');
 });

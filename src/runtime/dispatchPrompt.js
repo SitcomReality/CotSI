@@ -10,7 +10,6 @@ import { registerAction } from '../shared/actionBus.js';
 import { openDispatchModal } from '../ui/modals/dispatchModal.js';
 import { hideModal } from '../ui/modals/modalShell.js';
 import { getSceneContext, chaseCameraToHex } from '../render/hexmap3d/hexMapRenderer.js';
-import { refreshAll } from './refreshAll.js';
 
 /**
  * Show the pending Augur's Dispatch, if any.
@@ -39,12 +38,12 @@ export function showPendingDispatch(state) {
 
 /**
  * Action-bus handler for [data-action="acknowledgeDispatch"].
- * Clears the pending dispatch and re-enters refreshAll, which then surfaces
- * whatever was waiting (artifact draft, dig loot, bot turns).
+ * Clears the pending dispatch; the deferred modalClosed re-entry
+ * (refreshAll.requestRefresh) surfaces whatever was waiting (artifact draft,
+ * dig loot, bot turns).
  */
 registerAction('acknowledgeDispatch', (el) => {
   if (el?.disabled) return; // reveal animation still running
-  hideModal('dispatchModal');
   if (G) G.dispatch = null;
-  refreshAll();
+  hideModal('dispatchModal');
 });

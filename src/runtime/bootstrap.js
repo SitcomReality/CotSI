@@ -15,7 +15,7 @@
 import { registerAction, dispatchAction, initModalActions, initClickFeedback } from '../shared/actionBus.js';
 import { preloadTemplates, loadTemplate } from '../ui/templates/templateLoader.js';
 import { onEndTurn } from './endTurn.js';
-import { refreshAll, anyModalOpen } from './refreshAll.js';
+import { refreshAll, anyModalOpen, requestRefresh } from './refreshAll.js';
 import { initCombat } from './combat/index.js';
 import { initTrade } from './trade/trade.js';
 import { toast } from '../ui/hud.js';
@@ -45,8 +45,11 @@ registerAction('cancelMovePreview', () => cancelPendingPreview());
 // A modal hidden outside its own acknowledge flow (e.g. the options modal)
 // must re-enter the orchestrator once the last modal is gone — otherwise a
 // bot turn that finished while the modal was open never gets rescheduled.
+// Re-entry is deferred + coalesced (requestRefresh): the closing modal's
+// acknowledge handler clears its state flag before we re-run, so we never
+// re-show the modal we just dismissed.
 registerAction('modalClosed', () => {
-  if (!anyModalOpen()) refreshAll();
+  if (!anyModalOpen()) requestRefresh();
 });
 
 /** Names of templates to preload before any rendering. */

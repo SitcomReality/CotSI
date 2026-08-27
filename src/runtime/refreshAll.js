@@ -41,9 +41,53 @@ export function anyModalOpen() {
  */
 let _pendingBotTaskId = null;
 
+/**
+ * Whether a deferred requestRefresh() is already queued for this burst.
+ */
+let _refreshPending = false;
+
+/**
+ * Monotonic epoch, bumped by every synchronous refreshAll(). A deferred
+ * requestRefresh() snapshots the epoch when queued; if a synchronous
+ * refreshAll() runs before the microtask fires, the epoch has moved on and
+ * the queued refresh is dropped — the board was already re-rendered, so a
+ * second run would re-show a *pending* modal and double its reveal animation.
+ */
+let _refreshEpoch = 0;
+
+/**
+ * Re-enter the render orchestrator exactly once, after the current synchronous
+ * work finishes. Deferred to a microtask and coalesced, so a burst of close
+ * notifications (or a close notification racing a synchronous refreshAll)
+ * collapses to a single run against consistent state.
+ *
+ * This is the single re-entry point for modal closes. The old `modalClosed`
+ * handler called refreshAll() synchronously while the closing modal's state
+ * flag was still live, which re-showed the very modal being dismissed and —
+ * for reward modals — let an accept callback read a reward that an earlier
+ * pass had already nulled. Deferring until after the acknowledge handler
+ * clears its flag, and dropping the queued run when that handler's own
+ * synchronous refreshAll() already ran, makes every modal close produce
+ * exactly one refresh, against consistent state.
+ */
+export function requestRefresh() {
+  if (_refreshPending) return;
+  _refreshPending = true;
+  const epoch = _refreshEpoch;
+  queueMicrotask(() => {
+    _refreshPending = false;
+    if (epoch === _refreshEpoch) refreshAll();
+  });
+}
+
 // ---- Central render orchestrator ----
 
 export function refreshAll() {
+  // A synchronous refresh supersedes any deferred requestRefresh() queued
+  // earlier in this burst — never let the orchestrator run twice per change.
+  _refreshEpoch++;
+  _refreshPending = false;
+
   startMeasure('refreshAll');
 
   if (!G) {

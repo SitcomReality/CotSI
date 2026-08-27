@@ -10,7 +10,6 @@ import { G } from '../game/state/liveGame.js';
 import { registerAction } from '../shared/actionBus.js';
 import { openHeraldModal } from '../ui/modals/heraldModal.js';
 import { hideModal } from '../ui/modals/modalShell.js';
-import { refreshAll } from './refreshAll.js';
 
 /**
  * Show the pending Herald's Prognosis, if any.
@@ -29,12 +28,12 @@ export function showHeraldReport(state) {
 
 /**
  * Action-bus handler for [data-action="acknowledgeHerald"].
- * Clears the pending herald and re-enters refreshAll, which then surfaces
- * whatever is waiting (dispatch, reward, bot turns).
+ * Clears the pending herald; the deferred modalClosed re-entry
+ * (refreshAll.requestRefresh) surfaces whatever is waiting (dispatch, reward,
+ * bot turns).
  */
 registerAction('acknowledgeHerald', (el) => {
   if (el?.disabled) return;
-  hideModal('heraldModal');
   if (G) G.herald = null;
-  refreshAll();
+  hideModal('heraldModal');
 });
