@@ -40,7 +40,12 @@ import { startScore, stopScore, setGameMusicState, musicEvent, disposeScore }
 ## Adding a new track
 
 1. Export from Canopy → drop `<name>.score.js` into `src/game/music/scores/` (camelCase file name).
-2. Fix only line 1: point the `tone` import at `../../../vendor/tone/index.js`.
+2. Run `node dev/scripts/import_score.mjs <path-to-file>` (or `./dev/scripts/import_score.mjs`).
+   It rewrites the `Tone` import to the repo-relative path, stamps a `GENERATED`
+   provenance header (`contentSha256` of the module body), and runs the read-only
+   `scoreTiming` guard. If the guard fails the export is stale — re-export from the
+   studio that carries the per-voice ordering / collision fixes rather than
+   hand-patching. `--check` verifies an already-imported file read-only.
 3. Register it in `SCORE_MODULES` in `src/runtime/audio/musicDirector.js` (and optionally make it `DEFAULT_TRACK_ID`).
 4. Extend the API-contract test in `dev/tests/game/music/scores.test.js` if adding fields.
 
