@@ -1,4 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
+import { shadowLightConfig } from '../../shadowLightConfig.js';
 import {
   WATER_RIPPLE_SPEED,
   WATER_FLOW_SPEED,
@@ -11,9 +12,27 @@ import {
   WATER_CHOP_DIR_3,
   WATER_CHOP_SPEED,
   WATER_CHOP_STRENGTH,
+  GLINT_FREQ,
+  GLINT_DENSITY,
+  GLINT_CYCLE_SPEED,
+  GLINT_ONSET,
+  GLINT_MIN_SLOPE,
+  GLINT_RADIUS,
+  GLINT_DRIFT,
+  GLINT_BRIGHTNESS,
+  GLINT_COLOR,
   SPARKLE_TWINKLE_SPEED,
   SPARKLE_TWINKLE_AMP,
 } from '../../../params/render/terrainParams.js';
+
+/** Horizontal direction toward the sun (shadowLightConfig aims it at the
+ * origin) — wave-face slope is projected onto this to pick glint faces.
+ * Recomputed here so the glints follow sun tweaks in shadowLightConfig. */
+const GLINT_SUN = (() => {
+  const sp = shadowLightConfig.sunPosition;
+  const len = Math.hypot(sp.x, sp.z) || 1;
+  return [ (sp.x / len).toFixed(3), (sp.z / len).toFixed(3) ];
+})();
 
 /**
  * Three-stop toon gradient (dark → mid → white) shared by every toon material.
@@ -89,6 +108,8 @@ waterMaterial.onBeforeCompile = (shader) => {
   shader.vertexShader =
     'uniform float uTime;\n' +
     'varying vec3 vWaterWorld;\n' +
+    'varying float vWaterFlowAmp;\n' +
+    'varying float vWaterUp;\n' +
     'attribute float aWaterPhase;\n' +
     'attribute float aWaterAmp;\n' +
     'attribute vec2 aWaterFlow;\n' +
@@ -104,14 +125,32 @@ waterMaterial.onBeforeCompile = (shader) => {
       `transformed.y += flowWave * aWaterFlowAmp * 0.5;\n` +
       `transformed.y += sin( uTime * ${WATER_RIPPLE_SPEED.toFixed(2)} + aWaterPhase ) * aWaterAmp;\n` +
       // Post-displacement world position drives the fragment chop (below).
-      `vWaterWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;`
+      `vWaterWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;\n` +
+      // Glint gates: river channels mask out via their flow amplitude, and
+      // only near-horizontal top faces may glint (chunk meshes sit at
+      // identity, so object-space normals are world normals — bank walls of
+      // the water prism never flash).
+      `vWaterFlowAmp = aWaterFlowAmp;\n` +
+      `vWaterUp = normal.y;`
     );
   // Chop: three crossed animated sine trains perturb the fragment normal, so
   // the toon ramp renders them as drifting light/dark patches — gentle
   // non-directional ripples on large water bodies (params: terrainParams.js).
+  // The same block computes the sun-glint mask (GLINT_* params): cellular
+  // flecks over a slowly drifting world-space grid that flash to a stark peak
+  // only where the wave slope tilts toward the sun — so glints ride the chop
+  // trains instead of pulsing in place. The mask is applied additively just
+  // before <opaque_fragment>, where outgoingLight exists.
   shader.fragmentShader =
     'uniform float uTime;\n' +
     'varying vec3 vWaterWorld;\n' +
+    'varying float vWaterFlowAmp;\n' +
+    'varying float vWaterUp;\n' +
+    // Deterministic [0,1) hash — same formula family as the JS-side hashes
+    // (buildWaterMesh.js), keeping the look codebase-native.
+    'float glintHash( vec2 p ) {\n' +
+    '  return fract( sin( dot( p, vec2( 127.1, 311.7 ) ) ) * 43758.5453 );\n' +
+    '}\n' +
     shader.fragmentShader.replace(
       '#include <normal_fragment_begin>',
       `#include <normal_fragment_begin>\n` +
@@ -125,22 +164,40 @@ waterMaterial.onBeforeCompile = (shader) => {
       // View-space approximation: water is near-horizontal and toon banding
       // only depends on dot(n, l), so offsetting the normal directly reads
       // correctly without exact frame math.
-      `normal = normalize( normal + chopSlope * ${(WATER_CHOP_STRENGTH * 0.05).toFixed(4)} );`
+      `normal = normalize( normal + chopSlope * ${(WATER_CHOP_STRENGTH * 0.05).toFixed(4)} );\n` +
+      // ── Sun glints (GLINT_* in terrainParams.js) ──
+      `vec2 glintUv = vWaterWorld.xz * ${GLINT_FREQ.toFixed(2)} + uTime * vec2( ${GLINT_DRIFT[0].toFixed(3)}, ${GLINT_DRIFT[1].toFixed(3)} );\n` +
+      `vec2 glintCell = floor( glintUv );\n` +
+      `vec2 glintLocal = fract( glintUv );\n` +
+      `vec2 glintSpot = vec2( glintHash( glintCell + 47.7 ), glintHash( glintCell + 91.3 ) ) * 0.6 + 0.2;\n` +
+      `float glintExists = step( ${(1 - GLINT_DENSITY).toFixed(2)}, glintHash( glintCell + 19.19 ) );\n` +
+      `float glintCrest = sin( uTime * ${GLINT_CYCLE_SPEED.toFixed(2)} + glintHash( glintCell ) * 6.28318 );\n` +
+      `float glintFlash = smoothstep( ${GLINT_ONSET.toFixed(2)}, 0.999, glintCrest );\n` +
+      `float glintFace = step( ${GLINT_MIN_SLOPE.toFixed(2)}, chopSlope.x * ${GLINT_SUN[0]} + chopSlope.z * ${GLINT_SUN[1]} );\n` +
+      `float glintFleck = 1.0 - smoothstep( ${(GLINT_RADIUS * 0.45).toFixed(3)}, ${GLINT_RADIUS.toFixed(3)}, length( glintLocal - glintSpot ) );\n` +
+      `float glintMask = glintExists * glintFlash * glintFace * glintFleck\n` +
+      `  * ( 1.0 - smoothstep( 0.0, 0.02, vWaterFlowAmp ) )\n` +
+      `  * smoothstep( 0.5, 0.9, vWaterUp );`
+    ).replace(
+      '#include <opaque_fragment>',
+      // Peak flash drives the water color to stark white (saturates the add).
+      `outgoingLight += vec3( ${GLINT_COLOR.map(c => c.toFixed(2)).join(', ')} ) * ( glintMask * ${GLINT_BRIGHTNESS.toFixed(2)} );\n` +
+      `#include <opaque_fragment>`
     );
 };
 
 /**
- * Sparkle glints for still water (waterSparkles.js). Small unlit 4-point stars
- * sit just above the water surface: per-instance phase/amplitude attributes
- * (computed in JS with the exact same position hash as the water mesh) bob
- * them in sync with the water beneath, and a per-instance twinkle pulse scales
- * the star around its own center. Unlit so glints read as specular highlights.
+ * Feature-FX star accents (featureFx.js — God's Knot rainbow sparkles, ripe
+ * Peridexion fruit glints, collect bursts). Small unlit stars twinkle via a
+ * per-instance phase attribute that scales the star around its own center.
+ * Unlit so the stars read as self-luminous. (Formerly the water sparkle
+ * material — water glints now live inside waterMaterial as a shader term.)
  */
-export const waterSparkleMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+export const fxStarMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 // Module-level asset shared across chunks — disposal guards skip it (see sceneContext.js).
-waterSparkleMaterial.userData.shared = true;
+fxStarMaterial.userData.shared = true;
 
-waterSparkleMaterial.onBeforeCompile = (shader) => {
+fxStarMaterial.onBeforeCompile = (shader) => {
   shader.uniforms.uTime = waterTimeUniform;
   shader.vertexShader =
     'uniform float uTime;\n' +

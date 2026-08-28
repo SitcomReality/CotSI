@@ -4,7 +4,7 @@ import {
   getChunkEntry, setChunkEntry, forEachChunk,
   getAllTerrainMeshes, countExploredInChunk, disposeChunk
 } from './chunkManager.js';
-import { buildChunkTerrainMesh, buildChunkWaterMesh, buildChunkWaterSparkles } from './terrain/index.js';
+import { buildChunkTerrainMesh, buildChunkWaterMesh } from './terrain/index.js';
 import { buildChunkWorldMeshes } from './worldObjects/worldMeshes.js';
 import { buildUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted } from './units/index.js';
 import { buildChunkFeatureFx, detectCollectedFx, initFeatureFx, disposeFeatureFx } from './worldObjects/featureFx.js';
@@ -135,13 +135,9 @@ export function renderHexMap3D(state, humanView) {
       // Build terrain mesh for this chunk
       const terrain = buildChunkTerrainMesh(chunkTiles, state, visible, explored);
 
-      // Build water mesh for this chunk (water renders on its own material)
+      // Build water mesh for this chunk (water renders on its own material;
+      // sun glints are a shader term inside that material, no extra meshes)
       const water = buildChunkWaterMesh(chunkTiles, state, visible, explored);
-
-      // Sparkle glints for still water (InstancedMesh accent, no ink outline —
-      // added to the features array after addOutlines ran inside
-      // buildChunkWorldMeshes, so it is disposed with the chunk)
-      const sparkles = buildChunkWaterSparkles(chunkTiles, state, visible, explored);
 
       // Build world-object meshes for this chunk. `explored` lets terrain
       // decorations (mountain, hill mound, grove) render on explored tiles
@@ -154,7 +150,7 @@ export function renderHexMap3D(state, humanView) {
       detectCollectedFx(ck, chunkTiles, visible);
       const featureFx = buildChunkFeatureFx(chunkTiles, visible);
 
-      if (terrain || water || sparkles || features.length > 0 || featureFx.length > 0) {
+      if (terrain || water || features.length > 0 || featureFx.length > 0) {
         const group = new THREE.Group();
         group.name = `chunk-${ck}`;
         if (terrain) {
@@ -164,10 +160,6 @@ export function renderHexMap3D(state, humanView) {
         if (water) {
           water.name = `water-${ck}`;
           group.add(water);
-        }
-        if (sparkles) {
-          sparkles.name = `sparkles-${ck}`;
-          features.push(sparkles);
         }
         features.push(...featureFx);
         for (const fm of features) {

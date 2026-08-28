@@ -62,11 +62,14 @@ Notes:
   never the biome palette, and never gets normal decor.
 - **`water`** renders on its own mesh with no corner-blending and no decor;
   lakes are modulated darker (`r·0.7, g·0.85, b·0.9`).
-- Water surfaces ripple via a vertex shader (speed 2.0, amp 0.03) and have
-  occasional sparkle glints (`#d9f2ff`). A fragment-shader **chop** pass
-  (`WATER_CHOP_*` in `terrainParams.js`, applied in `scene/materials.js`)
-  additionally perturbs per-pixel normals with three crossed animated sine
-  trains, so the toon ramp renders them as drifting light/dark patches.
+- Water surfaces ripple via a vertex shader (speed 2.0, amp 0.03). A
+  fragment-shader **chop** pass (`WATER_CHOP_*` in `terrainParams.js`, applied
+  in `scene/materials.js`) perturbs per-pixel normals with three crossed
+  animated sine trains, so the toon ramp renders them as drifting light/dark
+  patches. The same shader adds **sun glints** on still water (`GLINT_*` in
+  `terrainParams.js`): world-space cellular flecks that flash to a stark white
+  peak only where the wave slope tilts toward the sun, so they sweep across
+  the surface with the chop trains (rivers mask out via their flow amplitude).
 - Land side-faces adjacent to water/river are damp-tinted toward
   `#1a476b` (weight 0.55).
 - Terrain **elevation offsets** (Y above the hex base): plains 0, desert 0,

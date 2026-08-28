@@ -6,7 +6,7 @@
  *   - God's Knot (unmined): rainbow sparkle stars hovering around the knot.
  *   - Peridexion Tree (ripe): pale-gold glints near the fruit crown.
  *   - Blessed Font (charged/ripe): soft additive glow ring above the font.
- * All are InstancedMeshes over the waterSparkles star/ring patterns, static
+ * All are InstancedMeshes over the star/ring patterns defined below, static
  * except for the shared uTime uniform — negligible GPU cost.
  *
  * One-shot collect bursts: when a chunk rebuilds and a knot / treasure chest
@@ -22,8 +22,7 @@
  */
 
 import * as THREE from '../../../vendor/three.module.js';
-import { waterSparkleMaterial, fxGlowMaterial } from '../scene/materials.js';
-import { starGeometry } from '../terrain/waterSparkles.js';
+import { fxStarMaterial, fxGlowMaterial } from '../scene/materials.js';
 import { hexCenter } from '../hexWorldSpace.js';
 import { hillFloorY } from './hillFloor.js';
 import { getClock } from '../../../shared/clockScheduler.js';
@@ -41,6 +40,28 @@ function tileHash01(q, r, salt) {
   const s = Math.sin(q * 127.1 + r * 311.7 + salt * 74.7) * 43758.5453;
   return s - Math.floor(s);
 }
+
+/**
+ * 4-point star (two thin crossed diamonds) lying in the XZ plane, unit size,
+ * centered on the origin. Module-level clone source for the FX meshes below —
+ * never added to the scene directly, so it is never disposed.
+ */
+const starGeometry = (() => {
+  const s = 0.5;   // half-length of each arm
+  const t = 0.05;  // half-thickness of each arm
+  const v = [
+    // X arms (2 triangles, CCW from above → +Y winding)
+    0, 0, t,   s, 0, 0,   -s, 0, 0,
+    -s, 0, 0,  s, 0, 0,   0, 0, -t,
+    // Z arms (2 triangles, CCW from above → +Y winding)
+    0, 0, s,   t, 0, 0,   0, 0, -s,
+    0, 0, s,   0, 0, -s,  -t, 0, 0,
+  ];
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(v), 3));
+  geo.computeVertexNormals();
+  return geo;
+})();
 
 /** A feature counts as ripe/charged unless its regrowth lifecycle says otherwise. */
 export function featureRipe(feature) {
@@ -114,14 +135,15 @@ export function collectFeatureFxPoints(chunkTiles, visible, particlesOn, glowsOn
 
 /**
  * Build an InstancedMesh of twinkling stars for a point list. Fresh geometry
- * per mesh (cloned from the shared water-sparkle star) so per-chunk
- * phase attributes never collide; the shared flag survives the clone so
- * chunk disposal skips it.
+ * per mesh (cloned from the module star source) so per-chunk phase attributes
+ * never collide; the clone drops the shared flag so chunk disposal actually
+ * frees it (clones used to inherit shared=true and leaked on every rebuild).
  */
 function buildStarInstances(points, size) {
   if (points.length === 0) return null;
   const geo = starGeometry.clone();
-  const mesh = new THREE.InstancedMesh(geo, waterSparkleMaterial, points.length);
+  geo.userData.shared = false;
+  const mesh = new THREE.InstancedMesh(geo, fxStarMaterial, points.length);
   mesh.name = 'featureFxStars';
   mesh.castShadow = false;
   mesh.receiveShadow = false;
@@ -258,8 +280,8 @@ export function spawnCollectBurst(kind, tile) {
   const geo = isCoin
     ? new THREE.CylinderGeometry(0.09, 0.09, 0.03, 8)
     : starGeometry.clone();
-  const mat = isCoin ? coinBurstMaterial() : burstStarMaterial();
-  const mesh = new THREE.InstancedMesh(geo, mat, count);
+  if (!isCoin) geo.userData.shared = false; // clone is per-burst — let it be disposed
+  const mesh = new THREE.InstancedMesh(geo, isCoin ? coinBurstMaterial() : burstStarMaterial(), count);
   mesh.name = 'featureFxBurst';
   mesh.castShadow = false;
   mesh.frustumCulled = true;

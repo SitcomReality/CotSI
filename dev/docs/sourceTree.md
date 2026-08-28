@@ -280,7 +280,6 @@ AI), and `combat/`.
 | `cornerBlend.js` | Top-face corner color blending (soft biome transitions) |
 | `tileColor.js` | Top-face color resolution (biome palette, lake/river color) |
 | `tileHeight.js` | Ground-level math (tileSurfaceY, tileTopY, ELEVATION) |
-| `waterSparkles.js` | InstancedMesh sparkle glints on still water (GPU twinkle, rides the ripple) |
 
 #### `src/render/hexmap3d/units/` — unit rendering
 

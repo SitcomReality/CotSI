@@ -62,19 +62,31 @@ export const SIDE_WATER_TINT_COLOR = [0.10, 0.28, 0.42];
 export const SIDE_WATER_TINT_WEIGHT = 0.55;
 
 /**
- * Sparkle glints on still water (InstancedMesh accents, see waterSparkles.js).
- * Small unlit stars twinkle above the surface and bob with the same ripple
- * phase/amplitude as the water beneath them.
+ * Twinkle pulse for feature-FX star accents (featureFx.js — knot / fruit
+ * glints via fxStarMaterial). These are deliberate "magic marker" stars on
+ * features, distinct from the water glints below.
  */
-export const SPARKLE_DENSITY = 1.0;
-export const SPARKLE_SIZE = 0.10;
-export const SPARKLE_COLOR = [0.85, 0.95, 1.0];
 export const SPARKLE_TWINKLE_SPEED = 3.0;
 export const SPARKLE_TWINKLE_AMP = 0.45;
-/** Hover height above the water top face — clears the ripple envelope (max
- * displacement WATER_RIPPLE_AMP = 0.03, plus the sparkle's own bob), so glints
- * never clip into the surface. */
-export const SPARKLE_Y_OFFSET = 0.06;
+
+/**
+ * Sun glints on still water — a shader term inside waterMaterial
+ * (materials.js), replacing the old instanced star meshes. Cellular flecks in
+ * world space that flash to a stark white peak only where the chop-perturbed
+ * surface tilts toward the sun, so glints appear on moving wave faces and
+ * sweep across the water with the chop trains instead of pulsing in place.
+ * River channels mask themselves out via their flow amplitude (they shimmer
+ * by flowing instead).
+ */
+export const GLINT_FREQ = 1.5;           // cell grid density (cells per world unit)
+export const GLINT_DENSITY = 0.22;       // fraction of cells that own a glint
+export const GLINT_CYCLE_SPEED = 0.9;    // flash cycle speed (rad/s of the sine envelope)
+export const GLINT_ONSET = 0.86;         // sine level where the flash begins (0..1; higher = rarer/sharper)
+export const GLINT_MIN_SLOPE = 0.75;     // sun-facing wave slope required to flash
+export const GLINT_RADIUS = 0.16;        // fleck radius in cell units
+export const GLINT_DRIFT = [0.06, 0.04]; // slow cell-domain drift (cells/s) — glints travel
+export const GLINT_BRIGHTNESS = 1.8;     // peak additive term — saturates to stark white
+export const GLINT_COLOR = [0.92, 0.97, 1.0]; // slightly cool white at peak
 
 /**
  * Terrain fill colors (RGB 0-1 tuples for vertex color attributes).
