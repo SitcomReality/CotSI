@@ -28,7 +28,9 @@ import {
   WATER_SPEC_SHININESS,
   WATER_SPEC_STRENGTH,
   WATER_SPEC_COLOR,
+  WATER_SPEC_BASE,
   WATER_FRESNEL_POWER,
+  WATER_FRESNEL_BASE,
   WATER_FRESNEL_STRENGTH,
   WATER_SPARKLE_FREQ,
   WATER_SPARKLE_SPEED,
@@ -266,11 +268,13 @@ waterMaterial.onBeforeCompile = (shader) => {
       `vec3 halfDir = normalize( lightDir + viewDir );\n` +
       `float nDotH = max( dot( normal, halfDir ), 0.0 );\n` +
       `float nDotV = max( dot( normal, viewDir ), 0.0 );\n` +
-      `float spec = pow( nDotH, ${WATER_SPEC_SHININESS.toFixed(1)} );\n` +
+      // A BASE floor keeps sparkle alive in soft-water areas; the pow(nDotH)
+      // peak stays as the crisp sun-path highlight on top.
+      `float spec = ${WATER_SPEC_BASE.toFixed(2)} + pow( nDotH, ${WATER_SPEC_SHININESS.toFixed(1)} );\n` +
       `float fresnel = pow( 1.0 - nDotV, ${WATER_FRESNEL_POWER.toFixed(2)} );\n` +
       `float sunFacing = smoothstep( -0.05, 0.35, dot( normal, lightDir ) );\n` +
       `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( vWaterWorld.xz * ${WATER_SPARKLE_FREQ.toFixed(2)} + vec2( uTime * ${WATER_SPARKLE_SPEED.toFixed(2)}, uTime * ${WATER_SPARKLE_SPEED.toFixed(2)} * 0.61 ) ) );\n` +
-      `float glint = spec * sparkle * ( 0.2 + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel ) * sunFacing\n` +
+      `float glint = spec * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel ) * sunFacing\n` +
       `  * ( 1.0 - smoothstep( 0.0, 0.02, vWaterFlowAmp ) )\n` +
       `  * smoothstep( 0.5, 0.9, vWaterUp );`
     ).replace(

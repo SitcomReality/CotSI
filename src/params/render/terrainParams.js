@@ -42,7 +42,7 @@ export const WATER_RIPPLE_COVERAGE = 0.3;
  * frequencies are incommensurate, and a slow BREATHE modulation swells
  * amplitude in patches. Pure per-pixel math; no geometry/draw-call changes.
  */
-export const WATER_CHOP_FREQ_1 = 1.9;    // rad per world unit, train 1
+export const WATER_CHOP_FREQ_1 = 0.9;    // rad per world unit, train 1
 export const WATER_CHOP_DIR_1 = [0.90, 0.35];
 export const WATER_CHOP_FREQ_2 = 2.7;
 export const WATER_CHOP_DIR_2 = [-0.40, 0.85];
@@ -73,7 +73,7 @@ export const WATER_CHOP_BREATHE_STRENGTH = 0.45;
  * center (where there is no water), so it never drops out on the visible
  * near-shore water and the direction reads as the swell, not the fixed chop.
  */
-export const WATER_SHORE_FREQ = 1.4;        // rad per world unit — broad, readable rolls
+export const WATER_SHORE_FREQ = 3.4;        // rad per world unit — broad, readable rolls
 export const WATER_SHORE_SPEED = 1.0;       // travel speed toward the center
 export const WATER_SHORE_AMP = 2.5;         // swell dominance
 export const WATER_SHORE_ISO_SUPPRESS = 0.7; // 0..1 — fade the isotropic chop where the swell dominates
@@ -88,9 +88,9 @@ export const WATER_SHORE_OUTER = 0.18;      // fraction of map radius where the 
  * shared hex edge match — no per-tile seams. The shader brightens this band and
  * flickers it with the swell.
  */
-export const WATER_FROTH_WIDTH = 1.2;       // world units the froth fades over
-export const WATER_FROTH_STRENGTH = 0.55;   // froth brightness
-export const WATER_FROTH_COLOR = [0.82, 0.94, 1.0]; // cool froth
+export const WATER_FROTH_WIDTH = 0.05;       // world units the froth fades over
+export const WATER_FROTH_STRENGTH = 0.1;   // froth brightness
+export const WATER_FROTH_COLOR = [0.82, 0.94, 1]; // cool froth
 
 /** Full river blue for carved channel floors (rendered on the water mesh). */
 export const RIVER_COLOR = [0.176, 0.529, 0.902];
@@ -107,18 +107,25 @@ export const SIDE_WATER_TINT_WEIGHT = 0.55;
 /**
  * Water specular sun glints — a shader term inside waterMaterial (materials.js),
  * replacing the old "glint-fleck disc". A Blinn-Phong highlight is computed
- * from the chop-perturbed fragment normal, so glints appear only on wave faces
+ * from the chop-perturbed fragment normal, so glints appear on wave faces
  * tilting toward the sun, scatter/travel with the chop, gather at grazing
  * (distant) angles via a fresnel term, and are broken into drifting sparkles by
  * a value-noise mask. Rivers mask themselves out via their flow amplitude (they
  * shimmer by flowing instead). Bank walls never glint (vWaterUp gate).
+ *
+ * A BASE floor is added to the specular so glints are never entirely absent in
+ * soft-water areas (the bare pow(nDotH, shininess) lobe is a tight sun+view
+ * "glitter path" that leaves whole regions glimmer-free), and FRESNEL_* blends
+ * the grazing gathering gently so it doesn't starve one side of the map.
  */
 export const WATER_SPEC_SHININESS = 120.0;       // Blinn exponent — higher = tighter, sharper sparkle
 export const WATER_SPEC_STRENGTH = 1.2;         // peak sparkle color contribution
 export const WATER_SPEC_COLOR = [0.93, 0.97, 1.0]; // slightly cool white at peak
+export const WATER_SPEC_BASE = 0.5;             // sparkle floor so soft areas still glimmer (0..1)
 export const WATER_FRESNEL_POWER = 2.4;         // grazing-angle exponent
-export const WATER_FRESNEL_STRENGTH = 5;      // how strongly fresnel biases sparkle toward the distance
-export const WATER_SPARKLE_FREQ = 12.0;          // value-noise sparkle cell density (cells per world unit)
+export const WATER_FRESNEL_BASE = 0.6;          // glint level at steep (near-camera) angles
+export const WATER_FRESNEL_STRENGTH = 2.0;      // how strongly grazing gathers the sparkle
+export const WATER_SPARKLE_FREQ = 12.0;         // value-noise sparkle cell density (cells per world unit)
 export const WATER_SPARKLE_SPEED = 1.6;         // sparkle-domain travel rate (uTime multiplier)
 export const WATER_SPARKLE_ONSET = 0.55;        // value-noise level where a sparkle cell ignites (0..1)
 
