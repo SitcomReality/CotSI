@@ -35,10 +35,12 @@ export const WATER_RIPPLE_COVERAGE = 0.3;
 
 /**
  * Water surface chop (fragment-shader shading animation, see materials.js).
- * Three crossed animated sine trains perturb the water fragment normals, so
- * the toon ramp renders them as drifting light/dark patches — a field of
- * gentle non-directional ripples on large water bodies. Pure per-pixel math;
- * no geometry, draw-call, or attribute changes.
+ * Four sine trains perturb the water fragment normals. To avoid the "perfect
+ * stripes scrolling in one absolute direction" look, the field is sampled at a
+ * DOMAIN-WARPED position (crest lines bend, no straight world-aligned bands),
+ * trains 2 & 4 travel the opposite way (crossing chop, not a single roll), the
+ * frequencies are incommensurate, and a slow BREATHE modulation swells
+ * amplitude in patches. Pure per-pixel math; no geometry/draw-call changes.
  */
 export const WATER_CHOP_FREQ_1 = 1.9;    // rad per world unit, train 1
 export const WATER_CHOP_DIR_1 = [0.90, 0.35];
@@ -46,8 +48,33 @@ export const WATER_CHOP_FREQ_2 = 2.7;
 export const WATER_CHOP_DIR_2 = [-0.40, 0.85];
 export const WATER_CHOP_FREQ_3 = 3.7;
 export const WATER_CHOP_DIR_3 = [0.50, -0.80];
+export const WATER_CHOP_FREQ_4 = 5.6;    // high octave — micro-ripples the specular sparkle rides
+export const WATER_CHOP_DIR_4 = [0.72, 0.61];
 export const WATER_CHOP_SPEED = 1.1;     // phase speed multiplier (uTime)
-export const WATER_CHOP_STRENGTH = 0.35; // normal-perturb strength (view-space)
+export const WATER_CHOP_STRENGTH = 2.0;  // normal-perturb strength (view-space) — smooth water needs this high
+// Domain warp: low-freq value noise offsets where the chop is sampled, bending
+// crest lines so they don't read as a rigid grid of straight stripes. Strength
+// is in world units (about half a hex radius produces a clear bend).
+export const WATER_CHOP_WARP_FREQ = 0.82;     // warp-field scale (per world unit)
+export const WATER_CHOP_WARP_STRENGTH = 1.0;  // warp bend amount (world units)
+// Slow in-place swell modulation (0..1): patches of the surface swell rather
+// than translate as a sheet, breaking the uniform scroll.
+export const WATER_CHOP_BREATHE_STRENGTH = 0.45;
+
+/**
+ * Shore-aligned swell (coast-aware — see buildWaterMesh.js aCoast/aShoreDir).
+ * Near the coast a low-frequency wave train rolls toward the beach: its crest
+ * lines run parallel to the shoreline (the phase gradient follows the shore
+ * normal), blended over the isotropic chop so swells read as rolling in rather
+ * than dappling. Deeper water (aCoast ~ 0) keeps the full chop. A subtle foam
+ * flashes at the waterline where the swell meets the shore.
+ */
+export const WATER_SHORE_FREQ = 1.4;       // rad per world unit — broad, readable rolls
+export const WATER_SHORE_SPEED = 1.0;      // travel speed toward the shore
+export const WATER_SHORE_AMP = 2.2;        // swell dominance near the coast
+export const WATER_SHORE_ISO_SUPPRESS = 0.6; // 0..1 — fade the isotropic chop near the shore
+export const WATER_FOAM_STRENGTH = 0.4;    // waterline flash brightness
+export const WATER_FOAM_COLOR = [0.82, 0.94, 1.0]; // cool froth
 
 /** Full river blue for carved channel floors (rendered on the water mesh). */
 export const RIVER_COLOR = [0.176, 0.529, 0.902];
@@ -62,31 +89,22 @@ export const SIDE_WATER_TINT_COLOR = [0.10, 0.28, 0.42];
 export const SIDE_WATER_TINT_WEIGHT = 0.55;
 
 /**
- * Twinkle pulse for feature-FX star accents (featureFx.js — knot / fruit
- * glints via fxStarMaterial). These are deliberate "magic marker" stars on
- * features, distinct from the water glints below.
+ * Water specular sun glints — a shader term inside waterMaterial (materials.js),
+ * replacing the old "glint-fleck disc". A Blinn-Phong highlight is computed
+ * from the chop-perturbed fragment normal, so glints appear only on wave faces
+ * tilting toward the sun, scatter/travel with the chop, gather at grazing
+ * (distant) angles via a fresnel term, and are broken into drifting sparkles by
+ * a value-noise mask. Rivers mask themselves out via their flow amplitude (they
+ * shimmer by flowing instead). Bank walls never glint (vWaterUp gate).
  */
-export const SPARKLE_TWINKLE_SPEED = 3.0;
-export const SPARKLE_TWINKLE_AMP = 0.45;
-
-/**
- * Sun glints on still water — a shader term inside waterMaterial
- * (materials.js), replacing the old instanced star meshes. Cellular flecks in
- * world space that flash to a stark white peak only where the chop-perturbed
- * surface tilts toward the sun, so glints appear on moving wave faces and
- * sweep across the water with the chop trains instead of pulsing in place.
- * River channels mask themselves out via their flow amplitude (they shimmer
- * by flowing instead).
- */
-export const GLINT_FREQ = 1.5;           // cell grid density (cells per world unit)
-export const GLINT_DENSITY = 0.22;       // fraction of cells that own a glint
-export const GLINT_CYCLE_SPEED = 0.9;    // flash cycle speed (rad/s of the sine envelope)
-export const GLINT_ONSET = 0.86;         // sine level where the flash begins (0..1; higher = rarer/sharper)
-export const GLINT_MIN_SLOPE = 0.75;     // sun-facing wave slope required to flash
-export const GLINT_RADIUS = 0.16;        // fleck radius in cell units
-export const GLINT_DRIFT = [0.06, 0.04]; // slow cell-domain drift (cells/s) — glints travel
-export const GLINT_BRIGHTNESS = 1.8;     // peak additive term — saturates to stark white
-export const GLINT_COLOR = [0.92, 0.97, 1.0]; // slightly cool white at peak
+export const WATER_SPEC_SHININESS = 120.0;       // Blinn exponent — higher = tighter, sharper sparkle
+export const WATER_SPEC_STRENGTH = 1.2;         // peak sparkle color contribution
+export const WATER_SPEC_COLOR = [0.93, 0.97, 1.0]; // slightly cool white at peak
+export const WATER_FRESNEL_POWER = 2.4;         // grazing-angle exponent
+export const WATER_FRESNEL_STRENGTH = 5;      // how strongly fresnel biases sparkle toward the distance
+export const WATER_SPARKLE_FREQ = 12.0;          // value-noise sparkle cell density (cells per world unit)
+export const WATER_SPARKLE_SPEED = 1.6;         // sparkle-domain travel rate (uTime multiplier)
+export const WATER_SPARKLE_ONSET = 0.55;        // value-noise level where a sparkle cell ignites (0..1)
 
 /**
  * Terrain fill colors (RGB 0-1 tuples for vertex color attributes).
@@ -131,3 +149,11 @@ export const TERRAIN_ELEVATION = {
  * Used in hexPicking.js
  */
 export const PICK_TOLERANCE_FRACTION = 0.9;
+
+/**
+ * Twinkle pulse for feature-FX star accents (featureFx.js — knot / fruit
+ * glints via fxStarMaterial). These are deliberate "magic marker" stars on
+ * features, distinct from the water glints above.
+ */
+export const SPARKLE_TWINKLE_SPEED = 3.0;
+export const SPARKLE_TWINKLE_AMP = 0.45;

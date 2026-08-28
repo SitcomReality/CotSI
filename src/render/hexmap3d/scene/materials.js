@@ -10,28 +10,42 @@ import {
   WATER_CHOP_DIR_2,
   WATER_CHOP_FREQ_3,
   WATER_CHOP_DIR_3,
+  WATER_CHOP_FREQ_4,
+  WATER_CHOP_DIR_4,
   WATER_CHOP_SPEED,
   WATER_CHOP_STRENGTH,
-  GLINT_FREQ,
-  GLINT_DENSITY,
-  GLINT_CYCLE_SPEED,
-  GLINT_ONSET,
-  GLINT_MIN_SLOPE,
-  GLINT_RADIUS,
-  GLINT_DRIFT,
-  GLINT_BRIGHTNESS,
-  GLINT_COLOR,
+  WATER_CHOP_WARP_FREQ,
+  WATER_CHOP_WARP_STRENGTH,
+  WATER_CHOP_BREATHE_STRENGTH,
+  WATER_SHORE_FREQ,
+  WATER_SHORE_SPEED,
+  WATER_SHORE_AMP,
+  WATER_SHORE_ISO_SUPPRESS,
+  WATER_FOAM_STRENGTH,
+  WATER_FOAM_COLOR,
+  WATER_SPEC_SHININESS,
+  WATER_SPEC_STRENGTH,
+  WATER_SPEC_COLOR,
+  WATER_FRESNEL_POWER,
+  WATER_FRESNEL_STRENGTH,
+  WATER_SPARKLE_FREQ,
+  WATER_SPARKLE_SPEED,
+  WATER_SPARKLE_ONSET,
   SPARKLE_TWINKLE_SPEED,
   SPARKLE_TWINKLE_AMP,
 } from '../../../params/render/terrainParams.js';
 
-/** Horizontal direction toward the sun (shadowLightConfig aims it at the
- * origin) — wave-face slope is projected onto this to pick glint faces.
- * Recomputed here so the glints follow sun tweaks in shadowLightConfig. */
-const GLINT_SUN = (() => {
+/**
+ * World-space unit direction from the surface toward the sun (the
+ * DirectionalLight targets the origin, so normalize(sunPosition)). The specular
+ * sparkle needs the full 3D direction (not just the horizontal sun, which was
+ * enough for the old flat slope gate), and it's recomputed here so the glints
+ * follow sun tweaks in shadowLightConfig.
+ */
+const WATER_SUN_DIR = (() => {
   const sp = shadowLightConfig.sunPosition;
-  const len = Math.hypot(sp.x, sp.z) || 1;
-  return [ (sp.x / len).toFixed(3), (sp.z / len).toFixed(3) ];
+  const len = Math.hypot(sp.x, sp.y, sp.z) || 1;
+  return [sp.x / len, sp.y / len, sp.z / len];
 })();
 
 /**
@@ -83,19 +97,31 @@ export const terrainMaterial = toonMaterial({
 terrainMaterial.userData.shared = true;
 
 /**
- * Shared water-surface material. Same toon shading as the terrain, but the
- * vertex shader additionally displaces water vertices:
- *   - ripple:   transformed.y += sin(uTime * WATER_RIPPLE_SPEED + aWaterPhase) * aWaterAmp
+ * Shared water-surface material. Unlike the cel terrain (3-band toon), water is
+ * SMOOTH-shaded (MeshPhong) so the per-pixel chop normal field renders as
+ * continuous swells instead of being quantized into a couple of flat cel bands
+ * — the banding is exactly what made a large flat water body read as a rigid
+ * solid. A subtle white sheen (emissive tint) keeps it reading as wet. The
+ * vertex shader displaces only rivers:
  *   - flow:     river channels add waves traveling downstream along aWaterFlow
  *               (unit direction), so the surface never looks still AND rivers
  *               visibly flow toward their mouth.
- * Phase/amplitude come from static per-vertex attributes (buildWaterMesh.js);
- * the frame driver writes the single uTime uniform once per frame. Still water
- * has zero flow/amp attributes, so the flow terms are no-ops for lakes/ocean.
+ *   - ripple:   transformed.y += sin(uTime * WATER_RIPPLE_SPEED + aWaterPhase) * aWaterAmp
+ *               (kept only on rivers; large water tiles carry amp 0).
+ * Large water (lakes/ocean) keeps a perfectly flat top face — buildWaterMesh.js
+ * writes zero amp for water tiles, so the coarse hex fan is never deformed and
+ * won't cast a striated moving shadow. All of its motion is per-pixel: the
+ * chop trains perturb the fragment normal and a Blinn-Phong specular + value-
+ * noise mask adds the sun glints (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*).
+ * The frame driver writes the single uTime uniform once per frame.
  */
-export const waterMaterial = toonMaterial({
+export const waterMaterial = new THREE.MeshPhongMaterial({
   vertexColors: true,
   side: THREE.FrontSide,
+  // No built-in Blinn-Phong specular — the additive sparkle term below owns
+  // the glints, so we control their shape and they don't double up.
+  specular: 0x000000,
+  shininess: 0,
 });
 // Module-level asset shared across chunks — disposal guards skip it (see sceneContext.js).
 waterMaterial.userData.shared = true;
@@ -110,10 +136,14 @@ waterMaterial.onBeforeCompile = (shader) => {
     'varying vec3 vWaterWorld;\n' +
     'varying float vWaterFlowAmp;\n' +
     'varying float vWaterUp;\n' +
+    'varying float vWaterCoast;\n' +
+    'varying vec2 vWaterShore;\n' +
     'attribute float aWaterPhase;\n' +
     'attribute float aWaterAmp;\n' +
     'attribute vec2 aWaterFlow;\n' +
     'attribute float aWaterFlowAmp;\n' +
+    'attribute float aCoast;\n' +
+    'attribute vec2 aShoreDir;\n' +
     shader.vertexShader.replace(
       '#include <begin_vertex>',
       `#include <begin_vertex>\n` +
@@ -131,57 +161,106 @@ waterMaterial.onBeforeCompile = (shader) => {
       // identity, so object-space normals are world normals — bank walls of
       // the water prism never flash).
       `vWaterFlowAmp = aWaterFlowAmp;\n` +
-      `vWaterUp = normal.y;`
+      `vWaterUp = normal.y;\n` +
+      `vWaterCoast = aCoast;\n` +
+      `vWaterShore = aShoreDir;`
     );
-  // Chop: three crossed animated sine trains perturb the fragment normal, so
-  // the toon ramp renders them as drifting light/dark patches — gentle
-  // non-directional ripples on large water bodies (params: terrainParams.js).
-  // The same block computes the sun-glint mask (GLINT_* params): cellular
-  // flecks over a slowly drifting world-space grid that flash to a stark peak
-  // only where the wave slope tilts toward the sun — so glints ride the chop
-  // trains instead of pulsing in place. The mask is applied additively just
-  // before <opaque_fragment>, where outgoingLight exists.
+  // Chop: four crossing sine trains, sampled at a domain-warped position and
+  // breathing in slow patches, perturb the fragment normal so the smooth (Phong)
+  // shading renders them as organic swells (params: terrainParams.js). The same
+  // block computes the sun glint (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*):
+  // a Blinn-Phong highlight from the chopped normal, gathered at grazing angles
+  // by a fresnel term, and broken into drifting sparkles by a value-noise mask —
+  // so glints ride the chop instead of sitting as flat discs. The mask is applied
+  // additively just before <opaque_fragment>, where outgoingLight exists.
+  const sunX = WATER_SUN_DIR[0].toFixed(4);
+  const sunY = WATER_SUN_DIR[1].toFixed(4);
+  const sunZ = WATER_SUN_DIR[2].toFixed(4);
+  const specColor = WATER_SPEC_COLOR.map(c => c.toFixed(2)).join(', ');
+  const foamColor = WATER_FOAM_COLOR.map(c => c.toFixed(2)).join(', ');
+  const chopStrength = (WATER_CHOP_STRENGTH * 0.05).toFixed(4);
   shader.fragmentShader =
     'uniform float uTime;\n' +
     'varying vec3 vWaterWorld;\n' +
     'varying float vWaterFlowAmp;\n' +
     'varying float vWaterUp;\n' +
+    'varying float vWaterCoast;\n' +
+    'varying vec2 vWaterShore;\n' +
     // Deterministic [0,1) hash — same formula family as the JS-side hashes
     // (buildWaterMesh.js), keeping the look codebase-native.
     'float glintHash( vec2 p ) {\n' +
     '  return fract( sin( dot( p, vec2( 127.1, 311.7 ) ) ) * 43758.5453 );\n' +
     '}\n' +
+    // Smooth value noise (bilinear interpolation of glintHash) — used to break
+    // the specular highlight into drifting sparkle cells without per-pixel hash
+    // shimmer (which would alias).
+    'float waterValueNoise( vec2 p ) {\n' +
+    '  vec2 i = floor( p );\n' +
+    '  vec2 f = fract( p );\n' +
+    '  vec2 u = f * f * ( 3.0 - 2.0 * f );\n' +
+    '  return mix( mix( glintHash( i ), glintHash( i + vec2( 1.0, 0.0 ) ), u.x ),\n' +
+    '              mix( glintHash( i + vec2( 0.0, 1.0 ) ), glintHash( i + vec2( 1.0, 1.0 ) ), u.x ), u.y );\n' +
+    '}\n' +
     shader.fragmentShader.replace(
       '#include <normal_fragment_begin>',
       `#include <normal_fragment_begin>\n` +
-      `float chopC1 = dot( vWaterWorld.xz, vec2( ${WATER_CHOP_DIR_1[0].toFixed(2)}, ${WATER_CHOP_DIR_1[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_1.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.00;\n` +
-      `float chopC2 = dot( vWaterWorld.xz, vec2( ${WATER_CHOP_DIR_2[0].toFixed(2)}, ${WATER_CHOP_DIR_2[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_2.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.35;\n` +
-      `float chopC3 = dot( vWaterWorld.xz, vec2( ${WATER_CHOP_DIR_3[0].toFixed(2)}, ${WATER_CHOP_DIR_3[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_3.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 0.80;\n` +
+      // ── Swell chop (domain-warped, crossing, in-place breathing) ──
+      // Sample a domain-warped position so crest lines bend — no rigid, straight,
+      // world-aligned stripes. Train 2 & 4 travel the opposite way so the chop
+      // crosses rather than rolls one absolute direction, the freqs are
+      // incommensurate so the field never repeats cleanly, and a slow BREATHE
+      // swells amplitude in patches (WATER_CHOP_* in terrainParams.js).
+      `vec2 wPos = vWaterWorld.xz;\n` +
+      `vec2 wF = wPos * ${WATER_CHOP_WARP_FREQ.toFixed(3)} + uTime * 0.045;\n` +
+      `vec2 wWarp = ( vec2( waterValueNoise( wF ), waterValueNoise( wF + vec2( 37.7, 91.3 ) ) ) - 0.5 ) * ${WATER_CHOP_WARP_STRENGTH.toFixed(3)};\n` +
+      `vec2 wWave = wPos + wWarp;\n` +
+      `float chopC1 = dot( wWave, vec2( ${WATER_CHOP_DIR_1[0].toFixed(2)}, ${WATER_CHOP_DIR_1[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_1.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.00;\n` +
+      `float chopC2 = dot( wWave, vec2( ${WATER_CHOP_DIR_2[0].toFixed(2)}, ${WATER_CHOP_DIR_2[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_2.toFixed(2)} - uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.35;\n` +
+      `float chopC3 = dot( wWave, vec2( ${WATER_CHOP_DIR_3[0].toFixed(2)}, ${WATER_CHOP_DIR_3[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_3.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 0.80;\n` +
+      `float chopC4 = dot( wWave, vec2( ${WATER_CHOP_DIR_4[0].toFixed(2)}, ${WATER_CHOP_DIR_4[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_4.toFixed(2)} - uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.10;\n` +
+      `float wBreathe = 1.0 - ${WATER_CHOP_BREATHE_STRENGTH.toFixed(3)} * ( 0.5 + 0.5 * waterValueNoise( wPos * 0.12 + uTime * 0.08 ) );\n` +
+      // ── Shore-aligned swell (coast-aware) ──
+      // Near the coast a low-frequency train rolls toward the beach: its crest
+      // lines run parallel to the shoreline (phase gradient along the shore
+      // normal aShoreDir) and it dominates the local chop (ISO_SUPPRESS), so
+      // waves read as coming in off the sea rather than dappling. Open water
+      // (vWaterCoast ~ 0) keeps the full isotropic chop.
+      `float shoreW = dot( wWave, vWaterShore ) * ${WATER_SHORE_FREQ.toFixed(2)} - uTime * ${WATER_SHORE_SPEED.toFixed(2)};\n` +
+      `vec2 shoreSlope = cos( shoreW ) * ${WATER_SHORE_FREQ.toFixed(2)} * vWaterShore;\n` +
       `vec3 chopSlope = vec3(\n` +
-      `  cos( chopC1 ) * ${(WATER_CHOP_DIR_1[0] * WATER_CHOP_FREQ_1).toFixed(3)} + cos( chopC2 ) * ${(WATER_CHOP_DIR_2[0] * WATER_CHOP_FREQ_2).toFixed(3)} + cos( chopC3 ) * ${(WATER_CHOP_DIR_3[0] * WATER_CHOP_FREQ_3).toFixed(3)},\n` +
+      `  ( ( cos( chopC1 ) * ${(WATER_CHOP_DIR_1[0] * WATER_CHOP_FREQ_1).toFixed(3)} + cos( chopC2 ) * ${(WATER_CHOP_DIR_2[0] * WATER_CHOP_FREQ_2).toFixed(3)} + cos( chopC3 ) * ${(WATER_CHOP_DIR_3[0] * WATER_CHOP_FREQ_3).toFixed(3)} + cos( chopC4 ) * ${(WATER_CHOP_DIR_4[0] * WATER_CHOP_FREQ_4).toFixed(3)} ) * wBreathe ) * ( 1.0 - ${WATER_SHORE_ISO_SUPPRESS.toFixed(2)} * vWaterCoast ) + vWaterCoast * ${WATER_SHORE_AMP.toFixed(2)} * shoreSlope.x,\n` +
       `  0.0,\n` +
-      `  cos( chopC1 ) * ${(WATER_CHOP_DIR_1[1] * WATER_CHOP_FREQ_1).toFixed(3)} + cos( chopC2 ) * ${(WATER_CHOP_DIR_2[1] * WATER_CHOP_FREQ_2).toFixed(3)} + cos( chopC3 ) * ${(WATER_CHOP_DIR_3[1] * WATER_CHOP_FREQ_3).toFixed(3)} );\n` +
-      // View-space approximation: water is near-horizontal and toon banding
-      // only depends on dot(n, l), so offsetting the normal directly reads
-      // correctly without exact frame math.
-      `normal = normalize( normal + chopSlope * ${(WATER_CHOP_STRENGTH * 0.05).toFixed(4)} );\n` +
-      // ── Sun glints (GLINT_* in terrainParams.js) ──
-      `vec2 glintUv = vWaterWorld.xz * ${GLINT_FREQ.toFixed(2)} + uTime * vec2( ${GLINT_DRIFT[0].toFixed(3)}, ${GLINT_DRIFT[1].toFixed(3)} );\n` +
-      `vec2 glintCell = floor( glintUv );\n` +
-      `vec2 glintLocal = fract( glintUv );\n` +
-      `vec2 glintSpot = vec2( glintHash( glintCell + 47.7 ), glintHash( glintCell + 91.3 ) ) * 0.6 + 0.2;\n` +
-      `float glintExists = step( ${(1 - GLINT_DENSITY).toFixed(2)}, glintHash( glintCell + 19.19 ) );\n` +
-      `float glintCrest = sin( uTime * ${GLINT_CYCLE_SPEED.toFixed(2)} + glintHash( glintCell ) * 6.28318 );\n` +
-      `float glintFlash = smoothstep( ${GLINT_ONSET.toFixed(2)}, 0.999, glintCrest );\n` +
-      `float glintFace = step( ${GLINT_MIN_SLOPE.toFixed(2)}, chopSlope.x * ${GLINT_SUN[0]} + chopSlope.z * ${GLINT_SUN[1]} );\n` +
-      `float glintFleck = 1.0 - smoothstep( ${(GLINT_RADIUS * 0.45).toFixed(3)}, ${GLINT_RADIUS.toFixed(3)}, length( glintLocal - glintSpot ) );\n` +
-      `float glintMask = glintExists * glintFlash * glintFace * glintFleck\n` +
+      `  ( ( cos( chopC1 ) * ${(WATER_CHOP_DIR_1[1] * WATER_CHOP_FREQ_1).toFixed(3)} + cos( chopC2 ) * ${(WATER_CHOP_DIR_2[1] * WATER_CHOP_FREQ_2).toFixed(3)} + cos( chopC3 ) * ${(WATER_CHOP_DIR_3[1] * WATER_CHOP_FREQ_3).toFixed(3)} + cos( chopC4 ) * ${(WATER_CHOP_DIR_4[1] * WATER_CHOP_FREQ_4).toFixed(3)} ) * wBreathe ) * ( 1.0 - ${WATER_SHORE_ISO_SUPPRESS.toFixed(2)} * vWaterCoast ) + vWaterCoast * ${WATER_SHORE_AMP.toFixed(2)} * shoreSlope.y );\n` +
+      // View-space approximation: water is near-horizontal and the Lambert
+      // diffuse only depends on dot(n, l), so offsetting the normal directly
+      // reads correctly without exact frame math.
+      `normal = normalize( normal + chopSlope * ${chopStrength} );\n` +
+      // ── Specular sun glints (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*) ──
+      // Blinn-Phong highlight from the chopped normal: glints appear only on
+      // wave faces tilting toward the sun, scatter with the chop, gather at
+      // grazing (distant) angles, and are broken into drifting sparkles by a
+      // value-noise mask. Rivers mask themselves out via their flow amplitude
+      // (they shimmer by flowing instead); bank walls never glint (vWaterUp).
+      `vec3 lightDir = normalize( ( viewMatrix * vec4( vec3( ${sunX}, ${sunY}, ${sunZ} ), 0.0 ) ).xyz );\n` +
+      `vec3 viewDir = normalize( vViewPosition );\n` +
+      `vec3 halfDir = normalize( lightDir + viewDir );\n` +
+      `float nDotH = max( dot( normal, halfDir ), 0.0 );\n` +
+      `float nDotV = max( dot( normal, viewDir ), 0.0 );\n` +
+      `float spec = pow( nDotH, ${WATER_SPEC_SHININESS.toFixed(1)} );\n` +
+      `float fresnel = pow( 1.0 - nDotV, ${WATER_FRESNEL_POWER.toFixed(2)} );\n` +
+      `float sunFacing = smoothstep( -0.05, 0.35, dot( normal, lightDir ) );\n` +
+      `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( vWaterWorld.xz * ${WATER_SPARKLE_FREQ.toFixed(2)} + vec2( uTime * ${WATER_SPARKLE_SPEED.toFixed(2)}, uTime * ${WATER_SPARKLE_SPEED.toFixed(2)} * 0.61 ) ) );\n` +
+      `float glint = spec * sparkle * ( 0.2 + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel ) * sunFacing\n` +
       `  * ( 1.0 - smoothstep( 0.0, 0.02, vWaterFlowAmp ) )\n` +
       `  * smoothstep( 0.5, 0.9, vWaterUp );`
     ).replace(
       '#include <opaque_fragment>',
-      // Peak flash drives the water color to stark white (saturates the add).
-      `outgoingLight += vec3( ${GLINT_COLOR.map(c => c.toFixed(2)).join(', ')} ) * ( glintMask * ${GLINT_BRIGHTNESS.toFixed(2)} );\n` +
+      // Sparkle on top of the smooth-shaded water: saturates to a cool white
+      // where a wave face tilts into the sun.
+      `outgoingLight += vec3( ${specColor} ) * ( glint * ${WATER_SPEC_STRENGTH.toFixed(2)} );\n` +
+      // Waterline foam: a subtle froth flashes along the coast, brightest at the
+      // immediate shoreline tile (pow(coast,3)) and flickering with the swell.
+      `outgoingLight += vec3( ${foamColor} ) * ( pow( vWaterCoast, 3.0 ) * ${WATER_FOAM_STRENGTH.toFixed(2)} * ( 0.5 + 0.5 * sin( shoreW * 1.2 + vWaterWorld.x * 0.7 + vWaterWorld.z * 0.5 ) ) );\n` +
       `#include <opaque_fragment>`
     );
 };
