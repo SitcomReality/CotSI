@@ -1,7 +1,8 @@
 import * as THREE from '../../../vendor/three.module.js';
 import { waterMaterial } from '../scene/materials.js';
-import { hexCenter, hexCornersXZ } from '../hexWorldSpace.js';
-import { HEX_THICKNESS, SIDE_DARKEN_FACTOR, WATER_RIPPLE_AMP, WATER_RIPPLE_COVERAGE, WATER_FLOW_AMP } from '../../../params/render/terrainParams.js';
+import { hexCenter, hexCornersXZ, HEX_RADIUS } from '../hexWorldSpace.js';
+import { neighbors, coordKey } from '../../../engine/rules/hexGrid.js';
+import { HEX_THICKNESS, SIDE_DARKEN_FACTOR, WATER_RIPPLE_AMP, WATER_RIPPLE_COVERAGE, WATER_FLOW_AMP, WATER_FROTH_WIDTH } from '../../../params/render/terrainParams.js';
 import { ELEVATION, resolveElev } from './tileHeight.js';
 import { makeTopColorResolver } from './tileColor.js';
 
@@ -13,6 +14,54 @@ import { makeTopColorResolver } from './tileColor.js';
 // downstream flow vector per vertex that the shader turns into traveling
 // waves; still water gets zero flow.
 const VERTICES_PER_HEX = 54;
+
+/** Smooth 0→1 hermite ramp over `t` (clamped to [0,1]). */
+function smooth01(t) {
+  const x = t < 0 ? 0 : t > 1 ? 1 : t;
+  return x * x * (3 - 2 * x);
+}
+
+/** True for land (anything not liquid water) — used for the waterline froth. */
+function isLandTile(t) {
+  return t.terrain !== 'water' && t.terrain !== 'river';
+}
+
+/**
+ * Seamless waterline froth at world (x, z): 1 flush against the nearest land
+ * surface, fading to 0 over WATER_FROTH_WIDTH world units. Land is searched
+ * within 2 rings of the owning tile. Because it is a function of world position
+ * (land tile center distance), coincident vertices across a shared hex edge
+ * match, so adjacent tiles stay seamless.
+ */
+function waterlineFroth(x, z, tile, state) {
+  let best = Infinity;
+  const ring = neighbors({ q: tile.q, r: tile.r });
+  for (const nb of ring) {
+    const t = state.tiles[coordKey(nb)];
+    if (t && isLandTile(t)) {
+      const c = hexCenter(nb.q, nb.r);
+      const d = Math.hypot(c.x - x, c.z - z);
+      if (d < best) best = d;
+    }
+  }
+  if (best === Infinity) {
+    for (const nb of ring) {
+      const t = state.tiles[coordKey(nb)];
+      if (!t) continue;
+      for (const nb2 of neighbors({ q: nb.q, r: nb.r })) {
+        const t2 = state.tiles[coordKey(nb2)];
+        if (t2 && isLandTile(t2)) {
+          const c = hexCenter(nb2.q, nb2.r);
+          const d = Math.hypot(c.x - x, c.z - z);
+          if (d < best) best = d;
+        }
+      }
+    }
+  }
+  if (best === Infinity) return 0;
+  const surfaceDist = Math.max(0, best - HEX_RADIUS);
+  return 1 - smooth01(surfaceDist / WATER_FROTH_WIDTH);
+}
 
 /**
  * Deterministic [0,1) hash of a world-space (x, z) position. Phase/amplitude
@@ -43,7 +92,7 @@ export function ampAt(x, z) {
  * index `vi` (vertices; positions/colors are 3 floats each, phases/amps and
  * flowAmps 1 float each, flowXZ 2 floats per vertex). Returns the new index.
  */
-function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, vi, tile, topColor) {
+function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi, tile, state, topColor) {
   const elev = resolveElev(tile, ELEVATION);
   const sideColor = topColor.map(c => c * SIDE_DARKEN_FACTOR);
 
@@ -81,9 +130,9 @@ function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, vi
   for (let i = 0; i < 6; i++) {
     const c0 = corners[i];
     const c1 = corners[(i + 1) % 6];
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi,     cx,  topY, cz,  topColor, cx,  cz,  flowX, flowZ, flowAmp, ampScale);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi + 1, c1.x, topY, c1.z, topColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi + 2, c0.x, topY, c0.z, topColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi,     cx,  topY, cz,  topColor, cx,  cz,  flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi + 1, c1.x, topY, c1.z, topColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi + 2, c0.x, topY, c0.z, topColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
     vi += 3;
   }
 
@@ -93,19 +142,19 @@ function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, vi
   for (let i = 0; i < 6; i++) {
     const c0 = corners[i];
     const c1 = corners[(i + 1) % 6];
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi,     c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi + 1, c0.x, topY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi + 2, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi + 3, c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi + 4, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi + 5, c1.x, botY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi,     c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi + 1, c0.x, topY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi + 2, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi + 3, c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi + 4, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi + 5, c1.x, botY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
     vi += 6;
   }
 
   return vi;
 }
 
-function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi, x, y, z, color, hx, hz, flowX, flowZ, flowAmp, ampScale = 1) {
+function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi, x, y, z, color, hx, hz, flowX, flowZ, flowAmp, ampScale = 1, tile = null, state = null) {
   const i3 = vi * 3;
   positions[i3]     = x;
   positions[i3 + 1] = y;
@@ -119,6 +168,9 @@ function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, vi, x, y, 
   flowXZ[i2]        = flowX;
   flowXZ[i2 + 1]    = flowZ;
   flowAmps[vi]      = flowAmp;
+  // Waterline froth (rivers have none). Computed at the vertex's world XZ so
+  // coincident vertices across a shared hex edge match — seamless by position.
+  froths[vi]        = (tile && tile.terrain === 'river') ? 0 : waterlineFroth(hx, hz, tile, state);
 }
 
 /**
@@ -148,11 +200,12 @@ export function buildChunkWaterMesh(chunkTiles, state, visible, explored) {
   const amps = new Float32Array(tileCount * VERTICES_PER_HEX);
   const flowXZ = new Float32Array(tileCount * VERTICES_PER_HEX * 2);
   const flowAmps = new Float32Array(tileCount * VERTICES_PER_HEX);
+  const froths = new Float32Array(tileCount * VERTICES_PER_HEX);
   const topColorFor = makeTopColorResolver(state);
 
   let vi = 0;
   for (const tile of waterTiles) {
-    vi = writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, vi, tile, topColorFor(tile));
+    vi = writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, froths, vi, tile, state, topColorFor(tile));
   }
 
   const geo = new THREE.BufferGeometry();
@@ -162,6 +215,7 @@ export function buildChunkWaterMesh(chunkTiles, state, visible, explored) {
   geo.setAttribute('aWaterAmp', new THREE.BufferAttribute(amps, 1));
   geo.setAttribute('aWaterFlow', new THREE.BufferAttribute(flowXZ, 2));
   geo.setAttribute('aWaterFlowAmp', new THREE.BufferAttribute(flowAmps, 1));
+  geo.setAttribute('aWaterline', new THREE.BufferAttribute(froths, 1));
   geo.computeVertexNormals();
   geo.computeBoundingSphere();
 

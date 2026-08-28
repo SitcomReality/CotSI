@@ -68,16 +68,29 @@ export const WATER_CHOP_BREATHE_STRENGTH = 0.45;
  * direction and it dominates the local chop (ISO_SUPPRESS fades the isotropic
  * dapple). Because the direction is a continuous function of world position
  * (toward the map center), adjacent tiles are seamless — the only "turn" is the
- * smooth rotation near the map corners. The shoreline factor is a smooth ramp
- * on distance-from-center (INNER..OUTER as a fraction of the map radius), so
- * peripheral ocean rolls inward while any central lakes keep the isotropic chop.
+ * smooth rotation near the map corners. The swell is active across essentially
+ * ALL broken water: INNER..OUTER is only a tiny guard band near the exact
+ * center (where there is no water), so it never drops out on the visible
+ * near-shore water and the direction reads as the swell, not the fixed chop.
  */
 export const WATER_SHORE_FREQ = 1.4;        // rad per world unit — broad, readable rolls
 export const WATER_SHORE_SPEED = 1.0;       // travel speed toward the center
-export const WATER_SHORE_AMP = 2.2;         // swell dominance
-export const WATER_SHORE_ISO_SUPPRESS = 0.6; // 0..1 — fade the isotropic chop where the swell dominates
-export const WATER_SHORE_INNER = 0.45;      // fraction of map radius where the swell starts fading in
-export const WATER_SHORE_OUTER = 0.8;       // fraction of map radius where the swell is fully dominant
+export const WATER_SHORE_AMP = 2.5;         // swell dominance
+export const WATER_SHORE_ISO_SUPPRESS = 0.7; // 0..1 — fade the isotropic chop where the swell dominates
+export const WATER_SHORE_INNER = 0.05;      // fraction of map radius where the fade-in guard starts
+export const WATER_SHORE_OUTER = 0.18;      // fraction of map radius where the swell is fully dominant
+
+/**
+ * Seamless waterline froth (buildWaterMesh.js aWaterline). A 0..1 per-vertex
+ * value driven by the distance to the nearest land surface, so a thin froth
+ * band hugs the waterline and fades over WATER_FROTH_WIDTH world units. Because
+ * it is computed at each vertex's world position, coincident vertices across a
+ * shared hex edge match — no per-tile seams. The shader brightens this band and
+ * flickers it with the swell.
+ */
+export const WATER_FROTH_WIDTH = 1.2;       // world units the froth fades over
+export const WATER_FROTH_STRENGTH = 0.55;   // froth brightness
+export const WATER_FROTH_COLOR = [0.82, 0.94, 1.0]; // cool froth
 
 /** Full river blue for carved channel floors (rendered on the water mesh). */
 export const RIVER_COLOR = [0.176, 0.529, 0.902];

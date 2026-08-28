@@ -23,6 +23,8 @@ import {
   WATER_SHORE_ISO_SUPPRESS,
   WATER_SHORE_INNER,
   WATER_SHORE_OUTER,
+  WATER_FROTH_STRENGTH,
+  WATER_FROTH_COLOR,
   WATER_SPEC_SHININESS,
   WATER_SPEC_STRENGTH,
   WATER_SPEC_COLOR,
@@ -149,10 +151,12 @@ waterMaterial.onBeforeCompile = (shader) => {
     'varying vec3 vWaterWorld;\n' +
     'varying float vWaterFlowAmp;\n' +
     'varying float vWaterUp;\n' +
+    'varying float vWaterFroth;\n' +
     'attribute float aWaterPhase;\n' +
     'attribute float aWaterAmp;\n' +
     'attribute vec2 aWaterFlow;\n' +
     'attribute float aWaterFlowAmp;\n' +
+    'attribute float aWaterline;\n' +
     shader.vertexShader.replace(
       '#include <begin_vertex>',
       `#include <begin_vertex>\n` +
@@ -170,7 +174,8 @@ waterMaterial.onBeforeCompile = (shader) => {
       // identity, so object-space normals are world normals — bank walls of
       // the water prism never flash).
       `vWaterFlowAmp = aWaterFlowAmp;\n` +
-      `vWaterUp = normal.y;`
+      `vWaterUp = normal.y;\n` +
+      `vWaterFroth = aWaterline;`
     );
   // Chop: four crossing sine trains, sampled at a domain-warped position and
   // breathing in slow patches, perturb the fragment normal so the smooth (Phong)
@@ -184,6 +189,7 @@ waterMaterial.onBeforeCompile = (shader) => {
   const sunY = WATER_SUN_DIR[1].toFixed(4);
   const sunZ = WATER_SUN_DIR[2].toFixed(4);
   const specColor = WATER_SPEC_COLOR.map(c => c.toFixed(2)).join(', ');
+  const frothColor = WATER_FROTH_COLOR.map(c => c.toFixed(2)).join(', ');
   const chopStrength = (WATER_CHOP_STRENGTH * 0.05).toFixed(4);
   shader.fragmentShader =
     'uniform float uTime;\n' +
@@ -192,6 +198,7 @@ waterMaterial.onBeforeCompile = (shader) => {
     'varying vec3 vWaterWorld;\n' +
     'varying float vWaterFlowAmp;\n' +
     'varying float vWaterUp;\n' +
+    'varying float vWaterFroth;\n' +
     // Deterministic [0,1) hash — same formula family as the JS-side hashes
     // (buildWaterMesh.js), keeping the look codebase-native.
     'float glintHash( vec2 p ) {\n' +
@@ -271,6 +278,9 @@ waterMaterial.onBeforeCompile = (shader) => {
       // Sparkle on top of the smooth-shaded water: saturates to a cool white
       // where a wave face tilts into the sun.
       `outgoingLight += vec3( ${specColor} ) * ( glint * ${WATER_SPEC_STRENGTH.toFixed(2)} );\n` +
+      // Waterline froth: a continuous 0..1 band hugging the coast (aWaterline),
+      // brightened and flickered with the swell so it reads as breaking foam.
+      `outgoingLight += vec3( ${frothColor} ) * ( vWaterFroth * ${WATER_FROTH_STRENGTH.toFixed(2)} * ( 0.6 + 0.4 * sin( shoreW * 1.3 + vWaterWorld.x * 0.5 + vWaterWorld.z * 0.4 ) ) );\n` +
       `#include <opaque_fragment>`
     );
 };
