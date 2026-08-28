@@ -24,7 +24,16 @@ import {
  * the inked ramp intends them.
  */
 export const toonGradientMap = (() => {
-  const tex = new THREE.DataTexture(new Uint8Array([0, 128, 255]), 3, 1, THREE.RedFormat);
+  // RGBAFormat is required for sRGB color space in WebGL2.  Four-channel
+  // dupe: every pixel is (stop, stop, stop, 255) so MeshToonMaterial's
+  // red-channel-only gradient read produces the same stops.
+  const stops = [0, 128, 255];
+  const data = new Uint8Array(stops.length * 4);
+  for (let i = 0; i < stops.length; i++) {
+    data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = stops[i];
+    data[i * 4 + 3] = 255;
+  }
+  const tex = new THREE.DataTexture(data, 3, 1, THREE.RGBAFormat);
   tex.minFilter = THREE.NearestFilter;
   tex.magFilter = THREE.NearestFilter;
   tex.generateMipmaps = false;
