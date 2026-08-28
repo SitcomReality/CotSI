@@ -62,19 +62,22 @@ export const WATER_CHOP_WARP_STRENGTH = 1.0;  // warp bend amount (world units)
 export const WATER_CHOP_BREATHE_STRENGTH = 0.45;
 
 /**
- * Shore-aligned swell (coast-aware — see buildWaterMesh.js aCoast/aShoreDir).
- * Near the coast a low-frequency wave train rolls toward the beach: its crest
- * lines run parallel to the shoreline (the phase gradient follows the shore
- * normal), blended over the isotropic chop so swells read as rolling in rather
- * than dappling. Deeper water (aCoast ~ 0) keeps the full chop. A subtle foam
- * flashes at the waterline where the swell meets the shore.
+ * Swell that rolls toward the map center (the seamless coast-aligned model).
+ * Broken water always hugs the map edge, so a low-frequency wave train rolls
+ * toward the map center: its crest lines run perpendicular to that radial
+ * direction and it dominates the local chop (ISO_SUPPRESS fades the isotropic
+ * dapple). Because the direction is a continuous function of world position
+ * (toward the map center), adjacent tiles are seamless — the only "turn" is the
+ * smooth rotation near the map corners. The shoreline factor is a smooth ramp
+ * on distance-from-center (INNER..OUTER as a fraction of the map radius), so
+ * peripheral ocean rolls inward while any central lakes keep the isotropic chop.
  */
-export const WATER_SHORE_FREQ = 1.4;       // rad per world unit — broad, readable rolls
-export const WATER_SHORE_SPEED = 1.0;      // travel speed toward the shore
-export const WATER_SHORE_AMP = 2.2;        // swell dominance near the coast
-export const WATER_SHORE_ISO_SUPPRESS = 0.6; // 0..1 — fade the isotropic chop near the shore
-export const WATER_FOAM_STRENGTH = 0.4;    // waterline flash brightness
-export const WATER_FOAM_COLOR = [0.82, 0.94, 1.0]; // cool froth
+export const WATER_SHORE_FREQ = 1.4;        // rad per world unit — broad, readable rolls
+export const WATER_SHORE_SPEED = 1.0;       // travel speed toward the center
+export const WATER_SHORE_AMP = 2.2;         // swell dominance
+export const WATER_SHORE_ISO_SUPPRESS = 0.6; // 0..1 — fade the isotropic chop where the swell dominates
+export const WATER_SHORE_INNER = 0.45;      // fraction of map radius where the swell starts fading in
+export const WATER_SHORE_OUTER = 0.8;       // fraction of map radius where the swell is fully dominant
 
 /** Full river blue for carved channel floors (rendered on the water mesh). */
 export const RIVER_COLOR = [0.176, 0.529, 0.902];

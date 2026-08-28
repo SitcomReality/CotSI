@@ -5,6 +5,7 @@
  * Per-refresh rendering lives in mapRefresh.js; shared camera-focus in mapCamera.js.
  */
 import { initHexMap3D, setupMapInteraction3D, fitCameraToMap } from '../render/hexmap3d/hexMapRenderer.js';
+import { waterCenterUniform, waterRadiusUniform } from '../render/hexmap3d/scene/materials.js';
 import { onHexClick } from './hexBridge.js';
 import { getTooltipContent } from '../ui/mapTooltip.js';
 import { refreshZoomDisplay } from './zoomDisplay.js';
@@ -29,6 +30,12 @@ export function initMap3D(mountEl, gameState) {
 
     // Auto-fit camera to the sight-disc view so the zoom range is set
     if (gameState.radius) {
+      // Water swell rolls toward the map center (always world origin). Set the
+      // radial field: center at (0,0) and an outer world radius derived from the
+      // map's hex radius (boundary tile centers sit ~sqrt(3)·radius away).
+      waterCenterUniform.value.set(0, 0);
+      waterRadiusUniform.value = Math.sqrt(3) * gameState.radius;
+
       fitCameraToMap(ctx.getCameraState());
       ctx.applyCamera();
     }

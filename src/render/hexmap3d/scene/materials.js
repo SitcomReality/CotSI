@@ -21,8 +21,8 @@ import {
   WATER_SHORE_SPEED,
   WATER_SHORE_AMP,
   WATER_SHORE_ISO_SUPPRESS,
-  WATER_FOAM_STRENGTH,
-  WATER_FOAM_COLOR,
+  WATER_SHORE_INNER,
+  WATER_SHORE_OUTER,
   WATER_SPEC_SHININESS,
   WATER_SPEC_STRENGTH,
   WATER_SPEC_COLOR,
@@ -111,9 +111,11 @@ terrainMaterial.userData.shared = true;
  * Large water (lakes/ocean) keeps a perfectly flat top face — buildWaterMesh.js
  * writes zero amp for water tiles, so the coarse hex fan is never deformed and
  * won't cast a striated moving shadow. All of its motion is per-pixel: the
- * chop trains perturb the fragment normal and a Blinn-Phong specular + value-
- * noise mask adds the sun glints (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*).
- * The frame driver writes the single uTime uniform once per frame.
+ * chop trains perturb the fragment normal, a map-center swell rolls in from the
+ * map edge, and a Blinn-Phong specular + value-noise mask adds the sun glints
+ * (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*). The swell directs toward
+ * uWaterCenter as a continuous radial field, so touching water tiles are
+ * seamless. The frame driver writes the single uTime uniform once per frame.
  */
 export const waterMaterial = new THREE.MeshPhongMaterial({
   vertexColors: true,
@@ -129,21 +131,28 @@ waterMaterial.userData.shared = true;
 /** Shared uTime uniform — the frame driver mutates `.value` once per rAF tick. */
 export const waterTimeUniform = { value: 0 };
 
+/**
+ * Shared uniforms for the map-center-toward swell. The map is always centered
+ * at world origin (0,0); the radius is set once from gameState.radius (see
+ * initMap3d.js). The swell direction is a continuous radial field, so touching
+ * water tiles are seamless by construction.
+ */
+export const waterCenterUniform = { value: new THREE.Vector2(0, 0) };
+export const waterRadiusUniform = { value: 1 };
+
 waterMaterial.onBeforeCompile = (shader) => {
   shader.uniforms.uTime = waterTimeUniform;
+  shader.uniforms.uWaterCenter = waterCenterUniform;
+  shader.uniforms.uWaterRadius = waterRadiusUniform;
   shader.vertexShader =
     'uniform float uTime;\n' +
     'varying vec3 vWaterWorld;\n' +
     'varying float vWaterFlowAmp;\n' +
     'varying float vWaterUp;\n' +
-    'varying float vWaterCoast;\n' +
-    'varying vec2 vWaterShore;\n' +
     'attribute float aWaterPhase;\n' +
     'attribute float aWaterAmp;\n' +
     'attribute vec2 aWaterFlow;\n' +
     'attribute float aWaterFlowAmp;\n' +
-    'attribute float aCoast;\n' +
-    'attribute vec2 aShoreDir;\n' +
     shader.vertexShader.replace(
       '#include <begin_vertex>',
       `#include <begin_vertex>\n` +
@@ -161,9 +170,7 @@ waterMaterial.onBeforeCompile = (shader) => {
       // identity, so object-space normals are world normals — bank walls of
       // the water prism never flash).
       `vWaterFlowAmp = aWaterFlowAmp;\n` +
-      `vWaterUp = normal.y;\n` +
-      `vWaterCoast = aCoast;\n` +
-      `vWaterShore = aShoreDir;`
+      `vWaterUp = normal.y;`
     );
   // Chop: four crossing sine trains, sampled at a domain-warped position and
   // breathing in slow patches, perturb the fragment normal so the smooth (Phong)
@@ -177,15 +184,14 @@ waterMaterial.onBeforeCompile = (shader) => {
   const sunY = WATER_SUN_DIR[1].toFixed(4);
   const sunZ = WATER_SUN_DIR[2].toFixed(4);
   const specColor = WATER_SPEC_COLOR.map(c => c.toFixed(2)).join(', ');
-  const foamColor = WATER_FOAM_COLOR.map(c => c.toFixed(2)).join(', ');
   const chopStrength = (WATER_CHOP_STRENGTH * 0.05).toFixed(4);
   shader.fragmentShader =
     'uniform float uTime;\n' +
+    'uniform vec2 uWaterCenter;\n' +
+    'uniform float uWaterRadius;\n' +
     'varying vec3 vWaterWorld;\n' +
     'varying float vWaterFlowAmp;\n' +
     'varying float vWaterUp;\n' +
-    'varying float vWaterCoast;\n' +
-    'varying vec2 vWaterShore;\n' +
     // Deterministic [0,1) hash — same formula family as the JS-side hashes
     // (buildWaterMesh.js), keeping the look codebase-native.
     'float glintHash( vec2 p ) {\n' +
@@ -219,12 +225,19 @@ waterMaterial.onBeforeCompile = (shader) => {
       `float chopC3 = dot( wWave, vec2( ${WATER_CHOP_DIR_3[0].toFixed(2)}, ${WATER_CHOP_DIR_3[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_3.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 0.80;\n` +
       `float chopC4 = dot( wWave, vec2( ${WATER_CHOP_DIR_4[0].toFixed(2)}, ${WATER_CHOP_DIR_4[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_4.toFixed(2)} - uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.10;\n` +
       `float wBreathe = 1.0 - ${WATER_CHOP_BREATHE_STRENGTH.toFixed(3)} * ( 0.5 + 0.5 * waterValueNoise( wPos * 0.12 + uTime * 0.08 ) );\n` +
-      // ── Shore-aligned swell (coast-aware) ──
-      // Near the coast a low-frequency train rolls toward the beach: its crest
-      // lines run parallel to the shoreline (phase gradient along the shore
-      // normal aShoreDir) and it dominates the local chop (ISO_SUPPRESS), so
-      // waves read as coming in off the sea rather than dappling. Open water
-      // (vWaterCoast ~ 0) keeps the full isotropic chop.
+      // ── Swell rolls toward the map center (seamless radial field) ──
+      // Broken water hugs the map edge, so a single low-frequency train rolls
+      // toward uWaterCenter: its crest lines run perpendicular to that radial
+      // direction and it dominates the local chop (ISO_SUPPRESS), so waves read
+      // as coming in off the sea rather than dappling. Because the direction is
+      // a continuous function of world position, touching tiles are seamless —
+      // the only "turn" is the smooth rotation near map corners. A smooth ramp
+      // on distance-from-center fades the swell so central lakes keep the
+      // isotropic chop (WATER_SHORE_* in terrainParams.js).
+      `vec2 vecToCenter = uWaterCenter - vWaterWorld.xz;\n` +
+      `float distCenter = length( vecToCenter );\n` +
+      `vec2 vWaterShore = vecToCenter / max( distCenter, 1e-4 );\n` +
+      `float vWaterCoast = smoothstep( ${WATER_SHORE_INNER.toFixed(3)} * uWaterRadius, ${WATER_SHORE_OUTER.toFixed(3)} * uWaterRadius, distCenter );\n` +
       `float shoreW = dot( wWave, vWaterShore ) * ${WATER_SHORE_FREQ.toFixed(2)} - uTime * ${WATER_SHORE_SPEED.toFixed(2)};\n` +
       `vec2 shoreSlope = cos( shoreW ) * ${WATER_SHORE_FREQ.toFixed(2)} * vWaterShore;\n` +
       `vec3 chopSlope = vec3(\n` +
@@ -258,9 +271,6 @@ waterMaterial.onBeforeCompile = (shader) => {
       // Sparkle on top of the smooth-shaded water: saturates to a cool white
       // where a wave face tilts into the sun.
       `outgoingLight += vec3( ${specColor} ) * ( glint * ${WATER_SPEC_STRENGTH.toFixed(2)} );\n` +
-      // Waterline foam: a subtle froth flashes along the coast, brightest at the
-      // immediate shoreline tile (pow(coast,3)) and flickering with the swell.
-      `outgoingLight += vec3( ${foamColor} ) * ( pow( vWaterCoast, 3.0 ) * ${WATER_FOAM_STRENGTH.toFixed(2)} * ( 0.5 + 0.5 * sin( shoreW * 1.2 + vWaterWorld.x * 0.7 + vWaterWorld.z * 0.5 ) ) );\n` +
       `#include <opaque_fragment>`
     );
 };
