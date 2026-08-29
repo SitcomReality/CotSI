@@ -25,15 +25,14 @@ import {
   WATER_SHORE_OUTER,
   WATER_FROTH_STRENGTH,
   WATER_FROTH_COLOR,
-  WATER_SPEC_SHININESS,
   WATER_SPEC_STRENGTH,
   WATER_SPEC_COLOR,
-  WATER_SPEC_BASE,
+  WATER_SPEC_CREST_LO,
+  WATER_SPEC_CREST_HI,
   WATER_FRESNEL_POWER,
   WATER_FRESNEL_BASE,
   WATER_FRESNEL_STRENGTH,
   WATER_SPARKLE_FREQ,
-  WATER_SPARKLE_SPEED,
   WATER_SPARKLE_ONSET,
   SPARKLE_TWINKLE_SPEED,
   SPARKLE_TWINKLE_AMP,
@@ -257,24 +256,27 @@ waterMaterial.onBeforeCompile = (shader) => {
       // diffuse only depends on dot(n, l), so offsetting the normal directly
       // reads correctly without exact frame math.
       `normal = normalize( normal + chopSlope * ${chopStrength} );\n` +
-      // ── Specular sun glints (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*) ──
-      // Blinn-Phong highlight from the chopped normal: glints appear only on
-      // wave faces tilting toward the sun, scatter with the chop, gather at
-      // grazing (distant) angles, and are broken into drifting sparkles by a
-      // value-noise mask. Rivers mask themselves out via their flow amplitude
-      // (they shimmer by flowing instead); bank walls never glint (vWaterUp).
+      // ── Sun crest glints (WATER_SPEC_CREST_* / WATER_SPARKLE_* / WATER_FRESNEL_*) ──
+      // Glints ride the sun-facing wave slope (see inline notes below), so they
+      // read consistently against the wave shading everywhere. Rivers mask
+      // themselves out via their flow amplitude; bank walls never glint.
       `vec3 lightDir = normalize( ( viewMatrix * vec4( vec3( ${sunX}, ${sunY}, ${sunZ} ), 0.0 ) ).xyz );\n` +
       `vec3 viewDir = normalize( vViewPosition );\n` +
-      `vec3 halfDir = normalize( lightDir + viewDir );\n` +
-      `float nDotH = max( dot( normal, halfDir ), 0.0 );\n` +
       `float nDotV = max( dot( normal, viewDir ), 0.0 );\n` +
-      // A BASE floor keeps sparkle alive in soft-water areas; the pow(nDotH)
-      // peak stays as the crisp sun-path highlight on top.
-      `float spec = ${WATER_SPEC_BASE.toFixed(2)} + pow( nDotH, ${WATER_SPEC_SHININESS.toFixed(1)} );\n` +
+      // ── Sun crest glints (WATER_SPEC_CREST_* / WATER_SPARKLE_* / WATER_FRESNEL_*) ──
+      // Glints ride the sun-FACING wave slope: gated by dot(normal, lightDir),
+      // the same sun-only quantity that creates the bright/dark wave shading, so
+      // a glint sits on the bright crest consistently everywhere (the old Blinn
+      // half-vector lobe was view-dependent and drifted the glint relative to
+      // the waves across the map). A high-threshold crest mask keeps glints off
+      // shadowed troughs; a static value-noise mask breaks them into flecks so
+      // they ride the waves (no fixed-direction scroll); a mild fresnel gathers
+      // them gently at grazing distance. Rivers mask out (vWaterFlowAmp); bank
+      // walls never glint (vWaterUp).
+      `float sunCrest = smoothstep( ${WATER_SPEC_CREST_LO.toFixed(2)}, ${WATER_SPEC_CREST_HI.toFixed(2)}, dot( normal, lightDir ) );\n` +
       `float fresnel = pow( 1.0 - nDotV, ${WATER_FRESNEL_POWER.toFixed(2)} );\n` +
-      `float sunFacing = smoothstep( -0.05, 0.35, dot( normal, lightDir ) );\n` +
-      `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( vWaterWorld.xz * ${WATER_SPARKLE_FREQ.toFixed(2)} + vec2( uTime * ${WATER_SPARKLE_SPEED.toFixed(2)}, uTime * ${WATER_SPARKLE_SPEED.toFixed(2)} * 0.61 ) ) );\n` +
-      `float glint = spec * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel ) * sunFacing\n` +
+      `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( vWaterWorld.xz * ${WATER_SPARKLE_FREQ.toFixed(2)} ) );\n` +
+      `float glint = sunCrest * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel )\n` +
       `  * ( 1.0 - smoothstep( 0.0, 0.02, vWaterFlowAmp ) )\n` +
       `  * smoothstep( 0.5, 0.9, vWaterUp );`
     ).replace(

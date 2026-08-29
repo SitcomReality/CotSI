@@ -105,28 +105,26 @@ export const SIDE_WATER_TINT_COLOR = [0.10, 0.28, 0.42];
 export const SIDE_WATER_TINT_WEIGHT = 0.55;
 
 /**
- * Water specular sun glints — a shader term inside waterMaterial (materials.js),
- * replacing the old "glint-fleck disc". A Blinn-Phong highlight is computed
- * from the chop-perturbed fragment normal, so glints appear on wave faces
- * tilting toward the sun, scatter/travel with the chop, gather at grazing
- * (distant) angles via a fresnel term, and are broken into drifting sparkles by
- * a value-noise mask. Rivers mask themselves out via their flow amplitude (they
- * shimmer by flowing instead). Bank walls never glint (vWaterUp gate).
- *
- * A BASE floor is added to the specular so glints are never entirely absent in
- * soft-water areas (the bare pow(nDotH, shininess) lobe is a tight sun+view
- * "glitter path" that leaves whole regions glimmer-free), and FRESNEL_* blends
- * the grazing gathering gently so it doesn't starve one side of the map.
+ * Water specular sun glints — a shader term inside waterMaterial (materials.js).
+ * Glints ride the SUN-FACING wave crests: gated by dot(normal, lightDir) — the
+ * SAME sun-only quantity that creates the bright/dark wave shading — so a glint
+ * sits on the bright crest consistently everywhere, independent of the camera.
+ * (The old Blinn half-vector lobe was view-dependent, so the glint drifted
+ * relative to the waves across the map: north glints sat on dark patches,
+ * south glints between them. Tying glints to the sun-facing slope removes
+ * that.) A high-threshold crest mask keeps glints off shadowed troughs, a
+ * value-noise mask breaks them into flecks, and a mild fresnel term gently
+ * gathers them at grazing distance. Rivers mask themselves out via their flow
+ * amplitude; bank walls never glint.
  */
-export const WATER_SPEC_SHININESS = 120.0;       // Blinn exponent — higher = tighter, sharper sparkle
 export const WATER_SPEC_STRENGTH = 1.2;         // peak sparkle color contribution
 export const WATER_SPEC_COLOR = [0.93, 0.97, 1.0]; // slightly cool white at peak
-export const WATER_SPEC_BASE = 0.5;             // sparkle floor so soft areas still glimmer (0..1)
+export const WATER_SPEC_CREST_LO = 0.45;        // dot(normal, lightDir) where glints begin (bright side)
+export const WATER_SPEC_CREST_HI = 0.75;        // dot(normal, lightDir) where glints are fully on
 export const WATER_FRESNEL_POWER = 2.4;         // grazing-angle exponent
-export const WATER_FRESNEL_BASE = 0.6;          // glint level at steep (near-camera) angles
-export const WATER_FRESNEL_STRENGTH = 2.0;      // how strongly grazing gathers the sparkle
+export const WATER_FRESNEL_BASE = 0.7;          // glint base level (keeps steep/near-camera water lit)
+export const WATER_FRESNEL_STRENGTH = 0.4;      // mild grazing gather (avoids a strong locational bias)
 export const WATER_SPARKLE_FREQ = 12.0;         // value-noise sparkle cell density (cells per world unit)
-export const WATER_SPARKLE_SPEED = 1.6;         // sparkle-domain travel rate (uTime multiplier)
 export const WATER_SPARKLE_ONSET = 0.55;        // value-noise level where a sparkle cell ignites (0..1)
 
 /**
