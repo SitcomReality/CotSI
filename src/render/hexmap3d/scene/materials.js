@@ -139,6 +139,10 @@ waterMaterial.userData.shared = true;
 
 /** Shared uTime uniform — the frame driver mutates `.value` once per rAF tick. */
 export const waterTimeUniform = { value: 0 };
+/** Shadow-matrix uniform for the chop-driven shadow wobble on water.
+ *  Populated every frame from the directional light's shadow camera in
+ *  sceneSetup.js (see waterShadowUniform.value.copy(light.shadow.matrix)). */
+export const waterShadowUniform = { value: new THREE.Matrix4() };
 
 /**
  * Shared uniforms for the map-center-toward swell. The map is always centered
@@ -151,6 +155,7 @@ export const waterRadiusUniform = { value: 1 };
 
 waterMaterial.onBeforeCompile = (shader) => {
   shader.uniforms.uTime = waterTimeUniform;
+  shader.uniforms.uShadowMatrix = waterShadowUniform;
   shader.uniforms.uWaterCenter = waterCenterUniform;
   shader.uniforms.uWaterRadius = waterRadiusUniform;
   shader.vertexShader =
@@ -207,6 +212,7 @@ waterMaterial.onBeforeCompile = (shader) => {
   const crestTint = WATER_CREST_TINT.map(c => c.toFixed(2)).join(', ');
   const chopStrength = (WATER_CHOP_STRENGTH * 0.05).toFixed(4);
   shader.fragmentShader =
+    'uniform mat4 uShadowMatrix;\n' +
     'uniform float uTime;\n' +
     'uniform vec2 uWaterCenter;\n' +
     'uniform float uWaterRadius;\n' +
@@ -310,8 +316,8 @@ waterMaterial.onBeforeCompile = (shader) => {
       // the shadow camera's own basis rather than world axes.
       `const float WATER_SHADOW_WOBBLE = ${WATER_SHADOW_WOBBLE.toFixed(4)};\n` +
       `vec3 _wOffset = vec3( chopSlope.x * WATER_SHADOW_WOBBLE, 0.0, chopSlope.z * WATER_SHADOW_WOBBLE );\n` +
-      `vec4 _wDelta = directionalShadowMatrix * vec4( _wOffset, 0.0 );\n` +
-      `vec4 _glintShadowCoord = vDirectionalShadowCoord[ 0 ] + _wDelta / _wDelta.w;\n` +
+      `vec4 _wDelta = uShadowMatrix * vec4( _wOffset, 0.0 );\n` +
+      `vec4 _glintShadowCoord = vDirectionalShadowCoord[ 0 ] + _wDelta;\n` +
       `  glintShadow = receiveShadow ? getShadow( directionalShadowMap[ 0 ], _glintShadow.shadowMapSize, _glintShadow.shadowIntensity, _glintShadow.shadowBias, _glintShadow.shadowRadius, _glintShadowCoord ) : 1.0;\n` +
       `#endif\n` +
       `float sunCrest = smoothstep( ${WATER_SPEC_CREST_LO.toFixed(2)}, ${WATER_SPEC_CREST_HI.toFixed(2)}, dot( normal, lightDir ) );\n` +
