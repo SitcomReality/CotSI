@@ -34,6 +34,7 @@ import {
   WATER_FRESNEL_STRENGTH,
   WATER_SPARKLE_FREQ,
   WATER_SPARKLE_ONSET,
+  WATER_SHADOW_WOBBLE,
   WATER_DEPTH_RAMP,
   WATER_DEPTH_SHALLOW,
   WATER_CREST_TINT,
@@ -300,7 +301,18 @@ waterMaterial.onBeforeCompile = (shader) => {
       `#if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0\n` +
       `  DirectionalLightShadow _glintShadow;\n` +
       `  _glintShadow = directionalLightShadows[ 0 ];\n` +
-      `  glintShadow = receiveShadow ? getShadow( directionalShadowMap[ 0 ], _glintShadow.shadowMapSize, _glintShadow.shadowIntensity, _glintShadow.shadowBias, _glintShadow.shadowRadius, vDirectionalShadowCoord[ 0 ] ) : 1.0;\n` +
+      // ── Chop-driven shadow wobble ──
+      // The water surface tilts under waves, so the shadow should shift
+      // slightly to match the moving surface. We offset the shadow lookup
+      // in world space using the surface gradient (chopSlope.xz, world XZ)
+      // and transform that offset through the directional shadow matrix's
+      // affine part (columns 0-2, divided by w) so the wobble aligns with
+      // the shadow camera's own basis rather than world axes.
+      `const float WATER_SHADOW_WOBBLE = ${WATER_SHADOW_WOBBLE.toFixed(4)};\n` +
+      `vec3 _wOffset = vec3( chopSlope.x * WATER_SHADOW_WOBBLE, 0.0, chopSlope.z * WATER_SHADOW_WOBBLE );\n` +
+      `vec4 _wDelta = directionalShadowMatrix * vec4( _wOffset, 0.0 );\n` +
+      `vec4 _glintShadowCoord = vDirectionalShadowCoord[ 0 ] + _wDelta / _wDelta.w;\n` +
+      `  glintShadow = receiveShadow ? getShadow( directionalShadowMap[ 0 ], _glintShadow.shadowMapSize, _glintShadow.shadowIntensity, _glintShadow.shadowBias, _glintShadow.shadowRadius, _glintShadowCoord ) : 1.0;\n` +
       `#endif\n` +
       `float sunCrest = smoothstep( ${WATER_SPEC_CREST_LO.toFixed(2)}, ${WATER_SPEC_CREST_HI.toFixed(2)}, dot( normal, lightDir ) );\n` +
       `float fresnel = pow( 1.0 - nDotV, ${WATER_FRESNEL_POWER.toFixed(2)} );\n` +
