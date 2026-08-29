@@ -34,6 +34,11 @@ import {
   WATER_FRESNEL_STRENGTH,
   WATER_SPARKLE_FREQ,
   WATER_SPARKLE_ONSET,
+  WATER_DEPTH_RAMP,
+  WATER_DEPTH_SHALLOW,
+  WATER_CREST_TINT,
+  WATER_CREST_BRIGHTNESS,
+  TERRAIN_COLOR,
   SPARKLE_TWINKLE_SPEED,
   SPARKLE_TWINKLE_AMP,
 } from '../../../params/render/terrainParams.js';
@@ -158,6 +163,8 @@ waterMaterial.onBeforeCompile = (shader) => {
     'attribute vec2 aWaterFlow;\n' +
     'attribute float aWaterFlowAmp;\n' +
     'attribute float aWaterline;\n' +
+    'attribute float aWaterDepth;\n' +
+    'varying float vWaterDepth;\n' +
     shader.vertexShader.replace(
       '#include <begin_vertex>',
       `#include <begin_vertex>\n` +
@@ -176,7 +183,8 @@ waterMaterial.onBeforeCompile = (shader) => {
       // the water prism never flash).
       `vWaterFlowAmp = aWaterFlowAmp;\n` +
       `vWaterUp = normal.y;\n` +
-      `vWaterFroth = aWaterline;`
+      `vWaterFroth = aWaterline;\n` +
+      `vWaterDepth = aWaterDepth;`
     );
   // Chop: four crossing sine trains, sampled at a domain-warped position and
   // breathing in slow patches, perturb the fragment normal so the smooth (Phong)
@@ -191,6 +199,9 @@ waterMaterial.onBeforeCompile = (shader) => {
   const sunZ = WATER_SUN_DIR[2].toFixed(4);
   const specColor = WATER_SPEC_COLOR.map(c => c.toFixed(2)).join(', ');
   const frothColor = WATER_FROTH_COLOR.map(c => c.toFixed(2)).join(', ');
+  const shallowColor = WATER_DEPTH_SHALLOW.map(c => c.toFixed(3)).join(', ');
+  const deepColor = TERRAIN_COLOR.water.map(c => c.toFixed(3)).join(', ');
+  const crestTint = WATER_CREST_TINT.map(c => c.toFixed(2)).join(', ');
   const chopStrength = (WATER_CHOP_STRENGTH * 0.05).toFixed(4);
   shader.fragmentShader =
     'uniform float uTime;\n' +
@@ -200,6 +211,7 @@ waterMaterial.onBeforeCompile = (shader) => {
     'varying float vWaterFlowAmp;\n' +
     'varying float vWaterUp;\n' +
     'varying float vWaterFroth;\n' +
+    'varying float vWaterDepth;\n' +
     // Deterministic [0,1) hash — same formula family as the JS-side hashes
     // (buildWaterMesh.js), keeping the look codebase-native.
     'float glintHash( vec2 p ) {\n' +
@@ -281,12 +293,24 @@ waterMaterial.onBeforeCompile = (shader) => {
       `  * smoothstep( 0.5, 0.9, vWaterUp );`
     ).replace(
       '#include <opaque_fragment>',
+      // Shallow-water depth ramp: add a bright teal tint near the coast, fading
+      // over WATER_DEPTH_RAMP world units. This gives the shoreline a tonal
+      // transition so the waterline reads even before sparkle/froth start.
+      // Rivers skip the ramp (they carry vWaterDepth 0 and their own color).
+      `float depthFade = ( 1.0 - smoothstep( 0.0, ${WATER_DEPTH_RAMP.toFixed(2)}, vWaterDepth ) ) * ( 1.0 - smoothstep( 0.0, 0.02, vWaterFlowAmp ) );\n` +
+      `outgoingLight += ( vec3( ${shallowColor} ) - vec3( ${deepColor} ) ) * depthFade * 0.4;\n` +
+      // Subtle cyan crest tint: read the sun-facing wave slope as a gentle
+      // luminance boost so crests read from above with no extra texture samples.
+      `float crestBright = dot( normal, lightDir ) * ${WATER_CREST_BRIGHTNESS.toFixed(3)};\n` +
+      `outgoingLight += vec3( ${crestTint} ) * crestBright;\n` +
       // Sparkle on top of the smooth-shaded water: saturates to a cool white
       // where a wave face tilts into the sun.
       `outgoingLight += vec3( ${specColor} ) * ( glint * ${WATER_SPEC_STRENGTH.toFixed(2)} );\n` +
       // Waterline froth: a continuous 0..1 band hugging the coast (aWaterline),
-      // brightened and flickered with the swell so it reads as breaking foam.
-      `outgoingLight += vec3( ${frothColor} ) * ( vWaterFroth * ${WATER_FROTH_STRENGTH.toFixed(2)} * ( 0.6 + 0.4 * sin( shoreW * 1.3 + vWaterWorld.x * 0.5 + vWaterWorld.z * 0.4 ) ) );\n` +
+      // brightened and pushed around by the swell so it reads as breaking foam
+      // surging ashore rather than flickering in place.
+      `float frothUV = dot( vWaterWorld.xz, vWaterShore ) * 0.9 + sin( shoreW * 0.8 ) * 0.35 + waterValueNoise( vWaterWorld.xz * 0.5 + uTime * 0.12 ) * 0.3;\n` +
+      `outgoingLight += vec3( ${frothColor} ) * ( vWaterFroth * ${WATER_FROTH_STRENGTH.toFixed(2)} * ( 0.6 + 0.4 * sin( frothUV ) ) );\n` +
       `#include <opaque_fragment>`
     );
 };

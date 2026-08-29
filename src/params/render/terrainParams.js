@@ -48,18 +48,18 @@ export const WATER_CHOP_FREQ_2 = 2.7;
 export const WATER_CHOP_DIR_2 = [-0.40, 0.85];
 export const WATER_CHOP_FREQ_3 = 3.7;
 export const WATER_CHOP_DIR_3 = [0.50, -0.80];
-export const WATER_CHOP_FREQ_4 = 5.6;    // high octave — micro-ripples the specular sparkle rides
+export const WATER_CHOP_FREQ_4 = 4.3;    // high octave — micro-ripples the specular sparkle rides
 export const WATER_CHOP_DIR_4 = [0.72, 0.61];
 export const WATER_CHOP_SPEED = 1.1;     // phase speed multiplier (uTime)
-export const WATER_CHOP_STRENGTH = 2.0;  // normal-perturb strength (view-space) — smooth water needs this high
+export const WATER_CHOP_STRENGTH = 1.35; // normal-perturb strength (view-space) — calm enough that the swell reads clearly
 // Domain warp: low-freq value noise offsets where the chop is sampled, bending
 // crest lines so they don't read as a rigid grid of straight stripes. Strength
 // is in world units (about half a hex radius produces a clear bend).
 export const WATER_CHOP_WARP_FREQ = 0.82;     // warp-field scale (per world unit)
-export const WATER_CHOP_WARP_STRENGTH = 1.0;  // warp bend amount (world units)
+export const WATER_CHOP_WARP_STRENGTH = 1.5;  // warp bend amount (world units)
 // Slow in-place swell modulation (0..1): patches of the surface swell rather
 // than translate as a sheet, breaking the uniform scroll.
-export const WATER_CHOP_BREATHE_STRENGTH = 0.45;
+export const WATER_CHOP_BREATHE_STRENGTH = 0.7;
 
 /**
  * Swell that rolls toward the map center (the seamless coast-aligned model).
@@ -73,10 +73,10 @@ export const WATER_CHOP_BREATHE_STRENGTH = 0.45;
  * center (where there is no water), so it never drops out on the visible
  * near-shore water and the direction reads as the swell, not the fixed chop.
  */
-export const WATER_SHORE_FREQ = 3.4;        // rad per world unit — broad, readable rolls
+export const WATER_SHORE_FREQ = 2.6;        // rad per world unit — broad, readable rolls
 export const WATER_SHORE_SPEED = 1.0;       // travel speed toward the center
 export const WATER_SHORE_AMP = 2.5;         // swell dominance
-export const WATER_SHORE_ISO_SUPPRESS = 0.7; // 0..1 — fade the isotropic chop where the swell dominates
+export const WATER_SHORE_ISO_SUPPRESS = 0.85; // 0..1 — fade the isotropic chop where the swell dominates
 export const WATER_SHORE_INNER = 0.05;      // fraction of map radius where the fade-in guard starts
 export const WATER_SHORE_OUTER = 0.18;      // fraction of map radius where the swell is fully dominant
 
@@ -88,12 +88,25 @@ export const WATER_SHORE_OUTER = 0.18;      // fraction of map radius where the 
  * shared hex edge match — no per-tile seams. The shader brightens this band and
  * flickers it with the swell.
  */
-export const WATER_FROTH_WIDTH = 0.05;       // world units the froth fades over
+export const WATER_FROTH_WIDTH = 0.08;       // world units the froth fades over
 export const WATER_FROTH_STRENGTH = 0.1;   // froth brightness
 export const WATER_FROTH_COLOR = [0.82, 0.94, 1]; // cool froth
 
 /** Full river blue for carved channel floors (rendered on the water mesh). */
 export const RIVER_COLOR = [0.176, 0.529, 0.902];
+
+/**
+ * Shallow-water depth ramp (waterMaterial fragment shader). `aWaterDepth` (see
+ * buildWaterMesh.js) carries the true unclamped distance to nearest land; the
+ * shader lerps the water color from a bright teal rim near shore toward the
+ * deep water color over WATER_DEPTH_RAMP world units. This gives the coastline
+ * its tonal transition — the single biggest readability win for an otherwise
+ * flat dark water body, at zero extra draw-call/texture cost.
+ */
+export const WATER_DEPTH_RAMP = 2.5;                  // world units over which shallow → deep resolves
+export const WATER_DEPTH_SHALLOW = [0.20, 0.62, 0.78]; // teal rim flush against land
+export const WATER_CREST_TINT = [0.6, 0.85, 1.0];      // subtle cyan added on sun-facing crests
+export const WATER_CREST_BRIGHTNESS = 0.08;            // crest luminance coefficient
 
 /** River flow wave (vertex-shader, downstream-traveling) controls. */
 export const WATER_FLOW_SPEED = 2.5;
@@ -117,15 +130,15 @@ export const SIDE_WATER_TINT_WEIGHT = 0.55;
  * gathers them at grazing distance. Rivers mask themselves out via their flow
  * amplitude; bank walls never glint.
  */
-export const WATER_SPEC_STRENGTH = 1.2;         // peak sparkle color contribution
+export const WATER_SPEC_STRENGTH = 0.9;          // peak sparkle color contribution
 export const WATER_SPEC_COLOR = [0.93, 0.97, 1.0]; // slightly cool white at peak
 export const WATER_SPEC_CREST_LO = 0.45;        // dot(normal, lightDir) where glints begin (bright side)
 export const WATER_SPEC_CREST_HI = 0.75;        // dot(normal, lightDir) where glints are fully on
 export const WATER_FRESNEL_POWER = 2.4;         // grazing-angle exponent
 export const WATER_FRESNEL_BASE = 0.7;          // glint base level (keeps steep/near-camera water lit)
 export const WATER_FRESNEL_STRENGTH = 0.4;      // mild grazing gather (avoids a strong locational bias)
-export const WATER_SPARKLE_FREQ = 12.0;         // value-noise sparkle cell density (cells per world unit)
-export const WATER_SPARKLE_ONSET = 0.55;        // value-noise level where a sparkle cell ignites (0..1)
+export const WATER_SPARKLE_FREQ = 7.0;          // value-noise sparkle cell density (cells per world unit)
+export const WATER_SPARKLE_ONSET = 0.66;        // value-noise level where a sparkle cell ignites (0..1)
 
 /**
  * Terrain fill colors (RGB 0-1 tuples for vertex color attributes).
