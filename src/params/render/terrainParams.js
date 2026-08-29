@@ -127,7 +127,9 @@ export const SIDE_WATER_TINT_WEIGHT = 0.55;
  * south glints between them. Tying glints to the sun-facing slope removes
  * that.) A high-threshold crest mask keeps glints off shadowed troughs, a
  * value-noise mask breaks them into flecks, and a mild fresnel term gently
- * gathers them at grazing distance. Rivers mask themselves out via their flow
+ * gathers them at grazing distance. The glint is additionally gated by the
+ * sun's shadow map (inside waterMaterial) so it never sparkles inside object
+ * shadows. Rivers mask themselves out via their flow
  * amplitude; bank walls never glint.
  */
 export const WATER_SPEC_STRENGTH = 0.9;          // peak sparkle color contribution

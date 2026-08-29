@@ -192,8 +192,10 @@ waterMaterial.onBeforeCompile = (shader) => {
   // block computes the sun glint (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*):
   // a Blinn-Phong highlight from the chopped normal, gathered at grazing angles
   // by a fresnel term, and broken into drifting sparkles by a value-noise mask —
-  // so glints ride the chop instead of sitting as flat discs. The mask is applied
-  // additively just before <opaque_fragment>, where outgoingLight exists.
+  // so glints ride the chop instead of sitting as flat discs. The glint is also
+  // gated by the sun's shadow map (see the "Shadow mask on the glint" block), so
+  // it never sparkles inside object shadows. The sparkle is applied additively
+  // just before <opaque_fragment>, where outgoingLight exists.
   const sunX = WATER_SUN_DIR[0].toFixed(4);
   const sunY = WATER_SUN_DIR[1].toFixed(4);
   const sunZ = WATER_SUN_DIR[2].toFixed(4);
@@ -285,12 +287,28 @@ waterMaterial.onBeforeCompile = (shader) => {
       // they ride the waves (no fixed-direction scroll); a mild fresnel gathers
       // them gently at grazing distance. Rivers mask out (vWaterFlowAmp); bank
       // walls never glint (vWaterUp).
+      // ── Shadow mask on the glint ──
+      // The glint reflects the sun, so it must vanish where an object blocks
+      // that sun. The diffuse already receives a soft shadow (Three.js
+      // multiplies directLight.color by getShadow inside RE_Direct), but the
+      // glint is added after that and would otherwise keep sparkling inside
+      // object shadows. Sample the SAME directional shadow map (VSM, single
+      // tap) so the glint cutoff lines up pixel-for-pixel with the dark blob
+      // already on the water. Guarded by USE_SHADOWMAP so it degrades to 1.0
+      // (unchanged look) when shadows are disabled or no light casts them.
+      `float glintShadow = 1.0;\n` +
+      `#if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0\n` +
+      `  DirectionalLightShadow _glintShadow;\n` +
+      `  _glintShadow = directionalLightShadows[ 0 ];\n` +
+      `  glintShadow = receiveShadow ? getShadow( directionalShadowMap[ 0 ], _glintShadow.shadowMapSize, _glintShadow.shadowIntensity, _glintShadow.shadowBias, _glintShadow.shadowRadius, vDirectionalShadowCoord[ 0 ] ) : 1.0;\n` +
+      `#endif\n` +
       `float sunCrest = smoothstep( ${WATER_SPEC_CREST_LO.toFixed(2)}, ${WATER_SPEC_CREST_HI.toFixed(2)}, dot( normal, lightDir ) );\n` +
       `float fresnel = pow( 1.0 - nDotV, ${WATER_FRESNEL_POWER.toFixed(2)} );\n` +
       `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( vWaterWorld.xz * ${WATER_SPARKLE_FREQ.toFixed(2)} ) );\n` +
       `float glint = sunCrest * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel )\n` +
       `  * ( 1.0 - smoothstep( 0.0, 0.02, vWaterFlowAmp ) )\n` +
-      `  * smoothstep( 0.5, 0.9, vWaterUp );`
+      `  * smoothstep( 0.5, 0.9, vWaterUp )\n` +
+      `  * glintShadow;`
     ).replace(
       '#include <opaque_fragment>',
       // Shallow-water depth ramp: add a bright teal tint near the coast, fading
