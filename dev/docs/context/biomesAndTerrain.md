@@ -62,14 +62,17 @@ Notes:
   never the biome palette, and never gets normal decor.
 - **`water`** renders on its own mesh with no corner-blending and no decor;
   lakes are modulated darker (`r·0.7, g·0.85, b·0.9`).
-- Water surfaces ripple via a vertex shader (speed 2.0, amp 0.03). A
-  fragment-shader **chop** pass (`WATER_CHOP_*` in `terrainParams.js`, applied
-  in `scene/materials.js`) perturbs per-pixel normals with three crossed
-  animated sine trains, so the toon ramp renders them as drifting light/dark
-  patches. The same shader adds **sun glints** on still water (`GLINT_*` in
-  `terrainParams.js`): world-space cellular flecks that flash to a stark white
-  peak only where the wave slope tilts toward the sun, so they sweep across
-  the surface with the chop trains (rivers mask out via their flow amplitude).
+- Water surfaces move in the vertex shader: rivers bob with a downstream
+  traveling wave (speed 2.5, amp 0.04), and **Broken water** rolls toward the
+  map center with a radial shore swell (`WATER_SHORE_FLOW_*` in
+  `terrainParams.js`) so the moat reads as having real depth and object
+  shadows on it wobble. The former fragment-shader **chop** pass
+  (`WATER_CHOP_*`) that perturbed per-pixel normals into drifting light/dark
+  wave bands is **removed** — it was the "fake" wave shading that read as flat.
+  The shader still adds **sun glints** (`WATER_SPEC_*` / `WATER_SPARKLE_*` in
+  `terrainParams.js`): world-space cellular flecks broken by a value-noise
+  sparkle mask, gathered at grazing angles by fresnel, and masked inside
+  object shadows (rivers mask out via their flow amplitude).
 - Land side-faces adjacent to water/river are damp-tinted toward
   `#1a476b` (weight 0.55).
 - Terrain **elevation offsets** (Y above the hex base): plains 0, desert 0,

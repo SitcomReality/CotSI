@@ -4,33 +4,14 @@ import {
   WATER_RIPPLE_SPEED,
   WATER_FLOW_SPEED,
   WATER_FLOW_WAVE_LENGTH,
-  WATER_CHOP_FREQ_1,
-  WATER_CHOP_DIR_1,
-  WATER_CHOP_FREQ_2,
-  WATER_CHOP_DIR_2,
-  WATER_CHOP_FREQ_3,
-  WATER_CHOP_DIR_3,
-  WATER_CHOP_FREQ_4,
-  WATER_CHOP_DIR_4,
-  WATER_CHOP_SPEED,
-  WATER_CHOP_STRENGTH,
-  WATER_CHOP_WARP_FREQ,
-  WATER_CHOP_WARP_STRENGTH,
-  WATER_CHOP_BREATHE_STRENGTH,
   WATER_SHORE_FREQ,
   WATER_SHORE_SPEED,
-  WATER_SHORE_AMP,
-  WATER_SHORE_ISO_SUPPRESS,
-  WATER_SHORE_INNER,
-  WATER_SHORE_OUTER,
   WATER_SHORE_FLOW_SPEED,
   WATER_SHORE_FLOW_WAVE_LENGTH,
   WATER_FROTH_STRENGTH,
   WATER_FROTH_COLOR,
   WATER_SPEC_STRENGTH,
   WATER_SPEC_COLOR,
-  WATER_SPEC_CREST_LO,
-  WATER_SPEC_CREST_HI,
   WATER_FRESNEL_POWER,
   WATER_FRESNEL_BASE,
   WATER_FRESNEL_STRENGTH,
@@ -108,9 +89,9 @@ terrainMaterial.userData.shared = true;
 
 /**
  * Shared water-surface material. Unlike the cel terrain (3-band toon), water is
- * SMOOTH-shaded (MeshPhong) so the per-pixel chop normal field renders as
- * continuous swells instead of being quantized into a couple of flat cel bands
- * — the banding is exactly what made a large flat water body read as a rigid
+ * SMOOTH-shaded (MeshPhong) so the specular sun glints and fresnel gather read
+ * as continuous wet sheen rather than being quantized into flat cel bands —
+ * the banding is exactly what made a large flat water body read as a rigid
  * solid. A subtle white sheen (emissive tint) keeps it reading as wet. The
  * vertex shader displaces the geometry:
  *   - flow:     river channels add waves traveling downstream along aWaterFlow
@@ -121,20 +102,21 @@ terrainMaterial.userData.shared = true;
  *               radial vector pointing toward the map center, so the moat
  *               actually rolls in 3D toward the center (WATER_SHORE_FLOW_*). This
  *               moves the coarse hex fan so object shadows on it wobble and the
- *               water reads as having depth, not as a static plane that only the
- *               fragment chop lights up. Rivers carry aShoreFlow=0/aShoreAmp=0.
+ *               water reads as having depth, replacing the removed fragment
+ *               per-pixel chop as the water's wave. Rivers carry aShoreFlow=0/
+ *               aShoreAmp=0.
  *   - ripple:   transformed.y += sin(uTime * WATER_RIPPLE_SPEED + aWaterPhase) * aWaterAmp
  *               (kept only on rivers; large water tiles carry amp 0).
- * Large water (lakes/ocean) keeps a PERFECTLY FLAT top face for the per-pixel
- * chop — buildWaterMesh.js writes zero for the ripple amp (and for the river
- * flow amp), so the coarse hex fan is never deformed by those jittery per-corner
- * terms. Its real 3D motion is the coherent shore swell (above); the rest is
- * per-pixel: the chop trains perturb the fragment normal, the map-center swell
- * rolls in from the map edge, and a Blinn-Phong specular + value-noise mask
- * adds the sun glints (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*). The
- * swell directs toward uWaterCenter as a continuous radial field, so touching
- * water tiles are seamless. The frame driver writes the single uTime uniform
- * once per frame.
+ * Water is SMOOTH-shaded. The former per-pixel chop (WATER_CHOP_) and the
+ * map-center swell shading (WATER_SHORE_AMP/ISO_SUPPRESS) are REMOVED — they
+ * perturbed the fragment normal and produced the floating dark/bright wave
+ * bands that read as "fake" waves on an otherwise flat surface. With them gone
+ * the fragment normal is flat, so the broken-water surface shade is uniform
+ * and its motion reads through the vertex swell (above). Remaining per-pixel
+ * terms: the Blinn-Phong specular + value-noise sun glints (WATER_SPEC_* /
+ * WATER_SPARKLE_* / WATER_FRESNEL_*), the shallow depth ramp, the waterline
+ * froth (which still surges ashore along the radial direction), and the cyan
+ * crest tint. The frame driver writes the single uTime uniform once per frame.
  */
 export const waterMaterial = new THREE.MeshPhongMaterial({
   vertexColors: true,
@@ -212,16 +194,16 @@ waterMaterial.onBeforeCompile = (shader) => {
       `vWaterFroth = aWaterline;\n` +
       `vWaterDepth = aWaterDepth;`
     );
-  // Chop: four crossing sine trains, sampled at a domain-warped position and
-  // breathing in slow patches, perturb the fragment normal so the smooth (Phong)
-  // shading renders them as organic swells (params: terrainParams.js). The same
-  // block computes the sun glint (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*):
-  // a Blinn-Phong highlight from the chopped normal, gathered at grazing angles
-  // by a fresnel term, and broken into drifting sparkles by a value-noise mask —
-  // so glints ride the chop instead of sitting as flat discs. The glint is also
-  // gated by the sun's shadow map (see the "Shadow mask on the glint" block), so
-  // it never sparkles inside object shadows. The sparkle is applied additively
-  // just before <opaque_fragment>, where outgoingLight exists.
+  // Per-pixel wave shading (the WATER_CHOP crossing dapple and the WATER_SHORE
+  // map-center swell that perturbed the fragment normal) is REMOVED — the water
+  // wave now reads through the vertex shore swell instead. The remaining block
+  // computes the sun glint (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*): a
+  // Blinn-Phong highlight from the flat water normal, gathered at grazing angles
+  // by a fresnel term, and broken into drifting sparkles by a value-noise mask.
+  // The glint is also gated by the sun's shadow map (see the "Shadow mask on
+  // the glint" block), so it never sparkles inside object shadows. The sparkle
+  // is applied additively just before <opaque_fragment>, where outgoingLight
+  // exists.
   const sunX = WATER_SUN_DIR[0].toFixed(4);
   const sunY = WATER_SUN_DIR[1].toFixed(4);
   const sunZ = WATER_SUN_DIR[2].toFixed(4);
@@ -230,7 +212,6 @@ waterMaterial.onBeforeCompile = (shader) => {
   const shallowColor = WATER_DEPTH_SHALLOW.map(c => c.toFixed(3)).join(', ');
   const deepColor = TERRAIN_COLOR.water.map(c => c.toFixed(3)).join(', ');
   const crestTint = WATER_CREST_TINT.map(c => c.toFixed(2)).join(', ');
-  const chopStrength = (WATER_CHOP_STRENGTH * 0.05).toFixed(4);
   shader.fragmentShader =
     'uniform float uTime;\n' +
     'uniform vec2 uWaterCenter;\n' +
@@ -258,64 +239,29 @@ waterMaterial.onBeforeCompile = (shader) => {
     shader.fragmentShader.replace(
       '#include <normal_fragment_begin>',
       `#include <normal_fragment_begin>\n` +
-      // ── Swell chop (domain-warped, crossing, in-place breathing) ──
-      // Sample a domain-warped position so crest lines bend — no rigid, straight,
-      // world-aligned stripes. Train 2 & 4 travel the opposite way so the chop
-      // crosses rather than rolls one absolute direction, the freqs are
-      // incommensurate so the field never repeats cleanly, and a slow BREATHE
-      // swells amplitude in patches (WATER_CHOP_* in terrainParams.js).
-      `vec2 wPos = vWaterWorld.xz;\n` +
-      `vec2 wF = wPos * ${WATER_CHOP_WARP_FREQ.toFixed(3)} + uTime * 0.045;\n` +
-      `vec2 wWarp = ( vec2( waterValueNoise( wF ), waterValueNoise( wF + vec2( 37.7, 91.3 ) ) ) - 0.5 ) * ${WATER_CHOP_WARP_STRENGTH.toFixed(3)};\n` +
-      `vec2 wWave = wPos + wWarp;\n` +
-      `float chopC1 = dot( wWave, vec2( ${WATER_CHOP_DIR_1[0].toFixed(2)}, ${WATER_CHOP_DIR_1[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_1.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.00;\n` +
-      `float chopC2 = dot( wWave, vec2( ${WATER_CHOP_DIR_2[0].toFixed(2)}, ${WATER_CHOP_DIR_2[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_2.toFixed(2)} - uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.35;\n` +
-      `float chopC3 = dot( wWave, vec2( ${WATER_CHOP_DIR_3[0].toFixed(2)}, ${WATER_CHOP_DIR_3[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_3.toFixed(2)} + uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 0.80;\n` +
-      `float chopC4 = dot( wWave, vec2( ${WATER_CHOP_DIR_4[0].toFixed(2)}, ${WATER_CHOP_DIR_4[1].toFixed(2)} ) ) * ${WATER_CHOP_FREQ_4.toFixed(2)} - uTime * ${WATER_CHOP_SPEED.toFixed(2)} * 1.10;\n` +
-      `float wBreathe = 1.0 - ${WATER_CHOP_BREATHE_STRENGTH.toFixed(3)} * ( 0.5 + 0.5 * waterValueNoise( wPos * 0.12 + uTime * 0.08 ) );\n` +
-      // ── Swell rolls toward the map center (seamless radial field) ──
-      // Broken water hugs the map edge, so a single low-frequency train rolls
-      // toward uWaterCenter: its crest lines run perpendicular to that radial
-      // direction and it dominates the local chop (ISO_SUPPRESS), so waves read
-      // as coming in off the sea rather than dappling. Because the direction is
-      // a continuous function of world position, touching tiles are seamless —
-      // the only "turn" is the smooth rotation near map corners. A smooth ramp
-      // on distance-from-center fades the swell so central lakes keep the
-      // isotropic chop (WATER_SHORE_* in terrainParams.js). The vertex shader's
-      // shore swell (aShoreFlow/aShoreAmp) uses the same radial, toward-center
-      // direction at the same travel speed, so the geometry and this shading
-      // fold into one coherent roll rather than fighting each other.
+      // ── Water wave shading is gone; only the radial swell direction remains ──
+      // The old dark/bright wave bands came from perturbing the fragment normal
+      // with a chopSlope field (the WATER_CHOP crossing dapple + the WATER_SHORE
+      // map-center swell). That per-pixel shading is REMOVED — the water
+      // geometry itself now rolls toward the map center (the vertex aShoreFlow/
+      // aShoreAmp swell), so the moat reads as having depth through real motion,
+      // and the surface shading stays flat instead of showing streaks of dark
+      // shadow drifting ashore. We still compute the radial direction + swell
+      // phase here because the waterline froth (below) surges ashore along it.
       `vec2 vecToCenter = uWaterCenter - vWaterWorld.xz;\n` +
       `float distCenter = length( vecToCenter );\n` +
       `vec2 vWaterShore = vecToCenter / max( distCenter, 1e-4 );\n` +
-      `float vWaterCoast = smoothstep( ${WATER_SHORE_INNER.toFixed(3)} * uWaterRadius, ${WATER_SHORE_OUTER.toFixed(3)} * uWaterRadius, distCenter );\n` +
-      `float shoreW = dot( wWave, vWaterShore ) * ${WATER_SHORE_FREQ.toFixed(2)} - uTime * ${WATER_SHORE_SPEED.toFixed(2)};\n` +
-      `vec2 shoreSlope = cos( shoreW ) * ${WATER_SHORE_FREQ.toFixed(2)} * vWaterShore;\n` +
-      `vec3 chopSlope = vec3(\n` +
-      `  ( ( cos( chopC1 ) * ${(WATER_CHOP_DIR_1[0] * WATER_CHOP_FREQ_1).toFixed(3)} + cos( chopC2 ) * ${(WATER_CHOP_DIR_2[0] * WATER_CHOP_FREQ_2).toFixed(3)} + cos( chopC3 ) * ${(WATER_CHOP_DIR_3[0] * WATER_CHOP_FREQ_3).toFixed(3)} + cos( chopC4 ) * ${(WATER_CHOP_DIR_4[0] * WATER_CHOP_FREQ_4).toFixed(3)} ) * wBreathe ) * ( 1.0 - ${WATER_SHORE_ISO_SUPPRESS.toFixed(2)} * vWaterCoast ) + vWaterCoast * ${WATER_SHORE_AMP.toFixed(2)} * shoreSlope.x,\n` +
-      `  0.0,\n` +
-      `  ( ( cos( chopC1 ) * ${(WATER_CHOP_DIR_1[1] * WATER_CHOP_FREQ_1).toFixed(3)} + cos( chopC2 ) * ${(WATER_CHOP_DIR_2[1] * WATER_CHOP_FREQ_2).toFixed(3)} + cos( chopC3 ) * ${(WATER_CHOP_DIR_3[1] * WATER_CHOP_FREQ_3).toFixed(3)} + cos( chopC4 ) * ${(WATER_CHOP_DIR_4[1] * WATER_CHOP_FREQ_4).toFixed(3)} ) * wBreathe ) * ( 1.0 - ${WATER_SHORE_ISO_SUPPRESS.toFixed(2)} * vWaterCoast ) + vWaterCoast * ${WATER_SHORE_AMP.toFixed(2)} * shoreSlope.y );\n` +
-      // View-space approximation: water is near-horizontal and the Lambert
-      // diffuse only depends on dot(n, l), so offsetting the normal directly
-      // reads correctly without exact frame math.
-      `normal = normalize( normal + chopSlope * ${chopStrength} );\n` +
-      // ── Sun crest glints (WATER_SPEC_CREST_* / WATER_SPARKLE_* / WATER_FRESNEL_*) ──
-      // Glints ride the sun-facing wave slope (see inline notes below), so they
-      // read consistently against the wave shading everywhere. Rivers mask
-      // themselves out via their flow amplitude; bank walls never glint.
+      `float shoreW = dot( vWaterWorld.xz, vWaterShore ) * ${WATER_SHORE_FREQ.toFixed(2)} - uTime * ${WATER_SHORE_SPEED.toFixed(2)};\n` +
+      // ── Sun glint (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*) ──
+      // The broken-water normal is flat (the chop that used to vary it is
+      // removed), so the old sun-facing wave-slope crest gate is disabled — it
+      // would be a constant ≈ sun elevation and zero the glints. Glints are
+      // shaped purely by the value-noise sparkle fleck mask, a mild fresnel
+      // grazing gather, and the sun's shadow mask. Rivers mask out via their
+      // flow amplitude; bank walls never glint (vWaterUp).
       `vec3 lightDir = normalize( ( viewMatrix * vec4( vec3( ${sunX}, ${sunY}, ${sunZ} ), 0.0 ) ).xyz );\n` +
       `vec3 viewDir = normalize( vViewPosition );\n` +
       `float nDotV = max( dot( normal, viewDir ), 0.0 );\n` +
-      // ── Sun crest glints (WATER_SPEC_CREST_* / WATER_SPARKLE_* / WATER_FRESNEL_*) ──
-      // Glints ride the sun-FACING wave slope: gated by dot(normal, lightDir),
-      // the same sun-only quantity that creates the bright/dark wave shading, so
-      // a glint sits on the bright crest consistently everywhere (the old Blinn
-      // half-vector lobe was view-dependent and drifted the glint relative to
-      // the waves across the map). A high-threshold crest mask keeps glints off
-      // shadowed troughs; a static value-noise mask breaks them into flecks so
-      // they ride the waves (no fixed-direction scroll); a mild fresnel gathers
-      // them gently at grazing distance. Rivers mask out (vWaterFlowAmp); bank
-      // walls never glint (vWaterUp).
       // ── Shadow mask on the glint ──
       // The glint reflects the sun, so it must vanish where an object blocks
       // that sun. The diffuse already receives a soft shadow (Three.js
@@ -331,7 +277,9 @@ waterMaterial.onBeforeCompile = (shader) => {
       `  _glintShadow = directionalLightShadows[ 0 ];\n` +
       `  glintShadow = receiveShadow ? getShadow( directionalShadowMap[ 0 ], _glintShadow.shadowMapSize, _glintShadow.shadowIntensity, _glintShadow.shadowBias, _glintShadow.shadowRadius, vDirectionalShadowCoord[ 0 ] ) : 1.0;\n` +
       `#endif\n` +
-      `float sunCrest = smoothstep( ${WATER_SPEC_CREST_LO.toFixed(2)}, ${WATER_SPEC_CREST_HI.toFixed(2)}, dot( normal, lightDir ) );\n` +
+      // Flat normal → constant sun factor; disable the crest gate so the glints
+      // are driven purely by sparkle + fresnel + shadow (see the glint comment).
+      `float sunCrest = 1.0;\n` +
       `float fresnel = pow( 1.0 - nDotV, ${WATER_FRESNEL_POWER.toFixed(2)} );\n` +
       `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( vWaterWorld.xz * ${WATER_SPARKLE_FREQ.toFixed(2)} ) );\n` +
       `float glint = sunCrest * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel )\n` +
@@ -346,8 +294,9 @@ waterMaterial.onBeforeCompile = (shader) => {
       // Rivers skip the ramp (they carry vWaterDepth 0 and their own color).
       `float depthFade = ( 1.0 - smoothstep( 0.0, ${WATER_DEPTH_RAMP.toFixed(2)}, vWaterDepth ) ) * ( 1.0 - smoothstep( 0.0, 0.02, vWaterFlowAmp ) );\n` +
       `outgoingLight += ( vec3( ${shallowColor} ) - vec3( ${deepColor} ) ) * depthFade * 0.4;\n` +
-      // Subtle cyan crest tint: read the sun-facing wave slope as a gentle
-      // luminance boost so crests read from above with no extra texture samples.
+      // Subtle cyan sheen: a constant sun-facing luminance boost (the flat
+      // broken-water normal makes dot(normal, lightDir) constant, so this reads
+      // as an even minty tint rather than crest-crest variation).
       `float crestBright = dot( normal, lightDir ) * ${WATER_CREST_BRIGHTNESS.toFixed(3)};\n` +
       `outgoingLight += vec3( ${crestTint} ) * crestBright;\n` +
       // Sparkle on top of the smooth-shaded water: saturates to a cool white

@@ -33,52 +33,22 @@ export const WATER_RIPPLE_SPEED = 2.0;
 export const WATER_RIPPLE_AMP = 0.03;
 export const WATER_RIPPLE_COVERAGE = 0.3;
 
-/**
- * Water surface chop (fragment-shader shading animation, see materials.js).
- * Four sine trains perturb the water fragment normals. To avoid the "perfect
- * stripes scrolling in one absolute direction" look, the field is sampled at a
- * DOMAIN-WARPED position (crest lines bend, no straight world-aligned bands),
- * trains 2 & 4 travel the opposite way (crossing chop, not a single roll), the
- * frequencies are incommensurate, and a slow BREATHE modulation swells
- * amplitude in patches. Pure per-pixel math; no geometry/draw-call changes.
- */
-export const WATER_CHOP_FREQ_1 = 0.9;    // rad per world unit, train 1
-export const WATER_CHOP_DIR_1 = [0.90, 0.35];
-export const WATER_CHOP_FREQ_2 = 2.7;
-export const WATER_CHOP_DIR_2 = [-0.40, 0.85];
-export const WATER_CHOP_FREQ_3 = 3.7;
-export const WATER_CHOP_DIR_3 = [0.50, -0.80];
-export const WATER_CHOP_FREQ_4 = 4.3;    // high octave — micro-ripples the specular sparkle rides
-export const WATER_CHOP_DIR_4 = [0.72, 0.61];
-export const WATER_CHOP_SPEED = 1.1;     // phase speed multiplier (uTime)
-export const WATER_CHOP_STRENGTH = 1.35; // normal-perturb strength (view-space) — calm enough that the swell reads clearly
-// Domain warp: low-freq value noise offsets where the chop is sampled, bending
-// crest lines so they don't read as a rigid grid of straight stripes. Strength
-// is in world units (about half a hex radius produces a clear bend).
-export const WATER_CHOP_WARP_FREQ = 0.82;     // warp-field scale (per world unit)
-export const WATER_CHOP_WARP_STRENGTH = 1.5;  // warp bend amount (world units)
-// Slow in-place swell modulation (0..1): patches of the surface swell rather
-// than translate as a sheet, breaking the uniform scroll.
-export const WATER_CHOP_BREATHE_STRENGTH = 0.7;
+// WATER_CHOP (fragment-shader per-pixel chop) is REMOVED. Broken water no longer
+// shades with a static normal-perturbation dapple — that was the "fake" wave
+// shading that left the surface reading as flat. It is superseded by the real
+// geometry shore swell below (WATER_SHORE_FLOW_*), which rolls the moat toward
+// the map center and wobbles object shadows. Rivers keep their own vertex flow.
 
 /**
- * Swell that rolls toward the map center (the seamless coast-aligned model).
- * Broken water always hugs the map edge, so a low-frequency wave train rolls
- * toward the map center: its crest lines run perpendicular to that radial
- * direction and it dominates the local chop (ISO_SUPPRESS fades the isotropic
- * dapple). Because the direction is a continuous function of world position
- * (toward the map center), adjacent tiles are seamless — the only "turn" is the
- * smooth rotation near the map corners. The swell is active across essentially
- * ALL broken water: INNER..OUTER is only a tiny guard band near the exact
- * center (where there is no water), so it never drops out on the visible
- * near-shore water and the direction reads as the swell, not the fixed chop.
+ * Radial swell direction & phase used by the waterline froth (waterMaterial).
+ * Broken water hugs the map edge, so the froth surges toward the map center
+ * along a continuous radial field — seamless by construction (adjacent tiles
+ * match at coincident vertices). FREQ/SPEED tune how the breaking-foam ridge
+ * sits and how fast it travels ashore. The map-center swell SHADING that used
+ * to ride this same direction (the dark/bright wave bands) is removed.
  */
 export const WATER_SHORE_FREQ = 2.6;        // rad per world unit — broad, readable rolls
 export const WATER_SHORE_SPEED = 1.0;       // travel speed toward the center
-export const WATER_SHORE_AMP = 2.5;         // swell dominance
-export const WATER_SHORE_ISO_SUPPRESS = 0.85; // 0..1 — fade the isotropic chop where the swell dominates
-export const WATER_SHORE_INNER = 0.05;      // fraction of map radius where the fade-in guard starts
-export const WATER_SHORE_OUTER = 0.18;      // fraction of map radius where the swell is fully dominant
 
 /**
  * Broken-water geometry swell (vertex displacement on the water mesh, see
@@ -88,7 +58,7 @@ export const WATER_SHORE_OUTER = 0.18;      // fraction of map radius where the 
  * center" shore vector instead of a per-tile river flow vector. That actually
  * moves the coarse hex fan in 3D — the surface rises/falls and drifts toward
  * the center — so object shadows on it wobble and the moat reads as having
- * depth, rather than as a static plane that only the fragment chop lights up.
+ * depth, replacing the removed fragment per-pixel chop as the water's wave.
  * Rivers are unaffected: they keep the per-tile flow direction and a separate
  * amplitude, and the fragment glint/depth-ramp masks continue to key off the
  * RIVER flow amplitude (aWaterFlowAmp) only. Tune AMP/WAVE_LENGTH carefully —
@@ -137,23 +107,16 @@ export const SIDE_WATER_TINT_WEIGHT = 0.55;
 
 /**
  * Water specular sun glints — a shader term inside waterMaterial (materials.js).
- * Glints ride the SUN-FACING wave crests: gated by dot(normal, lightDir) — the
- * SAME sun-only quantity that creates the bright/dark wave shading — so a glint
- * sits on the bright crest consistently everywhere, independent of the camera.
- * (The old Blinn half-vector lobe was view-dependent, so the glint drifted
- * relative to the waves across the map: north glints sat on dark patches,
- * south glints between them. Tying glints to the sun-facing slope removes
- * that.) A high-threshold crest mask keeps glints off shadowed troughs, a
- * value-noise mask breaks them into flecks, and a mild fresnel term gently
- * gathers them at grazing distance. The glint is additionally gated by the
- * sun's shadow map (inside waterMaterial) so it never sparkles inside object
- * shadows. Rivers mask themselves out via their flow
- * amplitude; bank walls never glint.
+ * With the per-pixel chop removed, the broken-water normal is flat, so the
+ * glints are no longer gated by a sun-facing wave-slope (dot(normal, lightDir)
+ * is a constant ≈ sun elevation and would zero them). Instead a value-noise
+ * sparkle mask breaks them into drifting flecks, a mild fresnel term gathers
+ * them at grazing distance, and the sun's shadow map suppresses them inside
+ * object shadows. Rivers mask themselves out via their flow amplitude; bank
+ * walls never glint.
  */
 export const WATER_SPEC_STRENGTH = 0.9;          // peak sparkle color contribution
 export const WATER_SPEC_COLOR = [0.93, 0.97, 1.0]; // slightly cool white at peak
-export const WATER_SPEC_CREST_LO = 0.45;        // dot(normal, lightDir) where glints begin (bright side)
-export const WATER_SPEC_CREST_HI = 0.75;        // dot(normal, lightDir) where glints are fully on
 export const WATER_FRESNEL_POWER = 2.4;         // grazing-angle exponent
 export const WATER_FRESNEL_BASE = 0.7;          // glint base level (keeps steep/near-camera water lit)
 export const WATER_FRESNEL_STRENGTH = 0.4;      // mild grazing gather (avoids a strong locational bias)
