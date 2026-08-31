@@ -69,10 +69,12 @@ Notes:
   shadows on it wobble. The former fragment-shader **chop** pass
   (`WATER_CHOP_*`) that perturbed per-pixel normals into drifting light/dark
   wave bands is **removed** — it was the "fake" wave shading that read as flat.
-  The shader still adds **sun glints** (`WATER_SPEC_*` / `WATER_SPARKLE_*` in
-  `terrainParams.js`): world-space cellular flecks broken by a value-noise
-  sparkle mask, gathered at grazing angles by fresnel, and masked inside
-  object shadows (rivers mask out via their flow amplitude).
+  The shader still adds **sun glints** (`WATER_SPEC_*` / `WATER_SPARKLE_*` /
+  `WATER_GLINT_*` in `terrainParams.js`): a small-scale **animated** roughness
+  field (glint-only, never the normal) clusters the glint onto the crests of
+  fine travelling waves and the sparkle flecks drift with them, gathered at
+  grazing angles by fresnel and masked inside object shadows (rivers mask out
+  via their flow amplitude).
 - Land side-faces adjacent to water/river are damp-tinted toward
   `#1a476b` (weight 0.55).
 - Terrain **elevation offsets** (Y above the hex base): plains 0, desert 0,

@@ -17,6 +17,12 @@ import {
   WATER_FRESNEL_STRENGTH,
   WATER_SPARKLE_FREQ,
   WATER_SPARKLE_ONSET,
+  WATER_GLINT_WAVE_FREQ,
+  WATER_GLINT_WAVE_SPEED,
+  WATER_GLINT_WARP_STRENGTH,
+  WATER_GLINT_DRIFT,
+  WATER_GLINT_ROUGH_LO,
+  WATER_GLINT_ROUGH_HI,
   WATER_DEPTH_RAMP,
   WATER_DEPTH_SHALLOW,
   WATER_CREST_TINT,
@@ -252,13 +258,14 @@ waterMaterial.onBeforeCompile = (shader) => {
       `float distCenter = length( vecToCenter );\n` +
       `vec2 vWaterShore = vecToCenter / max( distCenter, 1e-4 );\n` +
       `float shoreW = dot( vWaterWorld.xz, vWaterShore ) * ${WATER_SHORE_FREQ.toFixed(2)} - uTime * ${WATER_SHORE_SPEED.toFixed(2)};\n` +
-      // ── Sun glint (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*) ──
-      // The broken-water normal is flat (the chop that used to vary it is
-      // removed), so the old sun-facing wave-slope crest gate is disabled — it
-      // would be a constant ≈ sun elevation and zero the glints. Glints are
-      // shaped purely by the value-noise sparkle fleck mask, a mild fresnel
-      // grazing gather, and the sun's shadow mask. Rivers mask out via their
-      // flow amplitude; bank walls never glint (vWaterUp).
+      // ── Sun glint (WATER_SPEC_* / WATER_SPARKLE_* / WATER_GLINT_* / WATER_FRESNEL_*) ──
+      // Since the shading normal is flat (the chop that used to vary it is
+      // removed), the glint no longer rides a sun-facing wave slope; instead it
+      // is clustered by an ANIMATED choppy roughness field (see the "Choppy
+      // roughness" block below) and broken into drifting sparkle flecks, then
+      // gathered at grazing distance by a mild fresnel and suppressed inside
+      // object shadows. Rivers mask out via their flow amplitude; bank walls
+      // never glint (vWaterUp).
       `vec3 lightDir = normalize( ( viewMatrix * vec4( vec3( ${sunX}, ${sunY}, ${sunZ} ), 0.0 ) ).xyz );\n` +
       `vec3 viewDir = normalize( vViewPosition );\n` +
       `float nDotV = max( dot( normal, viewDir ), 0.0 );\n` +
@@ -277,12 +284,26 @@ waterMaterial.onBeforeCompile = (shader) => {
       `  _glintShadow = directionalLightShadows[ 0 ];\n` +
       `  glintShadow = receiveShadow ? getShadow( directionalShadowMap[ 0 ], _glintShadow.shadowMapSize, _glintShadow.shadowIntensity, _glintShadow.shadowBias, _glintShadow.shadowRadius, vDirectionalShadowCoord[ 0 ] ) : 1.0;\n` +
       `#endif\n` +
-      // Flat normal → constant sun factor; disable the crest gate so the glints
-      // are driven purely by sparkle + fresnel + shadow (see the glint comment).
-      `float sunCrest = 1.0;\n` +
+      // ── Choppy roughness field — glint-only, animated ──
+      // The shading normal is flat, so instead of gating the glint on a wave
+      // slope we gate it on a small-scale ANIMATED roughness field that reads as
+      // wind/current bumps. It is purely a glint gate — it never touches the
+      // shading normal, so the removed dark wave bands stay gone. A few fine
+      // crossing sine trains on a domain-warped position (phase-advanced with
+      // time, incommensurate freqs so it never repeats cleanly) cluster the
+      // glint onto travelling crests; the sparkle fleck mask is also sampled at a
+      // drifting position so the glints churn as well as slide (WATER_GLINT_*).
+      `vec2 gPos = vWaterWorld.xz;\n` +
+      `vec2 gWarp = ( vec2( waterValueNoise( gPos * 0.9 + uTime * 0.05 ), waterValueNoise( gPos * 0.9 + vec2( 37.7, 91.3 ) + uTime * 0.05 ) ) - 0.5 ) * ${WATER_GLINT_WARP_STRENGTH.toFixed(2)};\n` +
+      `vec2 gWave = gPos + gWarp;\n` +
+      `float gA = sin( dot( gWave, vec2( 0.86, 0.51 ) ) * ${WATER_GLINT_WAVE_FREQ.toFixed(2)} + uTime * ${WATER_GLINT_WAVE_SPEED.toFixed(2)} * 1.00 );\n` +
+      `float gB = sin( dot( gWave, vec2( -0.42, 0.84 ) ) * ${WATER_GLINT_WAVE_FREQ.toFixed(2)} * 1.35 - uTime * ${WATER_GLINT_WAVE_SPEED.toFixed(2)} * 1.20 );\n` +
+      `float gC = sin( dot( gWave, vec2( 0.24, -0.71 ) ) * ${WATER_GLINT_WAVE_FREQ.toFixed(2)} * 1.08 + uTime * ${WATER_GLINT_WAVE_SPEED.toFixed(2)} * 0.80 );\n` +
+      `float gRough = 0.5 + 0.5 * ( gA + gB + gC ) / 3.0;\n` +
+      `float roughGate = smoothstep( ${WATER_GLINT_ROUGH_LO.toFixed(2)}, ${WATER_GLINT_ROUGH_HI.toFixed(2)}, gRough );\n` +
       `float fresnel = pow( 1.0 - nDotV, ${WATER_FRESNEL_POWER.toFixed(2)} );\n` +
-      `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( vWaterWorld.xz * ${WATER_SPARKLE_FREQ.toFixed(2)} ) );\n` +
-      `float glint = sunCrest * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel )\n` +
+      `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( gPos * ${WATER_SPARKLE_FREQ.toFixed(2)} + vec2( uTime * ${WATER_GLINT_DRIFT.toFixed(2)}, -uTime * ${WATER_GLINT_DRIFT.toFixed(2)} * 0.7 ) ) );\n` +
+      `float glint = roughGate * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel )\n` +
       `  * ( 1.0 - smoothstep( 0.0, 0.02, vWaterFlowAmp ) )\n` +
       `  * smoothstep( 0.5, 0.9, vWaterUp )\n` +
       `  * glintShadow;`

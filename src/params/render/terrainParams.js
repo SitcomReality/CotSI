@@ -107,13 +107,16 @@ export const SIDE_WATER_TINT_WEIGHT = 0.55;
 
 /**
  * Water specular sun glints — a shader term inside waterMaterial (materials.js).
- * With the per-pixel chop removed, the broken-water normal is flat, so the
- * glints are no longer gated by a sun-facing wave-slope (dot(normal, lightDir)
- * is a constant ≈ sun elevation and would zero them). Instead a value-noise
- * sparkle mask breaks them into drifting flecks, a mild fresnel term gathers
- * them at grazing distance, and the sun's shadow map suppresses them inside
- * object shadows. Rivers mask themselves out via their flow amplitude; bank
- * walls never glint.
+ * The broken-water normal is flat (the chop that used to vary it is removed),
+ * so the glints are not gated by a sun-facing wave-slope anymore; instead a
+ * small-scale animated "roughness" field (WATER_GLINT_*) clusters the glint
+ * onto the crests of fine travelling waves and the sparkle flecks drift with
+ * them, so the water glimmers like light on a wind-blown / current-crossed
+ * surface rather than a static puddle of paint. This roughness gates only the
+ * glint sparkle — it does NOT perturb the shading normal, so the dark/bright
+ * wave bands stay gone. A mild fresnel gathers the glints at grazing distance
+ * and the sun's shadow map suppresses them inside object shadows. Rivers mask
+ * themselves out via their flow amplitude; bank walls never glint.
  */
 export const WATER_SPEC_STRENGTH = 0.9;          // peak sparkle color contribution
 export const WATER_SPEC_COLOR = [0.93, 0.97, 1.0]; // slightly cool white at peak
@@ -122,6 +125,25 @@ export const WATER_FRESNEL_BASE = 0.7;          // glint base level (keeps steep
 export const WATER_FRESNEL_STRENGTH = 0.4;      // mild grazing gather (avoids a strong locational bias)
 export const WATER_SPARKLE_FREQ = 7.0;          // value-noise sparkle cell density (cells per world unit)
 export const WATER_SPARKLE_ONSET = 0.66;        // value-noise level where a sparkle cell ignites (0..1)
+
+/**
+ * Glint-only choppy "roughness" field (no normal perturbation, so it cannot
+ * reintroduce the removed dark wave-band shading — it only where the sparkle
+ * lights up). A few fine crossing sine trains (on a domain-warped position,
+ * phase-advanced with time) read as small wind/current bumps; the sparkle fleck
+ * mask is sampled at a drifting position so the glints also churn as well as
+ * translate. Higher FREQ = finer/tighter shimmer, SPEED = how fast it travels,
+ * WARP_STRENGTH = how much the crest lines bend (avoids straight world-aligned
+ * bands), DRIFT = how quickly the flecks slide across the surface, and
+ * ROUGH_LO/HI set how tightly the glint clusters onto a crest (narrower band =
+ * sparser, more twinkly glints).
+ */
+export const WATER_GLINT_WAVE_FREQ = 3.4;     // rad/world unit — small, tight bumps
+export const WATER_GLINT_WAVE_SPEED = 1.0;    // phase travel speed of the shimmer
+export const WATER_GLINT_WARP_STRENGTH = 0.7; // bend of the crest lines (world units)
+export const WATER_GLINT_DRIFT = 0.6;         // sparkle-fleck slide rate (wind/current)
+export const WATER_GLINT_ROUGH_LO = 0.55;     // crest gate lo (fraction of bumpiness)
+export const WATER_GLINT_ROUGH_HI = 0.9;      // crest gate hi (glint fully on)
 
 /**
  * Terrain fill colors (RGB 0-1 tuples for vertex color attributes).
