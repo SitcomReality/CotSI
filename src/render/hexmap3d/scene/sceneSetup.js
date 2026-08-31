@@ -1,5 +1,5 @@
 import * as THREE from '../../../vendor/three.module.js';
-import { toonMaterial, waterShadowUniform } from './materials.js';
+import { toonMaterial } from './materials.js';
 import { createCameraState, applyCameraState } from './cameraState.js';
 import { createRenderer } from './rendererSetup.js';
 import { addLights, applyShadowConfig } from './lightSetup.js';
@@ -95,12 +95,6 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
 
   // --- Lights ---
   const lights = addLights(scene, { shadows });
-  // Initialize the shadow-matrix uniform so the first frame uses the
-  // correct shadow-camera basis instead of the identity default.
-  if ( lights.directional.castShadow ) {
-    lights.directional.shadow.updateMatrices( lights.directional );
-    waterShadowUniform.value.copy( lights.directional.shadow.matrix );
-  }
 
   // ── Live graphics-effect sync (options modal toggles) ──
   // Checked each frame; the flags rarely change, so this is two compares in
@@ -161,13 +155,6 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
       startMeasure('render3d');
       renderer.render(scene, camera);
       endMeasure('render3d');
-      // Upload the directional shadow matrix to the water shader so
-      // the chop-driven shadow wobble aligns with the shadow camera's
-      // own basis (updated once per frame after shadows have been
-      // recomputed by the renderer).
-      if ( sun.castShadow && renderer.shadowMap.enabled ) {
-        waterShadowUniform.value.copy( sun.shadow.matrix );
-      }
     });
   }
 

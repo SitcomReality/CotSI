@@ -62,24 +62,6 @@ export const WATER_CHOP_WARP_STRENGTH = 1.5;  // warp bend amount (world units)
 export const WATER_CHOP_BREATHE_STRENGTH = 0.7;
 
 /**
- * Shadow-map wobble applied per fragment so the sun-shadow on the water
- * follows the passing waves instead of sitting static. The shadow lookup
- * coordinate is offset by the local surface gradient (chopSlope, world XZ)
- * transformed through the directional shadow matrix, so the wobble aligns
- * with the shadow camera's own basis rather than world axes.
- *
- * Calibration: the shadow frustum is 2*SHADOW_INITIAL_FRUSTUM world units
- * wide on a mapSize pixel map, so 1 world unit ≈ (mapSize / (2*SHADOW_INITIAL_FRUSTUM))
- * shadow pixels. With the typical chop slope (~0.06) and the default below,
- * the shadow drifts roughly 1 px where the waves are steepest and less on
- * flat crests/troughs — a gentle shimmer that sells the waves passing under
- * the shadow without distorting the shadow silhouette itself.
- *
- * Set to 0 to disable the wobble. Tune upward for more, downward for less.
- */
-export const WATER_SHADOW_WOBBLE = 0.12; // world-space displacement scale (see above)
-
-/**
  * Swell that rolls toward the map center (the seamless coast-aligned model).
  * Broken water always hugs the map edge, so a low-frequency wave train rolls
  * toward the map center: its crest lines run perpendicular to that radial
