@@ -2,7 +2,7 @@ import * as THREE from '../../../vendor/three.module.js';
 import { waterMaterial } from '../scene/materials.js';
 import { hexCenter, hexCornersXZ, HEX_RADIUS } from '../hexWorldSpace.js';
 import { neighbors, coordKey } from '../../../engine/rules/hexGrid.js';
-import { HEX_THICKNESS, SIDE_DARKEN_FACTOR, WATER_RIPPLE_AMP, WATER_RIPPLE_COVERAGE, WATER_FLOW_AMP, WATER_FROTH_WIDTH } from '../../../params/render/terrainParams.js';
+import { HEX_THICKNESS, SIDE_DARKEN_FACTOR, WATER_RIPPLE_AMP, WATER_RIPPLE_COVERAGE, WATER_FLOW_AMP, WATER_SHORE_FLOW_AMP, WATER_FROTH_WIDTH } from '../../../params/render/terrainParams.js';
 import { ELEVATION, resolveElev } from './tileHeight.js';
 import { makeTopColorResolver } from './tileColor.js';
 
@@ -101,9 +101,10 @@ export function ampAt(x, z) {
 /**
  * Write one water tile's 54 vertices into the buffers starting at vertex
  * index `vi` (vertices; positions/colors are 3 floats each, phases/amps and
- * flowAmps 1 float each, flowXZ 2 floats per vertex). Returns the new index.
+ * flowAmps/shoreAmps 1 float each, flowXZ/shoreFlowXZ 2 floats per vertex).
+ * Returns the new index.
  */
-function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi, tile, state, topColor) {
+function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi, tile, state, topColor) {
   const elev = resolveElev(tile, ELEVATION);
   const sideColor = topColor.map(c => c * SIDE_DARKEN_FACTOR);
 
@@ -124,11 +125,15 @@ function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, fr
   }
   const flowAmp = tile.terrain === 'river' ? WATER_FLOW_AMP : 0;
 
-  // Large water (lakes/ocean) keeps a perfectly flat top face — all its detail
-  // lives in the fragment shader (chop + sparkle), so no per-corner vertex
-  // ripple deforms the coarse 6-triangle hex fan. That deformation was the
-  // source of the low-res facet banding and the jittery moving shadows on big
-  // water. Rivers keep a non-zero ampScale for their downstream flow bob.
+  // Large water (lakes/ocean) keeps a PERFECTLY FLAT top face for the per-pixel
+  // chop — no per-corner RIPPLE (the `sin(uTime + aWaterPhase) * aWaterAmp`
+  // term) deforms the coarse 6-triangle hex fan, which was the source of the
+  // low-res facet banding and the jittery moving shadows on big water. It DOES
+  // still move in 3D: the shore-swell vertex term (aShoreFlow/aShoreAmp, see
+  // addVertex) displaces the whole fan with a coherent radial wave toward the
+  // map center, so the surface reads as rolling in from the sea without the
+  // per-corner jitter that caused the old banding. Rivers keep a non-zero
+  // ampScale for their downstream ripple/flow bob.
   const ampScale = tile.terrain === 'river' ? 1 : 0;
 
   const { x: cx, z: cz } = hexCenter(tile.q, tile.r);
@@ -141,9 +146,9 @@ function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, fr
   for (let i = 0; i < 6; i++) {
     const c0 = corners[i];
     const c1 = corners[(i + 1) % 6];
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi,     cx,  topY, cz,  topColor, cx,  cz,  flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi + 1, c1.x, topY, c1.z, topColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi + 2, c0.x, topY, c0.z, topColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi,     cx,  topY, cz,  topColor, cx,  cz,  flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 1, c1.x, topY, c1.z, topColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 2, c0.x, topY, c0.z, topColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
     vi += 3;
   }
 
@@ -153,19 +158,19 @@ function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, fr
   for (let i = 0; i < 6; i++) {
     const c0 = corners[i];
     const c1 = corners[(i + 1) % 6];
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi,     c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi + 1, c0.x, topY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi + 2, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi + 3, c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi + 4, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi + 5, c1.x, botY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi,     c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 1, c0.x, topY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 2, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 3, c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 4, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 5, c1.x, botY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
     vi += 6;
   }
 
   return vi;
 }
 
-function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi, x, y, z, color, hx, hz, flowX, flowZ, flowAmp, ampScale = 1, tile = null, state = null) {
+function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi, x, y, z, color, hx, hz, flowX, flowZ, flowAmp, ampScale = 1, tile = null, state = null) {
   const i3 = vi * 3;
   positions[i3]     = x;
   positions[i3 + 1] = y;
@@ -179,6 +184,29 @@ function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, froths, de
   flowXZ[i2]        = flowX;
   flowXZ[i2 + 1]    = flowZ;
   flowAmps[vi]      = flowAmp;
+  // Broken-water shore swell: non-river water moves toward the map center
+  // (world origin) with the same traveling wave rivers use, but its direction is
+  // the radial "toward center" vector instead of a per-tile river vector. The
+  // direction is a pure function of the vertex's world XZ, so coincident
+  // vertices across a shared hex edge match exactly — seamless. Rivers carry
+  // zero shore swell (aShoreFlow = 0, aShoreAmp = 0) so the fragment glint /
+  // shallow-depth-ramp masks, which key off the RIVER flow amplitude, stay put.
+  const isBroken = tile && tile.terrain === 'water';
+  if (isBroken) {
+    const r = Math.hypot(hx, hz);
+    if (r > 1e-6) {
+      shoreFlowXZ[i2]     = -hx / r;
+      shoreFlowXZ[i2 + 1] = -hz / r;
+    } else {
+      shoreFlowXZ[i2]     = 0;
+      shoreFlowXZ[i2 + 1] = 0;
+    }
+    shoreAmps[vi] = WATER_SHORE_FLOW_AMP;
+  } else {
+    shoreFlowXZ[i2]     = 0;
+    shoreFlowXZ[i2 + 1] = 0;
+    shoreAmps[vi]       = 0;
+  }
   // Waterline froth + shallow-depth ramp (rivers have neither: they carry 0).
   // Computed at the vertex's world XZ so coincident vertices across a shared
   // hex edge match — seamless by position.
@@ -214,13 +242,15 @@ export function buildChunkWaterMesh(chunkTiles, state, visible, explored) {
   const amps = new Float32Array(tileCount * VERTICES_PER_HEX);
   const flowXZ = new Float32Array(tileCount * VERTICES_PER_HEX * 2);
   const flowAmps = new Float32Array(tileCount * VERTICES_PER_HEX);
+  const shoreFlowXZ = new Float32Array(tileCount * VERTICES_PER_HEX * 2);
+  const shoreAmps = new Float32Array(tileCount * VERTICES_PER_HEX);
   const froths = new Float32Array(tileCount * VERTICES_PER_HEX);
   const depths = new Float32Array(tileCount * VERTICES_PER_HEX);
   const topColorFor = makeTopColorResolver(state);
 
   let vi = 0;
   for (const tile of waterTiles) {
-    vi = writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, froths, depths, vi, tile, state, topColorFor(tile));
+    vi = writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi, tile, state, topColorFor(tile));
   }
 
   const geo = new THREE.BufferGeometry();
@@ -230,6 +260,8 @@ export function buildChunkWaterMesh(chunkTiles, state, visible, explored) {
   geo.setAttribute('aWaterAmp', new THREE.BufferAttribute(amps, 1));
   geo.setAttribute('aWaterFlow', new THREE.BufferAttribute(flowXZ, 2));
   geo.setAttribute('aWaterFlowAmp', new THREE.BufferAttribute(flowAmps, 1));
+  geo.setAttribute('aShoreFlow', new THREE.BufferAttribute(shoreFlowXZ, 2));
+  geo.setAttribute('aShoreAmp', new THREE.BufferAttribute(shoreAmps, 1));
   geo.setAttribute('aWaterline', new THREE.BufferAttribute(froths, 1));
   geo.setAttribute('aWaterDepth', new THREE.BufferAttribute(depths, 1));
   geo.computeVertexNormals();

@@ -81,6 +81,24 @@ export const WATER_SHORE_INNER = 0.05;      // fraction of map radius where the 
 export const WATER_SHORE_OUTER = 0.18;      // fraction of map radius where the swell is fully dominant
 
 /**
+ * Broken-water geometry swell (vertex displacement on the water mesh, see
+ * buildWaterMesh.js / waterMaterial). Non-river water (lakes/ocean — "Broken
+ * water") hugs the map edge, so it gets the same downstream-traveling vertex
+ * wave that rivers use, but its direction is the radial "toward the map
+ * center" shore vector instead of a per-tile river flow vector. That actually
+ * moves the coarse hex fan in 3D — the surface rises/falls and drifts toward
+ * the center — so object shadows on it wobble and the moat reads as having
+ * depth, rather than as a static plane that only the fragment chop lights up.
+ * Rivers are unaffected: they keep the per-tile flow direction and a separate
+ * amplitude, and the fragment glint/depth-ramp masks continue to key off the
+ * RIVER flow amplitude (aWaterFlowAmp) only. Tune AMP/WAVE_LENGTH carefully —
+ * enough to read, not so much that the coarse fan shows facet banding.
+ */
+export const WATER_SHORE_FLOW_SPEED = 1.0;      // phase travel speed toward the center (matches WATER_SHORE_SPEED)
+export const WATER_SHORE_FLOW_WAVE_LENGTH = 4.0; // long wavelength — a broad roll, not a busy ripple
+export const WATER_SHORE_FLOW_AMP = 0.06;         // per-vertex drift/bob magnitude (vertical bob = 0.5·this)
+
+/**
  * Seamless waterline froth (buildWaterMesh.js aWaterline). A 0..1 per-vertex
  * value driven by the distance to the nearest land surface, so a thin froth
  * band hugs the waterline and fades over WATER_FROTH_WIDTH world units. Because

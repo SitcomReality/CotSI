@@ -23,6 +23,8 @@ import {
   WATER_SHORE_ISO_SUPPRESS,
   WATER_SHORE_INNER,
   WATER_SHORE_OUTER,
+  WATER_SHORE_FLOW_SPEED,
+  WATER_SHORE_FLOW_WAVE_LENGTH,
   WATER_FROTH_STRENGTH,
   WATER_FROTH_COLOR,
   WATER_SPEC_STRENGTH,
@@ -110,20 +112,29 @@ terrainMaterial.userData.shared = true;
  * continuous swells instead of being quantized into a couple of flat cel bands
  * — the banding is exactly what made a large flat water body read as a rigid
  * solid. A subtle white sheen (emissive tint) keeps it reading as wet. The
- * vertex shader displaces only rivers:
+ * vertex shader displaces the geometry:
  *   - flow:     river channels add waves traveling downstream along aWaterFlow
  *               (unit direction), so the surface never looks still AND rivers
  *               visibly flow toward their mouth.
+ *   - shore:    non-river water ("Broken water" — lakes/ocean, which hug the map
+ *               edge) adds the same traveling wave along aShoreFlow, a per-vertex
+ *               radial vector pointing toward the map center, so the moat
+ *               actually rolls in 3D toward the center (WATER_SHORE_FLOW_*). This
+ *               moves the coarse hex fan so object shadows on it wobble and the
+ *               water reads as having depth, not as a static plane that only the
+ *               fragment chop lights up. Rivers carry aShoreFlow=0/aShoreAmp=0.
  *   - ripple:   transformed.y += sin(uTime * WATER_RIPPLE_SPEED + aWaterPhase) * aWaterAmp
  *               (kept only on rivers; large water tiles carry amp 0).
- * Large water (lakes/ocean) keeps a perfectly flat top face — buildWaterMesh.js
- * writes zero amp for water tiles, so the coarse hex fan is never deformed and
- * won't cast a striated moving shadow. All of its motion is per-pixel: the
- * chop trains perturb the fragment normal, a map-center swell rolls in from the
- * map edge, and a Blinn-Phong specular + value-noise mask adds the sun glints
- * (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*). The swell directs toward
- * uWaterCenter as a continuous radial field, so touching water tiles are
- * seamless. The frame driver writes the single uTime uniform once per frame.
+ * Large water (lakes/ocean) keeps a PERFECTLY FLAT top face for the per-pixel
+ * chop — buildWaterMesh.js writes zero for the ripple amp (and for the river
+ * flow amp), so the coarse hex fan is never deformed by those jittery per-corner
+ * terms. Its real 3D motion is the coherent shore swell (above); the rest is
+ * per-pixel: the chop trains perturb the fragment normal, the map-center swell
+ * rolls in from the map edge, and a Blinn-Phong specular + value-noise mask
+ * adds the sun glints (WATER_SPEC_* / WATER_SPARKLE_* / WATER_FRESNEL_*). The
+ * swell directs toward uWaterCenter as a continuous radial field, so touching
+ * water tiles are seamless. The frame driver writes the single uTime uniform
+ * once per frame.
  */
 export const waterMaterial = new THREE.MeshPhongMaterial({
   vertexColors: true,
@@ -162,6 +173,8 @@ waterMaterial.onBeforeCompile = (shader) => {
     'attribute float aWaterAmp;\n' +
     'attribute vec2 aWaterFlow;\n' +
     'attribute float aWaterFlowAmp;\n' +
+    'attribute vec2 aShoreFlow;\n' +
+    'attribute float aShoreAmp;\n' +
     'attribute float aWaterline;\n' +
     'attribute float aWaterDepth;\n' +
     'varying float vWaterDepth;\n' +
@@ -175,6 +188,19 @@ waterMaterial.onBeforeCompile = (shader) => {
       `transformed.xz += aWaterFlow * ( flowWave * aWaterFlowAmp );\n` +
       `transformed.y += flowWave * aWaterFlowAmp * 0.5;\n` +
       `transformed.y += sin( uTime * ${WATER_RIPPLE_SPEED.toFixed(2)} + aWaterPhase ) * aWaterAmp;\n` +
+      // Broken-water shore swell: non-river water (lakes/ocean — "Broken water")
+      // displaces the whole hex fan with a traveling wave whose direction is the
+      // per-vertex radial "toward the map center" vector, so the moat visibly
+      // rolls in from the sea and object shadows on it wobble. Rivers carry
+      // aShoreFlow = 0 / aShoreAmp = 0 so this term no-ops for channels — and,
+      // crucially, the fragment glint / shallow-depth-ramp masks below still key
+      // off the RIVER flow amplitude (vWaterFlowAmp), so broken water keeps its
+      // glints and teal shore ramp. Same traveling-wave form as the flow term
+      // above; crests advance toward the center as uTime grows.
+      `float shoreAlong = dot( position.xz, aShoreFlow );\n` +
+      `float shoreWave = sin( uTime * ${WATER_SHORE_FLOW_SPEED.toFixed(2)} - shoreAlong * ${(Math.PI * 2 / WATER_SHORE_FLOW_WAVE_LENGTH).toFixed(3)} + aWaterPhase );\n` +
+      `transformed.xz += aShoreFlow * ( shoreWave * aShoreAmp );\n` +
+      `transformed.y += shoreWave * aShoreAmp * 0.5;\n` +
       // Post-displacement world position drives the fragment chop (below).
       `vWaterWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;\n` +
       // Glint gates: river channels mask out via their flow amplitude, and
@@ -255,7 +281,10 @@ waterMaterial.onBeforeCompile = (shader) => {
       // a continuous function of world position, touching tiles are seamless —
       // the only "turn" is the smooth rotation near map corners. A smooth ramp
       // on distance-from-center fades the swell so central lakes keep the
-      // isotropic chop (WATER_SHORE_* in terrainParams.js).
+      // isotropic chop (WATER_SHORE_* in terrainParams.js). The vertex shader's
+      // shore swell (aShoreFlow/aShoreAmp) uses the same radial, toward-center
+      // direction at the same travel speed, so the geometry and this shading
+      // fold into one coherent roll rather than fighting each other.
       `vec2 vecToCenter = uWaterCenter - vWaterWorld.xz;\n` +
       `float distCenter = length( vecToCenter );\n` +
       `vec2 vWaterShore = vecToCenter / max( distCenter, 1e-4 );\n` +
