@@ -58,9 +58,11 @@ export function initHexMap3D(mountElement) {
 
   // Init 2D effects overlay and register layers
   initEffectsOverlay(ctx);
-  registerLayer('fogOverlay', OVERLAY_Z.terrain, renderFogOverlay);
-  registerLayer('movementHighlights', OVERLAY_Z.highlight, renderMovementHighlights);
-  registerLayer('pathPreview', OVERLAY_Z.pathPreview, renderPathPreview);
+  // Static layers redraw only when camera/derived/fog state changes; dynamic
+  // layers redraw every frame. Static priorities all sit below dynamic ones.
+  registerLayer('fogOverlay', OVERLAY_Z.terrain, renderFogOverlay, true);
+  registerLayer('movementHighlights', OVERLAY_Z.highlight, renderMovementHighlights, true);
+  registerLayer('pathPreview', OVERLAY_Z.pathPreview, renderPathPreview, true);
   registerLayer('interactionHighlights', OVERLAY_Z.selection, renderInteractionHighlights);
   registerLayer('selectionRing', OVERLAY_Z.fog, renderSelectionRing);
 

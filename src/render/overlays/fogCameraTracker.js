@@ -4,27 +4,32 @@
 
 import { CAMERA_HASH_PRECISION } from '../../params/render/overlayParams.js';
 
-let _lastCamTargetX = null;
-let _lastCamTargetZ = null;
-let _lastCamFrustum = null;
+let _lastCameraKey = null;
+
+/**
+ * Quantized view key for a camera: position and orthographic vertical extent,
+ * rounded to CAMERA_HASH_PRECISION. Pure — callers can compare keys across
+ * frames without consuming any cache state.
+ * @param {THREE.Camera} camera
+ * @returns {string}
+ */
+export function cameraViewKey(camera) {
+  const pos = camera.position;
+  const frustum = camera.top - camera.bottom; // orthographic vertical extent
+  return (
+    Math.round(pos.x * CAMERA_HASH_PRECISION) + ',' +
+    Math.round(pos.z * CAMERA_HASH_PRECISION) + ',' +
+    Math.round(frustum * CAMERA_HASH_PRECISION)
+  );
+}
 
 /**
  * Check whether the camera state has changed since the last mask generation.
  */
 export function cameraHasChanged(camera) {
-  // The camera's projection matrix and position define the view.
-  const pos = camera.position;
-  const frustum = camera.top - camera.bottom; // orthographic vertical extent
-
-  // Hash the camera state into a rough comparison key
-  const keyX = Math.round(pos.x * CAMERA_HASH_PRECISION);
-  const keyZ = Math.round(pos.z * CAMERA_HASH_PRECISION);
-  const keyF = Math.round(frustum * CAMERA_HASH_PRECISION);
-
-  if (keyX !== _lastCamTargetX || keyZ !== _lastCamTargetZ || keyF !== _lastCamFrustum) {
-    _lastCamTargetX = keyX;
-    _lastCamTargetZ = keyZ;
-    _lastCamFrustum = keyF;
+  const key = cameraViewKey(camera);
+  if (key !== _lastCameraKey) {
+    _lastCameraKey = key;
     return true;
   }
   return false;
@@ -38,7 +43,5 @@ export function cameraHasChanged(camera) {
  * ease-out movements).
  */
 export function resetFogMaskCameraHash() {
-  _lastCamTargetX = null;
-  _lastCamTargetZ = null;
-  _lastCamFrustum = null;
+  _lastCameraKey = null;
 }

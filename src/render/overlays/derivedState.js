@@ -8,6 +8,18 @@ let _interactionHighlights = null;  // Map<hexKey, { type, entity }>
 let _hoveredKey = null;
 let _pathPreview = null;            // { keys: string[], cost: number } | null
 
+// Bumped by every setter that feeds a static overlay layer, so the overlay
+// registry can skip redrawing static layers while nothing has changed.
+let _contentRevision = 0;
+
+/**
+ * Monotonic revision of the data consumed by static overlay layers.
+ * @returns {number}
+ */
+export function getOverlayContentRevision() {
+  return _contentRevision;
+}
+
 /**
  * Store pre-computed derived data.
  * Called by runtime/mapRefresh.js.
@@ -17,6 +29,7 @@ let _pathPreview = null;            // { keys: string[], cost: number } | null
 export function setDerivedState(humanView, moveHighlights) {
   _derivedHumanView = humanView;
   _derivedMoveHighlights = moveHighlights;
+  _contentRevision++;
 }
 
 export function getDerivedHumanView() {
@@ -33,6 +46,7 @@ export function getDerivedMoveHighlights() {
  */
 export function setPathPreview(preview) {
   _pathPreview = preview;
+  _contentRevision++;
 }
 
 export function getPathPreview() {
@@ -42,6 +56,7 @@ export function getPathPreview() {
 /**
  * Store interaction-highlight data (adjacent hexes with interactive entities).
  * Called by runtime/mapRefresh.js.
+ * This layer is animated, so it redraws every frame and needs no revision bump.
  * @param {Map<string, {type: string, entity: any}>} map
  */
 export function setInteractionHighlights(map) {
@@ -55,6 +70,7 @@ export function getInteractionHighlights() {
 /** Shared hover-state: the hex key the pointer is currently over. */
 export function setHoveredKey(key) {
   _hoveredKey = key;
+  _contentRevision++;
 }
 
 export function getHoveredKey() {
