@@ -66,7 +66,7 @@ export const WATER_SHORE_SPEED = 1.0;       // travel speed toward the center
  */
 export const WATER_SHORE_FLOW_SPEED = 1.0;      // phase travel speed toward the center (matches WATER_SHORE_SPEED)
 export const WATER_SHORE_FLOW_WAVE_LENGTH = 4.0; // long wavelength — a broad roll, not a busy ripple
-export const WATER_SHORE_FLOW_AMP = 0.06;         // per-vertex drift/bob magnitude (vertical bob = 0.5·this)
+export const WATER_SHORE_FLOW_AMP = 0.02;         // per-vertex drift/bob magnitude (vertical bob = 0.5·this)
 
 /**
  * Seamless waterline froth (buildWaterMesh.js aWaterline). A 0..1 per-vertex
@@ -108,42 +108,49 @@ export const SIDE_WATER_TINT_WEIGHT = 0.55;
 /**
  * Water specular sun glints — a shader term inside waterMaterial (materials.js).
  * The broken-water normal is flat (the chop that used to vary it is removed),
- * so the glints are not gated by a sun-facing wave-slope anymore; instead a
- * small-scale animated "roughness" field (WATER_GLINT_*) clusters the glint
- * onto the crests of fine travelling waves and the sparkle flecks drift with
- * them, so the water glimmers like light on a wind-blown / current-crossed
- * surface rather than a static puddle of paint. This roughness gates only the
- * glint sparkle — it does NOT perturb the shading normal, so the dark/bright
- * wave bands stay gone. A mild fresnel gathers the glints at grazing distance
- * and the sun's shadow map suppresses them inside object shadows. Rivers mask
- * themselves out via their flow amplitude; bank walls never glint.
+ * so the glints are not gated by a sun-facing wave-slope; instead a small-scale
+ * animated "roughness" field (WATER_GLINT_ROUGH_*) clusters the glint onto the
+ * crests of fine chop and a boiling sparkle mask (WATER_SPARKLE_*) breaks it
+ * into short-lived flecks, so the water glimmers like sunlight on a wind-blown
+ * surface rather than a static puddle of paint. Neither field perturbs the
+ * shading normal, so the dark/bright wave bands stay gone. A mild fresnel
+ * gathers the glints and the sun's shadow map suppresses them inside object
+ * shadows. Rivers mask themselves out via their flow amplitude; bank walls
+ * never glint.
+ *
+ * NOTE: the camera is orthographic, so the view direction is constant across
+ * the screen and the fresnel term is effectively a constant gain — it cannot
+ * add screen-space variation on its own. Genuine view-dependent glitter needs
+ * a per-fragment specular normal (the larger follow-up).
  */
 export const WATER_SPEC_STRENGTH = 0.9;          // peak sparkle color contribution
 export const WATER_SPEC_COLOR = [0.93, 0.97, 1.0]; // slightly cool white at peak
-export const WATER_FRESNEL_POWER = 2.4;         // grazing-angle exponent
-export const WATER_FRESNEL_BASE = 0.7;          // glint base level (keeps steep/near-camera water lit)
-export const WATER_FRESNEL_STRENGTH = 0.4;      // mild grazing gather (avoids a strong locational bias)
-export const WATER_SPARKLE_FREQ = 7.0;          // value-noise sparkle cell density (cells per world unit)
-export const WATER_SPARKLE_ONSET = 0.66;        // value-noise level where a sparkle cell ignites (0..1)
+export const WATER_FRESNEL_POWER = 0.5;         // grazing-angle exponent
+export const WATER_FRESNEL_BASE = 5;          // glint base level
+export const WATER_FRESNEL_STRENGTH = 0.5;      // mild grazing gather
+export const WATER_SPARKLE_FREQ = 65.0;         // value-noise sparkle cell density (cells per world unit)
+export const WATER_SPARKLE_ONSET = 0.87;        // value-noise level where a sparkle cell ignites (0..1)
+export const WATER_SPARKLE_SHARPEN = 0.83;       // power curve turning soft blobs into points
+export const WATER_SPARKLE_BOIL = 0.6;         // in-place churn amplitude (noise cells)
+export const WATER_SPARKLE_BOIL_SPEED = 1.5;    // in-place churn rate (rad/s)
 
 /**
  * Glint-only choppy "roughness" field (no normal perturbation, so it cannot
- * reintroduce the removed dark wave-band shading — it only where the sparkle
- * lights up). A few fine crossing sine trains (on a domain-warped position,
- * phase-advanced with time) read as small wind/current bumps; the sparkle fleck
- * mask is sampled at a drifting position so the glints also churn as well as
- * translate. Higher FREQ = finer/tighter shimmer, SPEED = how fast it travels,
- * WARP_STRENGTH = how much the crest lines bend (avoids straight world-aligned
- * bands), DRIFT = how quickly the flecks slide across the surface, and
+ * reintroduce the removed dark wave-band shading — it only decides where the
+ * sparkle lights up). Three value-noise octaves, each sampled in its own
+ * rotated frame and drifting a different way, so no single travel direction
+ * survives; the rotations break the noise grid's axis alignment. This replaces
+ * the old fixed-direction sine trains, whose shared westward phase march made
+ * the whole glint field slide west and whose long crest lines read as foam
+ * bands. FREQ = base noise density (cells per world unit; the other two octaves
+ * are 1.6x / 2.5x finer), SPEED = drift in noise cells per second, and
  * ROUGH_LO/HI set how tightly the glint clusters onto a crest (narrower band =
  * sparser, more twinkly glints).
  */
-export const WATER_GLINT_WAVE_FREQ = 3.4;     // rad/world unit — small, tight bumps
-export const WATER_GLINT_WAVE_SPEED = 1.0;    // phase travel speed of the shimmer
-export const WATER_GLINT_WARP_STRENGTH = 0.7; // bend of the crest lines (world units)
-export const WATER_GLINT_DRIFT = 0.6;         // sparkle-fleck slide rate (wind/current)
-export const WATER_GLINT_ROUGH_LO = 0.55;     // crest gate lo (fraction of bumpiness)
-export const WATER_GLINT_ROUGH_HI = 0.9;      // crest gate hi (glint fully on)
+export const WATER_GLINT_ROUGH_FREQ = 2.6;    // base roughness density (cells per world unit)
+export const WATER_GLINT_ROUGH_SPEED = 0.5;   // roughness drift (noise cells per second)
+export const WATER_GLINT_ROUGH_LO = 0.48;     // crest gate lo (fraction of bumpiness)
+export const WATER_GLINT_ROUGH_HI = 0.80;     // crest gate hi (glint fully on)
 
 /**
  * Terrain fill colors (RGB 0-1 tuples for vertex color attributes).
