@@ -91,12 +91,7 @@ export function renderHexMap3D(state, humanView) {
   startMeasure('renderHexMap');
 
   // Remove the temporary ground plane added during this session's scene setup
-  const oldGround = ctx.scene.getObjectByName('ground');
-  if (oldGround) {
-    oldGround.geometry.dispose();
-    if (oldGround.material) oldGround.material.dispose();
-    ctx.scene.remove(oldGround);
-  }
+  ctx.removeTempGround?.();
 
   // ── Chunk-level terrain + features (incremental) ──
 

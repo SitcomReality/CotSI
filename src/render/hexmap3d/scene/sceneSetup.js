@@ -207,6 +207,13 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
     getClock() { return clock; },
     getRenderStats() { return renderStats; },
     requestShadowUpdate,
+    /** Remove the temporary ground plane (called on the first map render). */
+    removeTempGround() {
+      if (!ground.parent) return;
+      ground.geometry.dispose();
+      if (ground.material) ground.material.dispose();
+      scene.remove(ground);
+    },
     dispose() {
       renderer.dispose();
       if (renderer.domElement.parentNode) {

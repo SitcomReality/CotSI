@@ -38,6 +38,14 @@ export function refreshPerfStats() {
   const dprEl = document.getElementById('devPerfOverlayDpr');
   if (dprEl) dprEl.textContent = getOverlayDpr().toFixed(2);
 
+  // 3D drawing-buffer DPR (dev cycler target)
+  const ctx = getSceneContext();
+  const dpr3dEl = document.getElementById('devPerf3dDpr');
+  const ratio = ctx?.renderer?.getPixelRatio?.();
+  if (dpr3dEl) dpr3dEl.textContent = ratio ? ratio.toFixed(2) : '\u2014';
+  const prBtn = document.getElementById('devPerfPixelRatio');
+  if (prBtn && ratio) prBtn.textContent = `Pixel Ratio: ${ratio.toFixed(2)}`;
+
   // Update measurement displays
   const names = ['refreshAll', 'mapRefresh', 'runBot', 'combatFlow', 'render3d', 'overlays', 'animMove'];
   for (const name of names) {

@@ -11,11 +11,19 @@ import { MAX_PIXEL_RATIO, CLEAR_COLOR } from '../../../params/render/cameraParam
  * @returns {THREE.WebGLRenderer}
  */
 export function createRenderer(mountElement, { shadows = false } = {}) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: false,
+    // Prefer the discrete GPU on hybrid systems; no visual change.
+    powerPreference: 'high-performance',
+  });
   // Clamp without rounding up: Math.round turned fractional DPR (1.25/1.5/1.75)
   // into 2, rendering ~1.8x the pixels on those displays for no visual gain.
   renderer.setPixelRatio(Math.max(0.5, Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO)));
   renderer.setClearColor(CLEAR_COLOR); // dark parchment (contrast with terrain colors)
+  // The scene always draws a full-viewport background texture (sceneSetup.js),
+  // so the color clear is redundant — keep the depth/stencil clears only.
+  renderer.autoClearColor = false;
 
   // Shadow maps are re-rendered on request only (see sceneSetup's tick): the
   // sun tracks the camera focus, so a static frame can reuse the last map.

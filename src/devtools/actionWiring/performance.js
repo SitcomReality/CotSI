@@ -7,6 +7,7 @@
 import { registerAction } from '../../shared/actionBus.js';
 import { setOverlayEnabled, setMeasurementEnabled, startCapture, stopCapture, isCaptureActive, getCaptureReport } from '../performance/index.js';
 import { cycleShadowQuality } from '../panel/shadowQuality.js';
+import { cyclePixelRatio } from '../panel/pixelRatio.js';
 
 export function registerPerfActions() {
   registerAction('dev:perf:toggleOverlay', () => {
@@ -61,6 +62,13 @@ export function registerPerfActions() {
     const size = cycleShadowQuality();
     const btn = document.getElementById('devPerfShadowQuality');
     if (btn) btn.textContent = `Shadow Map: ${size}`;
+  });
+
+  // Dev-only 3D pixel-ratio A/B (default stays MAX_PIXEL_RATIO)
+  registerAction('dev:perf:cyclePixelRatio', () => {
+    const ratio = cyclePixelRatio();
+    const btn = document.getElementById('devPerfPixelRatio');
+    if (btn) btn.textContent = `Pixel Ratio: ${ratio.toFixed(2)}`;
   });
 
   // Capture controls

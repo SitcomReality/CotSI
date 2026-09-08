@@ -118,13 +118,15 @@
           <span class="devtools__stat">Frame: <strong id="devPerfFrameTime">—</strong>ms</span>
           <span class="devtools__stat">Calls: <strong id="devPerfDrawCalls">—</strong></span>
           <span class="devtools__stat">Tris: <strong id="devPerfTriangles">—</strong></span>
-          <span class="devtools__stat">DPR: <strong id="devPerfOverlayDpr">—</strong></span>
+          <span class="devtools__stat">Overlay DPR: <strong id="devPerfOverlayDpr">—</strong></span>
+          <span class="devtools__stat">3D DPR: <strong id="devPerf3dDpr">—</strong></span>
         </div>
       </div>
       <div class="devtools__section">
         <div class="devtools__section-title">Render Quality</div>
         <div class="devtools__btn-row">
           <button class="devtools__btn" data-action="dev:perf:cycleShadowQuality" id="devPerfShadowQuality">Shadow Map: 2048</button>
+          <button class="devtools__btn" data-action="dev:perf:cyclePixelRatio" id="devPerfPixelRatio">Pixel Ratio: —</button>
         </div>
       </div>
       <div class="devtools__section">
