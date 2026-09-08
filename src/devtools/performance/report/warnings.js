@@ -22,8 +22,8 @@ import { TARGET_FRAME_MS, BAD_THRESHOLD, HITCH_THRESHOLD, round1, round2 } from 
  * @param {{ maxHeap: number, avgHeap: number, limitMB: number|null }|null} sections.memStats
  * @param {{ avgMB: number, maxMB: number }|null} sections.heapDeltaStats
  * @param {{ invisibleRatio: number }|null} sections.jsOverhead
- * @param {{ pctUnaccounted: number }} sections.timeBudget
- * @param {Object<string, { frameCallCount: number, avgCall: number, max: number }>} sections.spanStats
+ * @param {{ pctUnaccounted: number, pctOutsideJs: number, perFrameOutsideJsMs: number }} sections.timeBudget
+ * @param {Object<string, { frameCallCount: number, avgCall: number, avgFrame: number, max: number }>} sections.spanStats
  * @param {{ calls: { avg: number, max: number } }|null} [sections.renderStats]
  * @param {boolean} longTaskObserverActive
  * @returns {string[]}
@@ -75,18 +75,19 @@ export function collectWarnings({ ftStats, slowClusters, longFrames, memStats, h
     );
   }
 
-  if (timeBudget.pctUnaccounted > UNACCOUNTED_FRAME_WARN_PCT && longFrames.hitch > 0 && (ftStats != null)) {
+  if (timeBudget.pctOutsideJs > UNACCOUNTED_FRAME_WARN_PCT && longFrames.hitch > 0 && (ftStats != null)) {
     warnings.push(
-      `${round1(timeBudget.pctUnaccounted)}% of frame time is unmeasured ` +
-      `(${longFrames.hitch + longFrames.majorHitch} hitches >${round1(HITCH_THRESHOLD)}ms with little measured work)`
+      `${round1(timeBudget.pctOutsideJs)}% of frame time is outside the JS tick ` +
+      `(${round2(timeBudget.perFrameOutsideJsMs)}ms/frame — GPU, paint, GC, or idle) ` +
+      `with ${longFrames.hitch + longFrames.majorHitch} hitches >${round1(HITCH_THRESHOLD)}ms`
     );
   }
 
   // Warn when Long Task API was unavailable but hitches occurred
   if (longFrames.hitch > 0 && !longTaskObserverActive) {
     warnings.push(
-      `Long Task API unavailable — hitches >${round1(HITCH_THRESHOLD)}ms may be GC, layout, or paint events ` +
-      `invisible to JS instrumentation`
+      `Long Task API not active (unsupported in this browser) — hitches >${round1(HITCH_THRESHOLD)}ms ` +
+      `may be GC, layout, or paint events invisible to JS instrumentation`
     );
   }
 

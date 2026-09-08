@@ -194,7 +194,7 @@ function findWorstSpan(spanStats) {
  * @property {Object<string, { frames: number, min: number, max: number, avg: number, median: number, p95: number, p99: number, framesGt33: number, framesGt50: number }>} contextBreakdown
  * @property {Object<string, { slow: number, hitches: number, worst: number }>} ctxSlowSummary
  * @property {Array<{ startTs: number, endTs: number, count: number, worstMs: number, context: string }>} slowClusters
- * @property {{ items: Array<{ name: string, totalMs: number, exclusiveMs: number, perFrameMs: number, pctOfFrame: number, callCount: number, avgCall: number, maxCall: number }>, hasNesting: boolean, totalMeasuredMs: number, perFrameMeasuredMs: number, perFrameUnaccountedMs: number, pctUnaccounted: number }|null} timeBudget
+ * @property {{ items: Array<{ name: string, totalMs: number, exclusiveMs: number, perFrameMs: number, perOccurrenceMs: number, occurrences: number, pctOfFrame: number, callCount: number, totalCount: number, avgCall: number, maxCall: number }>, hasNesting: boolean, totalMeasuredMs: number, perFrameMeasuredMs: number, perFrameUnaccountedMs: number, pctUnaccounted: number, frameJsAvgPerFrame: number, perFrameUntimedJsMs: number, perFrameOutsideJsMs: number, pctUntimedJs: number, pctOutsideJs: number }|null} timeBudget
  * @property {{ frameJsTotalMs: number, frameJsCalls: number, frameJsAvgPerFrame: number, measuredAvgPerFrame: number, invisibleAvgPerFrame: number, invisibleRatio: number }|null} jsOverhead
  * @property {{ frames: number, calls: object, triangles: object, geometries: object, textures: object }|null} renderStats
  * @property {{ avgBytes: number, maxBytes: number, minBytes: number, avgMB: number, maxMB: number }|null} heapDeltaStats

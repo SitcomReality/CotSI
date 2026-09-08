@@ -57,6 +57,14 @@ export function formatReport(report) {
     s += `JS ovh: avg=${round2(jsOverhead.invisibleAvgPerFrame)}ms/frame (${round1(jsOverhead.invisibleRatio * 100)}% untimed)\n`;
   }
 
+  // Profiler self-cost — how much the capture perturbs the capture
+  const profilerSpan = spanStats.recordFrame;
+  if (profilerSpan && profilerSpan.avgFrame > 0) {
+    const pctOfCapture = interval.durationMs > 0 ? (profilerSpan.totalMs / interval.durationMs) * 100 : 0;
+    s += `Profiler: recordFrame avg=${round2(profilerSpan.avgFrame)}ms/frame  `;
+    s += `total=${round1(profilerSpan.totalMs)}ms (${round1(pctOfCapture)}% of capture)\n`;
+  }
+
   // Surface the span with the worst max value as a one-liner
   if (worstSpan) {
     s += `Worst span: ${worstSpan.name} (max=${round1(worstSpan.max)}ms)\n`;
@@ -114,11 +122,14 @@ export function formatReport(report) {
     for (const name of spanNames) {
       const sp = spanStats[name];
       const pad = name.padEnd(namePad);
-      const callsS = `calls=${sp.frameCallCount}`.padEnd(12);
-      const totalS = `total=${round2(sp.totalMs)}ms`.padEnd(14);
-      const avgS = `avg=${round2(sp.avgCall)}ms`.padEnd(12);
+      const calls = sp.totalCount != null ? sp.totalCount : sp.frameCallCount;
+      const callsS = `calls=${calls}`.padEnd(12);
+      const totalS = `total=${round2(sp.totalMs)}ms`.padEnd(16);
+      const avgS = `avg=${round2(sp.avgCall)}ms/call`.padEnd(17);
       const maxS = `max=${round2(sp.max)}ms`.padEnd(12);
-      s += `  ${pad}${callsS}${totalS}${avgS}${maxS}\n`;
+      s += `  ${pad}${callsS}${totalS}${avgS}${maxS}`;
+      if (calls !== sp.frameCallCount) s += `frames=${sp.frameCallCount}`;
+      s += '\n';
     }
   }
 
@@ -128,14 +139,19 @@ export function formatReport(report) {
     if (timeBudget.hasNesting) {
       s += `  (nested spans shown as self-time — children subtracted from parents)\n`;
     }
+    s += `  (per-frame cost amortized across all ${interval.pollCount} frames; when-run is the cost of a frame that ran it)\n`;
+    const budgetPad = Math.max(...timeBudget.items.map(i => i.name.length), 14) + 2;
     for (const item of timeBudget.items) {
-      const costMs = `cost=${round2(item.perFrameMs)}ms`.padEnd(16);
+      const costMs = `per-frame=${round2(item.perFrameMs)}ms`.padEnd(18);
       const pct = `${round1(item.pctOfFrame)}%`.padEnd(8);
-      s += `  ${item.name.padEnd(16)} ${costMs} ${pct} of frame`;
-      if (item.avgCall > 0) s += `  avg=${round2(item.avgCall)}ms/call`;
+      s += `  ${item.name.padEnd(budgetPad)} ${costMs} ${pct} of frame`;
+      if (item.perOccurrenceMs > 0) s += `  when-run=${round2(item.perOccurrenceMs)}ms`;
+      if (item.occurrences > 0 && item.occurrences < interval.pollCount) s += `  runs=${item.occurrences}`;
       s += '\n';
     }
-    s += `  ${'unaccounted'.padEnd(16)} cost=${round2(timeBudget.perFrameUnaccountedMs)}ms  ${round1(timeBudget.pctUnaccounted)}% of frame\n`;
+    s += `  ${'unaccounted'.padEnd(budgetPad)} per-frame=${round2(timeBudget.perFrameUnaccountedMs)}ms  ${round1(timeBudget.pctUnaccounted)}% of frame\n`;
+    s += `    ${'untimed JS'.padEnd(14)} per-frame=${round2(timeBudget.perFrameUntimedJsMs)}ms  ${round1(timeBudget.pctUntimedJs)}%  (inside the JS tick, no span covers it)\n`;
+    s += `    ${'outside JS'.padEnd(14)} per-frame=${round2(timeBudget.perFrameOutsideJsMs)}ms  ${round1(timeBudget.pctOutsideJs)}%  (GPU/paint/GC/idle — invisible to JS timers)\n`;
   }
 
   // ── Per-phase time budget ──
@@ -144,6 +160,7 @@ export function formatReport(report) {
     for (const pb of phaseBudget) {
       s += `  ${pb.phase.padEnd(14)} avg=${round1(pb.avgFrameMs)}ms  `;
       s += `unaccounted=${round1(pb.pctUnaccounted)}%  `;
+      s += `outside=${round1(pb.pctOutsideJs)}%  `;
       s += `(${pb.frameCount} frames)\n`;
     }
   }

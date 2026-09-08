@@ -8,8 +8,43 @@
 import { computeStats } from '../stats.js';
 
 /**
+ * Meta-spans that describe the profiler itself rather than game work:
+ * `frameJs` is the whole JS tick, `recordFrame` is the profiler's own
+ * per-frame cost. They are excluded from the measured-work total so the
+ * budget and the JS-overhead ratio share one basis.
+ */
+export const META_SPANS = ['frameJs', 'recordFrame', 'frame:tick'];
+
+/**
+ * Sum exclusive (self) times of every non-meta span. This is the single
+ * definition of "measured work" used by both the time budget and the
+ * JS invisible-overhead analysis.
+ *
+ * @param {Object<string, { totalMs: number, frameCallCount: number }>} spanStats
+ * @param {Object<string, { exclusiveMs: number, childNames: string[] }>} exclusiveTimes
+ * @returns {{ totalMs: number, hasNesting: boolean }}
+ */
+export function sumMeasuredExclusiveMs(spanStats, exclusiveTimes) {
+  let totalMs = 0;
+  let hasNesting = false;
+  for (const name of Object.keys(spanStats)) {
+    if (META_SPANS.includes(name)) continue;
+    const excl = exclusiveTimes[name];
+    if (!excl) continue;
+    if (excl.childNames.length > 0) hasNesting = true;
+    totalMs += excl.exclusiveMs;
+  }
+  return { totalMs, hasNesting };
+}
+
+/**
  * Aggregate per-frame span data across the timeline.
  * Uses the `spans` array on each frame entry.
+ *
+ * `avgCall` is the true per-invocation average (total time divided by the
+ * number of times the span ran); `avgFrame` is the per-frame average for
+ * frames in which the span ran at all. Spans that run more than once per
+ * frame have `totalCount > frameCallCount`, and the two averages differ.
  *
  * @param {import('../frameProfiler.js').FrameEntry[]} frames
  */
@@ -37,7 +72,8 @@ export function aggregateSpans(frames) {
       totalMs: acc.totalMs,
       totalCount: acc.totalCount,
       frameCallCount: acc.callCount,
-      avgCall: acc.callCount > 0 ? acc.totalMs / acc.callCount : 0,
+      avgCall: acc.totalCount > 0 ? acc.totalMs / acc.totalCount : 0,
+      avgFrame: acc.callCount > 0 ? acc.totalMs / acc.callCount : 0,
       min: stats ? stats.min : 0,
       max: stats ? stats.max : 0,
       median: stats ? stats.median : 0,
@@ -53,9 +89,12 @@ export function aggregateSpans(frames) {
  * for each. Uses two strategies:
  *
  * 1. Naming convention: if span "foo" and span "foo:bar" share the same
- *    frameCallCount, "foo:bar" is a child of "foo".
+ *    frameCallCount, "foo:bar" is a child of "foo". A plural parent also
+ *    owns the singular prefix (`overlays` owns `overlay:*`).
  * 2. Known-parents table: explicit relationships not covered by naming
- *    (e.g., refreshAll → mapRefresh).
+ *    (e.g., refreshAll → mapRefresh, overlay:fogOverlay → fogMaskGen).
+ *    These do not require equal call counts, because a child may run only
+ *    on some of the parent's frames.
  *
  * @param {Object<string, { totalMs: number, frameCallCount: number }>} spanStats
  * @returns {Object<string, { exclusiveMs: number, childNames: string[] }>}
@@ -66,6 +105,7 @@ export function computeExclusiveSpanTimes(spanStats) {
     'refreshAll': ['mapRefresh', 'dom:header', 'dom:leftPanel', 'dom:rightPanel'],
     'mapRefresh': ['renderHexMap'],
     'renderHexMap': ['mesh:chunks', 'mesh:units'],
+    'overlay:fogOverlay': ['fogMaskGen'],
   };
 
   // Initialise every span as its own exclusive leaf
@@ -77,15 +117,14 @@ export function computeExclusiveSpanTimes(spanStats) {
 
   // Phase 1: naming convention — 'overlays' / 'overlay:fogOverlay'
   for (const [name, s] of Object.entries(spanStats)) {
-    const prefix = name + ':';
     if (name.includes(':')) continue; // children never become parents via naming
+    const prefixes = [name + ':'];
+    if (name.endsWith('s')) prefixes.push(name.slice(0, -1) + ':');
 
     for (const [childName, cs] of Object.entries(spanStats)) {
-      if (
-        childName !== name &&
-        childName.startsWith(prefix) &&
-        s.frameCallCount === cs.frameCallCount
-      ) {
+      if (childName === name) continue;
+      if (!prefixes.some(p => childName.startsWith(p))) continue;
+      if (s.frameCallCount === cs.frameCallCount) {
         exclusive[name].childNames.push(childName);
       }
     }
@@ -137,8 +176,8 @@ export function computeExclusiveSpanTimes(spanStats) {
 
 /**
  * Compute the proportion of JS tick time that is not accounted for by any
- * named measurement. Uses frameJs (total tick time) vs the sum of exclusive
- * times of every other per-frame measurement.
+ * named measurement. Uses frameJs (total tick time) vs the shared
+ * measured-work total, so this ratio agrees with the time budget.
  *
  * @param {Object<string, { totalMs: number, frameCallCount: number }>} spanStats
  * @param {Object<string, { exclusiveMs: number }>} exclusiveTimes
@@ -150,28 +189,10 @@ export function computeJsOverhead(spanStats, exclusiveTimes) {
   const frameJs = spanStats['frameJs'];
   if (!frameJs || frameJs.frameCallCount === 0) return null;
 
-  const tickCallCount = frameJs.frameCallCount;
-  let totalMeasured = 0;
-
-  // Sum exclusive times of all spans that run on every tick (same call count
-  // as frameJs). This avoids double-counting and only includes work that
-  // happens inside the tick.
-  for (const [name, s] of Object.entries(spanStats)) {
-    if (name === 'frameJs') continue;
-    if (s.frameCallCount === tickCallCount) {
-      const excl = exclusiveTimes[name];
-      if (excl) totalMeasured += excl.exclusiveMs;
-    }
-  }
-
-  // recordFrame is meta-overhead that lands inside the tick but after frameJs
-  // is captured — don't count it in measured work.
-  if (exclusiveTimes['recordFrame']) {
-    totalMeasured -= exclusiveTimes['recordFrame'].exclusiveMs;
-  }
+  const { totalMs: totalMeasured } = sumMeasuredExclusiveMs(spanStats, exclusiveTimes);
 
   const frameJsAvg = frameJs.totalMs / frameJs.frameCallCount;
-  const measuredAvg = totalMeasured / tickCallCount;
+  const measuredAvg = totalMeasured / frameJs.frameCallCount;
   const invisibleAvg = Math.max(0, frameJsAvg - measuredAvg);
   const invisibleRatio = frameJsAvg > 0 ? invisibleAvg / frameJsAvg : 0;
 
