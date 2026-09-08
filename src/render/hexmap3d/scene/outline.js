@@ -58,26 +58,37 @@ const outlineGeoCaches = new WeakMap();
 export function getOutlineGeometry(sourceGeo) {
   let hull = outlineGeoCaches.get(sourceGeo);
   if (!hull) {
-    hull = sourceGeo.clone();
-    const pos = hull.getAttribute('position');
-    let normals = hull.getAttribute('normal');
-    if (!normals) {
-      hull.computeVertexNormals();
-      normals = hull.getAttribute('normal');
+    // The hull is position-only: the ink material is unlit (no normals/uvs) and
+    // ignores vertex colors, and the outward displacement is baked into the
+    // positions below — so the source's other attributes are never copied.
+    const srcPos = sourceGeo.getAttribute('position');
+    let srcNormals = sourceGeo.getAttribute('normal');
+    if (!srcNormals) {
+      // Compute on a throwaway geometry that reads (never writes) the source's
+      // attributes, so a source without normals is not mutated.
+      const tmp = new THREE.BufferGeometry();
+      tmp.setAttribute('position', srcPos);
+      if (sourceGeo.index) tmp.setIndex(sourceGeo.index);
+      tmp.computeVertexNormals();
+      srcNormals = tmp.getAttribute('normal');
     }
-    const displaced = new Float32Array(pos.count * 3);
+    const displaced = new Float32Array(srcPos.count * 3);
     const v = new THREE.Vector3();
     const n = new THREE.Vector3();
-    for (let i = 0; i < pos.count; i++) {
-      v.fromBufferAttribute(pos, i);
-      n.fromBufferAttribute(normals, i);
+    for (let i = 0; i < srcPos.count; i++) {
+      v.fromBufferAttribute(srcPos, i);
+      n.fromBufferAttribute(srcNormals, i);
       displaced[i * 3]     = v.x + n.x * OUTLINE_WIDTH;
       displaced[i * 3 + 1] = v.y + n.y * OUTLINE_WIDTH;
       displaced[i * 3 + 2] = v.z + n.z * OUTLINE_WIDTH;
     }
+    hull = new THREE.BufferGeometry();
     hull.setAttribute('position', new THREE.BufferAttribute(displaced, 3));
+    if (sourceGeo.index) hull.setIndex(sourceGeo.index.clone());
     hull.computeBoundingSphere();
-    hull.userData.shared = true;
+    // Fresh userData: BufferGeometry.copy aliases it by reference, so writing
+    // through a clone's userData would mutate the source geometry's.
+    hull.userData = { shared: true };
     outlineGeoCaches.set(sourceGeo, hull);
   }
   return hull;

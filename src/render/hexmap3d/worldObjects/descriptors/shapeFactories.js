@@ -32,16 +32,25 @@ const geometryCache = new Map();
 
 /**
  * Cached BufferGeometry for a descriptor part's shape.
+ *
+ * Cache entries are shared by every chunk that uses the shape and are handed
+ * straight to `buildInstanced` (no per-mesh clone), so they are marked
+ * `userData.shared` — otherwise chunk disposal frees their GPU buffers and the
+ * next rebuild re-uploads them.
+ *
  * @param {string} type   - key of SHAPE_TYPES (schema.js)
  * @param {object} params - normalized shape params
  * @returns {THREE.BufferGeometry}
  */
 export function geometryForShape(type, params) {
   const key = `${type}:${JSON.stringify(params)}`;
-  if (!geometryCache.has(key)) {
-    geometryCache.set(key, buildShape(type, params));
+  let geo = geometryCache.get(key);
+  if (!geo) {
+    geo = buildShape(type, params);
+    geo.userData.shared = true;
+    geometryCache.set(key, geo);
   }
-  return geometryCache.get(key);
+  return geo;
 }
 
 function buildShape(type, params) {

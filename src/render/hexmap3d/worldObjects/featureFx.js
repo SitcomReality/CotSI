@@ -142,7 +142,10 @@ export function collectFeatureFxPoints(chunkTiles, visible, particlesOn, glowsOn
 function buildStarInstances(points, size) {
   if (points.length === 0) return null;
   const geo = starGeometry.clone();
-  geo.userData.shared = false;
+  // Fresh userData: BufferGeometry.copy aliases it, so writing through the
+  // clone's would also mutate the shared module star's. The clone is per-mesh
+  // and should be disposed with it.
+  geo.userData = { shared: false };
   const mesh = new THREE.InstancedMesh(geo, fxStarMaterial, points.length);
   mesh.name = 'featureFxStars';
   mesh.castShadow = false;
@@ -280,7 +283,7 @@ export function spawnCollectBurst(kind, tile) {
   const geo = isCoin
     ? new THREE.CylinderGeometry(0.09, 0.09, 0.03, 8)
     : starGeometry.clone();
-  if (!isCoin) geo.userData.shared = false; // clone is per-burst — let it be disposed
+  if (!isCoin) geo.userData = { shared: false }; // per-burst clone — let it be disposed
   const mesh = new THREE.InstancedMesh(geo, isCoin ? coinBurstMaterial() : burstStarMaterial(), count);
   mesh.name = 'featureFxBurst';
   mesh.castShadow = false;
