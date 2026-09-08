@@ -65,8 +65,11 @@ Notes:
 - Water surfaces move in the vertex shader: rivers bob with a downstream
   traveling wave (speed 2.5, amp 0.04), and **Broken water** rolls toward the
   map center with a radial shore swell (`WATER_SHORE_FLOW_*` in
-  `terrainParams.js`) so the moat reads as having real depth and object
-  shadows on it wobble. The former fragment-shader **chop** pass
+  `terrainParams.js`) so the moat reads as having real depth. The displacement
+  does **not** move the sun-shadow lookup: the water vertex shader re-derives
+  `vDirectionalShadowCoord` from the undisplaced hex (see `materials.js`), so
+  the cast shadow stays put instead of sliding with the ripple and banding the
+  shadow edge. The former fragment-shader **chop** pass
   (`WATER_CHOP_*`) that perturbed per-pixel normals into drifting light/dark
   wave bands is **removed** — it was the "fake" wave shading that read as flat.
   The shader still adds **sun glints** (`WATER_SPEC_*` / `WATER_SPARKLE_*` /

@@ -206,6 +206,22 @@ waterMaterial.onBeforeCompile = (shader) => {
       `vWaterUp = normal.y;\n` +
       `vWaterFroth = aWaterline;\n` +
       `vWaterDepth = aWaterDepth;`
+    ).replace(
+      '#include <shadowmap_vertex>',
+      `#include <shadowmap_vertex>\n` +
+      // ── Shadow anchor ──
+      // Re-derive the directional shadow coordinate from the UNDISPLACED
+      // position. Three.js computes vDirectionalShadowCoord from the displaced
+      // worldPosition, so without this the ripple / shore swell slides the
+      // lookup across the shadow edge — banding the edge and leaving gaps
+      // against the tile/object shadow. The water keeps its visible motion; only
+      // the cast shadow is pinned to the flat hex. `normal` is the base
+      // (undisplaced) normal, used only to carry the receiver's normal bias.
+      `#if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0\n` +
+      `  vec4 _anchorWorld = modelMatrix * vec4( position, 1.0 );\n` +
+      `  _anchorWorld.xyz += normal * directionalLightShadows[ 0 ].shadowNormalBias;\n` +
+      `  vDirectionalShadowCoord[ 0 ] = directionalShadowMatrix[ 0 ] * _anchorWorld;\n` +
+      `#endif`
     );
   // Per-pixel wave shading (the WATER_CHOP crossing dapple and the WATER_SHORE
   // map-center swell that perturbed the fragment normal) is REMOVED — the water

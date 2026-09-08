@@ -66,7 +66,7 @@ export const WATER_SHORE_SPEED = 1.0;       // travel speed toward the center
  */
 export const WATER_SHORE_FLOW_SPEED = 1.0;      // phase travel speed toward the center (matches WATER_SHORE_SPEED)
 export const WATER_SHORE_FLOW_WAVE_LENGTH = 4.0; // long wavelength — a broad roll, not a busy ripple
-export const WATER_SHORE_FLOW_AMP = 0.02;         // per-vertex drift/bob magnitude (vertical bob = 0.5·this)
+export const WATER_SHORE_FLOW_AMP = 0.04;         // per-vertex drift/bob magnitude (vertical bob = 0.5·this)
 
 /**
  * Seamless waterline froth (buildWaterMesh.js aWaterline). A 0..1 per-vertex
