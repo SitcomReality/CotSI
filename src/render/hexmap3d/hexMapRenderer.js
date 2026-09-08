@@ -7,7 +7,7 @@ import {
 } from './chunkManager.js';
 import { buildChunkTerrainMesh, buildChunkWaterMesh } from './terrain/index.js';
 import { buildChunkWorldMeshes } from './worldObjects/worldMeshes.js';
-import { buildUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted } from './units/index.js';
+import { collectUnitInstances, assembleUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted } from './units/index.js';
 import { buildChunkFeatureFx, detectCollectedFx, initFeatureFx, disposeFeatureFx } from './worldObjects/featureFx.js';
 import { occupiedKeys } from './worldObjects/decorEmphasis.js';
 import { waterTimeUniform } from './scene/materials.js';
@@ -35,6 +35,9 @@ export { animateCenterOnHex, chaseCameraToHex, cancelCameraPan } from './scene/p
 
 // Global unit meshes (units are few, not worth chunking yet)
 let unitMeshes = [];
+// Signature of the unit render inputs the current meshes were built from. When
+// it is unchanged the meshes are reused instead of disposed and rebuilt.
+let unitSignatureCache = null;
 
 /**
  * One-time initialization. Called from runtime/mapRefresh.js on first refreshAll.
@@ -187,21 +190,24 @@ export function renderHexMap3D(state, humanView) {
   }
   endMeasure('mesh:chunks');
 
-  // ── Unit meshes (global, rebuilt each frame — cheap for ~20 units) ──
+  // ── Unit meshes (global; reused while their render inputs are unchanged) ──
 
   // Clean up any movement-animation meshes that have completed
   cleanupCompleted();
 
-  // Dispose old unit meshes
+  // Rebuild only when a unit was added/removed/moved, or the terrain under one
+  // changed. The collection loop runs either way — it is where the signature
+  // comes from — so reuse removes the mesh assembly, not the state walk.
   startMeasure('mesh:units');
-  for (const um of unitMeshes) sceneCtx.disposeMesh(um);
-  unitMeshes = [];
-
-  // Build unit figurines
-  unitMeshes = buildUnitMeshes(state, visible);
-  for (const um of unitMeshes) {
-    ctx.scene.add(um);
-    um.updateMatrixWorld(true);
+  const collected = collectUnitInstances(state, visible);
+  if (collected.signature !== unitSignatureCache) {
+    for (const um of unitMeshes) sceneCtx.disposeMesh(um);
+    unitMeshes = assembleUnitMeshes(collected);
+    for (const um of unitMeshes) {
+      ctx.scene.add(um);
+      um.updateMatrixWorld(true);
+    }
+    unitSignatureCache = collected.signature;
   }
   endMeasure('mesh:units');
 
@@ -254,6 +260,7 @@ function disposeAll() {
 
   for (const um of unitMeshes) sceneCtx.disposeMesh(um);
   unitMeshes = [];
+  unitSignatureCache = null;
 
   disposeMovementAnimator();
   disposeFeatureFx();

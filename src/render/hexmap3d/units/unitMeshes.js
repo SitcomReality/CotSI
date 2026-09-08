@@ -57,29 +57,26 @@ function entityForMob(mob) {
 }
 
 /**
- * Build unit meshes for all visible champions, mobs, and traders.
+ * Collect the descriptor instance records for every visible unit, plus a
+ * signature of everything that determines the built meshes.
  *
- * All three entity types render through the descriptor pipeline:
- *   - Champions (descriptors/data/champion.js): cylinder body + sphere head
- *     per faction, instanced per part.
- *   - Mobs (descriptors/data/mob.js — one variant per archetype, composed from
- *     the per-mob files in data/mobs/): a 3D body per archetype shape (7
- *     archetypes, no tier-2 variants), instanced per part.
- *   - Traders (descriptors/data/trader.js): a flat coin body in teal.
- *
- * Mobs and traders render as pure 3D geometry — no icon caps.
+ * The signature lets the renderer skip the dispose/rebuild when nothing visual
+ * changed. It is built in this same loop, right where the render-skip
+ * conditions live, so adding a new visual input here forces a signature change
+ * instead of silently freezing the meshes.
  *
  * @param {Object} state   - Game state
  * @param {Set}    visible - Set of visible hex keys
- * @returns {THREE.InstancedMesh[]}
+ * @param {Set<string>} [animatingIds] - Champion ids currently animating;
+ *        omitted → the movement animator is queried directly.
+ * @returns {{ championRecords: object[], mobRecords: object[], traderRecords: object[], signature: string }}
  */
-export function buildUnitMeshes(state, visible) {
-  const results = [];
-
-  // ---- Collect instance data ----
+export function collectUnitInstances(state, visible, animatingIds = null) {
   const championRecords = [];
   const mobRecords = [];
   const traderRecords = [];
+  const tokens = [];
+  const animating = (id) => (animatingIds ? animatingIds.has(id) : isAnimating(id));
 
   for (const key of visible) {
     const tile = state.tiles[key];
@@ -97,20 +94,32 @@ export function buildUnitMeshes(state, visible) {
     const { x, z } = hexCenter3D(tile.q, tile.r, surfaceY);
 
     if (champ) {
-      if (isAnimating(champ.id)) continue;
+      if (animating(champ.id)) continue;
 
       const entity = entityForChampion(champ);
       if (!entity) continue;
       championRecords.push(...recordsForEntity(normalizedChampion, entity, { x, y: surfaceY, z }));
+      tokens.push(`c|${champ.id}|${key}|${surfaceY}|${champ.faction}`);
     } else if (mob) {
-      const entity = entityForMob(mob);
-      mobRecords.push(...recordsForEntity(normalizedMob, entity, { x, y: surfaceY, z }));
+      mobRecords.push(...recordsForEntity(normalizedMob, entityForMob(mob), { x, y: surfaceY, z }));
+      tokens.push(`m|${mob.id}|${key}|${surfaceY}|${mob.faction}|${mobVariantFor(mob)}|${mob.visualScale ?? 1}`);
     } else if (trader) {
       traderRecords.push(...recordsForEntity(normalizedTrader, { scale: 1 }, { x, y: surfaceY, z }));
+      tokens.push(`t|${key}|${surfaceY}`);
     }
   }
 
-  // ---- Entity bodies (descriptor pipeline) ----
+  // Sorted so a change in `visible` iteration order alone is not a change.
+  return { championRecords, mobRecords, traderRecords, signature: tokens.sort().join(';') };
+}
+
+/**
+ * Assemble collected unit records into InstancedMeshes with ink outlines.
+ * @param {{ championRecords: object[], mobRecords: object[], traderRecords: object[] }} collected
+ * @returns {THREE.InstancedMesh[]}
+ */
+export function assembleUnitMeshes({ championRecords, mobRecords, traderRecords }) {
+  const results = [];
   if (championRecords.length > 0) {
     results.push(...buildDescriptorMeshes(normalizedChampion, championRecords, 'champion'));
   }
@@ -120,7 +129,26 @@ export function buildUnitMeshes(state, visible) {
   if (traderRecords.length > 0) {
     results.push(...buildDescriptorMeshes(normalizedTrader, traderRecords, 'trader'));
   }
-
-  // Ink-outline twins for every unit mesh (see aestheticConventions §11).
   return results.flatMap(addOutlines);
+}
+
+/**
+ * Build unit meshes for all visible champions, mobs, and traders.
+ *
+ * All three entity types render through the descriptor pipeline:
+ *   - Champions (descriptors/data/champion.js): cylinder body + sphere head
+ *     per faction, instanced per part.
+ *   - Mobs (descriptors/data/mob.js — one variant per archetype, composed from
+ *     the per-mob files in data/mobs/): a 3D body per archetype shape (7
+ *     archetypes, no tier-2 variants), instanced per part.
+ *   - Traders (descriptors/data/trader.js): a flat coin body in teal.
+ *
+ * Mobs and traders render as pure 3D geometry — no icon caps.
+ *
+ * @param {Object} state   - Game state
+ * @param {Set}    visible - Set of visible hex keys
+ * @returns {THREE.InstancedMesh[]}
+ */
+export function buildUnitMeshes(state, visible) {
+  return assembleUnitMeshes(collectUnitInstances(state, visible));
 }
