@@ -7,7 +7,8 @@
 import {
   MEM_WARN_NEAR_LIMIT_RATIO, MEM_WARN_HIGH_AVG_RATIO, ALLOC_RATE_WARN_MB,
   JS_OVERHEAD_WARN_RATIO, JS_OVERHEAD_HIGH_WARN_RATIO, UNACCOUNTED_FRAME_WARN_PCT,
-  VARIANCE_WARN_MIN_CALLS, VARIANCE_WARN_RATIO_MULTIPLIER, DRAW_CALL_WARN_THRESHOLD,
+  VARIANCE_WARN_MIN_CALLS, VARIANCE_WARN_RATIO_MULTIPLIER, VARIANCE_WARN_MIN_MAX_MS,
+  PROFILER_OVERHEAD_WARN_PCT, DRAW_CALL_WARN_THRESHOLD,
 } from '../../../params/devtools/performanceParams.js';
 import { TARGET_FRAME_MS, BAD_THRESHOLD, HITCH_THRESHOLD, round1, round2 } from './frameThresholds.js';
 
@@ -92,14 +93,31 @@ export function collectWarnings({ ftStats, slowClusters, longFrames, memStats, h
   }
 
   // ── Variance-ratio warnings ──
-  // Flag spans whose max call time is more than N x their average (≥ min calls),
-  // which suggests intermittent bottlenecks rather than steady load.
+  // Flag spans whose worst frame is much more expensive than their typical
+  // frame (≥ min calls, and a max big enough to matter at all).
   for (const [name, s] of Object.entries(spanStats)) {
-    if (s.frameCallCount >= VARIANCE_WARN_MIN_CALLS && s.avgCall > 0 && s.max > s.avgCall * VARIANCE_WARN_RATIO_MULTIPLIER) {
-      const ratio = (s.max / s.avgCall).toFixed(1);
+    if (
+      s.frameCallCount >= VARIANCE_WARN_MIN_CALLS &&
+      s.max >= VARIANCE_WARN_MIN_MAX_MS &&
+      s.avgFrame > 0 &&
+      s.max > s.avgFrame * VARIANCE_WARN_RATIO_MULTIPLIER
+    ) {
+      const ratio = (s.max / s.avgFrame).toFixed(1);
       warnings.push(
-        `${name}: max=${round1(s.max)}ms is ${ratio}x the average of ${round2(s.avgCall)}ms ` +
+        `${name}: max=${round1(s.max)}ms/frame is ${ratio}x the per-frame average of ${round2(s.avgFrame)}ms ` +
         `(possible intermittent bottleneck)`
+      );
+    }
+  }
+
+  // Profiler self-cost — flag only when the capture visibly distorts the frame.
+  const profiler = spanStats.recordFrame;
+  if (profiler && ftStats && ftStats.avg > 0) {
+    const pct = (profiler.avgFrame / ftStats.avg) * 100;
+    if (pct > PROFILER_OVERHEAD_WARN_PCT) {
+      warnings.push(
+        `Profiler overhead: recordFrame ${round2(profiler.avgFrame)}ms/frame ` +
+        `(${round1(pct)}% of the average frame) — measurements are perturbing the capture`
       );
     }
   }

@@ -53,6 +53,18 @@ export const UNACCOUNTED_FRAME_WARN_PCT = 70;
 export const VARIANCE_WARN_MIN_CALLS = 5;
 /** Variance ratio warning: max > avgCall * multiplier. */
 export const VARIANCE_WARN_RATIO_MULTIPLIER = 5;
+/** Variance ratio warning: ignore spans whose max never exceeds this (ms) — avoids flagging sub-millisecond noise. */
+export const VARIANCE_WARN_MIN_MAX_MS = 2;
+/** Profiler self-cost warning: recordFrame share of the average frame (percent). */
+export const PROFILER_OVERHEAD_WARN_PCT = 2;
+
+/**
+ * Emit `performance.mark`/`performance.measure` entries (`dev:*`) for every
+ * named measurement. Off by default: the User Timing buffer retains one entry
+ * per span per frame, which is measurable overhead in a long capture. Flip to
+ * true to see the spans in the DevTools Performance panel.
+ */
+export const USER_TIMING_ENABLED = false;
 
 /** Draw-call warning threshold (draw calls per frame). */
 export const DRAW_CALL_WARN_THRESHOLD = 500;

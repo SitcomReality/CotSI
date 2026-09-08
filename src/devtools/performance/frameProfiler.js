@@ -10,7 +10,7 @@
 
 import { TARGET_FPS, CAPTURE_MAX_FRAMES, BUFFER_TRIM_TOLERANCE } from '../../params/devtools/performanceParams.js';
 import { getFps, getLastFrameTime, onFrame as registerFrameCallback, ensureFrameTracking } from './frameTracker.js';
-import { getRawMeasurements, startFrameSnapshot, endFrameDeltas, startMeasure, endMeasure } from '../../shared/measurements.js';
+import { getRawMeasurements, startFrameSnapshot, endFrameDeltas } from '../../shared/measurements.js';
 import { getGameContext } from './gameContext.js';
 import { getClock } from '../../shared/clockScheduler.js';
 import { getSceneContext } from '../../render/hexmap3d/sceneContext.js';
@@ -57,17 +57,6 @@ export function startRecording(maxFrames = CAPTURE_MAX_FRAMES) {
   // Initialize frame-delta snapshot so the first frame records from a clean baseline
   startFrameSnapshot();
 
-  // Register a frame marker that wraps the entire clock tick (timeout dispatch,
-  // frame callbacks, clock advancement) so we can measure overhead between
-  // the named per-frame spans.
-  getClock().setFrameMarker((phase) => {
-    if (phase === 'start') {
-      startMeasure('frame:tick');
-    } else {
-      endMeasure('frame:tick');
-    }
-  });
-
   _deregister = registerFrameCallback(_recordFrame);
 
   return { started: true, message: `Frame recording started (maxFrames=${maxFrames})` };
@@ -82,9 +71,6 @@ export function stopRecording() {
     _deregister();
     _deregister = null;
   }
-
-  // Unregister the tick-level frame marker
-  getClock().setFrameMarker(null);
 
   const result = _buffer || [];
   _buffer = null;

@@ -8,6 +8,14 @@ import {
 } from '../../../src/devtools/performance/report/spanAnalysis.js';
 import { computeTimeBudgetFromSpans } from '../../../src/devtools/performance/report/timeBudget.js';
 import { collectWarnings } from '../../../src/devtools/performance/report/warnings.js';
+import { USER_TIMING_ENABLED } from '../../../src/params/devtools/performanceParams.js';
+import {
+  setMeasurementEnabled,
+  getMeasurementStats,
+  startMeasure,
+  endMeasure,
+  disposeMeasurements,
+} from '../../../src/shared/measurements.js';
 
 function close(actual, expected, eps = 1e-9) {
   assert.ok(
@@ -149,4 +157,53 @@ test('collectWarnings: unaccounted warning names the outside-JS share', () => {
   const outside = warnings.find(w => w.includes('outside the JS tick'));
   assert.ok(outside, `expected an outside-JS warning, got: ${warnings.join(' | ')}`);
   assert.ok(outside.includes('32.00ms/frame'));
+});
+
+test('collectWarnings: variance warning needs a meaningful max', () => {
+  const base = {
+    ftStats: { avg: 40 },
+    slowClusters: [],
+    longFrames: { totalSlow: 0, hitch: 0, majorHitch: 0 },
+    memStats: null,
+    heapDeltaStats: null,
+    jsOverhead: null,
+    timeBudget: { pctUnaccounted: 0, pctOutsideJs: 0, perFrameOutsideJsMs: 0 },
+    renderStats: null,
+  };
+
+  const quiet = collectWarnings({
+    ...base,
+    spanStats: {
+      'input:pan': { frameCallCount: 100, avgCall: 0.004, avgFrame: 0.004, max: 1.0, totalMs: 0.4 },
+    },
+  }, false);
+  assert.ok(!quiet.some(w => w.includes('input:pan')), quiet.join(' | '));
+
+  const loud = collectWarnings({
+    ...base,
+    spanStats: {
+      fogMaskGen: { frameCallCount: 20, avgCall: 0.4, avgFrame: 0.4, max: 4.0, totalMs: 8 },
+    },
+  }, false);
+  const hit = loud.find(w => w.includes('fogMaskGen'));
+  assert.ok(hit, `expected a variance warning, got: ${loud.join(' | ')}`);
+  assert.ok(hit.includes('per-frame average'));
+});
+
+test('measurements: user-timing entries are gated, stats still update', () => {
+  disposeMeasurements();
+  setMeasurementEnabled('probe', true);
+
+  const before = performance.getEntriesByType('measure').length;
+  startMeasure('probe');
+  endMeasure('probe');
+  const after = performance.getEntriesByType('measure').length;
+
+  assert.equal(after, before + (USER_TIMING_ENABLED ? 1 : 0));
+
+  const stats = getMeasurementStats('probe');
+  assert.equal(stats.count, 1);
+  assert.ok(stats.avg >= 0);
+
+  disposeMeasurements();
 });

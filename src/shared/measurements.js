@@ -2,12 +2,13 @@
  * measurements.js — Named timing measurement infrastructure.
  *
  * Manages named measurements with lifetime average, EMA tracking,
- * and optional User Timing API integration. No DOM, no FPS tracking.
+ * and optional User Timing API integration (off by default — see
+ * USER_TIMING_ENABLED). No DOM, no FPS tracking.
  *
  * Layer: shared/
  */
 
-import { EMA_ALPHA } from '../params/devtools/performanceParams.js';
+import { EMA_ALPHA, USER_TIMING_ENABLED } from '../params/devtools/performanceParams.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 
@@ -26,15 +27,17 @@ let _frameStartSnapshot = null;
 export function startMeasure(name) {
   const m = _measurements[name];
   if (!m || !m.enabled) return;
-  const markName = `dev:${name}.start`;
-  performance.mark(markName);
-  m._startMark = markName;
+  if (USER_TIMING_ENABLED) {
+    const markName = `dev:${name}.start`;
+    performance.mark(markName);
+    m._startMark = markName;
+  }
   m._startTime = performance.now();
 }
 
 /**
  * End a named measurement. No-op if not started or not enabled.
- * Updates lifetime avg, EMA, and optionally writes User Timing marks.
+ * Updates lifetime avg, EMA, and (when USER_TIMING_ENABLED) User Timing marks.
  * @param {string} name
  */
 export function endMeasure(name) {
