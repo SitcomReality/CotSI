@@ -144,18 +144,15 @@ waterMaterial.userData.shared = true;
 export const waterTimeUniform = { value: 0 };
 
 /**
- * Shared uniforms for the map-center-toward swell. The map is always centered
- * at world origin (0,0); the radius is set once from gameState.radius (see
- * initMap3d.js). The swell direction is a continuous radial field, so touching
- * water tiles are seamless by construction.
+ * Shared uniform for the map-center-toward swell. The map is always centered
+ * at world origin (0,0). The swell direction is a continuous radial field, so
+ * touching water tiles are seamless by construction.
  */
 export const waterCenterUniform = { value: new THREE.Vector2(0, 0) };
-export const waterRadiusUniform = { value: 1 };
 
 waterMaterial.onBeforeCompile = (shader) => {
   shader.uniforms.uTime = waterTimeUniform;
   shader.uniforms.uWaterCenter = waterCenterUniform;
-  shader.uniforms.uWaterRadius = waterRadiusUniform;
   shader.vertexShader =
     'uniform float uTime;\n' +
     'varying vec3 vWaterWorld;\n' +
@@ -244,7 +241,6 @@ waterMaterial.onBeforeCompile = (shader) => {
   shader.fragmentShader =
     'uniform float uTime;\n' +
     'uniform vec2 uWaterCenter;\n' +
-    'uniform float uWaterRadius;\n' +
     'varying vec3 vWaterWorld;\n' +
     'varying vec2 vWaterFlow;\n' +
     'varying float vWaterFlowAmp;\n' +
@@ -292,6 +288,13 @@ waterMaterial.onBeforeCompile = (shader) => {
       // bank walls never glint (vWaterUp).
       `vec3 lightDir = normalize( ( viewMatrix * vec4( vec3( ${sunX}, ${sunY}, ${sunZ} ), 0.0 ) ).xyz );\n` +
       `vec3 viewDir = normalize( vViewPosition );\n` +
+      // Glint gate: side/bank faces (vWaterUp near 0) can never glint, so skip
+      // the whole specular chain — three noise octaves, the sparkle sample and
+      // the shadow-map tap — for them. The product below already multiplies by
+      // smoothstep( 0.5, 0.9, vWaterUp ), so gating on vWaterUp > 0.5 is
+      // output-identical.
+      `float glint = 0.0;\n` +
+      `if ( vWaterUp > 0.5 ) {\n` +
       `float nDotV = max( dot( normal, viewDir ), 0.0 );\n` +
       // ── Shadow mask on the glint ──
       // The glint reflects the sun, so it must vanish where an object blocks
@@ -344,10 +347,11 @@ waterMaterial.onBeforeCompile = (shader) => {
       // Rivers glint too, at WATER_RIVER_GLINT_STRENGTH of the open-water
       // amount; bank walls never glint.
       `float glintSurface = mix( 1.0, ${WATER_RIVER_GLINT_STRENGTH.toFixed(2)}, riverMask );\n` +
-      `float glint = roughGate * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel )\n` +
+      `glint = roughGate * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel )\n` +
       `  * glintSurface\n` +
       `  * smoothstep( 0.5, 0.9, vWaterUp )\n` +
-      `  * glintShadow;`
+      `  * glintShadow;\n` +
+      `}\n`
     ).replace(
       '#include <opaque_fragment>',
       // Shallow-water depth ramp: add a bright teal tint near the coast, fading

@@ -27,49 +27,58 @@ function isLandTile(t) {
 }
 
 /**
- * True world-space distance to the nearest land tile center minus the hex
- * radius (i.e. 0 flush against the land surface, growing the farther from the
- * coast we get). Searches 2 rings of the owning tile. Because it is a function
- * of world position, coincident vertices across a shared hex edge match, so
- * adjacent tiles stay seamless. Used both for the froth (clamped ramp) and the
- * shallow-water depth ramp (unclamped).
- * @returns {number} finite distance, or Infinity if no land is found nearby
+ * Precompute the land tiles a position may search, once per tile.
+ *
+ * The original per-vertex search ran ring 1, then ring 2 only when no ring-1
+ * land existed. Which rings are needed depends only on the owning tile, not on
+ * the vertex position, so the candidate centers are collected once and reused
+ * for all of a tile's unique vertex positions.
+ *
+ * @returns {Array<{x:number,z:number}>} land-tile centers to measure against
  */
-function distToLand(x, z, tile, state) {
-  let best = Infinity;
-  const ring = neighbors({ q: tile.q, r: tile.r });
-  for (const nb of ring) {
+function landSearchCenters(tile, state) {
+  const ring1 = neighbors({ q: tile.q, r: tile.r });
+  const ring1Land = [];
+  for (const nb of ring1) {
     const t = state.tiles[coordKey(nb)];
-    if (t && isLandTile(t)) {
-      const c = hexCenter(nb.q, nb.r);
-      const d = Math.hypot(c.x - x, c.z - z);
-      if (d < best) best = d;
+    if (t && isLandTile(t)) ring1Land.push(hexCenter(nb.q, nb.r));
+  }
+  if (ring1Land.length > 0) return ring1Land;
+
+  const ring2Land = [];
+  for (const nb of ring1) {
+    const t = state.tiles[coordKey(nb)];
+    if (!t) continue;
+    for (const nb2 of neighbors({ q: nb.q, r: nb.r })) {
+      const t2 = state.tiles[coordKey(nb2)];
+      if (t2 && isLandTile(t2)) ring2Land.push(hexCenter(nb2.q, nb2.r));
     }
   }
-  if (best === Infinity) {
-    for (const nb of ring) {
-      const t = state.tiles[coordKey(nb)];
-      if (!t) continue;
-      for (const nb2 of neighbors({ q: nb.q, r: nb.r })) {
-        const t2 = state.tiles[coordKey(nb2)];
-        if (t2 && isLandTile(t2)) {
-          const c = hexCenter(nb2.q, nb2.r);
-          const d = Math.hypot(c.x - x, c.z - z);
-          if (d < best) best = d;
-        }
-      }
-    }
+  return ring2Land;
+}
+
+/**
+ * True world-space distance to the nearest land tile center minus the hex
+ * radius (0 flush against the land surface, growing away from the coast).
+ * A function of world position, so coincident vertices across a shared hex
+ * edge match and adjacent tiles stay seamless.
+ * @returns {number} finite distance, or Infinity if no land was found nearby
+ */
+function distToLandFrom(x, z, landCenters) {
+  let best = Infinity;
+  for (const c of landCenters) {
+    const d = Math.hypot(c.x - x, c.z - z);
+    if (d < best) best = d;
   }
   if (best === Infinity) return Infinity;
   return Math.max(0, best - HEX_RADIUS);
 }
 
 /**
- * Seamless waterline froth at world (x, z): 1 flush against the nearest land
- * surface, fading to 0 over WATER_FROTH_WIDTH world units.
+ * Seamless waterline froth from a distance-to-land value: 1 flush against the
+ * nearest land surface, fading to 0 over WATER_FROTH_WIDTH world units.
  */
-function waterlineFroth(x, z, tile, state) {
-  const surfaceDist = distToLand(x, z, tile, state);
+function frothFromDepth(surfaceDist) {
   if (surfaceDist === Infinity) return 0;
   return 1 - smooth01(surfaceDist / WATER_FROTH_WIDTH);
 }
@@ -141,14 +150,33 @@ function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, sh
   const topY = elev + HEX_THICKNESS;
   const botY = elev;
 
+  // Waterline froth + shallow-depth ramp are pure functions of the vertex's
+  // world XZ. A tile's 54 vertices carry only 7 unique XZ positions (center +
+  // 6 corners), so evaluate them once here instead of re-running the neighbour
+  // search per vertex — and twice per vertex for froth and depth. Rivers carry
+  // neither, so they keep the 0/0 path.
+  let centerFroth = 0, centerDepth = 0;
+  const cornerFroth = [0, 0, 0, 0, 0, 0];
+  const cornerDepth = [0, 0, 0, 0, 0, 0];
+  if (tile.terrain !== 'river') {
+    const landCenters = landSearchCenters(tile, state);
+    centerDepth = distToLandFrom(cx, cz, landCenters);
+    centerFroth = frothFromDepth(centerDepth);
+    for (let i = 0; i < 6; i++) {
+      cornerDepth[i] = distToLandFrom(corners[i].x, corners[i].z, landCenters);
+      cornerFroth[i] = frothFromDepth(cornerDepth[i]);
+    }
+  }
+
   // --- Top face: fan triangulation from center (flat color, no blending) ---
   // Triangle: center → corner[i+1] → corner[i] (CCW from above)
   for (let i = 0; i < 6; i++) {
+    const j = (i + 1) % 6;
     const c0 = corners[i];
-    const c1 = corners[(i + 1) % 6];
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi,     cx,  topY, cz,  topColor, cx,  cz,  flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 1, c1.x, topY, c1.z, topColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 2, c0.x, topY, c0.z, topColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    const c1 = corners[j];
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi,     cx,  topY, cz,  topColor, cx,  cz,  flowX, flowZ, flowAmp, ampScale, tile, centerFroth, centerDepth);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 1, c1.x, topY, c1.z, topColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, cornerFroth[j], cornerDepth[j]);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 2, c0.x, topY, c0.z, topColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, cornerFroth[i], cornerDepth[i]);
     vi += 3;
   }
 
@@ -156,21 +184,22 @@ function writeTileVertices(positions, colors, phases, amps, flowXZ, flowAmps, sh
   // Triangle 1: bot0 → top0 → top1 (CCW from outside)
   // Triangle 2: bot0 → top1 → bot1
   for (let i = 0; i < 6; i++) {
+    const j = (i + 1) % 6;
     const c0 = corners[i];
-    const c1 = corners[(i + 1) % 6];
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi,     c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 1, c0.x, topY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 2, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 3, c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 4, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
-    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 5, c1.x, botY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, state);
+    const c1 = corners[j];
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi,     c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, cornerFroth[i], cornerDepth[i]);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 1, c0.x, topY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, cornerFroth[i], cornerDepth[i]);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 2, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, cornerFroth[j], cornerDepth[j]);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 3, c0.x, botY, c0.z, sideColor, c0.x, c0.z, flowX, flowZ, flowAmp, ampScale, tile, cornerFroth[i], cornerDepth[i]);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 4, c1.x, topY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, cornerFroth[j], cornerDepth[j]);
+    addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi + 5, c1.x, botY, c1.z, sideColor, c1.x, c1.z, flowX, flowZ, flowAmp, ampScale, tile, cornerFroth[j], cornerDepth[j]);
     vi += 6;
   }
 
   return vi;
 }
 
-function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi, x, y, z, color, hx, hz, flowX, flowZ, flowAmp, ampScale = 1, tile = null, state = null) {
+function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowXZ, shoreAmps, froths, depths, vi, x, y, z, color, hx, hz, flowX, flowZ, flowAmp, ampScale = 1, tile = null, froth = 0, depth = 0) {
   const i3 = vi * 3;
   positions[i3]     = x;
   positions[i3 + 1] = y;
@@ -208,12 +237,10 @@ function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowX
     shoreFlowXZ[i2 + 1] = 0;
     shoreAmps[vi]       = 0;
   }
-  // Waterline froth + shallow-depth ramp (rivers have neither: they carry 0).
-  // Computed at the vertex's world XZ so coincident vertices across a shared
-  // hex edge match — seamless by position.
-  const isRiver = tile && tile.terrain === 'river';
-  froths[vi]        = isRiver ? 0 : waterlineFroth(hx, hz, tile, state);
-  depths[vi]        = isRiver ? 0 : distToLand(hx, hz, tile, state);
+  // Waterline froth + shallow-depth ramp, precomputed per unique vertex
+  // position by writeTileVertices (rivers carry 0/0).
+  froths[vi]        = froth;
+  depths[vi]        = depth;
 }
 
 /**
