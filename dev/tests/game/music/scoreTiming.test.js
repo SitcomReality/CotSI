@@ -1,6 +1,6 @@
 /**
- * scoreTiming.test.js — Regression guard for note-collision fixes in the
- * generated score modules.
+ * scoreTiming.test.js — Regression guard for note-collision and tempo
+ * automation fixes in the generated score modules.
  *
  * The scores splice their reactive-dynamics core from the Canopy studio at
  * export time, so an older export can silently reintroduce same-voice,
@@ -9,6 +9,10 @@
  * generated source: the late-phrase snare roll must avoid the fill accent
  * (0.02) and the odd-step double (0.065 / 0.11), which share the same
  * synth voice at exactly those times.
+ *
+ * The tempo-ramp tests pin the fix for the browser freeze: a scheduled
+ * callback must pass its `time` and use a single linear ramp, never an untimed
+ * `transport.bpm.rampTo` (see dev/docs/musicSystem.md "Tempo automation").
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -55,5 +59,24 @@ for (const rel of SCORES) {
     // Tone requires strictly increasing start times per voice in call order.
     assert.match(source, /timed\.sort\(\(a, b\) => a\.ord - b\.ord \|\| \(a\.ev\.offset \|\| 0\) - \(b\.ev\.offset \|\| 0\)\)/);
     assert.match(source, /voiceOrder\.set\(target, voiceOrder\.size\)/);
+  });
+
+  test(`${name}: tempo automation is timed, linear, and skips no-op ramps`, () => {
+    // `transport.bpm.rampTo(target, 0.5)` inside a scheduled callback is
+    // Tone's documented anti-pattern: the missing time resolves to now(), and
+    // the bpm (exponential) ramp expands into ~6 near-flat linear segments in
+    // TickParam. That combination can push Tone's tick timeline into a runaway
+    // loop that freezes the page (see dev/docs/musicSystem.md).
+    assert.doesNotMatch(source, /transport\.bpm\.rampTo\(/);
+    assert.match(source, /transport\.bpm\.linearRampTo\([^)]*,\s*time\)/);
+    assert.match(source, /Math\.abs\([^)]*transport\.bpm\.getValueAtTime\(time\)\)\s*>\s*0\.05/);
+  });
+
+  test(`${name}: stopScore clears accumulated tempo automation`, () => {
+    assert.match(source, /transport\.bpm\.cancelScheduledValues\(0\)/);
+  });
+
+  test(`${name}: scheduled volume ramps pass the callback time`, () => {
+    assert.doesNotMatch(source, /\.volume\.rampTo\([^)]*0\.8\)/);
   });
 }

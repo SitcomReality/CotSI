@@ -785,7 +785,13 @@ function setup() {
     }
     if (boundary) {
       liveAxes = easeToward(liveAxes, contextTargets(score, context), 0.5);
-      transport.bpm.rampTo(score.bpm + tempoOffset(score, liveAxes), 0.5);
+      const targetBpm = score.bpm + tempoOffset(score, liveAxes);
+      // Timed single-segment ramp: an untimed exponential rampTo expands into
+      // ~6 near-flat segments and can drive Tone's tick timeline into a
+      // runaway loop. See dev/docs/musicSystem.md "Tempo automation".
+      if (Math.abs(targetBpm - transport.bpm.getValueAtTime(time)) > 0.05) {
+        transport.bpm.linearRampTo(targetBpm, 0.5, time);
+      }
     }
     if (step === 0) {
       barCount += 1;
@@ -799,12 +805,12 @@ function setup() {
         if (!voice || layer.muted || resting[layer.id] || !layerActive(layer, liveAxes)) continue;
         const delta = journeyGain(layer, energy);
         if (voice.kind === "drums") {
-          voice.kick.volume.rampTo(-10 + delta, 0.8);
-          voice.hat.volume.rampTo(-24 + delta, 0.8);
-          if (voice.snare) voice.snare.volume.rampTo(-14 + delta, 0.8);
+          voice.kick.volume.rampTo(-10 + delta, 0.8, time);
+          voice.hat.volume.rampTo(-24 + delta, 0.8, time);
+          if (voice.snare) voice.snare.volume.rampTo(-14 + delta, 0.8, time);
         } else if (voice.synth) {
           const base = voice.kind === "chords" ? -16 : voice.kind === "melody" ? -9 : -11;
-          voice.synth.volume.rampTo(Math.max(-40, Math.min(0, base + delta)), 0.8);
+          voice.synth.volume.rampTo(Math.max(-40, Math.min(0, base + delta)), 0.8, time);
         }
       }
     }
@@ -858,7 +864,10 @@ function setup() {
       context = "explore";
       queuedContext = null;
       liveAxes = { intensity: 0.3, tension: 0.25, brightness: 0.7 };
-      transport.bpm.rampTo(score.bpm + tempoOffset(score, liveAxes), 0.5);
+      const victoryBpm = score.bpm + tempoOffset(score, liveAxes);
+      if (Math.abs(victoryBpm - transport.bpm.getValueAtTime(time)) > 0.05) {
+        transport.bpm.linearRampTo(victoryBpm, 0.5, time);
+      }
     }
     step = (step + 1) % 16;
   }, "8n");
@@ -872,7 +881,12 @@ export async function startScore() {
 }
 
 export function stopScore() {
-  Tone.getTransport().stop();
+  const transport = Tone.getTransport();
+  transport.stop();
+  // Drop accumulated tempo automation so a long session cannot grow the bpm
+  // timeline without bound (TickParam keeps it for the page's lifetime).
+  transport.bpm.cancelScheduledValues(0);
+  transport.bpm.value = score.bpm;
   step = 0;
   driftRng = Math.random;
   barCount = 0;

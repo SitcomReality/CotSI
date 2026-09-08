@@ -197,7 +197,13 @@ exactly the kind of coupling the engine is meant to move to the gate stage.
    happens to already-emitted lookahead notes past the upcoming change (recompute
    or bound them — document the choice). Note: the current engine ramps
    `transport.bpm.rampTo(bpm, 0.6)` mid-playback, which contradicts this rule —
-   replace it with the boundary re-anchor.
+   replace it with the boundary re-anchor. Until the engine lands, the exported
+   scores carry a stopgap: a timed `transport.bpm.linearRampTo(target, 0.5, time)`
+   with a no-op guard, because the untimed exponential `rampTo` can drive Tone's
+   tick timeline into a runaway loop and freeze the page (see CotSI
+   `dev/docs/musicSystem.md` "Tempo automation"). A re-export must keep that
+   pattern or move tempo to the boundary re-anchor; `scoreTiming.test.js` fails
+   otherwise.
 4. **Tab suspension / long GC stalls.** The lookahead window absorbs gaps; a
    gap longer than lookahead means some events fire late-and-clumped or are
    skipped by policy — pick *skip* (musical position comes from the audio

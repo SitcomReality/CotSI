@@ -97,3 +97,36 @@ last scheduled time". Two layers of defense:
 re-exports — if a fresh studio export fails that test, port the fixes into
 the studio's `dynamics.js` / playback loop rather than hand-patching here
 long-term.
+
+## Tempo automation
+
+The scores steer tempo reactively at each 8th-note boundary. That automation
+must be scheduled on the transport timeline, not at "now":
+
+- **Pass the callback's `time`.** `transport.bpm.rampTo(target, 0.5)` with no
+  start time resolves to `context.now()`; Tone's `assertUsedScheduleTime`
+  warns about exactly this, and the untimed ramp lands off the transport grid.
+  The per-bar volume ramps (`voice.*.volume.rampTo(..., time)`) follow the
+  same rule.
+- **Use `linearRampTo`, not `rampTo`.** `rampTo` on a bpm signal takes the
+  *exponential* path, which `TickParam.exponentialRampToValueAtTime` expands
+  into ~10 near-flat linear segments per second. A run of near-equal segments
+  makes `TickParam.getTimeOfTick` divide by a near-zero slope and return an
+  enormous negative time; `TickSource.forEachTickBetween` then cannot advance
+  (`while (nextTickTime < endTime)`) and the main thread freezes, surfacing as
+  `can't access property "time", lastState is undefined` in `getTicksAtTime`.
+  Stable Tone 15.1.22 has no forward-progress guard for this (only the `next`
+  prerelease does), so avoid the pattern rather than relying on an upgrade.
+- **Skip no-op ramps.** Re-ramping to a tempo the transport is already at
+  produces the near-flat segments above; the scores compare the target against
+  `transport.bpm.getValueAtTime(time)` and skip ramps below 0.05 bpm.
+- **Bound the timeline.** `TickParam._events` is a `Timeline(Infinity)` that
+  never prunes, so every ramp accumulates for the page's lifetime.
+  `stopScore()` calls `transport.bpm.cancelScheduledValues(0)` and restores the
+  base bpm.
+
+`scoreTiming.test.js` scans both exports for these rules. Because the scores
+are generated, a fresh Canopy export that reintroduces the untimed `rampTo`
+fails that guard — port the fix into the studio's playback loop (see
+`studioTimingEngineBrief.md` §5.3) rather than hand-patching the export
+long-term.
