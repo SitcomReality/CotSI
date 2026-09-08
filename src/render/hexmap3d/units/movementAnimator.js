@@ -35,6 +35,7 @@ import {
   applyAnimationFrame,
 } from './movementCurves.js';
 import { MOVE_ANIM_DURATION } from '../../../params/render/animationParams.js';
+import { getSceneContext } from '../sceneContext.js';
 
 // Re-exported so existing callers importing MOVE_DURATION from this module
 // don't need to update their import paths.
@@ -206,6 +207,8 @@ function _startHop(championId, fromPos, toPos, faction, duration, onComplete) {
     const t = Math.max(0, Math.min(elapsed / duration, 1));
 
     applyAnimationFrame(anim, t);
+    // Animated units are shadow casters — keep the cached shadow map current.
+    getSceneContext()?.requestShadowUpdate?.();
 
     if (t >= 1) {
       // Animation finished: keep the mesh at its final position in the scene

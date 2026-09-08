@@ -12,12 +12,18 @@ import { MAX_PIXEL_RATIO, CLEAR_COLOR } from '../../../params/render/cameraParam
  */
 export function createRenderer(mountElement, { shadows = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.round(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO)));
+  // Clamp without rounding up: Math.round turned fractional DPR (1.25/1.5/1.75)
+  // into 2, rendering ~1.8x the pixels on those displays for no visual gain.
+  renderer.setPixelRatio(Math.max(0.5, Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO)));
   renderer.setClearColor(CLEAR_COLOR); // dark parchment (contrast with terrain colors)
 
+  // Shadow maps are re-rendered on request only (see sceneSetup's tick): the
+  // sun tracks the camera focus, so a static frame can reuse the last map.
+  renderer.shadowMap.autoUpdate = false;
   if (shadows && shadowLightConfig.enabled) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = SHADOW_MAP_TYPES[shadowLightConfig.shadowMapType] ?? THREE.PCFSoftShadowMap;
+    renderer.shadowMap.needsUpdate = true;
   } else {
     renderer.shadowMap.enabled = false;
   }

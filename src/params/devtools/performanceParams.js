@@ -54,5 +54,8 @@ export const VARIANCE_WARN_MIN_CALLS = 5;
 /** Variance ratio warning: max > avgCall * multiplier. */
 export const VARIANCE_WARN_RATIO_MULTIPLIER = 5;
 
+/** Draw-call warning threshold (draw calls per frame). */
+export const DRAW_CALL_WARN_THRESHOLD = 500;
+
 /** Performance stats UI refresh poll interval (ms). */
 export const PERF_POLL_INTERVAL_MS = 500;

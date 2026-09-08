@@ -7,7 +7,7 @@
 import {
   MEM_WARN_NEAR_LIMIT_RATIO, MEM_WARN_HIGH_AVG_RATIO, ALLOC_RATE_WARN_MB,
   JS_OVERHEAD_WARN_RATIO, JS_OVERHEAD_HIGH_WARN_RATIO, UNACCOUNTED_FRAME_WARN_PCT,
-  VARIANCE_WARN_MIN_CALLS, VARIANCE_WARN_RATIO_MULTIPLIER,
+  VARIANCE_WARN_MIN_CALLS, VARIANCE_WARN_RATIO_MULTIPLIER, DRAW_CALL_WARN_THRESHOLD,
 } from '../../../params/devtools/performanceParams.js';
 import { TARGET_FRAME_MS, BAD_THRESHOLD, HITCH_THRESHOLD, round1, round2 } from './frameThresholds.js';
 
@@ -24,10 +24,11 @@ import { TARGET_FRAME_MS, BAD_THRESHOLD, HITCH_THRESHOLD, round1, round2 } from 
  * @param {{ invisibleRatio: number }|null} sections.jsOverhead
  * @param {{ pctUnaccounted: number }} sections.timeBudget
  * @param {Object<string, { frameCallCount: number, avgCall: number, max: number }>} sections.spanStats
+ * @param {{ calls: { avg: number, max: number } }|null} [sections.renderStats]
  * @param {boolean} longTaskObserverActive
  * @returns {string[]}
  */
-export function collectWarnings({ ftStats, slowClusters, longFrames, memStats, heapDeltaStats, jsOverhead, timeBudget, spanStats }, longTaskObserverActive) {
+export function collectWarnings({ ftStats, slowClusters, longFrames, memStats, heapDeltaStats, jsOverhead, timeBudget, spanStats, renderStats }, longTaskObserverActive) {
   const warnings = [];
 
   if (ftStats && ftStats.avg > HITCH_THRESHOLD) {
@@ -100,6 +101,14 @@ export function collectWarnings({ ftStats, slowClusters, longFrames, memStats, h
         `(possible intermittent bottleneck)`
       );
     }
+  }
+
+  // Draw-call warning — high counts point at batching/culling gaps.
+  if (renderStats && renderStats.calls && renderStats.calls.max > DRAW_CALL_WARN_THRESHOLD) {
+    warnings.push(
+      `High draw calls: max ${renderStats.calls.max} (avg ${round1(renderStats.calls.avg)}) ` +
+      `— consider batching/culling`
+    );
   }
 
   return warnings;

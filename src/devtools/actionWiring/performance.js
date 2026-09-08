@@ -6,6 +6,7 @@
 
 import { registerAction } from '../../shared/actionBus.js';
 import { setOverlayEnabled, setMeasurementEnabled, startCapture, stopCapture, isCaptureActive, getCaptureReport } from '../performance/index.js';
+import { cycleShadowQuality } from '../panel/shadowQuality.js';
 
 export function registerPerfActions() {
   registerAction('dev:perf:toggleOverlay', () => {
@@ -53,6 +54,13 @@ export function registerPerfActions() {
   registerAction('dev:perf:toggle:animMove', (el) => {
     const cb = el.querySelector('input[type="checkbox"]');
     if (cb) setMeasurementEnabled('animMove', cb.checked);
+  });
+
+  // Dev-only shadow map resolution A/B (default stays 2048)
+  registerAction('dev:perf:cycleShadowQuality', () => {
+    const size = cycleShadowQuality();
+    const btn = document.getElementById('devPerfShadowQuality');
+    if (btn) btn.textContent = `Shadow Map: ${size}`;
   });
 
   // Capture controls

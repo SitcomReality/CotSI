@@ -187,6 +187,9 @@ export function renderHexMap3D(state, humanView) {
   for (const um of unitMeshes) ctx.scene.add(um);
   endMeasure('mesh:units');
 
+  // Scene geometry/transforms changed — refresh the (otherwise cached) shadow map.
+  ctx.requestShadowUpdate?.();
+
   // Push current state & camera to the overlay for the next frame
   setEffectsState(state, ctx.camera);
   endMeasure('renderHexMap');

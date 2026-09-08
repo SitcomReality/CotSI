@@ -11,6 +11,7 @@ import { PERF_POLL_INTERVAL_MS } from '../../params/devtools/performanceParams.j
 import { getFps, getLastFrameTime, ensureFrameTracking } from '../performance/index.js';
 import { getMeasurementStats, setMeasurementEnabled } from '../performance/index.js';
 import { getClock } from '../../shared/clockScheduler.js';
+import { getSceneContext } from '../../render/hexmap3d/sceneContext.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,13 @@ export function refreshPerfStats() {
   const frameEl = document.getElementById('devPerfFrameTime');
   if (fpsEl) fpsEl.textContent = getFps().toFixed(1);
   if (frameEl) frameEl.textContent = getLastFrameTime().toFixed(1);
+
+  // Render stats from the last rendered frame
+  const rs = getSceneContext()?.getRenderStats?.();
+  const callsEl = document.getElementById('devPerfDrawCalls');
+  const trisEl = document.getElementById('devPerfTriangles');
+  if (callsEl) callsEl.textContent = rs ? String(rs.calls) : '\u2014';
+  if (trisEl) trisEl.textContent = rs ? String(rs.triangles) : '\u2014';
 
   // Update measurement displays
   const names = ['refreshAll', 'mapRefresh', 'runBot', 'combatFlow', 'render3d', 'overlays', 'animMove'];

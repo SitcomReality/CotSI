@@ -116,6 +116,14 @@
         <div class="devtools__stat-row">
           <span class="devtools__stat">FPS: <strong id="devPerfFps">—</strong></span>
           <span class="devtools__stat">Frame: <strong id="devPerfFrameTime">—</strong>ms</span>
+          <span class="devtools__stat">Calls: <strong id="devPerfDrawCalls">—</strong></span>
+          <span class="devtools__stat">Tris: <strong id="devPerfTriangles">—</strong></span>
+        </div>
+      </div>
+      <div class="devtools__section">
+        <div class="devtools__section-title">Render Quality</div>
+        <div class="devtools__btn-row">
+          <button class="devtools__btn" data-action="dev:perf:cycleShadowQuality" id="devPerfShadowQuality">Shadow Map: 2048</button>
         </div>
       </div>
       <div class="devtools__section">

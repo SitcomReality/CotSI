@@ -10,6 +10,7 @@
  */
 
 import { computeStats } from './stats.js';
+import { aggregateRenderStats } from './report/renderStats.js';
 import { aggregateSpans, computeExclusiveSpanTimes, computeJsOverhead } from './report/spanAnalysis.js';
 import { computeTimeBudgetFromSpans, computeTimeBudgetByPhase } from './report/timeBudget.js';
 import { buildSlowClusters } from './report/slowClusters.js';
@@ -52,6 +53,9 @@ export function buildReport(frames, interval, longTasks = []) {
     tasks: longTasks,
   } : null;
 
+  // ── Render stats (draw calls / triangles) ───────────────────────────────
+  const renderStats = aggregateRenderStats(timeline);
+
   // ── Warnings ────────────────────────────────────────────────────────────
   const warnings = collectWarnings({
     ftStats: summary.ftStats,
@@ -62,6 +66,7 @@ export function buildReport(frames, interval, longTasks = []) {
     jsOverhead,
     timeBudget,
     spanStats,
+    renderStats,
   }, longTaskObserverActive);
 
   // Find the span with the worst max value for surfacing in the summary
@@ -92,6 +97,7 @@ export function buildReport(frames, interval, longTasks = []) {
     phaseBudget,
     worstSpan,
     jsOverhead,
+    renderStats,
     heapDeltaStats: summary.heapDeltaStats,
     longTasks: longTaskSummary,
     warnings,
@@ -190,6 +196,7 @@ function findWorstSpan(spanStats) {
  * @property {Array<{ startTs: number, endTs: number, count: number, worstMs: number, context: string }>} slowClusters
  * @property {{ items: Array<{ name: string, totalMs: number, exclusiveMs: number, perFrameMs: number, pctOfFrame: number, callCount: number, avgCall: number, maxCall: number }>, hasNesting: boolean, totalMeasuredMs: number, perFrameMeasuredMs: number, perFrameUnaccountedMs: number, pctUnaccounted: number }|null} timeBudget
  * @property {{ frameJsTotalMs: number, frameJsCalls: number, frameJsAvgPerFrame: number, measuredAvgPerFrame: number, invisibleAvgPerFrame: number, invisibleRatio: number }|null} jsOverhead
+ * @property {{ frames: number, calls: object, triangles: object, geometries: object, textures: object }|null} renderStats
  * @property {{ avgBytes: number, maxBytes: number, minBytes: number, avgMB: number, maxMB: number }|null} heapDeltaStats
  * @property {{ count: number, totalDuration: number, tasks: Array<{ startTime: number, duration: number, name: string }> }|null} longTasks
  * @property {string[]} warnings

@@ -13,6 +13,7 @@ import { getFps, getLastFrameTime, onFrame as registerFrameCallback, ensureFrame
 import { getRawMeasurements, startFrameSnapshot, endFrameDeltas, startMeasure, endMeasure } from '../../shared/measurements.js';
 import { getGameContext } from './gameContext.js';
 import { getClock } from '../../shared/clockScheduler.js';
+import { getSceneContext } from '../../render/hexmap3d/sceneContext.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 
@@ -195,6 +196,13 @@ function _recordFrame(timestamp) {
   // Profile the profiler's own cost
   spans.push({ name: 'recordFrame', ms: performance.now() - _startTime, count: 1 });
 
+  // Render stats from the frame just submitted (draw calls include the shadow pass)
+  const rs = getSceneContext()?.getRenderStats?.();
+  const renderStats = rs ? {
+    calls: rs.calls, triangles: rs.triangles, points: rs.points, lines: rs.lines,
+    geometries: rs.geometries, textures: rs.textures,
+  } : null;
+
   const entry = {
     timestamp, frameTime, fps,
     context: ctx,
@@ -204,6 +212,7 @@ function _recordFrame(timestamp) {
     measurements: measSnapshot,
     memory,
     heapDelta,
+    renderStats,
   };
 
   _buffer.push(entry);
@@ -234,4 +243,5 @@ function _recordFrame(timestamp) {
  * @property {Object<string, { ema: number, avg: number, count: number, total: number }>} measurements
  * @property {{ usedJSHeapSize: number, totalJSHeapSize: number, jsHeapSizeLimit: number }|null} memory
  * @property {number|null} heapDelta — inter-frame usedJSHeapSize delta (bytes), or null if unavailable
+ * @property {{ calls: number, triangles: number, points: number, lines: number, geometries: number, textures: number }|null} [renderStats] — renderer.info sample for the frame
  */

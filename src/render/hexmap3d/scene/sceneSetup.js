@@ -137,6 +137,22 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
   ground.position.y = GROUND_PLANE_Y;
   scene.add(ground);
 
+  // --- Per-frame render statistics (renderer.info resets on each render call) ---
+  const renderStats = {
+    calls: 0, triangles: 0, points: 0, lines: 0,
+    geometries: 0, textures: 0,
+  };
+
+  // Shadow maps are re-rendered only on request. The sun tracks the camera
+  // focus, so a moved focus needs a fresh map; static frames reuse the last one.
+  let lastShadowTargetX = NaN;
+  let lastShadowTargetZ = NaN;
+
+  /** Mark the shadow map dirty so the next render refreshes it. */
+  function requestShadowUpdate() {
+    renderer.shadowMap.needsUpdate = true;
+  }
+
   // --- Animation loop (clock-owned) ---
   if (clock) {
     const sunOffset = shadowLightConfig.sunPosition;
@@ -151,10 +167,23 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
         sun.position.set(camState.targetX + sunOffset.x, sunOffset.y, camState.targetZ + sunOffset.z);
         sun.target.position.set(camState.targetX, 0, camState.targetZ);
         sun.target.updateMatrixWorld(); // target is not scene-added
+        if (camState.targetX !== lastShadowTargetX || camState.targetZ !== lastShadowTargetZ) {
+          lastShadowTargetX = camState.targetX;
+          lastShadowTargetZ = camState.targetZ;
+          requestShadowUpdate();
+        }
       }
       startMeasure('render3d');
       renderer.render(scene, camera);
       endMeasure('render3d');
+
+      const info = renderer.info;
+      renderStats.calls = info.render.calls;
+      renderStats.triangles = info.render.triangles;
+      renderStats.points = info.render.points;
+      renderStats.lines = info.render.lines;
+      renderStats.geometries = info.memory.geometries;
+      renderStats.textures = info.memory.textures;
     });
   }
 
@@ -168,6 +197,8 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
     applyCamera() { applyCameraState(camera, camState); },
     getCameraState() { return camState; },
     getClock() { return clock; },
+    getRenderStats() { return renderStats; },
+    requestShadowUpdate,
     dispose() {
       renderer.dispose();
       if (renderer.domElement.parentNode) {

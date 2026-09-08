@@ -11,6 +11,7 @@
 import { OVERLAY_TOP_N } from '../../params/devtools/performanceParams.js';
 import { getFps, getLastFrameTime } from './frameTracker.js';
 import { getRawMeasurements } from '../../shared/measurements.js';
+import { getSceneContext } from '../../render/hexmap3d/sceneContext.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 
@@ -76,6 +77,8 @@ function _updateOverlay(timestamp) {
     .slice(0, OVERLAY_TOP_N);
 
   let html = `FPS: ${fps.toFixed(1)}  Frame: ${frame}ms`;
+  const rs = getSceneContext()?.getRenderStats?.();
+  if (rs) html += `<br>Calls: ${rs.calls}  Tris: ${rs.triangles}`;
   for (const e of entries) {
     html += `<br>${e.name}: ${e.ema.toFixed(2)}ms`;
   }

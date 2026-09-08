@@ -62,6 +62,15 @@ export function formatReport(report) {
     s += `Worst span: ${worstSpan.name} (max=${round1(worstSpan.max)}ms)\n`;
   }
 
+  // ── Render stats ──
+  if (report.renderStats) {
+    const r = report.renderStats;
+    s += `\n─── Render Stats ───\n`;
+    s += `  Draw calls:  avg=${round1(r.calls.avg)}  max=${r.calls.max}\n`;
+    s += `  Triangles:   avg=${Math.round(r.triangles.avg)}  max=${r.triangles.max}\n`;
+    s += `  Geometries:  avg=${round1(r.geometries.avg)}  max=${r.geometries.max}\n`;
+  }
+
   // ── Slow frames by context ──
   const ctxNames = Object.keys(ctxSlowSummary).sort();
   if (ctxNames.length > 0) {
