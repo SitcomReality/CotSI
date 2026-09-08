@@ -23,6 +23,7 @@ import { OVERLAY_Z } from '../../params/ui/uiParams.js';
 import { shadowLightConfig } from '../shadowLightConfig.js';
 import { startMeasure, endMeasure } from '../../shared/measurements.js';
 import { chunkKeysWithinCap } from '../../engine/rules/sightCull.js';
+import { CHUNK_REBUILD_BUDGET_MS } from '../../params/game/chunkParams.js';
 
 // Re‑export symbols needed by external consumers
 export { getSceneContext } from './sceneContext.js';
@@ -38,6 +39,13 @@ let unitMeshes = [];
 // Signature of the unit render inputs the current meshes were built from. When
 // it is unchanged the meshes are reused instead of disposed and rebuilt.
 let unitSignatureCache = null;
+
+// Chunks whose feature-only rebuild was deferred past the refresh's time
+// budget. Drained by a per-frame tick; the first one commits in the refresh
+// frame itself, so single-chunk moves stay visually identical.
+const pendingRebuildKeys = new Set();
+let lastRebuildState = null;
+let lastRebuildView = null;
 
 /**
  * One-time initialization. Called from runtime/mapRefresh.js on first refreshAll.
@@ -60,6 +68,12 @@ export function initHexMap3D(mountElement) {
   // getClock().dispose() above cleared any prior frame callbacks, so this is
   // the only registration. One uniform write per frame drives every water mesh.
   getClock().onTick((ts) => { waterTimeUniform.value = ts / 1000; });
+
+  // Deferred chunk rebuilds: drain the queue a little each frame so a burst of
+  // dirty chunks never lands in a single frame.
+  getClock().onTick(() => {
+    if (pendingRebuildKeys.size > 0) flushChunkRebuilds(CHUNK_REBUILD_BUDGET_MS);
+  });
 
   // Init 2D effects overlay and register layers
   initEffectsOverlay(ctx);
@@ -92,6 +106,11 @@ export function renderHexMap3D(state, humanView) {
   const ctx = sceneCtx.getSceneContext();
   if (!ctx) return;
 
+  // Deferred rebuilds read these on later frames; the current call's state and
+  // view are always the freshest.
+  lastRebuildState = state;
+  lastRebuildView = humanView;
+
   const { visible, explored } = humanView;
   startMeasure('renderHexMap');
 
@@ -112,6 +131,7 @@ export function renderHexMap3D(state, humanView) {
   // sight cap (the champion moved away) — their geometry is never visible.
   forEachChunk((ck) => {
     if (!currentChunkKeys.has(ck) || !cullChunkKeys.has(ck)) {
+      pendingRebuildKeys.delete(ck);
       disposeChunk(ck, ctx.scene);
     }
   });
@@ -134,18 +154,16 @@ export function renderHexMap3D(state, humanView) {
 
     if (mode === 'features') {
       // Occupancy/feature change only: terrain and water gate on `explored`,
-      // which is unchanged, so swap just the world-object meshes in place.
-      const features = buildChunkWorldMeshes(chunkTiles, state, visible, explored, occupants);
-      detectCollectedFx(ck, chunkTiles, visible);
-      features.push(...buildChunkFeatureFx(chunkTiles, visible));
-      replaceChunkFeatures(entry, features);
-      if (features.length === 0 && !entry.terrain && !entry.water) disposeChunk(ck, ctx.scene);
+      // which is unchanged, so only the world-object meshes need rebuilding —
+      // queued for the budgeted flush below.
+      pendingRebuildKeys.add(ck);
       continue;
     }
     if (mode === 'none') continue;
 
     // Full rebuild — new chunk, or newly explored tiles (terrain/water gate on
     // `explored`, so they must be rebuilt from scratch).
+    pendingRebuildKeys.delete(ck);
     if (entry) disposeChunk(ck, ctx.scene);
 
     if (chunkTiles.length === 0) continue;
@@ -188,6 +206,9 @@ export function renderHexMap3D(state, humanView) {
       setChunkEntry(ck, { group, terrain, water, features, exploredCount });
     }
   }
+  // Commit the first queued rebuild in this refresh frame (single-chunk moves
+  // stay pixel-identical); the rest drain on later frames.
+  flushChunkRebuilds(CHUNK_REBUILD_BUDGET_MS, 1);
   endMeasure('mesh:chunks');
 
   // ── Unit meshes (global; reused while their render inputs are unchanged) ──
@@ -217,6 +238,55 @@ export function renderHexMap3D(state, humanView) {
   // Push current state & camera to the overlay for the next frame
   setEffectsState(state, ctx.camera);
   endMeasure('renderHexMap');
+}
+
+/**
+ * Rebuild queued feature-only chunks under a time budget.
+ *
+ * A chunk's feature build is atomic — it cannot be split — so the budget only
+ * spreads a burst of dirty chunks across frames. `minChunks` guarantees
+ * progress in the refresh frame; deferred chunks keep their existing meshes
+ * until their replacement is built (build-before-dispose), so nothing pops in
+ * late or becomes unpickable.
+ *
+ * @param {number} budgetMs - Stop after this much elapsed time
+ * @param {number} [minChunks=0] - Always rebuild at least this many
+ */
+export function flushChunkRebuilds(budgetMs, minChunks = 0) {
+  const ctx = sceneCtx.getSceneContext();
+  if (!ctx || pendingRebuildKeys.size === 0) return;
+  const state = lastRebuildState;
+  const view = lastRebuildView;
+  if (!state || !view) {
+    pendingRebuildKeys.clear();
+    return;
+  }
+
+  const { visible, explored } = view;
+  const hasLivingHuman = state.champions.some(c => c.controller === 'human' && c.alive);
+  const capKeys = hasLivingHuman ? chunkKeysWithinCap(state.champions) : null;
+  const occupants = occupiedKeys(state);
+  const start = performance.now();
+  let done = 0;
+
+  for (const ck of [...pendingRebuildKeys]) {
+    if (done >= minChunks && performance.now() - start >= budgetMs) break;
+    pendingRebuildKeys.delete(ck);
+    // Left the cap or no longer rendered — its entry is disposed already.
+    if (capKeys && !capKeys.has(ck)) continue;
+    const chunk = state.chunks.get(ck);
+    const entry = getChunkEntry(ck);
+    if (!chunk || !entry) continue;
+
+    const chunkTiles = [...chunk.tiles.values()];
+    const features = buildChunkWorldMeshes(chunkTiles, state, visible, explored, occupants);
+    detectCollectedFx(ck, chunkTiles, visible);
+    features.push(...buildChunkFeatureFx(chunkTiles, visible));
+    replaceChunkFeatures(entry, features);
+    if (features.length === 0 && !entry.terrain && !entry.water) disposeChunk(ck, ctx.scene);
+    ctx.requestShadowUpdate?.();
+    done++;
+  }
 }
 
 /**
@@ -261,6 +331,10 @@ function disposeAll() {
   for (const um of unitMeshes) sceneCtx.disposeMesh(um);
   unitMeshes = [];
   unitSignatureCache = null;
+
+  pendingRebuildKeys.clear();
+  lastRebuildState = null;
+  lastRebuildView = null;
 
   disposeMovementAnimator();
   disposeFeatureFx();

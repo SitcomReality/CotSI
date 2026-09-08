@@ -21,3 +21,10 @@ export const BACKGROUND_BUFFER_CHUNKS = 2;
 
 /** Milliseconds between background chunk generations (frame spread). */
 export const BACKGROUND_GEN_SPREAD_MS = 8;
+
+/**
+ * Time budget for deferred chunk feature rebuilds in a single frame. A chunk's
+ * feature build is atomic, so this only spreads a burst of dirty chunks across
+ * frames (the first one always commits in the refresh frame).
+ */
+export const CHUNK_REBUILD_BUDGET_MS = 6;
