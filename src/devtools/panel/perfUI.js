@@ -12,6 +12,7 @@ import { getFps, getLastFrameTime, ensureFrameTracking } from '../performance/in
 import { getMeasurementStats, setMeasurementEnabled } from '../performance/index.js';
 import { getClock } from '../../shared/clockScheduler.js';
 import { getSceneContext } from '../../render/hexmap3d/sceneContext.js';
+import { getOverlayDpr } from '../../render/overlays/overlayCanvas.js';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,10 @@ export function refreshPerfStats() {
   const trisEl = document.getElementById('devPerfTriangles');
   if (callsEl) callsEl.textContent = rs ? String(rs.calls) : '\u2014';
   if (trisEl) trisEl.textContent = rs ? String(rs.triangles) : '\u2014';
+
+  // Effective overlay DPR (capped) — diagnostic for the DPR cap's impact
+  const dprEl = document.getElementById('devPerfOverlayDpr');
+  if (dprEl) dprEl.textContent = getOverlayDpr().toFixed(2);
 
   // Update measurement displays
   const names = ['refreshAll', 'mapRefresh', 'runBot', 'combatFlow', 'render3d', 'overlays', 'animMove'];

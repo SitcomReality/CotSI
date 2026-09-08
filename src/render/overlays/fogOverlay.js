@@ -6,6 +6,7 @@
 
 import { generateFogMasks } from './fogMaskGenerator.js';
 import { getDerivedHumanView } from './overlayStack.js';
+import { getOverlayDpr } from './overlayCanvas.js';
 import { FOG_BLUR_RADIUS, EXPLORED_PUNCH_ALPHA } from '../../params/render/overlayParams.js';
 
 // ---------------------------------------------------------------------------
@@ -32,7 +33,7 @@ const FOG_BASE = 'rgba(8, 6, 2, 1.0)';
  */
 export function renderFogOverlay(ctx2d, state, camera, _time) {
   const canvas = ctx2d.canvas;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = getOverlayDpr();
   const cssW = canvas.width / dpr;
   const cssH = canvas.height / dpr;
 

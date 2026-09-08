@@ -3,6 +3,8 @@
 // space. The source canvases have a DPR transform set on their context, so the
 // blur works around that by operating on temp canvases at raw pixel resolution.
 
+import { getOverlayDpr } from './overlayCanvas.js';
+
 // Cached temp canvases for blur (reused across frames to avoid allocation)
 let _blurTemp = null;
 let _blurTemp2 = null;
@@ -44,7 +46,7 @@ export function blurMaskInPlace(canvas, radius) {
   // must be scaled by dpr to blur the same visual amount at every zoom level.
   const temp2Ctx = _blurTemp2.getContext('2d');
   temp2Ctx.clearRect(0, 0, w, h);
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = getOverlayDpr();
   temp2Ctx.filter = `blur(${radius * dpr}px)`;
   temp2Ctx.drawImage(_blurTemp, 0, 0);
 

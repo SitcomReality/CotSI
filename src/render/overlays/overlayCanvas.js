@@ -3,9 +3,22 @@
 // Handles DOM creation, ResizeObserver syncing, pixel-ratio scaling, and the
 // Three.js renderer resize side-effect.
 
+import { OVERLAY_MAX_DPR } from '../../params/render/overlayParams.js';
+
 let overlay = null;
 let ctx2d = null;
 let threeCanvas = null;
+
+/**
+ * Effective device pixel ratio for the overlay canvas. Capped so the 2D
+ * fill/blur/drawImage work stays bounded on HiDPI displays; every overlay
+ * module must use this (never raw `devicePixelRatio`) to keep CSS and
+ * physical coordinates in agreement.
+ * @returns {number}
+ */
+export function getOverlayDpr() {
+  return Math.min(window.devicePixelRatio || 1, OVERLAY_MAX_DPR);
+}
 
 /**
  * Set up the overlay canvas, attach it to the DOM, and start the resize observer.
@@ -51,7 +64,7 @@ export function initOverlayCanvas(sceneContext) {
     overlay.style.width  = w + 'px';
     overlay.style.height = h + 'px';
 
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = getOverlayDpr();
     overlay.width  = w * dpr;
     overlay.height = h * dpr;
     ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);

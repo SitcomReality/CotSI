@@ -2,6 +2,11 @@
  * overlayParams.js — Fog overlay, interaction highlights, and selection ring parameters.
  */
 
+// ── Overlay canvas ──
+/** DPR cap for the 2D overlay canvas: vector strokes and blurred fog gain
+ *  little from the extra pixels at DPR 2, and every clear/fill pays for them. */
+export const OVERLAY_MAX_DPR = 1.5;
+
 // ── Fog of war ──
 export const CAMERA_HASH_PRECISION = 10;
 export const FOG_BLUR_RADIUS = 12;

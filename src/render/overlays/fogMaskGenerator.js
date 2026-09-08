@@ -11,6 +11,7 @@ import { projectCorners, isOffScreen } from './fogProjection.js';
 import { drawHexPoly } from './fogDrawing.js';
 import { blurMaskInPlace } from './fogBlur.js';
 import { ensureCanvases, getVisibleMaskCanvas, getExploredMaskCanvas } from './fogMaskCache.js';
+import { getOverlayDpr } from './overlayCanvas.js';
 import { cameraHasChanged, resetFogMaskCameraHash } from './fogCameraTracker.js';
 import { startMeasure, endMeasure } from '../../shared/measurements.js';
 import { FOG_BLUR_RADIUS } from '../../params/render/overlayParams.js';
@@ -43,7 +44,7 @@ export { resetFogMaskCameraHash };
 export function generateFogMasks(state, camera, overlayCanvas, visible, explored) {
   const physicalW = overlayCanvas.width;
   const physicalH = overlayCanvas.height;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = getOverlayDpr();
   const cssW = physicalW / dpr;
   const cssH = physicalH / dpr;
 

@@ -1,5 +1,6 @@
 // src/render/overlays/screenProjection.js
 import * as THREE from '../../vendor/three.module.js';
+import { getOverlayDpr } from './overlayCanvas.js';
 
 const _worldVec = new THREE.Vector3();
 const _screenVec = new THREE.Vector3();
@@ -19,7 +20,7 @@ export function worldToScreen(worldX, worldY, worldZ, camera, canvas) {
     
     if (_screenVec.z > 1) return null;
     
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = getOverlayDpr();
     const cssW = canvas.width / dpr;
     const cssH = canvas.height / dpr;
     const x = (_screenVec.x * 0.5 + 0.5) * cssW;

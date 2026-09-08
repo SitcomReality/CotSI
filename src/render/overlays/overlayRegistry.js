@@ -3,7 +3,7 @@
 // per-frame rendering via the clock scheduler.
 
 import { getClock } from '../../shared/clockScheduler.js';
-import { getOverlayCanvas, getCtx2d } from './overlayCanvas.js';
+import { getOverlayCanvas, getCtx2d, getOverlayDpr } from './overlayCanvas.js';
 import { startMeasure, endMeasure } from '../../shared/measurements.js';
 
 let renderLayers = [];   // ordered array of { name, priority, render(ctx2d, state, camera, time) }
@@ -28,11 +28,8 @@ export function renderFrame(state, camera, time) {
   const overlay = getOverlayCanvas();
   const ctx2d = getCtx2d();
   if (!overlay || !ctx2d) return;
-  ctx2d.clearRect(
-    0, 0,
-    overlay.width / (window.devicePixelRatio || 1),
-    overlay.height / (window.devicePixelRatio || 1),
-  );
+  const dpr = getOverlayDpr();
+  ctx2d.clearRect(0, 0, overlay.width / dpr, overlay.height / dpr);
   for (const layer of renderLayers) {
     startMeasure('overlay:' + layer.name);
     layer.render(ctx2d, state, camera, time);

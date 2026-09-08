@@ -118,6 +118,7 @@
           <span class="devtools__stat">Frame: <strong id="devPerfFrameTime">—</strong>ms</span>
           <span class="devtools__stat">Calls: <strong id="devPerfDrawCalls">—</strong></span>
           <span class="devtools__stat">Tris: <strong id="devPerfTriangles">—</strong></span>
+          <span class="devtools__stat">DPR: <strong id="devPerfOverlayDpr">—</strong></span>
         </div>
       </div>
       <div class="devtools__section">
