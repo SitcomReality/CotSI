@@ -26,14 +26,17 @@ function decorGate(visible, explored) {
  * @param {Set<string>} [explored] - Set of hex keys ever explored; terrain
  *        decorations (mountain, hill mound, grove) render on explored tiles
  *        even outside the view radius
+ * @param {Set<string>} [occupants] - Occupied hex keys for decoration
+ *        de-emphasis. Callers that build several chunks per render should pass
+ *        the set they computed once; omitted → computed here.
  * @returns {(THREE.InstancedMesh|THREE.Group)[]}
  */
-export function buildChunkWorldMeshes(chunkTiles, state, visible, explored = new Set()) {
+export function buildChunkWorldMeshes(chunkTiles, state, visible, explored = new Set(), occupants = null) {
   const results = [];
-  const occupants = occupiedKeys(state);
+  const occ = occupants ?? occupiedKeys(state);
   const decor = decorGate(visible, explored);
 
-  results.push(...buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occupants, decor, state.biomeColors ?? null, state.biomePalettes ?? null, state?.seed ? stringSeed(String(state.seed)) : 0));
+  results.push(...buildChunkDescriptorFeatureMeshes(chunkTiles, visible, occ, decor, state.biomeColors ?? null, state.biomePalettes ?? null, state?.seed ? stringSeed(String(state.seed)) : 0));
   results.push(...buildChunkBaseMeshes(chunkTiles, visible));
 
   // Ink-outline twins for every feature mesh (units + features coverage —

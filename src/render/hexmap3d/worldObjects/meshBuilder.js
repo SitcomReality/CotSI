@@ -97,7 +97,7 @@ export function collectInstances(tilesOrArray, visible, matchFn, collectFn) {
  *                                                       composition can't express rotation about
  *                                                       a group origin. When present it replaces
  *                                                       the whole position/rotation/scale chain.
- *                                           - color    — per-instance color (THREE.Color)
+ *                                           - color    — per-instance color (hex integer or THREE.Color)
  * @param {string}               meshName  - Name for the InstancedMesh
  * @param {object}               [opts]    - Optional overrides
  * @param {boolean}              [opts.castShadow=true]
@@ -121,6 +121,7 @@ const _matrixR = new THREE.Matrix4();
 const _matrixLift = new THREE.Matrix4();
 const _matrixLocal = new THREE.Matrix4();
 const _matrixS = new THREE.Matrix4();
+const _instanceColor = new THREE.Color();
 
 export function buildInstanced(geometry, material, instances, meshName, opts = {}) {
   const castShadow = opts.castShadow !== false;
@@ -174,7 +175,8 @@ export function buildInstanced(geometry, material, instances, meshName, opts = {
     mesh.setMatrixAt(i, _matrixT);
 
     if (inst.color != null) {
-      mesh.setColorAt(i, inst.color);
+      _instanceColor.set(inst.color);
+      mesh.setColorAt(i, _instanceColor);
       hasInstanceColors = true;
     }
   }

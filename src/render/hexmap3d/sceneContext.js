@@ -51,6 +51,7 @@ export function disposeSceneContext() {
  */
 export function disposeMesh(mesh) {
   if (!mesh) return;
+  if (mesh.isInstancedMesh) mesh.dispose();
   if (mesh.geometry && !mesh.geometry.userData?.shared) mesh.geometry.dispose();
   if (mesh.material) {
     if (Array.isArray(mesh.material)) {

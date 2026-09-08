@@ -6,7 +6,6 @@
  * (e.g. the procedural tree builders grouped records by geo key). Records carry numeric
  * colors; here they become THREE.Color instance colors.
  */
-import * as THREE from '../../../../vendor/three.module.js';
 import { buildInstanced } from '../meshBuilder.js';
 import { geometryForShape, materialForPart } from './shapeFactories.js';
 
@@ -84,10 +83,7 @@ export function buildDescriptorMeshes(descriptor, records, meshPrefix = 'descrip
 
     const geometry = geometryForShape(part.shape, part.params);
     const material = materialForPart(descriptor, part, variantMaterialByPartId.get(partId));
-    const converted = instances.map((r) => (
-      r.color !== undefined ? { ...r, color: new THREE.Color(r.color) } : r
-    ));
-    results.push(buildInstanced(geometry, material, converted, `${meshPrefix}-${partId}`));
+    results.push(buildInstanced(geometry, material, instances, `${meshPrefix}-${partId}`));
   }
   return results;
 }

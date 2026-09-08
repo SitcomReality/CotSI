@@ -73,6 +73,43 @@ export function countExploredInChunk(chunkTiles, explored) {
 }
 
 /**
+ * What a chunk needs rebuilt, from its render entry and current state.
+ *
+ * `full` rebuilds terrain + water + world objects: the entry is missing, or
+ * the explored count grew (terrain/water gate on `explored`, so newly revealed
+ * tiles must be added). `features` rebuilds only the world-object meshes: a
+ * runtime dirty mark with an unchanged explored count comes from feature or
+ * occupancy changes, and terrain/water do not depend on either.
+ *
+ * @param {object|undefined} entry - Chunk render entry (see getChunkEntry)
+ * @param {object} chunk           - Game-state chunk
+ * @param {number} exploredCount   - Explored tiles in this chunk
+ * @returns {'full'|'features'|'none'}
+ */
+export function chunkRebuildMode(entry, chunk, exploredCount) {
+  if (!entry) return 'full';
+  if (exploredCount !== entry.exploredCount) return 'full';
+  return chunk.dirty ? 'features' : 'none';
+}
+
+/**
+ * Swap a chunk's world-object meshes, leaving terrain and water untouched.
+ * Disposes the old feature meshes, adds the new ones to the existing group, and
+ * refreshes the group's world matrix (the scene's auto-update is off).
+ * @param {object} entry        - Chunk render entry
+ * @param {THREE.Object3D[]} newFeatures
+ */
+export function replaceChunkFeatures(entry, newFeatures) {
+  for (const fm of entry.features) {
+    disposeMeshRecursive(fm);
+    entry.group.remove(fm);
+  }
+  for (const fm of newFeatures) entry.group.add(fm);
+  entry.features = newFeatures;
+  entry.group.updateMatrixWorld(true);
+}
+
+/**
  * Dispose all meshes belonging to a chunk and remove from tracking Map.
  * @param {string} ck - Chunk key
  * @param {THREE.Scene} scene - Scene to remove the chunk group from
@@ -113,6 +150,7 @@ export function disposeMeshRecursive(obj) {
       disposeMeshRecursive(child);
     }
   }
+  if (obj.isInstancedMesh) obj.dispose();
   if (obj.geometry && !obj.geometry.userData?.shared) obj.geometry.dispose();
   if (obj.material) {
     if (Array.isArray(obj.material)) {

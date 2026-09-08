@@ -2,12 +2,14 @@ import * as THREE from '../../vendor/three.module.js';
 import * as sceneCtx from './sceneContext.js';
 import {
   getChunkEntry, setChunkEntry, forEachChunk,
-  getAllTerrainMeshes, countExploredInChunk, disposeChunk
+  getAllTerrainMeshes, countExploredInChunk, disposeChunk,
+  chunkRebuildMode, replaceChunkFeatures
 } from './chunkManager.js';
 import { buildChunkTerrainMesh, buildChunkWaterMesh } from './terrain/index.js';
 import { buildChunkWorldMeshes } from './worldObjects/worldMeshes.js';
 import { buildUnitMeshes, initMovementAnimator, disposeMovementAnimator, cleanupCompleted } from './units/index.js';
 import { buildChunkFeatureFx, detectCollectedFx, initFeatureFx, disposeFeatureFx } from './worldObjects/featureFx.js';
+import { occupiedKeys } from './worldObjects/decorEmphasis.js';
 import { waterTimeUniform } from './scene/materials.js';
 import { setupMapInteraction3D as setupInteraction } from './interaction/mapInteraction.js';
 import { initEffectsOverlay, setEffectsState, registerLayer } from '../overlays/overlayStack.js';
@@ -115,6 +117,9 @@ export function renderHexMap3D(state, humanView) {
   // explored tile count has grown (exploration expands on vision refresh,
   // which does NOT dirty the affected chunks).
   startMeasure('mesh:chunks');
+  // Occupant keys drive decoration de-emphasis and are identical for every
+  // chunk in this pass — compute once instead of once per rebuilt chunk.
+  const occupants = occupiedKeys(state);
   for (const [ck, chunk] of state.chunks) {
     // Outside the sight cap — nothing to build, even if explored
     if (!cullChunkKeys.has(ck)) continue;
@@ -122,50 +127,62 @@ export function renderHexMap3D(state, humanView) {
     const entry = getChunkEntry(ck);
     const chunkTiles = [...chunk.tiles.values()];
     const exploredCount = countExploredInChunk(chunkTiles, explored);
+    const mode = chunkRebuildMode(entry, chunk, exploredCount);
 
-    if (chunk.dirty || !entry || exploredCount !== entry.exploredCount) {
-      // Dispose old if it exists (dirty or exploration-change rebuild)
-      if (entry) disposeChunk(ck, ctx.scene);
-
-      if (chunkTiles.length === 0) continue;
-
-      // Build terrain mesh for this chunk
-      const terrain = buildChunkTerrainMesh(chunkTiles, state, visible, explored);
-
-      // Build water mesh for this chunk (water renders on its own material;
-      // sun glints are a shader term inside that material, no extra meshes)
-      const water = buildChunkWaterMesh(chunkTiles, state, visible, explored);
-
-      // Build world-object meshes for this chunk. `explored` lets terrain
-      // decorations (mountain, hill mound, grove) render on explored tiles
-      // that are out of sight — features, bases, and units stay visible-gated.
-      const features = buildChunkWorldMeshes(chunkTiles, state, visible, explored);
-
-      // Fire collect bursts for knots/chests that vanished since the last
-      // build (diffed against this module's per-chunk snapshot), then build
-      // the ambient feature-FX accents. Both are disposed with the chunk.
+    if (mode === 'features') {
+      // Occupancy/feature change only: terrain and water gate on `explored`,
+      // which is unchanged, so swap just the world-object meshes in place.
+      const features = buildChunkWorldMeshes(chunkTiles, state, visible, explored, occupants);
       detectCollectedFx(ck, chunkTiles, visible);
-      const featureFx = buildChunkFeatureFx(chunkTiles, visible);
+      features.push(...buildChunkFeatureFx(chunkTiles, visible));
+      replaceChunkFeatures(entry, features);
+      if (features.length === 0 && !entry.terrain && !entry.water) disposeChunk(ck, ctx.scene);
+      continue;
+    }
+    if (mode === 'none') continue;
 
-      if (terrain || water || features.length > 0 || featureFx.length > 0) {
-        const group = new THREE.Group();
-        group.name = `chunk-${ck}`;
-        if (terrain) {
-          terrain.name = `terrain-${ck}`;
-          group.add(terrain);
-        }
-        if (water) {
-          water.name = `water-${ck}`;
-          group.add(water);
-        }
-        features.push(...featureFx);
-        for (const fm of features) {
-          group.add(fm);
-        }
-        ctx.scene.add(group);
-        group.updateMatrixWorld(true);
-        setChunkEntry(ck, { group, terrain, water, features, exploredCount });
+    // Full rebuild — new chunk, or newly explored tiles (terrain/water gate on
+    // `explored`, so they must be rebuilt from scratch).
+    if (entry) disposeChunk(ck, ctx.scene);
+
+    if (chunkTiles.length === 0) continue;
+
+    // Build terrain mesh for this chunk
+    const terrain = buildChunkTerrainMesh(chunkTiles, state, visible, explored);
+
+    // Build water mesh for this chunk (water renders on its own material;
+    // sun glints are a shader term inside that material, no extra meshes)
+    const water = buildChunkWaterMesh(chunkTiles, state, visible, explored);
+
+    // Build world-object meshes for this chunk. `explored` lets terrain
+    // decorations (mountain, hill mound, grove) render on explored tiles
+    // that are out of sight — features, bases, and units stay visible-gated.
+    const features = buildChunkWorldMeshes(chunkTiles, state, visible, explored, occupants);
+
+    // Fire collect bursts for knots/chests that vanished since the last
+    // build (diffed against this module's per-chunk snapshot), then build
+    // the ambient feature-FX accents. Both are disposed with the chunk.
+    detectCollectedFx(ck, chunkTiles, visible);
+    const featureFx = buildChunkFeatureFx(chunkTiles, visible);
+
+    if (terrain || water || features.length > 0 || featureFx.length > 0) {
+      const group = new THREE.Group();
+      group.name = `chunk-${ck}`;
+      if (terrain) {
+        terrain.name = `terrain-${ck}`;
+        group.add(terrain);
       }
+      if (water) {
+        water.name = `water-${ck}`;
+        group.add(water);
+      }
+      features.push(...featureFx);
+      for (const fm of features) {
+        group.add(fm);
+      }
+      ctx.scene.add(group);
+      group.updateMatrixWorld(true);
+      setChunkEntry(ck, { group, terrain, water, features, exploredCount });
     }
   }
   endMeasure('mesh:chunks');
