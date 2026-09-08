@@ -55,6 +55,10 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
 
   // --- Scene ---
   const scene = new THREE.Scene();
+  // Only the sun and the movement-animation group ever move (see the tick and
+  // movementAnimator) — both update their own matrixWorld explicitly. Skipping
+  // the automatic per-frame walk avoids recomposing the whole static graph.
+  scene.matrixWorldAutoUpdate = false;
 
   // Stage background (parchment vignette → abyss) + subtle distance fog so
   // far tiles recede toward the frame (aerial perspective). Fog near/far are
@@ -136,6 +140,7 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = GROUND_PLANE_Y;
   scene.add(ground);
+  ground.updateMatrixWorld(true);
 
   // --- Per-frame render statistics (renderer.info resets on each render call) ---
   const renderStats = {
@@ -166,6 +171,9 @@ export function initScene(mountElement, { clock, shadows = false } = {}) {
       if (sun.castShadow) {
         sun.position.set(camState.targetX + sunOffset.x, sunOffset.y, camState.targetZ + sunOffset.z);
         sun.target.position.set(camState.targetX, 0, camState.targetZ);
+        // The scene skips the automatic matrix walk; refresh the sun (and its
+        // non-scene-added target) before the render uses them for shading.
+        sun.updateMatrixWorld();
         sun.target.updateMatrixWorld(); // target is not scene-added
         if (camState.targetX !== lastShadowTargetX || camState.targetZ !== lastShadowTargetZ) {
           lastShadowTargetX = camState.targetX;

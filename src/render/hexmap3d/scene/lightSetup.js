@@ -22,6 +22,11 @@ export function addLights(scene, { shadows = false } = {}) {
   const dirLight = new THREE.DirectionalLight(cfg.sunColor, cfg.sunIntensity);
   dirLight.position.set(cfg.sunPosition.x, cfg.sunPosition.y, cfg.sunPosition.z);
   scene.add(dirLight);
+  // The main scene disables the automatic matrix walk, so seed the light's
+  // world matrix here; the render tick re-seeds it each frame while shadows
+  // are on.
+  dirLight.updateMatrixWorld(true);
+  dirLight.target.updateMatrixWorld(true);
 
   if (shadows && cfg.enabled) {
     applyShadowConfig(dirLight);

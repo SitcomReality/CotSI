@@ -168,6 +168,7 @@ export function renderHexMap3D(state, humanView) {
           group.add(fm);
         }
         ctx.scene.add(group);
+        group.updateMatrixWorld(true);
         setChunkEntry(ck, { group, terrain, water, features, exploredCount });
       }
     }
@@ -186,7 +187,10 @@ export function renderHexMap3D(state, humanView) {
 
   // Build unit figurines
   unitMeshes = buildUnitMeshes(state, visible);
-  for (const um of unitMeshes) ctx.scene.add(um);
+  for (const um of unitMeshes) {
+    ctx.scene.add(um);
+    um.updateMatrixWorld(true);
+  }
   endMeasure('mesh:units');
 
   // Scene geometry/transforms changed — refresh the (otherwise cached) shadow map.

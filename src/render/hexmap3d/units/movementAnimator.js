@@ -187,6 +187,7 @@ function _startHop(championId, fromPos, toPos, faction, duration, onComplete) {
     group.add(...addOutlines(mesh));
   }
   scene.add(group);
+  group.updateMatrixWorld(true);
 
   const startTime = performance.now();
 
@@ -207,6 +208,9 @@ function _startHop(championId, fromPos, toPos, faction, duration, onComplete) {
     const t = Math.max(0, Math.min(elapsed / duration, 1));
 
     applyAnimationFrame(anim, t);
+    // The main scene skips the automatic matrix walk; this is the only moving
+    // subtree, so refresh it explicitly after the transform write.
+    anim.group.updateMatrixWorld();
     // Animated units are shadow casters — keep the cached shadow map current.
     getSceneContext()?.requestShadowUpdate?.();
 

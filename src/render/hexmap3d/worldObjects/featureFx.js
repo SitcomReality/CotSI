@@ -310,6 +310,7 @@ export function spawnCollectBurst(kind, tile) {
   const group = new THREE.Group();
   group.add(mesh);
   fxScene.add(group);
+  group.updateMatrixWorld(true);
 
   const burst = { group, mesh };
   let lastTs = -1;
