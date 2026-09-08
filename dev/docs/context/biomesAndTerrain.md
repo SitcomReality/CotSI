@@ -74,7 +74,8 @@ Notes:
   roughness field (glint-only, never the normal) clusters the glint onto the
   crests of fine chop and a **boiling** sparkle mask breaks it into short-lived
   flecks, gathered at grazing angles by fresnel and masked inside object shadows
-  (rivers mask out via their flow amplitude).
+  (rivers glint too, scaled by `WATER_RIVER_GLINT_STRENGTH`, and their sparkle
+  churns and drifts downstream faster via `WATER_RIVER_SPARKLE_*`).
 - Land side-faces adjacent to water/river are damp-tinted toward
   `#1a476b` (weight 0.55).
 - Terrain **elevation offsets** (Y above the hex base): plains 0, desert 0,

@@ -115,8 +115,9 @@ export const SIDE_WATER_TINT_WEIGHT = 0.55;
  * surface rather than a static puddle of paint. Neither field perturbs the
  * shading normal, so the dark/bright wave bands stay gone. A mild fresnel
  * gathers the glints and the sun's shadow map suppresses them inside object
- * shadows. Rivers mask themselves out via their flow amplitude; bank walls
- * never glint.
+ * shadows. Rivers glint too, scaled by WATER_RIVER_GLINT_STRENGTH, and their
+ * sparkle churns and drifts downstream faster (WATER_RIVER_SPARKLE_*) to sit
+ * better against the river flow waves; bank walls never glint.
  *
  * NOTE: the camera is orthographic, so the view direction is constant across
  * the screen and the fresnel term is effectively a constant gain — it cannot
@@ -125,6 +126,7 @@ export const SIDE_WATER_TINT_WEIGHT = 0.55;
  */
 export const WATER_SPEC_STRENGTH = 0.9;          // peak sparkle color contribution
 export const WATER_SPEC_COLOR = [0.93, 0.97, 1.0]; // slightly cool white at peak
+export const WATER_RIVER_GLINT_STRENGTH = 0.6;  // river glint multiplier (1 = same as open water)
 export const WATER_FRESNEL_POWER = 0.5;         // grazing-angle exponent
 export const WATER_FRESNEL_BASE = 5;          // glint base level
 export const WATER_FRESNEL_STRENGTH = 0.5;      // mild grazing gather
@@ -133,6 +135,12 @@ export const WATER_SPARKLE_ONSET = 0.87;        // value-noise level where a spa
 export const WATER_SPARKLE_SHARPEN = 0.83;       // power curve turning soft blobs into points
 export const WATER_SPARKLE_BOIL = 0.6;         // in-place churn amplitude (noise cells)
 export const WATER_SPARKLE_BOIL_SPEED = 1.5;    // in-place churn rate (rad/s)
+// Rivers move faster than Broken water: their flow waves travel quicker and
+// shorter, so the glint needs to churn and slip downstream to match. These
+// override the open-water values where vWaterFlowAmp marks a river channel.
+export const WATER_RIVER_SPARKLE_BOIL = 1.0;       // river churn amplitude (noise cells)
+export const WATER_RIVER_SPARKLE_BOIL_SPEED = 4.5; // river churn rate (rad/s)
+export const WATER_RIVER_SPARKLE_FLOW_SPEED = 0.2; // river sparkle drift downstream (world units/s)
 
 /**
  * Glint-only choppy "roughness" field (no normal perturbation, so it cannot

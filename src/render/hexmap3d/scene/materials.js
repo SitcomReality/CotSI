@@ -12,6 +12,7 @@ import {
   WATER_FROTH_COLOR,
   WATER_SPEC_STRENGTH,
   WATER_SPEC_COLOR,
+  WATER_RIVER_GLINT_STRENGTH,
   WATER_FRESNEL_POWER,
   WATER_FRESNEL_BASE,
   WATER_FRESNEL_STRENGTH,
@@ -20,6 +21,9 @@ import {
   WATER_SPARKLE_SHARPEN,
   WATER_SPARKLE_BOIL,
   WATER_SPARKLE_BOIL_SPEED,
+  WATER_RIVER_SPARKLE_BOIL,
+  WATER_RIVER_SPARKLE_BOIL_SPEED,
+  WATER_RIVER_SPARKLE_FLOW_SPEED,
   WATER_GLINT_ROUGH_FREQ,
   WATER_GLINT_ROUGH_SPEED,
   WATER_GLINT_ROUGH_LO,
@@ -155,6 +159,7 @@ waterMaterial.onBeforeCompile = (shader) => {
   shader.vertexShader =
     'uniform float uTime;\n' +
     'varying vec3 vWaterWorld;\n' +
+    'varying vec2 vWaterFlow;\n' +
     'varying float vWaterFlowAmp;\n' +
     'varying float vWaterUp;\n' +
     'varying float vWaterFroth;\n' +
@@ -181,22 +186,23 @@ waterMaterial.onBeforeCompile = (shader) => {
       // displaces the whole hex fan with a traveling wave whose direction is the
       // per-vertex radial "toward the map center" vector, so the moat visibly
       // rolls in from the sea and object shadows on it wobble. Rivers carry
-      // aShoreFlow = 0 / aShoreAmp = 0 so this term no-ops for channels — and,
-      // crucially, the fragment glint / shallow-depth-ramp masks below still key
-      // off the RIVER flow amplitude (vWaterFlowAmp), so broken water keeps its
-      // glints and teal shore ramp. Same traveling-wave form as the flow term
-      // above; crests advance toward the center as uTime grows.
+      // aShoreFlow = 0 / aShoreAmp = 0 so this term no-ops for channels — the
+      // fragment glint and shallow-depth-ramp terms below still key off the
+      // RIVER flow amplitude (vWaterFlowAmp) to scale river glint and to skip
+      // the teal shore ramp. Same traveling-wave form as the flow term above;
+      // crests advance toward the center as uTime grows.
       `float shoreAlong = dot( position.xz, aShoreFlow );\n` +
       `float shoreWave = sin( uTime * ${WATER_SHORE_FLOW_SPEED.toFixed(2)} - shoreAlong * ${(Math.PI * 2 / WATER_SHORE_FLOW_WAVE_LENGTH).toFixed(3)} + aWaterPhase );\n` +
       `transformed.xz += aShoreFlow * ( shoreWave * aShoreAmp );\n` +
       `transformed.y += shoreWave * aShoreAmp * 0.5;\n` +
       // Post-displacement world position drives the fragment chop (below).
       `vWaterWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;\n` +
-      // Glint gates: river channels mask out via their flow amplitude, and
-      // only near-horizontal top faces may glint (chunk meshes sit at
-      // identity, so object-space normals are world normals — bank walls of
-      // the water prism never flash).
+      // Glint gates: only near-horizontal top faces may glint (chunk meshes sit
+      // at identity, so object-space normals are world normals — bank walls of
+      // the water prism never flash); vWaterFlowAmp marks river channels and
+      // vWaterFlow is the downstream unit vector used to drift river sparkle.
       `vWaterFlowAmp = aWaterFlowAmp;\n` +
+      `vWaterFlow = aWaterFlow;\n` +
       `vWaterUp = normal.y;\n` +
       `vWaterFroth = aWaterline;\n` +
       `vWaterDepth = aWaterDepth;`
@@ -224,6 +230,7 @@ waterMaterial.onBeforeCompile = (shader) => {
     'uniform vec2 uWaterCenter;\n' +
     'uniform float uWaterRadius;\n' +
     'varying vec3 vWaterWorld;\n' +
+    'varying vec2 vWaterFlow;\n' +
     'varying float vWaterFlowAmp;\n' +
     'varying float vWaterUp;\n' +
     'varying float vWaterFroth;\n' +
@@ -265,8 +272,8 @@ waterMaterial.onBeforeCompile = (shader) => {
       // is clustered by an ANIMATED choppy roughness field (see the "Choppy
       // roughness" block below) and broken into boiling sparkle flecks, then
       // gathered at grazing distance by a mild fresnel and suppressed inside
-      // object shadows. Rivers mask out via their flow amplitude; bank walls
-      // never glint (vWaterUp).
+      // object shadows. Rivers glint too, scaled by WATER_RIVER_GLINT_STRENGTH;
+      // bank walls never glint (vWaterUp).
       `vec3 lightDir = normalize( ( viewMatrix * vec4( vec3( ${sunX}, ${sunY}, ${sunZ} ), 0.0 ) ).xyz );\n` +
       `vec3 viewDir = normalize( vViewPosition );\n` +
       `float nDotV = max( dot( normal, viewDir ), 0.0 );\n` +
@@ -295,6 +302,8 @@ waterMaterial.onBeforeCompile = (shader) => {
       // sine trains all marched west and their long crest lines read as foam
       // bands). The rotations break the noise grid's axis alignment.
       `vec2 gPos = vWaterWorld.xz;\n` +
+      // River mask: 1 on river channels, 0 on open (Broken) water.
+      `float riverMask = smoothstep( 0.0, 0.02, vWaterFlowAmp );\n` +
       `float gT = uTime * ${WATER_GLINT_ROUGH_SPEED.toFixed(2)};\n` +
       `float rA = waterValueNoise( vec2(  gPos.x * 0.95 + gPos.y * 0.31, -gPos.x * 0.31 + gPos.y * 0.95 ) * ${WATER_GLINT_ROUGH_FREQ.toFixed(2)} + vec2(  gT, -gT * 0.35 ) );\n` +
       `float rB = waterValueNoise( vec2( -gPos.x * 0.64 + gPos.y * 0.77, -gPos.x * 0.77 - gPos.y * 0.64 ) * ${(WATER_GLINT_ROUGH_FREQ * 1.6).toFixed(2)} + vec2( -gT * 0.55, gT * 0.80 ) + vec2( 37.7, 91.3 ) );\n` +
@@ -305,12 +314,22 @@ waterMaterial.onBeforeCompile = (shader) => {
       // Sparkle flecks: fine value noise sampled at a BOILING position — a
       // spatially-varying oscillating jitter — so the flecks churn in place
       // instead of sliding as one sheet. Higher FREQ + a steeper onset + a power
-      // curve turn the old soft blobs into small high-contrast points.
-      `vec2 sBoil = vec2( sin( uTime * ${WATER_SPARKLE_BOIL_SPEED.toFixed(2)} + gPos.y * 2.3 ), cos( uTime * ${(WATER_SPARKLE_BOIL_SPEED * 0.83).toFixed(2)} + gPos.x * 2.1 + 1.7 ) ) * ${WATER_SPARKLE_BOIL.toFixed(2)};\n` +
-      `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( gPos * ${WATER_SPARKLE_FREQ.toFixed(2)} + sBoil ) );\n` +
+      // curve turn the old soft blobs into small high-contrast points. Rivers
+      // churn faster and also drift downstream with the flow (WATER_RIVER_*),
+      // so their glint tracks the quicker, shorter river waves.
+      `float sBoilSpeed = mix( ${WATER_SPARKLE_BOIL_SPEED.toFixed(2)}, ${WATER_RIVER_SPARKLE_BOIL_SPEED.toFixed(2)}, riverMask );\n` +
+      `float sBoilAmp = mix( ${WATER_SPARKLE_BOIL.toFixed(2)}, ${WATER_RIVER_SPARKLE_BOIL.toFixed(2)}, riverMask );\n` +
+      `vec2 sBoil = vec2( sin( uTime * sBoilSpeed + gPos.y * 2.3 ), cos( uTime * sBoilSpeed * 0.83 + gPos.x * 2.1 + 1.7 ) ) * sBoilAmp;\n` +
+      // Subtract the downstream term so the pattern travels toward the river
+      // mouth (a positive sample offset would slide it upstream).
+      `vec2 sFlow = -vWaterFlow * ( uTime * ${WATER_RIVER_SPARKLE_FLOW_SPEED.toFixed(2)} ) * riverMask * ${WATER_SPARKLE_FREQ.toFixed(2)};\n` +
+      `float sparkle = smoothstep( ${WATER_SPARKLE_ONSET.toFixed(2)}, 1.0, waterValueNoise( gPos * ${WATER_SPARKLE_FREQ.toFixed(2)} + sBoil + sFlow ) );\n` +
       `sparkle = pow( sparkle, ${WATER_SPARKLE_SHARPEN.toFixed(2)} );\n` +
+      // Rivers glint too, at WATER_RIVER_GLINT_STRENGTH of the open-water
+      // amount; bank walls never glint.
+      `float glintSurface = mix( 1.0, ${WATER_RIVER_GLINT_STRENGTH.toFixed(2)}, riverMask );\n` +
       `float glint = roughGate * sparkle * ( ${WATER_FRESNEL_BASE.toFixed(2)} + ${WATER_FRESNEL_STRENGTH.toFixed(2)} * fresnel )\n` +
-      `  * ( 1.0 - smoothstep( 0.0, 0.02, vWaterFlowAmp ) )\n` +
+      `  * glintSurface\n` +
       `  * smoothstep( 0.5, 0.9, vWaterUp )\n` +
       `  * glintShadow;`
     ).replace(

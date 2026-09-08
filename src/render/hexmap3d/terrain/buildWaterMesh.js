@@ -189,8 +189,9 @@ function addVertex(positions, colors, phases, amps, flowXZ, flowAmps, shoreFlowX
   // the radial "toward center" vector instead of a per-tile river vector. The
   // direction is a pure function of the vertex's world XZ, so coincident
   // vertices across a shared hex edge match exactly — seamless. Rivers carry
-  // zero shore swell (aShoreFlow = 0, aShoreAmp = 0) so the fragment glint /
-  // shallow-depth-ramp masks, which key off the RIVER flow amplitude, stay put.
+  // zero shore swell (aShoreFlow = 0, aShoreAmp = 0); the fragment
+  // shallow-depth-ramp term still keys off the RIVER flow amplitude to skip
+  // rivers, while the glint scales them by WATER_RIVER_GLINT_STRENGTH.
   const isBroken = tile && tile.terrain === 'water';
   if (isBroken) {
     const r = Math.hypot(hx, hz);
