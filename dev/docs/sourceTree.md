@@ -367,7 +367,7 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 |------|---------|
 | `derivedState.js` | Derives overlay state from game state (snapshots) |
 | `fogBlur.js` | Fog-of-war blur effect on overlay canvas |
-| `fogCameraTracker.js` | Tracks camera position for fog culling |
+| `fogCameraTracker.js` | Camera view keys for overlay redraw gating (quantized + precise) |
 | `fogDrawing.js` | Fog canvas drawing routines |
 | `fogHexGeometry.js` | Hex geometry for fog mask (Canvas2D path) |
 | `fogMaskCache.js` | Fog mask fragment cache for reuse |
@@ -377,8 +377,8 @@ editor, not by hand (see `dev/tools/geometryEditor/README.md`). Grouped by kind:
 | `graphicsSettings.js` | Graphics quality settings registry |
 | `interactionHighlights.js` | Hover/selection highlight overlays |
 | `movementHighlights.js` | Movement-range highlight overlays |
-| `overlayCanvas.js` | Overlay canvas creation and lifecycle |
-| `overlayRegistry.js` | Overlay-layer registry (z-order, visibility) |
+| `overlayCanvas.js` | Overlay canvases (static fog / vector / dynamic) creation and lifecycle |
+| `overlayRegistry.js` | Overlay-layer registry (redraw tiers, z-order) |
 | `overlayStack.js` | Overlay stack: layering, composition, redraw |
 | `pathPreview.js` | Movement path preview overlay |
 | `screenProjection.js` | World-space -> screen-space projection |

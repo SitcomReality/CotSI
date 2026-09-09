@@ -75,15 +75,16 @@ export function initHexMap3D(mountElement) {
     if (pendingRebuildKeys.size > 0) flushChunkRebuilds(CHUNK_REBUILD_BUDGET_MS);
   });
 
-  // Init 2D effects overlay and register layers
+  // Init 2D effects overlay and register layers. Three redraw tiers:
+  // 'static' (fog) redraws on a quantized camera key, 'vector' (world-locked
+  // movement range + path preview) on the precise camera key so outlines track
+  // the terrain during a pan, 'dynamic' (animated indicators) every frame.
   initEffectsOverlay(ctx);
-  // Static layers redraw only when camera/derived/fog state changes; dynamic
-  // layers redraw every frame. Static priorities all sit below dynamic ones.
-  registerLayer('fogOverlay', OVERLAY_Z.terrain, renderFogOverlay, true);
-  registerLayer('movementHighlights', OVERLAY_Z.highlight, renderMovementHighlights, true);
-  registerLayer('pathPreview', OVERLAY_Z.pathPreview, renderPathPreview, true);
-  registerLayer('interactionHighlights', OVERLAY_Z.selection, renderInteractionHighlights);
-  registerLayer('selectionRing', OVERLAY_Z.fog, renderSelectionRing);
+  registerLayer('fogOverlay', OVERLAY_Z.terrain, renderFogOverlay, 'static');
+  registerLayer('movementHighlights', OVERLAY_Z.highlight, renderMovementHighlights, 'vector');
+  registerLayer('pathPreview', OVERLAY_Z.pathPreview, renderPathPreview, 'vector');
+  registerLayer('interactionHighlights', OVERLAY_Z.selection, renderInteractionHighlights, 'dynamic');
+  registerLayer('selectionRing', OVERLAY_Z.fog, renderSelectionRing, 'dynamic');
 
   // Idle unit animations deferred — setupUnitAnimations is a no-op stub.
 

@@ -1,16 +1,21 @@
 // src/render/overlays/overlayCanvas.js
 // Creates and manages the transparent overlay canvases on top of the Three.js
-// viewport. Two stacked canvases: a static one (fog, movement range, path
-// preview) redrawn only when its content changes, and a dynamic one (animated
-// selection/interaction indicators) cleared and redrawn every frame. Keeping
-// them separate means clearing animated pixels never erases the fog beneath.
+// viewport. Three stacked canvases, each with its own redraw policy:
+//   static  — fog (coarse camera key; mask compositing is expensive)
+//   vector  — movement range + path preview (precise camera key, so
+//             world-locked outlines track the terrain during a pan but stay
+//             cached while the camera is still)
+//   dynamic — animated selection/interaction indicators (every frame)
+// Keeping them separate means clearing one never erases another.
 // Handles DOM creation, ResizeObserver syncing, and pixel-ratio scaling.
 
 import { OVERLAY_MAX_DPR } from '../../params/render/overlayParams.js';
 
 let staticCanvas = null;
+let vectorCanvas = null;
 let dynamicCanvas = null;
 let staticCtx = null;
+let vectorCtx = null;
 let dynamicCtx = null;
 let threeCanvas = null;
 
@@ -41,17 +46,20 @@ function createOverlayCanvas(zIndex) {
  * Set up the overlay canvases, attach them to the DOM, and start the resize observer.
  * Called once during map initialization.
  * @param {{ renderer: { domElement: HTMLCanvasElement }, resize: (w: number, h: number) => void }} sceneContext
- * @returns {{ overlay: HTMLCanvasElement, dynamicOverlay: HTMLCanvasElement, syncSize: () => void }}
+ * @returns {{ overlay: HTMLCanvasElement, vectorOverlay: HTMLCanvasElement, dynamicOverlay: HTMLCanvasElement, syncSize: () => void }}
  */
 export function initOverlayCanvas(sceneContext) {
   threeCanvas = sceneContext.renderer.domElement;
 
   staticCanvas = createOverlayCanvas(1);
-  dynamicCanvas = createOverlayCanvas(2);
+  vectorCanvas = createOverlayCanvas(2);
+  dynamicCanvas = createOverlayCanvas(3);
   threeCanvas.parentNode.insertBefore(staticCanvas, threeCanvas.nextSibling);
-  threeCanvas.parentNode.insertBefore(dynamicCanvas, staticCanvas.nextSibling);
+  threeCanvas.parentNode.insertBefore(vectorCanvas, staticCanvas.nextSibling);
+  threeCanvas.parentNode.insertBefore(dynamicCanvas, vectorCanvas.nextSibling);
 
   staticCtx = staticCanvas.getContext('2d');
+  vectorCtx = vectorCanvas.getContext('2d');
   dynamicCtx = dynamicCanvas.getContext('2d');
 
   let currentW = 0, currentH = 0;
@@ -76,7 +84,7 @@ export function initOverlayCanvas(sceneContext) {
     const top  = (rect.top  - parentRect.top)  + 'px';
     const dpr = getOverlayDpr();
 
-    for (const [canvas, ctx] of [[staticCanvas, staticCtx], [dynamicCanvas, dynamicCtx]]) {
+    for (const [canvas, ctx] of [[staticCanvas, staticCtx], [vectorCanvas, vectorCtx], [dynamicCanvas, dynamicCtx]]) {
       canvas.style.left = left;
       canvas.style.top = top;
       canvas.style.width  = w + 'px';
@@ -97,12 +105,17 @@ export function initOverlayCanvas(sceneContext) {
   // Initial sync
   updateCanvases();
 
-  return { overlay: staticCanvas, dynamicOverlay: dynamicCanvas, syncSize: updateCanvases };
+  return { overlay: staticCanvas, vectorOverlay: vectorCanvas, dynamicOverlay: dynamicCanvas, syncSize: updateCanvases };
 }
 
-/** The static overlay canvas: fog, movement range, path preview. */
+/** The coarse-cached overlay canvas: fog. */
 export function getOverlayCanvas() {
   return staticCanvas;
+}
+
+/** The precise-camera world-locked vector canvas: movement range, path preview. */
+export function getVectorOverlayCanvas() {
+  return vectorCanvas;
 }
 
 /** The per-frame animated overlay canvas: selection ring, interaction hints. */
@@ -112,6 +125,10 @@ export function getDynamicOverlayCanvas() {
 
 export function getCtx2d() {
   return staticCtx;
+}
+
+export function getVectorCtx2d() {
+  return vectorCtx;
 }
 
 export function getDynamicCtx2d() {

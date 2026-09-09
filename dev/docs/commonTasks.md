@@ -52,7 +52,7 @@ Entities (faction bases, champions, mobs, traders) are entity-driven descriptors
 2. **Start** / **Stop** dispatch the `dev:capture:start` / `dev:capture:stop` actions (`src/devtools/actionWiring/capture.js`) which drive `src/devtools/capture/screenRecorder.js`
 3. Output downloads automatically as `cotsi-capture-<timestamp>.webm`; convert to GIF with the ffmpeg recipe in `media/convert commands.txt`
 
-Recording composites the 3D canvas + effects overlay into an offscreen canvas per frame via MediaRecorder, so it needs a live map (no map yet → start fails). Starting a new game mid-recording stops it gracefully.
+Recording composites the 3D canvas + effects overlays (fog, vector, dynamic) into an offscreen canvas per frame via MediaRecorder, so it needs a live map (no map yet → start fails). Starting a new game mid-recording stops it gracefully.
 
 ## Tune Equipment Durability and Forge Costs
 

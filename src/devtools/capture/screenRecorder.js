@@ -1,8 +1,8 @@
 /**
  * capture/screenRecorder.js — WebM video recording of the map viewport.
  *
- * Composites the Three.js canvas + effects overlays (static and dynamic) into
- * an offscreen canvas
+ * Composites the Three.js canvas + effects overlays (static, vector, and
+ * dynamic) into an offscreen canvas
  * once per rendered frame and records it via MediaRecorder (WebM). The
  * composite runs as a clock onTick registered at record start, so it always
  * fires after the scene render callback (registered earlier during map init)
@@ -13,7 +13,7 @@
  */
 
 import { getClock } from '../../shared/clockScheduler.js';
-import { getOverlayCanvas, getDynamicOverlayCanvas } from '../../render/overlays/overlayCanvas.js';
+import { getOverlayCanvas, getVectorOverlayCanvas, getDynamicOverlayCanvas } from '../../render/overlays/overlayCanvas.js';
 
 let recorder = null;
 let chunks = [];
@@ -39,8 +39,9 @@ export function startRecording() {
 
   const three = getThreeCanvas();
   const overlay = getOverlayCanvas();
+  const vectorOverlay = getVectorOverlayCanvas();
   const dynamicOverlay = getDynamicOverlayCanvas();
-  if (!three || !overlay) {
+  if (!three || !overlay || !vectorOverlay) {
     console.warn('[capture] Map canvases not available yet.');
     return false;
   }
@@ -75,6 +76,9 @@ export function startRecording() {
     ctx.drawImage(three, 0, 0);
     if (overlay.width > 0 && overlay.height > 0) {
       ctx.drawImage(overlay, 0, 0, composite.width, composite.height);
+    }
+    if (vectorOverlay.width > 0 && vectorOverlay.height > 0) {
+      ctx.drawImage(vectorOverlay, 0, 0, composite.width, composite.height);
     }
     if (dynamicOverlay.width > 0 && dynamicOverlay.height > 0) {
       ctx.drawImage(dynamicOverlay, 0, 0, composite.width, composite.height);
