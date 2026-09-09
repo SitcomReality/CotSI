@@ -218,19 +218,23 @@ Consequences to embrace:
 
 `movementRange(state, champ)` computes the weighted reachable set within the
 champion's AP pool, returning `{ costs, cameFrom }` (hex key → total AP;
-hex key → previous key on the cheapest path). Every hop on a walked path
-costs the target hex's effective cost, deducted from `champ.actionPoints`.
-The path to any reachable hex is reconstructed by walking `cameFrom`
-backwards (`pathToKey`); `pathToward` additionally resolves out-of-range
-targets (§7).
+hex key → previous key on the cheapest path). For human champions the search
+is additionally confined to the champion's **current sight disc**
+(`visibleKeysFor` — sight radius + artifact bonus): a hex that is merely
+explored (dimmed fog) is never a destination, and routes never step outside
+the disc. Bots are unrestricted. Every hop on a walked path costs the target
+hex's effective cost, deducted from `champ.actionPoints`. The path to any
+reachable hex is reconstructed by walking `cameFrom` backwards (`pathToKey`);
+`pathToward` additionally resolves out-of-range targets (§7).
 
 ### Interaction model (click-to-preview → click-to-confirm — the ONLY move mode)
 
 1. **Reachable highlight (minimal)** — the full weighted range is drawn as
    thin STATIC hex outlines (no fill wash, no animated dashes), batched into
-   a single path + stroke per frame. Hexes in unexplored black fog are never
-   highlighted. (Decided in playtesting: the original animated per-hex wash
-   drowned the landscape.)
+   a single path + stroke per frame. The range is already confined to the
+   sight disc, so hexes in unexplored black fog — and explored-but-fogged
+   hexes — are never highlighted. (Decided in playtesting: the original
+   animated per-hex wash drowned the landscape.)
 2. **Hover — terrain cost only** — the tooltip shows the hex's step cost for
    the active champion ("Forest · 12 AP"). No path is computed on hover.
 3. **Click to preview** — the first click on a hex computes the route and
@@ -243,9 +247,11 @@ targets (§7).
    (chained hop animations, AP deducted per hop). The commit **revalidates**
    the path against fresh state — if the world moved (occupants, features, AP
    changes), the player gets a toast instead of a stale walk.
-5. **Beyond budget** — previewing a hex beyond reach shows the **longest
-   affordable prefix** of the A* route toward it; committing walks exactly
-   that prefix. The champion stops where the AP runs out.
+5. **Beyond budget** — previewing a visible hex beyond reach shows the
+   **longest affordable prefix** of the A* route toward it; committing walks
+   exactly that prefix. The champion stops where the AP runs out. A fogged
+   target is rejected outright (no path), so humans never walk toward unseen
+   hexes.
 6. **Adjacency interactions** — combat, trade, and base clicks resolve before
    movement, ignore AP entirely, and cancel any pending preview.
 7. **Camera** — a committed multi-hex walk starts one camera pan whose
@@ -267,11 +273,13 @@ UX change — the system is designed so that swap is easy.
 
 - `movementRange` is a weighted shortest-path search (FIFO relaxation with
   re-push on improvement — provably optimal for the non-negative ladder, and
-  cheaper than a heap at range sizes), capped by the champion's AP pool.
+  cheaper than a heap at range sizes), capped by the champion's AP pool and,
+  for humans, by the champion's current sight disc.
 - `pathToward(state, champ, targetKey, range = movementRange(state, champ))` is
   the single source for every human
   path (preview and commit): in-range targets get the cheapest full path,
-  out-of-range targets get the affordable prefix of a weighted A* route.
+  out-of-range targets get the affordable prefix of a weighted A* route. A
+  target outside the human sight disc returns null.
 - **Feature hexes are destination-only in both searches** — never routed
   through (§3, §11).
 - `weightedFindPath` (engine, A* with a binary min-heap) takes a

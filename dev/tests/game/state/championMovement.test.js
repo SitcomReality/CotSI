@@ -146,6 +146,57 @@ test('pathToward: feature hexes are destination-only on the A* route too', () =>
   assert.ok(!toward.path.includes('1,0'), 'feature hex not traversed');
 });
 
+test('movementRange: human is confined to its current sight disc', () => {
+  const champ = makeChampion({
+    id: 'cA', controller: 'human', sight: 1, pos: { q: 0, r: 0 }, actionPoints: 60,
+  });
+  const state = makeState({ champions: [champ], tiles: discTiles(3) });
+
+  const { costs } = movementRange(state, champ);
+
+  assert.deepEqual(
+    [...costs.keys()].sort(),
+    hexesWithinRadius(1).map((c) => coordKey(c)).sort(),
+    'explored-but-fogged hexes beyond sight are not destinations'
+  );
+});
+
+test('movementRange: bots are not confined by sight', () => {
+  const champ = makeChampion({
+    id: 'cA', controller: 'bot', sight: 1, pos: { q: 0, r: 0 }, actionPoints: 60,
+  });
+  const state = makeState({ champions: [champ], tiles: discTiles(2) });
+
+  const { costs } = movementRange(state, champ);
+
+  assert.deepEqual(
+    [...costs.keys()].sort(),
+    hexesWithinRadius(2).map((c) => coordKey(c)).sort(),
+    'bot range ignores the sight disc'
+  );
+});
+
+test('pathToward: human cannot target a hex outside its sight disc', () => {
+  const champ = makeChampion({
+    id: 'cA', controller: 'human', sight: 1, pos: { q: 0, r: 0 }, actionPoints: 60,
+  });
+  const state = makeState({ champions: [champ], tiles: discTiles(3) });
+
+  assert.equal(pathToward(state, champ, '2,0'), null, 'fogged target rejected');
+});
+
+test('pathToward: human visible target beyond budget returns the affordable prefix', () => {
+  const champ = makeChampion({
+    id: 'cA', controller: 'human', sight: 2, pos: { q: 0, r: 0 }, actionPoints: 10,
+  });
+  const state = makeState({ champions: [champ], tiles: discTiles(2) });
+
+  const toward = pathToward(state, champ, '2,0');
+
+  assert.deepEqual(toward.path, ['1,0']);
+  assert.equal(toward.cost, 10);
+});
+
 test('pathToKey: reconstructs the cheapest path from cameFrom', () => {
   const champ = makeChampion({ id: 'cA', pos: { q: 0, r: 0 }, actionPoints: 60 });
   const state = makeState({ champions: [champ], tiles: discTiles(3) });

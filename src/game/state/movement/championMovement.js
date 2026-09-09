@@ -11,16 +11,32 @@ import { coordKey, parseKey, neighbors } from '../../../engine/rules/hexGrid.js'
 import { weightedFindPath } from '../../../engine/rules/pathfinding.js';
 import { isBlockedForMovement, canChampionEnter } from '../entities/entityQueries.js';
 import { terrainCost } from '../../rules/movementCosts.js';
-import { refreshVision } from '../world/fogOfWar.js';
+import { refreshVision, visibleKeysFor } from '../world/fogOfWar.js';
 import { interactOnArrival } from '../features/arrivalInteractions.js';
 import { updateSpatialIndex } from '../entities/spatialIndex.js';
 import { SPUR_AP_BONUS, MIN_DAILY_AP } from '../../../params/game/championParams.js';
+
+/**
+ * Hex keys a champion may currently move to, or null when fog does not
+ * constrain it. Bots path with full map knowledge; humans are limited to
+ * their own live sight disc, so a destination — and every step toward it —
+ * must be visible right now, never merely explored (dimmed fog).
+ * @param {object} state
+ * @param {object} champ
+ * @returns {Set<string> | null}
+ */
+function sightKeysFor(state, champ) {
+  if (champ.controller !== 'human') return null;
+  return new Set(visibleKeysFor(state, champ));
+}
 
 /**
  * Weighted reachability from the champion's hex within its action-point pool.
  * FIFO relaxation with re-push on improvement — provably optimal for the
  * non-negative cost ladder (every parent improvement re-relaxes its
  * children), and cheaper than a heap at these range sizes.
+ * Human champions are confined to their current sight disc (sightKeysFor),
+ * so the range never advertises a hex that is only explored.
  * @param {object} state
  * @param {object} champ
  * @returns {{ costs: Map<string, number>, cameFrom: Map<string, string> }}
@@ -29,6 +45,7 @@ import { SPUR_AP_BONUS, MIN_DAILY_AP } from '../../../params/game/championParams
  */
 export function movementRange(state, champ) {
   const start = coordKey(champ.pos);
+  const sight = sightKeysFor(state, champ);
   const costs = new Map([[start, 0]]);
   const cameFrom = new Map();
   const q = [start];
@@ -38,6 +55,7 @@ export function movementRange(state, champ) {
     const cc = costs.get(cur);
     for (const n of neighbors(parseKey(cur))) {
       const key = coordKey(n);
+      if (sight && !sight.has(key)) continue;
       if (isBlockedForMovement(state, key, champ)) continue;
       const nc = cc + terrainCost(champ, state.tiles[key].terrain, state.tiles[key].biomeId);
       if (nc <= champ.actionPoints && (costs.get(key) === undefined || nc < costs.get(key))) {
@@ -76,7 +94,8 @@ export function pathToKey(range, targetKey) {
  * toward it (dev/docs/movementAndOccupation.md §5, §6). Shared by the
  * click-to-preview and commit paths, so the previewed route always matches
  * the walked route. Feature hexes are destination-only (never routed
- * through), matching movementRange. Returns null when no path exists at all.
+ * through), matching movementRange. Human champions may only target a hex in
+ * their current sight disc (and the route stays inside it); null otherwise.
  *
  * @param {object} state
  * @param {object} champ
@@ -85,6 +104,9 @@ export function pathToKey(range, targetKey) {
  * @returns {{ path: string[], cost: number } | null}
  */
 export function pathToward(state, champ, targetKey, range = movementRange(state, champ)) {
+  const sight = sightKeysFor(state, champ);
+  // No walking toward a fogged destination: the target must be visible now.
+  if (sight && !sight.has(targetKey)) return null;
   if (range.costs.has(targetKey)) {
     return { path: pathToKey(range, targetKey), cost: range.costs.get(targetKey) };
   }
@@ -92,6 +114,7 @@ export function pathToward(state, champ, targetKey, range = movementRange(state,
   const full = weightedFindPath(champ.pos.q, champ.pos.r, t.q, t.r, (key) => {
     const tile = state.tiles[key];
     if (!tile) return Infinity;
+    if (sight && !sight.has(key)) return Infinity;
     if (key !== targetKey && tile.feature) return Infinity; // destinations only
     return canChampionEnter(state, key, champ) ? terrainCost(champ, tile.terrain, tile.biomeId) : Infinity;
   });
